@@ -5,7 +5,6 @@ import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-
 import { holosmithHooks } from '#gw2/professions/engineer/specializations/holosmith/hooks.js';
 import { holosmithModifiers } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
 import { bindHolosmithUi } from '#gw2/professions/engineer/specializations/holosmith/presentation.js';
-import { HOLOSMITH_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import {
   HOLOSMITH_AUTOATTACK_CHAINS,
   HOLOSMITH_SKILL_MECHANICS
@@ -22,7 +21,6 @@ export const holosmithModule = defineNativeModule({
   data: createEngineerModuleData('Holosmith', {
     skillFields: HOLOSMITH_SKILL_FIELDS,
     skillMechanics: HOLOSMITH_SKILL_MECHANICS,
-    balanceProfiles: HOLOSMITH_BALANCE_PROFILES,
     autoattackChains: { additional: HOLOSMITH_AUTOATTACK_CHAINS }
   }),
   // Heat tasks and impact formulas read the same live specialization state.

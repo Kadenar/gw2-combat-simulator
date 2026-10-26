@@ -1,3 +1,4 @@
+import { AMALGAM_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/amalgam/skill-fields.js';
 import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
 import { plasmaticStateModifiers } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
@@ -20,6 +21,7 @@ export const amalgamModule = defineNativeModule({
   id: 'Amalgam',
   traitDefinitions: amalgamTraits,
   data: createEngineerModuleData('Amalgam', {
+    skillFields: AMALGAM_SKILL_FIELDS,
     skillMechanics: AMALGAM_SKILL_MECHANICS,
     balanceProfiles: AMALGAM_BALANCE_PROFILES
   }),

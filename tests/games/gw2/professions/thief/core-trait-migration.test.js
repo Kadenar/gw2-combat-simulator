@@ -105,8 +105,7 @@ for (const [name, traitId, action, catalog, procs] of [
     'Upper Hand',
     TRAIT.UPPER_HAND,
     'Dodge',
-    (live) =>
-      withProfile(withSkill(live, SHARED_SKILL_IDS.DODGE, { castTimeMs: 0 }), CORE.resources, { resourceCost: 0 }),
+    (live) => withSkill(live, SHARED_SKILL_IDS.DODGE, { castTimeMs: 0, cost: { resource: 'endurance', amount: 0 } }),
     null
   ]
 ]) {

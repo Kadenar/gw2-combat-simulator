@@ -4,10 +4,12 @@ import { ACTOR, RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform
  * Trait triggers own selection and invocation; these skills own their payload and delivery.
  */
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Defines the catalog fragments used by Core Engineer trait effects. */
-export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<EngineerSkill>>> = Object.freeze({
   [ID.LESSER_GRENADE_BARRAGE]: {
     castTimeMs: 0,
     cooldown: 20,
@@ -59,6 +61,18 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.STATIC_DISCHARGE_TRAIT_SKILL]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    criticalDamage: 2,
+    // Double this skill's critical factor; native registration scopes the rule to its owner.
+    modifiers: [
+      {
+        id: 'engineer.static-discharge-critical-damage',
+        order: -9,
+        target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+        operation: 'multiply',
+        factor: (context) => skillNumberFromContext(context, ID.STATIC_DISCHARGE_TRAIT_SKILL, 'criticalDamage')
+      }
+    ],
     castTimeMs: 0,
     cooldown: 0,
     effects: [

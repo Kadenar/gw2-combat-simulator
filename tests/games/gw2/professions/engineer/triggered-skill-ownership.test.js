@@ -177,6 +177,30 @@ for (const entry of cases) {
   });
 }
 
+test('Static Discharge critical tuning follows the selected skill in combat and isolated previews', () => {
+  // Changing the proc's critical factor must leave an ordinary weapon strike unchanged.
+  const entry = cases.find((entry) => entry.trait === TRAIT.STATIC_DISCHARGE);
+  const profession = withPatchPreview(engineerProfession, {
+    id: 'discharge-critical',
+    label: 'Discharge critical',
+    professions: { engineer: { skills: { [entry.skill]: { fields: { criticalDamage: 1 } } } } }
+  });
+  const results = ['current', 'discharge-critical', 'current'].map((patchId) => {
+    const config = { ...configFor(entry), patchId };
+    const combat = runEngineer([...entry.rotation, 'Puncturing Jab', wait], config, { profession });
+    assert.deepEqual(combat.warnings, []);
+    const proc = strikes(combat.resolvedEvents, entry.skill)[0];
+    const preview = strikes(previewTrait(profession, config, entry).events, entry.skill)[0];
+    assert.equal(proc.criticalDamage, preview.criticalDamage);
+    return { proc, weapon: strikes(combat.resolvedEvents, ID.PUNCTURING_JAB)[0] };
+  });
+  assert.equal(results[0].proc.criticalDamage, results[1].proc.criticalDamage * 2);
+  assertFlooredDamageMultiplier(results[0].proc.damage, results[1].proc.damage, 2);
+  assert.equal(results[0].weapon.damage, results[1].weapon.damage);
+  assert.equal(results[0].weapon.criticalDamage, results[1].weapon.criticalDamage);
+  assert.equal(results[2].proc.damage, results[0].proc.damage);
+});
+
 // One skill timer mediates direct recharge, trait activation, dodge rearming, and authored cooldown resets.
 test('Explosive Entrance reads patched skill recharge and reserves it before reentrant damage', () => {
   const config = configFor(cases[0]);

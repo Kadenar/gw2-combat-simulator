@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { CONTROL, ACTOR, WEAPON, RECIPIENT, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -23,12 +24,7 @@ import type {
   EngineerRuntimeState
 } from '#gw2/professions/engineer/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-import {
-  requireBalanceProfileFromContext,
-  requireEffect,
-  balanceProfileNumber
-} from '#gw2/platform/skills/balance-profiles.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
+import { requireSkillFromContext, requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Skill declarations select each spear mutation; handlers retain lifetime ownership and release-time snapshots. */
 const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers'] = {
@@ -154,17 +150,30 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
   // Only a target-facing pulse in combat can earn an Artillery charge.
   if (!event.offTarget && context.engagement.hostileEffectsAllowed(event.at)) {
     const state = context.profession.core;
-    state.lightningRodChargeExpiries = addTimedStacks(state.lightningRodChargeExpiries, 1, event.at, 12, 12).expiries;
+    state.lightningRodChargeExpiries = addTimedStacks(
+      state.lightningRodChargeExpiries,
+      1,
+      event.at,
+      12,
+      skillNumber(requireSkillFromContext(context, ID.ELECTRIC_ARTILLERY), 'maximumStacks')
+    ).expiries;
   }
 
   const isFocused = focused(context, event.at);
-  const profile = requireBalanceProfileFromContext(
-    context,
-    isFocused ? PROFILE.focusedLightningRod : PROFILE.lightningRod
+  const skill = requireSkillFromContext(context, ID.LIGHTNING_ROD);
+  const action = requireSkillAction(skill, 'payload');
+  const condition = requireEffect(
+    skill,
+    'condition',
+    isFocused ? `Focused ${CONDITION.VULNERABILITY}` : CONDITION.VULNERABILITY,
+    action
   );
-  const idProfile = requireBalanceProfileFromContext(context, profile.id);
-  const condition = requireEffect(idProfile, 'condition', CONDITION.VULNERABILITY);
-  const strike = requireEffect(idProfile, 'strike', profile.name);
+  const strike = requireEffect(
+    skill,
+    'strike',
+    isFocused ? 'Focused Lightning Rod Pulse' : 'Lightning Rod Pulse',
+    action
+  );
 
   if (strike)
     context.effects.emit({
@@ -191,9 +200,9 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
 
 /** Opens the Focused target window and resolves Conduit Surge's strike and burning packets. */
 function handleConduitSurge(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, PROFILE.conduitSurge);
-  const idProfile = requireBalanceProfileFromContext(context, profile.id);
-  const burning = requireEffect(idProfile, 'condition', CONDITION.BURNING);
+  const skill = requireSkillFromContext(context, ID.CONDUIT_SURGE);
+  const action = requireSkillAction(skill, 'payload');
+  const burning = requireEffect(skill, 'condition', CONDITION.BURNING, action);
 
   // Independent accepted target windows preserve a longer Focused grant without a duplicate deadline.
   if (!event.offTarget && context.engagement.hostileEffectsAllowed(event.at))
@@ -205,7 +214,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
         type: 'buff',
         kind: 'engineer-focused',
         at: event.at,
-        duration: balanceProfileNumber(idProfile, 'duration'),
+        duration: skillNumber(skill, 'duration'),
         stacks: 1,
         source: 'engineer',
         sourceId: ID.CONDUIT_SURGE,
@@ -216,7 +225,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
       }
     });
 
-  const strike = requireEffect(idProfile, 'strike', profile.name);
+  const strike = requireEffect(skill, 'strike', 'Conduit Surge', action);
 
   if (strike)
     context.effects.emit({
@@ -255,17 +264,34 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
 /** Resolves Electric Artillery using its stored charges and current Focused state. */
 export function handleElectricArtillery(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const isFocused = focused(context, event.at);
-  const profile = requireBalanceProfileFromContext(
-    context,
-    isFocused ? PROFILE.focusedElectricArtillery : PROFILE.electricArtillery
+  const skill = requireSkillFromContext(context, ID.ELECTRIC_ARTILLERY);
+  const action = requireSkillAction(skill, 'payload');
+  const immobilize = requireEffect(
+    skill,
+    'condition',
+    isFocused ? `Focused ${CONDITION.IMMOBILIZED}` : CONDITION.IMMOBILIZED,
+    action
   );
-  const idProfile = requireBalanceProfileFromContext(context, profile.id);
-  const immobilize = requireEffect(idProfile, 'condition', CONDITION.IMMOBILIZED);
-  const vulnerability = requireEffect(idProfile, 'condition', CONDITION.VULNERABILITY);
-  const burning = requireEffect(idProfile, 'condition', CONDITION.BURNING);
+  const vulnerability = requireEffect(
+    skill,
+    'condition',
+    isFocused ? `Focused ${CONDITION.VULNERABILITY}` : CONDITION.VULNERABILITY,
+    action
+  );
+  const burning = requireEffect(
+    skill,
+    'condition',
+    isFocused ? `Focused ${CONDITION.BURNING}` : CONDITION.BURNING,
+    action
+  );
   // charges accumulate from Lightning Rod hits (max 12); Math.trunc discards partial charges
-  const charges = boundedInteger(event.charges || 0, 0, 0, balanceProfileNumber(idProfile, 'maximumStacks'));
-  const strike = requireEffect(idProfile, 'strike', profile.name);
+  const charges = boundedInteger(event.charges || 0, 0, 0, skillNumber(skill, 'maximumStacks'));
+  const strike = requireEffect(
+    skill,
+    'strike',
+    isFocused ? 'Focused Electric Artillery' : 'Electric Artillery',
+    action
+  );
 
   if (strike)
     context.effects.emit({
@@ -293,7 +319,9 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
   // The tooltip specifies charges required per stack: one when Focused, otherwise two.
   if (vulnerability) {
     const vulnerabilityStacks =
-      Math.floor(charges / balanceProfileNumber(idProfile, 'chargesPerVulnerability')) * Number(vulnerability.stacks);
+      Math.floor(
+        charges / skillNumber(skill, isFocused ? 'focusedChargesPerVulnerability' : 'chargesPerVulnerability')
+      ) * Number(vulnerability.stacks);
 
     if (vulnerabilityStacks > 0) {
       context.effects.emit({
@@ -320,7 +348,9 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
         skillName: 'Electric Artillery',
         condition: CONDITION.BURNING,
         stacks: Number(burning.stacks),
-        duration: Number(burning.duration) + charges * balanceProfileNumber(idProfile, 'burningDurationPerCharge'),
+        duration:
+          Number(burning.duration) +
+          charges * skillNumber(skill, isFocused ? 'focusedBurningDurationPerCharge' : 'burningDurationPerCharge'),
         source: 'engineer',
         sourceId: event.skillId ?? event.sourceId,
         actorType: ACTOR.PLAYER,

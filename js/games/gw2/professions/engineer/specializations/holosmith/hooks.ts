@@ -6,10 +6,12 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 import { photonForgeHooks } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import {
   holosmithSlotEventHandlers,
+  holosmithSlotSideEffectHandlers,
   prepareHolosmithSlotEvent
 } from '#gw2/professions/engineer/specializations/holosmith/skills/slot-skills.js';
 import {
   holosmithSwordEventHandlers,
+  holosmithSwordSideEffectHandlers,
   prepareHolosmithSwordEvent
 } from '#gw2/professions/engineer/specializations/holosmith/skills/weapons/sword.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
@@ -34,6 +36,14 @@ export const holosmithHooks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill> 
     }
   },
   // Slot preparation precedes sword preparation; separate owners expose registry collisions to the composer.
-  { prepareEvent: prepareHolosmithSlotEvent, eventHandlers: holosmithSlotEventHandlers },
-  { prepareEvent: prepareHolosmithSwordEvent, eventHandlers: holosmithSwordEventHandlers }
+  {
+    prepareEvent: prepareHolosmithSlotEvent,
+    eventHandlers: holosmithSlotEventHandlers,
+    sideEffectHandlers: holosmithSlotSideEffectHandlers
+  },
+  {
+    prepareEvent: prepareHolosmithSwordEvent,
+    eventHandlers: holosmithSwordEventHandlers,
+    sideEffectHandlers: holosmithSwordSideEffectHandlers
+  }
 ]);

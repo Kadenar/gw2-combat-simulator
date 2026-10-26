@@ -56,8 +56,8 @@ export function engineerMechAttributes(
   // Base mech attributes use mechanic balance; selected frame improvements use their own trait balance.
   const resourcesProfile = requireBalanceProfileFromContext(balanceContext, PROFILE.resources);
   const baseAttribute = balanceProfileNumber(resourcesProfile, 'baseAttribute');
-  const inheritanceRatio = balanceProfileNumber(resourcesProfile, 'inheritanceRatio');
-  const secondaryCap = balanceProfileNumber(resourcesProfile, 'secondaryAttributeCap');
+  const inheritanceRatio = balanceNumberFromContext(balanceContext, TRAIT.MECHANICAL_GENIUS, 'inheritanceRatio');
+  const secondaryCap = balanceNumberFromContext(balanceContext, TRAIT.MECHANICAL_GENIUS, 'secondaryAttributeCap');
   // Secondary stats inherit 50 % of the player's value up to 750.
   // Conductive Alloys and Channeling Conduits each double the cap to 1500 and
   // raise the inheritance ratio to 100 % for their respective stat groups.
@@ -72,7 +72,7 @@ export function engineerMechAttributes(
 
   return {
     power: Math.min(
-      balanceProfileNumber(resourcesProfile, 'powerCap'),
+      balanceNumberFromContext(balanceContext, TRAIT.MECHANICAL_GENIUS, 'powerCap'),
       baseAttribute + playerAttribute(playerStats, 'power', 1000) * inheritanceRatio
     ),
     precision: variable

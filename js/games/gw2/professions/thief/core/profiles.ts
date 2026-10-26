@@ -24,10 +24,6 @@ const THIEF_CORE_RESOURCE_PROFILE: BalanceProfile = {
   maximumStacks: 12,
   resourceGain: 1,
   kneelingInitiativeRegenerationBonus: 1 / 3,
-  resourceCost: 50,
-  enduranceRegenerationPerSecond: 5,
-  vigorRegenerationMultiplier: 1.5,
-  threshold: 10,
   effects: []
 };
 

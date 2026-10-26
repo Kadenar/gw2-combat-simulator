@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
@@ -48,7 +49,8 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
       expiresAt: Infinity
     }));
 
-    if ('fullEndurance' in inputs) runtime.profession.core.endurance.value = inputs.fullEndurance ? 100 : 0;
+    if ('fullEndurance' in inputs)
+      runtime.profession.core.endurance.value = inputs.fullEndurance ? ENDURANCE.maximum : 0;
   },
   buffPolicies: renegadeBuffPolicies,
   observeEffects: renegadeEffectStates,

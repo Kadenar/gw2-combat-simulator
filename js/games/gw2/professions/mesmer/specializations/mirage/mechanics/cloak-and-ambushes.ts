@@ -1,3 +1,4 @@
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -293,8 +294,8 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
 /** Binds shared endurance operations to this module's live pool and balance rules. */
 export const mirageEndurance: EndurancePolicy<MesmerRuntime> = {
   state: (context) => mirageState.from(context).endurance,
-  maximum: () => 100,
-  regenerationRate: (_context, vigor) => (vigor ? 7.5 : 5)
+  maximum: () => ENDURANCE.maximum,
+  regenerationRate: (_context, vigor) => enduranceRegenerationRate(vigor)
 };
 
 /** Materialize admitted clone ambushes under their captured weapon and clone ownership. */

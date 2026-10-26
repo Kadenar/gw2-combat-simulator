@@ -277,10 +277,23 @@ export function normalizeSkill<TSkill extends Skill>(
     merged.cost != null &&
     (typeof merged.cost !== 'object' ||
       Array.isArray(merged.cost) ||
-      Object.keys(merged.cost).some((key) => !['resource', 'profileAmount', 'skillAmount', 'spendOn'].includes(key)) ||
+      Object.keys(merged.cost).some(
+        (key) => !['resource', 'amount', 'profileAmount', 'skillAmount', 'spendOn'].includes(key)
+      ) ||
       (merged.cost.spendOn != null && !['castStart', 'castCommit'].includes(merged.cost.spendOn)))
   )
     throw new TypeError(`Skill ${id} has an invalid cost declaration.`);
+
+  // Fixed rule costs must be finite and nonnegative, with no competing balance selector.
+  if (
+    merged.cost?.amount != null &&
+    (typeof merged.cost.amount !== 'number' ||
+      !Number.isFinite(merged.cost.amount) ||
+      merged.cost.amount < 0 ||
+      merged.cost.profileAmount != null ||
+      merged.cost.skillAmount != null)
+  )
+    throw new TypeError(`Skill ${id} has an invalid fixed cost amount.`);
 
   // A skill-field selector must name one finite nonnegative amount, without a competing profile source.
   if (merged.cost?.skillAmount != null) {

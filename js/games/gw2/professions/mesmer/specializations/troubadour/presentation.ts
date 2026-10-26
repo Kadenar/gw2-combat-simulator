@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -99,7 +100,7 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
         singular: 'endurance',
         plural: 'endurance',
         maximum: mesmerUiState(context).endurance?.maximum ?? context.resources!.endurance!.maximum,
-        value: mesmerUiState(context).endurance?.value ?? 100,
+        value: mesmerUiState(context).endurance?.value ?? ENDURANCE.maximum,
         canStart: false,
         step: 1,
         displayMode: 'bar' as const,

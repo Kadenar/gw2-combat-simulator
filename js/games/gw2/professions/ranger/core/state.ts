@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import {
   createPublicStateProjector,
   readProfessionCoreState,
@@ -59,7 +60,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     player: createRangerActorProcState(),
     pet: createRangerPetState(rangerPetInstanceId(1, 0)),
     nextPetInstance: 1,
-    endurance: createResourceClock(100),
+    endurance: createResourceClock(ENDURANCE.maximum),
     availableFlips: {},
     ...createStealthState(),
     autoattackChains: {},

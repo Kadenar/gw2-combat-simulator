@@ -1,3 +1,5 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { BOON } from '#gw2/platform/constants.js';
 import {
   fromProfile,
@@ -6,6 +8,7 @@ import {
   traitTooltip,
   skillTooltip,
   profileFact,
+  skillFact,
   tooltipPercent,
   tooltipDecimal,
   tooltipNumber,
@@ -14,7 +17,6 @@ import {
   type ProfessionTooltips,
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as HOLOSMITH } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -27,20 +29,25 @@ import {
 } from '#gw2/professions/engineer/app/tooltips/shared.js';
 
 /** Heat variants describe mutually exclusive packets without evaluating a live combat context. */
-function heatPacketTooltip(profileId: SkillId, description: string, field = false): DescribeSimulationTooltip {
+function heatPacketTooltip(skillId: SkillId, description: string, field = false): DescribeSimulationTooltip {
   return (balanceContext, entity) => {
-    const profile = tooltipProfile(balanceContext, profileId);
+    const skill = requireSkillFromContext(balanceContext, skillId);
     const facts = [
       ...simulationEffectFacts(
-        balanceContext.catalog.skillsById.get(entity.id)!.effects?.filter((effect) => effect.type !== 'custom')
+        balanceContext.catalog.skillsById
+          .get(entity.id)!
+          .effects?.filter((effect) => effect.type !== 'custom' && effect.metadata?.trigger !== 'heat-field')
       ).facts
     ];
     for (let tier = field ? 1 : 0; tier < heatTiers(balanceContext).length; tier += 1) {
-      const count = tooltipNumber(profile, field ? 'packetCount' : tier === 0 ? 'basePacketCount' : 'highPacketCount');
-      const factor = tier === 2 ? tooltipNumber(profile, 'enhancedStrikeFactor') : 1;
+      const count = tooltipNumber(skill, field ? 'packetCount' : tier === 0 ? 'basePacketCount' : 'highPacketCount');
+      const factor = tier === 0 ? 1 : tooltipNumber(skill, tier === 2 ? 'enhancedStrikeFactor' : 'highStrikeFactor');
       facts.push(
         ...simulationEffectFacts(
-          profile.effects?.map((effect): SkillEffect =>
+          (field
+            ? skill.effects!.filter((effect) => effect.metadata?.trigger === 'heat-field')
+            : requireSkillAction(skill, 'heat-payload').effects
+          ).map((effect): SkillEffect =>
             effect.type === 'strike'
               ? { ...effect, coefficient: tooltipNumber(effect, 'coefficient') * count * factor, hits: count }
               : effect.type === 'condition'
@@ -49,7 +56,7 @@ function heatPacketTooltip(profileId: SkillId, description: string, field = fals
                     applications: count,
                     duration:
                       tooltipNumber(effect, 'duration') *
-                      (field && tier === 2 ? tooltipNumber(profile, 'enhancedConditionBaseDurationFactor') : 1)
+                      (field && tier === 2 ? tooltipNumber(skill, 'enhancedConditionBaseDurationFactor') : 1)
                   }
                 : effect
           ),
@@ -58,8 +65,8 @@ function heatPacketTooltip(profileId: SkillId, description: string, field = fals
       );
     }
 
-    if (profile.packetInterval != null)
-      facts.push(profileFact(balanceContext, profileId, 'packetInterval', 'Pulse interval', tooltipSeconds));
+    if ('packetInterval' in skill)
+      facts.push(skillFact(balanceContext, skillId, 'packetInterval', 'Pulse interval', tooltipSeconds));
 
     return { description, facts };
   };
@@ -68,7 +75,14 @@ function heatPacketTooltip(profileId: SkillId, description: string, field = fals
 const photonForgeEnterTooltip: DescribeSimulationTooltip = skillTooltip(
   'Enter Photon Forge, replace the weapon bar, and begin generating heat. Kits are briefly locked. Reaching maximum heat locks Forge attacks and starts overheat consequences; the rotation must still select the exit action. Applicable Forge-entry traits activate.',
   (balanceContext) => [
-    profileFact(balanceContext, HOLOSMITH.heat, 'energyRegenerationPerSecond', 'Passive heat per second'),
+    profileFact(balanceContext, TRAIT.PHOTON_PROJECTOR, 'energyRegenerationPerSecond', 'Passive heat per second'),
+    skillFact(
+      balanceContext,
+      ID.ENGAGE_PHOTON_FORGE,
+      'kitLockoutDuration',
+      'Kit lockout after Forge entry',
+      tooltipSeconds
+    ),
     profileFact(
       balanceContext,
       TRAIT.LIGHT_DENSITY_AMPLIFIER,
@@ -87,8 +101,7 @@ const photonForgeEnterTooltip: DescribeSimulationTooltip = skillTooltip(
 
 const photonForgeExitTooltip: DescribeSimulationTooltip = skillTooltip(
   'Leave Photon Forge and restore the weapon bar. Cooling begins after its delay and accelerates later. Photonic Blasting Module prevents cooling from ordinary exit; overheating still enables cooling. Forge-exit and bar-swap traits apply.',
-  (balanceContext) => [
-    profileFact(balanceContext, HOLOSMITH.heat, 'cooldown', 'Base Forge re-entry cooldown', tooltipSeconds),
+  () => [
     { name: 'Cooling delay', detail: tooltipSeconds(HOLOSMITH_HEAT.coolingDelay) },
     { name: 'Initial cooling per second', detail: tooltipDecimal(HOLOSMITH_HEAT.slowCoolingPerSecond) },
     { name: 'Later cooling per second', detail: tooltipDecimal(HOLOSMITH_HEAT.fastCoolingPerSecond) }
@@ -135,15 +148,15 @@ export const holosmithTooltips = {
     [ID.CORONA_BURST]: coronaBurstHeatTooltip,
     [ID.PHOTON_BLITZ]: photonBlitzHeatTooltip,
     [ID.LAUNCH_WALL]: heatPacketTooltip(
-      HOLOSMITH.launchWallHeatTier,
+      ID.LAUNCH_WALL,
       "Consume Photon Wall's follow-up and launch the heat-tier-selected walls. All walls arrive together; each owns its explosion and vulnerability application."
     ),
     [ID.LASER_DISK]: heatPacketTooltip(
-      HOLOSMITH.laserDiskHeatTier,
+      ID.LASER_DISK,
       'Create rotating blades. Activation heat determines the pulse count and enhanced damage; later heat changes do not alter the sequence.'
     ),
     [ID.PRIME_LIGHT_BEAM]: heatPacketTooltip(
-      HOLOSMITH.primeLightBeamHeatTier,
+      ID.PRIME_LIGHT_BEAM,
       'Fire the initial beam. Above the heat threshold, also create the damaging field. The activation heat tier determines every delayed field pulse.',
       true
     ),
@@ -160,7 +173,7 @@ export const holosmithTooltips = {
                 {
                   type: 'boon',
                   boon: BOON.QUICKNESS,
-                  duration: tooltipNumber(tooltipProfile(balanceContext, HOLOSMITH.radiantArcHeatTier), field)
+                  duration: tooltipNumber(requireSkillFromContext(balanceContext, ID.RADIANT_ARC), field)
                 }
               ],
               heatTiers(balanceContext)[index]
@@ -176,13 +189,13 @@ export const holosmithTooltips = {
           balanceContext.catalog.skillsById.get(entity.id)!.effects?.filter((effect) => effect.type !== 'custom')
         ).facts,
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, HOLOSMITH.refractionCutterHeatTier).effects,
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.REFRACTION_CUTTER), 'heat-payload').effects,
           'per additional blade'
         ).facts,
         ...['baseExtraBlades', 'highExtraBlades', 'enhancedExtraBlades'].map((field, index) =>
-          profileFact(
+          skillFact(
             balanceContext,
-            HOLOSMITH.refractionCutterHeatTier,
+            ID.REFRACTION_CUTTER,
             field,
             `Additional blades ${heatTiers(balanceContext)[index]}`
           )
@@ -191,19 +204,19 @@ export const holosmithTooltips = {
     }),
     [ID.SUN_EDGE]: skillTooltip(
       "Strike with your sword. Holosmith's current heat tier increases this strike.",
-      (balanceContext) => heatStrikeFacts(balanceContext, HOLOSMITH.swordHeatTier)
+      (balanceContext) => heatStrikeFacts(balanceContext, ID.SUN_EDGE)
     ),
     [ID.SUN_RIPPER]: skillTooltip(
       "Strike with your sword. Holosmith's current heat tier increases this strike.",
-      (balanceContext) => heatStrikeFacts(balanceContext, HOLOSMITH.swordHeatTier)
+      (balanceContext) => heatStrikeFacts(balanceContext, ID.SUN_RIPPER)
     ),
     [ID.BLADE_BURST]: skillTooltip(
       "Launch blades. Holosmith's heat tier increases their strike damage.",
-      (balanceContext) => heatStrikeFacts(balanceContext, HOLOSMITH.bladeBurstHeatTier)
+      (balanceContext) => heatStrikeFacts(balanceContext, ID.BLADE_BURST)
     ),
     [ID.PARTICLE_ACCELERATOR]: skillTooltip(
       "Fire a projectile. Holosmith's heat tier increases its strike damage.",
-      (balanceContext) => heatStrikeFacts(balanceContext, HOLOSMITH.particleAcceleratorHeatTier)
+      (balanceContext) => heatStrikeFacts(balanceContext, ID.PARTICLE_ACCELERATOR)
     )
   },
   traits: {

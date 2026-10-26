@@ -6,12 +6,12 @@ import {
   traitTooltip,
   skillTooltip,
   profileFact,
+  skillFact,
   tooltipPercent,
   simulationEffectFacts,
   type ProfessionTooltips,
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { MECHANIST_BALANCE_PROFILE_IDS as MECHANIST } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
@@ -26,28 +26,47 @@ function improvedMechInheritanceFacts(balanceContext: ProfessionBalanceContext, 
 
 const overclockSignetTooltip: DescribeSimulationTooltip = skillTooltip(
   "Command the active mech to fire Jade Buster Cannon. Its basic attack loop pauses during the burst; mech quickness changes its attack rate. The signet's passive reduces other signet recharges, subject to its passive availability rules.",
-  // The commanded skill owns the entire burst; the signet profile only owns its passive.
+  // The commanded skill owns the entire burst; the signet owns its passive.
   (balanceContext) => [
     ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.JADE_BUSTER_CANNON)!.effects, 'companion effect')
       .facts,
-    profileFact(balanceContext, MECHANIST.overclock, 'rechargeMultiplier', 'Signet recharge', tooltipFactorChange)
+    skillFact(balanceContext, ID.OVERCLOCK_SIGNET, 'rechargeMultiplier', 'Signet recharge', tooltipFactorChange)
   ]
 );
 
 /** Describe mechanist tooltips from the selected balance data. */
 export const mechanistTooltips = {
-  skills: { [ID.OVERCLOCK_SIGNET]: overclockSignetTooltip },
+  skills: {
+    [ID.OVERCLOCK_SIGNET]: overclockSignetTooltip,
+    // Passive facts follow the signet owner; J-Drive's optional replacement remains a separate trait fact.
+    [ID.FORCE_SIGNET]: skillTooltip(
+      'Strike and knock back the target. The equipped passive increases strike damage while available.',
+      (context) => [skillFact(context, ID.FORCE_SIGNET, 'damageIncrease', 'Passive strike damage', tooltipPercent)]
+    ),
+    [ID.SUPERCONDUCTING_SIGNET]: skillTooltip(
+      'Create a damaging lightning field. The equipped passive increases condition damage while available.',
+      (context) => [
+        skillFact(
+          context,
+          ID.SUPERCONDUCTING_SIGNET,
+          'conditionDamageIncrease',
+          'Passive condition damage',
+          tooltipPercent
+        )
+      ]
+    )
+  },
   traits: {
     [TRAIT.MECHANICAL_GENIUS]: traitTooltip(
       'Replace toolbelt skills with mech commands. The mech remains present and inherits attributes from the player.',
       [
         fromProfile(
-          'engineer.mechanist.mech',
+          TRAIT.MECHANICAL_GENIUS,
           'inheritanceRatio',
           'Base power and secondary-attribute inheritance',
           tooltipPercent
         ),
-        fromProfile('engineer.mechanist.mech', 'secondaryAttributeCap', 'Base secondary-attribute cap')
+        fromProfile(TRAIT.MECHANICAL_GENIUS, 'secondaryAttributeCap', 'Base secondary-attribute cap')
       ]
     ),
     [TRAIT.MECH_FIGHTER]: traitTooltip(

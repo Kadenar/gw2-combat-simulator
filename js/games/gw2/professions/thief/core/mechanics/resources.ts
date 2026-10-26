@@ -1,3 +1,4 @@
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   balanceNumberFromContext,
@@ -51,20 +52,12 @@ export const thiefInitiative: ResourcePolicy<ThiefRuntime> = {
   }
 };
 
-/** Vigor multiplies regeneration up to the selected cap; specializations may replace only the capacity. */
-function thiefEnduranceRate(runtime: ThiefRuntime, vigor: boolean): number {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-  return Math.min(
-    balanceProfileNumber(profile, 'threshold'),
-    balanceProfileNumber(profile, 'enduranceRegenerationPerSecond') *
-      (vigor ? balanceProfileNumber(profile, 'vigorRegenerationMultiplier') : 1)
-  );
-}
-
+/** Core uses shared recovery; Daredevil replaces only the capacity with its third dodge. */
 export const thiefEndurance: EndurancePolicy<ThiefRuntime> = {
   state: (runtime) => runtime.profession.core.endurance,
-  maximum: () => 100,
-  regenerationRate: (runtime, vigor) => thiefEnduranceRate(runtime, vigor)
+  maximum: () => ENDURANCE.maximum,
+  regenerationRate: (_runtime, vigor) =>
+    Math.min(ENDURANCE.maximumRegenerationPerSecond, enduranceRegenerationRate(vigor))
 };
 
 /** Kneeling changes the regeneration rate from this instant onward. */

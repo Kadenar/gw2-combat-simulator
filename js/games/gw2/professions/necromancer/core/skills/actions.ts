@@ -10,7 +10,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 const extraSkills: Skill[] = [
   createWeaponSwapSkill(),
   // Dodge uses the shared endurance controller and remains available in every transform.
-  { ...createDodgeSkill({ cost: { resource: 'endurance' }, resourceCost: 50 }), usableInShroud: true },
+  { ...createDodgeSkill(), usableInShroud: true },
   {
     id: ID.EXIT_LICH_FORM,
     // Manual and timed exits share the same guarded life-force reward.

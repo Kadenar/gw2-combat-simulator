@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
@@ -20,7 +21,7 @@ export function createNecromancerCoreState(
   );
   const state: NecromancerCoreState = {
     // Begin with two dodges; the shared controller advances regeneration and Vigor.
-    endurance: createResourceClock(100),
+    endurance: createResourceClock(ENDURANCE.maximum),
     lifeForce: {
       value: (clamp(config.initialResource ?? 100, 0, 100) * maximum) / 100,
       maximum,

@@ -1,3 +1,4 @@
+import { MECHANIST_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/mechanist/skill-fields.js';
 import { mechanistAttributes } from '#gw2/professions/engineer/specializations/mechanist/attributes.js';
 import { signetModifierRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
@@ -20,6 +21,7 @@ export const mechanistModule = defineNativeModule({
   id: 'Mechanist',
   traitDefinitions: mechanistTraits,
   data: createEngineerModuleData('Mechanist', {
+    skillFields: MECHANIST_SKILL_FIELDS,
     skillMechanics: MECHANIST_SKILL_MECHANICS,
     balanceProfiles: MECHANIST_BALANCE_PROFILES
   }),

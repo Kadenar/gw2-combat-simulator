@@ -6,12 +6,12 @@ import {
   outsideScopeTooltip,
   traitTooltip,
   profileFact,
+  skillFact,
   tooltipPercent,
   tooltipProfile,
   simulationEffectFacts,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/engineer/core/profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 /** Describe tools tooltips from the selected balance data. */
@@ -23,11 +23,17 @@ export const engineerToolsTooltips = {
   [TRAIT.EXCESSIVE_ENERGY]: traitTooltip('Player-owned strikes deal increased damage while you have vigor.', [
     fromProfile(TRAIT.EXCESSIVE_ENERGY, 'damageIncrease', 'Strike damage with vigor', tooltipPercent)
   ]),
-  [TRAIT.STATIC_DISCHARGE]: (balanceContext, entity) => ({
+  [TRAIT.STATIC_DISCHARGE]: (balanceContext) => ({
     description:
       'Completing a toolbelt skill fires an additional strike. Static Discharge has its own critical-damage multiplier.',
     facts: [
-      profileFact(balanceContext, entity.id, 'criticalDamage', 'Static Discharge critical damage', tooltipFactorChange),
+      skillFact(
+        balanceContext,
+        ID.STATIC_DISCHARGE_TRAIT_SKILL,
+        'criticalDamage',
+        'Static Discharge critical damage',
+        tooltipFactorChange
+      ),
       ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.STATIC_DISCHARGE_TRAIT_SKILL)!.effects || [])
         .facts
     ]
@@ -61,7 +67,7 @@ export const engineerToolsTooltips = {
     ]
   ),
   [TRAIT.ADRENAL_IMPLANT]: traitTooltip('Endurance regenerates faster. Dodging reduces active toolbelt cooldowns.', [
-    fromProfile(CORE.resources, 'coefficientMultiplier', 'Endurance regeneration', tooltipFactorChange),
+    ['enduranceRegenerationBonus', 'Endurance regeneration', tooltipPercent],
     ['rechargeReduction', 'Toolbelt recharge reduction per dodge', tooltipSeconds]
   ]),
   [TRAIT.GADGETEER]: traitTooltip('Gadget skills recharge faster.', [

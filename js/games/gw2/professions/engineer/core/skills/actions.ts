@@ -7,13 +7,10 @@ import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/sh
 
 import { ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS } from '#gw2/professions/engineer/core/skills/kits/elite-mortar-kit.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
 const extraSkills: EngineerSkill[] = [
   ...ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS,
-  createDodgeSkill({
-    cost: { resource: 'endurance', profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } }
-  }),
+  createDodgeSkill(),
   createWeaponSwapSkill()
 ];
 

@@ -6,7 +6,7 @@ import {
   copyEngineerMechBoon,
   engineerMechLifecycle
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
-import { overclockRechargeRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
+import { overclockRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import type { EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Register the mech's complete command lifecycle alongside availability, recharge rules, and trait reactions. */
@@ -16,7 +16,7 @@ export const mechanistHooks = composeRuntimeHooks<EngineerRuntimeState, Engineer
     // Barrier tracks applications and expiry for trait reactions without modeling incoming damage or health.
     buffPolicies: () => [{ kind: 'barrier', maximumStacks: 1 }],
     availability: mechanistCastAvailability,
-    rechargeRules: overclockRechargeRules,
+    rechargeWork: overclockRechargeWork,
     reactions: {
       'buff.applied': copyEngineerMechBoon,
       'damage.resolved'(runtime, event, details) {

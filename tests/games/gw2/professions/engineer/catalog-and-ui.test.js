@@ -22,7 +22,6 @@ import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mec
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { MECHANIST_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
@@ -109,12 +108,10 @@ test('Mechanist profile overrides preserve canonical edits and reject obsolete f
           [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]: { fields: { precisionCap: 300 } },
           [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]: { fields: { inheritanceRatio: 0.75, secondaryAttributeCap: 80 } },
           [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]: { fields: { inheritanceRatio: 0.75, secondaryAttributeCap: 80 } },
+          [TRAIT.MECHANICAL_GENIUS]: { fields: { inheritanceRatio: 0.25, secondaryAttributeCap: 50, powerCap: 500 } },
           [resourceId]: {
             fields: {
               baseAttribute: 100,
-              inheritanceRatio: 0.25,
-              secondaryAttributeCap: 50,
-              powerCap: 500,
               basePrecision: 2
             }
           }
@@ -167,7 +164,7 @@ test('Overclock Signet runtime inputs stay outside balance authoring', () => {
         balanceProfiles: { [ID.OVERCLOCK_SIGNET]: { fields: { [field]: 1 } } }
       })
     );
-    assert.equal(Object.hasOwn(engineerCatalog.balanceProfilesById.get(ID.OVERCLOCK_SIGNET), field), false);
+    assert.equal(Object.hasOwn(engineerCatalog.skillsById.get(ID.OVERCLOCK_SIGNET), field), false);
   }
 });
 
@@ -210,14 +207,14 @@ test('Engineer flip declarations expose and consume windows independently of API
 
 test('Overheat authoring retains the live penalty and rejects obsolete saved controls', () => {
   // Sparse saved edits remain valid for the live field; removed no-op controls fail explicitly without mutating inputs.
-  const id = HOLOSMITH_BALANCE_PROFILE_IDS.overheat;
+  const id = TRAIT.PHOTON_PROJECTOR;
   const profile = authoringEngineerProfession.patchAuthoring.modules
     .find((module) => module.id === 'Holosmith')
     .balanceProfiles.find((entry) => entry.id === id);
-  assert.deepEqual(Object.keys(profile.patchableFields), ['maximumStacks']);
-  const live = { balanceProfiles: { [id]: { fields: { maximumStacks: { from: 15, to: 9 } } } } };
+  assert.deepEqual(Object.keys(profile.patchableFields).sort(), ['cooldown', 'energyRegenerationPerSecond']);
+  const live = { balanceProfiles: { [id]: { fields: { cooldown: { from: 15, to: 9 } } } } };
   assert.equal(authoringEngineerProfession.validatePatch(live), true);
-  assert.equal(applyEngineerPatch(live).balanceProfilesById.get(id).maximumStacks, 9);
+  assert.equal(applyEngineerPatch(live).balanceProfilesById.get(id).cooldown, 9);
   for (const field of ['minimumStacks', 'threshold', 'pulseInterval', 'duration']) {
     const saved = JSON.parse(JSON.stringify({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } }));
     assert.throws(() => authoringEngineerProfession.validatePatch(saved), new RegExp(`does not expose ${field}`));
@@ -225,7 +222,7 @@ test('Overheat authoring retains the live penalty and rejects obsolete saved con
     assert.equal(Object.hasOwn(engineerCatalog.balanceProfilesById.get(id), field), false);
   }
 
-  assert.equal(engineerCatalog.balanceProfilesById.get(id).maximumStacks, 15);
+  assert.equal(engineerCatalog.balanceProfilesById.get(id).cooldown, 15);
 });
 
 test('Poison Dart Volley and Static Shot are not combo finishers', () => {

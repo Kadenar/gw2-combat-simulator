@@ -1,13 +1,17 @@
+import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { COMBO_FINISHER, ACTOR, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import {
-  requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect,
-  balanceProfileNumber,
+  skillNumber,
   effectNumber
 } from '#gw2/platform/skills/balance-profiles.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import type { EngineerResolverContext, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
@@ -29,10 +33,18 @@ import type {
   HolosmithSkillFragment
 } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
+// Only these sword autoattacks use the shared default heat factors.
+const swordHeatFactors = { highStrikeFactor: 1.2, enhancedStrikeFactor: 1.3 };
+
 /** Supplies Holosmith sword fragments to Holosmith module composition. */
 export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
   [ID.RADIANT_ARC]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    baseDuration: 2,
+    highDuration: 4,
+    enhancedDuration: 6,
+
     castTimeMs: 840,
     cooldown: 12,
     comboFinishers: [
@@ -67,6 +79,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ]
   },
   [ID.SUN_EDGE]: {
+    ...swordHeatFactors,
     castTimeMs: 440,
     cooldown: 0,
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -88,6 +101,36 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ])
   },
   [ID.REFRACTION_CUTTER]: {
+    sideEffects: [
+      {
+        on: 'castStart',
+        do: {
+          type: 'engineer.refraction-cutter-extra-blades',
+          id: 'heat-payload',
+          effects: [
+            {
+              name: 'Refraction Cutter Heat Tier',
+              type: 'strike',
+              coefficient: 0.4,
+              hits: 1
+            },
+            {
+              name: 'Bleeding',
+              type: 'condition',
+              condition: CONDITION.BLEEDING,
+              stacks: 1,
+              duration: 4
+            }
+          ]
+        }
+      }
+    ],
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    baseExtraBlades: 0,
+    highExtraBlades: 2,
+    enhancedExtraBlades: 4,
+    initialDelay: 0.36,
+
     castTimeMs: 520,
     // Preserve committed swing/blade damage and keep the parent cast's lockout before the next input.
     interruptCommitMs: 360,
@@ -128,18 +171,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
           duration: 4,
           actorType: ACTOR.PLAYER
         }
-      ]),
-      {
-        type: 'custom',
-        eventType: 'engineer.refraction-cutter-extra-blades',
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        event: {
-          name: 'Refraction Cutter extra blades'
-        },
-        actorType: ACTOR.PLAYER
-      }
+      ])
     ]
   },
   [ID.REFRACTION_CUTTER_BLADE]: {
@@ -171,6 +203,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ]
   },
   [ID.SUN_RIPPER]: {
+    ...swordHeatFactors,
     castTimeMs: 480,
     // The EVTC's successful 441 ms cast must advance the sword chain after replay timing rounds to 440 ms.
     interruptCommitMs: 440,
@@ -194,6 +227,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ])
   },
   [ID.GLEAM_SABER]: {
+    ...swordHeatFactors,
     // A committed finisher reduces live sword recharge, including shortened casts.
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.sword-recharge', amount: 1 } }],
     castTimeMs: 720,
@@ -231,10 +265,15 @@ function handleRadiantArcQuickness(context: EngineerResolverContext, event: Holo
 /** Materializes every heat-granted Refraction Cutter blade as a strike, bleed, and projectile finisher. */
 function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   const extraBlades = Math.max(0, Math.trunc(holosmithEventMetadata(event).extraBlades || 0));
-  const refractionCutterHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.refractionCutterHeatTier);
-  const delay = Math.max(0, balanceProfileNumber(refractionCutterHeatTierProfile, 'initialDelay'));
-  const strike = requireEffect(refractionCutterHeatTierProfile, 'strike', 'Refraction Cutter Heat Tier');
-  const condition = requireEffect(refractionCutterHeatTierProfile, 'condition', CONDITION.BLEEDING);
+  const skill = requireSkillFromContext(context, ID.REFRACTION_CUTTER);
+  const delay = Math.max(0, skillNumber(skill, 'initialDelay'));
+  const strike = requireEffect(
+    skill,
+    'strike',
+    'Refraction Cutter Heat Tier',
+    requireSkillAction(skill, 'heat-payload')
+  );
+  const condition = requireEffect(skill, 'condition', CONDITION.BLEEDING, requireSkillAction(skill, 'heat-payload'));
   // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
   for (let blade = 0; blade < extraBlades; blade += 1) {
     const at = event.at + delay;
@@ -248,7 +287,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
           // Heat-generated blades share the base projectile's separate damage identity.
           damageBreakdownName: 'Refraction Cutter Blade',
           skillName: event.skillName,
-          coefficient: effectNumber(refractionCutterHeatTierProfile, strike, 'coefficient'),
+          coefficient: effectNumber(skill, strike, 'coefficient'),
 
           hitIndex: blade + 2,
           totalHits: extraBlades + 1,
@@ -292,7 +331,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
   }
 }
 
-/** Arc and Cutter capture their tier; direct Holosmith sword hits sample their profile at impact. */
+/** Arc and Cutter capture their tier; direct Holosmith sword hits sample their skill tuning at impact. */
 export function prepareHolosmithSwordEvent(
   context: EngineerRuntime<HolosmithSkill>,
   event: SimulationEventBase
@@ -312,17 +351,12 @@ export function prepareHolosmithSwordEvent(
         : tier === 'high'
           ? 'highExtraBlades'
           : 'baseExtraBlades';
-    const profile = requireBalanceProfileFromContext(
-      context,
-      arc ? PROFILE.radiantArcHeatTier : PROFILE.refractionCutterHeatTier
-    );
+    const skill = requireSkillFromContext(context, arc ? ID.RADIANT_ARC : ID.REFRACTION_CUTTER);
     return {
       ...event,
       holosmithActivationHeat: snapshot.heat,
       holosmithEnhancedCapacitySelected: snapshot.enhancedCapacitySelected,
-      ...(arc
-        ? { duration: balanceProfileNumber(profile, field) }
-        : { extraBlades: balanceProfileNumber(profile, field) })
+      ...(arc ? { duration: skillNumber(skill, field) } : { extraBlades: skillNumber(skill, field) })
     };
   }
 
@@ -335,10 +369,31 @@ export function prepareHolosmithSwordEvent(
   )
     return event;
 
-  return { ...event, holosmithStrikeProfileId: PROFILE.swordHeatTier };
+  return { ...event, holosmithStrikeSkillId: event.skillId ?? event.sourceId };
 }
 
 export const holosmithSwordEventHandlers = Object.freeze({
   'engineer.radiant-arc-quickness': handleRadiantArcQuickness,
   'engineer.refraction-cutter-extra-blades': handleRefractionCutterExtraBlades
 });
+
+/** Launch the skill's deferred component; its resolver reads the selected action payload. */
+export const holosmithSwordSideEffectHandlers: RuntimeHooks<
+  EngineerRuntimeState,
+  HolosmithSkill
+>['sideEffectHandlers'] = {
+  'engineer.refraction-cutter-extra-blades'(runtime, context) {
+    if (context.kind !== 'cast') throw new TypeError('Heat components require a cast.');
+
+    const { cast } = context;
+
+    if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+
+    for (const packet of buildEngineerPackets(
+      'engineer.refraction-cutter-extra-blades',
+      { at: runtime.time, activationId: context.cast.id, offTarget: context.cast.command.offTarget },
+      context.skill
+    ))
+      runtime.effects.emit({ kind: 'packet', event: packet });
+  }
+};

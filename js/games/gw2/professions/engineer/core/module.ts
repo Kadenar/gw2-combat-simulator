@@ -4,9 +4,7 @@ import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.
 
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
-import { flameJetModifier } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
-import { ENGINEER_CORE_BALANCE_PROFILES } from '#gw2/professions/engineer/core/profiles.js';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS
@@ -23,7 +21,6 @@ export const engineerCoreModule = defineNativeModule({
   data: createEngineerModuleData('Core', {
     skillFields: ENGINEER_CORE_SKILL_FIELDS,
     skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
-    balanceProfiles: ENGINEER_CORE_BALANCE_PROFILES,
     extraSkills: ENGINEER_CORE_EXTRA_SKILLS,
     // RIFLE_BURST_GRENADE is a sub-packet of Rifle Burst, not a standalone chain member
     autoattackChains: { excludeSkillIds: [ID.RIFLE_BURST_GRENADE] }
@@ -33,8 +30,6 @@ export const engineerCoreModule = defineNativeModule({
     create: createEngineerCoreState,
     project: createPublicStateProjector(ENGINEER_CORE_PUBLIC_STATE_PROJECTION)
   },
-  // Register the skill-owned rule here; trait definitions supply their own modifiers.
-  modifiers: [flameJetModifier],
   hooks: engineerCoreHooks,
   presentation: bindEngineerCoreUi
 });

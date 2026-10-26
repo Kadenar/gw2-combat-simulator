@@ -14,12 +14,8 @@ import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 export const ELEMENTALIST_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
     id: ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources,
-    name: 'Elementalist Attunement and Endurance',
+    name: 'Elementalist Attunements',
     profileKind: 'mechanic',
-    maximumStacks: 100,
-    resourceCost: 50,
-    enduranceRegenerationPerSecond: 5,
-    vigorRegenerationMultiplier: 1.5,
     recharge: 10,
     initialDelay: 1.5,
     effects: []

@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, CONTROL, BOON, CONDITION, AURA, RECIPIENT } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
@@ -397,8 +398,7 @@ export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly MesmerSkill[] = Object.fre
     description: 'Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.',
     specialization: 'Troubadour',
     castTimeMs: 0,
-    resourceCost: 50,
-    cost: { resource: 'endurance', spendOn: 'castCommit' },
+    cost: { resource: 'endurance', amount: ENDURANCE.dodgeCost, spendOn: 'castCommit' },
     tasks: [
       {
         type: 'mesmer.troubadour.dodge',

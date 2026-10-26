@@ -112,6 +112,9 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     forgeSkill: true
   },
   [ID.ENGAGE_PHOTON_FORGE]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    kitLockoutDuration: 6,
+
     // Commit the bar transition; shared heat cadence and Lens lifetime retain their mechanic owner.
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.enter-forge' } }],
     // Custom: Enters Photon Forge and starts its heat lifecycle; see `holosmith/mechanics/photon-forge.ts`.

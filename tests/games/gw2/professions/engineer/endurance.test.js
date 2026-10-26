@@ -3,6 +3,7 @@ import test from 'node:test';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
 const vigor = (at, duration, self = true) => ({
   type: 'buff',
@@ -62,4 +63,26 @@ test('Engineer preserves Adrenal Implant, permanent Vigor and its endurance cap'
   const config = { ...traits, boons: { vigor: true } };
   assert.equal(recover([6000], [vigor(2, 2)], config).planningState.profession.endurance.value, 52.5);
   assert.equal(recover([30000], [], config).planningState.profession.endurance.value, 100);
+});
+
+test('Adrenal Implant owns its patchable bonus alongside shared base endurance rules', () => {
+  // Changing the selected trait's bonus must affect recovery without a profession resource profile.
+  for (const bonus of [0, 0.5]) {
+    const result = runEngineer(
+      [{ type: 'wait', durationMs: 4000 }],
+      {
+        selectedTraitIds: [TRAIT.ADRENAL_IMPLANT],
+        boons: { vigor: true }
+      },
+      {
+        extend: (native) => ({
+          catalog: withProfile(native.catalog, TRAIT.ADRENAL_IMPLANT, { enduranceRegenerationBonus: bonus })
+        }),
+        initialize(runtime) {
+          runtime.profession.core.endurance.value = 0;
+        }
+      }
+    );
+    assert.equal(result.planningState.profession.endurance.value, 4 * 5 * (1.5 + bonus));
+  }
 });

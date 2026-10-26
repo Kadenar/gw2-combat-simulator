@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { SHARED_SKILL_IDS, WEAPON_SWAP_ICON } from '#gw2/platform/skills/shared-actions.js';
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 /**
@@ -6,7 +7,6 @@ import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/sh
  */
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 
 /** Dodge is a fixed-duration rotation action; it spends endurance only once the roll commits. */
 export const ELEMENTALIST_CORE_ACTION_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -14,7 +14,7 @@ export const ELEMENTALIST_CORE_ACTION_SKILL_MECHANICS: Readonly<Record<number, P
     categories: ['Dodge'],
     cost: {
       resource: 'endurance',
-      profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' },
+      amount: ENDURANCE.dodgeCost,
       spendOn: 'castCommit'
     },
     skillFamily: 'Dodge'

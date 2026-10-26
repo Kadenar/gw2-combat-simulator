@@ -1,26 +1,20 @@
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_ENERGY_DEPLETED, revenantUpkeepDrain } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import {
   REVENANT_MAXIMUM_ENERGY,
   REVENANT_PRECOMBAT_ENERGY_CEILING,
   revenantBaseEnergyRegeneration,
   revenantStartingEnergy
 } from '#gw2/professions/revenant/core/resource-values.js';
-import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { enduringRecoveryBonus } from '#gw2/professions/revenant/core/traits/retribution/index.js';
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
-
-function resourceProfile(runtime: RevenantRuntime) {
-  return requireBalanceProfileFromContext(runtime, PROFILE.resources);
-}
 
 /** Capacity is distinct from the precombat recovery ceiling, which never discards larger grants. */
 export const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
@@ -37,18 +31,15 @@ export const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
 
 /** Vigor and Enduring Recovery add together; Vindicator shares the ten-per-second cap. */
 export function revenantEnduranceRate(runtime: RevenantRuntime, vigor: boolean): number {
-  const profile = resourceProfile(runtime);
-  const enduring = enduringRecoveryBonus(runtime);
   return Math.min(
-    10,
-    balanceProfileNumber(profile, 'enduranceRegenerationPerSecond') *
-      ((vigor ? balanceProfileNumber(profile, 'vigorRegenerationMultiplier') : 1) + enduring)
+    ENDURANCE.maximumRegenerationPerSecond,
+    enduranceRegenerationRate(vigor, enduringRecoveryBonus(runtime))
   );
 }
 
 export const revenantEndurance: EndurancePolicy<RevenantRuntime> = {
   state: (runtime) => runtime.profession.core.endurance,
-  maximum: () => REVENANT_MAXIMUM_ENDURANCE,
+  maximum: () => ENDURANCE.maximum,
   regenerationRate: (runtime, vigor) => revenantEnduranceRate(runtime, vigor)
 };
 

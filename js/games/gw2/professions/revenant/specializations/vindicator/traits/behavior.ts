@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
@@ -5,7 +6,6 @@ import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
-import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Snapshots the pre-landing damage window before its renewal. */
@@ -15,7 +15,7 @@ export function forerunnerOfDeathActive(runtime: RevenantRuntime): boolean {
 
 export function enduranceNotFull(context: Gw2ModifierContext): boolean {
   const state = revenantRuntimeCoreState(context);
-  const maximum = REVENANT_MAXIMUM_ENDURANCE;
+  const maximum = ENDURANCE.maximum;
   return !resourceAtLeast(state.endurance?.value ?? 0, maximum);
 }
 

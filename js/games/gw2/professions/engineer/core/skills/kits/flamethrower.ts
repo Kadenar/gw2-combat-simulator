@@ -1,5 +1,5 @@
 import { ACTOR, CONTROL, COMBO_FINISHER, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
@@ -36,6 +36,16 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     effects: []
   },
   [ID.FLAME_JET]: {
+    // Sample Burning at each impact; automatic skill scoping preserves the additive bonus's owner.
+    modifiers: [
+      {
+        id: 'engineer.flame-jet-burning-target',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.1,
+        when: (context) => targetConditionActive(context, CONDITION.BURNING)
+      }
+    ],
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 1720,
     cooldown: 0,
@@ -247,12 +257,3 @@ export function handleAirBlast(context: EngineerRuntime, event: EngineerResolver
   });
   context.fireTrigger(airBlastImpacted, { cause: event });
 }
-
-/** Flame Jet samples Burning on each impact and retains additive damage stacking. */
-export const flameJetModifier: Gw2ModifierRule = {
-  id: 'engineer.flame-jet-burning-target',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'damage-additive',
-  amount: 0.1,
-  when: (context) => context.event?.skillId === ID.FLAME_JET && targetConditionActive(context, CONDITION.BURNING)
-};

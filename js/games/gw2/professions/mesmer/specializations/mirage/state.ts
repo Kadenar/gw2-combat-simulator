@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
@@ -30,7 +31,7 @@ function createMirageState(): MesmerMirageState {
   return {
     pendingMirrorAts: [],
     // Mirage starts with two dodges' worth of continuously regenerating endurance.
-    endurance: createResourceClock(100),
+    endurance: createResourceClock(ENDURANCE.maximum),
     ambushUntil: 0,
     ambushSource: '',
     cloneAmbushUntil: 0,

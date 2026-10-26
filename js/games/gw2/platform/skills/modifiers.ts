@@ -2,14 +2,15 @@ import { createModifierHooks, type Gw2ModifierRule } from '#gw2/platform/combat/
 import type { NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
-/** Intrinsic strike bonuses use the ordinary damage buckets and traces, scoped automatically to their owner. */
-export interface SkillDamageModifier extends Pick<
+/** Intrinsic bonuses use shared strike buckets or critical-factor arithmetic, scoped automatically to their owner. */
+export type SkillDamageModifier = Pick<
   Gw2ModifierRule,
   'id' | 'label' | 'amount' | 'factor' | 'parameters' | 'when' | 'order'
-> {
-  readonly target: 'strikeDamage';
-  readonly operation: 'multiply' | 'damage-additive';
-}
+> &
+  (
+    | { readonly target: 'strikeDamage'; readonly operation: 'multiply' | 'damage-additive' }
+    | { readonly target: 'criticalDamage'; readonly operation: 'multiply' | 'add' }
+  );
 
 const FIELDS = new Set(['id', 'label', 'target', 'operation', 'amount', 'factor', 'parameters', 'when', 'order']);
 
@@ -25,13 +26,13 @@ export function normalizeSkillDamageModifiers(value: unknown, label: string): re
       typeof rule !== 'object' ||
       Array.isArray(rule) ||
       Object.keys(rule).some((field) => !FIELDS.has(field)) ||
-      rule.target !== 'strikeDamage' ||
-      !['multiply', 'damage-additive'].includes(rule.operation)
+      !['strikeDamage', 'criticalDamage'].includes(rule.target)
     ) {
       throw new TypeError(`${label} has an invalid skill damage modifier.`);
     }
   }
 
+  // Shared validation enforces damage-additive strike buckets versus additive critical factors.
   createModifierHooks({ rules: value });
   return Object.freeze(
     value.map((rule) =>

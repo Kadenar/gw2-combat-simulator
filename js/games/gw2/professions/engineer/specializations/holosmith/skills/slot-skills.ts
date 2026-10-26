@@ -1,19 +1,23 @@
+import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, CONTROL, COMBO_FINISHER, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import {
-  requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect,
-  balanceProfileNumber,
+  skillNumber,
   effectNumber
 } from '#gw2/platform/skills/balance-profiles.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import type { EngineerResolverContext, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import {
   holosmithHeatSnapshotFromEvent,
   holosmithHeatTier,
-  holosmithProfileStrikeFactor,
+  holosmithSkillStrikeFactor,
   snapshotHolosmithHeat
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 /**
@@ -42,31 +46,79 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.LAUNCH_WALL]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    highStrikeFactor: 1,
+    basePacketCount: 1,
+    highPacketCount: 3,
+    initialDelay: 0.48,
+    enhancedStrikeFactor: 1.35,
+
     // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LAUNCH_WALL } }],
+    sideEffects: [
+      {
+        on: 'castStart',
+        do: {
+          type: 'engineer.launch-wall',
+          id: 'heat-payload',
+          effects: [
+            {
+              name: 'Launch Wall Heat Tier',
+              type: 'strike',
+              coefficient: 1.5,
+              hits: 1
+            },
+            {
+              name: 'Vulnerability',
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 3,
+              duration: 5
+            }
+          ]
+        }
+      },
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LAUNCH_WALL } }
+    ],
     // Availability requires the parent skill's exposed window.
 
     castTimeMs: 520,
     cooldown: 0.5,
     requiresArmedFlip: true,
-    effects: [
-      {
-        type: 'custom',
-        eventType: 'engineer.launch-wall',
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        event: {
-          name: 'Launch Wall'
-        },
-        actorType: ACTOR.PLAYER
-      }
-    ]
+    effects: []
   },
   [ID.PRIME_LIGHT_BEAM]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    highStrikeFactor: 1,
+    packetCount: 10,
+    packetInterval: 1,
+    enhancedStrikeFactor: 1.2,
+    enhancedConditionBaseDurationFactor: 1.5,
+
     castTimeMs: 1160,
     cooldown: 60,
+    // The field resolver consumes these named templates; acceptance emits only the initial beam, marker, and control.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.metadata?.trigger !== 'heat-field')
+      }
+    ],
     effects: [
+      {
+        name: 'Prime Light Beam Heat Tier',
+        type: 'strike',
+        coefficient: 0.5,
+        hits: 1,
+        metadata: { trigger: 'heat-field' }
+      },
+      {
+        name: 'Burning',
+        type: 'condition',
+        condition: 'Burning',
+        stacks: 1,
+        duration: 3,
+        metadata: { trigger: 'heat-field' }
+      },
       {
         type: 'strike',
         coefficient: 3,
@@ -81,9 +133,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        event: {
-          name: 'Prime Light Beam — field'
-        },
+        event: { name: 'Prime Light Beam \u2014 field' },
         actorType: ACTOR.PLAYER
       },
       {
@@ -94,22 +144,41 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.LASER_DISK]: {
+    sideEffects: [
+      {
+        on: 'castStart',
+        do: {
+          type: 'engineer.laser-disk',
+          id: 'heat-payload',
+          effects: [
+            {
+              name: 'Laser Disk Heat Tier',
+              type: 'strike',
+              coefficient: 0.5,
+              hits: 1
+            },
+            {
+              name: 'Bleeding',
+              type: 'condition',
+              condition: CONDITION.BLEEDING,
+              stacks: 1,
+              duration: 2
+            }
+          ]
+        }
+      }
+    ],
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    highStrikeFactor: 1,
+    basePacketCount: 12,
+    highPacketCount: 18,
+    packetInterval: 0.52,
+    enhancedStrikeFactor: 1.35,
+
     castTimeMs: 960,
     interruptCommitMs: 920,
     cooldown: 30,
-    effects: [
-      {
-        type: 'custom',
-        eventType: 'engineer.laser-disk',
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        event: {
-          name: 'Laser Disk'
-        },
-        actorType: ACTOR.PLAYER
-      }
-    ]
+    effects: []
   },
   [ID.PHOTON_WALL]: {
     // Expose the follow-up on commitment; its declaration owns the window.
@@ -119,6 +188,10 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     effects: []
   },
   [ID.BLADE_BURST]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    highStrikeFactor: 1.25,
+    enhancedStrikeFactor: 1.35,
+
     castTimeMs: 0,
     cooldown: 20,
     effects: [
@@ -148,6 +221,10 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     mechanicSlot: 1
   },
   [ID.PARTICLE_ACCELERATOR]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    highStrikeFactor: 1.1,
+    enhancedStrikeFactor: 1.35,
+
     castTimeMs: 0,
     cooldown: 8,
     effects: [
@@ -197,14 +274,14 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
   if (tier === 'base') return;
 
   const enhancedCapacityTier = tier === 'enhanced';
-  const primeLightBeamHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.primeLightBeamHeatTier);
-  const packets = Math.max(0, Math.trunc(balanceProfileNumber(primeLightBeamHeatTierProfile, 'packetCount')));
-  const interval = Math.max(0, balanceProfileNumber(primeLightBeamHeatTierProfile, 'packetInterval'));
-  const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.primeLightBeamHeatTier, snapshot);
-  const strike = requireEffect(primeLightBeamHeatTierProfile, 'strike', 'Prime Light Beam Heat Tier');
-  const condition = requireEffect(primeLightBeamHeatTierProfile, 'condition', CONDITION.BURNING);
+  const skill = requireSkillFromContext(context, ID.PRIME_LIGHT_BEAM);
+  const packets = Math.max(0, Math.trunc(skillNumber(skill, 'packetCount')));
+  const interval = Math.max(0, skillNumber(skill, 'packetInterval'));
+  const strikeFactor = holosmithSkillStrikeFactor(context, ID.PRIME_LIGHT_BEAM, snapshot);
+  const strike = requireEffect(skill, 'strike', 'Prime Light Beam Heat Tier');
+  const condition = requireEffect(skill, 'condition', CONDITION.BURNING);
   const conditionBaseDurationFactor = enhancedCapacityTier
-    ? balanceProfileNumber(primeLightBeamHeatTierProfile, 'enhancedConditionBaseDurationFactor')
+    ? skillNumber(skill, 'enhancedConditionBaseDurationFactor')
     : 1;
   // Each field pulse emits a paired explosion and burning application at the same timestamp.
   for (let pulse = 0; pulse < packets; pulse += 1) {
@@ -217,7 +294,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
           at,
           name: 'Field Damage',
           skillName: event.skillName,
-          coefficient: effectNumber(primeLightBeamHeatTierProfile, strike, 'coefficient'),
+          coefficient: effectNumber(skill, strike, 'coefficient'),
 
           hitIndex: pulse + 1,
           totalHits: packets,
@@ -260,15 +337,12 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
   // Resolve the heat-dependent cadence once so every delayed packet preserves the activation tier.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
   const tier = holosmithHeatTier(snapshot, context);
-  const laserDiskHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.laserDiskHeatTier);
-  const pulses = Math.max(
-    0,
-    Math.trunc(balanceProfileNumber(laserDiskHeatTierProfile, tier === 'base' ? 'basePacketCount' : 'highPacketCount'))
-  );
-  const interval = Math.max(0, balanceProfileNumber(laserDiskHeatTierProfile, 'packetInterval'));
-  const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.laserDiskHeatTier, snapshot);
-  const strike = requireEffect(laserDiskHeatTierProfile, 'strike', 'Laser Disk Heat Tier');
-  const condition = requireEffect(laserDiskHeatTierProfile, 'condition', CONDITION.BLEEDING);
+  const skill = requireSkillFromContext(context, ID.LASER_DISK);
+  const pulses = Math.max(0, Math.trunc(skillNumber(skill, tier === 'base' ? 'basePacketCount' : 'highPacketCount')));
+  const interval = Math.max(0, skillNumber(skill, 'packetInterval'));
+  const strikeFactor = holosmithSkillStrikeFactor(context, ID.LASER_DISK, snapshot);
+  const strike = requireEffect(skill, 'strike', 'Laser Disk Heat Tier', requireSkillAction(skill, 'heat-payload'));
+  const condition = requireEffect(skill, 'condition', CONDITION.BLEEDING, requireSkillAction(skill, 'heat-payload'));
   // Expand the disk into paired strike and bleed packets on successive cadence boundaries.
   for (let pulse = 0; pulse < pulses; pulse += 1) {
     const at = event.at + (pulse + 1) * interval;
@@ -280,7 +354,7 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
           at,
           name: 'Laser Disk',
           skillName: event.skillName,
-          coefficient: effectNumber(laserDiskHeatTierProfile, strike, 'coefficient'),
+          coefficient: effectNumber(skill, strike, 'coefficient'),
 
           hitIndex: pulse + 1,
           totalHits: pulses,
@@ -321,15 +395,17 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   // Resolve wall count, delay, and strike scaling from the captured activation tier.
   const snapshot = holosmithHeatSnapshotFromEvent(event);
   const tier = holosmithHeatTier(snapshot, context);
-  const launchWallHeatTierProfile = requireBalanceProfileFromContext(context, PROFILE.launchWallHeatTier);
-  const walls = Math.max(
-    0,
-    Math.trunc(balanceProfileNumber(launchWallHeatTierProfile, tier === 'base' ? 'basePacketCount' : 'highPacketCount'))
+  const skill = requireSkillFromContext(context, ID.LAUNCH_WALL);
+  const walls = Math.max(0, Math.trunc(skillNumber(skill, tier === 'base' ? 'basePacketCount' : 'highPacketCount')));
+  const at = event.at + Math.max(0, skillNumber(skill, 'initialDelay'));
+  const strikeFactor = holosmithSkillStrikeFactor(context, ID.LAUNCH_WALL, snapshot);
+  const strike = requireEffect(skill, 'strike', 'Launch Wall Heat Tier', requireSkillAction(skill, 'heat-payload'));
+  const condition = requireEffect(
+    skill,
+    'condition',
+    CONDITION.VULNERABILITY,
+    requireSkillAction(skill, 'heat-payload')
   );
-  const at = event.at + Math.max(0, balanceProfileNumber(launchWallHeatTierProfile, 'initialDelay'));
-  const strikeFactor = holosmithProfileStrikeFactor(context, PROFILE.launchWallHeatTier, snapshot);
-  const strike = requireEffect(launchWallHeatTierProfile, 'strike', 'Launch Wall Heat Tier');
-  const condition = requireEffect(launchWallHeatTierProfile, 'condition', CONDITION.VULNERABILITY);
   // Every wall lands together and owns one explosion plus one vulnerability application.
   for (let wall = 0; wall < walls; wall += 1) {
     if (strike) {
@@ -339,7 +415,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
           at,
           name: 'Launch Wall',
           skillName: event.skillName,
-          coefficient: effectNumber(launchWallHeatTierProfile, strike, 'coefficient'),
+          coefficient: effectNumber(skill, strike, 'coefficient'),
 
           hitIndex: wall + 1,
           totalHits: walls,
@@ -393,13 +469,9 @@ export function prepareHolosmithSlotEvent(
   if (event.type !== 'damage' || event.actorType !== ACTOR.PLAYER) return event;
 
   const id = event.skillId ?? event.sourceId;
-  const profile =
-    id === ID.BLADE_BURST
-      ? PROFILE.bladeBurstHeatTier
-      : id === ID.PARTICLE_ACCELERATOR
-        ? PROFILE.particleAcceleratorHeatTier
-        : undefined;
-  return profile == null ? event : { ...event, holosmithStrikeProfileId: profile };
+  const skill =
+    id === ID.BLADE_BURST ? ID.BLADE_BURST : id === ID.PARTICLE_ACCELERATOR ? ID.PARTICLE_ACCELERATOR : undefined;
+  return skill == null ? event : { ...event, holosmithStrikeSkillId: skill };
 }
 
 export const holosmithSlotEventHandlers = Object.freeze({
@@ -407,3 +479,36 @@ export const holosmithSlotEventHandlers = Object.freeze({
   'engineer.laser-disk': handleLaserDisk,
   'engineer.launch-wall': handleLaunchWall
 });
+
+/** Launch the skill's deferred component; its resolver reads the selected action payload. */
+export const holosmithSlotSideEffectHandlers: RuntimeHooks<EngineerRuntimeState, HolosmithSkill>['sideEffectHandlers'] =
+  {
+    'engineer.laser-disk'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Heat components require a cast.');
+
+      const { cast } = context;
+
+      if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+
+      for (const packet of buildEngineerPackets(
+        'engineer.laser-disk',
+        { at: runtime.time, activationId: context.cast.id, offTarget: context.cast.command.offTarget },
+        context.skill
+      ))
+        runtime.effects.emit({ kind: 'packet', event: packet });
+    },
+    'engineer.launch-wall'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Heat components require a cast.');
+
+      const { cast } = context;
+
+      if (cancelledBeforeInterruptCommit(cast.skill, cast.start, cast.fullEnd, cast.effectiveEnd)) return;
+
+      for (const packet of buildEngineerPackets(
+        'engineer.launch-wall',
+        { at: runtime.time, activationId: context.cast.id, offTarget: context.cast.command.offTarget },
+        context.skill
+      ))
+        runtime.effects.emit({ kind: 'packet', event: packet });
+    }
+  };

@@ -1,10 +1,6 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import {
-  ENGINEER_CORE_BALANCE_PROFILES,
-  ENGINEER_CORE_BALANCE_PROFILE_IDS
-} from '#gw2/professions/engineer/core/profiles.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
@@ -51,7 +47,7 @@ export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId
 /** Creates a fresh Core Engineer state with resources, kit state, flips, and proc windows reset. */
 export function createEngineerCoreState(): EngineerCoreState {
   return {
-    endurance: createResourceClock(BASE_MAXIMUM_ENDURANCE),
+    endurance: createResourceClock(ENDURANCE.maximum),
     activeKit: null,
     availableFlips: {},
     autoattackChains: {},
@@ -65,10 +61,3 @@ export function createEngineerCoreState(): EngineerCoreState {
     aimAssistedRocketCount: 0
   };
 }
-
-// Standalone state factories seed from authored data; live initialization selects the active patch.
-const BASE_MAXIMUM_ENDURANCE = requireBalanceNumber(
-  ENGINEER_CORE_BALANCE_PROFILES.find((profile) => profile.id === ENGINEER_CORE_BALANCE_PROFILE_IDS.resources)!
-    .maximumStacks,
-  'engineer resources maximumStacks'
-);

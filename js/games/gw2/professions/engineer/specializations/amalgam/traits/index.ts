@@ -274,8 +274,8 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
 }
 
 /** Silver Lining applies the committed protocol's strain at Morph time. */
-function grantMorphStrain(context: EngineerRuntime, { morphKind, at }: AmalgamMorph): void {
-  applyAmalgamStrain(context, morphKind!, at);
+function grantMorphStrain(context: EngineerRuntime, { skill, at }: AmalgamMorph): void {
+  applyAmalgamStrain(context, skill, at);
 }
 
 /** New Genes combines universal boons with one protocol-specific boon; each survives patches independently. */

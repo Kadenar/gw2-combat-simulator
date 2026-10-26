@@ -1,9 +1,45 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
+import { skillCostAvailability, spendSkillCost } from '#gw2/platform/execution/skill-cost.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+
+test('fixed costs use the same amount for admission and spending, including zero', () => {
+  // Base game rules bypass authored fields while retaining ordinary resource readiness and payment.
+  for (const resource of ['endurance', 'energy']) {
+    for (const amount of [0, 50]) {
+      const paid = [];
+      const queried = [];
+      const runtime = {
+        time: 0,
+        endurance: {
+          readyAt: (cost) => {
+            queried.push(cost);
+            return 0;
+          },
+          spend: (cost) => paid.push(cost)
+        },
+        resourceController: {
+          readyAt: (key, cost) => {
+            assert.equal(key, resource);
+            queried.push(cost);
+            return 0;
+          },
+          spend: (key, cost) => {
+            assert.equal(key, resource);
+            paid.push(cost);
+          }
+        }
+      };
+      const skill = { id: 1, name: 'Fixed cost', cost: { resource, amount } };
+      assert.equal(skillCostAvailability(runtime, skill), null);
+      spendSkillCost(runtime, skill);
+      assert.deepEqual(queried, amount === 0 ? [] : [amount]);
+      assert.deepEqual(paid, [amount]);
+    }
+  }
+});
 
 test('cost admission never treats a future resource deadline as already affordable', () => {
   // The gate must preserve the owner's verdict even within the old clock epsilon or below clock precision.

@@ -43,7 +43,7 @@ export interface Skill extends CatalogEntity {
   readonly duration?: number;
   /** Multiplier applied by the skill's mechanic to its eligible attribute pool. */
   readonly attributeMultiplier?: number;
-  /** Intrinsic strike modifiers apply only to damage attributed to this skill. */
+  /** Intrinsic strike and critical-damage modifiers apply only to damage attributed to this skill. */
   readonly modifiers?: readonly SkillDamageModifier[];
   /** Identity-only tombstones scoped to this skill in its selected catalog. */
   readonly removedEffectKeys?: readonly string[];
@@ -228,9 +228,11 @@ export interface BalanceProfile extends CatalogEntity {
  */
 interface SkillCost {
   readonly resource: 'endurance' | ResourceKey;
-  /** A balance-profile field that one patch retunes everywhere; mutually exclusive with skillAmount. */
+  /** Fixed game-rule costs bypass balance authoring and cannot combine with another amount selector. */
+  readonly amount?: number;
+  /** A balance-profile field that one patch retunes everywhere; mutually exclusive with other amount selectors. */
   readonly profileAmount?: { readonly profileId: SkillId; readonly field: string };
-  /** Read an authored numeric skill field live; without either selector, pay resourceCost. */
+  /** Read an authored numeric skill field live; without an amount selector, pay resourceCost. */
   readonly skillAmount?: string;
   readonly spendOn?: 'castStart' | 'castCommit';
 }

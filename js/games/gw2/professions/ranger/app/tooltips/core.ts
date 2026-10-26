@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   fromProfile,
@@ -115,7 +116,7 @@ export const rangerCoreTooltips = {
   skills: {
     [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger applicable dodge traits. Incoming damage is outside combat simulation scope.',
-      [fromProfile(CORE.resources, 'resourceCost', 'Endurance spent')]
+      () => [{ name: 'Endurance spent', detail: String(ENDURANCE.dodgeCost) }]
     ),
     [ID.PET_SWAP]: skillTooltip(
       'Switch to the other selected pet, update its command skills, and trigger pet-swap traits. The new pet receives a fresh Opening Strike opportunity.'

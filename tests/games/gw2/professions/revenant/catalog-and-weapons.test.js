@@ -99,13 +99,11 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
   const chargedMists = profile(REVENANT_TRAIT_IDS.CHARGED_MISTS);
   const battleScars = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
 
-  assert.equal(skill(SHARED_SKILL_IDS.DODGE).patchableFields.resourceCost, 50);
+  assert.equal(skill(SHARED_SKILL_IDS.DODGE).patchableFields.resourceCost, undefined);
   assert.equal(skill(SKILL.SWAP_LEGENDS).patchableFields.resourceGain, 50);
   assert.equal(skill(SKILL.ANCIENT_ECHO).patchableFields.resourceGain, 25);
   assert.deepEqual(resources.patchableFields, {
-    energyRegenerationPerSecond: 5,
-    enduranceRegenerationPerSecond: 5,
-    vigorRegenerationMultiplier: 1.5
+    energyRegenerationPerSecond: 5
   });
   assert.deepEqual(chargedMists.patchableFields, {
     resourceGain: 75,
@@ -119,9 +117,6 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
 
   const preview = applyRevenantPatch({
     skills: {
-      [SHARED_SKILL_IDS.DODGE]: {
-        fields: { resourceCost: { from: 50, to: 40 } }
-      },
       [SKILL.ABYSSAL_RAZE]: {
         effects: [
           {
@@ -140,7 +135,7 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
     }
   });
 
-  assert.equal(preview.skillsById.get(SHARED_SKILL_IDS.DODGE).resourceCost, 40);
+  assert.equal(preview.skillsById.get(SHARED_SKILL_IDS.DODGE).cost.amount, 50);
   assert.equal(
     preview.skillsById.get(SKILL.ABYSSAL_RAZE).effects.find((effect) => effect.type === 'strike')
       .damageIncreasePerStack,

@@ -12,8 +12,6 @@ export const REVENANT_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.
     name: 'Revenant Resources',
     profileKind: 'mechanic',
     energyRegenerationPerSecond: 5,
-    enduranceRegenerationPerSecond: 5,
-    vigorRegenerationMultiplier: 1.5,
     effects: []
   },
   {

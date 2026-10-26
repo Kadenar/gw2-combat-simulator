@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
@@ -180,7 +181,7 @@ export const elementalistCoreTooltips = {
     ),
     [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger Evasive Arcana when selected. Incoming attacks are outside combat simulation scope.',
-      [fromProfile(CORE.resources, 'resourceCost', 'Endurance spent')]
+      () => [{ name: 'Endurance spent', detail: String(ENDURANCE.dodgeCost) }]
     ),
     [ID.DROP_BUNDLE]: skillTooltip('Drop the conjured weapon and restore your normal weapon skills.'),
     [ID.ROCK_BARRIER]: skillTooltip(

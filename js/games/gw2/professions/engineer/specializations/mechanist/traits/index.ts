@@ -227,6 +227,12 @@ const variableMassDistributor = defineTrait({
 
 /** Registers mechanist traits in the established gameplay order. */
 export const mechanistTraits = [
+  // Baseline inheritance is intrinsic to the trait that grants the mech, even without explicit minor selection.
+  defineTrait({
+    id: TRAIT.MECHANICAL_GENIUS,
+    name: 'Mechanical Genius',
+    balance: { inheritanceRatio: 0.5, secondaryAttributeCap: 750, powerCap: 2250 }
+  }),
   variableMassDistributor,
   jadeCannons,
   mechFighter,

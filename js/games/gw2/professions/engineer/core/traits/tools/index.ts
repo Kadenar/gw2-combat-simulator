@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, STATUS, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -26,7 +27,6 @@ import {
 } from '#gw2/professions/engineer/core/mechanics/trigger-points.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 import { activeBoonStacks, engineerRuntimeState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
@@ -99,22 +99,7 @@ export const staticDischarge = defineTrait({
     }
   ],
   id: TRAIT.STATIC_DISCHARGE,
-  name: 'Static Discharge',
-  balance: {
-    criticalDamage: 2
-  },
-  modifierRules: [
-    {
-      order: -9,
-      requiresSelection: false,
-      // Static Discharge doubles its completed critical multiplier without affecting other strikes.
-      id: 'engineer.static-discharge-critical-damage',
-      target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-      operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.STATIC_DISCHARGE, 'criticalDamage'),
-      when: (context) => context.event?.skillId === ID.STATIC_DISCHARGE_TRAIT_SKILL
-    }
-  ]
+  name: 'Static Discharge'
 });
 
 /** Owns Kinetic Battery tuning and behavior at its established runtime and build boundaries. */
@@ -151,7 +136,7 @@ export const adrenalImplant = defineTrait({
   triggers: [onTriggerPoint(dodgeAccepted, { run: reduceToolbeltRecharge })],
   id: TRAIT.ADRENAL_IMPLANT,
   name: 'Adrenal Implant',
-  balance: { rechargeReduction: 1 }
+  balance: { rechargeReduction: 1, enduranceRegenerationBonus: 0.25 }
 });
 
 /** Owns Power Wrench tuning and behavior at its established runtime and build boundaries. */
@@ -227,10 +212,7 @@ export const takedownRound = defineTrait({
         const state = engineerRuntimeState(context);
         return (
           isGw2PlayerModifierOwnedEvent(context.event) &&
-          !resourceAtLeast(
-            state.endurance?.value ?? 0,
-            balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks')
-          )
+          !resourceAtLeast(state.endurance?.value ?? 0, ENDURANCE.maximum)
         );
       }
     }

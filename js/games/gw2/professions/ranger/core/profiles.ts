@@ -7,15 +7,6 @@ import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-d
 
 /** Keep core balance tuning together; skill and mechanic owners resolve these profiles from the active catalog. */
 export const RANGER_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
-  {
-    id: PROFILE.resources,
-    name: 'Ranger Endurance',
-    profileKind: 'mechanic',
-    resourceCost: 50,
-    enduranceRegenerationPerSecond: 5,
-    vigorRegenerationMultiplier: 1.5,
-    effects: []
-  },
   variant(ID.ENDURING_SWING, 'Enduring Swing', { resourceGain: 15, effects: [] }),
   variant(PROFILE.attackOfOpportunity, ID.MAUL_SOULBEAST, 'Attack of Opportunity', {
     duration: 10

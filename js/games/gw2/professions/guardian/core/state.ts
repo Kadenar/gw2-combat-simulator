@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { expireCharges, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -32,7 +33,7 @@ export interface GuardianCoreState {
 // virtue, trait, symbol, and flip bookkeeping.
 export function createGuardianCoreState(): GuardianCoreState {
   return {
-    endurance: createResourceClock(100),
+    endurance: createResourceClock(ENDURANCE.maximum),
     justiceActiveArmed: false,
     justiceHitCount: 0,
     virtueReadyAt: {

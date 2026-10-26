@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   fromProfile,
   tooltipFactorChange,
@@ -6,6 +7,7 @@ import {
   traitTooltip,
   skillTooltip,
   profileFact,
+  skillFact,
   modifierFact,
   tooltipPercent,
   tooltipDecimal,
@@ -18,20 +20,18 @@ import {
 import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as AMALGAM } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { TooltipFact } from '#gw2/platform/skills/types.js';
+import type { TooltipFact, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 
 /** Strain wording records the state transition; numerical durations and proc packets stay with their simulation owners. */
 function strainFacts(
   balanceContext: ProfessionBalanceContext,
-  kind: string,
+  skillId: SkillId,
   qualifier: string
 ): readonly TooltipFact[] {
-  const profile = tooltipProfile(balanceContext, AMALGAM.strains);
-  const facts = simulationEffectFacts(
-    profile.effects?.filter((effect) => effect.metadata?.trigger === kind),
-    qualifier
-  ).facts.slice();
+  const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skillId);
+  const skill = balanceContext.catalog.skillsById.get(skillId)!;
+  const facts = simulationEffectFacts(requireSkillAction(skill, 'strain').effects, qualifier).facts.slice();
 
   if (kind === 'thorns')
     facts.push(
@@ -63,15 +63,15 @@ const amalgamMorphTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
     description += ' Retaliation pulses require the damaging-field assumption.';
     facts.push(
       ...simulationEffectFacts(
-        tooltipProfile(balanceContext, AMALGAM.morphs).effects,
+        requireSkillAction(selected, 'retaliation').effects,
         'per retaliation pulse; requires damaging-field assumption'
       ).facts,
-      profileFact(balanceContext, AMALGAM.morphs, 'maximumStacks', 'Retaliation pulses'),
-      profileFact(balanceContext, AMALGAM.morphs, 'pulseInterval', 'Retaliation interval', tooltipSeconds)
+      skillFact(balanceContext, selected.id, 'maximumStacks', 'Retaliation pulses'),
+      skillFact(balanceContext, selected.id, 'retaliationInterval', 'Retaliation interval', tooltipSeconds)
     );
   }
 
-  if (kind) facts.push(...strainFacts(balanceContext, kind, 'requires Silver Lining'));
+  if (kind) facts.push(...strainFacts(balanceContext, selected.id, 'requires Silver Lining'));
 
   // Predator and Berserker windows display strain uptime; only their authored boons affect combat.
   if (kind === 'demolish') description += ' Its strain grants stability and displays the Berserker Strain window.';
@@ -100,8 +100,13 @@ const evolveTooltip: DescribeSimulationTooltip = skillTooltip(
           name: 'Eligible attribute increase',
           detail: tooltipFactorChange(tooltipNumber(skill, 'attributeMultiplier'))
         },
-    ...[...new Set(AMALGAM_MORPH_KIND_BY_SKILL_ID.values())].flatMap((kind) =>
-      strainFacts(balanceContext, kind, `${kind} protocol selected; without Silver Lining`)
+    // Slot identities can be patched independently; report each actual owner.
+    ...[...AMALGAM_MORPH_KIND_BY_SKILL_ID].flatMap(([id, kind]) =>
+      strainFacts(
+        balanceContext,
+        id,
+        `${kind} protocol in F${balanceContext.catalog.skillsById.get(id)!.mechanicSlot}; without Silver Lining`
+      )
     )
   ]
 );

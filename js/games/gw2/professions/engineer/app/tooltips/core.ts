@@ -1,17 +1,17 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   tooltipSeconds,
   skillTooltip,
-  profileTooltip,
-  profileFact,
+  skillFact,
   tooltipNumber,
-  tooltipProfile,
   simulationEffectFacts,
   type ProfessionTooltips,
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/engineer/core/profiles.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { armFlipTooltip, gleamSaberTooltip } from '#gw2/professions/engineer/app/tooltips/shared.js';
 import { engineerExplosivesTooltips } from '#gw2/professions/engineer/app/tooltips/explosives.js';
@@ -39,7 +39,7 @@ const mineFieldTooltip: DescribeSimulationTooltip = skillTooltip(
 const dodgeTooltip: DescribeSimulationTooltip = skillTooltip(
   'Spend endurance to dodge and refresh Explosive Entrance. Power Wrench and Adrenal Implant reduce their supported skill recharges. Thermal Release Valve triggers Vent Exhaust while in Photon Forge.',
   (balanceContext) => [
-    profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance cost'),
+    { name: 'Endurance cost', detail: String(ENDURANCE.dodgeCost) },
     ...simulationEffectFacts(
       balanceContext.catalog.skillsById.get(ID.VENT_EXHAUST)?.effects,
       'requires Thermal Release Valve and active Photon Forge'
@@ -47,45 +47,61 @@ const dodgeTooltip: DescribeSimulationTooltip = skillTooltip(
   ]
 );
 
-const conduitSurgeTooltip: DescribeSimulationTooltip = profileTooltip(
-  CORE.conduitSurge,
-  'Strike and burn the target, establishing Focused for subsequent spear attacks. Refreshing Focused preserves a longer existing window.',
-  [['duration', 'Focused duration', tooltipSeconds]]
-);
-
-const lightningRodTooltip: DescribeSimulationTooltip = (balanceContext) => ({
+// Focused templates are selected at impact, so presentation lists both branches explicitly.
+const conduitSurgeTooltip: DescribeSimulationTooltip = (context) => ({
+  description:
+    'Strike and burn the target, establishing Focused for subsequent spear attacks. Refreshing Focused preserves a longer existing window.',
+  facts: [
+    ...simulationEffectFacts(requireSkillAction(requireSkillFromContext(context, ID.CONDUIT_SURGE), 'payload').effects)
+      .facts,
+    skillFact(context, ID.CONDUIT_SURGE, 'duration', 'Focused duration', tooltipSeconds)
+  ]
+});
+const lightningRodTooltip: DescribeSimulationTooltip = (context) => ({
   description:
     'Start a repeating strike sequence that builds charges and later unlocks Electric Artillery. Each pulse checks whether the target is Focused. Recasting replaces the sequence and clears previous charges.',
-  facts: [CORE.lightningRod, CORE.focusedLightningRod].flatMap(
-    (id) =>
+  facts: [false, true].flatMap(
+    (focused) =>
       simulationEffectFacts(
-        tooltipProfile(balanceContext, id).effects,
-        id === CORE.lightningRod ? 'per pulse without Focused' : 'per pulse while Focused'
+        requireSkillAction(requireSkillFromContext(context, ID.LIGHTNING_ROD), 'payload').effects.filter(
+          (effect) => effect.name?.startsWith('Focused ') === focused
+        ),
+        focused ? 'per pulse while Focused' : 'per pulse without Focused'
       ).facts
   )
 });
-
-const electricArtilleryTooltip: DescribeSimulationTooltip = (balanceContext) => ({
+const electricArtilleryTooltip: DescribeSimulationTooltip = (context) => ({
   description:
     "Release the projectile and consume Lightning Rod's unexpired charges and follow-up. Charges are snapshotted on release; Focused is checked at impact. Charges extend burning and determine vulnerability stacks. Vulnerability duration is fixed.",
-  facts: [CORE.electricArtillery, CORE.focusedElectricArtillery].flatMap((id) => {
-    const qualifier = id === CORE.electricArtillery ? 'without Focused' : 'while Focused';
-    const profile = tooltipProfile(balanceContext, id);
+  facts: [false, true].flatMap((focused) => {
+    const qualifier = focused ? 'while Focused' : 'without Focused';
     return [
-      ...profile.effects!.flatMap(
-        (effect) =>
-          simulationEffectFacts(
-            [effect],
-            `${qualifier}${effect.type === 'condition' && effect.condition === CONDITION.VULNERABILITY ? ' · per complete charge group' : effect.type === 'condition' && effect.condition === CONDITION.BURNING ? ' · base duration before charges' : ''}`
-          ).facts
+      ...requireSkillAction(requireSkillFromContext(context, ID.ELECTRIC_ARTILLERY), 'payload')
+        .effects.filter((effect) => effect.name?.startsWith('Focused ') === focused)
+        .flatMap(
+          (effect) =>
+            simulationEffectFacts(
+              [effect],
+              qualifier +
+                (effect.type === 'condition' && effect.condition === CONDITION.VULNERABILITY
+                  ? ' · per complete charge group'
+                  : effect.type === 'condition' && effect.condition === CONDITION.BURNING
+                    ? ' · base duration before charges'
+                    : '')
+            ).facts
+        ),
+      skillFact(context, ID.ELECTRIC_ARTILLERY, 'maximumStacks', 'Maximum charges counted ' + qualifier),
+      skillFact(
+        context,
+        ID.ELECTRIC_ARTILLERY,
+        focused ? 'focusedChargesPerVulnerability' : 'chargesPerVulnerability',
+        'Charges per vulnerability group ' + qualifier
       ),
-      profileFact(balanceContext, id, 'maximumStacks', `Maximum charges counted ${qualifier}`),
-      profileFact(balanceContext, id, 'chargesPerVulnerability', `Charges per vulnerability group ${qualifier}`),
-      profileFact(
-        balanceContext,
-        id,
-        'burningDurationPerCharge',
-        `Burning duration added per charge ${qualifier}`,
+      skillFact(
+        context,
+        ID.ELECTRIC_ARTILLERY,
+        focused ? 'focusedBurningDurationPerCharge' : 'burningDurationPerCharge',
+        'Burning duration added per charge ' + qualifier,
         tooltipSeconds
       )
     ];

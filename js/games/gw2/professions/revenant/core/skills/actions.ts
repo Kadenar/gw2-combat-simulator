@@ -30,9 +30,7 @@ const actions: readonly Skill[] = [
   // Core owns the input and its cost; active specialization hooks supply any dodge replacement.
   createDodgeSkill({
     description: 'Perform the selected dodge.',
-    castTimeMs: 0,
-    resourceCost: 50,
-    cost: { resource: 'endurance' }
+    castTimeMs: 0
   })
 ];
 

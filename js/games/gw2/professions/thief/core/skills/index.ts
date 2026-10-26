@@ -14,7 +14,6 @@ import { THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS } from '#gw2/professions/thief/c
 import { THIEF_WEAPONS_SPEAR_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { THIEF_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/weapons/staff.js';
 import { THIEF_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/weapons/sword.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 
 export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   ...THIEF_MISC_SKILL_MECHANICS,
@@ -36,7 +35,6 @@ export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
   Object.freeze(
     createDodgeSkill({
       description: 'Perform the selected thief dodge.',
-      cost: { resource: 'endurance' as const, profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } },
       interruptCommitMs: 760,
       retainsCastLockoutAfterInterrupt: true
     })

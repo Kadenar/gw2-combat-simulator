@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 // Share URL identities in headless catalogs as well as browser bundles.
@@ -29,7 +30,7 @@ export function createWeaponSwapSkill(
   } satisfies Skill;
 }
 
-/** Shares dodge presentation and base animation; each profession supplies its cost and selected variant. */
+/** Shares the fixed base dodge cost and presentation; professions supply their selected variant. */
 export function createDodgeSkill(
   overrides: Partial<
     Pick<
@@ -43,7 +44,6 @@ export function createDodgeSkill(
       | 'specialization'
       | 'categories'
       | 'skillFamily'
-      | 'resourceCost'
       | 'tasks'
     >
   > = {}
@@ -58,6 +58,7 @@ export function createDodgeSkill(
     inputControl: 'dodge',
     castTimeMs: 800,
     cooldown: 0,
+    cost: { resource: 'endurance', amount: ENDURANCE.dodgeCost },
     ...overrides,
     id: SHARED_SKILL_IDS.DODGE,
     effects: []

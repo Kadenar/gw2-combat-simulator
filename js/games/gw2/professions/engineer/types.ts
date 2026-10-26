@@ -1,3 +1,5 @@
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/skill-fields.js';
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -43,7 +45,7 @@ export interface EngineerRuntimeState {
     | { kind: 'Amalgam'; state: AmalgamState };
 }
 
-export interface EngineerSkill extends Skill {
+export interface EngineerSkill extends Skill, NumericSkillFields<typeof ENGINEER_CORE_SKILL_FIELDS> {
   readonly kitTransition?: 'equip' | 'stow';
   readonly countsAsToolbeltSkill?: boolean;
   readonly duration?: number;

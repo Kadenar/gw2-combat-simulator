@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -58,7 +59,7 @@ export const mirageUi: MesmerUiSlice = Object.freeze({
       singular: 'endurance',
       plural: 'endurance',
       maximum: mesmerUiState(context).endurance?.maximum ?? context.resources!.endurance!.maximum,
-      value: mesmerUiState(context).endurance?.value ?? 100,
+      value: mesmerUiState(context).endurance?.value ?? ENDURANCE.maximum,
       canStart: false,
       step: 1,
       displayMode: 'bar',

@@ -1,3 +1,4 @@
+import { DAREDEVIL_MAXIMUM_ENDURANCE } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -33,7 +34,6 @@ import {
   daredevilStruck,
   physicalSkillStarted
 } from '#gw2/professions/thief/specializations/daredevil/mechanics/trigger-points.js';
-import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 
 /** Owns Brawler's Tenacity tuning and behavior at the existing execution boundaries. */
@@ -158,8 +158,7 @@ const havocSpecialist = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
-        (thiefRuntimeState(context).endurance?.value ?? 0) <
-          balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks')
+        (thiefRuntimeState(context).endurance?.value ?? 0) < DAREDEVIL_MAXIMUM_ENDURANCE
     }
   ]
 });

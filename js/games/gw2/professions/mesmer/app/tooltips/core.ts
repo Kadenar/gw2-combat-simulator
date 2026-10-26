@@ -88,9 +88,9 @@ export const mesmerCoreTooltips = {
               detail: `${tooltipPercent(selected.parentCooldownIncrease)} of parent base recharge`
             }
           ]),
-      ...(selected.resourceCost == null
+      ...(selected.cost?.amount == null
         ? []
-        : [{ name: 'Endurance spent', detail: tooltipDecimal(tooltipNumber(selected, 'resourceCost')) }])
+        : [{ name: 'Endurance spent', detail: tooltipDecimal(selected.cost.amount) }])
     ];
   },
   skills: {

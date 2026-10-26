@@ -10,12 +10,8 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as NECROMANCER_PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as REVENANT_PROFILE } from '#gw2/professions/revenant/core/profiles.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { THIEF_TRAIT_IDS as THIEF_TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as WARRIOR_PROFILE } from '#gw2/professions/warrior/core/profiles.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -46,19 +42,6 @@ const runRuntime = ({ profession, config, rotation }) =>
 // Observed variant for contracts that read the live owner's state after the run.
 const runRuntimeObserved = ({ profession, config, rotation }) =>
   observeGw2Runtime({ profession: profession.runtimeFor(config), config, rotation });
-
-test('Warrior zero Dodge cost does not spend endurance', () => {
-  const result = run(
-    warriorProfession,
-    {
-      [WARRIOR_PROFILE.resources]: { fields: { resourceCost: 0 } }
-    },
-    'Core',
-    ['Dodge', 'Dodge', 'Dodge']
-  );
-  assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.endurance.value, 100);
-});
 
 test('Guardian zero recharge multiplier makes the trait-adjusted skill immediately reusable', () => {
   const result = run(
@@ -122,21 +105,6 @@ test('Harbinger zero Meltdown coefficient emits no strike damage', () => {
   assert.ok(meltdown);
   assert.equal(meltdown.coefficient, 0);
   assert.equal(meltdown.damage, 0);
-});
-
-test('Revenant zero Vigor regeneration multiplier stops endurance regeneration', () => {
-  const result = run(
-    revenantProfession,
-    {
-      [REVENANT_PROFILE.resources]: { fields: { vigorRegenerationMultiplier: 0 } }
-    },
-    'Core',
-    ['Dodge', { type: 'wait', durationMs: 1000 }],
-    { boons: { vigor: true } },
-    runRuntime
-  );
-  assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.endurance.value, 50);
 });
 
 test('Thief zero Quick Pockets gain matches a swap without the trait', () => {

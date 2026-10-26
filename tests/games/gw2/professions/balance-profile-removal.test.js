@@ -4,10 +4,8 @@ import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js'
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as ENGINEER } from '#gw2/professions/engineer/core/profiles.js';
 import { ENGINEER_TRAIT_IDS as ENG, ENGINEER_SKILL_IDS as ENG_SKILL } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as HOLO } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -97,12 +95,11 @@ test('removing the first HGH boon never substitutes the second boon', () => {
 test('Holosmith heat follow-ups preserve conditions when the strike is removed', () => {
   const result = run(
     engineerProfession,
-    {
-      [HOLO.laserDiskHeatTier]: { removeEffects: [{ type: 'strike' }] }
-    },
+    {},
     'Holosmith',
     ['Laser Disk', { type: 'wait', durationMs: 1200 }],
-    { initialHeat: 80, selectedSkillIds: [42842] }
+    { initialHeat: 80, selectedSkillIds: [42842] },
+    { [ENG_SKILL.LASER_DISK]: { sideEffects: { 'heat-payload': { removeEffects: [{ type: 'strike' }] } } } }
   );
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Laser Disk'),
@@ -216,11 +213,10 @@ test('Rocket Punch keeps Burning and stun when its strike is removed', () => {
 });
 
 test('patched resource capacities seed simulation and presentation from the same catalog', () => {
-  // Resource clocks and the separate endurance service expose their own canonical projected balances.
+  // Profession-specific resource clocks expose the same patched capacities in simulation and presentation.
   for (const [profession, specialization, profile, balance] of [
     [elementalistProfession, 'Catalyst', ELE.DEPTH_OF_ELEMENTS, (state) => state.catalystEnergy.value],
-    [elementalistProfession, 'Evoker', ELE.EVOCATION, (state) => state.familiarCharges.value],
-    [engineerProfession, 'Core', ENGINEER.resources, (state) => state.endurance.value]
+    [elementalistProfession, 'Evoker', ELE.EVOCATION, (state) => state.familiarCharges.value]
   ]) {
     const balanceProfiles = { [profile]: { fields: { maximumStacks: 12 } } };
     const result = run(profession, balanceProfiles, specialization, []);
@@ -235,7 +231,7 @@ test('patched resource capacities seed simulation and presentation from the same
       catalog: patched.resolvePatch({ id: 'capacity' }).catalog,
       build: { specializations: [{ name: 'Tools', traits: '1-1-1' }] }
     });
-    const resource = views.find((view) => ['catalyst-energy', 'evoker-charges', 'endurance'].includes(view.id));
+    const resource = views.find((view) => ['catalyst-energy', 'evoker-charges'].includes(view.id));
     assert.equal(resource.maximum, 12);
     assert.equal(resource.value, 12);
   }

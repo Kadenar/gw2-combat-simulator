@@ -1,4 +1,4 @@
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import {
   enhancedCapacityHeatTier,
@@ -24,7 +24,7 @@ interface HolosmithEventMetadata {
   readonly holosmithConditionBaseDurationFactor?: number;
   readonly holosmithEnhancedCapacitySelected?: boolean;
   readonly holosmithStrikeFactor?: number;
-  readonly holosmithStrikeProfileId?: SkillId;
+  readonly holosmithStrikeSkillId?: SkillId;
   readonly solarFocusingLens?: boolean;
 }
 
@@ -62,29 +62,29 @@ export function holosmithHeatTier(snapshot: HolosmithHeatSnapshot, context: unkn
   return snapshot.heat > HOLOSMITH_HEAT.highThreshold ? 'high' : 'base';
 }
 
-/** Resolves a profile's strike multiplier for a captured heat tier. */
-export function holosmithProfileStrikeFactor(
+/** Resolves a skill's strike multiplier for a captured heat tier. */
+export function holosmithSkillStrikeFactor(
   context: unknown,
-  profileId: SkillId,
+  skillId: SkillId,
   snapshot: HolosmithHeatSnapshot
 ): number {
   const tier = holosmithHeatTier(snapshot, context);
 
   if (tier === 'enhanced') {
-    return balanceNumberFromContext(context, profileId, 'enhancedStrikeFactor');
+    return skillNumberFromContext(context, skillId, 'enhancedStrikeFactor');
   }
 
-  return tier === 'high' ? balanceNumberFromContext(context, profileId, 'highStrikeFactor') : 1;
+  return tier === 'high' ? skillNumberFromContext(context, skillId, 'highStrikeFactor') : 1;
 }
 
-/** Reads an event's captured strike factor or evaluates its profile against current heat as a fallback. */
+/** Reads an event's captured strike factor or evaluates its skill against current heat as a fallback. */
 export function holosmithEventStrikeFactor(context: unknown, event: unknown, fallback = 1): number {
   const metadata = holosmithEventMetadata(event);
   const capturedFactor = Number(metadata.holosmithStrikeFactor);
 
   if (Number.isFinite(capturedFactor)) return Math.max(0, capturedFactor);
 
-  if (metadata.holosmithStrikeProfileId == null) return fallback;
+  if (metadata.holosmithStrikeSkillId == null) return fallback;
 
-  return holosmithProfileStrikeFactor(context, metadata.holosmithStrikeProfileId, snapshotHolosmithHeat(context));
+  return holosmithSkillStrikeFactor(context, metadata.holosmithStrikeSkillId, snapshotHolosmithHeat(context));
 }

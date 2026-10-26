@@ -39,9 +39,6 @@ export const WARRIOR_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.f
     name: 'Warrior Core Resources',
     profileKind: 'mechanic',
     maximumStacks: 30,
-    resourceCost: 50,
-    enduranceRegenerationPerSecond: 5,
-    vigorRegenerationMultiplier: 1.5,
     effects: []
   },
   {

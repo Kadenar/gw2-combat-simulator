@@ -3,27 +3,28 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import type { RechargeRule } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
-import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 /**
  * Owns Mechanist signet skills and their trait-dependent passives, using the selected trait's canonical balance.
  * Mech commands and autonomous attack identities live in their named catalogs.
  */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { MechanistSkill } from '#gw2/professions/engineer/specializations/mechanist/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 /** Supplies Mechanist signet fragments to specialization composition. */
-export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
+export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<MechanistSkill>>> = Object.freeze({
   [ID.RECTIFIER_SIGNET]: {
     castTimeMs: 520,
     cooldown: 30,
     effects: []
   },
   [ID.OVERCLOCK_SIGNET]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    rechargeMultiplier: 0.8,
+
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.overclock-signet' } }],
     // Orders the active mech to channel Jade Buster Cannon; see `mechanist/mechanics/mech.ts`.
 
@@ -37,6 +38,9 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     effects: []
   },
   [ID.SUPERCONDUCTING_SIGNET]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    conditionDamageIncrease: 0.1,
+
     castTimeMs: 880,
     interruptCommitMs: 560,
     cooldown: 30,
@@ -86,6 +90,9 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<S
     ])
   },
   [ID.FORCE_SIGNET]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    damageIncrease: 0.15,
+
     castTimeMs: 520,
     cooldown: 30,
     effects: [
@@ -138,14 +145,16 @@ function ordinaryOverclockEligible(context: MechanicQueriesOf<EngineerRuntime>, 
 
 /** The signet owns its base passive; J-Drive owns the replacement bonus while selected. */
 function forceSignetDamage(context: Gw2ModifierContext): number {
-  const owner = hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? TRAIT.MECH_CORE_J_DRIVE : PROFILE.forceSignet;
-  return balanceNumberFromContext(context, owner, 'damageIncrease');
+  return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
+    ? balanceNumberFromContext(context, TRAIT.MECH_CORE_J_DRIVE, 'damageIncrease')
+    : skillNumberFromContext(context, ID.FORCE_SIGNET, 'damageIncrease');
 }
 
 /** The selected trait balance supplies Superconducting's improved passive without a second literal rate. */
 function superconductingSignetDamage(context: Gw2ModifierContext): number {
-  const owner = hasTrait(context, TRAIT.MECH_CORE_J_DRIVE) ? TRAIT.MECH_CORE_J_DRIVE : PROFILE.superconductingSignet;
-  return balanceNumberFromContext(context, owner, 'conditionDamageIncrease');
+  return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
+    ? balanceNumberFromContext(context, TRAIT.MECH_CORE_J_DRIVE, 'conditionDamageIncrease')
+    : skillNumberFromContext(context, ID.SUPERCONDUCTING_SIGNET, 'conditionDamageIncrease');
 }
 
 /** J-Drive keeps Shift's boon copying available while the signet recharges. */
@@ -188,12 +197,14 @@ function overclockSignetApplies(context: MechanicQueriesOf<EngineerRuntime>, ski
 }
 
 /** The skill owns ordinary Overclock availability; traits independently supply their stronger recharge rules. */
-export const overclockRechargeRules: readonly RechargeRule<EngineerRuntimeState>[] = [
-  {
-    when: (context, skill) =>
-      ordinaryOverclockEligible(context, skill) &&
-      overclockSignetApplies(context, skill) &&
-      (context.cooldownController.readyAt(ID.OVERCLOCK_SIGNET) || 0) <= context.time,
-    multiplier: { profile: PROFILE.overclock, field: 'rechargeMultiplier' }
-  }
-];
+export function overclockRechargeWork(
+  context: MechanicQueriesOf<EngineerRuntime>,
+  skill: EngineerSkill,
+  work: number
+): number {
+  return ordinaryOverclockEligible(context, skill) &&
+    overclockSignetApplies(context, skill) &&
+    (context.cooldownController.readyAt(ID.OVERCLOCK_SIGNET) || 0) <= context.time
+    ? work * skillNumberFromContext(context, ID.OVERCLOCK_SIGNET, 'rechargeMultiplier')
+    : work;
+}

@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
@@ -96,7 +97,7 @@ export function createThiefCoreState(
     storedStolenSkillIds: [],
     storedStolenSkillCount: 0,
     kneeling: false,
-    endurance: createResourceClock(100),
+    endurance: createResourceClock(ENDURANCE.maximum),
     leadAttackExpirations: [],
     spearChainStage: 0,
     spearPreviousSkillId: null,

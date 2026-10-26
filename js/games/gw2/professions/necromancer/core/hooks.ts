@@ -1,3 +1,4 @@
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -112,8 +113,8 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
   // Standard endurance recovery applies equally inside and outside shroud.
   endurance: {
     state: (runtime) => runtime.profession.core.endurance,
-    maximum: () => 100,
-    regenerationRate: (_runtime, vigor) => 5 * (vigor ? 1.5 : 1)
+    maximum: () => ENDURANCE.maximum,
+    regenerationRate: (_runtime, vigor) => enduranceRegenerationRate(vigor)
   },
   sideEffectHandlers: {
     'necromancer.corruption'(runtime, context) {

@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
@@ -51,9 +52,6 @@ export interface RevenantCoreState {
   assassinsPresence: PeriodicTaskState;
 }
 
-/** Revenant endurance capacity; live recovery and endurance-conditioned traits share this bound. */
-export const REVENANT_MAXIMUM_ENDURANCE = 100;
-
 // Initialize bounded energy and endurance plus complete legend, upkeep, flip,
 // weapon-chain, and trait bookkeeping.
 export function createRevenantCoreState(
@@ -80,7 +78,7 @@ export function createRevenantCoreState(
     activeUpkeeps: [],
     availableFlips: {},
     autoattackChains: {},
-    endurance: createResourceClock(100),
+    endurance: createResourceClock(ENDURANCE.maximum),
     enchantedDaggers: {
       charges: 0,
       expiresAt: 0,

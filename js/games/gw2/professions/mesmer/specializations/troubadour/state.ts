@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
   flattenProfessionState,
@@ -20,7 +21,7 @@ export interface MesmerTroubadourState {
 function createTroubadourState(): MesmerTroubadourState {
   return {
     notes: createResourceClock(),
-    endurance: createResourceClock(100),
+    endurance: createResourceClock(ENDURANCE.maximum),
     instruments: {},
     lastInstrument: ''
   };

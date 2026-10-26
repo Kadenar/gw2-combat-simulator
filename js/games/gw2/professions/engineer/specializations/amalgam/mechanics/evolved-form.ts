@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -7,16 +8,10 @@ import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { activeEngineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import {
   AMALGAM_MORPH_KIND_BY_SKILL_ID,
   type AmalgamMorphKind
@@ -27,6 +22,7 @@ import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/
 
 /** A committed Morph; its protocol kind is captured from the accepted skill. */
 export interface AmalgamMorph {
+  readonly skill: EngineerSkill;
   readonly morphKind: AmalgamMorphKind | undefined;
   readonly at: number;
 }
@@ -45,26 +41,20 @@ export const amalgamEvolved = defineTriggerPoint<Record<string, never>>('enginee
   TRAIT.HARDENED_CHROME
 ]);
 
-/** Resolves the equipped protocol IDs to unique stable Morph kinds for strain application. */
-function selectedMorphKinds(context: EngineerRuntime): Set<AmalgamMorphKind> {
-  return new Set(
-    amalgamState
-      .from(context)
-      .selectedMorphSkillIds.map((id) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id))
-      .filter((kind): kind is AmalgamMorphKind => Boolean(kind))
-  );
-}
-
 /** Schedules six one-second Thorns Retaliation pulses when damaging-field uptime is explicitly assumed. */
 function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   // Build assumptions reach combat through the canonical runtime field; absent uptime grants no retaliation.
   if (!context.config.professionAssumptions?.inDamagingField) return;
 
-  const morphsProfile = requireBalanceProfileFromContext(context, PROFILE.morphs);
-  const hits = balanceProfileNumber(morphsProfile, 'maximumStacks');
-  const interval = balanceProfileNumber(morphsProfile, 'pulseInterval');
+  const hits = skillNumber(skill, 'maximumStacks');
+  const interval = skillNumber(skill, 'retaliationInterval');
   for (let index = 0; index < hits; index += 1) {
-    const morphsAmalgamMorphsStrike = requireEffect(morphsProfile, 'strike', 'Amalgam Morphs');
+    const morphsAmalgamMorphsStrike = requireEffect(
+      skill,
+      'strike',
+      'Amalgam Morphs',
+      requireSkillAction(skill, 'retaliation')
+    );
 
     if (morphsAmalgamMorphsStrike) {
       buildEngineerPackets('damage', {
@@ -75,7 +65,7 @@ function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkil
         skillId: skill.id,
         skillName: skill.name,
         name: 'Thorns Retaliation',
-        coefficient: effectNumber(morphsProfile, morphsAmalgamMorphsStrike, 'coefficient'),
+        coefficient: effectNumber(skill, morphsAmalgamMorphsStrike, 'coefficient'),
         hits: 1,
         hitIndex: index + 1,
         totalHits: hits,
@@ -99,13 +89,12 @@ function activatePlasmaticState(context: EngineerRuntime, skill: EngineerSkill):
 function evolveAmalgam(context: EngineerRuntime, skill: EngineerSkill): void {
   const at = context.time;
   const state = amalgamState.from(context);
-  const selected = selectedMorphKinds(context);
   // The accepted variant owns its patched lifetime independently of trait-owned attribute scaling.
   state.evolvedUntil = at + requireBalanceNumber(skill.duration, `${skill.name} duration`);
 
   // Silver Lining moves strains to Morph; otherwise Evolve grants every selected protocol's strain itself.
   if (!hasTrait(context.traits, TRAIT.SILVER_LINING))
-    for (const morphKind of selected) applyAmalgamStrain(context, morphKind, at);
+    for (const id of state.selectedMorphSkillIds) applyAmalgamStrain(context, context.helpers.skillsById.get(id)!, at);
 
   context.fireTrigger(amalgamEvolved);
 }
@@ -148,16 +137,17 @@ export const evolvedFormLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerSk
 
       if (at <= cast.effectiveEnd) runtime.scheduleForCast('engineer.plasmatic-state', at, cast, {}, undefined, -10);
     },
+    'engineer.morph'(runtime, context) {
+      if (context.kind !== 'cast') throw new TypeError('Morph requires a cast trigger.');
+
+      runtime.scheduleForCast('engineer.morph-traits', runtime.time, context.cast, {}, undefined, -101);
+    },
     'engineer.thorns-retaliation'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Thorns requires a cast trigger.');
 
       // Core cast traits emit first; retaliation then precedes the Morph trait tail and the next completion.
       runtime.scheduleForCast('engineer.thorns-retaliation', runtime.time, context.cast, {}, undefined, -101);
     }
-  },
-  onCastCommit(runtime, cast) {
-    if (cast.skill.categories?.includes('Morph'))
-      runtime.scheduleForCast('engineer.morph-traits', runtime.time, cast, {}, undefined, -101);
   },
   tasks: {
     'engineer.evolve'(runtime, data) {
@@ -172,6 +162,7 @@ export const evolvedFormLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerSk
     'engineer.morph-traits'(runtime, data) {
       const { skill } = (data as SkillTaskData<EngineerSkill>).cast;
       runtime.fireTrigger(amalgamMorphed, {
+        skill,
         morphKind: AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id),
         at: runtime.time
       });

@@ -781,7 +781,7 @@ test('completed profession skill declarations cover ordinary and handler-driven 
 });
 
 // Extracted spear tuning must update the displayed variant and the resolver's emitted packet together.
-test('Engineer spear resolver and tooltip use the same selected packet profile', async () => {
+test('Engineer spear resolver and tooltip use the same selected action payload', async () => {
   const { engineerProfession } = await import('#gw2/professions/engineer/profession.js');
   const { engineerTooltips } = await import('#gw2/professions/engineer/app/tooltips.js');
   const { handleElectricArtillery } = await import('#gw2/professions/engineer/core/mechanics/spear.js');
@@ -790,10 +790,16 @@ test('Engineer spear resolver and tooltip use the same selected packet profile',
     label: 'Spear tooltip',
     professions: {
       engineer: {
-        balanceProfiles: {
-          'engineer.core.focused-electric-artillery': {
-            coefficient: 2,
-            conditions: { Burning: { stacks: 3, duration: 5 } }
+        skills: {
+          73143: {
+            sideEffects: {
+              payload: {
+                effects: [
+                  { type: 'strike', name: 'Focused Electric Artillery', coefficient: 2 },
+                  { type: 'condition', name: 'Focused Burning', stacks: 3, duration: 5 }
+                ]
+              }
+            }
           }
         }
       }
@@ -847,11 +853,18 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
     label: 'Strain tooltip',
     professions: {
       engineer: {
-        balanceProfiles: {
-          'engineer.amalgam.strains': {
-            effects: [{ type: 'boon', name: 'Berserker Strain', stacks: 3, duration: 4 }]
-          }
-        }
+        skills: Object.fromEntries(
+          [
+            skills.OFFENSIVE_PROTOCOL_DEMOLISH,
+            skills.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927,
+            skills.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954
+          ].map((id) => [
+            id,
+            {
+              sideEffects: { strain: { effects: [{ type: 'boon', name: 'Berserker Strain', stacks: 3, duration: 4 }] } }
+            }
+          ])
+        )
       }
     }
   });

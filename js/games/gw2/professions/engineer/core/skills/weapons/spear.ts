@@ -2,10 +2,10 @@ import { ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core engineer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Defines Engineer spear fragments and declares stateful packets emitted by live spear tasks. */
-export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<EngineerSkill>>> = Object.freeze({
   [ID.PUNCTURING_JAB]: {
     castTimeMs: 440,
     interruptCommitMs: 360,
@@ -113,7 +113,43 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
   },
   [ID.LIGHTNING_ROD]: {
     // Replace the owned pulse sequence and arm Artillery's delayed follow-up window on commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.lightning-rod' } }],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'engineer.lightning-rod',
+          id: 'payload',
+          effects: [
+            {
+              name: 'Lightning Rod Pulse',
+              type: 'strike',
+              coefficient: 0.17,
+              hits: 1
+            },
+            {
+              name: 'Vulnerability',
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 1,
+              duration: 8
+            },
+            {
+              name: 'Focused Lightning Rod Pulse',
+              type: 'strike',
+              coefficient: 0.3,
+              hits: 1
+            },
+            {
+              name: 'Focused Vulnerability',
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 2,
+              duration: 8
+            }
+          ]
+        }
+      }
+    ],
     castTimeMs: 400,
     interruptCommitMs: 280,
     cooldown: 12,
@@ -174,16 +210,113 @@ export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.CONDUIT_SURGE]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    duration: 10,
+
     // Resolve the committed impact through the owner that establishes the target's Focused window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.conduit-surge' } }],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'engineer.conduit-surge',
+          id: 'payload',
+          effects: [
+            {
+              name: 'Conduit Surge',
+              type: 'strike',
+              coefficient: 1.2,
+              hits: 1
+            },
+            {
+              name: 'Burning',
+              type: 'condition',
+              condition: CONDITION.BURNING,
+              stacks: 1,
+              duration: 7
+            }
+          ]
+        }
+      }
+    ],
     castTimeMs: 520,
 
     cooldown: 5,
     effects: []
   },
   [ID.ELECTRIC_ARTILLERY]: {
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    maximumStacks: 12,
+    chargesPerVulnerability: 2,
+    burningDurationPerCharge: 0.25,
+    focusedChargesPerVulnerability: 1,
+    focusedBurningDurationPerCharge: 0.5,
+
     // Snapshot charges at release, then retire Lightning Rod while the launched projectile remains pending.
-    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.electric-artillery' } }],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'engineer.electric-artillery',
+          id: 'payload',
+          effects: [
+            {
+              name: 'Electric Artillery',
+              type: 'strike',
+              coefficient: 1,
+              hits: 1
+            },
+            {
+              name: 'Immobilized',
+              type: 'condition',
+              condition: CONDITION.IMMOBILIZED,
+              stacks: 1,
+              duration: 2
+            },
+            {
+              name: 'Vulnerability',
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 1,
+              duration: 8
+            },
+            {
+              name: 'Burning',
+              type: 'condition',
+              condition: CONDITION.BURNING,
+              stacks: 2,
+              duration: 3
+            },
+            {
+              name: 'Focused Electric Artillery',
+              type: 'strike',
+              coefficient: 1.5,
+              hits: 1
+            },
+            {
+              name: 'Focused Immobilized',
+              type: 'condition',
+              condition: CONDITION.IMMOBILIZED,
+              stacks: 1,
+              duration: 2
+            },
+            {
+              name: 'Focused Vulnerability',
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 1,
+              duration: 8
+            },
+            {
+              name: 'Focused Burning',
+              type: 'condition',
+              condition: CONDITION.BURNING,
+              stacks: 2,
+              duration: 3
+            }
+          ]
+        }
+      }
+    ],
     castTimeMs: 520,
     // Releasing the projectile consumes the flip even if its final recovery is cancelled.
     interruptCommitMs: 480,

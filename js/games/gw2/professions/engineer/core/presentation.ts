@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -10,7 +11,6 @@ import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/core/profiles.js';
 
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type {
@@ -273,7 +273,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
 
       if (!usesToolsTraitline(catalog, context)) return [];
 
-      const maximum = state.endurance?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+      const maximum = state.endurance?.maximum ?? ENDURANCE.maximum;
       const endurance: ProfessionResourceView = {
         id: 'endurance',
         singular: 'endurance',

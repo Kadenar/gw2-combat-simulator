@@ -1,6 +1,5 @@
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfession } from '#gw2/profession-registry.js';
@@ -73,13 +72,12 @@ test('Elementalist Energy makes the next dodge affordable on attunement swap', a
   assert.equal(dodge.start, swap.at * 1000);
 });
 
-test('selected profile capacity controls initialization, grants, and readiness', async () => {
+test('selected endurance policy controls initialization, grants, and readiness', async () => {
   const profession = await loadProfession('engineer');
-  const catalog = applyBalanceProfilePatch(profession.catalog, {
-    balanceProfiles: { 'engineer.core.resources': { fields: { maximumStacks: { from: 100, to: 120 } } } }
-  });
+  // Specializations may replace capacity while retaining the shared pool and recovery rules.
+  const native = profession.runtimeFor({});
   const result = observeGw2Runtime({
-    profession: { ...profession.runtimeFor({}), catalog },
+    profession: { ...native, endurance: { ...native.endurance, maximum: () => 120 } },
     config: {},
     rotation: []
   });

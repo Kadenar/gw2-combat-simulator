@@ -5,7 +5,7 @@ import { COMBO_FINISHER, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/c
  */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 
 const DEMOLISH_CAST_TIME_MS = 1000 + 560;
 const DEMOLISH_RECHARGE_OFFSET_MS = 1000;
@@ -19,7 +19,33 @@ const DEMOLISH_SPIN_TICKS = Object.freeze([
 const DEMOLISH_SMASH_AT_MS = 1440;
 
 // Declare each protocol once; its three catalog entries differ only in mechanic slot.
-const shred: Partial<Skill> = {
+const shred: Partial<AmalgamSkill> = {
+  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [
+          {
+            type: 'boon',
+            boon: 'Quickness',
+            duration: 8,
+            sourceId: 'engineer.predator-strain',
+            name: 'Predator Strain'
+          },
+          {
+            type: 'buff',
+            kind: 'superspeed',
+            duration: 8,
+            sourceId: 'engineer.predator-strain',
+            name: 'Predator Strain'
+          }
+        ]
+      }
+    }
+  ],
   countsAsToolbeltSkill: true,
   castTimeMs: 760,
   cooldown: 20,
@@ -54,9 +80,22 @@ const shred: Partial<Skill> = {
   ]
 };
 
-const thorns: Partial<Skill> = {
+const thorns: Partial<AmalgamSkill> = {
   // The intrinsic field-gated retaliation is scheduled once; Morph trait rewards remain shared.
-  sideEffects: [{ on: 'castCommit', do: { type: 'engineer.thorns-retaliation' } }],
+  maximumStacks: 6,
+  retaliationInterval: 1,
+  // Retaliation and strain grants are independent components of the accepted Thorns protocol.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.thorns-retaliation',
+        id: 'retaliation',
+        effects: [{ name: 'Amalgam Morphs', type: 'strike', coefficient: 0.5, hits: 1 }]
+      }
+    },
+    { on: 'castCommit', do: { type: 'engineer.morph', id: 'strain', effects: [] } }
+  ],
   countsAsToolbeltSkill: true,
   // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
 
@@ -73,7 +112,27 @@ const thorns: Partial<Skill> = {
   ]
 };
 
-const demolish: Partial<Skill> = {
+const demolish: Partial<AmalgamSkill> = {
+  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [
+          {
+            type: 'boon',
+            boon: 'Stability',
+            duration: 8,
+            stacks: 5,
+            sourceId: 'engineer.berserker-strain',
+            name: 'Berserker Strain'
+          }
+        ]
+      }
+    }
+  ],
   countsAsToolbeltSkill: true,
   castTimeMs: DEMOLISH_CAST_TIME_MS,
   // Commit after the smash so its remaining aftercast can be interrupted.
@@ -113,7 +172,27 @@ const demolish: Partial<Skill> = {
   ]
 };
 
-const obliterate: Partial<Skill> = {
+const obliterate: Partial<AmalgamSkill> = {
+  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [
+          {
+            type: 'boon',
+            boon: 'Might',
+            duration: 8,
+            stacks: 10,
+            sourceId: 'engineer.titanic-strain',
+            name: 'Titanic Strain'
+          }
+        ]
+      }
+    }
+  ],
   countsAsToolbeltSkill: true,
   castTimeMs: 800,
   cooldown: 20,
@@ -136,7 +215,26 @@ const obliterate: Partial<Skill> = {
   ])
 };
 
-const cleanse: Partial<Skill> = {
+const cleanse: Partial<AmalgamSkill> = {
+  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [
+          {
+            type: 'boon',
+            boon: 'Alacrity',
+            duration: 8,
+            sourceId: 'engineer.replicating-strain',
+            name: 'Replicating Strain'
+          }
+        ]
+      }
+    }
+  ],
   countsAsToolbeltSkill: true,
   castTimeMs: 0,
   cooldown: 20,
@@ -150,7 +248,20 @@ const cleanse: Partial<Skill> = {
   ]
 };
 
-const pierce: Partial<Skill> = {
+const pierce: Partial<AmalgamSkill> = {
+  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [
+          { type: 'control', controlKind: 'stun', sourceId: 'engineer.volatile-strain', name: 'Volatile Strain' }
+        ]
+      }
+    }
+  ],
   countsAsToolbeltSkill: true,
   castTimeMs: 680,
   cooldown: 20,
@@ -177,14 +288,33 @@ const pierce: Partial<Skill> = {
   ]
 };
 
-const protect: Partial<Skill> = {
+const protect: Partial<AmalgamSkill> = {
+  // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
+  sideEffects: [
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [
+          {
+            type: 'boon',
+            boon: 'Resistance',
+            duration: 8,
+            sourceId: 'engineer.resiliant-strain',
+            name: 'Resiliant Strain'
+          }
+        ]
+      }
+    }
+  ],
   countsAsToolbeltSkill: true,
   castTimeMs: 1000,
   cooldown: 20,
   effects: []
 };
 
-export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
+export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<AmalgamSkill>>> = Object.freeze({
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: { ...shred, mechanicSlot: 2 },
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: { ...shred, mechanicSlot: 3 },
   [ID.OFFENSIVE_PROTOCOL_SHRED]: { ...shred, mechanicSlot: 4 },

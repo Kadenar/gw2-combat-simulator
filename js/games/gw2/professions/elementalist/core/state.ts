@@ -1,11 +1,9 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/elementalist/core/profile-ids.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILES } from '#gw2/professions/elementalist/core/profiles.js';
 
 /** The four elements, in the canonical order every attunement loop iterates. */
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
@@ -102,7 +100,7 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     pendingAutoattackCarryover: null,
     freshAirCandidates: [],
     bountifulPowerProgress: 0,
-    endurance: createResourceClock(BASE_MAXIMUM_ENDURANCE),
+    endurance: createResourceClock(ENDURANCE.maximum),
     activeAuras: [],
     pistolBullets: {
       Fire: Boolean(configuredBullets.Fire),
@@ -170,10 +168,3 @@ export const ELEMENTALIST_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS,
   defaults: {}
 });
-
-// Standalone state factories seed from authored data; scheduler initialization selects the active patch.
-const BASE_MAXIMUM_ENDURANCE = requireBalanceNumber(
-  ELEMENTALIST_CORE_BALANCE_PROFILES.find((profile) => profile.id === ELEMENTALIST_CORE_BALANCE_PROFILE_IDS.resources)!
-    .maximumStacks,
-  'elementalist resources maximumStacks'
-);

@@ -8,6 +8,21 @@ import {
   resolveAutoattackChainStep
 } from '#gw2/platform/skills/autoattack-chain-index.js';
 
+test('fixed costs validate nonnegative finite amounts and reject competing selectors', () => {
+  // A fixed game rule must resolve unambiguously before a runtime can admit or spend it.
+  const load = (amount, extra = {}) =>
+    createCanonicalCatalog({
+      generated: [{ id: 1, name: 'Fixed cost', cost: { resource: 'endurance', amount, ...extra } }]
+    });
+  for (const amount of [0, 0.5, 50]) assert.doesNotThrow(() => load(amount));
+  for (const amount of [-1, NaN, Infinity, '50']) assert.throws(() => load(amount), /invalid fixed cost/);
+  assert.throws(() => load(50, { skillAmount: 'resourceCost' }), /invalid fixed cost/);
+  assert.throws(
+    () => load(50, { profileAmount: { profileId: 'resource', field: 'resourceCost' } }),
+    /invalid fixed cost/
+  );
+});
+
 test('shared autoattack helpers derive and index ID-based chains', () => {
   const chains = deriveAutoattackChains([
     { id: 1, type: 'Weapon', slot: 'Weapon_1', nextChainId: 2 },

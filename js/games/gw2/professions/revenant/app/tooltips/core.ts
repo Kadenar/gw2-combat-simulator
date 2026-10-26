@@ -140,10 +140,13 @@ const detonateBlossomingAuraTooltip: DescribeSimulationTooltip = skillTooltip(
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const revenantCoreTooltips = {
   skillFacts: (_c, entity) => [
+    // Fixed dodge costs come from the action declaration rather than patchable fields.
+    ...(entity.cost?.resource === 'endurance' && entity.cost.amount != null
+      ? [{ name: 'Endurance spent', detail: tooltipDecimal(entity.cost.amount) }]
+      : []),
     ...[
       ['energyCost', 'Base energy cost'],
-      ['upkeepCost', 'Energy upkeep per second'],
-      ['resourceCost', 'Endurance spent']
+      ['upkeepCost', 'Energy upkeep per second']
     ].flatMap(([field, name]) =>
       entity[field] == null ? [] : [{ name, detail: tooltipDecimal(tooltipNumber(entity, field)) }]
     ),

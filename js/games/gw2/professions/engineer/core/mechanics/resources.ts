@@ -1,27 +1,12 @@
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
-import { ENGINEER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/core/profiles.js';
-import { adrenalImplantEnduranceBonus } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
+import { adrenalImplantEnduranceBonus } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 
-/** Calculates an interval's endurance rate after Vigor and Adrenal Implant modifiers. */
-function engineerEnduranceRegenerationRate(context: EngineerRuntime, vigor: boolean): number {
-  const resourcesProfile = requireBalanceProfileFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources);
-  const multiplier =
-    1 +
-    (vigor ? balanceProfileNumber(resourcesProfile, 'vigorRegenerationMultiplier') - 1 : 0) +
-    adrenalImplantEnduranceBonus(context);
-  return balanceProfileNumber(resourcesProfile, 'enduranceRegenerationPerSecond') * multiplier;
-}
-
-/** Binds shared endurance operations to this module's live pool and balance rules. */
+/** Bind the profession's pool to shared endurance rules and its own additive trait bonuses. */
 export const engineerEndurance: EndurancePolicy<EngineerRuntime> = {
   state: (context) => professionCoreState(context).endurance,
-  maximum: (context) => balanceNumberFromContext(context, ENGINEER_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks'),
-  regenerationRate: (context, vigor) => engineerEnduranceRegenerationRate(context, vigor)
+  maximum: () => ENDURANCE.maximum,
+  regenerationRate: (context, vigor) => enduranceRegenerationRate(vigor, adrenalImplantEnduranceBonus(context))
 };

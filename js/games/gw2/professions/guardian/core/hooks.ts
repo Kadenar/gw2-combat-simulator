@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -90,7 +91,11 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
         runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
       }
     },
-    endurance: { state: (runtime) => runtime.profession.core.endurance, maximum: () => 100, regenerationRate: () => 0 },
+    endurance: {
+      state: (runtime) => runtime.profession.core.endurance,
+      maximum: () => ENDURANCE.maximum,
+      regenerationRate: () => 0
+    },
     // Select weapon fields before trait extensions; Writ never changes an already executed field. Trait hooks compose
     // ahead of this hook, so the two duration extensions are applied here to reach the selected Symbol of Ignition field.
     modifyComboFields(runtime, cast, fields) {

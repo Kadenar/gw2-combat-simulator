@@ -95,7 +95,8 @@ test('catalog validation rejects malformed intrinsic modifiers and registration 
     { ...bonus('bad', 1), typo: true },
     bonus('bad', NaN),
     { ...bonus('bad', 1), when: true },
-    { ...bonus('bad', 1), operation: 'add' }
+    { ...bonus('bad', 1), operation: 'add' },
+    { ...bonus('bad', 1), target: 'criticalDamage', operation: 'damage-additive', amount: 0.1 }
   ]) {
     assert.throws(() => createCanonicalCatalog({ generated: [skill(1, [declaration])] }), /modifier|Modifier/);
     assert.throws(() => normalizeSkillEffects([strike([declaration])]), /modifier|Modifier/);
@@ -119,6 +120,59 @@ test('catalog validation rejects malformed intrinsic modifiers and registration 
     () => defineNativeProfession({ id: 'duplicate', name: 'Duplicate', modules: [core] }),
     /Duplicate modifier rule/
   );
+});
+
+test('critical modifiers preserve scalar ordering, predicates, and skill/effect ownership', () => {
+  // Multiplication follows the shared addition, while a packet-specific addition excludes sibling effects.
+  const owner = skill(
+    1,
+    [{ ...bonus('critical-multiply', 2), target: 'criticalDamage', order: 1, when: (context) => context.enabled }],
+    [strike(), strike([{ id: 'critical-add', target: 'criticalDamage', operation: 'add', amount: 0.25, order: 2 }])]
+  );
+  const core = moduleFor([owner, skill(2)], {
+    modifierRules: [{ id: 'shared-critical-add', target: 'criticalDamage', operation: 'add', amount: 0.5, order: 0 }]
+  });
+  const hooks = createModifierHooks({ rules: core.modifiers.modifierRules });
+  const context = { enabled: true, event: packet(owner, owner.effects[1]) };
+  assert.equal(hooks.modifyCriticalDamage(context, 1.5), 4.25);
+  assert.equal(hooks.modifyCriticalDamage({ ...context, enabled: false }, 1.5), 2.25);
+  assert.equal(hooks.modifyCriticalDamage({ ...context, event: packet(owner, owner.effects[0]) }, 1.5), 4);
+  assert.equal(hooks.modifyCriticalDamage({ ...context, event: { ...context.event, skillId: 2 } }, 1.5), 2);
+  assert.equal(hooks.modifyStrikeDamage?.(context, 100) ?? 100, 100);
+});
+
+test('skill critical modifiers affect only the critical contribution during damage resolution', () => {
+  // Critical chance weights only the enhanced critical contribution; normal damage stays unchanged.
+  const owner = skill(
+    1,
+    [{ ...bonus('critical', 2), target: 'criticalDamage' }],
+    [{ ...strike(), weaponStrength: 1000 }]
+  );
+  const other = skill(2, [], [{ ...strike(), weaponStrength: 1000 }]);
+  const profession = defineNativeProfession({
+    id: 'critical-fixture',
+    name: 'Critical fixture',
+    modules: [moduleFor([owner, other])]
+  });
+  for (const [precision, multiplier] of [
+    [895, 1],
+    [1000, 1.1 / 1.025],
+    [4000, 2]
+  ]) {
+    const result = createProfessionSimulator(profession)(
+      [
+        { type: 'cast', skillId: 1 },
+        { type: 'cast', skillId: 2 }
+      ],
+      {
+        attributeInputs: baseAttributeInputs({ power: 1000, precision, ferocity: 0 }),
+        target: { armor: 1000, conditions: {} }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const hit = (id) => result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id);
+    assertFlooredDamageMultiplier(hit(1).damage, hit(2).damage, multiplier);
+  }
 });
 
 test('an effect bonus survives reordering but disappears when the effect declares no bonus', () => {

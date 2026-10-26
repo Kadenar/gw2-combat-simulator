@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
@@ -49,3 +50,6 @@ function selectedDodge(config: ThiefConfig, traits: ReadonlySet<string | number>
   // Fall back to explicit config selection or plain dodge for Core Thief / non-minor builds
   return config.selectedDodge || 'Dodge';
 }
+
+/** Daredevil reserves endurance for three ordinary dodges. */
+export const DAREDEVIL_MAXIMUM_ENDURANCE = 3 * ENDURANCE.dodgeCost;

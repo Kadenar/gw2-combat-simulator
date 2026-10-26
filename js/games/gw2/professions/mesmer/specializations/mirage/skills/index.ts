@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { DODGE_ICON } from '#gw2/platform/skills/shared-actions.js';
 import { WEAPON, ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
@@ -678,8 +679,7 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze(
     specialization: 'Mirage',
     castTimeMs: 0,
     cooldown: 0,
-    resourceCost: 50,
-    cost: { resource: 'endurance', spendOn: 'castCommit' },
+    cost: { resource: 'endurance', amount: ENDURANCE.dodgeCost, spendOn: 'castCommit' },
     // Mirage dodge spends endurance, grants cloak, and resolves dodge-triggered traits at completion.
     tasks: [
       {

@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
@@ -9,7 +10,6 @@ import type {
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
-import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import {
   VINDICATOR_AIRBORNE_MS,
@@ -146,8 +146,8 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
         singular: 'endurance',
         plural: 'endurance',
         // Capacity is the shared Revenant bound used by live recovery.
-        maximum: state.endurance?.maximum ?? REVENANT_MAXIMUM_ENDURANCE,
-        value: state.endurance?.value ?? 100,
+        maximum: state.endurance?.maximum ?? ENDURANCE.maximum,
+        value: state.endurance?.value ?? ENDURANCE.maximum,
         canStart: false,
         step: 1,
         displayMode: 'bar',

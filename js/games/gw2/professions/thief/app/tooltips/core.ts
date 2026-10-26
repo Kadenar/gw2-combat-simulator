@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
@@ -35,7 +36,7 @@ const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
 const dodgeTooltip: DescribeSimulationTooltip = skillTooltip(
   'Spend endurance to dodge and trigger supported dodge traits. Daredevil applies only the selected dodge package. Silent Scope can grant a stealth-attack charge when malice exceeds its threshold.',
   (balanceContext) => [
-    profileFact(balanceContext, CORE.resources, 'resourceCost', 'Endurance cost'),
+    { name: 'Endurance cost', detail: String(ENDURANCE.dodgeCost) },
     ...[TRAIT.BOUNDING_DODGER, TRAIT.LOTUS_TRAINING, TRAIT.UNHINDERED_COMBATANT].flatMap((id) => {
       const profile = tooltipProfile(balanceContext, id);
       return simulationEffectFacts(profile.effects, `alternative: ${profile.name}`).facts;

@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { ProfessionStateSnapshotContext } from '#gw2/platform/profession-presentation/types.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -5,7 +6,7 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { REVENANT_MAXIMUM_ENDURANCE, type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import { type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
@@ -113,7 +114,7 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
     if ('fullEndurance' in context.values)
       readProfessionCoreState<RevenantCoreState>(context.professionState).endurance!.value = context.values
         .fullEndurance
-        ? REVENANT_MAXIMUM_ENDURANCE
+        ? ENDURANCE.maximum
         : 0;
   },
 

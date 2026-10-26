@@ -1,10 +1,11 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
-import type { AmalgamMorphKind } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 /**
  * Owns Amalgam Evolve, locked-slot, and evolved-state skill fragments.
  * Persistent strain and morph state remain under `mechanics/evolved-form.ts`.
@@ -211,9 +212,10 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
  * Applies the strain mapped to a Morph name, emitting status effects immediately
  * while retaining timestamp-backed strains for later modifier and resolver checks.
  */
-export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamMorphKind, at: number): void {
+export function applyAmalgamStrain(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   const state = amalgamState.from(context);
-  const profile = requireBalanceProfileFromContext(context, PROFILE.strains);
+  const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
+  const action = requireSkillAction(skill, 'strain');
 
   if (morphKind === 'thorns') {
     const duration = balanceNumberFromContext(context, PROFILE.rapaciousStrain, 'duration');
@@ -221,9 +223,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, morphKind: AmalgamM
   }
 
   // The selected packet owns its effect and duration; state windows follow their associated boon.
-  for (const effect of profile.effects || []) {
-    if (effect.metadata?.trigger !== morphKind) continue;
-
+  for (const effect of action.effects) {
     if (!effect.sourceId || !effect.name) throw new Error('Missing Amalgam strain identity');
 
     if (effect.type === 'control') {

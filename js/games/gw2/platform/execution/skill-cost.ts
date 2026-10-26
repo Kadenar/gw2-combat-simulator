@@ -10,6 +10,9 @@ import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profes
 
 /** Resolves the declared amount from the selected balance data at the moment it is read. */
 function skillCostAmount(runtime: Pick<MechanicQueryContext, 'helpers'>, skill: Skill): number {
+  // Fixed costs share the same readiness and spending path without a patchable balance field.
+  if (skill.cost!.amount != null) return skill.cost!.amount;
+
   // Read the authoritative authored field so patches affect admission and payment together.
   const field = skill.cost!.skillAmount;
 

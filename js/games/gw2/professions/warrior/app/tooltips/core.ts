@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import {
   fromProfile,
   profileFact,
@@ -118,7 +119,7 @@ export const warriorCoreTooltips = {
     }),
     [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger applicable dodge traits. Incoming attacks are outside simulation scope.',
-      [fromProfile(CORE.resources, 'resourceCost', 'Endurance cost')]
+      () => [{ name: 'Endurance cost', detail: String(ENDURANCE.dodgeCost) }]
     ),
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: skillTooltip(
       'Swap to your other weapon set and trigger applicable weapon-swap effects.'

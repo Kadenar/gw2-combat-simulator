@@ -1,3 +1,4 @@
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -10,7 +11,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /** Flute adds 25% to base recovery only during its committed playing window, alongside Vigor's 50%. */
 export const troubadourEndurance: EndurancePolicy<MesmerRuntime> = {
   state: (context) => troubadourState.from(context).endurance,
-  maximum: () => 100,
+  maximum: () => ENDURANCE.maximum,
   regenerationBoundaries: (context) =>
     context.facts
       .read()
@@ -23,7 +24,7 @@ export const troubadourEndurance: EndurancePolicy<MesmerRuntime> = {
       at
     ).has('Flute');
     const fluteBonus = symphonicResonanceEndurance(context, flutePlaying);
-    return 5 * Math.min(2, 1 + (vigor ? 0.5 : 0) + fluteBonus);
+    return Math.min(ENDURANCE.maximumRegenerationPerSecond, enduranceRegenerationRate(vigor, fluteBonus));
   }
 };
 

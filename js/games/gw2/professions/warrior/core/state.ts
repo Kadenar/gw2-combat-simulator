@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
@@ -31,7 +32,7 @@ const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
 export const WARRIOR_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
   keys: WARRIOR_CORE_PUBLIC_END_STATE_KEYS,
   defaults: Object.freeze({
-    endurance: createResourceClock(100)
+    endurance: createResourceClock(ENDURANCE.maximum)
   } satisfies Partial<WarriorCoreState>)
 });
 
@@ -39,7 +40,7 @@ export const WARRIOR_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
 export function createWarriorCoreState(): WarriorCoreState {
   return {
     adrenaline: createResourceClock(),
-    endurance: createResourceClock(100),
+    endurance: createResourceClock(ENDURANCE.maximum),
 
     autoattackChains: {},
     availableFlips: {},

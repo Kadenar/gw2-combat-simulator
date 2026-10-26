@@ -1,3 +1,4 @@
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
@@ -8,11 +9,7 @@ import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
 import {
@@ -130,22 +127,18 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   },
   endurance: {
     state: (runtime) => runtime.profession.core.endurance,
-    maximum: () => 100,
+    maximum: () => ENDURANCE.maximum,
     regenerationBoundaries: (runtime) => [
       gw2CooldownReadyAt(runtime.cooldownController.readyAt(ID.SIGNET_OF_STAMINA) ?? 0)
     ],
     regenerationRate(runtime, vigor, at) {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
       // A ready, equipped signet adds to Vigor's regeneration bonus, subject to the shared 100% bonus cap.
       const stamina =
         selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_STAMINA) &&
         at >= gw2CooldownReadyAt(runtime.cooldownController.readyAt(ID.SIGNET_OF_STAMINA) ?? 0)
           ? balanceNumberFromContext(runtime, PROFILE.signetPassives, 'enduranceRegenerationBonus')
           : 0;
-      return (
-        balanceProfileNumber(profile, 'enduranceRegenerationPerSecond') *
-        Math.min(2, (vigor ? balanceProfileNumber(profile, 'vigorRegenerationMultiplier') : 1) + stamina)
-      );
+      return Math.min(ENDURANCE.maximumRegenerationPerSecond, enduranceRegenerationRate(vigor, stamina));
     }
   },
 

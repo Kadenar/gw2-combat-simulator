@@ -3,7 +3,6 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { applyRangerPetSwap } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -17,8 +16,7 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
     // A late-cancelled dodge commits while keeping the rest of its animation reserved.
     interruptCommitMs: 760,
     retainsCastLockoutAfterInterrupt: true,
-    rechargeAnchor: 'castStart',
-    cost: { resource: 'endurance', profileAmount: { profileId: PROFILE.resources, field: 'resourceCost' } }
+    rechargeAnchor: 'castStart'
   }),
   {
     id: ID.PET_SWAP,

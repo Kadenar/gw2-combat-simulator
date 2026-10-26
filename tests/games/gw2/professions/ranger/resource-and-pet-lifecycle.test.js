@@ -3,7 +3,6 @@ import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-se
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
@@ -59,19 +58,23 @@ test('Ranger endurance and Dodge readiness follow self Vigor windows', () => {
   close(observedRuntime(result).endurance.readyAt(50), 9);
 });
 
-test('Ranger recovery rejects invalid profiles and uses each invocation profile', () => {
+test('Ranger recovery validates and applies the selected Natural Vigor bonus', () => {
   const run = (rate) =>
-    runRanger([wait(4000)], config, {
-      extend: (native) => ({
-        catalog: withProfile(native.catalog, PROFILE.resources, { enduranceRegenerationPerSecond: rate })
-      }),
-      initialize(runtime) {
-        runtime.profession.core.endurance.value = 0;
+    runRanger(
+      [wait(4000)],
+      { ...config, selectedTraitIds: [TRAIT.NATURAL_VIGOR] },
+      {
+        extend: (native) => ({
+          catalog: withProfile(native.catalog, TRAIT.NATURAL_VIGOR, { vigorRegenerationMultiplier: rate })
+        }),
+        initialize(runtime) {
+          runtime.profession.core.endurance.value = 0;
+        }
       }
-    });
+    );
   for (const invalid of [NaN, Infinity, undefined]) assert.throws(() => run(invalid), /Invalid balance data/);
-  close(observedRuntime(run(5)).profession.core.endurance.value, 20);
-  close(observedRuntime(run(4)).profession.core.endurance.value, 16);
+  close(observedRuntime(run(0)).profession.core.endurance.value, 20);
+  close(observedRuntime(run(0.25)).profession.core.endurance.value, 25);
 });
 
 test('Galeshot arrow regeneration ignores Alacrity gain and expiry', () => {

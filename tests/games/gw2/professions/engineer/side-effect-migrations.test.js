@@ -118,7 +118,16 @@ test('grouped Thorns variants own retaliation independently of their Morph trait
           professionAssumptions: { inDamagingField: true }
         },
         {
-          extend: (native) => (declared ? {} : { catalog: withSkill(native.catalog, skillId, { sideEffects: [] }) })
+          extend: (native) =>
+            declared
+              ? {}
+              : {
+                  catalog: withSkill(native.catalog, skillId, {
+                    sideEffects: native.catalog.skillsById
+                      .get(skillId)
+                      .sideEffects.filter(({ do: action }) => action.id !== 'retaliation')
+                  })
+                }
         }
       );
       assert.deepEqual(result.warnings, []);

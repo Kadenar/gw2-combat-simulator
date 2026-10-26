@@ -208,6 +208,12 @@ export const solarFocusingLens = defineTrait({
 
 /** Registers holosmith traits in the established gameplay order. */
 export const holosmithTraits = [
+  // Unlocking Photon Forge supplies its baseline heat generation and overheat recharge.
+  defineTrait({
+    id: TRAIT.PHOTON_PROJECTOR,
+    name: 'Photon Projector',
+    balance: { energyRegenerationPerSecond: 2, cooldown: 15 }
+  }),
   lasersEdge,
   solarFocusingLens,
   enhancedCapacityStorageUnit,

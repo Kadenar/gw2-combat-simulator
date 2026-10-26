@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -7,7 +8,6 @@ import {
   revenantRuntimeCoreState,
   revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/state-queries.js';
-import { REVENANT_MAXIMUM_ENDURANCE } from '#gw2/professions/revenant/core/state.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -189,8 +189,7 @@ const brutalMomentum = defineTrait({
           balanceProfileNumber(profile, 'fullEnduranceCriticalChance') - balanceProfileNumber(profile, 'criticalChance')
         );
       },
-      when: (context) =>
-        resourceAtLeast(revenantRuntimeCoreState(context).endurance?.value ?? 0, REVENANT_MAXIMUM_ENDURANCE)
+      when: (context) => resourceAtLeast(revenantRuntimeCoreState(context).endurance?.value ?? 0, ENDURANCE.maximum)
     }
   ],
   attributes: traitAttributeBonuses(RENEGADE_PROFILE_IDS.brutalMomentum, (profile) => ({

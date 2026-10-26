@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { HOLOSMITH_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/holosmith/profiles.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -65,7 +64,7 @@ test('passive heat retains per-tick nine-decimal rounding with patched rates', (
       specialization: 'Holosmith'
     },
     {
-      catalog: (catalog) => withProfile(catalog, PROFILE.heat, { energyRegenerationPerSecond: 1 / 3 })
+      catalog: (catalog) => withProfile(catalog, TRAIT.PHOTON_PROJECTOR, { energyRegenerationPerSecond: 1 / 3 })
     }
   );
   assert.deepEqual(result.warnings, []);

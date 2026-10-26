@@ -1,30 +1,11 @@
-/**
- * Owns Elementalist-specific endurance regeneration policy.
- * Shared capped resource arithmetic stays in the platform endurance primitive.
- */
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
-
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
-/** Resolves Elementalist's profile-aware endurance rate while leaving shared arithmetic to the GW2 primitive. */
-function elementalistEnduranceRegenerationRate(context: ElementalistRuntime, vigor: boolean): number {
-  const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-  const regeneration = balanceProfileNumber(resourcesProfile, 'enduranceRegenerationPerSecond');
-  const vigorMultiplier = balanceProfileNumber(resourcesProfile, 'vigorRegenerationMultiplier');
-  return regeneration * (vigor ? vigorMultiplier : 1);
-}
-
-/** Binds shared endurance operations to this module's live pool and balance rules. */
+/** Bind the profession's pool to shared endurance rules and its own additive trait bonuses. */
 export const elementalistEndurance: EndurancePolicy<ElementalistRuntime> = {
   state: (context) => professionCoreState(context).endurance,
-  maximum: (context) => balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks'),
-  regenerationRate: (context, vigor) => elementalistEnduranceRegenerationRate(context, vigor)
+  maximum: () => ENDURANCE.maximum,
+  regenerationRate: (_context, vigor) => enduranceRegenerationRate(vigor)
 };

@@ -1,3 +1,4 @@
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -330,8 +331,8 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
           singular: 'endurance',
           plural: 'endurance',
           maximum: state.endurance?.maximum ?? context.resources!.endurance!.maximum,
-          value: state.endurance?.value ?? 100,
-          startMaximum: 100,
+          value: state.endurance?.value ?? ENDURANCE.maximum,
+          startMaximum: ENDURANCE.maximum,
           canStart: false,
           step: 1,
           displayMode: 'bar',
