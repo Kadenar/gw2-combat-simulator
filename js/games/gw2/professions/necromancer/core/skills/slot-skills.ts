@@ -8,15 +8,14 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
-  balanceNumberFromContext,
+  skillNumberFromContext,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -30,6 +29,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: []
   },
   [ID.SUMMON_BONE_FIEND]: {
+    // Summoning owns actor count; the selected attack skill owns autonomous payload and actor policy.
+    minionCount: 1,
+    summonAttackId: 'necromancer.minion.bone-fiend.attack',
     rechargeOnMinionDeath: true,
     castTimeMs: 360,
     effects: [],
@@ -55,6 +57,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }]
   },
   [ID.SUMMON_BONE_MINIONS]: {
+    // Summoning owns actor count; the selected attack skill owns autonomous payload and actor policy.
+    minionCount: 2,
+    summonAttackId: 'necromancer.minion.bone-minion.attack',
     rechargeOnMinionDeath: true,
     castTimeMs: 360,
     effects: [],
@@ -143,6 +148,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SUMMON_BLOOD_FIEND]: {
+    // Summoning owns actor count; the selected attack skill owns autonomous payload and actor policy.
+    minionCount: 1,
+    summonAttackId: 'necromancer.minion.blood-fiend.attack',
     castTimeMs: 680,
     effects: [],
     // Commitment invokes the shared creature owner once; it retains command and generation lifetimes.
@@ -352,6 +360,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.command-minion' } }]
   },
   [ID.SUMMON_SHADOW_FIEND]: {
+    // Summoning owns actor count; the selected attack skill owns autonomous payload and actor policy.
+    minionCount: 1,
+    summonAttackId: 'necromancer.minion.shadow-fiend.attack',
     rechargeOnMinionDeath: true,
     castTimeMs: 360,
     effects: [],
@@ -446,6 +457,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.SIGNET_OF_UNDEATH]: {
+    // The passive scheduler reads this skill independently of its active cast.
+    pulseInterval: 3,
+    lifeForceGain: 4,
     castTimeMs: 360,
     // Reviving allies is outside the simulation; casting still consumes time and starts recharge.
     effects: []
@@ -472,6 +486,8 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.SIGNET_OF_SPITE]: {
+    // Passive attributes remain skill-owned while readiness controls eligibility.
+    attributeBonuses: { power: 180 },
     castTimeMs: 880,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -491,6 +507,9 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SUMMON_FLESH_GOLEM]: {
+    // Summoning owns actor count; the selected attack skill owns autonomous payload and actor policy.
+    minionCount: 1,
+    summonAttackId: 'necromancer.minion.flesh-golem.attack',
     rechargeOnMinionDeath: true,
     castTimeMs: 680,
     effects: [],
@@ -542,6 +561,14 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
     castTimeMs: 880,
+    // Passive templates are selected only by the signet scheduler.
+    pulseInterval: 3,
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.packetLabel !== 'passive')
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -557,7 +584,21 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
         name: 'Signet of Vampirism - Vampiric Mark',
         canCrit: false,
         damageKind: 'life-steal'
-      }
+      },
+      ...[
+        {
+          packetLabel: 'passive',
+          type: 'strike' as const,
+          coefficient: 0,
+          hits: 1,
+          flatStrikeBase: 129,
+          flatStrikePowerCoeff: 0.03,
+          actorType: ACTOR.EFFECT,
+          name: 'Signet of Vampirism - Passive Life Siphon',
+          canCrit: false,
+          damageKind: 'life-steal'
+        }
+      ]
     ]
   }
 });
@@ -584,14 +625,12 @@ export const NECROMANCER_SIGNET_PASSIVES = [
   {
     passive: 'undeath',
     name: 'Signet of Undeath',
-    skillId: ID.SIGNET_OF_UNDEATH,
-    profileId: PROFILE.signetOfUndeathPassive
+    skillId: ID.SIGNET_OF_UNDEATH
   },
   {
     passive: 'vampirism',
     name: 'Signet of Vampirism',
-    skillId: ID.SIGNET_OF_VAMPIRISM,
-    profileId: PROFILE.signetOfVampirismPassive
+    skillId: ID.SIGNET_OF_VAMPIRISM
   }
 ] as const;
 
@@ -608,7 +647,7 @@ export function applyNecromancerSignetPassive(
     return;
 
   if (policy.passive === 'undeath')
-    grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, policy.profileId, 'lifeForceGain'));
+    grantNecromancerLifeForce(runtime, skillNumberFromContext(runtime, policy.skillId, 'lifeForceGain'));
   else {
     emitVampirismPassive(runtime);
   }
@@ -617,7 +656,7 @@ export function applyNecromancerSignetPassive(
 /** One passive siphon shares the pulse payload without its activation cadence or suppression checks. */
 export function emitVampirismPassive(runtime: NecromancerRuntime): void {
   const id = ID.SIGNET_OF_VAMPIRISM;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.signetOfVampirismPassive);
+  const profile = requireSkillFromContext(runtime, ID.SIGNET_OF_VAMPIRISM);
   const strike = requireEffect(profile, 'strike', 'Signet of Vampirism - Passive Life Siphon');
 
   if (strike)

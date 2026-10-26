@@ -12,7 +12,6 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 
 const BOW_SKILLS = Object.freeze([
@@ -61,7 +60,7 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
 
       if (skill.id === ID.HAWKEYE || skill.id === ID.KEEN_SHOT) {
         const maximum =
-          state.windForce?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks');
+          state.windForce?.maximum ?? balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'minimumStacks');
         return { tileActive: (skill.id === ID.HAWKEYE) === (state.windForce?.value ?? 0) >= maximum };
       }
     },
@@ -107,7 +106,10 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
     },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
       const state = rangerUiState(context);
-      const profile = requireBalanceProfileFromContext({ catalog: context.catalog ?? catalog }, PROFILE.resources);
+      const profile = requireBalanceProfileFromContext(
+        { catalog: context.catalog ?? catalog },
+        TRAIT.TEACHINGS_OF_THE_TENGU
+      );
       // Observed clocks carry the selected cap; build-only displays use the bound catalog.
       const maximumWindForce = state.windForce?.maximum ?? balanceProfileNumber(profile, 'minimumStacks');
       const maximum =

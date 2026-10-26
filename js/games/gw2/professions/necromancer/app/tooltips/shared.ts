@@ -34,7 +34,7 @@ export const shroudTooltip: DescribeSimulationTooltip = (balanceContext, entity)
       facts: []
     };
 
-  const profileId = String(selected.shroudProfileId);
+  const profileId = selected.shroudProfileId as import('#gw2/platform/skills/types.js').SkillId;
   return {
     description: `Enter shroud, replace your weapon skills, and trigger applicable shroud-entry traits. Life force drains while shroud is active.${selected.shroudEntry === 'harbinger' ? " Gain Blight on the shroud's recurring resource pulse." : ''}`,
     facts: [

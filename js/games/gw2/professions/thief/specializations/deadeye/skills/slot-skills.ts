@@ -4,10 +4,9 @@ import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -15,6 +14,9 @@ import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types
 /** Cantrips own their utility effects, flip windows, and commitment actions. */
 export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SHADOW_FLARE]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    flipDuration: 4,
+
     cooldown: 20,
     initiativeCost: 0,
     castTimeMs: 480,
@@ -35,8 +37,7 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
         on: 'castCommit',
         do: {
           type: 'flipArm',
-          skillId: ID.SHADOW_SWAP,
-          durationSec: { profile: PROFILE.shadowFlare, field: 'flipDuration' }
+          skillId: ID.SHADOW_SWAP
         }
       }
     ]
@@ -77,6 +78,10 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Obj
     ])
   },
   [ID.MERCY]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    initiativeRefund: 3,
+    initiativePerMalice: 1,
+
     cooldown: 1,
     ammo: 2,
     ammoRecharge: 30,
@@ -188,14 +193,13 @@ const deadeyeSlotActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill
     runtime.profession.core.revealedUntil = Math.min(runtime.profession.core.revealedUntil, runtime.time);
   },
   'thief.mercy'(runtime) {
-    // Consume live commitment-time malice before refunding the selected profile's amount.
+    // Consume live commitment-time malice before refunding the selected skill's amount.
     const state = deadeyeState.from(runtime);
     const malice = runtime.resourceController.value('malice');
     runtime.resourceController.replace('malice', 0);
     state.maleficentSevenTriggered = false;
-    const mercy = requireBalanceProfileFromContext(runtime, PROFILE.mercy);
-    const initiativeGain =
-      balanceProfileNumber(mercy, 'resourceGain') + malice * balanceProfileNumber(mercy, 'attributePerStack');
+    const mercy = requireSkillFromContext(runtime, ID.MERCY);
+    const initiativeGain = skillNumber(mercy, 'initiativeRefund') + malice * skillNumber(mercy, 'initiativePerMalice');
 
     if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
   }

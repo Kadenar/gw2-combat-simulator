@@ -132,15 +132,19 @@ test('Axe variants retain acceptance snapshots versus live pre-cast clone select
   assert.equal(conditions.at(-1).stacks, 2);
 });
 
-test('Harp start protection is independent of its later playing-state commitment and removable profile', () => {
+test('Harp start protection is independent of its later playing-state commitment and removable skill action', () => {
   for (const removed of [false, true]) {
     const profession = withPatchPreview(mesmerProfession, {
       id: 'harp-protection',
       label: 'Harp protection',
       professions: {
         mesmer: {
-          balanceProfiles: removed
-            ? { 'mesmer.troubadour.instruments': { removeEffects: [{ type: 'buff', name: 'distortion' }] } }
+          skills: removed
+            ? {
+                [ID.HARMONIOUS_HARP]: {
+                  sideEffects: { distortion: { removeEffects: [{ type: 'buff', name: 'distortion' }] } }
+                }
+              }
             : {}
         }
       }

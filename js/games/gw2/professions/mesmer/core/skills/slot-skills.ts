@@ -78,6 +78,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }]
   },
   [ID.SIGNET_OF_DOMINATION]: {
+    attributeBonuses: { conditionDamage: 180 },
     castTimeMs: 480,
     // Signet activation applies its control when the cast completes.
     effects: [
@@ -92,6 +93,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     ]
   },
   [ID.SIGNET_OF_MIDNIGHT]: {
+    attributeBonuses: { expertise: 180 },
     rechargeAnchor: 'castStart',
     castTimeMs: 0,
     // Activating the signet applies one five-second blind.
@@ -111,6 +113,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     effects: []
   },
   [ID.SIGNET_OF_ILLUSIONS]: {
+    pulseInterval: 10,
+    resourceGain: 1,
     // Restart the passive clone interval only after the active cast completes.
     tasks: [
       {
@@ -258,6 +262,7 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial
     ]
   },
   [ID.MIMIC]: {
+    duration: 10,
     castTimeMs: 640,
     effects: [],
     // Arm a fresh utility-reset window at semantic completion.

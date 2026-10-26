@@ -5,10 +5,11 @@ import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 
 export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SUNDERING_LEAP]: {
+    // This Rage skill owns its base extension; traits add their own rewards.
+    durationExtension: 3,
     movementSkill: true,
     castTimeMs: 960,
     // Retain a field crossed during the leap even when it expires before landing.
@@ -48,7 +49,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       // Base duration combines with selected trait extensions in the mode owner.
       {
         on: 'castCommit',
-        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'threshold' } }
+        do: { type: 'warrior.berserk-extension' }
       },
       {
         on: 'castCommit',
@@ -167,6 +168,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ])
   },
   [ID.WILD_BLOW]: {
+    // This Rage skill owns its base extension; traits add their own rewards.
+    durationExtension: 5,
     castTimeMs: 600,
     effects: [
       {
@@ -191,7 +194,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       // Base duration combines with selected trait extensions in the mode owner.
       {
         on: 'castCommit',
-        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'maximumStacks' } }
+        do: { type: 'warrior.berserk-extension' }
       },
       {
         on: 'castCommit',
@@ -206,6 +209,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.SHATTERING_BLOW]: {
+    // This Rage skill owns its base extension; traits add their own rewards.
+    durationExtension: 3,
     castTimeMs: 520,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -230,7 +235,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       // Base duration combines with selected trait extensions in the mode owner.
       {
         on: 'castCommit',
-        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'threshold' } }
+        do: { type: 'warrior.berserk-extension' }
       },
       {
         on: 'castCommit',
@@ -261,10 +266,19 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
           amount: 10
         }
       },
-      { on: 'castCommit', do: { type: 'warrior.berserk-enter' } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'warrior.berserk-enter',
+          id: 'berserk',
+          effects: [{ name: 'berserk', type: 'buff', kind: 'berserk', stacks: 1, duration: 20 }]
+        }
+      }
     ]
   },
   [ID.BLOOD_RECKONING]: {
+    // This Rage skill owns its base extension; traits add their own rewards.
+    durationExtension: 2,
     castTimeMs: 280,
     dualWieldCastTimeMs: 240,
     effects: [],
@@ -273,7 +287,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       // Base duration combines with selected trait extensions in the mode owner.
       {
         on: 'castCommit',
-        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'minimumStacks' } }
+        do: { type: 'warrior.berserk-extension' }
       },
       {
         on: 'castCommit',
@@ -289,6 +303,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.OUTRAGE]: {
+    // This Rage skill owns its base extension; traits add their own rewards.
+    durationExtension: 3,
     stunbreak: true,
     castTimeMs: 0,
     effects: [],
@@ -296,7 +312,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       // Base duration combines with selected trait extensions in the mode owner.
       {
         on: 'castCommit',
-        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'threshold' } }
+        do: { type: 'warrior.berserk-extension' }
       },
       {
         on: 'castCommit',
@@ -311,6 +327,8 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.HEAD_BUTT]: {
+    // This Rage skill owns its base extension; traits add their own rewards.
+    durationExtension: 2,
     movementSkill: true,
     // Head Butt stuns both the foe and the player. The self-stun holds the cast
     // lane for 1s unless broken by a stunbreak (Outrage) or negated by stability.
@@ -332,7 +350,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       // Base duration combines with selected trait extensions in the mode owner.
       {
         on: 'castCommit',
-        do: { type: 'warrior.berserk-extension', amount: { profile: PROFILE.rageExtensions, field: 'minimumStacks' } }
+        do: { type: 'warrior.berserk-extension' }
       },
       {
         on: 'castCommit',

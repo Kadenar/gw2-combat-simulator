@@ -1,3 +1,4 @@
+import { ambushSkill } from '#gw2/professions/mesmer/specializations/mirage/skills/ambush.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { DODGE_ICON } from '#gw2/platform/skills/shared-actions.js';
 import { WEAPON, ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
@@ -204,24 +205,26 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
 });
 
 /** Select player packets at acceptance; status schedules remain independent of whether strikes are removed. */
-function playerAmbushEffects(profileId: string, party = false): NonNullable<MesmerSkill['effectVariants']> {
+function playerAmbushEffects(party = false): NonNullable<MesmerSkill['effectVariants']> {
   return [
     {
-      profileId,
       when: () => true,
       transform: (_runtime, cast, effects) => {
         const player = (cast.skill as MesmerAmbushAttack).player;
         const damageAtMs = player.damageAtMs;
-        const statusAtMs = player.ticks?.map((tick) => tick.atMs);
+        const statusAtMs = player.statusAtMs;
         const impact =
           damageAtMs == null
             ? { timingAnchor: 'castEnd' as const, atMs: 0 }
             : { timingAnchor: 'castStart' as const, atMs: damageAtMs };
         return [
-          ...(cast.skill.effects ?? []),
           ...effects
-            .filter((effect) => effect.source === 'Player' || effect.name === CONDITION.VULNERABILITY)
+            .filter((effect) => effect.source !== 'Clone')
             .flatMap((effect): SkillEffect[] => {
+              // Ordinary skill additions keep their own delivery; only ambush templates use the actor projection.
+              if (effect.type === 'control' || (effect.source !== 'Player' && effect.name !== CONDITION.VULNERABILITY))
+                return [effect];
+
               const repeated = effect.type === 'boon' || effect.name === CONDITION.VULNERABILITY;
               const times =
                 repeated && statusAtMs?.length
@@ -275,7 +278,7 @@ function playerAmbushEffects(profileId: string, party = false): NonNullable<Mesm
 
 /** One skill record owns catalog metadata and both actor variants; profiles and runtime reuse it. */
 export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAttack>> = Object.freeze({
-  [WEAPON.AXE]: {
+  [WEAPON.AXE]: ambushSkill({
     name: 'Imaginary Axes',
     id: ID.IMAGINARY_AXES,
     icon: 'https://render.guildwars2.com/file/38ED6AA595AEF00C0F704D0565DB7DD24B623850/1770513.png',
@@ -319,9 +322,9 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     // Cancelling the aftercast preserves axes already released at the player packet's impact frame.
     interruptCommitMs: 360,
     effects: [],
-    effectVariants: playerAmbushEffects('mesmer.mirage.imaginary-axes')
-  },
-  [WEAPON.DAGGER]: {
+    effectVariants: playerAmbushEffects()
+  }),
+  [WEAPON.DAGGER]: ambushSkill({
     name: 'Phantom Razor',
     id: ID.PHANTOM_RAZOR,
     icon: 'https://render.guildwars2.com/file/45D4ADDEDD740AFDD1AF1EB9632BFCB3FFACE75F/3098873.png',
@@ -373,9 +376,9 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     },
     castTimeMs: 600,
     effects: [],
-    effectVariants: playerAmbushEffects('mesmer.mirage.phantom-razor')
-  },
-  [WEAPON.GREATSWORD]: {
+    effectVariants: playerAmbushEffects()
+  }),
+  [WEAPON.GREATSWORD]: ambushSkill({
     name: 'Split Surge',
     id: ID.SPLIT_SURGE,
     icon: 'https://render.guildwars2.com/file/66067CFD182ED01761DC5992E679BFA2057B5954/1770507.png',
@@ -414,9 +417,9 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     // Each beam and its statuses survive only if they land before the channel is interrupted.
     interruptMode: 'per-packet',
     effects: [],
-    effectVariants: playerAmbushEffects('mesmer.mirage.split-surge')
-  },
-  [WEAPON.RIFLE]: {
+    effectVariants: playerAmbushEffects()
+  }),
+  [WEAPON.RIFLE]: ambushSkill({
     name: 'Effervescence',
     id: ID.EFFERVESCENCE,
     icon: 'https://render.guildwars2.com/file/4F0FBD163F2F996D1292B90193C356402BF7554D/3256357.png',
@@ -447,9 +450,9 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     },
     castTimeMs: 166.666666667,
     effects: [],
-    effectVariants: playerAmbushEffects('mesmer.mirage.effervescence')
-  },
-  [WEAPON.SCEPTER]: {
+    effectVariants: playerAmbushEffects()
+  }),
+  [WEAPON.SCEPTER]: ambushSkill({
     name: 'Ether Barrage',
     id: ID.ETHER_BARRAGE,
     icon: 'https://render.guildwars2.com/file/26CCD4729A4E32E75704E50F6B35DB70040680B8/1770508.png',
@@ -500,9 +503,9 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     },
     castTimeMs: 1000,
     effects: [],
-    effectVariants: playerAmbushEffects('mesmer.mirage.ether-barrage')
-  },
-  [WEAPON.SPEAR]: {
+    effectVariants: playerAmbushEffects()
+  }),
+  [WEAPON.SPEAR]: ambushSkill({
     name: 'Fractured Glass',
     id: ID.FRACTURED_GLASS,
     icon: 'https://render.guildwars2.com/file/5169DEF67A777AA8023122EDCFCEE9A548DCF599/3379151.png',
@@ -529,9 +532,9 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     castTimeMs: 880,
     interruptMode: 'per-packet',
     effects: [],
-    effectVariants: playerAmbushEffects('mesmer.mirage.fractured-glass')
-  },
-  [WEAPON.STAFF]: {
+    effectVariants: playerAmbushEffects()
+  }),
+  [WEAPON.STAFF]: ambushSkill({
     name: 'Chaos Vortex',
     id: ID.CHAOS_VORTEX,
     icon: 'https://render.guildwars2.com/file/0E2D7DB6FB4C0A9F681759099DE5D794A04914BF/1770510.png',
@@ -623,9 +626,9 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
     },
     castTimeMs: 720,
     effects: [],
-    effectVariants: playerAmbushEffects('mesmer.mirage.chaos-vortex', true)
-  },
-  [WEAPON.SWORD]: {
+    effectVariants: playerAmbushEffects(true)
+  }),
+  [WEAPON.SWORD]: ambushSkill({
     name: 'Mirage Thrust',
     id: ID.MIRAGE_THRUST,
     icon: 'https://render.guildwars2.com/file/609505304F1D0AB548710E92335E5F550D7E396E/1770511.png',
@@ -660,8 +663,8 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
         timingScale: 'fixed'
       }
     ],
-    effectVariants: playerAmbushEffects('mesmer.mirage.mirage-thrust')
-  }
+    effectVariants: playerAmbushEffects()
+  })
 });
 
 export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([

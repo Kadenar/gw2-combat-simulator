@@ -1,4 +1,5 @@
-import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import {
   fromProfile,
@@ -9,48 +10,38 @@ import {
   profileFact,
   tooltipPercent,
   tooltipDecimal,
-  tooltipNumber,
   tooltipProfile,
   simulationEffectFacts,
   type ProfessionTooltips,
-  type DescribeSimulationTooltip
+  type DescribeSimulationTooltip,
+  fromSkill
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { SPECTER_BALANCE_PROFILE_IDS as SPECTER } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 
 const siphonTooltip: DescribeSimulationTooltip = skillTooltip(
   'Siphon the target, trigger stealing traits, and gain Shadow Force. Replaces the held stolen-skill pool without granting a stolen skill.',
   [
-    fromProfile(SPECTER.resources, 'lifeForceGain', 'Shadow Force gained'),
+    fromSkill(ID.SIPHON, 'shadowForceGain', 'Shadow Force gained'),
     fromProfile(TRAIT.AMPLIFIED_SIPHONING, 'resourceGain', 'Additional Shadow Force with Amplified Siphoning')
   ]
 );
 
 const shadowShroudEnterTooltip: DescribeSimulationTooltip = (balanceContext) => {
-  const profile = tooltipProfile(balanceContext, SPECTER.enterShadowShroud);
+  const profile = requireSkillAction(balanceContext.catalog.skillsById.get(ID.ENTER_SHADOW_SHROUD)!, 'barrier');
   return {
     description:
       'Enter Shadow Shroud and replace the skill bar. Shadow Force drains continuously; depletion exits shroud automatically. Grant barrier to the tethered ally, enabling supported barrier traits. Manual exit has a brief initial lockout.',
     facts: [
-      profileFact(balanceContext, SPECTER.resources, 'maximumStacks', 'Maximum Shadow Force'),
+      profileFact(balanceContext, TRAIT.SPECTER, 'maximumStacks', 'Maximum Shadow Force'),
       profileFact(
         balanceContext,
-        SPECTER.resources,
+        TRAIT.SPECTER,
         'lifeForceDrain',
         'Maximum Shadow Force drained per second',
         (value) => `${tooltipDecimal(value * 100)}%`
       ),
-      ...simulationEffectFacts(
-        profile.effects?.map((effect) => ({
-          ...effect,
-          audience: {
-            recipients: RECIPIENT.PARTY,
-            affectsSelf: false,
-            maximumRecipients: tooltipNumber(profile, 'maximumTargets')
-          }
-        }))
-      ).facts
+      ...simulationEffectFacts(profile.effects).facts
     ]
   };
 };
@@ -80,19 +71,8 @@ const shadowShroudSkillTooltip: DescribeSimulationTooltip = (balanceContext, ent
 
   if (entity.id === ID.DAWNS_REPOSE) {
     // Unlike entering shroud, Dawn's Repose also grants barrier to the caster.
-    const profile = tooltipProfile(balanceContext, SPECTER.dawnsReposeBarrier);
-    facts.push(
-      ...simulationEffectFacts(
-        profile.effects?.map((effect) => ({
-          ...effect,
-          audience: {
-            recipients: RECIPIENT.PARTY,
-            affectsSelf: true,
-            maximumRecipients: tooltipNumber(profile, 'maximumTargets')
-          }
-        }))
-      ).facts
-    );
+    const profile = requireSkillAction(balanceContext.catalog.skillsById.get(ID.DAWNS_REPOSE)!, 'barrier');
+    facts.push(...simulationEffectFacts(profile.effects).facts);
   }
 
   return {

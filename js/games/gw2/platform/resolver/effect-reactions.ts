@@ -106,7 +106,9 @@ export function createEffectReactions<T extends object>(
               ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event })
               : rule.on === 'control.resolved'
                 ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event })
-                : !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event });
+                : rule.on === 'buff.applied'
+                  ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event })
+                  : !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event });
 
         if (!eligible) continue;
 

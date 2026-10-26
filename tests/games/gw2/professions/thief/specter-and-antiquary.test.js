@@ -1206,7 +1206,7 @@ test('Thieves Guild summons specialization-specific thieves and expires', () => 
   const lifetime = simulate('Specter', [
     'Thieves Guild',
     { type: 'combat-start' },
-    { type: 'wait', durationMs: thiefCatalog.skillsById.get(ID.THIEVES_GUILD).summonAttack.duration * 1000 + 2000 }
+    { type: 'wait', durationMs: thiefCatalog.skillsById.get(ID.THIEVES_GUILD).duration * 1000 + 2000 }
   ]);
   const summonPackets = lifetime.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.actorType === 'summon' && event.sourceId === 'thief.thieves-guild'

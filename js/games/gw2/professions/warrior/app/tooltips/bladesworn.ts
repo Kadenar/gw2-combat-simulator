@@ -1,23 +1,25 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
+  fromSkill,
   outsideScopeTooltip,
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
   tooltipNumber,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as BLADESWORN } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 
 const artillerySlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const sharp = entity.id === ID.SHARP_ARTILLERY_SLASH;
-  const profile = tooltipProfile(balanceContext, sharp ? BLADESWORN.sharpArtillerySlash : BLADESWORN.artillerySlash);
+  // Each ammunition variant exposes the selected skill's own packet templates.
+  const selected = requireSkillFromContext(balanceContext, entity.id);
   return {
     description:
       'Consume all available ammunition for an explosive attack. ' +
@@ -25,8 +27,8 @@ const artillerySlashTooltip: DescribeSimulationTooltip = (balanceContext, entity
         ? 'Sharp as the Wind applies Bleeding, increasing it with more rounds spent; consuming both rounds upgrades daze to stun.'
         : 'Consuming both rounds increases strike damage. The attack also dazes.'),
     facts: sharp
-      ? simulationEffectFacts(profile.effects).facts
-      : (profile.effects || []).flatMap(
+      ? simulationEffectFacts(selected.effects).facts
+      : (selected.effects || []).flatMap(
           (effect) =>
             simulationEffectFacts(
               [effect],
@@ -83,10 +85,10 @@ export const bladeswornTooltips = {
     [ID.DRAGON_TRIGGER]: skillTooltip(
       'Enter Dragon Trigger, drawing the Gunsaber if needed. Spend Flow at each charging opportunity to build Dragon charges. Release with a Dragon Slash; recharge begins when you leave the trigger. Tactical Reload increases charges gained per opportunity.',
       [
-        fromProfile(BLADESWORN.dragonTrigger, 'maximumStacks', 'Maximum Dragon charges'),
-        fromProfile(BLADESWORN.dragonTrigger, 'minimumStacks', 'Maximum charges with Daring Dragon'),
-        fromProfile(BLADESWORN.dragonTrigger, 'resourceCost', 'Base Flow cost per charge opportunity'),
-        fromProfile(BLADESWORN.dragonTrigger, 'cooldown', 'Maximum trigger duration', tooltipSeconds)
+        fromSkill(ID.DRAGON_TRIGGER, 'maximumCharges', 'Maximum Dragon charges'),
+        fromProfile(TRAIT.DARING_DRAGON, 'maximumStacks', 'Maximum charges with Daring Dragon'),
+        fromSkill(ID.DRAGON_TRIGGER, 'resourceCost', 'Base Flow cost per charge opportunity'),
+        fromSkill(ID.DRAGON_TRIGGER, 'duration', 'Maximum trigger duration', tooltipSeconds)
       ]
     ),
     [ID.DRAGON_SLASH_FORCE]: dragonSlashTooltip,
@@ -96,29 +98,33 @@ export const bladeswornTooltips = {
     [ID.SHARP_DRAGON_SLASH_BOOST]: dragonSlashTooltip,
     [ID.SHARP_DRAGON_SLASH_REACH]: dragonSlashTooltip,
     [ID.OVERCHARGED_CARTRIDGES]: (balanceContext) => {
-      const profile = tooltipProfile(balanceContext, BLADESWORN.overchargedCartridges);
+      // Cartridge windows and their explosion rewards share the selected lifecycle action.
+      const selected = requireSkillAction(
+        requireSkillFromContext(balanceContext, ID.OVERCHARGED_CARTRIDGES),
+        'cartridges'
+      );
       return {
         description:
           'Empower your explosions and add Burning to qualifying player explosions. Casting again during the ordinary window replaces it with Supercharged Cartridges. Further casts while supercharged spend ammunition without extending the window.',
         facts: [
           ...simulationEffectFacts(
-            profile.effects?.filter((effect) =>
+            selected.effects.filter((effect) =>
               ['overcharged-cartridges', 'Overcharged Burning'].includes(String(effect.name))
             ),
             'ordinary cartridges; Burning per explosion'
           ).facts,
           ...simulationEffectFacts(
-            profile.effects?.filter((effect) =>
+            selected.effects.filter((effect) =>
               ['supercharged-cartridges', 'Supercharged Burning'].includes(String(effect.name))
             ),
             'supercharged; replaces ordinary cartridges'
           ).facts,
-          ...(profile.effects
-            ?.filter((effect) => effect.type === 'buff')
+          ...selected.effects
+            .filter((effect) => effect.type === 'buff')
             .map((effect) => ({
               name: `${effect.kind === 'supercharged-cartridges' ? 'Supercharged' : 'Ordinary'} explosion damage`,
               detail: tooltipPercent(tooltipNumber(effect, 'damageIncreasePerStack'))
-            })) || [])
+            }))
         ]
       };
     },
@@ -128,7 +134,7 @@ export const bladeswornTooltips = {
     [ID.DRAGONSPIKE_MINE]: skillTooltip("Apply the listed effects and reset Dragon Trigger's recharge."),
     [ID.FLOW_STABILIZER]: skillTooltip(
       'Gain Fury and a temporary increase to passive Flow generation. If Fury was already active before this cast, also gain Flow immediately.',
-      [fromProfile(BLADESWORN.resources, 'attributePerStack', 'Additional Flow per second per Positive Flow stack')]
+      [fromProfile(TRAIT.GUN_X_SWORD, 'attributePerStack', 'Additional Flow per second per Positive Flow stack')]
     )
   },
   traits: {
@@ -172,8 +178,8 @@ export const bladeswornTooltips = {
     [TRAIT.DARING_DRAGON]: traitTooltip(
       'Dragon Trigger charges with fewer bullets and spends more flow per bullet. Releasing Dragon Slash grants alacrity to the party. Force uses a provisional maximum damage coefficient estimated from the power alacrity benchmark; its partial-charge curve and the other Slash variants remain unverified.',
       [
-        fromProfile(BLADESWORN.dragonTrigger, 'minimumStacks', 'Maximum Dragon Trigger charges with Daring Dragon'),
-        fromProfile(BLADESWORN.dragonTrigger, 'maximumStacks', 'Maximum Dragon Trigger charges without Daring Dragon'),
+        fromProfile(TRAIT.DARING_DRAGON, 'maximumStacks', 'Maximum Dragon Trigger charges with Daring Dragon'),
+        fromSkill(ID.DRAGON_TRIGGER, 'maximumCharges', 'Maximum Dragon Trigger charges without Daring Dragon'),
         ['resourceCostMultiplier', 'Flow cost per charge multiplier', (value) => `${tooltipDecimal(value)}×`],
         [
           'coefficientMultiplier',

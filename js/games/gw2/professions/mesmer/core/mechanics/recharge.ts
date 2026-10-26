@@ -2,7 +2,7 @@ import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { preparedMagazineMaximum } from '#gw2/platform/execution/prepared-magazines.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { fencersFinesseRecharge } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import {
@@ -29,12 +29,10 @@ export function mesmerRechargeWork(
 
   const multiplier = fencersFinesseRecharge(context, skill, masterOfMisdirectionRecharge(context, skill, 1));
 
-  const shatter = skill.shatter;
-
-  if (shatter?.rechargeReductionPerSource) {
+  if (skill.rechargeReductionPerSource != null) {
     // Recharge reads canonical shatter metadata and its owning clone pool, without acquiring illusion controllers.
     const clones = context.profession.core.clones.length;
-    const reduction = balanceNumberFromContext(context, shatter.balanceProfileId, 'rechargeReduction') * (clones + 1);
+    const reduction = skillNumber(skill, 'rechargeReductionPerSource') * (clones + 1);
     const baseCooldown = gw2BaseRecharge(skill);
     return Math.max(0, baseCooldown * multiplier - reduction);
   }

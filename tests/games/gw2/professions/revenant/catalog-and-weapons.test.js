@@ -351,7 +351,8 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
   const razorclaw = skill(SKILL.RAZORCLAWS_RAGE);
   const enhancedRazorclaw = skill(SKILL.RAZORCLAWS_RAGE_ID_72363);
   const heroic = skill(SKILL.HEROIC_COMMAND);
-  const improvedHeroic = namedProfile('Heroic Command (Lasting Legacy)');
+  // Trait replacements share the skill owner while keeping independent named payloads.
+  const improvedHeroic = heroic.skill.effects.find((effect) => effect.name === 'lasting-legacy-might');
   const kallasFervor = namedProfile('Ambush Commander');
   const soulcleaveProc = named("Soulcleave's Summit — Triggered Attack");
   const allForOne = namedProfile('All for One');
@@ -373,16 +374,19 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
         effect.type === 'condition' && effect.condition === 'Torment' && effect.stacks === 3 && effect.duration === 6
     )
   );
-  assert.deepEqual(heroic.skill.effects[0], {
-    audience: { recipients: 'party', maximumRecipients: 5 },
-    name: 'might',
-    type: 'boon',
-    boon: BOON.MIGHT,
-    duration: 8,
-    stacks: 2,
-    actorType: 'player'
-  });
-  assert.equal(improvedHeroic.profile.effects[0].stacks, 3);
+  assert.deepEqual(
+    heroic.skill.effects.find((effect) => effect.name === 'might'),
+    {
+      audience: { recipients: 'party', maximumRecipients: 5 },
+      name: 'might',
+      type: 'boon',
+      boon: BOON.MIGHT,
+      duration: 8,
+      stacks: 2,
+      actorType: 'player'
+    }
+  );
+  assert.equal(improvedHeroic.stacks, 3);
   assert.deepEqual(
     [
       soulcleaveProc.skill.cooldown,
@@ -429,7 +433,8 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
       [SKILL.ORDERS_FROM_ABOVE]: {
         effects: [
           {
-            effectIndex: 0,
+            type: 'boon',
+            name: 'base-alacrity',
             applications: { from: 4, to: 5 },
             intervalMs: { from: 1000, to: 760 }
           }
@@ -456,8 +461,10 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
   assert.equal(preview.skillsById.get(SKILL.ICERAZORS_IRE_ID_72359).effects[0].ticks[0].coefficient, 2.5);
   assert.deepEqual(
     [
-      preview.skillsById.get(SKILL.ORDERS_FROM_ABOVE).effects[0].applications,
-      preview.skillsById.get(SKILL.ORDERS_FROM_ABOVE).effects[0].intervalMs
+      preview.skillsById.get(SKILL.ORDERS_FROM_ABOVE).effects.find((effect) => effect.name === 'base-alacrity')
+        .applications,
+      preview.skillsById.get(SKILL.ORDERS_FROM_ABOVE).effects.find((effect) => effect.name === 'base-alacrity')
+        .intervalMs
     ],
     [5, 760]
   );

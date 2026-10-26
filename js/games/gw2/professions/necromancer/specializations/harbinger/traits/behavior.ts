@@ -1,14 +1,12 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
-import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 
 /** Doom Approaches turns the shroud control into Fear so condition duration and Fear reactions apply. */
 export function doomApproachesControl(runtime: NecromancerRuntime, effect: SkillEffect): SkillEffect {
@@ -21,7 +19,7 @@ export function doomApproachesControl(runtime: NecromancerRuntime, effect: Skill
 
 /** The trait selects the pulse amount; the mechanic still accrues and expires stacks. */
 export function doomApproachesBlightProfile(runtime: NecromancerRuntime) {
-  return hasTrait(runtime, TRAIT.DOOM_APPROACHES) ? TRAIT.DOOM_APPROACHES : PROFILE.resources;
+  return hasTrait(runtime, TRAIT.DOOM_APPROACHES) ? TRAIT.DOOM_APPROACHES : TRAIT.DARK_DISCIPLE;
 }
 
 /** Only delivered boon packets expand to party recipients. */
@@ -34,11 +32,13 @@ export function twistedMedicineAudience(runtime: NecromancerRuntime, effect: Ski
 /** Selects and materializes Doom Approaches before the skill scheduler owns the resulting pulses. */
 export const doomApproachesDarkBarrage: NonNullable<Skill['effectVariants']> = [
   {
-    when: (runtime) => hasTrait(runtime, TRAIT.DOOM_APPROACHES),
-    profileId: PROFILE.darkBarrageDoomApproaches,
-    transform: (runtime, _cast, effects) => {
-      const profile = requireBalanceProfileFromContext(runtime, PROFILE.darkBarrageDoomApproaches);
-      return darkBarrageEffects(profile, effects);
-    }
+    when: () => true,
+    transform: (runtime, cast, effects) =>
+      hasTrait(runtime, TRAIT.DOOM_APPROACHES)
+        ? darkBarrageEffects(
+            cast.skill,
+            effects.filter((effect) => effect.packetLabel === 'doom-approaches')
+          )
+        : effects.filter((effect) => effect.packetLabel !== 'doom-approaches')
   }
 ];

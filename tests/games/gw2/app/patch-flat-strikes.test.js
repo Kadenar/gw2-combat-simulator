@@ -101,14 +101,13 @@ for (const section of ['skills', 'balanceProfiles']) {
 
 // The actual Soul Shards emitter consumes both supported formula inputs; weapon scaling remains structural zero.
 test('Soul Shards flat formula edits change resolved damage and reject the ignored coefficient', () => {
-  const profileId = 'necromancer.core.soul-shards';
   const family = withPatchPreview(necromancerProfession, {
     id: 'flat-formula',
     label: 'Flat formula',
     professions: {
       necromancer: {
-        balanceProfiles: {
-          [profileId]: {
+        skills: {
+          [ID.SOUL_SHARDS]: {
             effects: [{ name: 'Soul Shards', flatStrikeBase: 100, flatStrikePowerCoeff: 0.2 }]
           }
         }
@@ -118,8 +117,8 @@ test('Soul Shards flat formula edits change resolved damage and reject the ignor
   assert.throws(
     () =>
       family.validatePatch({
-        balanceProfiles: {
-          [profileId]: { effects: [{ name: 'Soul Shards', coefficient: 100 }] }
+        skills: {
+          [ID.SOUL_SHARDS]: { effects: [{ name: 'Soul Shards', coefficient: 100 }] }
         }
       }),
     /cannot tune a flat strike/

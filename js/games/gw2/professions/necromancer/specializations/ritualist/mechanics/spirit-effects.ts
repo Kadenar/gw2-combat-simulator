@@ -1,9 +1,10 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import {
-  balanceProfileNumber,
+  skillNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -11,10 +12,8 @@ import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effec
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
-
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 
 // Weapon-spell stacks follow the creature that owns an attack before its stat
 // attribution, so player-scaled spirit packets cannot spend the player's stacks.
@@ -41,13 +40,18 @@ function spellIcon(context: NecromancerResolverContext, skillId: SkillId): strin
 export function queueNightmareWeapon(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  definition: BalanceProfile,
+  definition: Skill,
   recipient: 'personal' | 'shared'
 ): void {
   // Attribute damage to the consumed grant: ally-triggered Splinter can still spend a personal Nightmare charge.
   const breakdownName = `Nightmare Weapon (${recipient === 'personal' ? 'Personal' : 'Shared'})`;
-  const strike = requireEffect(definition, 'strike', 'Strike');
-  const vulnerability = requireEffect(definition, 'condition', CONDITION.VULNERABILITY);
+  const strike = requireEffect(definition, 'strike', 'Strike', requireSkillAction(definition, 'triggered'));
+  const vulnerability = requireEffect(
+    definition,
+    'condition',
+    CONDITION.VULNERABILITY,
+    requireSkillAction(definition, 'triggered')
+  );
 
   // Materialize both components at the triggering strike's timestamp before recording the combined proc; each
   // survives the other's removal.
@@ -123,9 +127,9 @@ export function queueNightmareWeapon(
 export function queueSplinterWeapon(
   context: NecromancerResolverContext,
   event: NecromancerResolverEvent,
-  definition: BalanceProfile
+  definition: Skill
 ): void {
-  const strike = requireEffect(definition, 'strike', 'Strike');
+  const strike = requireEffect(definition, 'strike', 'Strike', requireSkillAction(definition, 'triggered'));
 
   if (!strike) return;
 
@@ -196,18 +200,17 @@ export function triggerRitualistWeaponSpell(
 
   if (!active) return;
 
-  const definition = requireBalanceProfileFromContext(
-    context,
-    spell === 'nightmare' ? PROFILE.nightmareWeaponProc : PROFILE.splinterWeaponProc
-  );
+  const definition = requireSkillFromContext(context, spell === 'nightmare' ? ID.NIGHTMARE_WEAPON : ID.SPLINTER_WEAPON);
   // A removed proc retains its charges; the surviving component of Nightmare can still consume one.
   const hasOutput =
-    requireEffect(definition, 'strike', 'Strike') !== undefined ||
-    (spell === 'nightmare' && requireEffect(definition, 'condition', CONDITION.VULNERABILITY) !== undefined);
+    requireEffect(definition, 'strike', 'Strike', requireSkillAction(definition, 'triggered')) !== undefined ||
+    (spell === 'nightmare' &&
+      requireEffect(definition, 'condition', CONDITION.VULNERABILITY, requireSkillAction(definition, 'triggered')) !==
+        undefined);
 
   if (!hasOutput) return;
 
-  const internalCooldown = balanceProfileNumber(definition, 'internalCooldown');
+  const internalCooldown = skillNumber(definition, 'internalCooldown');
   for (const key of keys) {
     if (!consumeCharge(active.recipients?.[key], event.at, internalCooldown)) continue;
 

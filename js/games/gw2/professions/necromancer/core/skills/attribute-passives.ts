@@ -1,4 +1,4 @@
-import { passiveAttribute } from '#gw2/platform/attributes/passives.js';
+import { passiveSkillAttributes } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import {
   playerModifierContext,
@@ -10,12 +10,9 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/i
 export const necromancerPassiveAttributes: Gw2AttributeContributionCalculator = (context) => [
   {
     attributeEffects: [
-      passiveAttribute(
+      ...passiveSkillAttributes(
         context,
         ID.SIGNET_OF_SPITE,
-        'necromancer.core.signet-of-spite-passive',
-        'Power',
-        'attributeBonus',
         playerModifierContext(context) && signetOfSpitePassiveActive(context)
       )
     ]

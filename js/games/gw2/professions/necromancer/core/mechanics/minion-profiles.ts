@@ -1,14 +1,12 @@
 import {
   balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  effectNumber,
-  balanceProfileNumber
+  requireSkillFromContext,
+  skillNumber,
+  effectNumber
 } from '#gw2/platform/skills/balance-profiles.js';
-import {
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE,
-  NECROMANCER_MINION_PROFILE_BY_SKILL_ID
-} from '#gw2/professions/necromancer/core/profiles.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
@@ -57,7 +55,7 @@ interface MinionCommandDefinition {
   readonly attacks?: readonly MinionAttack[];
 }
 
-function minionAttackFromEffect(profile: BalanceProfile, effect: SkillEffect): MinionAttack {
+function minionAttackFromEffect(profile: Skill, effect: SkillEffect): MinionAttack {
   return {
     // Packet keys may differ while their summon attack attribution remains shared.
     name: effect.skillName || effect.name || profile.name,
@@ -71,14 +69,16 @@ function minionAttackFromEffect(profile: BalanceProfile, effect: SkillEffect): M
   };
 }
 
-/** Compiles one summon balance profile into the attack model used by its lifetime owner. */
+/** Compiles the selected summon and attack skills into the attack model used by its lifetime owner. */
 export function minionDefinitionForSkill(context: unknown, skillId: SkillId): MinionDefinition | undefined {
-  const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skillId)];
+  if (!NECROMANCER_MINION_SUMMON_IDS.some((id) => id === skillId)) return undefined;
 
-  // Only minion skills compile a summon; every mapped skill must have its profile.
-  if (profileId == null) return undefined;
+  const summon = requireSkillFromContext(context, skillId);
 
-  const profile = requireBalanceProfileFromContext(context, profileId);
+  if (!summon.summonAttackId) return undefined;
+
+  // Both explicit and configured summons compile selected canonical skill owners.
+  const profile = requireSkillFromContext(context, summon.summonAttackId as SkillId);
   // Attack lists are iterated, so removing any packet leaves the surviving ones in their declared roles.
   const strikes = (profile.effects || []).filter((effect) => effect.type === 'strike');
   const ordinary = strikes.filter((effect) => effect.packetLabel !== 'alternate');
@@ -101,27 +101,27 @@ export function minionDefinitionForSkill(context: unknown, skillId: SkillId): Mi
   });
   return {
     key: String(profile.minionKey || ''),
-    count: balanceProfileNumber(profile, 'minionCount'),
-    interval: balanceProfileNumber(profile, 'pulseInterval'),
-    openingAttackWindupMs: balanceProfileNumber(profile, 'openingAttackWindupMs'),
+    count: skillNumber(summon, 'minionCount'),
+    interval: skillNumber(profile, 'pulseInterval'),
+    openingAttackWindupMs: skillNumber(profile, 'openingAttackWindupMs'),
     commandId: profile.commandId as SkillId | undefined,
-    weaponStrength: profile.weaponStrength == null ? undefined : balanceProfileNumber(profile, 'weaponStrength'),
-    basePower: balanceProfileNumber(profile, 'basePower'),
-    damagePerCoefficient: balanceProfileNumber(profile, 'damagePerCoefficient'),
-    criticalChance: balanceProfileNumber(profile, 'criticalChance'),
-    criticalDamage: balanceProfileNumber(profile, 'criticalDamage'),
+    weaponStrength: profile.weaponStrength == null ? undefined : skillNumber(profile, 'weaponStrength'),
+    basePower: skillNumber(profile, 'basePower'),
+    damagePerCoefficient: skillNumber(profile, 'damagePerCoefficient'),
+    criticalChance: skillNumber(profile, 'criticalChance'),
+    criticalDamage: skillNumber(profile, 'criticalDamage'),
     commandRecoveryDelay:
       profile.commandRecoveryDelayMs == null ? undefined : Number(profile.commandRecoveryDelayMs) / 1000,
     attacks: ordinary.map(toAttack),
     // Cadence applies only while alternate attacks survive.
-    alternateEvery: alternate.length ? balanceProfileNumber(profile, 'alternateEvery') : 0,
+    alternateEvery: alternate.length ? skillNumber(profile, 'alternateEvery') : 0,
     alternateAttacks: alternate.map(toAttack)
   };
 }
 
 export function minionDefinitionFor(context: unknown, key: string): MinionDefinition | undefined {
-  for (const skillId of Object.keys(NECROMANCER_MINION_PROFILE_BY_SKILL_ID)) {
-    const definition = minionDefinitionForSkill(context, Number(skillId));
+  for (const skillId of NECROMANCER_MINION_SUMMON_IDS) {
+    const definition = minionDefinitionForSkill(context, skillId);
 
     if (definition?.key === key) return definition;
   }
@@ -159,8 +159,8 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
     coefficient: Number(strike?.coefficient || 0),
     conditions,
     control: controlEffect?.controlKind || attacks[0]?.controlKind || '',
-    impactDelay: Number(skill.impactDelay || 0),
-    consumes: Number(skill.consumes || 0),
+    impactDelay: skill.impactDelay || 0,
+    consumes: skill.consumes || 0,
     attacks
   };
 }

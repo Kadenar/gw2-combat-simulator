@@ -5,10 +5,9 @@ import { necromancerProfession } from '#gw2/professions/necromancer/profession.j
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { ENGINEER_TRAIT_IDS as E } from '#gw2/professions/engineer/data/ids.js';
 import { NECROMANCER_TRAIT_IDS as N, NECROMANCER_SKILL_IDS as SKILL } from '#gw2/professions/necromancer/data/ids.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 
 const wait = { type: 'wait', durationMs: 5000 };
 const cases = [
@@ -223,8 +222,8 @@ test('Scourge: removing intrinsic, shade, or pulsing barrier effects suppresses 
     assert.ok(baseline.resolvedEvents.some((event) => event.kind === 'barrier'));
     const result = scourge([skillId, wait], config, {
       catalog(catalog) {
-        if (skillId === SKILL.MANIFEST_SAND_SHADE || skillId === SKILL.SANDSTORM_SHROUD) {
-          const id = skillId === SKILL.MANIFEST_SAND_SHADE ? N.DESERT_EMPOWERMENT : PROFILE.sandstormShroud;
+        if (skillId === SKILL.MANIFEST_SAND_SHADE) {
+          const id = N.DESERT_EMPOWERMENT;
           return applyBalanceProfilePatch(catalog, {
             balanceProfiles: {
               [id]: {
@@ -236,6 +235,23 @@ test('Scourge: removing intrinsic, shade, or pulsing barrier effects suppresses 
             }
           });
         }
+
+        // Sandstorm's pulsing barrier belongs to its launch action; intrinsic barriers remain ordinary effects.
+        if (skillId === SKILL.SANDSTORM_SHROUD)
+          return applySkillPatch(catalog, {
+            skills: {
+              [skillId]: {
+                sideEffects: {
+                  sandstormShroud: {
+                    removeEffects: [
+                      { type: 'buff', name: 'barrier pulses' },
+                      { type: 'buff', name: 'barrier detonation' }
+                    ]
+                  }
+                }
+              }
+            }
+          });
 
         return withSkill(catalog, skillId, { effects: withoutBarrier(catalog.skillsById.get(skillId)) });
       }

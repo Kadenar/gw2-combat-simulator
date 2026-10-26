@@ -1,3 +1,5 @@
+import type { PARAGON_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/paragon/skill-fields.js';
+import type { BERSERKER_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/berserker/skill-fields.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -42,7 +44,14 @@ export interface WarriorRuntimeState {
 
 /** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
 export interface WarriorSkill
-  extends Skill, NumericSkillFields<typeof WARRIOR_CORE_SKILL_FIELDS & typeof BLADESWORN_SKILL_FIELDS> {
+  extends
+    Skill,
+    NumericSkillFields<
+      typeof WARRIOR_CORE_SKILL_FIELDS &
+        typeof BLADESWORN_SKILL_FIELDS &
+        typeof BERSERKER_SKILL_FIELDS &
+        typeof PARAGON_SKILL_FIELDS
+    > {
   /**
    * Measured cast duration (ms) while Dual Wielding and Quickness are active.
    * Only skills with this value receive a Dual Wielding cast-time adjustment.

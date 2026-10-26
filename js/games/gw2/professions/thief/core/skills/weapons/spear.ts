@@ -6,8 +6,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -16,6 +15,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ASHEN_ASSAULT]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    initiativeRefund: 4,
+
     preservesStealth: true,
     spearStealthAttack: true,
     cooldown: 0,
@@ -164,6 +166,10 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' } }]
   },
   [ID.FALLING_SPIDER]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    empoweredDamageMultiplier: 1.15,
+    empoweredConditionStacks: 1,
+
     cooldown: 0,
     initiativeCost: 1,
 
@@ -204,11 +210,10 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
         when: (runtime: MechanicQueriesOf<ThiefRuntime>) =>
           (runtime.profession.core.spearChainStage || 0) === 2 &&
           runtime.profession.core.spearPreviousSkillId === ID.ENTANGLING_ASP,
-        profileId: PROFILE.fallingSpiderEmpowered,
         transform: (runtime, cast) => {
-          const profile = requireBalanceProfileFromContext(runtime, PROFILE.fallingSpiderEmpowered);
-          const factor = balanceProfileNumber(profile, 'damageMultiplier');
-          const extraStacks = balanceProfileNumber(profile, 'resourceGain');
+          const profile = requireSkillFromContext(runtime, ID.FALLING_SPIDER);
+          const factor = skillNumber(profile, 'empoweredDamageMultiplier');
+          const extraStacks = skillNumber(profile, 'empoweredConditionStacks');
           const boosted = (condition: unknown) =>
             [CONDITION.BLEEDING, CONDITION.POISONED].some((name) => name === String(condition));
           return (cast.skill.effects ?? []).map((effect) => {
@@ -352,6 +357,9 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.DISTRACTING_THROW]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    duration: 10,
+
     cooldown: 0,
     initiativeCost: 2,
 

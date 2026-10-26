@@ -1,11 +1,10 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { spendBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
 import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
-import { HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { doomApproachesControl } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
 import type {
@@ -21,14 +20,12 @@ const MOVEMENT = 'harbinger.movement-impact';
 function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const empowered = spendBlight(runtime, cast);
   const blight = harbingerState.from(runtime).blightExpiries.length;
-  const profile = empowered
-    ? requireBalanceProfileFromContext(runtime, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)])
-    : cast.skill;
+  const effects = empowered ? requireSkillAction(cast.skill, 'empowered').effects : (cast.skill.effects ?? []);
   runtime.effects.emit({
     kind: 'profile',
     profile: cast.skill,
     effects: [
-      ...(profile.effects ?? []),
+      ...effects,
       ...(empowered ? (cast.skill.effects?.filter((effect) => effect.type === 'control') ?? []) : [])
     ].map((effect) => doomApproachesControl(runtime, effect)),
     ...harbingerCastEmissionPolicy(cast, cast.skill, { necromancerBlight: blight })

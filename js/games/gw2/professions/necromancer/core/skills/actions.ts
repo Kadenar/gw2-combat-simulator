@@ -1,3 +1,4 @@
+import { ACTOR } from '#gw2/platform/constants.js';
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 
 /**
@@ -8,6 +9,27 @@ import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/i
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 const extraSkills: Skill[] = [
+  // Consumed shards invoke this canonical payload without adding a player activation.
+  {
+    id: ID.SOUL_SHARDS,
+    name: 'Soul Shards',
+    type: 'Proc',
+    simulatorExcluded: true,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0,
+        hits: 1,
+        flatStrikeBase: 1504,
+        flatStrikePowerCoeff: 0.1,
+        actorType: ACTOR.EFFECT,
+        name: 'Soul Shards',
+        canCrit: false,
+        damageKind: 'life-steal'
+      }
+    ]
+  },
   createWeaponSwapSkill(),
   // Dodge uses the shared endurance controller and remains available in every transform.
   { ...createDodgeSkill(), usableInShroud: true },

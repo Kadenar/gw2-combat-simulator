@@ -1,14 +1,16 @@
+import { ConditionEffect } from '#gw2/platform/effects/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type {
-  ThiefGuildSummonProfile,
-  ThiefRuntimeState,
-  ThiefSummonCondition,
-  ThiefSummonStrike
-} from '#gw2/professions/thief/types.js';
+import {
+  requireBalanceProfileFromContext,
+  requireSkillFromContext,
+  skillNumber,
+  effectNumber,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { ThiefGuildSummonProfile, ThiefRuntimeState } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
@@ -31,7 +33,7 @@ interface GuildAttackWork {
 /** A family binding supplies elite identity and live condition policy, never baseline attack data. */
 export interface ThiefGuildContribution {
   readonly profileId: SkillId;
-  readonly conditions?: (runtime: ThiefRuntime, attack: ThiefSummonStrike) => readonly ThiefSummonCondition[];
+  readonly conditions?: (runtime: ThiefRuntime, skill: Skill) => readonly ConditionEffect[];
 }
 
 /** Bind one guild policy per selected runtime while keeping lifetime and scheduling in Core. */
@@ -58,7 +60,7 @@ export function createThievesGuildHooks(
     if (!profile) return;
 
     const core = runtime.profession.core;
-    const expiresAt = canonicalTime(cast.start + (profile.duration || 0));
+    const expiresAt = canonicalTime(cast.start + skillNumber(cast.skill, 'duration'));
     core.activeThievesGuild = {
       ownerId: `${cast.id}:thieves-guild`,
       expiresAt,
@@ -109,55 +111,64 @@ export function createThievesGuildHooks(
 
     if (!profile || !summon || !attack) return;
 
-    const hits = Math.max(1, attack.hits ?? 1);
+    // Resolve both packets and repeat recharge from the selected actor skill at each occurrence.
+    const actorSkill = requireSkillFromContext(runtime, attack.skillId);
+    const strike = requireEffect(actorSkill, 'strike', 'Strike');
     const summonName = `Thieves Guild — ${summon.name}`;
-    const attackName = `${summonName} — ${attack.name}`;
+    const attackName = `${summonName} — ${actorSkill.displayName}`;
     const common = {
       at: runtime.time,
       sourceId: 'thief.thieves-guild',
       actorType: ACTOR.SUMMON,
-      skillId: attack.skillId ?? ID.THIEVES_GUILD,
       skillName: summonName,
       parentSkillName: 'Thieves Guild',
-      damageBreakdownName: `${summon.displayName || summon.name} — ${attack.name}`,
+      damageBreakdownName: `${summon.displayName || summon.name} — ${actorSkill.displayName}`,
       summonIgnoresBoons: true,
       summonUsesEquipmentModifiers: false,
       activationId: `${work.ownerId}:${work.summonIndex}:${work.attackIndex}:${work.occurrence}`
     };
-    buildThiefStrikes({
-      ...common,
-      name: attackName,
-      coefficient: (attack.coefficientPerHit || 0) * hits,
-      hits,
-      hitIndex: 1,
-      totalHits: hits,
-      skillWeapon: summon.weapon,
-      weaponStrengthProfileId: summon.weaponStrengthProfileId,
-      independentSummonStrike: true,
-      summonBasePower: profile.basePower,
-      summonCriticalChance: profile.criticalChance,
-      summonCriticalDamage: profile.criticalDamage
-    }).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
-    // Only the selected elite's attacks use its policy; shared thieves retain their authored conditions.
+
+    if (strike) {
+      const hits = effectNumber(actorSkill, strike, 'hits');
+      buildThiefStrikes({
+        ...common,
+        skillId: strike.sourceId ?? actorSkill.id,
+        name: attackName,
+        coefficient: effectNumber(actorSkill, strike, 'coefficient'),
+        hits,
+        hitIndex: 1,
+        totalHits: hits,
+        skillWeapon: summon.weapon,
+        weaponStrengthProfileId: summon.weaponStrengthProfileId,
+        independentSummonStrike: true,
+        summonBasePower: profile.basePower,
+        summonCriticalChance: profile.criticalChance,
+        summonCriticalDamage: profile.criticalDamage
+      }).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
+    }
+
+    // Removing a strike never suppresses independent conditions or changes the actor's next decision.
     const conditions =
       summon.variant != null && contribution?.conditions
-        ? contribution.conditions(runtime, attack)
-        : attack.conditions || [];
+        ? contribution.conditions(runtime, actorSkill)
+        : (actorSkill.effects || []).filter((effect): effect is ConditionEffect => effect.type === 'condition');
     for (const condition of conditions)
       runtime.effects.emit({
         kind: 'packet',
         event: buildThiefCondition(null, {
           ...common,
+          skillId: condition.sourceId ?? actorSkill.id,
           name: `${attackName} — ${condition.condition}`,
-          condition: condition.condition,
-          stacks: condition.stacks,
-          duration: condition.duration || 0,
+          condition: String(condition.condition),
+          stacks: effectNumber(actorSkill, condition, 'stacks'),
+          duration: effectNumber(actorSkill, condition, 'duration'),
           summonInheritsAttributes: true
         })
       });
-    const next = canonicalTime(runtime.time + (attack.interval || 0));
+    const interval = skillNumber(actorSkill, 'cooldown');
+    const next = canonicalTime(runtime.time + interval);
 
-    if ((attack.interval || 0) > 0 && next < active.expiresAt)
+    if (interval > 0 && next < active.expiresAt)
       runtime.schedule(THIEF_GUILD_ATTACK, next, {
         ...work,
         occurrence: work.occurrence + 1

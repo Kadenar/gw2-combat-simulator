@@ -11,7 +11,6 @@ import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/co
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -139,6 +138,9 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     )
   },
   [ID.CRIPPLING_SHOT]: {
+    // Unspent charges and their delivered conditions have independent lifetimes.
+    charges: 3,
+    duration: 12,
     castTimeMs: 360,
     interruptCommitMs: 160,
     retainsCastLockoutAfterInterrupt: true,
@@ -174,7 +176,18 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
       ]
     ),
     // Arm subsequent qualifying hits only on semantic commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.blood-thirst' } }]
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'ranger.blood-thirst',
+          id: 'blood-thirst',
+          effects: [
+            { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 15 }
+          ]
+        }
+      }
+    ]
   },
   [ID.CONCUSSION_SHOT]: {
     castTimeMs: 640,
@@ -229,26 +242,33 @@ export function triggerBloodThirst(context: RangerResolverContext, event: Gw2Res
 
   if (!(Number(event.coefficient) > 0) || !(merged ? isPlayerStrike(event) : isPetStrike(event))) return;
 
-  deliverChargedHit(context, event, PROFILE.bloodThirst, () => consumeCharge(state.bloodThirst, event.at), {
-    // Player ownership implements the June 2024 change, even when a pet delivers the strike.
-    attribution: {
-      source: 'ranger',
-      sourceId: ID.CRIPPLING_SHOT,
-      actorType: ACTOR.EFFECT,
-      ownerActorType: ACTOR.PLAYER,
-      skillId: ID.CRIPPLING_SHOT,
-      skillName: 'Blood Thirst',
-      triggeredBy: event.skillName
-    },
-    name: 'Blood Thirst — Bleeding'
-  });
+  deliverChargedHit(
+    context,
+    event,
+    ID.CRIPPLING_SHOT,
+    'blood-thirst',
+    () => consumeCharge(state.bloodThirst, event.at),
+    {
+      // Player ownership implements the June 2024 change, even when a pet delivers the strike.
+      attribution: {
+        source: 'ranger',
+        sourceId: ID.CRIPPLING_SHOT,
+        actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
+        skillId: ID.CRIPPLING_SHOT,
+        skillName: 'Blood Thirst',
+        triggeredBy: event.skillName
+      },
+      name: 'Blood Thirst — Bleeding'
+    }
+  );
 }
 
 /** Queue grants at the declared activation boundary so same-time hits retain their established order. */
 export const bloodThirstLifecycle = {
   sideEffectHandlers: {
     'ranger.blood-thirst'(runtime, context) {
-      if (context.kind === 'cast') grantSkillCharges(runtime, context.cast, 'ranger.blood-thirst', PROFILE.bloodThirst);
+      if (context.kind === 'cast') grantSkillCharges(runtime, context.cast, 'ranger.blood-thirst');
     }
   },
   eventHandlers: { 'ranger.blood-thirst': handleRangerBloodThirst }

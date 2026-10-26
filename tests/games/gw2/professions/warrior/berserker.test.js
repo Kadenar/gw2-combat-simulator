@@ -4,7 +4,6 @@ import test from 'node:test';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -82,7 +81,9 @@ test('canceled Berserk retains spending while removed mode keeps independent ent
   const removed = withPatchPreview(warriorProfession, {
     id: 'berserk-removed',
     label: 'Berserk removed',
-    professions: { warrior: { balanceProfiles: { [PROFILE.resources]: { removeEffects: [{ type: 'buff' }] } } } }
+    professions: {
+      warrior: { skills: { [ID.BERSERK]: { sideEffects: { berserk: { removeEffects: [{ type: 'buff' }] } } } } }
+    }
   });
   const result = run(['Berserk'], { patchId: 'berserk-removed' }, removed);
   assert.deepEqual(result.warnings, []);

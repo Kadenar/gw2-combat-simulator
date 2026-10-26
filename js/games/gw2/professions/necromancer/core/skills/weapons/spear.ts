@@ -1,7 +1,6 @@
-import { ACTOR, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { CONTROL, ACTOR, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -132,7 +131,17 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.ADDLE]: {
     castTimeMs: 360,
+    // Impact-only templates are selected by landed reactions, never ordinary cast emission.
     effects: [
+      { type: 'control', name: 'Daze', controlKind: CONTROL.DAZE, packetLabel: 'on-hit' },
+      {
+        type: 'condition',
+        name: CONDITION.IMMOBILIZED,
+        condition: CONDITION.IMMOBILIZED,
+        stacks: 1,
+        duration: 1.5,
+        packetLabel: 'on-hit'
+      },
       {
         type: 'strike',
         // Only this selected application owns its accepted-impact reward.
@@ -150,9 +159,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
             do: {
-              type: 'emitProfile',
-              profileId: PROFILE.addleDaze,
-              attribution: { source: 'necromancer', sourceId: ID.ADDLE, actorType: ACTOR.PLAYER }
+              type: 'necromancer.addle-control'
             }
           },
           {
@@ -162,9 +169,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             when: (_runtime, { event }) =>
               Number(event.coefficient) > 0 && Boolean(event.metadata?.necromancerAddleImmobilize),
             do: {
-              type: 'emitProfile',
-              profileId: PROFILE.addleImmobilize,
-              attribution: { source: 'necromancer', sourceId: ID.ADDLE, actorType: ACTOR.PLAYER }
+              type: 'necromancer.addle-immobilize'
             }
           },
           {
@@ -206,11 +211,13 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
         transform: (runtime, _cast, effects) => {
           const grant = (runtime as NecromancerRuntime).profession.core.soulShardGrant;
           const immobilize = grant.charges >= 3 && grant.expiresAt > runtime.time;
-          return effects.map((effect) =>
-            effect.type === 'strike'
-              ? { ...effect, metadata: { ...effect.metadata, necromancerAddleImmobilize: immobilize } }
-              : effect
-          );
+          return effects
+            .filter((effect) => effect.packetLabel !== 'on-hit')
+            .map((effect) =>
+              effect.type === 'strike'
+                ? { ...effect, metadata: { ...effect.metadata, necromancerAddleImmobilize: immobilize } }
+                : effect
+            );
         }
       }
     ]

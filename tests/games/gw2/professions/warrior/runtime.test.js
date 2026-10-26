@@ -6,7 +6,6 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 
 // Exercise Core through the registered live family and its selected catalog.
 function run(rotation, overrides = {}, profession = warriorProfession, output = 'detailed') {
@@ -368,8 +367,8 @@ test('Combustive Shot component removal preserves independent conditions and zer
     label: 'Combustive live',
     professions: {
       warrior: {
-        balanceProfiles: {
-          [PROFILE.combustiveShot]: { removeEffects: [{ type: 'strike' }], fields: { pulseInterval: 0 } }
+        skills: {
+          [ID.COMBUSTIVE_SHOT]: { removeEffects: [{ type: 'strike' }], fields: { pulseInterval: 0 } }
         }
       }
     }

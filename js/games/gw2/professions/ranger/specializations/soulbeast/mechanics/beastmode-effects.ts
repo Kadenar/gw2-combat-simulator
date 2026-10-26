@@ -1,3 +1,5 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
@@ -11,13 +13,8 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   beastSkillUsed,
   mergedBeastHit,
@@ -31,7 +28,6 @@ import {
 import { triggerMergedPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
 import type {
@@ -68,14 +64,14 @@ function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2Resolver
 function queueOneWolfPackStrike(
   context: RangerResolverContext,
   event: Gw2ResolverEvent,
-  profile: BalanceProfile,
+  profile: Skill,
   strike: StrikeEffect
 ): void {
   const hits = effectNumber(profile, strike, 'hits');
   context.effects.emit({
     kind: 'packet',
     event: buildResolverStrike({
-      at: event.at + balanceProfileNumber(profile, 'initialDelay'),
+      at: event.at + skillNumber(profile, 'echoDelay'),
       source: 'ranger',
       sourceId: ID.ONE_WOLF_PACK_STRIKE,
       actorType: ACTOR.EFFECT,
@@ -100,7 +96,7 @@ function queueOneWolfPackStrike(
 function queueVultureStanceEffects(
   context: RangerResolverContext,
   event: Gw2ResolverEvent,
-  profile: BalanceProfile,
+  profile: Skill,
   poison: ConditionEffect | undefined,
   might: StatusEffect | undefined
 ): void {
@@ -133,23 +129,28 @@ function queueStanceProc(
   startCooldown: (internalCooldown: number) => void
 ): void {
   if (wolfPack) {
-    const profile = requireBalanceProfileFromContext(context, PROFILE.oneWolfPack);
-    const strike = requireEffect(profile, 'strike', 'Strike');
+    const profile = requireSkillFromContext(context, ID.ONE_WOLF_PACK);
+    const strike = requireEffect(profile, 'strike', 'Strike', requireSkillAction(profile, 'echo'));
 
     if (!strike) return;
 
-    startCooldown(balanceProfileNumber(profile, 'internalCooldown'));
+    startCooldown(skillNumber(profile, 'internalCooldown'));
     queueOneWolfPackStrike(context, event, profile, strike);
     return;
   }
 
-  const profile = requireBalanceProfileFromContext(context, PROFILE.vultureStance);
-  const poison = requireEffect(profile, 'condition', CONDITION.POISONED);
-  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+  const profile = requireSkillFromContext(context, ID.VULTURE_STANCE);
+  const poison = requireEffect(
+    profile,
+    'condition',
+    CONDITION.POISONED,
+    requireSkillAction(profile, 'triggered-effects')
+  );
+  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT), requireSkillAction(profile, 'triggered-effects'));
 
   if (!poison && !might) return;
 
-  startCooldown(balanceProfileNumber(profile, 'internalCooldown'));
+  startCooldown(skillNumber(profile, 'internalCooldown'));
   queueVultureStanceEffects(context, event, profile, poison, might);
 }
 
@@ -269,8 +270,13 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
   }
 
   core.winterBiteReady = false;
-  const profile = requireBalanceProfileFromContext(context, PROFILE.wintersBite);
-  const weakness = requireEffect(profile, 'condition', CONDITION.WEAKNESS);
+  const profile = requireSkillFromContext(context, ID.WINTERS_BITE);
+  const weakness = requireEffect(
+    profile,
+    'condition',
+    CONDITION.WEAKNESS,
+    requireSkillAction(profile, 'beastmode-weakness')
+  );
 
   if (weakness)
     context.effects.emit(rangerProfileEffectRequest(event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite"));

@@ -151,7 +151,13 @@ export function validateEffectReactions(catalog: CanonicalCatalog, skill: Skill,
     `Skill ${skill.id} effect`
   );
   const stage = (
-    { strike: 'damage.resolved', condition: 'condition.applied', control: 'control.resolved' } as Record<string, string>
+    {
+      strike: 'damage.resolved',
+      condition: 'condition.applied',
+      control: 'control.resolved',
+      buff: 'buff.applied',
+      boon: 'buff.applied'
+    } as Record<string, string>
   )[effect.type];
   for (const rule of effect.reactions) {
     if (

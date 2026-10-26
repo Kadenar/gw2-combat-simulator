@@ -1,163 +1,21 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
+/** Shared actor startup and the multi-action Painful Bond retain mechanic ownership. */
 export const RITUALIST_BALANCE_PROFILE_IDS = Object.freeze({
-  resources: 'necromancer.ritualist.resources',
-  anguish: 'necromancer.ritualist.spirit.anguish',
-  wanderlust: 'necromancer.ritualist.spirit.wanderlust',
-  preservation: 'necromancer.ritualist.spirit.preservation',
-  painfulBond: 'necromancer.ritualist.painful-bond',
-  nightmareWeaponProc: 'necromancer.ritualist.nightmare-weapon-proc',
-  splinterWeaponProc: 'necromancer.ritualist.splinter-weapon-proc'
+  spiritCadence: 'necromancer.ritualist.spirit-cadence',
+  painfulBond: 'necromancer.ritualist.painful-bond'
 });
 
 export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.freeze([
   {
-    id: RITUALIST_BALANCE_PROFILE_IDS.resources,
+    id: RITUALIST_BALANCE_PROFILE_IDS.spiritCadence,
     name: 'Ritualist Spirit Cadence',
     profileKind: 'mechanic',
-    pulseInterval: 4,
     initialDelay: 7.36,
-    lifeForceDrain: 3,
     resummonedSpiritAttackDelayMs: 4140,
     weaponStrength: 1056,
     effects: []
-  },
-  {
-    id: RITUALIST_BALANCE_PROFILE_IDS.anguish,
-    name: 'Anguish - Spirit Attacks',
-    profileKind: 'skill-variant',
-    parentId: ID.ANGUISH,
-    // Effective autoattack strength fitted across both supplied logs after normalizing live damage modifiers.
-    weaponStrength: 1510,
-    // Spawn-to-ready includes the spirit's activation delay and its opening animation.
-    initialBusyMs: 1920,
-    autoattackImpactDelayMs: 840,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
-        actorType: ACTOR.SUMMON,
-        name: 'Anguish Autoattack'
-      },
-      {
-        // EVTC calibration identifies each player-owned barrage packet as a 0.36 coefficient strike.
-        type: 'strike',
-        ticks: [
-          { atMs: 800, coefficient: 0.36 },
-          { atMs: 960, coefficient: 0.36 },
-          { atMs: 1000, coefficient: 0.36 },
-          { atMs: 1080, coefficient: 0.36 },
-          { atMs: 1120, coefficient: 0.36 },
-          { atMs: 1160, coefficient: 0.36 },
-          { atMs: 1200, coefficient: 0.36 }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: ACTOR.PLAYER,
-        name: 'Anguish Initial Barrage'
-      },
-      {
-        type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 2.5 / 4 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        duration: 2,
-        actorType: ACTOR.PLAYER,
-        name: 'Summon Spirits - Anguish'
-      },
-      // Opening conditions are independently patchable and removable from the barrage.
-      { type: 'condition', name: CONDITION.CRIPPLED, condition: CONDITION.CRIPPLED, stacks: 1, duration: 4 },
-      { type: 'condition', name: CONDITION.VULNERABILITY, condition: CONDITION.VULNERABILITY, stacks: 8, duration: 10 }
-    ]
-  },
-  {
-    id: RITUALIST_BALANCE_PROFILE_IDS.wanderlust,
-    name: 'Wanderlust - Spirit Attacks',
-    profileKind: 'skill-variant',
-    parentId: ID.WANDERLUST,
-    weaponStrength: 1440,
-    initialBusyMs: 1440,
-    autoattackImpactDelayMs: 840,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
-        actorType: ACTOR.SUMMON,
-        name: 'Wanderlust Autoattack'
-      },
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        atMs: 720,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: ACTOR.PLAYER,
-        name: 'Wanderlust Initial Swing'
-      },
-      {
-        // The lingering field emits four independently timed 0.42 coefficient packets.
-        type: 'strike',
-        ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 2000 + index * 1000, coefficient: 0.42 })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        actorType: ACTOR.PLAYER,
-        name: 'Wanderlust Initial Field'
-      },
-      {
-        type: 'strike',
-        coefficient: 3.7,
-        hits: 1,
-        atMs: 840,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        duration: 1.8,
-        actorType: ACTOR.PLAYER,
-        name: 'Summon Spirits - Wanderlust'
-      },
-      // Offsets follow the field's first impact, including its travel delay.
-      { type: 'condition', name: CONDITION.CHILLED, condition: CONDITION.CHILLED, stacks: 1, duration: 2, atMs: 0 },
-      {
-        type: 'condition',
-        name: CONDITION.VULNERABILITY,
-        condition: CONDITION.VULNERABILITY,
-        stacks: 4,
-        duration: 6,
-        atMs: 1000
-      },
-      {
-        type: 'condition',
-        name: CONDITION.WEAKNESS,
-        condition: CONDITION.WEAKNESS,
-        stacks: 1,
-        duration: 4,
-        atMs: 2000
-      },
-      { type: 'condition', name: CONDITION.SLOW, condition: CONDITION.SLOW, stacks: 1, duration: 2, atMs: 3000 }
-    ]
-  },
-  {
-    id: RITUALIST_BALANCE_PROFILE_IDS.preservation,
-    name: 'Preservation - Spirit Attacks',
-    profileKind: 'skill-variant',
-    parentId: ID.PRESERVATION,
-    weaponStrength: 1440,
-    initialBusyMs: 1640,
-    // Projectile travel adds some variation; use the later observed action tick at golem range.
-    autoattackImpactDelayMs: 920,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 0.3,
-        hits: 1,
-        actorType: ACTOR.SUMMON,
-        name: 'Preservation Autoattack'
-      }
-    ]
   },
   {
     id: RITUALIST_BALANCE_PROFILE_IDS.painfulBond,
@@ -187,47 +45,5 @@ export const RITUALIST_BALANCE_PROFILES: readonly BalanceProfile[] = Object.free
         canCrit: false
       }
     ]
-  },
-  {
-    id: RITUALIST_BALANCE_PROFILE_IDS.nightmareWeaponProc,
-    name: 'Nightmare Weapon - Triggered Attack',
-    profileKind: 'skill-variant',
-    parentId: ID.NIGHTMARE_WEAPON,
-    internalCooldown: 0,
-    effects: [
-      {
-        name: 'Strike',
-        type: 'strike',
-        coefficient: 0,
-        hits: 1,
-        flatStrikeBase: 1200,
-        flatStrikePowerCoeff: 0.05,
-        actorType: ACTOR.EFFECT,
-        canCrit: false,
-        damageKind: 'life-steal'
-      },
-      {
-        name: CONDITION.VULNERABILITY,
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 2,
-        duration: 8,
-        actorType: ACTOR.EFFECT
-      }
-    ]
-  },
-  {
-    id: RITUALIST_BALANCE_PROFILE_IDS.splinterWeaponProc,
-    name: 'Splinter Weapon - Triggered Attack',
-    profileKind: 'skill-variant',
-    parentId: ID.SPLINTER_WEAPON,
-    internalCooldown: 0.32,
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.4, hits: 1, actorType: ACTOR.EFFECT }]
   }
 ]);
-
-export const RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID: Readonly<Record<number, string>> = Object.freeze({
-  [ID.ANGUISH]: RITUALIST_BALANCE_PROFILE_IDS.anguish,
-  [ID.WANDERLUST]: RITUALIST_BALANCE_PROFILE_IDS.wanderlust,
-  [ID.PRESERVATION]: RITUALIST_BALANCE_PROFILE_IDS.preservation
-});

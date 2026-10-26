@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
@@ -12,7 +13,6 @@ import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { RITUALIST_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -332,7 +332,7 @@ test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', ()
     splinterProcs.every((step) => step.icon === splinterIcon),
     true
   );
-  const nightmareProc = necromancerCatalog.balanceProfilesById.get(RITUALIST_BALANCE_PROFILE_IDS.nightmareWeaponProc);
+  const nightmareProc = requireSkillAction(necromancerCatalog.skillsById.get(ID.NIGHTMARE_WEAPON), 'triggered');
 
   assert.equal(nightmareProc.effects[1].stacks, 2);
   assert.equal(nightmareProc.effects[1].duration, 8);
@@ -1156,7 +1156,7 @@ test('a zero spirit interval disables recurrence without removing initial spirit
     professions: {
       necromancer: {
         balanceProfiles: {
-          [RITUALIST_BALANCE_PROFILE_IDS.resources]: { fields: { pulseInterval: 0 } }
+          [TRAIT.SPAWNING_POWER]: { fields: { pulseInterval: 0 } }
         }
       }
     }

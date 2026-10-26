@@ -5,8 +5,6 @@ export const RENEGADE_PROFILE_IDS = Object.freeze({
   bandTogether: 'revenant.renegade.band-together',
   kallasFervor: 'revenant.renegade.kallas-fervor',
   kallasFervorLastingLegacy: 'revenant.renegade.kallas-fervor-lasting-legacy',
-  heroicCommandLastingLegacy: 'revenant.renegade.heroic-command-lasting-legacy',
-  ordersFromAboveRighteousRebel: 'revenant.renegade.orders-from-above-righteous-rebel',
   razorclawsRageProc: 'revenant.renegade.razorclaws-rage-proc',
   soulcleavesSummitProc: 'revenant.renegade.soulcleaves-summit-proc',
   ashenDemeanor: 'revenant.renegade.ashen-demeanor',

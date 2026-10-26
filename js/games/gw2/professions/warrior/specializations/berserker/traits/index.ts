@@ -279,11 +279,15 @@ export const bloodReaction = defineTrait({
   }
 });
 
-/** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
-const primalRage = defineTrait({ id: TRAIT.PRIMAL_RAGE, name: 'Primal Rage' });
+/** Primal Rage owns the reduced adrenaline capacity while the mode lifecycle controls entry and expiry. */
+const primalRage = defineTrait({ id: TRAIT.PRIMAL_RAGE, name: 'Primal Rage', balance: { maximumStacks: 10 } });
 
-/** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
-const fatalFrenzy = defineTrait({ id: TRAIT.FATAL_FRENZY, name: 'Fatal Frenzy' });
+/** Fatal Frenzy owns the final attributes granted while Berserk is active. */
+const fatalFrenzy = defineTrait({
+  id: TRAIT.FATAL_FRENZY,
+  name: 'Fatal Frenzy',
+  balance: { attributeBonus: 300, attributePerStack: 150 }
+});
 
 /** Register native owners once in declaration order. */
 export const warriorBerserkerTraits = [

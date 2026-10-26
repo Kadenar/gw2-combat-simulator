@@ -1,4 +1,4 @@
-import { hasActionEffects } from '#gw2/platform/effects/actions.js';
+import { hasActionEffects, skillActions } from '#gw2/platform/effects/actions.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import {
@@ -341,8 +341,8 @@ function effectCards(skill: NativePatchAuthoringSkill): string {
   // Actions may own rewards, templates, or timelines; the heading must not imply immediate emission.
   return (
     effectGroupCards(skill, skill.skill.effects ?? [], edit) +
-    (skill.skill.sideEffects ?? [])
-      .map(({ do: action }) =>
+    skillActions(skill.skill)
+      .map((action) =>
         hasActionEffects(action)
           ? `<section><h4>Action effects</h4>${effectGroupCards(skill, action.effects, edit?.sideEffects?.[action.id!] ?? null, action.id)}</section>`
           : ''

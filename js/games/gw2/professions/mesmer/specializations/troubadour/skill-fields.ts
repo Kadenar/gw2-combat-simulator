@@ -7,8 +7,15 @@ export const TROUBADOUR_SKILL_FIELDS = defineSkillFields(
     instrument: dataField,
     // Performance reward and the instruments it requires.
     tale: dataField,
-    // Profile owning the Crescendo payload of this tale.
-    crescendoProfileId: dataField,
+    // Eligible Tale performances award notes separately from Honorable Rogue's endurance.
+    noteGain: numberField({ patch: 'primary' }),
+    // August Queen starts all instruments with this base duration.
+    baseDuration: numberField({ unit: 'seconds', patch: 'primary' }),
+    // Crescendo scales only with instruments still playing at impact.
+    damageIncreasePerInstrument: numberField({ patch: 'primary' }),
+    // Cry of Pain strengthens Flute without changing other Confusion sources.
+    cryOfPainAdditionalStacks: numberField({ patch: 'primary' }),
+    cryOfPainDurationMultiplier: numberField({ patch: 'primary' }),
     // Milliseconds after the cast starts when the payload lands.
     damageAtMs: numberField({ unit: 'milliseconds' })
   },

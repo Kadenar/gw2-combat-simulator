@@ -21,11 +21,13 @@ const flameEffects = [
  * Runtime virtue behavior lives in `mechanics/virtues.ts`.
  */
 
+// API-omitted flame identity is an explicit module contribution; its combat payload stays in the skill fragment.
+export const WILLBENDER_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+  { id: ID.WILLBENDER_FLAMES_COURAGE, name: 'Willbender Flames' }
+]);
+
 export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  // This combat-log identity is absent from API metadata, so its canonical fragment supplies its identity too.
   [ID.WILLBENDER_FLAMES_COURAGE]: {
-    name: 'Willbender Flames',
-    id: ID.WILLBENDER_FLAMES_COURAGE,
     castTimeMs: 0,
     effects: flameEffects
   },

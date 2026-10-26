@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  fromSkill,
   tooltipSeconds,
   outsideScopeTooltip,
   traitTooltip,
@@ -12,7 +13,6 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { DRUID_BALANCE_PROFILE_IDS as DRUID } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 
 /** Compose druid descriptions using the selected catalog's balance data. */
 export const druidTooltips = {
@@ -20,15 +20,15 @@ export const druidTooltips = {
     [ID.CELESTIAL_AVATAR]: skillTooltip(
       'Enter Celestial Avatar and replace your weapon bar. Astral force drains until you leave or it is depleted. Entry triggers applicable Avatar and weapon-swap effects.',
       [
-        fromProfile(DRUID.resources, 'duration', 'Maximum Avatar duration from full force', tooltipSeconds),
-        fromProfile(DRUID.resources, 'maximumStacks', 'Full astral force')
+        fromSkill(ID.CELESTIAL_AVATAR, 'duration', 'Maximum Avatar duration from full force', tooltipSeconds),
+        fromProfile(TRAIT.CELESTIAL_BEING, 'maximumStacks', 'Full astral force')
       ]
     ),
     [ID.RELEASE_CELESTIAL_AVATAR]: skillTooltip(
       'Leave Celestial Avatar and restore your weapon skills. Retain part of your remaining astral force; automatic exit from exhaustion retains none. Trigger applicable exit and weapon-swap effects.',
       [
         fromProfile(
-          DRUID.resources,
+          TRAIT.CELESTIAL_BEING,
           'astralForceRetentionMultiplier',
           'Remaining astral force retained',
           (value) => `${tooltipDecimal(value * 100)}%`
@@ -77,7 +77,7 @@ export const druidTooltips = {
       facts: [
         profileFact(
           balanceContext,
-          'ranger.druid.resources',
+          TRAIT.ECLIPSE,
           'coefficientMultiplier',
           'Damage-generated astral force',
           (value) => `${tooltipDecimal(value)}×`

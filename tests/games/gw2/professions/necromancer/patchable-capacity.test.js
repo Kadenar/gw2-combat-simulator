@@ -11,7 +11,7 @@ import { observedRuntime, projectObservedState } from '#tests/helpers/observed-r
 
 const PATCH = 'resource-capacity';
 const SHARDS = 'necromancer.core.soul-shards';
-const BLIGHT = 'necromancer.harbinger.resources';
+const BLIGHT = TRAIT.DARK_DISCIPLE;
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 /** Exercise the public overlay so initialization and later mechanics must select the same balance source. */

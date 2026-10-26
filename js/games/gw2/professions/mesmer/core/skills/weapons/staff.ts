@@ -2,34 +2,10 @@ import { WEAPON, COMBO_FIELD, ACTOR, CONTROL, COMBO_FINISHER, CONDITION, AURA } 
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { defineSkillVariantProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 // The opening strike is followed by five field pulses.
 const CHAOS_STORM_PULSES_MS = [280, 1280, 2280, 3280, 4280, 5280];
-
-// Every impact can select Poison; runtime rolls retain whole applications and the patchable payload.
-export const CHAOS_STORM_POISON_PROFILE = defineSkillVariantProfile(
-  'mesmer.core.chaos-storm-poison',
-  ID.CHAOS_STORM,
-  'Chaos Storm - Poison',
-  {
-    effects: [
-      {
-        name: 'Poison',
-        type: 'condition',
-        ticks: CHAOS_STORM_PULSES_MS.map((atMs) => ({
-          atMs,
-          condition: CONDITION.POISONED,
-          duration: 4,
-          stacks: 1
-        })),
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      }
-    ]
-  }
-);
 
 export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.WINDS_OF_CHAOS]: {
@@ -199,6 +175,28 @@ export const MESMER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Parti
         atMs: CHAOS_STORM_PULSES_MS[0]
       }
     ]),
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.core.chaos-storm-poison' } }]
+    sideEffects: [
+      {
+        on: 'castStart',
+        do: {
+          id: 'poison',
+          type: 'mesmer.core.chaos-storm-poison',
+          effects: [
+            {
+              name: 'Poison',
+              type: 'condition',
+              ticks: CHAOS_STORM_PULSES_MS.map((atMs) => ({
+                atMs,
+                condition: CONDITION.POISONED,
+                duration: 4,
+                stacks: 1
+              })),
+              timingAnchor: 'castStart',
+              timingScale: 'fixed'
+            }
+          ]
+        }
+      }
+    ]
   }
 });

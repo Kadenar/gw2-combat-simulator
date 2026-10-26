@@ -11,7 +11,7 @@ import {
   commandDefinitionFor,
   minionDefinitionForSkill
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
-import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
+import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 import { rangerPetAutoProfile, rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
 test('elemental profile selection is independent from scheduler state', () => {
@@ -27,19 +27,21 @@ test('pet profile data exposes base attributes and autonomous cadence', () => {
   assert.equal(rangerPetAutoProfile('Unknown'), null);
 });
 
-test('minion profile compilation normalizes profile and command packets', () => {
-  const [skillId, profileId] = Object.entries(NECROMANCER_MINION_PROFILE_BY_SKILL_ID)[0];
+test('minion compilation normalizes selected summon, actor, and command packets', () => {
+  const [skillId] = NECROMANCER_MINION_SUMMON_IDS;
+  const attackId = 'fixture.minion.attack';
   const context = {
     catalog: {
-      balanceProfilesById: new Map([
+      // Summon count and autonomous attacks come from their separate canonical skill owners.
+      skillsById: new Map([
+        [skillId, { id: skillId, minionCount: 2, summonAttackId: attackId }],
         [
-          profileId,
+          attackId,
           {
             name: 'Test Minion',
             minionKey: 'test',
-            minionCount: 2,
             pulseInterval: 3,
-            // Supply the required profile field so this fixture reaches its packet-normalization assertions.
+            // Supply required actor fields so this fixture reaches its packet-normalization assertions.
             openingAttackWindupMs: 0,
             basePower: 1000,
             damagePerCoefficient: 1000,
@@ -56,7 +58,7 @@ test('minion profile compilation normalizes profile and command packets', () => 
       ])
     }
   };
-  const summon = minionDefinitionForSkill(context, Number(skillId));
+  const summon = minionDefinitionForSkill(context, skillId);
   assert.deepEqual(
     {
       key: summon.key,

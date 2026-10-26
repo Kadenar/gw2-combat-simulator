@@ -5,9 +5,8 @@ import test from 'node:test';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 
 const base = {
   specialization: 'Scourge',
@@ -20,9 +19,9 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const run = (rotation, config = base, extra = {}) =>
   observeGw2Runtime({ profession: necromancerProfession.runtimeFor(config), config, rotation, ...extra });
 const state = (result) => observedRuntime(result).profession.specialization.state;
-function patched(config, balanceProfiles) {
+function patched(config, skills) {
   const native = necromancerProfession.runtimeFor(config);
-  return { ...native, catalog: applyBalanceProfilePatch(native.catalog, { balanceProfiles }) };
+  return { ...native, catalog: applySkillPatch(native.catalog, { skills }) };
 }
 
 test('Ghastly Breach respects cancellation and keeps ally pulses when enemies are missed', () => {
@@ -53,7 +52,7 @@ test('Manifest owns an exact shade lifetime and cancelled casts create no shade 
   assert.equal(cancelled.totalDamage, 0);
   const noLifetime = run([cast(ID.MANIFEST_SAND_SHADE)], base, {
     profession: patched(base, {
-      [PROFILE.shade]: { removeEffects: [{ type: 'buff', name: 'active-shade' }] }
+      [ID.MANIFEST_SAND_SHADE]: { sideEffects: { shade: { removeEffects: [{ type: 'buff', name: 'active-shade' }] } } }
     })
   });
   assert.deepEqual(state(noLifetime).shades, []);
@@ -183,7 +182,9 @@ test('Sandstorm barriers use live Sand Sage attributes at each pulse and at deto
     selectedTraitIds: [TRAIT.HERALD_OF_SORROW, TRAIT.SAND_SAGE, TRAIT.ABRASIVE_GRIT, TRAIT.DESERT_EMPOWERMENT]
   };
   const profession = patched(config, {
-    [PROFILE.shade]: { effects: [{ type: 'buff', name: 'active-shade', duration: 1.5 }] }
+    [ID.MANIFEST_SAND_SHADE]: {
+      sideEffects: { shade: { effects: [{ type: 'buff', name: 'active-shade', duration: 1.5 }] } }
+    }
   });
   const result = run([cast(ID.MANIFEST_SAND_SHADE), cast(ID.SANDSTORM_SHROUD), wait(4000)], config, { profession });
   const boons = result.resolvedEvents.filter(
@@ -198,7 +199,9 @@ test('Sandstorm barriers use live Sand Sage attributes at each pulse and at deto
 test('removed Sandstorm Protection leaves barrier applications and their rewards independent', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.HERALD_OF_SORROW, TRAIT.DESERT_EMPOWERMENT] };
   const profession = patched(config, {
-    [PROFILE.sandstormShroud]: { removeEffects: [{ type: 'boon', name: 'protection pulses' }] }
+    [ID.SANDSTORM_SHROUD]: {
+      sideEffects: { sandstormShroud: { removeEffects: [{ type: 'boon', name: 'protection pulses' }] } }
+    }
   });
   const result = run([cast(ID.SANDSTORM_SHROUD), wait(4000)], config, { profession });
   const baseline = run([cast(ID.SANDSTORM_SHROUD), wait(4000)], config);
@@ -218,7 +221,9 @@ test('removed Sandstorm Protection leaves barrier applications and their rewards
 });
 
 test('Desert Shroud pulses preserve selected conditions after strike removal and respect the observation end', () => {
-  const profession = patched(base, { [PROFILE.desertShroud]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } });
+  const profession = patched(base, {
+    [ID.DESERT_SHROUD]: { sideEffects: { desertShroud: { removeEffects: [{ type: 'strike', name: 'Strike' }] } } }
+  });
   const result = run([cast(ID.DESERT_SHROUD), wait(1500)], base, { profession });
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === ID.DESERT_SHROUD),

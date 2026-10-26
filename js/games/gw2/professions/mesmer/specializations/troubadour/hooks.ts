@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { troubadourDodgeCompleted } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { troubadourBuffPolicies } from '#gw2/professions/mesmer/specializations/troubadour/effect-state.js';
@@ -55,6 +56,24 @@ export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSki
     },
     endurance: troubadourEndurance,
     sideEffectHandlers: {
+      // Harp grants its own protection at performance start, independently of its playing-state commitment.
+      'mesmer.troubadour.harp-distortion'(runtime, context) {
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: context.skill,
+          effects: requireSkillAction(context.skill, 'distortion').effects,
+          at: runtime.time,
+          fullEnd: runtime.time,
+          attribution: {
+            source: 'Player',
+            sourceId: context.skill.id,
+            skillId: context.skill.id,
+            skillName: context.skill.name,
+            activationId: context.kind === 'cast' ? context.cast.id : context.trigger.event.activationId,
+            actorType: ACTOR.PLAYER
+          }
+        });
+      },
       'mesmer.troubadour.performance-traits'(runtime, context) {
         if (context.kind === 'cast') scheduleTroubadourPerformance(runtime, context.cast, context.skill);
       },
@@ -72,7 +91,7 @@ export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSki
 
         runtime.scheduleForCast(
           'mesmer.crescendo',
-          context.cast.start + Number(context.skill.damageAtMs || 0) / 1000,
+          context.cast.start + (context.skill.damageAtMs ?? 0) / 1000,
           context.cast
         );
       }

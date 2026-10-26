@@ -5,9 +5,11 @@ import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebr
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
 import { ashesMechanic } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
-import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import {
+  firebrandState,
+  FIREBRAND_PUBLIC_STATE_PROJECTION
+} from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { firebrandTraits } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
-import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
@@ -19,7 +21,12 @@ export const firebrandModule = defineNativeModule({
 
     balanceProfiles: [ashesMechanic]
   }),
-  state: { create: createFirebrandState, project: createPublicStateProjector(FIREBRAND_PUBLIC_STATE_PROJECTION) },
+  state: {
+    // Initialize pages from the selected patch's compiled trait profiles.
+    create: (config, { balanceContext }) =>
+      firebrandState.create({ config, balanceProfile: (id) => balanceContext.catalog.balanceProfilesById.get(id) }),
+    project: createPublicStateProjector(FIREBRAND_PUBLIC_STATE_PROJECTION)
+  },
   traitDefinitions: firebrandTraits,
   hooks: firebrandHooks,
   presentation: bindFirebrandUi

@@ -226,7 +226,15 @@ const perilousSkies = defineTrait({
 });
 
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
+/** The unlocking minor owns baseline specialization policy even when omitted from explicit selections. */
+const intrinsicPolicy = defineTrait({
+  id: TRAIT.TEACHINGS_OF_THE_TENGU,
+  name: 'Teachings of the Tengu',
+  balance: { maximumStacks: 8, minimumStacks: 5, pulseInterval: 5 }
+});
+
 export const galeshotTraits = [
+  intrinsicPolicy,
   shrike,
   wutheringWind,
   thrillOfTheCatch,

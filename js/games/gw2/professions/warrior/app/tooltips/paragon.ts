@@ -1,13 +1,15 @@
-import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
   skillTooltip,
+  skillFact,
   tooltipDecimal,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
@@ -15,9 +17,8 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PARAGON } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
-import { PARAGON_COMMAND_ECHO_PROFILES } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 
-/** Shared skill descriptions retain each selected variant's own effects and balance profiles. */
+/** Commands describe their selected echo action; shared cadence remains command policy. */
 const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
   skillTooltip(
     "Apply this command's initial effects and queue an echo. A completed burst triggers pending echoes early. Reverberation adds another echo. " +
@@ -29,15 +30,17 @@ const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
             ? 'The echo grants adrenaline; revival is outside simulation scope.'
             : 'The defensive echo has no direct damage in the simulator.'),
     (context) => {
-      const id = PARAGON_COMMAND_ECHO_PROFILES[Number(entity.id)];
+      const selected = requireSkillFromContext(context, entity.id);
+      const echo = requireSkillAction(selected, 'echo');
       return [
         profileFact(context, PARAGON.commands, 'pulseInterval', 'Delay before echo', tooltipSeconds),
-        ...(id
-          ? [
-              ...simulationEffectFacts(tooltipProfile(context, id).effects, 'on echo').facts,
-              profileFact(context, id, 'resourceGain', 'Adrenaline gained on echo')
-            ]
-          : [])
+        ...simulationEffectFacts(
+          echo.effects.map((effect) =>
+            effect.type === 'boon' ? { ...effect, audience: { recipients: RECIPIENT.PARTY } } : effect
+          ),
+          'on echo'
+        ).facts,
+        skillFact(context, entity.id, 'echoResourceGain', 'Adrenaline gained on echo')
       ];
     }
   )(balanceContext, entity);
@@ -45,12 +48,14 @@ const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
 const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const action = entity.id === ID.CHANT_OF_ACTION;
   const recovery = entity.id === ID.CHANT_OF_RECUPERATION;
-  const effects = tooltipProfile(balanceContext, PARAGON.chants).effects || [];
-  // Match runtime packet identities even when an earlier boon was removed.
-  const names = action ? [BOON.MIGHT, BOON.FURY] : recovery ? [BOON.VIGOR] : [BOON.STABILITY];
-  const opening = effects.filter(
-    (effect) => effect.type === 'boon' && names.some((boon) => boon === String(effect.boon))
-  );
+  // Activation and refrain payloads remain on the chant action, including selected removals and edits.
+  const selected = requireSkillFromContext(balanceContext, entity.id);
+  const effects = requireSkillAction(selected, 'chant').effects.map((effect) => ({
+    ...effect,
+    audience: { recipients: RECIPIENT.PARTY }
+  }));
+  const opening = effects.filter((effect) => effect.name?.startsWith('Entry '));
+  const refrain = effects.filter((effect) => effect.name?.startsWith('Refrain '));
   return {
     description:
       'Spend adrenaline, gain Motivation, and replace the active refrain. The refrain pulses until Motivation runs out; each pulse uses the Motivation tier before spending its cost. ' +
@@ -60,27 +65,12 @@ const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
           ? 'Recuperation has defensive effects, adding regeneration at the highest tier. Healing is outside combat simulation scope.'
           : 'Freedom pulses swiftness, adds resolution at higher tiers, and adds protection at the highest tier.'),
     facts: [
-      ...simulationEffectFacts(
-        opening.map((effect) => ({ ...effect, audience: { recipients: RECIPIENT.PARTY } })),
-        'on activation'
-      ).facts,
-      ...simulationEffectFacts(
-        tooltipProfile(balanceContext, PARAGON.refrain).effects?.filter(
-          (effect) =>
-            effect.type === 'boon' &&
-            (action
-              ? [BOON.MIGHT, BOON.FURY]
-              : recovery
-                ? [BOON.REGENERATION]
-                : [BOON.SWIFTNESS, BOON.RESOLUTION, BOON.PROTECTION]
-            ).some((boon) => boon === String(effect.boon))
-        ),
-        'on eligible refrain tier (Might per tier)'
-      ).facts,
-      profileFact(balanceContext, PARAGON.chants, 'resourceGain', 'Base Motivation gained'),
-      profileFact(balanceContext, PARAGON.resources, 'pulseInterval', 'Refrain pulse interval', tooltipSeconds),
-      profileFact(balanceContext, PARAGON.resources, 'minimumStacks', 'Motivation required for tier two'),
-      profileFact(balanceContext, PARAGON.resources, 'threshold', 'Motivation required for tier three')
+      ...simulationEffectFacts(opening, 'on activation').facts,
+      ...simulationEffectFacts(refrain, 'on eligible refrain tier (Might per tier)').facts,
+      skillFact(balanceContext, entity.id, 'resourceGain', 'Base Motivation gained'),
+      profileFact(balanceContext, TRAIT.RALLY_THE_VALIANT, 'pulseInterval', 'Refrain pulse interval', tooltipSeconds),
+      profileFact(balanceContext, TRAIT.RALLY_THE_VALIANT, 'minimumStacks', 'Motivation required for tier two'),
+      profileFact(balanceContext, TRAIT.RALLY_THE_VALIANT, 'threshold', 'Motivation required for tier three')
     ]
   };
 };

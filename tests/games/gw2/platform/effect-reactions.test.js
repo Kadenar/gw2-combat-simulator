@@ -1,3 +1,6 @@
+import { requireSkillAction, skillActionEffects } from '#gw2/platform/effects/actions.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -532,4 +535,87 @@ test('resolved combo reactions retain finisher provenance, acceptance gates, and
   }
 
   assert.throws(() => catalogFor([strike([reaction(grant(1), { on: 'combo.resolved' })])]), /invalid effect reaction/);
+});
+
+// Impact payload edits keep their owner, independent removal scope, and selected-catalog values.
+test('reaction actions support scoped edits, removal, and replacement payloads', () => {
+  const payload = { type: 'condition', name: 'Reward', condition: 'Bleeding', stacks: 1, duration: 3 };
+  const action = (id) => ({ type: 'fixture.reward', id, effects: [payload] });
+  const catalog = catalogFor([strike([reaction(action('impact'))])], {
+    sideEffects: [{ on: 'castCommit', do: action('cast') }]
+  });
+  const patched = applySkillPatch(catalog, {
+    skills: {
+      990101: {
+        sideEffects: {
+          impact: {
+            removeEffects: [{ type: 'condition', name: 'Reward' }],
+            addEffects: [{ type: 'condition', name: 'Replacement', condition: 'Poisoned', stacks: 2, duration: 4 }]
+          },
+          cast: { effects: [{ type: 'condition', name: 'Reward', stacks: 5 }] }
+        }
+      }
+    }
+  });
+  const skill = patched.skillsById.get(990101);
+  const impact = requireSkillAction(skill, 'impact');
+  assert.equal(requireEffect(skill, 'condition', 'Reward', impact), undefined);
+  assert.equal(requireEffect(skill, 'condition', 'Replacement', impact).stacks, 2);
+  assert.equal(requireSkillAction(skill, 'cast').effects[0].stacks, 5);
+  assert.equal(skillActionEffects(skill).length, 2);
+  assert.equal(requireSkillAction(catalog.skills[0], 'impact').effects[0].stacks, 1);
+  assert.throws(
+    () =>
+      catalogFor([strike([reaction(action('duplicate'))])], {
+        sideEffects: [{ on: 'castCommit', do: action('duplicate') }]
+      }),
+    /duplicate action id/
+  );
+});
+
+// Status reactions arm follow-ups at actual application, without emitting their stored payload automatically.
+test('buff application dispatch retains the actual actor and never auto-emits action payloads', () => {
+  const accepted = [];
+  const result = run(
+    [
+      {
+        type: 'boon',
+        boon: 'might',
+        stacks: 1,
+        duration: 3,
+        reactions: [
+          {
+            on: 'buff.applied',
+            actor: 'player',
+            packets: 'first',
+            do: {
+              type: 'fixture.arm',
+              id: 'follow-up',
+              effects: [{ type: 'condition', name: 'Deferred', condition: 'Bleeding', stacks: 2, duration: 3 }]
+            }
+          }
+        ]
+      }
+    ],
+    {
+      hooks: {
+        sideEffectHandlers: {
+          'fixture.arm'(_runtime, context) {
+            accepted.push({
+              kind: context.kind,
+              stage: context.trigger.on,
+              actor: context.trigger.event.actorType,
+              skillId: context.skill.id,
+              payload: requireSkillAction(context.skill, 'follow-up').effects[0].stacks
+            });
+          }
+        }
+      }
+    }
+  );
+  assert.deepEqual(accepted, [{ kind: 'effect', stage: 'buff.applied', actor: 'player', skillId: 990101, payload: 2 }]);
+  assert.equal(
+    result.events.some((event) => event.condition === 'Bleeding'),
+    false
+  );
 });

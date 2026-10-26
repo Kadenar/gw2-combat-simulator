@@ -1,7 +1,7 @@
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 
 /** Named roles are shared by spirit execution and presentation, so removing a sibling cannot reclassify an attack. */
 const SPIRIT_ATTACKS: ReadonlyMap<
@@ -38,20 +38,24 @@ const SPIRIT_ATTACKS: ReadonlyMap<
 
 export const RITUALIST_SPIRIT_SKILL_IDS = Object.freeze([...SPIRIT_ATTACKS.keys()]);
 
-/** Resolve only the named attacks the spirit can execute from the selected balance profile. */
+/** Resolve only the named attacks the spirit can execute from their selected skill and action owners. */
 export function spiritAttackEffects(context: unknown, skillId: SkillId) {
   const attacks = SPIRIT_ATTACKS.get(skillId);
 
   if (!attacks) return undefined;
 
-  const profile = requireBalanceProfileFromContext(context, RITUALIST_SPIRIT_PROFILE_BY_SKILL_ID[Number(skillId)]);
-  const strike = (name: string | undefined) => (name ? requireEffect(profile, 'strike', name) : undefined);
+  const summon = requireSkillFromContext(context, skillId);
+  const profile = requireSkillFromContext(context, summon.summonAttackId as SkillId);
+  const opening = requireSkillAction(summon, 'opening');
+  const command = requireSkillFromContext(context, ID.SUMMON_SPIRITS);
+  const commands = requireSkillAction(command, 'commands');
   return {
     key: attacks.key,
     profile,
-    autoattack: strike(attacks.autoattack),
-    initial: strike(attacks.initial),
-    lingering: strike(attacks.lingering),
-    active: strike(attacks.active)
+    opening,
+    autoattack: requireEffect(profile, 'strike', attacks.autoattack),
+    initial: attacks.initial ? requireEffect(summon, 'strike', attacks.initial, opening) : undefined,
+    lingering: attacks.lingering ? requireEffect(summon, 'strike', attacks.lingering, opening) : undefined,
+    active: attacks.active ? requireEffect(command, 'strike', attacks.active, commands) : undefined
   };
 }

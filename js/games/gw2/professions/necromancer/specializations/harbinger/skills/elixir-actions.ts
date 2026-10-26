@@ -1,13 +1,13 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { publishBlight, spendBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
 import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
 import { harbingerElixirLaunched } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/trigger-points.js';
-import { HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import {
   addBlight,
   harbingerBlightMaximum,
@@ -61,13 +61,10 @@ const harbingerElixirTasks = {
       empowered: boolean;
       blight: number;
     };
-    const profile = requireBalanceProfileFromContext(
-      runtime,
-      HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)]
-    );
+    const action = requireSkillAction(cast.skill, 'empowered');
     addBlight(
       harbingerState.from(runtime),
-      balanceProfileNumber(profile, 'blightGain'),
+      skillNumber(cast.skill, 'blightGain'),
       runtime.time,
       harbingerBlightMaximum(runtime)
     );
@@ -75,7 +72,7 @@ const harbingerElixirTasks = {
     runtime.effects.emit({
       kind: 'profile',
       profile: cast.skill,
-      effects: ((empowered ? profile : cast.skill).effects ?? []).map((effect): SkillEffect => ({
+      effects: (empowered ? action.effects : (cast.skill.effects ?? [])).map((effect): SkillEffect => ({
         ...effect,
         atMs: 0,
         timingAnchor: 'castStart',

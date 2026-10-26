@@ -1,3 +1,4 @@
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
@@ -12,7 +13,6 @@ import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
-import { SCOURGE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -177,9 +177,17 @@ test('Scourge retains latest expiries and prunes at completion', () => {
     Object.freeze(prior);
     const config = { specialization: 'Scourge' };
     const native = necromancerProfession.runtimeFor(config);
-    const profile = structuredClone(native.catalog.balanceProfilesById.get(SCOURGE_BALANCE_PROFILE_IDS.shade));
-    profile.maximumStacks = maximumStacks;
-    profile.effects.find((effect) => effect.type === 'buff').duration = completion === 1 ? 4 : 0.5;
+    // The manifest skill owns the cap and its shade action owns each grant's lifetime.
+    const catalog = applySkillPatch(native.catalog, {
+      skills: {
+        [NECROMANCER_SKILL_IDS.MANIFEST_SAND_SHADE]: {
+          fields: { maximumStacks },
+          sideEffects: {
+            shade: { effects: [{ type: 'buff', name: 'active-shade', duration: completion === 1 ? 4 : 0.5 }] }
+          }
+        }
+      }
+    });
     const result = observeGw2Runtime({
       config,
       rotation: [
@@ -188,7 +196,7 @@ test('Scourge retains latest expiries and prunes at completion', () => {
       ],
       profession: {
         ...native,
-        catalog: withProfile(native.catalog, profile.id, profile),
+        catalog,
         initialize(runtime) {
           native.initialize(runtime);
           runtime.profession.specialization.state.shades = prior;

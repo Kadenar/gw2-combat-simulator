@@ -41,12 +41,12 @@ export type MesmerSkillFlowAssertions = [
 // Casts and ID/name/list lookups expose the same typed mechanics to runtime helpers.
 export function mesmerHookSkillReads(runtime: MesmerRuntime, cast: Parameters<EliteCast>[1]): void {
   const cost: number | undefined = cast.skill.parentCooldownIncrease;
-  const flag: string | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.crescendoProfileId;
+  const bonus: number | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.damageIncreasePerInstrument;
   const indexed: number | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.parentCooldownIncrease;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.phantasm;
   // @ts-expect-error Numeric mechanics must not lose their type at runtime.
   const invalid: string = cast.skill.parentCooldownIncrease;
-  void [cost, flag, indexed, listed, invalid];
+  void [cost, bonus, indexed, listed, invalid];
 }
 
 createMesmerModuleData('Core', {

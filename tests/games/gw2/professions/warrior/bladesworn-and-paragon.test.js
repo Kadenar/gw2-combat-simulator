@@ -14,18 +14,12 @@ import {
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
   dragonChargesToAdrenalineSpent
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import {
-  BLADESWORN_BALANCE_PROFILE_IDS,
-  BLADESWORN_BALANCE_PROFILES
-} from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 
-// Read the balance profile the mechanic uses so balance patches cannot drift from these expectations.
-const DRAGON_TRIGGER_PROFILE = BLADESWORN_BALANCE_PROFILES.find(
-  ({ id }) => id === BLADESWORN_BALANCE_PROFILE_IDS.dragonTrigger
-);
-const DRAGON_TRIGGER_ENTRY_FLOW = DRAGON_TRIGGER_PROFILE.threshold;
-const DRAGON_TRIGGER_TICK_FLOW = DRAGON_TRIGGER_PROFILE.resourceCost;
-const DRAGON_TRIGGER_DURATION_SECONDS = DRAGON_TRIGGER_PROFILE.cooldown;
+// Resource contracts read the selected skill's charging parameters.
+const DRAGON_TRIGGER_SKILL = warriorProfession.catalog.skillsById.get(ID.DRAGON_TRIGGER);
+const DRAGON_TRIGGER_ENTRY_FLOW = DRAGON_TRIGGER_SKILL.entryResourceCost;
+const DRAGON_TRIGGER_TICK_FLOW = DRAGON_TRIGGER_SKILL.resourceCost;
+const DRAGON_TRIGGER_DURATION_SECONDS = DRAGON_TRIGGER_SKILL.duration;
 
 const baseConfig = Object.freeze({
   attributeInputs: baseAttributeInputs({
@@ -203,7 +197,7 @@ test('Sharp as the Wind scales each Dragon Slash burning payload with charge', (
   }
 });
 
-test('Dragon Trigger spends its profile Flow cost on entry and expires after its profile duration', () => {
+test('Dragon Trigger spends its skill Flow cost on entry and expires after its skill duration', () => {
   const blocked = simulate('Bladesworn', ['Dragon Trigger'], {
     initialResource: DRAGON_TRIGGER_ENTRY_FLOW - 1
   });

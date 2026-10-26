@@ -2,7 +2,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   createObservedProfessionSimulator,
   observeGw2Runtime,
@@ -10,10 +10,6 @@ import {
 } from '#tests/helpers/observed-runtime.js';
 import { warriorProfession, warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as BLADESWORN } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as BERSERKER } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PARAGON } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
@@ -31,6 +27,11 @@ function run(balanceProfiles, specialization, rotation, config = {}, skills = {}
   })(specialization, rotation, { patchId: 'warrior-removal', ...config });
   assert.deepEqual(result.warnings, []);
   return result;
+}
+
+// Skill components use canonical skill patches while traits retain their own balance owners.
+function runSkills(skills, specialization, rotation, config = {}) {
+  return run({}, specialization, rotation, config, skills);
 }
 
 test('removed Marching Orders Might preserves Soldier Focus cooldown and sibling traits', () => {
@@ -80,12 +81,12 @@ test('Sundering Burst removal cannot substitute its surviving critical variant',
   }
 });
 
-for (const [profile, type, name, skill, weapon] of [
-  [CORE.eviscerateTier3, 'strike', 'Strike', ID.EVISCERATE, 'Axe'],
-  [CORE.bloodthirsterTiers, 'condition', 'Tier 3', ID.BLOODTHIRSTER, 'Sword']
+for (const [type, name, skill, weapon] of [
+  ['strike', 'Tier 3', ID.EVISCERATE, 'Axe'],
+  ['condition', 'Tier 3', ID.BLOODTHIRSTER, 'Sword']
 ])
-  test(`removed ${profile} tier suppresses its packet and retains burst spending`, () => {
-    const result = run({ [profile]: remove(type, name) }, 'Core', [skill], {
+  test(`removed ${skill} tier suppresses its packet and retains burst spending`, () => {
+    const result = runSkills({ [skill]: remove(type, name) }, 'Core', [skill], {
       initialResource: 30,
       primaryWeapon: weapon,
       selectedTraitIds: [TRAIT.BERSERKERS_POWER]
@@ -109,7 +110,7 @@ for (const [type, name, absent, present] of [
   ['condition', 'Burning', 'condition', 'damage']
 ])
   test(`Combustive Shot ${type} removal keeps the independent packet`, () => {
-    const result = run({ [CORE.combustiveShot]: remove(type, name) }, 'Core', [ID.COMBUSTIVE_SHOT], {
+    const result = runSkills({ [ID.COMBUSTIVE_SHOT]: remove(type, name) }, 'Core', [ID.COMBUSTIVE_SHOT], {
       initialResource: 30,
       primaryWeapon: 'Longbow',
       selectedTraitIds: [TRAIT.BERSERKERS_POWER]
@@ -128,10 +129,15 @@ for (const [type, name, absent, present] of [
   });
 
 test('removed Berserk window retains resource spending and entry boons without activating mode', () => {
-  const result = run({ [BERSERKER.resources]: remove('buff', 'berserk') }, 'Berserker', [ID.BERSERK], {
-    initialResource: 30,
-    selectedTraitIds: [TRAIT.BURST_OF_AGGRESSION]
-  });
+  const result = runSkills(
+    { [ID.BERSERK]: { sideEffects: { berserk: remove('buff', 'berserk') } } },
+    'Berserker',
+    [ID.BERSERK],
+    {
+      initialResource: 30,
+      selectedTraitIds: [TRAIT.BURST_OF_AGGRESSION]
+    }
+  );
   assert.equal(result.planningState.profession.berserkUntil, null);
   assert.equal(result.planningState.profession.adrenaline.maximum, 30);
   assert.ok(result.planningState.profession.adrenaline.value < 30);
@@ -212,8 +218,8 @@ test('Flow Stabilizer removed window preserves its Fury packet', () => {
 });
 
 test('removed Artillery Slash strike preserves Bleeding, control, and ammo spending', () => {
-  const result = run(
-    { [BLADESWORN.sharpArtillerySlash]: remove('strike', 'Strike') },
+  const result = runSkills(
+    { [ID.SHARP_ARTILLERY_SLASH]: remove('strike', 'Strike') },
     'Bladesworn',
     [ID.UNSHEATHE_GUNSABER, ID.ARTILLERY_SLASH],
     { selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND] }
@@ -228,8 +234,8 @@ test('removed Artillery Slash strike preserves Bleeding, control, and ammo spend
 });
 
 test('removed ordinary cartridge buff cannot substitute the supercharged window', () => {
-  const result = run(
-    { [BLADESWORN.overchargedCartridges]: remove('buff', 'overcharged-cartridges') },
+  const result = runSkills(
+    { [ID.OVERCHARGED_CARTRIDGES]: { sideEffects: { cartridges: remove('buff', 'overcharged-cartridges') } } },
     'Bladesworn',
     [ID.OVERCHARGED_CARTRIDGES],
     { selectedSkillIds: [68085] }
@@ -242,7 +248,7 @@ test('removed ordinary cartridge buff cannot substitute the supercharged window'
 });
 
 test('Artillery Slash control removal retains its strike', () => {
-  const result = run({ [BLADESWORN.artillerySlash]: remove('control', 'Control') }, 'Bladesworn', [
+  const result = runSkills({ [ID.ARTILLERY_SLASH]: remove('control', 'Control') }, 'Bladesworn', [
     ID.UNSHEATHE_GUNSABER,
     ID.ARTILLERY_SLASH
   ]);
@@ -265,7 +271,7 @@ test('zero Empower Allies and Paragon intervals disable queued recurrence', () =
     false
   );
   const refrain = run(
-    { [PARAGON.resources]: { fields: { pulseInterval: 0 } } },
+    { [TRAIT.RALLY_THE_VALIANT]: { fields: { pulseInterval: 0 } } },
     'Paragon',
     [ID.CHANT_OF_ACTION, { type: 'wait', durationMs: 5000 }],
     { initialResource: 30 }
@@ -276,17 +282,17 @@ test('zero Empower Allies and Paragon intervals disable queued recurrence', () =
 
 test('Artillery Slash keeps ammo variant identity after first-strike removal and a surviving edit', () => {
   for (const charges of [1, 2]) {
-    const result = run(
+    const result = runSkills(
       {
-        [BLADESWORN.artillerySlash]: {
+        [ID.ARTILLERY_SLASH]: {
+          fields: { ammo: { from: 2, to: charges } },
           ...remove('strike', 'One round'),
           effects: [{ type: 'strike', name: 'Two rounds', coefficient: { from: 3, to: 4 } }]
         }
       },
       'Bladesworn',
       [ID.UNSHEATHE_GUNSABER, ID.ARTILLERY_SLASH],
-      {},
-      { [ID.ARTILLERY_SLASH]: { fields: { ammo: { from: 2, to: charges } } } }
+      {}
     );
     const strike = result.events.find((event) => event.type === 'damage');
     assert.equal(strike?.coefficient, charges === 1 ? undefined : 4);
@@ -313,11 +319,11 @@ test('removed Spellbreaker buffs cannot retain Insight stacks or a tether window
 });
 
 test('Paragon opening Might removal preserves Fury, Motivation, and tooltip identity', () => {
-  const profiles = { [PARAGON.chants]: remove('boon', 'might') };
-  const result = run(profiles, 'Paragon', [ID.CHANT_OF_ACTION], { initialResource: 30 });
+  const skills = { [ID.CHANT_OF_ACTION]: { sideEffects: { chant: remove('boon', 'Entry Might') } } };
+  const result = runSkills(skills, 'Paragon', [ID.CHANT_OF_ACTION], { initialResource: 30 });
   assert.equal(result.planningState.profession.motivation.value, 4);
   assert.ok(result.events.some((e) => e.kind === 'fury'));
-  const catalog = applyBalanceProfilePatch(warriorCatalog, { balanceProfiles: profiles });
+  const catalog = applySkillPatch(warriorCatalog, { skills });
   const tooltip = warriorTooltips.skills[ID.CHANT_OF_ACTION]({ catalog }, catalog.skillsById.get(ID.CHANT_OF_ACTION));
   assert.equal(
     tooltip.facts.some((f) => /vigor/i.test(f.name)),

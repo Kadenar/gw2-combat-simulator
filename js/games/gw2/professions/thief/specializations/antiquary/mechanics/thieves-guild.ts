@@ -1,7 +1,6 @@
-import { WEAPON } from '#gw2/platform/constants.js';
 import type { ThiefGuildSummonProfile } from '#gw2/professions/thief/types.js';
 
-// Antiquary owns the Skritt third summon selected by Thieves Guild.
+/** The selected elite owns actor identity and stream startup; attack packets live on canonical actor skills. */
 export const ANTIQUARY_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.freeze({
   id: 'thief.antiquary.thieves-guild',
   profileKind: 'mechanic',
@@ -9,8 +8,12 @@ export const ANTIQUARY_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.f
   name: 'Sword/Dagger Skritt',
   displayName: 'Skritt',
   variant: 'Skritt',
-  weapon: WEAPON.SWORD,
+  weapon: 'Sword',
   weaponStrengthProfileId: 'weapon.sword',
-  // Authored basic attack preserves this summon while allowing an explicit empty list.
-  attacks: [{ name: 'Basic Attack', coefficientPerHit: 1.2, hits: 1, initialDelay: 1, interval: 1 }]
+  attacks: [
+    {
+      skillId: 'thief.guild.antiquary.basic',
+      initialDelay: 1
+    }
+  ]
 });

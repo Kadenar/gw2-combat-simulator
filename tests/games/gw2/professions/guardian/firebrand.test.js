@@ -1,5 +1,4 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
@@ -7,7 +6,10 @@ import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/skills/w
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { FIREBRAND_PUBLIC_STATE_PROJECTION } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import {
+  firebrandState,
+  FIREBRAND_PUBLIC_STATE_PROJECTION
+} from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -25,7 +27,10 @@ const config = {
 
 test('Firebrand public projections preserve configured pages and detach the canonical Ashes grant', () => {
   // Public consumers read the canonical grant without sharing mutable runtime state.
-  const state = createFirebrandState({ initialTomePages: 2 });
+  const state = firebrandState.create({
+    config: { initialTomePages: 2 },
+    balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+  });
   const { keys, defaults } = FIREBRAND_PUBLIC_STATE_PROJECTION;
   const projected = projectPublicProfessionState(state, keys, defaults);
   assert.equal(projected.tomePages.value, 2);
@@ -38,9 +43,18 @@ test('Firebrand public projections preserve configured pages and detach the cano
 test('Archivist increases page capacity without replacing explicit starting pages', () => {
   // An omitted value starts full, while every editable starting value survives initialization.
   const selectedTraitIds = [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS];
-  assert.equal(createFirebrandState({ selectedTraitIds }).tomePages.value, 8);
+  assert.equal(
+    firebrandState.create({
+      config: { selectedTraitIds },
+      balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+    }).tomePages.value,
+    8
+  );
   for (const initialTomePages of [0, 4, 5, 6, 7, 8]) {
-    const state = createFirebrandState({ selectedTraitIds, initialTomePages });
+    const state = firebrandState.create({
+      config: { selectedTraitIds, initialTomePages },
+      balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+    });
     assert.equal(state.tomePages.maximum, 8);
     assert.equal(state.tomePages.value, initialTomePages);
   }

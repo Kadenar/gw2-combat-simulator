@@ -2,13 +2,12 @@ import { COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platfo
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { passiveAttribute } from '#gw2/platform/attributes/passives.js';
+import { passiveSkillAttributes } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
@@ -19,6 +18,8 @@ const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
 export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SIGNET_OF_STAMINA]: {
+    // Readiness gates the passive amount owned by this signet.
+    enduranceRegenerationBonus: 0.5,
     cooldown: 20,
     // The instant signet restores endurance and activates signet traits; incoming conditions are outside scope.
     castTimeMs: 0,
@@ -154,6 +155,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SIGNET_OF_MIGHT]: {
+    attributeBonuses: { power: 180 },
     cooldown: 20,
     // The instant activation grants might without occupying the cast timeline.
     castTimeMs: 0,
@@ -217,6 +219,8 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SIGNET_OF_FURY]: {
+    attributeBonuses: { precision: 180 },
+    activeAttributeBonus: 360,
     cooldown: 16,
     castTimeMs: 400,
     dualWieldCastTimeMs: 280,
@@ -372,16 +376,14 @@ const signetPassives = [
 
 /** Signet bonuses never feed conversions and apply only while ready. */
 export function signetAttributeEffects(context: Gw2AttributeContext): readonly Gw2AttributeEffect[] {
-  // Shared passive grants expose their owning skills for contribution analysis and retain native readiness rules.
-  return signetPassives.map(({ id, label }) =>
-    passiveAttribute(context, id, PROFILE.signetPassives, label, 'attributeBonus')
-  );
+  // Selected signets retain native readiness while their own attributes feed both preview and combat.
+  return signetPassives.flatMap(({ id }) => passiveSkillAttributes(context, id));
 }
 
 /** Intrinsic active and passive attributes use live self status and selected signet recharge. */
 export function signetActiveAttributeEffects(context: Gw2ModifierContext): readonly Gw2AttributeEffect[] {
   if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
-    const bonus = balanceNumberFromContext(context, PROFILE.signetOfFuryActive, 'attributeBonus');
+    const bonus = skillNumberFromContext(context, ID.SIGNET_OF_FURY, 'activeAttributeBonus');
     return ['Precision', 'Ferocity'].map((to) => ({ kind: 'flat', to, amount: bonus, feedsConversions: 'none' }));
   }
 

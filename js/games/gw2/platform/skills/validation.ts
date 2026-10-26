@@ -1,3 +1,4 @@
+import { skillActions } from '#gw2/platform/effects/actions.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
@@ -64,10 +65,7 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): void {
   validateSkillTuning(skill, catalogSkillFields(catalog), `skill=${skill.id}`);
   // Stable cast action identities and owner validators use the actual authored execution stage.
-  validateActionIds(
-    (skill.sideEffects ?? []).map((rule) => rule.do),
-    `Skill ${skill.id} casts`
-  );
+  validateActionIds(skillActions(skill), `Skill ${skill.id}`);
   for (const { do: action, on } of skill.sideEffects ?? []) {
     validateSideEffectAction(catalog, skill, action, on);
   }
@@ -406,7 +404,8 @@ export function normalizeSkill<TSkill extends Skill>(
     ...(merged.sideEffects
       ? {
           sideEffects: snapshotActionDeclaration(
-            [...merged.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+            [...merged.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+            normalizeSkillEffects
           )
         }
       : {}),

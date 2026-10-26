@@ -1,22 +1,17 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { SkillEffect, StrikeTick, StrikeEffect } from '#gw2/platform/effects/types.js';
+import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Leaf shatter contracts let Core and specialization mechanics share results without importing the family type root. */
 export interface MesmerShatterDefinition {
-  readonly balanceProfileId: SkillId;
-  readonly effects?: readonly SkillEffect[];
-  readonly durationPerTier?: number;
   readonly slot: number;
   readonly kind: string;
   readonly resolver: string;
-  readonly coefficients: readonly number[];
+  readonly tierCount: number;
+  readonly conditionAtMs?: readonly (readonly number[])[];
   readonly minimumResource?: number;
   readonly consumesResources?: boolean;
   readonly resetBySignetOfIllusions?: boolean;
-  readonly ticks?: readonly (readonly StrikeTick[])[];
-  readonly rechargeReductionPerSource?: number;
   readonly resourceSpendProgress?: number;
   readonly damageAtMs?: number;
 }
@@ -44,7 +39,6 @@ export interface MesmerShatterResolution {
 }
 
 /** Compiled tiers retain their resource index even when a patch removes an attack. */
-export interface MesmerShatter extends Omit<MesmerShatterDefinition, 'coefficients' | 'ticks'> {
+export interface MesmerShatter extends MesmerShatterDefinition {
   readonly strikes: readonly (StrikeEffect | undefined)[];
-  readonly conditionAtMs?: readonly (readonly number[])[];
 }

@@ -28,6 +28,9 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }]
   },
   [ID.PAIN_ABSORPTION]: {
+    // Mesmer form changes activation cost independently of upkeep drain.
+    mesmerEnergyCost: 10,
+    mesmerRecharge: 5,
     cooldown: 0,
     energyCost: 30,
     legendId: 'LegendaryDemon',
@@ -50,6 +53,9 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.BANISH_ENCHANTMENT]: {
+    // Mesmer form changes activation cost independently of upkeep drain.
+    mesmerEnergyCost: 5,
+    mesmerRecharge: 5,
     cooldown: 0,
     energyCost: 20,
     legendId: 'LegendaryDemon',
@@ -89,6 +95,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ])
   },
   [ID.CALL_TO_ANGUISH]: {
+    // Mesmer form changes activation cost independently of upkeep drain.
+    mesmerEnergyCost: 10,
     cooldown: 3,
     energyCost: 30,
     legendId: 'LegendaryDemon',
@@ -124,6 +132,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.UNYIELDING_IMPACT, durationSec: null } }]
   },
   [ID.EMPOWERING_MISERY]: {
+    // Mesmer form changes activation cost independently of upkeep drain.
+    mesmerEnergyCost: 1,
     cooldown: 30,
     energyCost: 5,
     legendId: 'LegendaryDemon',
@@ -138,6 +148,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.EMBRACE_THE_DARKNESS]: {
+    // Mesmer form changes activation cost independently of upkeep drain.
+    mesmerEnergyCost: 1,
     cooldown: 3,
     energyCost: 5,
     upkeepCost: 6,
@@ -182,6 +194,8 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.UNYIELDING_IMPACT]: {
+    // Mesmer form changes activation cost independently of upkeep drain.
+    mesmerEnergyCost: 1,
     cooldown: 0,
     energyCost: 5,
     legendId: 'LegendaryDemon',

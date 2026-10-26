@@ -3,7 +3,6 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { galeshotHooks } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
-import { GALESHOT_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import {
   GALESHOT_BASE_SKILL_MECHANICS,
   piercingGalesModifier
@@ -21,8 +20,7 @@ export const galeshotModule = defineNativeModule({
   traitDefinitions: galeshotTraits,
   data: createRangerModuleData('Galeshot', {
     skillFields: GALESHOT_SKILL_FIELDS,
-    skillMechanics: GALESHOT_BASE_SKILL_MECHANICS,
-    balanceProfiles: GALESHOT_BALANCE_PROFILES
+    skillMechanics: GALESHOT_BASE_SKILL_MECHANICS
   }),
   state: { create: galeshotState.create, project: createPublicStateProjector(GALESHOT_PUBLIC_STATE_PROJECTION) },
   // The skill modifier keeps its position after Galeshot's trait rules.

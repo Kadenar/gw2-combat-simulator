@@ -1,3 +1,4 @@
+import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -141,9 +142,9 @@ test('raw catalog grants are re-read before each run', () => {
 // Immutable declarations may be reused across patched catalogs; opaque payload ownership remains with the author.
 test('declaration snapshots reuse immutable inputs and isolate keys around opaque payloads', () => {
   const action = { type: 'resourceGrant', resource: 'energy', amount: 1 };
-  const snapshot = snapshotActionDeclaration(action);
+  const snapshot = snapshotActionDeclaration(action, normalizeSkillEffects);
   assert.notEqual(snapshot, action);
-  assert.equal(snapshotActionDeclaration(snapshot), snapshot);
+  assert.equal(snapshotActionDeclaration(snapshot, normalizeSkillEffects), snapshot);
   const payload = new Map([['value', 1]]);
   const withPayload = { ...action, payload };
   const catalog = createCanonicalCatalog({

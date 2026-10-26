@@ -1,3 +1,4 @@
+import { shatterSkill } from '#gw2/professions/mesmer/core/skills/shatter.js';
 import { COMBO_FIELD, RECIPIENT, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /**
@@ -49,16 +50,18 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
   },
   [ID.CONTINUUM_SPLIT]: {
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
-    shatter: {
-      balanceProfileId: 'mesmer.chronomancer.continuum-split',
-      slot: 5,
-      kind: 'continuum',
-      resolver: 'mesmer.chronomancer.continuum',
-      consumesResources: false,
-      resetBySignetOfIllusions: false,
-      coefficients: [0, 0, 0, 0],
-      durationPerTier: 1.5
-    },
+    ...shatterSkill(
+      {
+        slot: 5,
+        kind: 'continuum',
+        resolver: 'mesmer.chronomancer.continuum',
+        consumesResources: false,
+        resetBySignetOfIllusions: false,
+        coefficients: [0, 0, 0, 0],
+        durationPerTier: 1.5
+      },
+      'mesmer.chronomancer.begin-continuum'
+    ),
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -67,8 +70,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     ],
     rechargeAnchor: 'castStart',
     castTimeMs: 0,
-    effects: [],
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.chronomancer.begin-continuum' } }]
+    effects: []
   },
   [ID.WELL_OF_SENILITY]: {
     castTimeMs: 760,
@@ -208,13 +210,12 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
   },
   [ID.TIME_SINK]: {
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
-    shatter: {
-      balanceProfileId: 'mesmer.chronomancer.time-sink',
+    ...shatterSkill({
       slot: 3,
       kind: 'control',
       resolver: 'mesmer.core.clone-shatter',
       coefficients: [0, 0, 0, 0]
-    },
+    }),
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -234,13 +235,11 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         timingScale: 'fixed'
       },
       { type: 'condition', condition: CONDITION.SLOW, stacks: 1, duration: 2 }
-    ],
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
+    ]
   },
   [ID.REWINDER]: {
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
-    shatter: {
-      balanceProfileId: 'mesmer.chronomancer.rewinder',
+    ...shatterSkill({
       slot: 2,
       kind: CONDITION.CONFUSION.toLowerCase(),
       resolver: 'mesmer.core.clone-shatter',
@@ -249,7 +248,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
       effects: [
         { name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 3, stacks: 1 }
       ]
-    },
+    }),
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -258,13 +257,11 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     ],
     rechargeAnchor: 'castStart',
     castTimeMs: 0,
-    effects: [],
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
+    effects: []
   },
   [ID.SPLIT_SECOND]: {
     // Skill-owned resource policy and patchable packet tiers feed the shared transaction.
-    shatter: {
-      balanceProfileId: 'mesmer.chronomancer.split-second',
+    ...shatterSkill({
       slot: 1,
       kind: 'power',
       resolver: 'mesmer.core.clone-shatter',
@@ -274,7 +271,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
         { atMs: 0, coefficient: coefficient / 2 },
         { atMs: 1000, coefficient: coefficient / 2 }
       ])
-    },
+    }),
     lockouts: [
       {
         group: 'mesmer.shatter',
@@ -283,8 +280,7 @@ export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Parti
     ],
     rechargeAnchor: 'castStart',
     castTimeMs: 0,
-    effects: [],
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.shatter' } }]
+    effects: []
   }
 });
 

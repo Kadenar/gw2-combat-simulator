@@ -171,6 +171,8 @@ export function runRuntime<T extends object>(
   const actualReactions = createGw2ResolverReactionRegistry({
     contributions: {
       ...contributions,
+      // Accepted status applications can arm skill-owned follow-ups under their actual recipient and actor.
+      'buff.applied': [...(contributions['buff.applied'] ?? []), effectReactionContribution('buff.applied')],
       // Only accepted combos carry the originating finisher's authored reaction.
       'combo.resolved': [...(contributions['combo.resolved'] ?? []), effectReactionContribution('combo.resolved')],
       'condition.applied': [

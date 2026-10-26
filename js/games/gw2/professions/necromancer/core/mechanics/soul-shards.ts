@@ -8,6 +8,7 @@ import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -42,7 +43,8 @@ export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent):
 /** One shard's payload is shared with the conditional calculator. */
 export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   const profile = requireBalanceProfileFromContext(runtime, PROFILE.soulShards);
-  const strike = requireEffect(profile, 'strike', 'Soul Shards');
+  const skill = requireSkillFromContext(runtime, ID.SOUL_SHARDS);
+  const strike = requireEffect(skill, 'strike', 'Soul Shards');
 
   if (!strike) return;
 
@@ -62,8 +64,8 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
       icon: new URL('@images/wiki/soul-shards.png', import.meta.url).href,
       coefficient: 0,
       skillWeapon: 'Unequipped',
-      flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),
-      flatStrikePowerCoeff: effectNumber(profile, strike, 'flatStrikePowerCoeff'),
+      flatStrikeBase: effectNumber(skill, strike, 'flatStrikeBase'),
+      flatStrikePowerCoeff: effectNumber(skill, strike, 'flatStrikePowerCoeff'),
       flatStrikeMultiplier: soulBarbsSiphonMultiplier(runtime),
       flatStrikeHealthThreshold: balanceProfileNumber(profile, 'threshold'),
       flatStrikeThresholdMultiplier: balanceProfileNumber(profile, 'damageMultiplier'),

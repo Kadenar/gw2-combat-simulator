@@ -1,3 +1,4 @@
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -97,7 +98,7 @@ export function createMirageActionController({
 
   // The selected balance profile sets every ambush window; refresh it without shortening a surviving deadline.
   const grantAmbushWindow = (at: number, source: string, delivery: EffectDelivery = {}) => {
-    const duration = balanceNumberFromContext(state, PROFILE.mechanics, 'durationPerTier');
+    const duration = balanceNumberFromContext(state, TRAIT.MIRAGE_CLOAK, 'durationPerTier');
     at = canonicalTime(at);
     mirageState.from(state).ambushUntil = Math.max(mirageState.from(state).ambushUntil, canonicalTime(at + duration));
     mirageState.from(state).ambushSource = source;
@@ -122,7 +123,7 @@ export function createMirageActionController({
   const grantMirageCloak = (
     at: number,
     source: string,
-    { duration = balanceNumberFromContext(state, PROFILE.mechanics, 'duration') }: MesmerMirageCloakOptions = {},
+    { duration = balanceNumberFromContext(state, TRAIT.MIRAGE_CLOAK, 'duration') }: MesmerMirageCloakOptions = {},
     delivery: EffectDelivery = {}
   ) => {
     at = canonicalTime(at);

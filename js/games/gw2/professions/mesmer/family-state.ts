@@ -1,3 +1,5 @@
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
@@ -14,10 +16,10 @@ export function mesmerResourceDefinition(specialization: string, context: unknow
 }
 
 /** Selects the active resource balance profile without making Core own elite profile IDs. */
-export function mesmerResourceProfileId(specialization: string): string {
-  if (specialization === 'Virtuoso') return 'mesmer.virtuoso.resources';
+export function mesmerResourceProfileId(specialization: string): SkillId {
+  if (specialization === 'Virtuoso') return TRAIT.PSYCHIC_BLADES;
 
-  if (specialization === 'Troubadour') return 'mesmer.troubadour.resources';
+  if (specialization === 'Troubadour') return TRAIT.WANDERING_MINSTREL;
 
   return 'mesmer.core.resources';
 }

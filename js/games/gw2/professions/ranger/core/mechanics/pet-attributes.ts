@@ -1,3 +1,4 @@
+import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
@@ -5,9 +6,8 @@ import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { criticalChanceFractionFromPrecision, STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+
 import { rangerPetAutoProfile, rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import {
   beastlyWardenPetDamageMultiplier,
   beastmasteryPetAttributes
@@ -31,7 +31,9 @@ function petHasSelectedSkill(context: RangerRuntime, skillId: number): boolean {
 
 /** Selected Signet of the Wild grants ferocity only while ready; callers supply their own observation clock. */
 function signetOfTheWildBonus(context: unknown, selected: boolean, ready = true): number {
-  return selected && ready ? balanceNumberFromContext(context, PROFILE.signetOfTheWild, 'attributeBonus') : 0;
+  return selected && ready
+    ? skillNumber(requireSkillFromContext(context, ID.SIGNET_OF_THE_WILD), 'attributeBonuses.ferocity')
+    : 0;
 }
 
 /** Snapshot independent-pet attributes after trait inheritance and the live signet passive. */

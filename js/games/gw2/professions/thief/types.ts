@@ -1,3 +1,6 @@
+import { ANTIQUARY_SKILL_FIELDS } from '#gw2/professions/thief/specializations/antiquary/skill-fields.js';
+import { SPECTER_SKILL_FIELDS } from '#gw2/professions/thief/specializations/specter/skill-fields.js';
+import { DEADEYE_SKILL_FIELDS } from '#gw2/professions/thief/specializations/deadeye/skill-fields.js';
 import type {
   Gw2Build,
   Gw2BuildSpecialization,
@@ -63,20 +66,10 @@ export interface ThiefRuntimeState {
     | { kind: 'Antiquary'; state: AntiquaryState };
 }
 
-export interface ThiefSummonCondition {
-  readonly condition: string;
-  readonly duration: number;
-  readonly stacks: number;
-}
-
-export interface ThiefSummonStrike {
-  readonly name: string;
-  readonly coefficientPerHit: number;
-  readonly hits?: number;
+/** Actor scheduling references canonical attacks without embedding their payload or recharge. */
+export interface ThiefGuildAttackStream {
+  readonly skillId: SkillId;
   readonly initialDelay: number;
-  readonly interval?: number;
-  readonly skillId?: SkillId;
-  readonly conditions?: readonly ThiefSummonCondition[];
 }
 
 export interface ThiefSummonDefinition {
@@ -85,7 +78,7 @@ export interface ThiefSummonDefinition {
   readonly variant?: string;
   readonly weapon: string;
   readonly weaponStrengthProfileId: string;
-  readonly attacks?: readonly ThiefSummonStrike[];
+  readonly attacks?: readonly ThiefGuildAttackStream[];
 }
 
 /** Elite summon tuning is owned by a selected catalog profile, separate from the shared guild skill. */
@@ -95,12 +88,17 @@ interface ThiefSummonAttack {
   readonly basePower: number;
   readonly criticalChance: number;
   readonly criticalDamage: number;
-  readonly duration: number;
   readonly summons: readonly ThiefSummonDefinition[];
 }
 
 /** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
-export interface ThiefSkill extends Skill, NumericSkillFields<typeof THIEF_CORE_SKILL_FIELDS> {
+export interface ThiefSkill
+  extends
+    Skill,
+    NumericSkillFields<typeof DEADEYE_SKILL_FIELDS>,
+    NumericSkillFields<typeof SPECTER_SKILL_FIELDS>,
+    NumericSkillFields<typeof ANTIQUARY_SKILL_FIELDS>,
+    NumericSkillFields<typeof THIEF_CORE_SKILL_FIELDS> {
   readonly artifactKind?: ThiefArtifactKind;
   readonly backfire?: boolean;
   readonly dualWieldOpener?: boolean;

@@ -5,7 +5,6 @@ import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-da
 import { bladeswornHooks } from '#gw2/professions/warrior/specializations/bladesworn/hooks.js';
 
 import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
-import { BLADESWORN_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import {
   BLADESWORN_SHARP_AS_THE_WIND_SKILLS,
   BLADESWORN_SKILL_MECHANICS
@@ -25,7 +24,6 @@ export const bladeswornModule = defineNativeModule({
     skillFields: BLADESWORN_SKILL_FIELDS,
     skillMechanics: BLADESWORN_SKILL_MECHANICS,
     extraSkills: BLADESWORN_SHARP_AS_THE_WIND_SKILLS,
-    balanceProfiles: BLADESWORN_BALANCE_PROFILES,
     autoattackChains: {
       additional: [
         [ID.SWIFT_CUT, ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST],

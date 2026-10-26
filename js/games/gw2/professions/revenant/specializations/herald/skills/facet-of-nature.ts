@@ -1,12 +1,13 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
-  balanceProfileNumber,
+  skillNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -14,7 +15,6 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
-import { HERALD_NATURE_ASSASSIN_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { coreValueExtension } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -35,6 +35,8 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     // Herald's F2 remains available outside Glint so the active legend can select its True Nature variant.
     facet: true,
     pulseInterval: 3,
+    // Assassin siphons have an independent proc interval, not the facet recharge.
+    internalCooldown: 0.52,
     upkeepConsumeByLegendId: {
       LegendaryAssassin: ID.TRUE_NATURE_ASSASSIN,
       LegendaryDwarf: ID.TRUE_NATURE_DWARF,
@@ -49,7 +51,25 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     sideEffects: [
       { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
       { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.start-facet' } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'revenant.start-facet',
+          id: 'assassin-siphon',
+          // natureSiphon consumes this component only while the Assassin passive is eligible.
+          effects: [
+            {
+              name: 'Life Siphon',
+              type: 'strike',
+              coefficient: 0,
+              damageKind: 'life-steal',
+              flatStrikeBase: 53,
+              flatStrikePowerCoeff: 0.0666,
+              actorType: ACTOR.EFFECT
+            }
+          ]
+        }
+      }
     ]
   },
   [ID.TRUE_NATURE_ASSASSIN]: {
@@ -206,18 +226,15 @@ export function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent):
 
   if (legend !== LEGEND.ASSASSIN || !heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, runtime.time)) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, HERALD_NATURE_ASSASSIN_PROFILE_ID);
-  const strike = requireEffect(profile, 'strike', 'Life Siphon');
+  const profile = requireSkillFromContext(runtime, ID.FACET_OF_NATURE);
+  const action = requireSkillAction(profile, 'assassin-siphon');
+  const strike = requireEffect(profile, 'strike', 'Life Siphon', action);
 
   // The cooldown gates only the siphon, so a removed strike leaves it ready.
   if (!strike) return;
 
   if (
-    !runtime.procs.claimCooldown(
-      'revenant.herald.natureSiphon',
-      runtime.time,
-      balanceProfileNumber(profile, 'cooldown')
-    )
+    !runtime.procs.claimCooldown('revenant.herald.natureSiphon', runtime.time, skillNumber(profile, 'internalCooldown'))
   )
     return;
 

@@ -367,7 +367,7 @@ test('Mirage dodge spends endurance without ammo or cooldown', () => {
 
   assert.equal(dodge.cooldown, 0);
   assert.equal(dodge.ammo, undefined);
-  assert.equal(dodge.resourceCost, 50);
+  assert.deepEqual(dodge.cost, { resource: 'endurance', amount: 50, spendOn: 'castCommit' });
 });
 
 test('Mesmer supplemental identities and dynamic handler profiles are explicit', () => {

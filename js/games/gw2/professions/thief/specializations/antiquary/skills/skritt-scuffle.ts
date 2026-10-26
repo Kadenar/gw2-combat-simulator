@@ -1,11 +1,7 @@
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { skillNumberFromContext, skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { pilferArtifacts } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -14,7 +10,7 @@ export const SKRITT_SCUFFLE = 'thief.skritt-scuffle';
 /** Each Skritt assistant keeps an independent lifetime, including a final pilfer at its expiry. */
 export function skrittScufflePilfer(runtime: ThiefRuntime, data: unknown): void {
   const { expiresAt } = data as { expiresAt: number };
-  const interval = balanceNumberFromContext(runtime, PROFILE.scuffle, 'pulseInterval');
+  const interval = skillNumberFromContext(runtime, ID.SKRITT_SCUFFLE, 'pulseInterval');
 
   if (!(interval > 0) || runtime.time > expiresAt) return;
 
@@ -30,9 +26,9 @@ export function skrittScufflePilfer(runtime: ThiefRuntime, data: unknown): void 
 /** The scheduled pilfer carries its assistant's lifetime, including the final pulse. */
 export function completeSkrittScuffle(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime);
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.scuffle);
-  const interval = balanceProfileNumber(profile, 'pulseInterval');
-  const expiresAt = canonicalTime(runtime.time + balanceProfileNumber(profile, 'duration'));
+  const profile = requireSkillFromContext(runtime, ID.SKRITT_SCUFFLE);
+  const interval = skillNumber(profile, 'pulseInterval');
+  const expiresAt = canonicalTime(runtime.time + skillNumber(profile, 'duration'));
   state.nextSkrittScufflePilferAt = runtime.time + interval;
   pilferArtifacts(runtime, 'scuffle');
 

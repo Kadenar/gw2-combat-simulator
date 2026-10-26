@@ -7,7 +7,6 @@ import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
 // Variant selection snapshots the chain before completion, but transforms the live, independently editable packets.
 test('Falling Spider empowers only the accepted predecessor and preserves effect and tick edits', () => {
@@ -30,9 +29,9 @@ test('Falling Spider empowers only the accepted predecessor and preserves effect
             ]
           ],
           catalog(catalog) {
-            const patched = withProfile(catalog, PROFILE.fallingSpiderEmpowered, {
-              damageMultiplier: 1.5,
-              resourceGain: 2
+            const patched = withSkill(catalog, ID.FALLING_SPIDER, {
+              empoweredDamageMultiplier: 1.5,
+              empoweredConditionStacks: 2
             });
             const packet = (effect) =>
               ticks
@@ -343,26 +342,21 @@ test('Malicious Ashen declarations retain accepted malice and refund a fully lan
         ]
       ],
       catalog: (catalog) =>
-        withSkill(
-          withProfile(withProfile(catalog, PROFILE.resources, { resourceGain: 0 }), DEADEYE.maliciousAshenAssault, {
-            coefficientMultiplier: 0.3,
-            resourceGain: 7
-          }),
-          ID.MALICIOUS_ASHEN_ASSAULT,
-          {
-            castTimeMs: 1000,
-            effects: [
-              { type: 'strike', name: 'Ordinary packet', coefficient: 1, atMs: 500, timingAnchor: 'castStart' },
-              {
-                type: 'strike',
-                name: 'Malicious Ashen Assault — Final Strike',
-                coefficient: 2,
-                atMs: 0,
-                timingAnchor: 'castEnd'
-              }
-            ]
-          }
-        )
+        withSkill(withProfile(catalog, PROFILE.resources, { resourceGain: 0 }), ID.MALICIOUS_ASHEN_ASSAULT, {
+          coefficientPerMalice: 0.3,
+          initiativeRefund: 7,
+          castTimeMs: 1000,
+          effects: [
+            { type: 'strike', name: 'Ordinary packet', coefficient: 1, atMs: 500, timingAnchor: 'castStart' },
+            {
+              type: 'strike',
+              name: 'Malicious Ashen Assault — Final Strike',
+              coefficient: 2,
+              atMs: 0,
+              timingAnchor: 'castEnd'
+            }
+          ]
+        })
     }
   );
   assert.deepEqual(result.warnings, []);

@@ -3,8 +3,8 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
   balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
+  skillNumber,
+  requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
   NECROMANCER_SIGNET_PASSIVES,
@@ -55,14 +55,14 @@ export function nextNecromancerPassiveGain(runtime: NecromancerRuntime, cost: nu
 export function initializeNecromancerPassives(runtime: NecromancerRuntime): void {
   runtime.fireTrigger(necromancerPassivesStarting);
   const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
-  for (const { passive, skillId, profileId } of NECROMANCER_SIGNET_PASSIVES) {
+  for (const { passive, skillId } of NECROMANCER_SIGNET_PASSIVES) {
     if (!selected.has(skillId)) continue;
 
-    const profile = requireBalanceProfileFromContext(runtime, profileId);
-    const interval = balanceProfileNumber(profile, 'pulseInterval');
+    const profile = requireSkillFromContext(runtime, skillId);
+    const interval = skillNumber(profile, 'pulseInterval');
 
     // A removed resource grant cannot advertise an endless sequence of unaffordable retries.
-    if (passive !== 'vampirism' && balanceProfileNumber(profile, 'lifeForceGain') === 0) continue;
+    if (passive !== 'vampirism' && skillNumber(profile, 'lifeForceGain') === 0) continue;
 
     if (interval > 0) {
       const state = runtime.profession.core.signetPassives[passive];

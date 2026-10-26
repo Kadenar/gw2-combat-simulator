@@ -220,7 +220,15 @@ const silentScope = defineTrait({
 });
 
 /** Native trait owners, in stable authoring order. */
+// Intrinsic specialization policy is available without explicit minor selection.
+const deadeyesGaze = defineTrait({
+  id: TRAIT.DEADEYES_GAZE,
+  name: "Deadeye's Gaze",
+  balance: { maximumStacks: 5, resourceGain: 1, playerStacks: 1 }
+});
+
 export const deadeyeTraits = Object.freeze([
+  deadeyesGaze,
   maleficentSeven,
   maliciousIntent,
   beQuickOrBeKilled,

@@ -39,9 +39,9 @@ test('Motivation policies initialize empty, cap fractional rewards, and isolate 
       professions: {
         warrior: {
           balanceProfiles: {
-            [PROFILE.resources]: { fields: { maximumStacks, pulseInterval: 0 } },
-            [PROFILE.chants]: { fields: { resourceGain: 6.5 } }
-          }
+            [TRAIT.RALLY_THE_VALIANT]: { fields: { maximumStacks, pulseInterval: 0 } }
+          },
+          skills: { [ID.CHANT_OF_ACTION]: { fields: { resourceGain: 6.5 } } }
         }
       }
     });
@@ -78,8 +78,8 @@ test('a final partial pulse stops before a same-time refill and command echo', (
     label: 'Partial refrain',
     professions: {
       warrior: {
-        balanceProfiles: {
-          [PROFILE.chants]: { fields: { resourceGain: 1.5 } }
+        skills: {
+          [ID.CHANT_OF_RECUPERATION]: { fields: { resourceGain: 1.5 } }
         }
       }
     }
@@ -143,19 +143,23 @@ test('a final partial pulse stops before a same-time refill and command echo', (
 });
 
 // Removing one delayed component preserves entry effects, sibling packets, and the echo's consumption lifecycle.
-test('Paragon delayed payloads use independent profiles without changing entry effects or echo lifetimes', () => {
+test('Paragon delayed payloads use independent skill components without changing entry effects or echo lifetimes', () => {
   const source = withPatchPreview(warriorProfession, {
     id: 'delayed-payloads',
     label: 'Delayed payloads',
     professions: {
       warrior: {
-        balanceProfiles: {
-          [PROFILE.refrain]: { removeEffects: [{ type: 'boon', name: 'fury' }] },
-          [PROFILE.onYourKneesEcho]: {
-            removeEffects: [{ type: 'strike', name: 'Echo Damage' }],
-            effects: [{ type: 'condition', name: 'Echo Immobilized', duration: 7 }]
+        skills: {
+          [ID.CHANT_OF_ACTION]: { sideEffects: { chant: { removeEffects: [{ type: 'boon', name: 'Refrain Fury' }] } } },
+          [ID.ON_YOUR_KNEES]: {
+            sideEffects: {
+              echo: {
+                removeEffects: [{ type: 'strike', name: 'Echo Damage' }],
+                effects: [{ type: 'condition', name: 'Echo Immobilized', duration: 7 }]
+              }
+            }
           },
-          [PROFILE.findTheirWeaknessEcho]: { fields: { resourceGain: 6 } }
+          [ID.FIND_THEIR_WEAKNESS]: { fields: { echoResourceGain: 6 } }
         }
       }
     }
@@ -355,9 +359,9 @@ test('removed opening packets and disabled cadences retain chant state without q
     label: 'Silent Paragon',
     professions: {
       warrior: {
+        skills: { [ID.CHANT_OF_ACTION]: { sideEffects: { chant: { removeEffects: [{ type: 'boon', all: true }] } } } },
         balanceProfiles: {
-          [PROFILE.chants]: { removeEffects: [{ type: 'boon', all: true }] },
-          [PROFILE.resources]: { fields: { pulseInterval: { from: 3, to: 0 } } },
+          [TRAIT.RALLY_THE_VALIANT]: { fields: { pulseInterval: { from: 3, to: 0 } } },
           [PROFILE.commands]: { fields: { pulseInterval: { from: 3, to: 0 } } }
         }
       }
@@ -389,8 +393,14 @@ test('Action refrain reads patched Might and Enduring Refrain values', () => {
     label: 'Refrain values',
     professions: {
       warrior: {
+        skills: {
+          [ID.CHANT_OF_ACTION]: {
+            sideEffects: {
+              chant: { effects: [{ type: 'boon', name: 'Refrain Might', duration: { from: 8, to: 11 } }] }
+            }
+          }
+        },
         balanceProfiles: {
-          [PROFILE.refrain]: { effects: [{ type: 'boon', name: 'might', duration: { from: 8, to: 11 } }] },
           [TRAIT.ENDURING_REFRAIN]: { fields: { stackMultiplier: 3 } }
         }
       }

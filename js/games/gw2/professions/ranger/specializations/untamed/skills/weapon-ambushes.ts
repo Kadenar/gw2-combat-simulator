@@ -4,7 +4,6 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { naturesStrengthReaction } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { naturalFortitudeAmbushEffect } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
 
 /** Preserve the measured Quickness offsets, including projectiles and effects that outlive the cast. */
@@ -130,9 +129,11 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, Partial<Sk
             packets: 'first',
             when: (runtime, { event }) => runtime.combat.targetHasCondition(CONDITION.POISONED, event.at),
             do: {
-              type: 'emitProfile',
-              profileId: PROFILE.toxicShotPoisoned,
-              attribution: { source: 'ranger', sourceId: ID.TOXIC_SHOT, actorType: ACTOR.PLAYER }
+              type: 'ranger.toxic-shot',
+              id: 'poisoned-target',
+              effects: [
+                { name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, stacks: 4, duration: 6 }
+              ]
             }
           }
         ]

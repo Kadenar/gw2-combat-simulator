@@ -1,3 +1,4 @@
+import { NECROMANCER_MINION_ATTACK_SKILLS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 import { NECROMANCER_CORE_TRAIT_SKILLS } from '#gw2/professions/necromancer/core/skills/trait-skills.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
@@ -25,10 +26,11 @@ test('Necromancer owner-local skill families compose without duplicates or omiss
   assert.deepEqual(NECROMANCER_CORE_EXTRA_SKILLS, [
     ...NECROMANCER_CORE_TRAIT_SKILLS,
     ...CORE_ACTIONS,
+    ...NECROMANCER_MINION_ATTACK_SKILLS,
     ...NECROMANCER_AXE_EXTRA_SKILLS
   ]);
   assert.deepEqual(
     CORE_ACTIONS.map(({ id }) => id),
-    [SHARED_SKILL_IDS.SWAP_WEAPONS, SHARED_SKILL_IDS.DODGE, ID.EXIT_LICH_FORM]
+    [ID.SOUL_SHARDS, SHARED_SKILL_IDS.SWAP_WEAPONS, SHARED_SKILL_IDS.DODGE, ID.EXIT_LICH_FORM]
   );
 });

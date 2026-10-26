@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import {
   fromProfile,
@@ -13,10 +14,6 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
-import {
-  HARBINGER_BALANCE_PROFILE_IDS as HARBINGER,
-  HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID
-} from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 
 /** Base and empowered packets are alternatives; spending happens before the elixir grants fresh Blight. */
@@ -25,17 +22,17 @@ const empoweredSkill: DescribeSimulationTooltip = (balanceContext, entity) => {
 
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
 
-  const profile = tooltipProfile(balanceContext, HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(entity.id)]);
+  const action = requireSkillAction(selected, 'empowered');
   const elixir = selected.categories?.includes('Elixir');
   const base = simulationEffectFacts(selected.effects);
-  const empowered = simulationEffectFacts(profile.effects);
+  const empowered = simulationEffectFacts(action.effects);
   return {
     description: elixir
       ? "Throw an elixir. With enough Blight, consume the required stacks and use the empowered effects instead. Gain fresh Blight after the attack. Twisted Medicine shares the elixir's boons with your party."
       : `Strike your target. With enough Blight, consume the required stacks and use the empowered effects instead.${Number(entity.id) === ID.VORACIOUS_ARC ? ' Also apply control: daze normally, or fear with Doom Approaches.' : ''}`,
     facts: [
-      { name: 'Blight required and consumed', detail: String(tooltipNumber(profile, 'blightCost')) },
-      ...(elixir ? [{ name: 'Blight gained afterward', detail: String(tooltipNumber(profile, 'blightGain')) }] : [])
+      { name: 'Blight required and consumed', detail: String(tooltipNumber(selected, 'blightCost')) },
+      ...(elixir ? [{ name: 'Blight gained afterward', detail: String(tooltipNumber(selected, 'blightGain')) }] : [])
     ],
     factTabs: [
       { label: 'Base effects', facts: base.facts },
@@ -50,10 +47,19 @@ const darkBarrageTooltip: DescribeSimulationTooltip = (balanceContext, entity) =
 
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
 
-  const base = simulationEffectFacts(selected.effects, 'without Doom Approaches');
-  const profile = tooltipProfile(balanceContext, HARBINGER.darkBarrageDoomApproaches);
+  const base = simulationEffectFacts(
+    selected.effects?.filter((effect) => effect.packetLabel !== 'doom-approaches'),
+    'without Doom Approaches'
+  );
   const replacement = simulationEffectFacts(
-    darkBarrageEffects(profile, profile.effects ?? []),
+    darkBarrageEffects(
+      selected,
+      selected.effects?.filter((effect) => effect.packetLabel === 'doom-approaches') ?? []
+    ).map((effect) => ({
+      ...effect,
+      packetLabel: undefined,
+      name: effect.type === 'strike' ? 'Strike' : effect.type === 'condition' ? effect.condition : effect.name
+    })),
     'with Doom Approaches; replaces base volley'
   );
   return {

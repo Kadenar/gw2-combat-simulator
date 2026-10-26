@@ -1,4 +1,4 @@
-import { RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
@@ -13,9 +13,8 @@ import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 
 export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {
@@ -93,6 +92,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.ANGUISH]: {
+    // Autonomous payloads and actor tuning belong to the selected actor skill.
+    summonAttackId: 'necromancer.ritualist.anguish.autoattack',
     type: 'Profession',
     slot: 'Weapon_2',
     shroud: 'ritualist',
@@ -104,7 +105,42 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     retainsCastLockoutAfterInterrupt: true,
     effects: [],
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-anguish' } }]
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'ritualist.summon-anguish',
+          id: 'opening',
+          effects: [
+            {
+              // EVTC calibration identifies each player-owned barrage packet as a 0.36 coefficient strike.
+              type: 'strike',
+              ticks: [
+                { atMs: 800, coefficient: 0.36 },
+                { atMs: 960, coefficient: 0.36 },
+                { atMs: 1000, coefficient: 0.36 },
+                { atMs: 1080, coefficient: 0.36 },
+                { atMs: 1120, coefficient: 0.36 },
+                { atMs: 1160, coefficient: 0.36 },
+                { atMs: 1200, coefficient: 0.36 }
+              ],
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              actorType: ACTOR.PLAYER,
+              name: 'Anguish Initial Barrage'
+            },
+            { type: 'condition', name: CONDITION.CRIPPLED, condition: CONDITION.CRIPPLED, stacks: 1, duration: 4 },
+            {
+              type: 'condition',
+              name: CONDITION.VULNERABILITY,
+              condition: CONDITION.VULNERABILITY,
+              stacks: 8,
+              duration: 10
+            }
+          ]
+        }
+      }
+    ]
   },
   [ID.INNERVATE_WANDERLUST]: {
     usableInShroud: true,
@@ -126,6 +162,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.NIGHTMARE_WEAPON]: {
+    // Each recipient spends charges against this skill's own interval and triggered payload.
+    internalCooldown: 0,
     castTimeMs: 240,
     effects: [
       {
@@ -139,9 +177,40 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ],
     effectVariants: [{ when: () => true, transform: () => [] }],
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.nightmare-weapon' } }]
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'ritualist.nightmare-weapon',
+          id: 'triggered',
+          effects: [
+            {
+              name: 'Strike',
+              type: 'strike',
+              coefficient: 0,
+              hits: 1,
+              flatStrikeBase: 1200,
+              flatStrikePowerCoeff: 0.05,
+              actorType: ACTOR.EFFECT,
+              canCrit: false,
+              damageKind: 'life-steal'
+            },
+            {
+              name: CONDITION.VULNERABILITY,
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 2,
+              duration: 8,
+              actorType: ACTOR.EFFECT
+            }
+          ]
+        }
+      }
+    ]
   },
   [ID.WANDERLUST]: {
+    // Autonomous payloads and actor tuning belong to the selected actor skill.
+    summonAttackId: 'necromancer.ritualist.wanderlust.autoattack',
     type: 'Profession',
     slot: 'Weapon_3',
     shroud: 'ritualist',
@@ -152,7 +221,59 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
     sideEffects: [
       { on: 'castStart', do: { type: 'ritualist.wanderlust-opening' } },
-      { on: 'castCommit', do: { type: 'ritualist.summon-wanderlust' } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'ritualist.summon-wanderlust',
+          id: 'opening',
+          effects: [
+            {
+              type: 'strike',
+              coefficient: 1,
+              hits: 1,
+              atMs: 720,
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              actorType: ACTOR.PLAYER,
+              name: 'Wanderlust Initial Swing'
+            },
+            {
+              // The lingering field emits four independently timed 0.42 coefficient packets.
+              type: 'strike',
+              ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 2000 + index * 1000, coefficient: 0.42 })),
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              actorType: ACTOR.PLAYER,
+              name: 'Wanderlust Initial Field'
+            },
+            {
+              type: 'condition',
+              name: CONDITION.CHILLED,
+              condition: CONDITION.CHILLED,
+              stacks: 1,
+              duration: 2,
+              atMs: 0
+            },
+            {
+              type: 'condition',
+              name: CONDITION.VULNERABILITY,
+              condition: CONDITION.VULNERABILITY,
+              stacks: 4,
+              duration: 6,
+              atMs: 1000
+            },
+            {
+              type: 'condition',
+              name: CONDITION.WEAKNESS,
+              condition: CONDITION.WEAKNESS,
+              stacks: 1,
+              duration: 4,
+              atMs: 2000
+            },
+            { type: 'condition', name: CONDITION.SLOW, condition: CONDITION.SLOW, stacks: 1, duration: 2, atMs: 3000 }
+          ]
+        }
+      }
     ]
   },
   [ID.EXIT_RITUALISTS_SHROUD]: {
@@ -167,6 +288,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }]
   },
   [ID.PRESERVATION]: {
+    // Autonomous payloads and actor tuning belong to the selected actor skill.
+    summonAttackId: 'necromancer.ritualist.preservation.autoattack',
     type: 'Profession',
     slot: 'Weapon_4',
     shroud: 'ritualist',
@@ -192,9 +315,11 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ],
     effectVariants: [{ when: () => true, transform: () => [] }],
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-preservation' } }]
+    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-preservation', id: 'opening', effects: [] } }]
   },
   [ID.SPLINTER_WEAPON]: {
+    // Each recipient spends charges against this skill's own interval and triggered payload.
+    internalCooldown: 0.32,
     castTimeMs: 240,
     effects: [
       {
@@ -208,7 +333,16 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ],
     effectVariants: [{ when: () => true, transform: () => [] }],
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.splinter-weapon' } }]
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'ritualist.splinter-weapon',
+          id: 'triggered',
+          effects: [{ name: 'Strike', type: 'strike', coefficient: 0.4, hits: 1, actorType: ACTOR.EFFECT }]
+        }
+      }
+    ]
   },
   [ID.INNERVATE_ANGUISH]: {
     usableInShroud: true,
@@ -247,13 +381,43 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     castTimeMs: 0,
     effects: [],
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-spirits' } }]
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'ritualist.summon-spirits',
+          id: 'commands',
+          effects: [
+            {
+              type: 'strike',
+              ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 2.5 / 4 })),
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              duration: 2,
+              actorType: ACTOR.PLAYER,
+              name: 'Summon Spirits - Anguish'
+            },
+            {
+              type: 'strike',
+              coefficient: 3.7,
+              hits: 1,
+              atMs: 840,
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              duration: 1.8,
+              actorType: ACTOR.PLAYER,
+              name: 'Summon Spirits - Wanderlust'
+            }
+          ]
+        }
+      }
+    ]
   },
   [ID.RITUALISTS_SHROUD]: {
     cooldown: 10,
     specialization: 'Ritualist',
     shroudEntry: 'ritualist',
-    shroudProfileId: PROFILE.resources,
+    shroudProfileId: TRAIT.SPAWNING_POWER,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap',

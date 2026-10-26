@@ -14,16 +14,28 @@ const guildPackets = (result, type = 'damage') =>
 
 /** A short guild with no shared thieves isolates the selected elite's scheduling and packet tuning. */
 function guildCatalog(elite, attacks, duration = 2) {
-  return (catalog) =>
-    withProfile(
-      withSkill(catalog, ID.THIEVES_GUILD, {
+  return (catalog) => {
+    // Actor packets and recharge are patched on skills; the actor profile supplies only stream startup.
+    const selected = attacks.reduce(
+      (current, attack) =>
+        withSkill(
+          current,
+          attack.skillId,
+          Object.fromEntries(Object.entries(attack).filter(([key]) => key !== 'initialDelay'))
+        ),
+      catalog
+    );
+    return withProfile(
+      withSkill(selected, ID.THIEVES_GUILD, {
         castTimeMs: 0,
         cooldown: 0,
-        summonAttack: { ...catalog.skillsById.get(ID.THIEVES_GUILD).summonAttack, duration, summons: [] }
+        duration,
+        summonAttack: { ...catalog.skillsById.get(ID.THIEVES_GUILD).summonAttack, summons: [] }
       }),
       profileId(elite),
-      { attacks }
+      { attacks: attacks.map(({ skillId, initialDelay }) => ({ skillId, initialDelay })) }
     );
+  };
 }
 
 test('guild catalogs include only the active elite contribution, including detached preview runtimes', () => {
@@ -38,7 +50,15 @@ test('guild catalogs include only the active elite contribution, including detac
 
 for (const elite of elites) {
   test(`${elite} guild streams read selected profiles and preserve explicit empty attacks`, () => {
-    const attack = { name: 'Fixture', coefficientPerHit: 0.73, hits: 1, initialDelay: 0.2, interval: 0.5 };
+    const skillId = thiefProfession.runtimeFor(config(elite)).catalog.balanceProfilesById.get(profileId(elite))
+      .attacks[0].skillId;
+    const attack = {
+      skillId,
+      name: 'Fixture',
+      initialDelay: 0.2,
+      cooldown: 0.5,
+      effects: [{ type: 'strike', name: 'Strike', coefficient: 0.73, hits: 1 }]
+    };
     const result = runThief(['Thieves Guild', { type: 'combat-start' }, wait(1400)], config(elite), {
       catalog: guildCatalog(elite, [attack], 1)
     });
@@ -78,14 +98,14 @@ test('Specter chooses selected condition tuning from live target state at each i
   const attack = {
     name: 'Well of Sorrow',
     skillId: 67795,
-    coefficientPerHit: 0.33,
     initialDelay: 0.2,
-    interval: 1,
-    conditions: [
-      { condition: 'Poisoned', stacks: 1, duration: 0.3 },
-      { condition: 'Bleeding', stacks: 2, duration: 0.4 },
-      { condition: 'Torment', stacks: 2, duration: 0.5 },
-      { condition: 'Torment', stacks: 1, duration: 0.6 }
+    cooldown: 1,
+    effects: [
+      { type: 'strike', name: 'Strike', coefficient: 0.33, hits: 1 },
+      { type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 0.3 },
+      { type: 'condition', name: 'Bleeding', condition: 'Bleeding', stacks: 2, duration: 0.4 },
+      { type: 'condition', name: 'Torment', condition: 'Torment', stacks: 2, duration: 0.5 },
+      { type: 'condition', name: 'Fallback Torment', condition: 'Torment', stacks: 1, duration: 0.6 }
     ]
   };
   const result = runThief(['Thieves Guild', { type: 'combat-start' }, wait(2400)], config('Specter'), {

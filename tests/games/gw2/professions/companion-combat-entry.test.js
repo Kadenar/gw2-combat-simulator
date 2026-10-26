@@ -7,8 +7,7 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/necromancer/core/profiles.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cases = [
@@ -34,7 +33,7 @@ const cases = [
 // Observe producer decisions directly: discarded hostile packets must not conceal precombat AI activity.
 function run(
   entry,
-  { boundary = 6, marker = false, commands = [], output, repeatedStart = false, profileChanges = [] } = {}
+  { boundary = 6, marker = false, commands = [], output, repeatedStart = false, skillChanges = [] } = {}
 ) {
   const names = [...(entry.casts ?? []), ...commands];
   const config = {
@@ -64,7 +63,7 @@ function run(
     ],
     profession: {
       ...native,
-      catalog: profileChanges.reduce((catalog, [id, change]) => withProfile(catalog, id, change), native.catalog),
+      catalog: skillChanges.reduce((catalog, [id, change]) => withSkill(catalog, id, change), native.catalog),
       onCombatStart(runtime) {
         beforeStart = structuredClone(runtime.profession);
         native.onCombatStart?.(runtime);
@@ -113,7 +112,7 @@ for (const entry of cases) {
   });
 }
 
-// Synthetic profile values protect engagement scheduling without pinning any minion's calibrated hit timestamps.
+// Synthetic actor-skill values protect engagement scheduling without pinning calibrated hit timestamps.
 test('minion engagement uses its opening windup independently of preparation and repeat cadence', () => {
   const entry = {
     name: 'opening minion',
@@ -125,7 +124,12 @@ test('minion engagement uses its opening windup independently of preparation and
     run(entry, {
       boundary,
       repeatedStart,
-      profileChanges: [[CORE.bloodFiendAttack, { openingAttackWindupMs: windup, pulseInterval: interval }]]
+      skillChanges: [
+        [
+          necromancerProfession.catalog.skillsById.get(ID.SUMMON_BLOOD_FIEND).summonAttackId,
+          { openingAttackWindupMs: windup, pulseInterval: interval }
+        ]
+      ]
     });
   const first = opening(6, 400, 7);
   const longerPreparation = opening(8, 400, 7);

@@ -1,10 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  defineSkillVariantProfile,
-  defineTraitProfile
-} from '#gw2/platform/profession-definition/profile-authoring.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   balanceProfileFromContext,
@@ -12,36 +8,8 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 
-test('balance-profile authoring helpers attach canonical trait and variant metadata', () => {
-  assert.deepEqual(defineTraitProfile(101, 'Test Trait', { threshold: 3 }), {
-    id: 101,
-    name: 'Test Trait',
-    profileKind: 'trait',
-    categories: ['Trait'],
-    skillFamily: 'Trait',
-    effects: [],
-    threshold: 3
-  });
-  assert.deepEqual(defineSkillVariantProfile('variant', 202, 'Test Variant', { resourceGain: 2 }), {
-    id: 'variant',
-    parentId: 202,
-    name: 'Test Variant',
-    profileKind: 'skill-variant',
-    effects: [],
-    resourceGain: 2
-  });
-  assert.deepEqual(defineSkillVariantProfile('mechanic-variant', 'Mechanic Variant', { threshold: 4 }), {
-    id: 'mechanic-variant',
-    name: 'Mechanic Variant',
-    profileKind: 'skill-variant',
-    categories: ['Skill variant'],
-    effects: [],
-    threshold: 4
-  });
-});
-
 test('balance-profile lookup supports every runtime context shape and preserves precedence', () => {
-  const profile = (name) => defineTraitProfile(101, name);
+  const profile = (name) => ({ id: 101, name });
   const direct = profile('Direct catalog');
   const helper = profile('Resolver helpers');
   const profession = profile('Profession catalog');
@@ -80,7 +48,7 @@ test('balance-profile lookup supports every runtime context shape and preserves 
 });
 
 test('balance-profile numeric lookup returns patched values and rejects invalid fields', () => {
-  const profile = defineTraitProfile(101, 'Patchable', { threshold: 3 });
+  const profile = { id: 101, name: 'Patchable', profileKind: 'trait', threshold: 3, effects: [] };
   const catalog = {
     balanceProfiles: [profile],
     balanceProfilesById: new Map([[101, profile]])

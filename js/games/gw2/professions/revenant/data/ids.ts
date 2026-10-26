@@ -141,6 +141,7 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   RELEASE_POTENTIAL_DERVISH: 78661, // Release Potential: Dervish
   RELEASE_POTENTIAL_ASSASSIN: 78845, // Release Potential: Assassin
   RELEASE_POTENTIAL_WARRIOR: 78895, // Release Potential: Warrior
+  BEGUILING_HAZE_FOLLOW_UP: 77047, // Beguiling Haze (Follow-Up)
   LEGENDARY_DWARF_STANCE_ID_26650: 26650, // Legendary Dwarf Stance
   ELEMENTAL_BLAST: 27162, // Elemental Blast
   LEGENDARY_ASSASSIN_STANCE_ID_27659: 27659, // Legendary Assassin Stance

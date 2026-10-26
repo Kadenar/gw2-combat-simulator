@@ -168,6 +168,6 @@ test('life-force declarations reject malformed tuning, duplicate ids, and wrong 
 
   assert.throws(
     () => applySkillPatch(catalog, { skills: { [ID.FEAST_OF_CORRUPTION]: { fields: { lifeForceGain: 2 } } } }),
-    /unsupported patch field/
+    /does not expose lifeForceGain/
   );
 });

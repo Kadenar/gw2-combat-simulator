@@ -11,8 +11,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import type { ThiefConfig, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -23,10 +22,10 @@ export const SHADOW_DEPLETED = 'thief.shadow-shroud-depleted';
 export const shadowForce: ResourcePolicy<ThiefRuntime> = {
   kind: 'continuous',
   state: (runtime) => specterState.from(runtime).shadowClock,
-  maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
+  maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.SPECTER, 'maximumStacks'),
   initial: (runtime) => (runtime.config as ThiefConfig).initialShadowForce ?? 0,
   recovery: (runtime) => {
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+    const profile = requireBalanceProfileFromContext(runtime, TRAIT.SPECTER);
     return specterState.from(runtime).shadowShroudActive
       ? -balanceProfileNumber(profile, 'maximumStacks') * balanceProfileNumber(profile, 'lifeForceDrain')
       : 0;

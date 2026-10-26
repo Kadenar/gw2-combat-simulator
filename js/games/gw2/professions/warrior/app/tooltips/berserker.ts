@@ -1,3 +1,5 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import {
@@ -6,6 +8,7 @@ import {
   profileFact,
   simulationEffectFacts,
   skillTooltip,
+  skillFact,
   tooltipFactorChange,
   tooltipPercent,
   tooltipProfile,
@@ -14,28 +17,23 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as BERSERKER } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js';
 
 /** Describe berserker tooltips from the selected balance data. */
 export const berserkerTooltips = {
-  skillFacts: (balanceContext, entity) => [
-    ...(entity.categories?.includes('Rage') && entity.id !== ID.BERSERK
-      ? [
-          profileFact(
+  // Rage extensions are intrinsic to each selected skill rather than a shared category lookup.
+  skillFacts: (balanceContext, entity) =>
+    entity.durationExtension == null
+      ? []
+      : [
+          skillFact(
             balanceContext,
-            BERSERKER.rageExtensions,
-            entity.id === ID.WILD_BLOW
-              ? 'maximumStacks'
-              : [ID.OUTRAGE, ID.SUNDERING_LEAP, ID.SHATTERING_BLOW].some((id) => id === entity.id)
-                ? 'threshold'
-                : 'minimumStacks',
+            entity.id,
+            'durationExtension',
             'Base extension while Berserk is active',
             tooltipSeconds
           )
-        ]
-      : [])
-  ],
+        ],
   skills: {
     [ID.SUNDERING_LEAP]: resourceTooltip,
     [ID.GUN_FLAME]: resourceTooltip,
@@ -56,10 +54,10 @@ export const berserkerTooltips = {
       'Enter Berserk, reduce your adrenaline capacity, and unlock primal bursts. Rage skills and eligible traits can extend the active duration.',
       (balanceContext) => [
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, BERSERKER.resources).effects,
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.BERSERK), 'berserk').effects,
           'base duration before trait extensions'
         ).facts,
-        profileFact(balanceContext, BERSERKER.resources, 'maximumStacks', 'Adrenaline capacity while Berserk')
+        profileFact(balanceContext, TRAIT.PRIMAL_RAGE, 'maximumStacks', 'Adrenaline capacity while Berserk')
       ]
     ),
     [ID.BLOOD_RECKONING]: skillTooltip(
@@ -72,8 +70,8 @@ export const berserkerTooltips = {
     ),
     [TRAIT.BURST_OF_AGGRESSION]: traitTooltip('Entering Berserk grants quickness and fury.'),
     [TRAIT.FATAL_FRENZY]: traitTooltip('Berserk grants power and condition damage.', [
-      fromProfile('warrior.berserker.resources', 'attributeBonus', 'Power during Berserk'),
-      fromProfile('warrior.berserker.resources', 'attributePerStack', 'Condition damage during Berserk')
+      fromProfile(TRAIT.FATAL_FRENZY, 'attributeBonus', 'Power during Berserk'),
+      fromProfile(TRAIT.FATAL_FRENZY, 'attributePerStack', 'Condition damage during Berserk')
     ]),
     [TRAIT.SMASH_BRAWLER]: traitTooltip(
       'Gain critical-strike chance during Berserk. Completing primal bursts extends Berserk; Decapitate uses a shorter extension.',

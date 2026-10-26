@@ -1,10 +1,16 @@
-import { balanceNumberFromContext, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import {
+  effectNumber,
+  requireEffect,
+  skillNumberFromContext,
+  requireSkillFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { forgedSurferProfile } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -19,11 +25,12 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
 
   if (occurrence > 0 && runtime.time > antiquaryState.from(runtime).forgedSurferBombDropUntil) return;
 
-  const profile = forgedSurferProfile(runtime);
+  const profile = requireSkillFromContext(runtime, ID.FORGED_SURFER_DASH);
   // Dash and bomb identities survive deletion of either strike or condition.
-  const packet = occurrence === 0 ? 'Dash' : 'Bomb';
-  const strike = requireEffect(profile, 'strike', packet);
-  const burning = requireEffect(profile, 'condition', packet);
+  const packet =
+    (hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'Meticulous ' : '') + (occurrence === 0 ? 'Dash' : 'Bomb');
+  const strike = requireEffect(profile, 'strike', packet, requireSkillAction(profile, 'surfer'));
+  const burning = requireEffect(profile, 'condition', packet, requireSkillAction(profile, 'surfer'));
   const name = occurrence === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash — Bomb';
 
   if (strike)
@@ -51,10 +58,10 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
       })
     });
 
-  const interval = balanceNumberFromContext(runtime, PROFILE.forgedSurfer, 'pulseInterval');
+  const interval = skillNumberFromContext(runtime, ID.FORGED_SURFER_DASH, 'pulseInterval');
   const nextAt = canonicalTime(runtime.time + interval);
 
-  // A duration-driven sequence must advance its clock even when authoring a patched profile.
+  // A duration-driven sequence must advance its clock even when authoring a patched skill.
   if (nextAt <= runtime.time) throw new RangeError('Forged Surfer bomb interval must advance time.');
 
   if (nextAt <= canonicalTime(antiquaryState.from(runtime).forgedSurferBombDropUntil))
@@ -66,7 +73,7 @@ export function startForgedSurfer(runtime: ThiefRuntime, skill: ThiefSkill): voi
   runtime.cancelOwner(FORGED_SURFER_OWNER);
   runtime.schedule(
     FORGED_SURFER,
-    runtime.time + balanceNumberFromContext(runtime, PROFILE.forgedSurfer, 'initialDelay'),
+    runtime.time + skillNumberFromContext(runtime, ID.FORGED_SURFER_DASH, 'initialDelay'),
     {
       skillId: skill.id,
       occurrence: 0

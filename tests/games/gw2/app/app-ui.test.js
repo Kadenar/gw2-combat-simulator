@@ -194,7 +194,8 @@ test('elite specialization changes preserve unique Warrior lines through persist
       build,
       adapter,
       activeCatalog: adapter.profession.catalog,
-      resourceDefinitions: (specialization) => adapter.profession.ui.resourceViews({ specialization }),
+      resourceDefinitions: (specialization) =>
+        adapter.profession.ui.resourceViews({ specialization, catalog: app.activeCatalog, build: app.build }),
       changed() {
         changed += 1;
       }

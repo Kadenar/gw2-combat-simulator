@@ -152,7 +152,7 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
       professions: {
         thief: {
           balanceProfiles: {
-            [profile]: { fields: deadeye ? { duration: 7 } : { duration: 7, resourceGain: 3 } }
+            [profile]: { fields: { duration: 7 } }
           }
         }
       }
@@ -176,7 +176,10 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
         context.fireTrigger(deadeyeCastCompleted, {
           cast: { skill: runtime.helpers.skillsById.get(SHARED_SKILL_IDS.DODGE) }
         });
-      } else antiquaryHooks.sideEffectHandlers['thief.guitar'](context);
+      } else
+        antiquaryHooks.sideEffectHandlers['thief.guitar'](context, {
+          skill: runtime.helpers.skillsById.get(ID.METAL_LEGION_GUITAR)
+        });
     };
 
     runtime.time = 1;

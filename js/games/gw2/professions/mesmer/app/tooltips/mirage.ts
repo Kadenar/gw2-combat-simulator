@@ -1,4 +1,4 @@
-import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   tooltipSeconds,
@@ -12,18 +12,15 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import {
-  MIRAGE_BALANCE_PROFILE_IDS as MIRAGE,
-  MIRAGE_AMBUSH_PROFILE_IDS,
-  mesmerProfiledAmbush
-} from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
+import { MIRAGE_BALANCE_PROFILE_IDS as MIRAGE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
+import { mesmerSelectedAmbush } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 
 const cloakFacts = (balanceContext: Parameters<DescribeSimulationTooltip>[0]) => [
-  profileFact(balanceContext, MIRAGE.mechanics, 'duration', 'Mirage Cloak', tooltipSeconds),
-  profileFact(balanceContext, MIRAGE.mechanics, 'durationPerTier', 'Ambush window', tooltipSeconds)
+  profileFact(balanceContext, TRAIT.MIRAGE_CLOAK, 'duration', 'Mirage Cloak', tooltipSeconds),
+  profileFact(balanceContext, TRAIT.MIRAGE_CLOAK, 'durationPerTier', 'Ambush window', tooltipSeconds)
 ];
 
 /** Describe mirage tooltips from the selected balance data. */
@@ -33,43 +30,40 @@ export const mirageTooltips = {
       'Strike and confuse your target. Each axe clone present when the cast begins performs its own additional strike and applies confusion.'
     ),
     ...Object.fromEntries(
-      Object.keys(MIRAGE_AMBUSH_PROFILE_IDS)
+      Object.keys(MESMER_MIRAGE_AMBUSH_SKILLS)
         .map((weapon) => MESMER_MIRAGE_AMBUSH_SKILLS[weapon].id)
         .map((id) => [
           id,
           (balanceContext, entity) => {
             const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-            const profile = tooltipProfile(balanceContext, MIRAGE_AMBUSH_PROFILE_IDS[String(selected.weapon)]);
             // Describe repeated statuses with the same independent cadence used by the runtime.
-            const { player } = mesmerProfiledAmbush(
-              balanceContext,
-              MESMER_MIRAGE_AMBUSH_SKILLS[String(selected.weapon)],
-              MIRAGE_AMBUSH_PROFILE_IDS[String(selected.weapon)]
-            );
+            const { player } = mesmerSelectedAmbush(balanceContext, selected.id);
             const playerPackets = (player.ticks ?? player.statusAtMs)?.length ?? 1;
-            const facts = (profile.effects || []).flatMap((effect) => {
-              const clone = effect.source === 'Clone';
-              const repeated =
-                !clone && (effect.type === 'boon' || (effect.type === 'condition' && effect.source == null));
-              return simulationEffectFacts(
-                [
-                  {
-                    ...effect,
-                    actorType: clone ? ACTOR.SUMMON : ACTOR.PLAYER,
-                    applications: (effect.applications ?? 1) * (repeated ? playerPackets : 1),
-                    ...(effect.type === 'boon'
-                      ? {
-                          audience: {
-                            recipients: clone || selected.id === ID.CHAOS_VORTEX ? RECIPIENT.PARTY : RECIPIENT.SELF,
-                            ...(clone || selected.id === ID.CHAOS_VORTEX ? { maximumRecipients: 5 } : {})
+            const facts = (selected.effects || [])
+              .filter((effect) => effect.type !== 'control')
+              .flatMap((effect) => {
+                const clone = effect.source === 'Clone';
+                const projected = effect.source === 'Player' || effect.name === CONDITION.VULNERABILITY;
+                const repeated = projected && (effect.type === 'boon' || effect.name === CONDITION.VULNERABILITY);
+                return simulationEffectFacts(
+                  [
+                    {
+                      ...effect,
+                      actorType: clone ? ACTOR.SUMMON : ACTOR.PLAYER,
+                      applications: (effect.applications ?? 1) * (repeated ? playerPackets : 1),
+                      ...(effect.type === 'boon' && (clone || projected)
+                        ? {
+                            audience: {
+                              recipients: clone || selected.id === ID.CHAOS_VORTEX ? RECIPIENT.PARTY : RECIPIENT.SELF,
+                              ...(clone || selected.id === ID.CHAOS_VORTEX ? { maximumRecipients: 5 } : {})
+                            }
                           }
-                        }
-                      : {})
-                  }
-                ],
-                clone ? 'per clone with Infinite Horizon, when cloak is granted' : 'player ambush'
-              ).facts;
-            });
+                        : {})
+                    }
+                  ],
+                  clone ? 'per clone with Infinite Horizon, when cloak is granted' : 'player ambush'
+                ).facts;
+              });
             facts.push(...simulationEffectFacts(selected.effects?.filter((effect) => effect.type === 'control')).facts);
             return {
               description:

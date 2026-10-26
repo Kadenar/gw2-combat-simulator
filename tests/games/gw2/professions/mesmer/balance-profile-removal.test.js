@@ -1,13 +1,10 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
-import {
-  mesmerProfiledShatter,
-  MESMER_CORE_BALANCE_PROFILE_IDS as CORE
-} from '#gw2/professions/mesmer/core/profiles.js';
-import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
+import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -16,11 +13,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // Minimal scenarios keep removal, patch isolation, and resource contracts independent of benchmark rotations.
-function run(balanceProfiles, specialization, rotation, config = {}, skills = {}) {
+function run(patch, specialization, rotation, config = {}, skills = {}) {
   const profession = withPatchPreview(mesmerProfession, {
     id: 'mesmer-removal',
     label: 'Mesmer removal',
-    professions: { mesmer: { balanceProfiles, skills } }
+    professions: { mesmer: { ...patch, skills: { ...patch.skills, ...skills } } }
   });
   const result = runMesmer(
     rotation,
@@ -33,29 +30,36 @@ function run(balanceProfiles, specialization, rotation, config = {}, skills = {}
 
 // The selected profile owns Poison in both combat and tooltips, including removal without restoring authored data.
 test('Chaos Storm profile edits and removal reach combat and tooltip consumers', () => {
-  const profile = mesmerCatalog.balanceProfilesById.get(CORE.chaosStormPoison);
+  const skill = mesmerCatalog.skillsById.get(ID.CHAOS_STORM);
+  const profile = requireSkillAction(skill, 'poison');
   const poison = profile.effects.find((effect) => effect.type === 'condition' && effect.name === 'Poison');
   const edited = {
-    [profile.id]: {
-      effects: poison.ticks.map((tick, tickIndex) => ({
-        type: 'condition',
-        name: 'Poison',
-        tickIndex,
-        duration: { from: tick.duration, to: 9 }
-      }))
+    [ID.CHAOS_STORM]: {
+      sideEffects: {
+        poison: {
+          effects: poison.ticks.map((tick, tickIndex) => ({
+            type: 'condition',
+            name: 'Poison',
+            tickIndex,
+            duration: { from: tick.duration, to: 9 }
+          }))
+        }
+      }
     }
   };
   const rotation = ['Chaos Storm', { type: 'wait', durationMs: 6000 }];
   const config = { primaryWeapon: 'Staff', secondaryWeapon: '', selectedTraitIds: [] };
-  const result = run(edited, 'Core', rotation, config);
+  const result = run({ skills: edited }, 'Core', rotation, config);
   const applications = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillId === ID.CHAOS_STORM && event.condition === 'Poisoned'
   );
   assert.ok(applications.length > 0);
   assert.ok(applications.every((event) => event.duration === 9));
 
-  const removed = { [profile.id]: { removeEffects: [{ type: 'condition', name: 'Poison' }] } };
-  const withoutPoison = run(removed, 'Core', rotation, config);
+  const removed = {
+    [ID.CHAOS_STORM]: { sideEffects: { poison: { removeEffects: [{ type: 'condition', name: 'Poison' }] } } }
+  };
+  const withoutPoison = run({ skills: removed }, 'Core', rotation, config);
   assert.equal(
     withoutPoison.resolvedEvents.some(
       (event) => event.type === 'condition' && event.skillId === ID.CHAOS_STORM && event.condition === 'Poisoned'
@@ -68,32 +72,38 @@ test('Chaos Storm profile edits and removal reach combat and tooltip consumers',
     mesmerTooltips.skills[ID.CHAOS_STORM]({ catalog }, catalog.skillsById.get(ID.CHAOS_STORM)).facts.filter(
       ({ name }) => name === 'Poisoned'
     );
-  assert.notDeepEqual(
-    tooltipFacts(applyBalanceProfilePatch(mesmerCatalog, { balanceProfiles: edited })),
-    tooltipFacts(mesmerCatalog)
-  );
-  assert.deepEqual(tooltipFacts(applyBalanceProfilePatch(mesmerCatalog, { balanceProfiles: removed })), []);
+  assert.notDeepEqual(tooltipFacts(applySkillPatch(mesmerCatalog, { skills: edited })), tooltipFacts(mesmerCatalog));
+  assert.deepEqual(tooltipFacts(applySkillPatch(mesmerCatalog, { skills: removed })), []);
   assert.ok(poison.ticks.every((tick) => tick.duration === 4));
 });
 
 test('shatter removal keeps surviving tier edits and the current catalog isolated', () => {
-  const id = MESMER_CORE_SHATTERS[ID.MIND_WRACK].balanceProfileId;
-  const catalog = applyBalanceProfilePatch(mesmerCatalog, {
-    balanceProfiles: {
+  const id = ID.MIND_WRACK;
+  const catalog = applySkillPatch(mesmerCatalog, {
+    skills: {
       [id]: {
-        removeEffects: [{ type: 'strike', name: '1 resources' }],
-        effects: [{ type: 'strike', name: '2 resources', coefficient: { from: 2.42, to: 7 } }]
+        sideEffects: {
+          shatter: {
+            removeEffects: [{ type: 'strike', name: '1 resources' }],
+            effects: [{ type: 'strike', name: '2 resources', coefficient: { from: 2.42, to: 7 } }]
+          }
+        }
       }
     }
   });
-  const compiled = mesmerProfiledShatter({ catalog }, MESMER_CORE_SHATTERS[ID.MIND_WRACK]);
+  const compiled = mesmerSelectedShatter({ catalog }, ID.MIND_WRACK);
   assert.equal(compiled.strikes[1], undefined);
   assert.equal(compiled.strikes[2].coefficient, 7);
-  assert.equal(mesmerCatalog.balanceProfilesById.get(id).effects[2].coefficient, 2.42);
-  const result = run({ [id]: { removeEffects: [{ type: 'strike', name: '1 resources' }] } }, 'Core', ['Mind Wrack'], {
-    initialResource: 1,
-    selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED]
-  });
+  assert.equal(requireSkillAction(mesmerCatalog.skillsById.get(id), 'shatter').effects[2].coefficient, 2.42);
+  const result = run(
+    { skills: { [id]: { sideEffects: { shatter: { removeEffects: [{ type: 'strike', name: '1 resources' }] } } } } },
+    'Core',
+    ['Mind Wrack'],
+    {
+      initialResource: 1,
+      selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED]
+    }
+  );
   assert.equal(
     result.events.some((event) => event.type === 'damage' && event.skillId === ID.MIND_WRACK),
     false
@@ -107,7 +117,13 @@ test('shatter removal keeps surviving tier edits and the current catalog isolate
 
 test('removed Virtuoso tier preserves Confusion and blade spending without hit-triggered Maim', () => {
   const result = run(
-    { 'mesmer.virtuoso.bladesong-sorrow': { removeEffects: [{ type: 'strike', name: '5 resources' }] } },
+    {
+      skills: {
+        [ID.BLADESONG_SORROW]: {
+          sideEffects: { shatter: { removeEffects: [{ type: 'strike', name: '5 resources' }] } }
+        }
+      }
+    },
     'Virtuoso',
     ['Bladesong Sorrow', { type: 'wait', durationMs: 1000 }],
     { initialResource: 5, selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED] }
@@ -126,7 +142,13 @@ test('removed Virtuoso tier preserves Confusion and blade spending without hit-t
 
 test('removed condition wrapper output leaves its shatter strike intact', () => {
   const result = run(
-    { 'mesmer.core.cry-of-frustration': { removeEffects: [{ type: 'condition', name: 'Confusion' }] } },
+    {
+      skills: {
+        [ID.CRY_OF_FRUSTRATION]: {
+          sideEffects: { shatter: { removeEffects: [{ type: 'condition', name: 'Confusion' }] } }
+        }
+      }
+    },
     'Core',
     ['Cry of Frustration']
   );
@@ -144,7 +166,10 @@ for (const [specialization, trait, skill, attack] of [
 ])
   test(`${attack} removal produces neither an attack nor its proc`, () => {
     const result = run(
-      trait === TRAIT.METHOD_OF_MADNESS ? {} : { [trait]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } },
+      {
+        balanceProfiles:
+          trait === TRAIT.METHOD_OF_MADNESS ? {} : { [trait]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
+      },
       specialization,
       [skill, { type: 'wait', durationMs: 7000 }],
       { selectedTraitIds: [trait] },
@@ -175,9 +200,11 @@ for (const [specialization, trait, skill, attack] of [
 test('Time Bomb trait profile edits control its explosion and delay without mutating base data', () => {
   const result = run(
     {
-      [TRAIT.TIME_BOMB]: {
-        fields: { duration: { from: 5, to: 2 } },
-        effects: [{ type: 'strike', name: 'Strike', coefficient: { from: 3, to: 4 } }]
+      balanceProfiles: {
+        [TRAIT.TIME_BOMB]: {
+          fields: { duration: { from: 5, to: 2 } },
+          effects: [{ type: 'strike', name: 'Strike', coefficient: { from: 3, to: 4 } }]
+        }
       }
     },
     'Chronomancer',
@@ -198,7 +225,7 @@ test('Time Bomb trait profile edits control its explosion and delay without muta
 test('Mirage player and clone strikes are removed independently of their conditions', () => {
   for (const source of ['Player', 'Clone']) {
     const result = run(
-      { 'mesmer.mirage.chaos-vortex': { removeEffects: [{ type: 'strike', name: `${source} attack` }] } },
+      { skills: { [ID.CHAOS_VORTEX]: { removeEffects: [{ type: 'strike', name: `${source} attack` }] } } },
       'Mirage',
       ['Dodge / Mirage Cloak', 'Chaos Vortex', { type: 'wait', durationMs: 1000 }],
       {
@@ -219,14 +246,14 @@ test('Mirage player and clone strikes are removed independently of their conditi
 });
 
 test('removed Split Surge strike preserves independent repeated boon and Vulnerability timing', () => {
-  const simulate = (balanceProfiles) =>
-    run(balanceProfiles, 'Mirage', ['Dodge / Mirage Cloak', 'Split Surge'], {
+  const simulate = (skills) =>
+    run({ skills }, 'Mirage', ['Dodge / Mirage Cloak', 'Split Surge'], {
       primaryWeapon: 'Greatsword',
       secondaryWeapon: ''
     });
   const baseline = simulate({});
   const removed = simulate({
-    'mesmer.mirage.split-surge': { removeEffects: [{ type: 'strike', name: 'Player attack' }] }
+    [ID.SPLIT_SURGE]: { removeEffects: [{ type: 'strike', name: 'Player attack' }] }
   });
   const statuses = (result) =>
     result.events
@@ -234,10 +261,8 @@ test('removed Split Surge strike preserves independent repeated boon and Vulnera
       .map(({ at, kind, condition, stacks }) => ({ at, kind, condition, stacks }));
   assert.ok(statuses(baseline).length > 0);
   assert.deepEqual(statuses(removed), statuses(baseline));
-  const catalog = applyBalanceProfilePatch(mesmerCatalog, {
-    balanceProfiles: {
-      'mesmer.mirage.split-surge': { removeEffects: [{ type: 'strike', name: 'Player attack' }] }
-    }
+  const catalog = applySkillPatch(mesmerCatalog, {
+    skills: { [ID.SPLIT_SURGE]: { removeEffects: [{ type: 'strike', name: 'Player attack' }] } }
   });
   const statusFacts = (catalog) =>
     mesmerTooltips.skills[ID.SPLIT_SURGE]({ catalog }, catalog.skillsById.get(ID.SPLIT_SURGE)).facts.filter(
@@ -253,7 +278,7 @@ test('removed Split Surge strike preserves independent repeated boon and Vulnera
 
 test('removing unscoped Mirage Vulnerability does not restore it', () => {
   const result = run(
-    { 'mesmer.mirage.split-surge': { removeEffects: [{ type: 'condition', name: 'Vulnerability' }] } },
+    { skills: { [ID.SPLIT_SURGE]: { removeEffects: [{ type: 'condition', name: 'Vulnerability' }] } } },
     'Mirage',
     ['Dodge / Mirage Cloak', 'Split Surge'],
     { primaryWeapon: 'Greatsword', secondaryWeapon: '' }
@@ -267,7 +292,7 @@ test('removing unscoped Mirage Vulnerability does not restore it', () => {
 
 test('removed Flute strike keeps conditions, note spending, and playing state', () => {
   const result = run(
-    { 'mesmer.troubadour.flustering-flute': { removeEffects: [{ type: 'strike', name: 'Strike' }] } },
+    { skills: { [ID.FLUSTERING_FLUTE]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } } },
     'Troubadour',
     ['Flustering Flute'],
     { initialResource: 3 }
@@ -284,9 +309,11 @@ test('removed Flute strike keeps conditions, note spending, and playing state', 
 test('removing immediate Syncopate preserves the edited delayed wave', () => {
   const result = run(
     {
-      [TRAIT.SYNCOPATE]: {
-        removeEffects: [{ type: 'strike', name: 'Immediate wave' }],
-        effects: [{ type: 'strike', name: 'Delayed wave', coefficient: { from: 1, to: 2 } }]
+      balanceProfiles: {
+        [TRAIT.SYNCOPATE]: {
+          removeEffects: [{ type: 'strike', name: 'Immediate wave' }],
+          effects: [{ type: 'strike', name: 'Delayed wave', coefficient: { from: 1, to: 2 } }]
+        }
       }
     },
     'Troubadour',
@@ -300,7 +327,7 @@ test('removing immediate Syncopate preserves the edited delayed wave', () => {
 
 test('removing Chronomancer boon preserves its sibling and clone refund', () => {
   const result = run(
-    { [TRAIT.STRETCHED_TIME]: { removeEffects: [{ type: 'boon', name: 'alacrity' }] } },
+    { balanceProfiles: { [TRAIT.STRETCHED_TIME]: { removeEffects: [{ type: 'boon', name: 'alacrity' }] } } },
     'Chronomancer',
     ['Split Second'],
     {
@@ -318,7 +345,10 @@ test('removing Chronomancer boon preserves its sibling and clone refund', () => 
 
 test('selected resource capacity is shared by simulation and presentation', () => {
   const balanceProfiles = { 'mesmer.core.resources': { fields: { maximumStacks: { from: 3, to: 0 } } } };
-  const result = run(balanceProfiles, 'Core', ['Ether Bolt'], { primaryWeapon: 'Scepter', initialResource: 2 });
+  const result = run({ balanceProfiles: balanceProfiles }, 'Core', ['Ether Bolt'], {
+    primaryWeapon: 'Scepter',
+    initialResource: 2
+  });
   assert.equal(result.planningState.profession.resource, 0);
   const catalog = applyBalanceProfilePatch(mesmerCatalog, { balanceProfiles });
   assert.equal(mesmerCoreUi.resourceViews({ catalog })[0].maximum, 0);
@@ -327,9 +357,11 @@ test('selected resource capacity is shared by simulation and presentation', () =
 test('removing the first Fury packet keeps the edited allied packet bound to allies', () => {
   const result = run(
     {
-      [TRAIT.MASTER_FENCER]: {
-        removeEffects: [{ type: 'boon', name: 'Self Fury' }],
-        effects: [{ type: 'boon', name: 'Allied Fury', duration: { from: 4, to: 12 } }]
+      balanceProfiles: {
+        [TRAIT.MASTER_FENCER]: {
+          removeEffects: [{ type: 'boon', name: 'Self Fury' }],
+          effects: [{ type: 'boon', name: 'Allied Fury', duration: { from: 4, to: 12 } }]
+        }
       }
     },
     'Core',
@@ -347,7 +379,7 @@ test('removing the first Fury packet keeps the edited allied packet bound to all
 
 test('empty Syncopate output creates no trait damage, disable, or proc', () => {
   const result = run(
-    { [TRAIT.SYNCOPATE]: { removeEffects: [{ type: 'strike', all: true }, { type: 'control' }] } },
+    { balanceProfiles: { [TRAIT.SYNCOPATE]: { removeEffects: [{ type: 'strike', all: true }, { type: 'control' }] } } },
     'Troubadour',
     ['Deafening Drum', { type: 'wait', durationMs: 4000 }],
     { selectedTraitIds: [TRAIT.SYNCOPATE] }
@@ -360,7 +392,7 @@ test('empty Syncopate output creates no trait damage, disable, or proc', () => {
 
 test('a surviving Shredding note is independent of the removed Lute attack', () => {
   const result = run(
-    { 'mesmer.troubadour.lively-lute': { removeEffects: [{ type: 'strike', name: 'Strike' }] } },
+    { skills: { [ID.LIVELY_LUTE]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } } },
     'Troubadour',
     [
       { type: 'cast', skillId: 76552 },
@@ -374,13 +406,13 @@ test('a surviving Shredding note is independent of the removed Lute attack', () 
 
 test('removed mirror window never creates pickup state and zero forge interval disables recurrence', () => {
   const mirage = run(
-    { 'mesmer.mirage.mechanics': { removeEffects: [{ type: 'buff', name: 'mirage-mirror' }] } },
+    { balanceProfiles: { 'mesmer.mirage.mechanics': { removeEffects: [{ type: 'buff', name: 'mirage-mirror' }] } } },
     'Mirage',
     ['Sand through Glass', { type: 'wait', durationMs: 1000 }]
   );
   assert.equal(observedRuntime(mirage).profession.specialization.state.mirrors.length, 0);
   const virtuoso = run(
-    { [TRAIT.INFINITE_FORGE]: { fields: { pulseInterval: 0 } } },
+    { balanceProfiles: { [TRAIT.INFINITE_FORGE]: { fields: { pulseInterval: 0 } } } },
     'Virtuoso',
     [{ type: 'wait', durationMs: 4000 }],
     { selectedTraitIds: [TRAIT.INFINITE_FORGE] }
@@ -391,9 +423,15 @@ test('removed mirror window never creates pickup state and zero forge interval d
 test('tick edits survive deletion of a lower Virtuoso resource tier', () => {
   const result = run(
     {
-      'mesmer.virtuoso.bladesong-harmony': {
-        removeEffects: [{ type: 'strike', name: '1 resources' }],
-        effects: [{ type: 'strike', name: '5 resources', tickIndex: 0, coefficient: { from: 0.7, to: 7 } }]
+      skills: {
+        [ID.BLADESONG_HARMONY]: {
+          sideEffects: {
+            shatter: {
+              removeEffects: [{ type: 'strike', name: '1 resources' }],
+              effects: [{ type: 'strike', name: '5 resources', tickIndex: 0, coefficient: { from: 0.7, to: 7 } }]
+            }
+          }
+        }
       }
     },
     'Virtuoso',

@@ -6,7 +6,6 @@ import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 
 /** Fire for Effect replaces Deadeye's stolen-skill choice pool with Steal Time. */
@@ -18,7 +17,7 @@ export function stolenSkillGrant(runtime: ThiefRuntime): readonly SkillId[] {
 export function maximumDeadeyeMalice(runtime: ThiefRuntime): number {
   return balanceNumberFromContext(
     runtime,
-    hasTrait(runtime, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : PROFILE.resources,
+    hasTrait(runtime, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : TRAIT.DEADEYES_GAZE,
     'maximumStacks'
   );
 }

@@ -2,14 +2,12 @@ import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { bindSoulbeastUi } from '#gw2/professions/ranger/specializations/soulbeast/presentation.js';
 import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { bindDruidUi } from '#gw2/professions/ranger/specializations/druid/presentation.js';
-import { DRUID_BALANCE_PROFILE_IDS as DRUID } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as GALESHOT } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { galeshotCastAvailability } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -49,11 +47,11 @@ test('Soulbeast remerges with the live pet and keeps detached previews on the co
 // Patched limits must agree across the live clock, projected palette, and catalog-only resource preview.
 test('Druid palette uses the live Astral Force maximum and the detached catalog limit', () => {
   for (const maximum of [40, 120]) {
-    const catalog = withProfile(rangerCatalog, DRUID.resources, { maximumStacks: maximum });
+    const catalog = withProfile(rangerCatalog, TRAIT.CELESTIAL_BEING, { maximumStacks: maximum });
     const ui = bindDruidUi(catalog);
     const config = { specialization: 'Druid', initialAstralForce: maximum };
     const options = {
-      extend: (native) => ({ catalog: withProfile(native.catalog, DRUID.resources, { maximumStacks: maximum }) })
+      extend: (native) => ({ catalog: withProfile(native.catalog, TRAIT.CELESTIAL_BEING, { maximumStacks: maximum }) })
     };
     const ready = runRanger([], config, options);
     const context = { professionState: ready.planningState.profession };
@@ -73,7 +71,7 @@ test('Druid palette uses the live Astral Force maximum and the detached catalog 
 // Hawkeye and Keen Shot share the runtime threshold, including catalog overrides on a detached UI.
 test('Galeshot palette and Wind Force display use the patched threshold', () => {
   for (const maximum of [3, 7]) {
-    const catalog = withProfile(rangerCatalog, GALESHOT.resources, { minimumStacks: maximum });
+    const catalog = withProfile(rangerCatalog, TRAIT.TEACHINGS_OF_THE_TENGU, { minimumStacks: maximum });
     const ui = bindGaleshotUi(catalog);
     const wind = ui.resourceViews({}).find((view) => view.id === 'wind-force');
     assert.equal(wind.maximum, maximum);
@@ -84,7 +82,7 @@ test('Galeshot palette and Wind Force display use the patched threshold', () => 
         { specialization: 'Galeshot' },
         {
           extend: (native) => ({
-            catalog: withProfile(native.catalog, GALESHOT.resources, { minimumStacks: maximum })
+            catalog: withProfile(native.catalog, TRAIT.TEACHINGS_OF_THE_TENGU, { minimumStacks: maximum })
           }),
           initialize(runtime) {
             const state = galeshotState.from(runtime);

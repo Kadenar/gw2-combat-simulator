@@ -227,7 +227,13 @@ const selfDeception = defineTrait<MesmerSkill>({
 });
 
 /** Collect Mirage traits while retaining shared cloak, mirror, endurance, and ambush state. */
+// The intrinsic trait owns its specialization's shared resource/window tuning.
 export const mirageTraits = [
+  defineTrait<MesmerSkill>({
+    id: TRAIT.MIRAGE_CLOAK,
+    name: 'Mirage Cloak',
+    balance: { duration: 0.75, durationPerTier: 1.5 }
+  }),
   nomadsEndurance,
   selfDeception,
   renewingOasis,

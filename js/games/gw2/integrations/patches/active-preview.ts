@@ -111,6 +111,19 @@ export const activePatchPreview: PatchPreview = {
         }
       ],
       skills: {
+        '77047': {
+          effects: [
+            {
+              type: 'strike',
+              tickIndex: 'all',
+              coefficient: {
+                from: 0.6,
+                to: 0.3
+              }
+            }
+          ]
+        },
+
         '28253': {
           removeEffects: [
             {
@@ -201,18 +214,6 @@ export const activePatchPreview: PatchPreview = {
               to: 0.04
             }
           }
-        },
-        'revenant.conduit.beguiling-haze-follow-up': {
-          effects: [
-            {
-              type: 'strike',
-              tickIndex: 'all',
-              coefficient: {
-                from: 0.6,
-                to: 0.3
-              }
-            }
-          ]
         },
         'revenant.conduit.mistfire': {
           effects: [
@@ -319,6 +320,19 @@ export const activePatchPreview: PatchPreview = {
         }
       ],
       skills: {
+        '76582': { fields: { maximumStacks: { from: 3, to: 2 } } },
+        '76816': { fields: { refundCharges: { from: 3, to: 2 } } },
+        '76633': {
+          sideEffects: {
+            surfer: {
+              effects: [
+                { type: 'condition', name: 'Bomb', duration: { from: 3.5, to: 1 } },
+                { type: 'condition', name: 'Meticulous Bomb', duration: { from: 4.5, to: 2 } }
+              ]
+            }
+          }
+        },
+
         '44695': {
           effects: [
             {
@@ -347,6 +361,7 @@ export const activePatchPreview: PatchPreview = {
           effects: [
             {
               type: 'condition',
+              name: 'Burning',
               condition: CONDITION.BURNING,
               tickIndex: 'all',
               stacks: {
@@ -429,40 +444,6 @@ export const activePatchPreview: PatchPreview = {
               to: 5
             }
           }
-        },
-        'thief.antiquary.artifact-windows': {
-          fields: {
-            resourceGain: {
-              from: 3,
-              to: 2
-            }
-          }
-        },
-        'thief.antiquary.forged-surfer': {
-          effects: [
-            {
-              type: 'condition',
-              name: 'Bomb',
-              condition: CONDITION.BURNING,
-              duration: {
-                from: 3.5,
-                to: 1
-              }
-            }
-          ]
-        },
-        'thief.antiquary.forged-surfer-meticulous': {
-          effects: [
-            {
-              type: 'condition',
-              name: 'Bomb',
-              condition: CONDITION.BURNING,
-              duration: {
-                from: 4.5,
-                to: 2
-              }
-            }
-          ]
         }
       }
     },

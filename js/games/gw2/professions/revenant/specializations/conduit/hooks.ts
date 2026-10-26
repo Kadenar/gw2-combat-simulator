@@ -2,7 +2,7 @@ import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -30,7 +30,6 @@ import {
   formExpiry,
   swapLegend
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import {
   BEGUILING_HAZE_SKILL_IDS,
   TWIN_MOON_SKILL_IDS
@@ -108,7 +107,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
     return {
       ...skill,
-      interruptCommitMs: balanceNumberFromContext(runtime, PROFILE.beguilingHazeFollowUp, 'interruptCommitMs')
+      interruptCommitMs: skillNumberFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP, 'interruptCommitMs')
     };
   },
   castDurationMs(runtime, skill, durationMs) {
@@ -122,23 +121,19 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       beguilingHazeCastDuration(
         durationMs / 1000,
         (specialization.state.beguilingHazeCharges || 0) > 0,
-        requireBalanceProfileFromContext(runtime, PROFILE.beguilingHazeFollowUp)
+        requireSkillFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP)
       ) * 1000
     );
   },
   rechargeWork(runtime, skill, work) {
     if (skill.id === ID.SWAP_LEGENDS) return enhancedLegendRecharge(runtime, skill, work);
 
-    const mesmerProfile =
-      skill.id === ID.PAIN_ABSORPTION
-        ? PROFILE.mesmerPainAbsorption
-        : skill.id === ID.BANISH_ENCHANTMENT
-          ? PROFILE.mesmerBanishEnchantment
-          : null;
-
-    // Mesmer form gives these Demon utilities a recharge; Alacrity still applies to the new base.
-    if (mesmerProfile && revenantConduitFormIsActive(conduitState.from(runtime), 'Mesmer', runtime.time))
-      return Math.max(0, balanceNumberFromContext(runtime, mesmerProfile, 'cooldown'));
+    // Form-specific recharge belongs to the selected Demon skill, independently of its normal cooldown.
+    if (
+      (skill.id === ID.PAIN_ABSORPTION || skill.id === ID.BANISH_ENCHANTMENT) &&
+      revenantConduitFormIsActive(conduitState.from(runtime), 'Mesmer', runtime.time)
+    )
+      return Math.max(0, skillNumberFromContext(runtime, skill.id, 'mesmerRecharge'));
 
     return kineticInsightRecharge(runtime, skill, work);
   },

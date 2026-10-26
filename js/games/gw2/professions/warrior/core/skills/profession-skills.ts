@@ -4,18 +4,10 @@ import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorBurstSpend, warriorBurstTier } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
@@ -42,31 +34,23 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         duration: 5,
         stacks: 5
       },
-      {
-        type: 'strike',
-        coefficient: 2,
-        hits: 1,
-        name: 'Eviscerate — Level 1 Damage'
-      }
+      ...[2, 2.5, 3].map((coefficient, index) => ({
+        type: 'strike' as const,
+        name: `Tier ${index + 1}`,
+        coefficient,
+        hits: 1
+      }))
     ],
-    // Captured adrenaline selects only the strike coefficient; Might and burst ownership stay intact.
-    effectVariants: [PROFILE.eviscerateTier1, PROFILE.eviscerateTier2, PROFILE.eviscerateTier3].map<
-      NonNullable<Skill['effectVariants']>[number]
-    >((profileId, index) => ({
-      profileId,
-      when: (runtime, cast) => warriorBurstTier(runtime, warriorBurstSpend(cast)!) === index + 1,
-      transform: (runtime, cast) => {
-        const profile = requireBalanceProfileFromContext(runtime, profileId);
-        const strike = requireEffect(profile, 'strike', 'Strike');
-        return (cast.skill.effects ?? []).flatMap<SkillEffect>((effect) =>
-          effect.type === 'strike'
-            ? strike
-              ? [{ ...effect, coefficient: effectNumber(profile, strike, 'coefficient') }]
-              : []
-            : [effect]
-        );
+    // Captured spend selects one skill-owned tier while unrelated rewards remain intact.
+    effectVariants: [
+      {
+        when: () => true,
+        transform(runtime, cast, effects) {
+          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
+          return effects.filter((effect) => effect.type !== 'strike' || effect.name === `Tier ${tier}`);
+        }
       }
-    }))
+    ]
   },
   [ID.ARCING_SLICE]: {
     cooldown: 8,
@@ -206,17 +190,21 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         startAnchor: 'castEnd'
       }
     ],
-    effects: [],
+    pulseInterval: 3,
+    durationPerTier: 3,
+    effects: [
+      { name: 'Strike', type: 'strike', coefficient: 0.5, hits: 1 },
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5 }
+    ],
     // Fixed pulses preserve independent Strike/Burning removal and persistent field cadence.
     effectVariants: [
       {
-        profileId: PROFILE.combustiveShot,
         when: () => true,
         transform(runtime, cast) {
           const spent = warriorBurstSpend(cast)!;
           const tier = warriorBurstTier(runtime, spent);
-          const profile = requireBalanceProfileFromContext(runtime, PROFILE.combustiveShot);
-          const interval = balanceProfileNumber(profile, 'pulseInterval');
+          const profile = cast.skill;
+          const interval = skillNumber(profile, 'pulseInterval');
           const pulses = interval > 0 ? tier + 1 : 1;
           // Each selected component keeps its own removal semantics and fixed post-completion cadence.
           const timing = {
@@ -415,12 +403,13 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         coefficient: 2
       },
-      {
-        type: 'condition',
+      ...[3, 6, 9].map((stacks, index) => ({
+        type: 'condition' as const,
+        name: `Tier ${index + 1}`,
         condition: CONDITION.BLEEDING,
-        stacks: 3,
+        stacks,
         duration: 6
-      }
+      }))
     ]),
     // Packet selection uses the accepted spend, never the later live pool.
     effectVariants: [
@@ -428,21 +417,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         when: () => true,
         transform(runtime, cast, effects) {
           const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
-          const profile = requireBalanceProfileFromContext(runtime, PROFILE.bloodthirsterTiers);
-          const bleeding = requireEffect(profile, 'condition', `Tier ${tier}`);
-          return effects.flatMap<SkillEffect>((effect) =>
-            effect.type === 'condition' && effect.condition === CONDITION.BLEEDING
-              ? bleeding
-                ? [
-                    {
-                      ...effect,
-                      stacks: effectNumber(profile, bleeding, 'stacks'),
-                      duration: effectNumber(profile, bleeding, 'duration')
-                    }
-                  ]
-                : []
-              : [effect]
-          );
+          // Each authored bleeding tier remains independently patchable and removable.
+          return effects.filter((effect) => effect.type !== 'condition' || effect.name === `Tier ${tier}`);
         }
       }
     ]
@@ -480,7 +456,7 @@ export const combustiveShotFields: NonNullable<
   if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
 
   const tier = warriorBurstTier(runtime, warriorBurstRules(runtime).spend(runtime, cast.skill));
-  const duration = tier * balanceNumberFromContext(runtime, PROFILE.combustiveShot, 'durationPerTier');
+  const duration = tier * skillNumber(cast.skill, 'durationPerTier');
   return fields?.flatMap((field) =>
     field.ownerId !== 'warrior' ? [field] : duration > 0 ? [{ ...field, duration }] : []
   );

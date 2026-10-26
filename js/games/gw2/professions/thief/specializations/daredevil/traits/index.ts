@@ -1,4 +1,3 @@
-import { DAREDEVIL_MAXIMUM_ENDURANCE } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
@@ -158,7 +157,8 @@ const havocSpecialist = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
-        (thiefRuntimeState(context).endurance?.value ?? 0) < DAREDEVIL_MAXIMUM_ENDURANCE
+        (thiefRuntimeState(context).endurance?.value ?? 0) <
+          balanceNumberFromContext(context, TRAIT.PHYSICAL_SUPREMACY, 'maximumStacks')
     }
   ]
 });
@@ -243,7 +243,15 @@ const weakeningStrikes = defineTrait({
 });
 
 /** Native trait owners, in stable authoring order. */
+// Intrinsic specialization policy is available without explicit minor selection.
+const physicalSupremacy = defineTrait({
+  id: TRAIT.PHYSICAL_SUPREMACY,
+  name: 'Physical Supremacy',
+  balance: { maximumStacks: 150 }
+});
+
 export const daredevilTraits = Object.freeze([
+  physicalSupremacy,
   boundingDodger,
   lotusTraining,
   unhinderedCombatant,

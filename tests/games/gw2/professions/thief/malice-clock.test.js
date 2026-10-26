@@ -5,7 +5,6 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { deadeyeHooks } from '#gw2/professions/thief/specializations/deadeye/hooks.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
@@ -58,7 +57,8 @@ test('marks replace or add malice and ignore stale expiry generations', () => {
     { specialization: 'Deadeye', selectedTraitIds: [TRAIT.MALICIOUS_INTENT] },
     {
       catalog: (catalog) =>
-        withSkill(withProfile(catalog, DEADEYE.resources, { duration: 2 }), ID.DEADEYES_MARK, {
+        withSkill(catalog, ID.DEADEYES_MARK, {
+          duration: 2,
           cooldown: 0
         }),
       initialize(runtime) {

@@ -1,4 +1,4 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -65,7 +65,23 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.LIFE_SIPHON]: {
     castTimeMs: 560,
+    // First-hit templates never emit at cast acceptance; the landed reaction selects them.
+    effectVariants: [
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.packetLabel !== 'first-hit')
+      }
+    ],
     effects: [
+      {
+        name: CONDITION.BLEEDING,
+        packetLabel: 'first-hit',
+        type: 'condition' as const,
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 8,
+        target: RECIPIENT.SELF
+      },
       {
         type: 'strike',
         // The selected landed strike owns this skill-specific transaction.
@@ -87,23 +103,49 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   [ID.DARK_PACT]: {
     castTimeMs: 680,
     // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    // First-hit templates never emit at cast acceptance; the landed reaction selects them.
+    effectVariants: [
       {
-        type: 'strike',
-        // The selected landed strike owns this skill-specific transaction.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.dark-pact' }
-          }
-        ],
-        coefficient: 2.4
+        when: () => true,
+        transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.packetLabel !== 'first-hit')
+      }
+    ],
+    effects: [
+      {
+        name: 'Self Bleeding',
+        packetLabel: 'first-hit',
+        type: 'condition' as const,
+        condition: CONDITION.BLEEDING,
+        stacks: 2,
+        duration: 10,
+        target: RECIPIENT.SELF
       },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 10 }
-    ])
+      {
+        name: CONDITION.IMMOBILIZED,
+        packetLabel: 'first-hit',
+        type: 'condition' as const,
+        condition: CONDITION.IMMOBILIZED,
+        stacks: 1,
+        duration: 6
+      },
+      ...impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          // The selected landed strike owns this skill-specific transaction.
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: ACTOR.PLAYER,
+              packets: 'first',
+              when: (_runtime, { event }) => Number(event.coefficient) > 0,
+              do: { type: 'necromancer.dark-pact' }
+            }
+          ],
+          coefficient: 2.4
+        },
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 10 }
+      ])
+    ]
   },
   [ID.DEATHLY_SWARM]: {
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.

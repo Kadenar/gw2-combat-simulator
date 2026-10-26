@@ -1,4 +1,4 @@
-import { DAREDEVIL_MAXIMUM_ENDURANCE } from '#gw2/professions/thief/specializations/daredevil/state.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { daredevilBuffPolicies } from '#gw2/professions/thief/specializations/daredevil/effect-state.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -16,7 +16,7 @@ import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { storeThiefStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
@@ -53,7 +53,7 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   // Daredevil replaces only the capacity while retaining Core's pool and regeneration.
   endurance: {
     ...thiefEndurance,
-    maximum: () => DAREDEVIL_MAXIMUM_ENDURANCE
+    maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.PHYSICAL_SUPREMACY, 'maximumStacks')
   },
   availability(runtime, skill) {
     if (

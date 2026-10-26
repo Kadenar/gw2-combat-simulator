@@ -613,12 +613,15 @@ test('THF-011: Heartseeker produces a smoke leap only inside a live field', () =
 });
 
 /** A test-authored guild isolates cadence and replacement from the production summon profiles. */
-const guildCatalog = (summonAttack) => (catalog) =>
-  withSkill(catalog, ID.THIEVES_GUILD, {
-    castTimeMs: 0,
-    cooldown: 0,
-    summonAttack: { ...catalog.skillsById.get(ID.THIEVES_GUILD).summonAttack, ...summonAttack }
-  });
+const guildCatalog =
+  ({ duration, ...summonAttack }) =>
+  (catalog) =>
+    withSkill(catalog, ID.THIEVES_GUILD, {
+      castTimeMs: 0,
+      cooldown: 0,
+      ...(duration == null ? {} : { duration }),
+      summonAttack: { ...catalog.skillsById.get(ID.THIEVES_GUILD).summonAttack, ...summonAttack }
+    });
 const guildPackets = (result) =>
   result.events.filter((event) => event.type === 'damage' && event.sourceId === 'thief.thieves-guild');
 
@@ -634,19 +637,30 @@ test('guild summons with empty attacks stay inactive after combat starts', () =>
 });
 
 test('guild combat activation starts parallel streams once and replacement retires every old stream', () => {
-  const catalog = guildCatalog({
+  const guild = guildCatalog({
     duration: 6,
     summons: [
       {
         name: 'Test thief',
         weapon: 'Dagger',
         attacks: [
-          { name: 'Fast', coefficientPerHit: 1, initialDelay: 0, interval: 1 },
-          { name: 'Slow', coefficientPerHit: 1, initialDelay: 0.5, interval: 2 }
+          { skillId: 3669, initialDelay: 0 },
+          { skillId: 3666, initialDelay: 0.5 }
         ]
       }
     ]
   });
+  // Selected actor skills supply synthetic recharge and packets without changing engagement policy.
+  const catalog = (selected) =>
+    withSkill(
+      withSkill(guild(selected), 3669, {
+        displayName: 'Fast',
+        cooldown: 1,
+        effects: [{ type: 'strike', name: 'Strike', coefficient: 1, hits: 1 }]
+      }),
+      3666,
+      { displayName: 'Slow', cooldown: 2, effects: [{ type: 'strike', name: 'Strike', coefficient: 1, hits: 1 }] }
+    );
   // No stream starts before the marker; the combat boundary starts each authored attack once.
   const first = live('Core', ['Thieves Guild', wait(1000), { type: 'combat-start' }, wait(1000)], {}, { catalog });
   assert.deepEqual(first.warnings, []);

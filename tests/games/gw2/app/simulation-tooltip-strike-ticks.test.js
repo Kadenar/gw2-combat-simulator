@@ -18,6 +18,7 @@ test('Signet of Vampirism tooltip exposes the selected per-tick damage formula',
             effects: [
               {
                 type: 'strike',
+                name: 'Signet of Vampirism - Vampiric Mark',
                 tickIndex: 'all',
                 flatStrikeBase: 250,
                 flatStrikePowerCoeff: 0.1

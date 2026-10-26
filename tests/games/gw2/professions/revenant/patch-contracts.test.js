@@ -95,11 +95,11 @@ test('removed Cosmic Wisdom leaves no Mesmer discount and zero-duration patches 
 // The live cost owner applies patched discounts and restores native costs at the form boundary.
 test('Mesmer runtime costs restore native values at form expiry', () => {
   const catalog = (catalog) =>
-    applyBalanceProfilePatch(
+    applySkillPatch(
       applySkillPatch(catalog, {
         skills: { [ID.COSMIC_WISDOM]: { effects: [{ type: 'buff', name: 'cosmic-wisdom', duration: 2 }] } }
       }),
-      { balanceProfiles: { [CONDUIT.mesmerEmpoweringMisery]: { fields: { energyCost: 2 } } } }
+      { skills: { [ID.EMPOWERING_MISERY]: { fields: { mesmerEnergyCost: 2 } } } }
     );
   const active = runRevenant(['Cosmic Wisdom'], conduitConfig, { catalog });
   const expired = runRevenant(['Cosmic Wisdom', wait(2000)], conduitConfig, { catalog });
@@ -118,24 +118,24 @@ test('Mesmer runtime costs restore native values at form expiry', () => {
 });
 
 // Form entry validates even unused costs in score output, and errors identify the selected patch rather than a fallback.
-test('Mesmer entry and legend reselection reject missing or invalid selected cost profiles', () => {
+test('Mesmer entry and legend reselection reject missing or invalid selected skill costs', () => {
   const balanceDataContext = { professionId: 'revenant', patchId: 'invalid-conduit-cost' };
   for (const output of ['score', 'detailed']) {
     for (const startingLegend of [LEGEND.DEMON, LEGEND.ENTITY]) {
-      for (const profileId of [CONDUIT.mesmerEmpoweringMisery, CONDUIT.mesmerEmbraceTheDarkness]) {
+      for (const profileId of [ID.EMPOWERING_MISERY, ID.EMBRACE_THE_DARKNESS]) {
         for (const fault of ['missing', 'invalid']) {
           const catalog = (base) => {
-            const balanceProfilesById = new Map(base.balanceProfilesById);
+            const skillsById = new Map(base.skillsById);
 
-            if (fault === 'missing') balanceProfilesById.delete(profileId);
+            if (fault === 'missing') skillsById.delete(profileId);
             else
-              balanceProfilesById.set(profileId, {
-                ...balanceProfilesById.get(profileId),
+              skillsById.set(profileId, {
+                ...skillsById.get(profileId),
                 balanceDataContext,
-                energyCost: NaN
+                mesmerEnergyCost: NaN
               });
 
-            return { ...base, balanceDataContext, balanceProfilesById };
+            return { ...base, balanceDataContext, skillsById };
           };
 
           const rotation = startingLegend === LEGEND.DEMON ? ['Cosmic Wisdom'] : ['Cosmic Wisdom', 'Swap Legends'];
@@ -143,8 +143,8 @@ test('Mesmer entry and legend reselection reject missing or invalid selected cos
           assert.throws(
             () => runRevenant(rotation, { ...conduitConfig, startingLegend }, { catalog, output }),
             (error) => {
-              assert.ok(error.message.includes(`profession=revenant patch=invalid-conduit-cost profile=${profileId}`));
-              assert.match(error.message, fault === 'missing' ? /missing required profile/ : /expected=finite number/);
+              assert.ok(error.message.includes(`profession=revenant patch=invalid-conduit-cost skill=${profileId}`));
+              assert.match(error.message, fault === 'missing' ? /missing required skill/ : /expected=finite number/);
               return true;
             },
             `${output}/${startingLegend}/${profileId}/${fault}`

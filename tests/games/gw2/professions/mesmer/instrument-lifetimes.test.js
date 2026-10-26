@@ -15,7 +15,6 @@ import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/tro
 import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { luteModifiers } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
-import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { fortissimo } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -315,7 +314,7 @@ test('delayed performance packets survive instrument expiry without retaining it
     label: 'Short instrument window',
     professions: {
       mesmer: {
-        balanceProfiles: { [PROFILE.instruments]: { fields: { baseDuration: 0.1, durationPerTier: 0 } } }
+        balanceProfiles: { [TRAIT.WANDERING_MINSTREL]: { fields: { baseDuration: 0.1, durationPerTier: 0 } } }
       }
     }
   });

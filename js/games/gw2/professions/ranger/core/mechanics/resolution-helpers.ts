@@ -5,7 +5,7 @@ import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import {
   rangerPetCombatMetadata,
   rangerPetCompanionId
@@ -65,7 +65,7 @@ export function targetHealthFraction(context: RangerResolverContext): number {
  */
 export function rangerProfileEffectRequest(
   event: Gw2ResolverEvent,
-  profile: BalanceProfile,
+  profile: BalanceProfile | Skill,
   effect: ConditionEffect | StatusEffect,
   sourceId: number,
   name: string

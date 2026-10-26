@@ -1,8 +1,8 @@
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_TRAIT_IDS as TRAIT, THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import {
   antiquaryAvailability,
@@ -10,7 +10,6 @@ import {
   storeAntiquaryArtifacts,
   spendAntiquaryInitiative
 } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { antiquaryArtifactActions } from '#gw2/professions/thief/specializations/antiquary/skills/artifact-actions.js';
 import { coinInitiative } from '#gw2/professions/thief/specializations/antiquary/skills/double-edge.js';
 import { FORGED_SURFER, forgedSurfer } from '#gw2/professions/thief/specializations/antiquary/skills/forged-surfer.js';
@@ -52,9 +51,7 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     const state = antiquaryState.from(runtime);
     const { expiries, consumed } = consumeOldestStacks(state.holoUtilityCooldownReductionExpirations, 1, runtime.time);
     state.holoUtilityCooldownReductionExpirations = expiries;
-    return consumed > 0
-      ? work * balanceNumberFromContext(runtime, PROFILE.artifactWindows, 'rechargeMultiplier')
-      : work;
+    return consumed > 0 ? work * skillNumberFromContext(runtime, ID.HOLO_DANCER_DECOY, 'rechargeMultiplier') : work;
   },
   onCastStart(runtime, cast) {
     spendAntiquaryInitiative(runtime, cast);

@@ -3,8 +3,11 @@ import { defineSkillFields, numberField } from '#gw2/platform/skills/field-specs
 /** Scourge fields read only by Scourge mechanics. */
 export const SCOURGE_SKILL_FIELDS = defineSkillFields(
   {
+    // Manifest owns shade capacity and its Dhuumfire interaction; Desert Shroud owns its delayed impact.
+    dhuumfireInterval: numberField({ unit: 'seconds', patch: 'advanced' }),
+    impactDelayMs: numberField({ unit: 'milliseconds', patch: 'advanced' }),
     // Fixed life-force points paid by the shared skill-cost lifecycle through the skill's cost amount.
-    lifeForceCost: numberField()
+    lifeForceCost: numberField({ patch: 'primary' })
   },
   'Scourge'
 );

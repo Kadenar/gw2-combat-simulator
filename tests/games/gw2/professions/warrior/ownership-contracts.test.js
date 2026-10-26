@@ -4,10 +4,7 @@ import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warri
 import { berserkersPower } from '#gw2/professions/warrior/core/traits/strength/index.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as BLADESWORN } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { fierceAsFire as fierceAsFireTrait } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PARAGON } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS as SPELLBREAKER } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
@@ -27,9 +24,9 @@ test('Warrior initialization and resource displays honor selected caps', () => {
     const family = preview({
       balanceProfiles: {
         [CORE.resources]: { fields: { maximumStacks: maximum } },
-        [BLADESWORN.resources]: { fields: { maximumStacks: 80 } },
-        [PARAGON.resources]: { fields: { maximumStacks: 12 } },
-        [SPELLBREAKER.resources]: { fields: { maximumStacks: 8 } }
+        [TRAIT.GUN_X_SWORD]: { fields: { maximumStacks: 80 } },
+        [TRAIT.RALLY_THE_VALIANT]: { fields: { maximumStacks: 12 } },
+        [TRAIT.SPELLBREAKERS_CONVICTION]: { fields: { maximumStacks: 8 } }
       }
     });
     for (const [specialization, adrenalineCap] of [

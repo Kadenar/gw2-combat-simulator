@@ -3,7 +3,6 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { DEADEYE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type {
@@ -47,7 +46,7 @@ export const deadeyeUi = Object.freeze({
       scope: ['damage'],
       max: balanceNumberFromContext(
         context,
-        preview.has('Maleficent Seven') ? TRAIT.MALEFICENT_SEVEN : DEADEYE_BALANCE_PROFILE_IDS.resources,
+        preview.has('Maleficent Seven') ? TRAIT.MALEFICENT_SEVEN : TRAIT.DEADEYES_GAZE,
         'maximumStacks'
       ),
       description: 'Malice consumed by a malicious attack'
@@ -93,7 +92,7 @@ export const deadeyeUi = Object.freeze({
           state.malice?.maximum ??
           balanceNumberFromContext(
             context,
-            hasTrait(context, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : DEADEYE_BALANCE_PROFILE_IDS.resources,
+            hasTrait(context, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : TRAIT.DEADEYES_GAZE,
             'maximumStacks'
           ),
         value: state.malice?.value ?? 0,

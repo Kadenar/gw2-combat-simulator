@@ -171,6 +171,8 @@ const daringDragon = defineTrait({
   id: TRAIT.DARING_DRAGON,
   name: 'Daring Dragon',
   balance: {
+    // Daring Dragon owns its reduced capacity alongside its increased charge cost.
+    maximumStacks: 5,
     resourceCostMultiplier: 2,
     // Use the provisional five-charge Force estimate from the alacrity report
     coefficientMultiplier: 0.65,
@@ -232,7 +234,11 @@ const gunsAndGlory = defineTrait({
 });
 
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
-const gunXSword = defineTrait({ id: TRAIT.GUN_X_SWORD, name: 'Gun X Sword' });
+const gunXSword = defineTrait({
+  id: TRAIT.GUN_X_SWORD,
+  name: 'Gun X Sword',
+  balance: { maximumStacks: 100, energyRegenerationPerSecond: 2, attributePerStack: 2 }
+});
 
 /** Add the selected stun to the authored Dragon Slash release. */
 const unyieldingDragon = defineTrait({

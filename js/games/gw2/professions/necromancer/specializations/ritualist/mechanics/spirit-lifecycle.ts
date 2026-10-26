@@ -101,7 +101,7 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
       })
     );
 
-  const interval = balanceNumberFromContext(runtime, PROFILE.resources, 'pulseInterval');
+  const interval = balanceNumberFromContext(runtime, TRAIT.SPAWNING_POWER, 'pulseInterval');
   const at = canonicalTime(work.anchor + (work.pulse + 1) * interval);
 
   if (at > runtime.time)
@@ -149,8 +149,8 @@ export function startRitualistSpirits(runtime: NecromancerRuntime): void {
 
     if (!spirit) continue;
 
-    const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-    const interval = balanceProfileNumber(resources, 'pulseInterval');
+    const resources = requireBalanceProfileFromContext(runtime, PROFILE.spiritCadence);
+    const interval = balanceNumberFromContext(runtime, TRAIT.SPAWNING_POWER, 'pulseInterval');
 
     if (!(interval > 0) || !(spirit.attackCoefficient > 0)) continue;
 

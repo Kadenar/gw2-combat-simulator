@@ -9,7 +9,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import {
   LUNAR_IMPACT_HIT_MS,
   SEED_OF_LIFE_DETONATION_MS
@@ -95,6 +94,6 @@ export function avatarEffects(
 /** Eclipse scales only native Astral Force gain from accepted player impacts. */
 export function eclipseAstralForceMultiplier(runtime: RangerRuntime): number {
   return hasTrait(runtime, TRAIT.ECLIPSE)
-    ? balanceNumberFromContext(runtime, PROFILE.resources, 'coefficientMultiplier')
+    ? balanceNumberFromContext(runtime, TRAIT.ECLIPSE, 'coefficientMultiplier')
     : 1;
 }

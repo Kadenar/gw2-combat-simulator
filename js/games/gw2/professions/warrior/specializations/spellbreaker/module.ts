@@ -3,7 +3,6 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { spellbreakerHooks } from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
 import { spellbreakerUi } from '#gw2/professions/warrior/specializations/spellbreaker/presentation.js';
-import { SPELLBREAKER_BALANCE_PROFILES } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { SPELLBREAKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/spellbreaker/skills/index.js';
 import {
   projectSpellbreakerPlanningState,
@@ -16,8 +15,7 @@ export const spellbreakerModule = defineNativeModule({
   id: 'Spellbreaker',
   data: createWarriorModuleData('Spellbreaker', {
     skillMechanics: SPELLBREAKER_SKILL_MECHANICS,
-    extraSkills: SPELLBREAKER_TRAIT_SKILLS,
-    balanceProfiles: SPELLBREAKER_BALANCE_PROFILES
+    extraSkills: SPELLBREAKER_TRAIT_SKILLS
   }),
   state: {
     create: spellbreakerState.create,

@@ -1,3 +1,6 @@
+import { ACTOR } from '#gw2/platform/constants.js';
+import { emitRangerAction } from '#gw2/professions/ranger/core/events.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -8,7 +11,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -54,7 +56,7 @@ export function untamedCastAvailability(
 export function grantAmbush(runtime: RangerRuntime): void {
   const state = untamedState.from(runtime);
   state.ambushReadyUntil = canonicalTime(
-    runtime.time + balanceNumberFromContext(runtime, PROFILE.resources, 'duration')
+    runtime.time + balanceNumberFromContext(runtime, TRAIT.UNLEASHED_POWER, 'duration')
   );
 }
 
@@ -72,11 +74,11 @@ export const untamedUnleashed = defineTriggerPoint<{ readonly skill: RangerSkill
 /** Both toggles share fixed recharge; only an eligible transfer to Ranger claims a new ambush. */
 function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerUnleashed: boolean): void {
   untamedState.from(runtime).rangerUnleashed = rangerUnleashed;
-  const readyAt = cast.start + balanceNumberFromContext(runtime, PROFILE.resources, 'recharge');
+  const readyAt = cast.start + skillNumber(cast.skill, 'cooldown');
   runtime.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
   runtime.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
 
-  if (rangerUnleashed && runtime.procs.claim(PROFILE.resources, 'ranger.untamed.unleashedPower', runtime.time))
+  if (rangerUnleashed && runtime.procs.claim(TRAIT.UNLEASHED_POWER, 'ranger.untamed.unleashedPower', runtime.time))
     grantAmbush(runtime);
 
   runtime.fireTrigger(untamedUnleashed, { skill: cast.skill });
@@ -84,6 +86,21 @@ function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerU
 
 /** Both unleash transitions and ambush consumption share the availability and grant owner. */
 const unleashActions: NonNullable<RuntimeHooks<RangerRuntimeState, RangerSkill>['sideEffectHandlers']> = {
+  // Poison is checked by the impact reaction; deliver only its selected-catalog component.
+  'ranger.toxic-shot'(runtime, context) {
+    if (context.kind !== 'effect') return;
+
+    emitRangerAction(runtime, context.trigger.event.at, context.skill, 'poisoned-target', {
+      attribution: {
+        source: 'ranger',
+        sourceId: ID.TOXIC_SHOT,
+        actorType: ACTOR.PLAYER,
+        skillId: ID.TOXIC_SHOT,
+        skillName: context.skill.name,
+        activationId: context.trigger.event.activationId
+      }
+    });
+  },
   'ranger.ambush-consume'(runtime) {
     untamedState.from(runtime).ambushReadyUntil = 0;
   },

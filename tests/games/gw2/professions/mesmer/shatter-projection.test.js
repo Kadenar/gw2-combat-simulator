@@ -27,23 +27,29 @@ function scenario(profession, patchId, specialization, skillId, spent, selectedT
   };
 }
 
-function preview(balanceProfiles) {
+function preview(patch) {
   return withPatchPreview(mesmerProfession, {
     id: 'shatter-projection',
     label: 'Shatter projection',
-    professions: { mesmer: { balanceProfiles } }
+    professions: { mesmer: patch }
   });
 }
 
 // A tier deletion must not shift the surviving tier, and each repeated packet keeps its own formula.
 test('clone shatter tooltips and combat share selected repeat packets without relabeling resource tiers', () => {
   const profession = preview({
-    'mesmer.chronomancer.split-second': {
-      removeEffects: [{ type: 'strike', name: '1 resources' }],
-      effects: [
-        { type: 'strike', name: '2 resources', tickIndex: 0, coefficient: 1.5 },
-        { type: 'strike', name: '2 resources', tickIndex: 1, coefficient: 2.5 }
-      ]
+    skills: {
+      [ID.SPLIT_SECOND]: {
+        sideEffects: {
+          shatter: {
+            removeEffects: [{ type: 'strike', name: '1 resources' }],
+            effects: [
+              { type: 'strike', name: '2 resources', tickIndex: 0, coefficient: 1.5 },
+              { type: 'strike', name: '2 resources', tickIndex: 1, coefficient: 2.5 }
+            ]
+          }
+        }
+      }
     }
   });
   const patched = scenario(profession, 'shatter-projection', 'Chronomancer', ID.SPLIT_SECOND, 2);
@@ -74,8 +80,14 @@ test('clone shatter tooltips and combat share selected repeat packets without re
 // The player contributes a Confusion source even at zero clones; preview edits affect every source exactly once.
 test('clone shatter Confusion uses the same selected stack budget in tooltips and combat', () => {
   const profession = preview({
-    'mesmer.core.cry-of-frustration': {
-      effects: [{ type: 'condition', name: 'Confusion', stacks: 2 }]
+    skills: {
+      [ID.CRY_OF_FRUSTRATION]: {
+        sideEffects: {
+          shatter: {
+            effects: [{ type: 'condition', name: 'Confusion', stacks: 2 }]
+          }
+        }
+      }
     }
   });
   for (const [patchId, stacksPerSource] of [
@@ -98,20 +110,26 @@ test('clone shatter Confusion uses the same selected stack budget in tooltips an
 // Blade count does not determine condition applications when the selected strike has a different packet cadence.
 test('Bladesong Confusion tooltips follow selected packet cadence rather than blades spent', () => {
   const profession = preview({
-    'mesmer.virtuoso.bladesong-sorrow': {
-      removeEffects: [{ type: 'strike', name: '2 resources' }],
-      addEffects: [
-        {
-          type: 'strike',
-          name: '2 resources',
-          ticks: [
-            { atMs: 1000, coefficient: 0.2 },
-            { atMs: 1100, coefficient: 0.3 },
-            { atMs: 1200, coefficient: 0.5 }
-          ]
+    skills: {
+      [ID.BLADESONG_SORROW]: {
+        sideEffects: {
+          shatter: {
+            removeEffects: [{ type: 'strike', name: '2 resources' }],
+            addEffects: [
+              {
+                type: 'strike',
+                name: '2 resources',
+                ticks: [
+                  { atMs: 1000, coefficient: 0.2 },
+                  { atMs: 1100, coefficient: 0.3 },
+                  { atMs: 1200, coefficient: 0.5 }
+                ]
+              }
+            ],
+            effects: [{ type: 'condition', name: 'Confusion', stacks: 2 }]
+          }
         }
-      ],
-      effects: [{ type: 'condition', name: 'Confusion', stacks: 2 }]
+      }
     }
   });
   for (const [patchId, applications, stacks] of [
@@ -142,9 +160,15 @@ test('Bladesong Confusion tooltips follow selected packet cadence rather than bl
 // Removing damage preserves independent Confusion cadence while suppressing hit-triggered traits.
 test('removed blade strikes retain condition facts and combat applications without restoring damage', () => {
   const profession = preview({
-    'mesmer.virtuoso.bladesong-sorrow': {
-      removeEffects: [{ type: 'strike', name: '2 resources' }],
-      effects: [{ type: 'condition', name: 'Confusion', stacks: 2 }]
+    skills: {
+      [ID.BLADESONG_SORROW]: {
+        sideEffects: {
+          shatter: {
+            removeEffects: [{ type: 'strike', name: '2 resources' }],
+            effects: [{ type: 'condition', name: 'Confusion', stacks: 2 }]
+          }
+        }
+      }
     }
   });
   const { facts, events, result } = scenario(profession, 'shatter-projection', 'Virtuoso', ID.BLADESONG_SORROW, 2, [
@@ -171,7 +195,7 @@ test('removed blade strikes retain condition facts and combat applications witho
 
 // Control shatters project the entire emitted skill payload, including Time Sink's companion condition.
 test('Time Sink tooltip includes the same per-source Slow applications emitted by combat', () => {
-  const { facts, events } = scenario(preview({}), 'current', 'Chronomancer', ID.TIME_SINK, 2);
+  const { facts, events } = scenario(preview({ balanceProfiles: {} }), 'current', 'Chronomancer', ID.TIME_SINK, 2);
   const slow = facts.find(({ name }) => name === 'Slow');
   assert.equal(slow.applications, 3);
   assert.equal(slow.stacks, 1);
@@ -184,11 +208,13 @@ test('Time Sink tooltip includes the same per-source Slow applications emitted b
 
 // Zero-damage defensive tiers retain hit identity, whereas removed tiers cannot activate hit traits.
 test('defensive shatter projections preserve the distinction between authored zero and removed strikes', () => {
-  for (const [specialization, skillId, profileId] of [
-    ['Core', ID.DISTORTION, 'mesmer.core.distortion'],
-    ['Virtuoso', ID.BLADESONG_DISTORTION, 'mesmer.virtuoso.bladesong-distortion']
+  for (const [specialization, skillId] of [
+    ['Core', ID.DISTORTION],
+    ['Virtuoso', ID.BLADESONG_DISTORTION]
   ]) {
-    const profession = preview({ [profileId]: { removeEffects: [{ type: 'strike', name: '2 resources' }] } });
+    const profession = preview({
+      skills: { [skillId]: { sideEffects: { shatter: { removeEffects: [{ type: 'strike', name: '2 resources' }] } } } }
+    });
     for (const patchId of ['current', 'shatter-projection']) {
       const { facts, result } = scenario(profession, patchId, specialization, skillId, 2, [
         TRAIT.MAIM_THE_DISILLUSIONED
@@ -207,11 +233,13 @@ test('defensive shatter projections preserve the distinction between authored ze
 
 // Removing a condition must remove only its projection, preserving the selected strike in both consumers.
 test('removed shatter Confusion disappears from tooltips and combat while damage survives', () => {
-  for (const [specialization, skillId, profileId] of [
-    ['Core', ID.CRY_OF_FRUSTRATION, 'mesmer.core.cry-of-frustration'],
-    ['Virtuoso', ID.BLADESONG_SORROW, 'mesmer.virtuoso.bladesong-sorrow']
+  for (const [specialization, skillId] of [
+    ['Core', ID.CRY_OF_FRUSTRATION],
+    ['Virtuoso', ID.BLADESONG_SORROW]
   ]) {
-    const profession = preview({ [profileId]: { removeEffects: [{ type: 'condition', name: 'Confusion' }] } });
+    const profession = preview({
+      skills: { [skillId]: { sideEffects: { shatter: { removeEffects: [{ type: 'condition', name: 'Confusion' }] } } } }
+    });
     const { facts, events } = scenario(profession, 'shatter-projection', specialization, skillId, 2);
     assert.equal(
       facts.some(({ name }) => name === 'Confusion'),

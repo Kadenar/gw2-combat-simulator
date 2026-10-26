@@ -1,5 +1,5 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -8,12 +8,11 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import {
   balanceNumberFromContext,
   effectNumber,
-  requireBalanceProfileFromContext,
+  skillNumber,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import {
   lastBlazeBerserkExtension,
@@ -44,7 +43,7 @@ const berserkerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
   // Build-only resource views have catalog/config but no live mode; they use the starting Core cap.
   maximum: (runtime) =>
     'profession' in runtime && berserkerState.from(runtime).berserkUntil != null
-      ? balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks')
+      ? balanceNumberFromContext(runtime, TRAIT.PRIMAL_RAGE, 'maximumStacks')
       : coreAdrenalinePolicy.maximum(runtime)
 };
 
@@ -104,8 +103,9 @@ const berserkActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['side
 
     const cast = context.cast;
     const state = berserkerState.from(runtime);
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
-    const effect = requireEffect(profile, 'buff', 'berserk');
+    const profile = cast.skill;
+    const action = requireSkillAction(profile, 'berserk');
+    const effect = requireEffect(profile, 'buff', 'berserk', action);
 
     if (effect && effectNumber(profile, effect, 'duration') > 0) {
       state.berserkUntil = gw2EffectExpiresAt(runtime.time, effectNumber(profile, effect, 'duration'));
@@ -114,9 +114,9 @@ const berserkActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['side
       publishBerserk(runtime, cast, state.berserkUntil);
     }
   },
-  'warrior.berserk-extension'(runtime, context, action) {
-    if (context.kind === 'cast' && action.type === 'warrior.berserk-extension' && action.amount != null)
-      berserkExtensions.set(context.cast, sideEffectAmount(runtime, action.amount));
+  'warrior.berserk-extension'(_runtime, context) {
+    // Capture the committed skill's selected base amount before combining trait extensions.
+    if (context.kind === 'cast') berserkExtensions.set(context.cast, skillNumber(context.skill, 'durationExtension'));
   }
 };
 

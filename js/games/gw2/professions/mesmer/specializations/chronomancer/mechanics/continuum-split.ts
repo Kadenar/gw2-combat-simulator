@@ -1,7 +1,7 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
-import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
+import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -115,7 +115,7 @@ export function createContinuumController({
     const definition = mesmerShatterDefinition(state, skill.id);
     state.fireTrigger(mesmerShatterResolved, {
       resolution,
-      shatter: definition ? mesmerProfiledShatter(state, definition) : undefined
+      shatter: definition ? mesmerSelectedShatter(state, skill.id) : undefined
     });
     {
       const packet = buildMesmerPacket({

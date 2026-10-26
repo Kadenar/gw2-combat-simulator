@@ -1,8 +1,7 @@
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 
-import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { MESMER_TRAIT_IDS as TRAIT, MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -21,9 +20,11 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
     time: 0,
     traits: new Set([TRAIT.CHAOTIC_PERSISTENCE]),
     catalog: {
+      skillsById: new Map([
+        [ID.SIGNET_OF_MIDNIGHT, { attributeBonuses: { expertise: 200 } }],
+        [ID.SIGNET_OF_DOMINATION, { attributeBonuses: { conditionDamage: 220 } }]
+      ]),
       balanceProfilesById: new Map([
-        [PROFILE.signetOfMidnight, { expertiseBonus: 200 }],
-        [PROFILE.signetOfDomination, { conditionDamageBonus: 220 }],
         [TRAIT.CHAOTIC_PERSISTENCE, { expertiseBonus: 130, concentrationBonus: 270 }],
         [TRAIT.FENCERS_FINESSE, { duration: 7, maximumStacks: 8, attributePerStack: 12 }]
       ])
@@ -54,9 +55,9 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
   const patched = {
     ...context,
     query: {},
-    catalog: { balanceProfilesById: new Map(context.catalog.balanceProfilesById) }
+    catalog: { ...context.catalog, skillsById: new Map(context.catalog.skillsById) }
   };
-  patched.catalog.balanceProfilesById.set(PROFILE.signetOfDomination, { conditionDamageBonus: 250 });
+  patched.catalog.skillsById.set(ID.SIGNET_OF_DOMINATION, { attributeBonuses: { conditionDamage: 250 } });
   assert.equal(mesmerProfession.resolveProfession({}).modifyAttributes(patched, base).conditionDamage, 250);
   assert.equal(mesmerProfession.resolveProfession({}).modifyAttributes(context, base).conditionDamage, 220);
   assert.ok(loadoutReads > 0);

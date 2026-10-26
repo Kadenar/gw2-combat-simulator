@@ -1,7 +1,7 @@
 import { type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { stealAccepted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
@@ -12,7 +12,6 @@ import {
   maliceGained,
   markCompleted
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { initialMalice, stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
@@ -22,6 +21,9 @@ import { canonicalTime } from '#kernel/core/clock.js';
 /** Deadeye's Mark commits the target and stolen-skill transaction through its skill-owned action. */
 export const DEADEYE_MARK_SKILLS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.DEADEYES_MARK]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    duration: 30,
+
     stealTraitSkill: true,
     movementSkill: true,
     cooldown: 25,
@@ -44,7 +46,7 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   runtime.fireTrigger(stealAccepted, { cast });
   const remarking = state.markedTargetId === 'primary-target' && state.markExpiresAt > runtime.time;
   state.markedTargetId = 'primary-target';
-  state.markExpiresAt = canonicalTime(runtime.time + balanceNumberFromContext(runtime, PROFILE.resources, 'duration'));
+  state.markExpiresAt = canonicalTime(runtime.time + skillNumberFromContext(runtime, ID.DEADEYES_MARK, 'duration'));
   state.markGeneration += 1;
 
   if (remarking) runtime.resourceController.grant('malice', initialMalice(runtime));

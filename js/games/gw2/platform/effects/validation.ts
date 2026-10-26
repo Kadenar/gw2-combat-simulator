@@ -676,7 +676,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     ...normalizedEffect,
     ...(normalizedEffect.reactions === undefined
       ? {}
-      : { reactions: snapshotEffectReactions(normalizedEffect.reactions) }),
+      : { reactions: snapshotEffectReactions(normalizedEffect.reactions, normalizeSkillEffects) }),
     ...(modifiers ? { modifiers } : {}),
     ...(normalizedEffect.type === 'strike' && !strikeTicks ? { hits: normalizedEffect.hits ?? 1 } : {}),
     ...(normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff'

@@ -7,7 +7,7 @@ import { conditionEffectTicks, impactEffects, strikeEffectTicks } from '#gw2/pla
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
@@ -58,7 +58,7 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
     hazeMainCasts.delete(cast);
     state.beguilingHazeCharges = Math.max(
       0,
-      balanceNumberFromContext(runtime, PROFILE.beguilingHazeFollowUp, 'maximumStacks')
+      skillNumberFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP, 'maximumStacks')
     );
     state.beguilingHazeRecharge = structuredClone(
       runtime.cooldownController.rechargeFor(skill.id) ??
@@ -138,7 +138,7 @@ function hexEaterEffects(
   });
 }
 
-/** Selection precedes charge spending, so the final follow-up keeps its profile and shared recharge. */
+/** Selection precedes charge spending, so the final follow-up keeps its selected payload and shared recharge. */
 function selectBeguilingHaze(
   runtime: RevenantRuntime,
   cast: RuntimeCast<RevenantSkill>,
@@ -191,12 +191,12 @@ const BEGUILING_HAZE_SKILL: Partial<Skill> = {
       timingScale: 'fixed'
     }
   ],
-  // Select the follow-up profile before its transform spends the final charge.
+  // Select the follow-up skill before its transform spends the final charge.
   effectVariants: [
     {
       when: (runtime: MechanicQueriesOf<RevenantRuntime>) => conduitState.from(runtime).beguilingHazeCharges > 0,
-      profileId: PROFILE.beguilingHazeFollowUp,
-      transform: selectBeguilingHaze
+      transform: (runtime, cast) =>
+        selectBeguilingHaze(runtime, cast, requireSkillFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP).effects ?? [])
     },
     { when: () => true, transform: selectBeguilingHaze }
   ],
@@ -297,6 +297,27 @@ const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+  // The selected follow-up owns its payload and charge budget; the main button retains the activation identity.
+  [ID.BEGUILING_HAZE_FOLLOW_UP]: {
+    // Recorded follow-up segments replay through the same player button and shared charge pool.
+    parentId: ID.BEGUILING_HAZE,
+    simulatorExcluded: true,
+    castTimeMs: 240,
+    interruptCommitMs: 200,
+    maximumStacks: 2,
+    energyCost: 0,
+    effects: [
+      {
+        type: 'strike',
+        name: 'Beguiling Haze — Follow-Up',
+        actorType: ACTOR.PLAYER,
+        persistsAfterInterrupt: true,
+        ticks: [{ atMs: 200, coefficient: 0.6 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ]
+  },
   [ID.BEGUILING_HAZE_ID_76805]: BEGUILING_HAZE_SKILL,
   [ID.TWIN_MOON_SWEEP]: TWIN_MOON_SWEEP_SKILL,
   [ID.TWIN_MOON_SWEEP_ID_77001]: TWIN_MOON_SWEEP_SKILL,

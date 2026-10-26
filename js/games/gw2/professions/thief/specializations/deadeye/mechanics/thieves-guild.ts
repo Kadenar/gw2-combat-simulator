@@ -1,7 +1,6 @@
-import { WEAPON } from '#gw2/platform/constants.js';
 import type { ThiefGuildSummonProfile } from '#gw2/professions/thief/types.js';
 
-// Deadeye owns the rifle-wielding third summon selected by Thieves Guild.
+/** The selected elite owns actor identity and stream startup; attack packets live on canonical actor skills. */
 export const DEADEYE_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.freeze({
   id: 'thief.deadeye.thieves-guild',
   profileKind: 'mechanic',
@@ -9,8 +8,12 @@ export const DEADEYE_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.fre
   name: 'Rifle Deadeye',
   displayName: 'Deadeye',
   variant: 'Deadeye',
-  weapon: WEAPON.RIFLE,
+  weapon: 'Rifle',
   weaponStrengthProfileId: 'weapon.rifle',
-  // Authored basic attack preserves this summon while allowing an explicit empty list.
-  attacks: [{ name: 'Basic Attack', coefficientPerHit: 1.2, hits: 1, initialDelay: 1, interval: 1 }]
+  attacks: [
+    {
+      skillId: 'thief.guild.deadeye.basic',
+      initialDelay: 1
+    }
+  ]
 });

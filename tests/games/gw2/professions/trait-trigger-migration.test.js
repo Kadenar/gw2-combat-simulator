@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const shadestepRewards = [
@@ -92,8 +91,10 @@ test('Shade Step protection survives removal of the independent Dawn barrier', (
     { specialization: 'Specter', initialShadowForce: 100, selectedTraitIds: [TRAIT.SHADESTEP] },
     {
       catalog: (catalog) =>
-        applyBalanceProfilePatch(catalog, {
-          balanceProfiles: { [PROFILE.dawnsReposeBarrier]: { removeEffects: [{ type: 'buff', name: 'barrier' }] } }
+        applySkillPatch(catalog, {
+          skills: {
+            [ID.DAWNS_REPOSE]: { sideEffects: { barrier: { removeEffects: [{ type: 'buff', name: 'barrier' }] } } }
+          }
         })
     }
   );

@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import {
@@ -7,7 +8,6 @@ import {
   outsideScopeTooltip,
   traitTooltip,
   skillTooltip,
-  profileTooltip,
   profileFact,
   modifierFact,
   tooltipPercent,
@@ -15,7 +15,9 @@ import {
   tooltipProfile,
   simulationEffectFacts,
   type ProfessionTooltips,
-  type DescribeSimulationTooltip
+  type DescribeSimulationTooltip,
+  skillFact,
+  fromSkill
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -24,17 +26,15 @@ import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 /** Artifact windows supplement the native cast; charges apply to later attacks rather than adding immediate damage. */
 const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-  const facts = [...simulationEffectFacts(selected.effects).facts];
+  const facts = [
+    ...simulationEffectFacts(selected.effects?.filter((effect) => effect.packetLabel !== 'meticulous')).facts
+  ];
   let description = 'Use and consume this held artifact. Artifact-use traits apply.';
   const window = (kryptis = false) =>
     facts.push(
-      profileFact(
-        balanceContext,
-        ANTIQUARY.artifactWindows,
-        kryptis ? 'minimumStacks' : 'duration',
-        'Effect window',
-        tooltipSeconds
-      ),
+      kryptis
+        ? skillFact(balanceContext, entity.id, 'duration', 'Effect window', tooltipSeconds)
+        : profileFact(balanceContext, ANTIQUARY.artifactWindows, 'duration', 'Effect window', tooltipSeconds),
       profileFact(
         balanceContext,
         TRAIT.METICULOUS_CUSTODIAN,
@@ -49,9 +49,9 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
       ' Adds a timed charge that reduces the recharge of the next utility cast. Repeated grants queue and consume the oldest charge first.';
     window();
     facts.push(
-      profileFact(
+      skillFact(
         balanceContext,
-        ANTIQUARY.artifactWindows,
+        entity.id,
         'rechargeMultiplier',
         'Next utility recharge multiplier',
         (value) => `${tooltipDecimal(value)}×`
@@ -84,21 +84,18 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
       ' Grants charges that add burning to later eligible player strikes. A new grant replaces remaining charges.';
     window();
     facts.push(
-      profileFact(balanceContext, ANTIQUARY.artifactWindows, 'playerStacks', 'Charged strikes'),
-      ...simulationEffectFacts(
-        tooltipProfile(balanceContext, ANTIQUARY.mistburnProc).effects,
-        'per later charged strike'
-      ).facts
+      skillFact(balanceContext, entity.id, 'maximumStacks', 'Charged strikes'),
+      ...simulationEffectFacts(requireSkillAction(selected, 'charged').effects, 'per later charged strike').facts
     );
   } else if (entity.id === ID.METAL_LEGION_GUITAR) {
     description += ' Grants timed charges allowing stealth attacks without entering stealth.';
     window();
-    facts.push(profileFact(balanceContext, ANTIQUARY.artifactWindows, 'resourceGain', 'Stealth-attack charges'));
+    facts.push(skillFact(balanceContext, entity.id, 'maximumStacks', 'Stealth-attack charges'));
   } else if (entity.id === ID.ZEPHYRITE_SUN_CRYSTAL) {
     description += ' Meticulous Custodian adds burning to each eligible strike.';
     facts.push(
       ...simulationEffectFacts(
-        tooltipProfile(balanceContext, ANTIQUARY.sunCrystalMeticulous).effects,
+        selected.effects?.filter((effect) => effect.packetLabel === 'meticulous'),
         'additional burning per strike with Meticulous Custodian'
       ).facts
     );
@@ -118,59 +115,56 @@ const unstableSkrittBombTooltip: DescribeSimulationTooltip = skillTooltip(
 const skrittSwipeTooltip: DescribeSimulationTooltip = skillTooltip(
   'Trigger stealing traits and replace held artifacts with a new choice pool. Grants the base artifact use plus supported Skritt Swipe bonuses; resets the initiative-spending counter.',
   [
-    fromProfile(ANTIQUARY.resources, 'maximumStacks', 'Base artifact uses'),
+    fromProfile(TRAIT.TRINKET_COLLECTOR, 'maximumStacks', 'Base artifact uses'),
     fromProfile(TRAIT.PROLIFIC_PLUNDERER, 'resourceGain', 'Additional uses with Prolific Plunderer'),
     fromProfile(TRAIT.IMPROVISATION, 'resourceGain', 'Additional uses with Improvisation')
   ]
 );
 
-const skrittScuffleTooltip: DescribeSimulationTooltip = profileTooltip(
-  ANTIQUARY.scuffle,
+const skrittScuffleTooltip: DescribeSimulationTooltip = skillTooltip(
   'Summon an assistant that immediately pilfers artifacts and repeats while active. Each pilfer replaces artifact choices, including Unstable Skritt Bomb, and resets base uses. Multiple assistants run independently.',
   [
-    ['duration', 'Assistant duration', tooltipSeconds],
-    ['pulseInterval', 'Pilfer interval', tooltipSeconds]
+    fromSkill(ID.SKRITT_SCUFFLE, 'duration', 'Assistant duration', tooltipSeconds),
+    fromSkill(ID.SKRITT_SCUFFLE, 'pulseInterval', 'Pilfer interval', tooltipSeconds)
   ]
 );
 
-const forgedSurferTooltip: DescribeSimulationTooltip = (balanceContext) => ({
-  description:
-    'Consume the artifact and schedule its dash followed by bombs while the buff lasts. Recasting restarts the bomb cadence and adds buff duration up to thirteen seconds. Meticulous Custodian grants a thirteen-second window and substitutes its enhanced packets.',
-  facts: [
-    profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'initialDelay', 'Dash delay', tooltipSeconds),
-    profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'pulseInterval', 'Bomb interval', tooltipSeconds),
-    profileFact(balanceContext, ANTIQUARY.forgedSurfer, 'duration', 'Base buff duration', tooltipSeconds),
-    profileFact(
-      balanceContext,
-      ANTIQUARY.forgedSurfer,
-      'maximumDuration',
-      'Maximum remaining buff duration',
-      tooltipSeconds
-    ),
-    ...[ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous].flatMap((id) =>
-      tooltipProfile(balanceContext, id).effects!.flatMap(
-        (effect) =>
-          simulationEffectFacts(
-            [effect],
-            `${id === ANTIQUARY.forgedSurfer ? 'base' : 'with Meticulous Custodian'} · ${effect.name === 'Dash' ? 'dash' : 'per bomb'}`
-          ).facts
+const forgedSurferTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+  const skill = balanceContext.catalog.skillsById.get(entity.id)!;
+  return {
+    description:
+      'Consume the artifact and schedule its dash followed by bombs while the buff lasts. Recasting restarts cadence and extends the remaining lifetime up to its cap. Each occurrence selects the current Meticulous Custodian alternative.',
+    facts: [
+      skillFact(balanceContext, entity.id, 'initialDelay', 'Dash delay', tooltipSeconds),
+      skillFact(balanceContext, entity.id, 'pulseInterval', 'Bomb interval', tooltipSeconds),
+      skillFact(balanceContext, entity.id, 'duration', 'Base buff duration', tooltipSeconds),
+      skillFact(balanceContext, entity.id, 'enhancedDuration', 'Enhanced buff duration', tooltipSeconds),
+      skillFact(balanceContext, entity.id, 'maximumDuration', 'Maximum remaining buff duration', tooltipSeconds),
+      ...requireSkillAction(skill, 'surfer').effects.flatMap(
+        (effect) => simulationEffectFacts([effect], effect.name).facts
       )
-    )
-  ]
-});
+    ]
+  };
+};
 
 const doubleEdgeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const description =
     "Succeeds when ready. Reusing during recharge takes the configured success or backfire outcome; Scoundrel's Luck guarantees a risky success and consumes its charge. Further risky uses remain available after a backfire.";
 
   if (entity.id === ID.STONE_SUMMIT_CANNON) {
-    const success = tooltipProfile(balanceContext, ANTIQUARY.cannonSuccess);
+    const skill = balanceContext.catalog.skillsById.get(entity.id)!;
     return {
       description,
       facts: [
-        ...simulationEffectFacts(success.effects, 'success').facts,
-        ...simulationEffectFacts(tooltipProfile(balanceContext, ANTIQUARY.cannonBackfire).effects, 'backfire').facts,
-        profileFact(balanceContext, ANTIQUARY.cannonBackfire, 'initialDelay', 'Backfire delay', tooltipSeconds)
+        ...simulationEffectFacts(
+          skill.effects?.filter((effect) => effect.packetLabel === 'success'),
+          'success'
+        ).facts,
+        ...simulationEffectFacts(
+          skill.effects?.filter((effect) => effect.packetLabel === 'backfire'),
+          'backfire'
+        ).facts,
+        skillFact(balanceContext, entity.id, 'backfireDelay', 'Backfire delay', tooltipSeconds)
       ]
     };
   }

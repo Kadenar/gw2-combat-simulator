@@ -1,3 +1,6 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -6,19 +9,13 @@ import type { AntiquaryState } from '#gw2/professions/thief/specializations/anti
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { activeChargeGrants, appendChargeGrant, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   allArtifactChoices,
   completeSkrittSwipe,
   artifactSlotsUsed,
   spendArtifact
 } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import {
   coinInitiative,
   startDoubleEdge,
@@ -32,8 +29,7 @@ import {
   artifactCompleted
 } from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
 import {
-  artifactWindow,
-  forgedSurferProfile,
+  artifactWindowDuration,
   meticulousKryptisDuration
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -81,43 +77,38 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.skritt-scuffle'(runtime) {
       completeSkrittScuffle(runtime);
     },
-    'thief.guitar'(runtime) {
+    'thief.guitar'(runtime, context) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const { windows, duration } = artifactWindow(runtime);
+      const duration = artifactWindowDuration(runtime);
       // Guitar replaces the active bonus-attack grant with the selected artifact count and lifetime.
-      state.bonusStealthAttack = grantCharges(balanceProfileNumber(windows, 'resourceGain'), at + duration);
+      state.bonusStealthAttack = grantCharges(skillNumber(context.skill, 'maximumStacks'), at + duration);
     },
-    'thief.mortar'(runtime) {
+    'thief.mortar'(runtime, context) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const { windows, duration } = artifactWindow(runtime);
+      const duration = artifactWindowDuration(runtime);
 
-      if (
-        !requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistburnProc), 'condition', CONDITION.BURNING)
-      )
+      if (!requireEffect(context.skill, 'condition', CONDITION.BURNING, requireSkillAction(context.skill, 'charged')))
         return;
 
-      state.mistburn = grantCharges(balanceProfileNumber(windows, 'playerStacks'), at + duration);
+      state.mistburn = grantCharges(skillNumber(context.skill, 'maximumStacks'), at + duration);
     },
     'thief.kryptis'(runtime) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
       state.kryptisDamageUntil = at + meticulousKryptisDuration(runtime);
     },
-    'thief.chak'(runtime) {
+    'thief.chak'(runtime, context) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const { windows, duration } = artifactWindow(runtime);
+      const duration = artifactWindowDuration(runtime);
       // Three refunds are added up to four total; unused grants keep their own expiry instead of becoming permanent.
       const grants = activeChargeGrants(state.chakInitiativeRefunds, at);
       const remaining = grants.reduce((sum, grant) => sum + grant.charges, 0);
       const added = Math.max(
         0,
-        Math.min(
-          balanceProfileNumber(windows, 'resourceGain'),
-          balanceProfileNumber(windows, 'chakRefundMaximum') - remaining
-        )
+        Math.min(skillNumber(context.skill, 'refundCharges'), skillNumber(context.skill, 'maximumStacks') - remaining)
       );
       state.chakInitiativeRefunds = appendChargeGrant(
         grants,
@@ -129,18 +120,21 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.holo'(runtime) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const { duration } = artifactWindow(runtime);
+      const duration = artifactWindowDuration(runtime);
       // Store the exact canonical deadline so an expiry-tick utility cannot spend this grant.
       state.holoUtilityCooldownReductionExpirations = [
         ...state.holoUtilityCooldownReductionExpirations,
         canonicalTime(at + duration)
       ];
     },
-    'thief.surfer-window'(runtime) {
+    'thief.surfer-window'(runtime, context) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const duration = balanceProfileNumber(forgedSurferProfile(runtime), 'duration');
-      const maximum = balanceNumberFromContext(runtime, PROFILE.forgedSurfer, 'maximumDuration');
+      const duration = skillNumber(
+        context.skill,
+        hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'enhancedDuration' : 'duration'
+      );
+      const maximum = skillNumber(context.skill, 'maximumDuration');
       // Surfer banks remaining duration up to its own cap, independently of the other artifact windows.
       state.forgedSurferBombDropUntil =
         at + Math.min(maximum, Math.max(0, state.forgedSurferBombDropUntil - at) + duration);

@@ -13,7 +13,6 @@ import { summonNecromancerMinion } from '#gw2/professions/necromancer/core/mecha
 import { addSoulShards } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 
 const base = {
   specialization: 'Reaper',
@@ -393,8 +392,8 @@ test('Perforate consumes current shards per accepted packet, including gains dur
   assert.equal(missed.planningState.profession.soulShardGrant.charges, 2);
   const removed = {
     ...profession,
-    catalog: applyBalanceProfilePatch(native.catalog, {
-      balanceProfiles: { [PROFILE.soulShards]: { removeEffects: [{ type: 'strike', name: 'Soul Shards' }] } }
+    catalog: applySkillPatch(native.catalog, {
+      skills: { [ID.SOUL_SHARDS]: { removeEffects: [{ type: 'strike', name: 'Soul Shards' }] } }
     })
   };
   const noSiphon = simulate([cast(ID.PERFORATE)], base, { profession: removed });
@@ -1061,8 +1060,8 @@ test('a Reaper summon projectile owns exactly one shared combo attempt', () => {
   assert.deepEqual(result.warnings, []);
 });
 
-// Entry uses one live stack collection: existing stacks fund life force before entry grants or cleansing add more.
-test('shroud entry reads existing Carapace, then grants stacks and removes active self-conditions', () => {
+// Entry grants Armored Shroud stacks before Soul Comprehension samples live Carapace; cleansing follows.
+test('shroud entry includes Armored Shroud Carapace before removing active self-conditions', () => {
   const config = {
     ...base,
     initialResource: 10,
@@ -1089,7 +1088,7 @@ test('shroud entry reads existing Carapace, then grants stacks and removes activ
   };
   const result = simulate([cast(ID.SUMMON_BONE_MINIONS), cast(ID.REAPERS_SHROUD)], config, { profession });
   const state = result.planningState.profession;
-  assert.equal(lifeForcePercent(state.lifeForce), 13);
+  assert.equal(lifeForcePercent(state.lifeForce), 15.5);
   assert.equal(state.carapaceExpiries.length, 10);
   assert.deepEqual(
     state.selfConditions.map((application) => application.condition),
@@ -1297,13 +1296,16 @@ test('selected resource passives can fund shroud entry without a predicted gain'
 test('rounded passive delivery preserves resource affordability on the original cadence', () => {
   for (const [options, profileId, gain] of [
     [{ selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, TRAIT.ETERNAL_LIFE, 3],
-    [{ selectedSkillIds: [ID.SIGNET_OF_UNDEATH] }, PROFILE.signetOfUndeathPassive, 3]
+    [{ selectedSkillIds: [ID.SIGNET_OF_UNDEATH] }, ID.SIGNET_OF_UNDEATH, 3]
   ]) {
     const config = { ...base, ...options };
     const native = necromancerProfession.runtimeFor(config);
     const profession = {
       ...native,
-      catalog: withProfile(native.catalog, profileId, { pulseInterval: 0.25, lifeForceGain: gain })
+      catalog:
+        profileId === ID.SIGNET_OF_UNDEATH
+          ? withSkill(native.catalog, profileId, { pulseInterval: 0.25, lifeForceGain: gain })
+          : withProfile(native.catalog, profileId, { pulseInterval: 0.25, lifeForceGain: gain })
     };
     // Four grants afford entry at one second; rounding each delivered wake into the next anchor would delay it.
     const result = simulate([cast(ID.REAPERS_SHROUD)], config, { profession });
@@ -1434,12 +1436,16 @@ test('zero passive grants cannot advertise an endless affordability retry', () =
   const native = necromancerProfession.runtimeFor(config);
   const profession = {
     ...native,
-    catalog: applyBalanceProfilePatch(native.catalog, {
-      balanceProfiles: {
-        [TRAIT.ETERNAL_LIFE]: { fields: { lifeForceGain: 0 } },
-        [PROFILE.signetOfUndeathPassive]: { fields: { lifeForceGain: 0 } }
+    catalog: applySkillPatch(
+      applyBalanceProfilePatch(native.catalog, {
+        balanceProfiles: { [TRAIT.ETERNAL_LIFE]: { fields: { lifeForceGain: 0 } } }
+      }),
+      {
+        skills: {
+          [ID.SIGNET_OF_UNDEATH]: { fields: { lifeForceGain: 0 } }
+        }
       }
-    })
+    )
   };
   const result = simulate([cast(ID.REAPERS_SHROUD)], config, { profession });
   assert.equal(result.rotationEndTime, 0);

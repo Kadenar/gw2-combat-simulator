@@ -1,13 +1,9 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildThiefCondition } from '#gw2/professions/thief/core/events.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 import {
@@ -23,7 +19,7 @@ import type { AlliedStrikeOpportunity } from '#gw2/platform/combat/state/allied-
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -31,24 +27,20 @@ import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/
 interface VenomDefinition {
   readonly skillId: SkillId;
   readonly skillName: string;
-  readonly profileId: SkillId;
 }
 
 export const VENOMS: readonly VenomDefinition[] = Object.freeze([
   {
     skillId: ID.SPIDER_VENOM,
-    skillName: 'Spider Venom',
-    profileId: PROFILE.spiderVenomProc
+    skillName: 'Spider Venom'
   },
   {
     skillId: ID.SKALE_VENOM,
-    skillName: 'Skale Venom',
-    profileId: PROFILE.skaleVenomProc
+    skillName: 'Skale Venom'
   },
   {
     skillId: ID.DEVOURER_VENOM,
-    skillName: 'Devourer Venom',
-    profileId: PROFILE.devourerVenomProc
+    skillName: 'Devourer Venom'
   }
 ]);
 
@@ -56,8 +48,10 @@ function venomForSkill(skillId: SkillId): VenomDefinition | undefined {
   return VENOMS.find((venom) => venom.skillId === skillId);
 }
 
-function conditionEffects(profile: BalanceProfile): readonly ConditionEffect[] {
-  return (profile.effects || []).filter((effect): effect is ConditionEffect => effect.type === 'condition');
+function conditionEffects(profile: Skill): readonly ConditionEffect[] {
+  return requireSkillAction(profile, 'venom').effects.filter(
+    (effect): effect is ConditionEffect => effect.type === 'condition'
+  );
 }
 
 /** Keep each grant's expiry and spend older charges before newer applications. */
@@ -109,7 +103,7 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
 
 /** One venom charge reuses its condition payload without a qualifying hit or charge grant. */
 export function emitVenom(context: ThiefResolverContext, event: ThiefResolverEvent, venom: VenomDefinition): void {
-  const profile = requireBalanceProfileFromContext(context, venom.profileId);
+  const profile = requireSkillFromContext(context, venom.skillId);
   const effects = conditionEffects(profile);
   for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
     const effect = effects[effectIndex];
@@ -146,9 +140,14 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
 
   const core = runtime.profession.core;
   const at = runtime.time;
-  const profile = requireBalanceProfileFromContext(runtime, venom.profileId);
-  const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
-  const duration = balanceProfileNumber(profile, 'duration');
+  const profile = cast.skill;
+  const grant = requireEffect(profile, 'buff', venom.skillName.toLowerCase().replaceAll(' ', '-'));
+
+  // Removing the grant prevents arming recipients, independently of triggered payload removal.
+  if (!grant) return;
+
+  const maximumStacks = effectNumber(profile, grant, 'stacks');
+  const duration = effectNumber(profile, grant, 'duration');
   addVenomCharges(core, cast.skill.id, at, maximumStacks, duration);
   // Each cast appends one native batch per ally that keeps its cast's identity and cause. One registration per ally and
   // venom offers each strike once, so a strike spends at most that ally's oldest live batch.
@@ -181,7 +180,7 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
 function emitAlliedVenom(
   runtime: ThiefRuntime,
   venom: VenomDefinition,
-  profile: BalanceProfile,
+  profile: Skill,
   castId: string,
   proc: AlliedStrikeOpportunity
 ): void {

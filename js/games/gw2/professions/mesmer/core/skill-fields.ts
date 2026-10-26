@@ -11,6 +11,12 @@ export const MESMER_CORE_SKILL_FIELDS = defineSkillFields(
     phantasmSummonProgress: numberField({ maximum: 1 }),
     // Counts as a blade-producing skill for blade-dependent mechanics.
     blade: dataField,
+    // Rewinder removes recharge for each player/clone source.
+    rechargeReductionPerSource: numberField({ unit: 'seconds', patch: 'primary' }),
+    // Continuum's snapshot lifetime increases for each shatter source.
+    durationPerTier: numberField({ unit: 'seconds', patch: 'primary' }),
+    // Ready Signet of Illusions generates resources at this interval.
+    pulseInterval: numberField({ unit: 'seconds', patch: 'primary' }),
     // Shatter recipe consuming the live illusions.
     shatter: dataField,
     // Arms its follow-up flip when the cast starts rather than when it commits.

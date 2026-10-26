@@ -4,7 +4,6 @@ import { AURA, ACTOR } from '#gw2/platform/constants.js';
 import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -21,8 +20,8 @@ test('Cry of Pain augments the base condition and preserves removal and ownershi
     sourceId: ID.CRY_OF_FRUSTRATION
   };
   for (const [profile, stacks, duration] of [
-    [TRAIT.CRY_OF_PAIN, 5, 12],
-    [PROFILE.flusteringFluteCryOfPain, 6, 13.5]
+    [undefined, 5, 12],
+    [mesmerCatalog.skillsById.get(ID.FLUSTERING_FLUTE), 6, 13.5]
   ]) {
     assert.deepEqual(cryOfPainConfusion(context, base, profile), { ...base, stacks, duration });
     assert.equal(cryOfPainConfusion(context, undefined, profile), undefined);

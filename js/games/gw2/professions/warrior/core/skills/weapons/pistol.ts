@@ -1,13 +1,7 @@
 import { WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import {
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
+import { skillNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -51,21 +45,23 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Par
     cooldown: 5,
     ammoCastLockout: 1,
     castTimeMs: 560,
-    effects: [],
+    // The selected magazine packet expands only after ammunition has been captured.
+    firstPacketRatio: 6 / 7,
+    packetIntervalRatio: 2 / 7,
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 0.75, hits: 1 }],
     effectVariants: [
       {
-        profileId: PROFILE.dragonsRoar,
         when: () => true,
-        transform(runtime, cast) {
+        transform(_runtime, cast) {
           const bullets = warriorAmmunition.get(cast)!.rounds;
-          const profile = requireBalanceProfileFromContext(runtime, PROFILE.dragonsRoar);
+          const profile = cast.skill;
           const strike = requireEffect(profile, 'strike', 'Strike');
 
           if (!strike) return [];
 
           const durationMs = (cast.effectiveEnd - cast.start) * 1000;
-          const first = durationMs * balanceProfileNumber(profile, 'firstPacketRatio');
-          const interval = durationMs * balanceProfileNumber(profile, 'packetIntervalRatio');
+          const first = durationMs * skillNumber(profile, 'firstPacketRatio');
+          const interval = durationMs * skillNumber(profile, 'packetIntervalRatio');
           return [
             {
               type: 'strike',

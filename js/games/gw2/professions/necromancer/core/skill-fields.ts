@@ -3,6 +3,22 @@ import { dataField, defineSkillFields, numberField } from '#gw2/platform/skills/
 /** Necromancer shroud, minion, and condition-transfer fields read only by Necromancer mechanics. */
 export const NECROMANCER_CORE_SKILL_FIELDS = defineSkillFields(
   {
+    // Summon activations select their canonical autonomous attack skill; actor tuning stays with that attack.
+    summonAttackId: dataField,
+    commandId: dataField,
+    minionCount: numberField({ patch: 'primary' }),
+    pulseInterval: numberField({ unit: 'seconds', patch: 'advanced' }),
+    lifeForceGain: numberField({ patch: 'primary' }),
+    openingAttackWindupMs: numberField({ unit: 'milliseconds', patch: 'advanced' }),
+    commandRecoveryDelayMs: numberField({ unit: 'milliseconds', patch: 'advanced' }),
+    basePower: numberField({ patch: 'primary' }),
+    weaponStrength: numberField({ patch: 'primary' }),
+    damagePerCoefficient: numberField({ patch: 'primary' }),
+    criticalChance: numberField({ patch: 'primary' }),
+    criticalDamage: numberField({ patch: 'primary' }),
+    alternateEvery: numberField({ patch: 'primary' }),
+    // Core Dhuumfire reads skill-owned duration overrides from Harbinger and Scourge.
+    dhuumfireDuration: numberField({ patch: 'primary', unit: 'seconds' }),
     // Profile owning the shroud this skill enters.
     shroudProfileId: dataField,
     // Shroud bar slot this skill occupies.

@@ -1,3 +1,5 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
@@ -7,6 +9,7 @@ import {
   traitTooltip,
   skillTooltip,
   profileFact,
+  skillFact,
   tooltipPercent,
   tooltipDecimal,
   tooltipNumber,
@@ -15,7 +18,6 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as GALESHOT } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 
 /** Compose galeshot descriptions using the selected catalog's balance data. */
 export const galeshotTooltips = {
@@ -32,8 +34,8 @@ export const galeshotTooltips = {
     [ID.SUMMON_CYCLONE_BOW]: skillTooltip(
       'Equip the Cyclone Bow and replace your weapon skills. Trigger applicable weapon-swap effects. Arrows regenerate over time and are shared across its skills.',
       [
-        fromProfile(GALESHOT.resources, 'maximumStacks', 'Arrow capacity'),
-        fromProfile(GALESHOT.resources, 'pulseInterval', 'Base arrow regeneration interval', tooltipSeconds)
+        fromProfile(TRAIT.TEACHINGS_OF_THE_TENGU, 'maximumStacks', 'Arrow capacity'),
+        fromProfile(TRAIT.TEACHINGS_OF_THE_TENGU, 'pulseInterval', 'Base arrow regeneration interval', tooltipSeconds)
       ]
     ),
     [ID.DISMISS_CYCLONE_BOW]: skillTooltip(
@@ -56,14 +58,16 @@ export const galeshotTooltips = {
     [ID.MISTRAL]: skillTooltip(
       'Restore arrows and arm Mistral. Each eligible missile hit during its window adds a strike and Chilled.',
       (balanceContext) => [
-        profileFact(balanceContext, GALESHOT.mistral, 'duration', 'Mistral window', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, GALESHOT.mistral).effects, 'per eligible missile hit')
-          .facts
+        skillFact(balanceContext, ID.MISTRAL, 'duration', 'Mistral window', tooltipSeconds),
+        ...simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.MISTRAL), 'missile-trigger').effects,
+          'per eligible missile hit'
+        ).facts
       ]
     ),
     [ID.HAWKEYE]: skillTooltip(
       'At full Wind Force, replace Keen Shot with this empowered attack. Consume all Wind Force and the listed arrows, then trigger eligible Gale Force and Cloudburst effects.',
-      [fromProfile(GALESHOT.resources, 'minimumStacks', 'Wind Force required and consumed')]
+      [fromProfile(TRAIT.TEACHINGS_OF_THE_TENGU, 'minimumStacks', 'Wind Force required and consumed')]
     ),
     [ID.KEEN_SHOT]: skillTooltip(
       "Fire the Cyclone Bow's basic arrow. At full Wind Force, Hawkeye replaces this skill."

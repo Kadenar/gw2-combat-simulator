@@ -3,8 +3,7 @@ import test from 'node:test';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -13,8 +12,7 @@ import { createObservedProfessionSimulator } from '#tests/helpers/observed-runti
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE_PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { MESMER_CORE_BALANCE_PROFILE_IDS as MESMER_PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 
 // Apply fixture tuning and state through the real profession lifecycle, retaining native task/reaction dispatch.
 function migratedSkillRun(profession, config, rotation, { catalog = (value) => value, initialize = () => {} } = {}) {
@@ -53,8 +51,8 @@ test('Weighty Terms side effects preserve Slow attribution and page restoration'
   assert.equal(result.planningState.profession.tomePages.value, 2);
 });
 
-// Outcome selection must spend Luck once and preserve the selected profile's schedule even on cancelled uses.
-test('Cannon variants retain accepted outcomes, live profile timing, and cancelled-use packets', () => {
+// Outcome selection must spend Luck once and preserve the selected skill's outcome payload even on cancelled uses.
+test('Cannon variants retain accepted outcomes, selected skill payloads, and cancelled-use packets', () => {
   for (const [recharging, luck, cancelled] of [
     [false, 0, false],
     [true, 0, false],
@@ -81,16 +79,13 @@ test('Cannon variants retain accepted outcomes, live profile timing, and cancell
           runtime.profession.specialization.state.scoundrelsLuck = luck;
         },
         catalog: (catalog) =>
-          withProfile(
-            withProfile(catalog, PROFILE.cannonSuccess, {
-              effects: [{ type: 'strike', coefficient: 1, atMs: 130 }]
-            }),
-            PROFILE.cannonBackfire,
-            {
-              initialDelay: 0.7,
-              effects: [{ type: 'strike', coefficient: 2, atMs: 130 }]
-            }
-          )
+          withSkill(catalog, THIEF.STONE_SUMMIT_CANNON, {
+            backfireDelay: 0.7,
+            effects: [
+              { type: 'strike', name: 'Success', packetLabel: 'success', coefficient: 1, atMs: 130 },
+              { type: 'strike', name: 'Backfire', packetLabel: 'backfire', coefficient: 2, atMs: 130 }
+            ]
+          })
       }
     );
     assert.deepEqual(result.warnings, []);
@@ -213,7 +208,7 @@ test('Mercy declares its Mark reset independently of the Malice refund', () => {
   assert.equal(refunds[0], refunds[1]);
 });
 
-// The shared flip observes live profile duration, exclusive expiry, consumption, and cancellation.
+// The shared flip observes selected skill duration, exclusive expiry, consumption, and cancellation.
 test('Shadow Flare uses the shared follow-up window', () => {
   for (const cancelled of [false, true]) {
     const windows = [];
@@ -225,14 +220,11 @@ test('Shadow Flare uses the shared follow-up window', () => {
       { specialization: 'Deadeye', selectedSkillIds: [41158] },
       {
         catalog: (catalog) =>
-          withProfile(
-            withSkill(catalog, THIEF.SHADOW_FLARE, {
-              castTimeMs: 400,
-              interruptCommitMs: 400
-            }),
-            DEADEYE_PROFILE.shadowFlare,
-            { flipDuration: 0.5 }
-          ),
+          withSkill(catalog, THIEF.SHADOW_FLARE, {
+            castTimeMs: 400,
+            interruptCommitMs: 400,
+            flipDuration: 0.5
+          }),
         probes: [
           [0.7, (runtime) => windows.push(Boolean(runtime.profession.core.availableFlips[THIEF.SHADOW_SWAP]))],
           [1.2, (runtime) => windows.push(Boolean(runtime.profession.core.availableFlips[THIEF.SHADOW_SWAP]))]
@@ -302,8 +294,8 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
   }
 });
 
-// The replacement profile resolves only after a landed strike and remains removable independently of clone gains.
-test('Ether Clone uses a live condition profile at the clone cap and grants nothing on a missed hit', () => {
+// The replacement action resolves only after a landed strike and remains removable independently of clone gains.
+test('Ether Clone uses its selected condition action at the clone cap and grants nothing on a missed hit', () => {
   for (const [initialResource, offTarget, removed] of [
     [3, false, false],
     [3, false, true],
@@ -323,8 +315,16 @@ test('Ether Clone uses a live condition profile at the clone cap and grants noth
       ['Ether Bolt', 'Ether Blast', { type: 'cast', skillId: MESMER.ETHER_CLONE, offTarget }],
       {
         catalog: (catalog) =>
-          withProfile(catalog, MESMER_PROFILE.etherClone, {
-            effects: removed ? [] : [{ type: 'condition', condition: 'Torment', duration: 2, stacks: 2 }]
+          applySkillPatch(catalog, {
+            skills: {
+              [MESMER.ETHER_CLONE]: {
+                sideEffects: {
+                  'clone-limit': removed
+                    ? { removeEffects: [{ type: 'condition', name: 'Torment' }] }
+                    : { effects: [{ type: 'condition', name: 'Torment', duration: 2, stacks: 2 }] }
+                }
+              }
+            }
           })
       }
     );

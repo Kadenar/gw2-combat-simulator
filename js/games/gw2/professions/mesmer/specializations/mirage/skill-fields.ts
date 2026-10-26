@@ -9,8 +9,8 @@ export const MIRAGE_SKILL_FIELDS = defineSkillFields(
     mirrorPayload: dataField,
     // Ambush payload applied by the player's own attack.
     player: dataField,
-    // Vulnerability payload shared by the ambush variants.
-    vulnerability: dataField
+    // Identifies the separately removable Vulnerability template on the skill.
+    hasVulnerability: dataField
   },
   'Mirage'
 );

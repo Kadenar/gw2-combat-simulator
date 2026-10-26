@@ -1,9 +1,8 @@
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { HARBINGER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -153,8 +152,8 @@ test('Doom Approaches retains independent condition packets when its volley stri
   const native = necromancerProfession.runtimeFor(config);
   const profession = {
     ...native,
-    catalog: applyBalanceProfilePatch(native.catalog, {
-      balanceProfiles: { [PROFILE.darkBarrageDoomApproaches]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
+    catalog: applySkillPatch(native.catalog, {
+      skills: { [ID.DARK_BARRAGE]: { removeEffects: [{ type: 'strike', name: 'Doom Approaches Strike' }] } }
     })
   };
   const result = run([cast(ID.HARBINGER_SHROUD), { ...cast(ID.DARK_BARRAGE), interruptAfterMs: 300 }], config, {

@@ -6,11 +6,12 @@ import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js'
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import { firebrandModule } from '#gw2/professions/guardian/specializations/firebrand/module.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as GALE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
+import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 import { SOULBEAST_BALANCE_PROFILE_IDS as SB } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
@@ -71,7 +72,10 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
       selectedTraitIds: [GT.ARCHIVIST_OF_WHISPERS, GT.LOREMASTER],
       initialTomePages: initial
     };
-    const first = createFirebrandState(config);
+    const first = firebrandState.create({
+      config,
+      balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+    });
     const second = observedRuntime(runGuardian([], config)).profession.specialization.state;
     assert.equal(second.tomePages.value, expected);
     assert.equal(second.tomePages.maximum, 8);
@@ -92,6 +96,19 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
       }
     }
   });
+  // Module creation must use the selected catalog before runtime resource initialization can adjust state.
+  const balanceContext = patched.resolvePatch({ id: 'pages' }).balanceContext;
+  for (const selectedTraitIds of [[], [GT.ARCHIVIST_OF_WHISPERS]]) {
+    const maximum = selectedTraitIds.length ? 10 : 6;
+    for (const initialTomePages of [undefined, 0]) {
+      const state = firebrandModule.state.create({ selectedTraitIds, initialTomePages }, { balanceContext });
+      assert.equal(state.tomePages.maximum, maximum);
+      assert.equal(state.tomePages.value, initialTomePages ?? maximum);
+      assert.equal(state.tomePages.interval, 2);
+      assert.equal(state.tomePages.nextAt, initialTomePages === 0 ? 2 : Infinity);
+    }
+  }
+
   const result = runGuardian(
     [],
     {
@@ -199,7 +216,10 @@ test('Galeshot arrow restoration preserves fractional gains and uses the current
     { specialization: 'Galeshot' },
     {
       extend: (native) => ({
-        catalog: withProfile(native.catalog, GALE.resources, { maximumStacks: 4.5, pulseInterval: 5 })
+        catalog: withProfile(native.catalog, RANGER_TRAIT.TEACHINGS_OF_THE_TENGU, {
+          maximumStacks: 4.5,
+          pulseInterval: 5
+        })
       })
     }
   );

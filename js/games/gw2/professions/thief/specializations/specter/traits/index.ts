@@ -213,7 +213,15 @@ const strengthOfShadows = defineTrait({
 });
 
 /** Native trait owners, in stable authoring order. */
+// Intrinsic specialization policy is available without explicit minor selection.
+const specter = defineTrait({
+  id: TRAIT.SPECTER,
+  name: 'Specter',
+  balance: { maximumStacks: 100, resourceGain: 1, lifeForceDrain: 0.02 }
+});
+
 export const specterTraits = Object.freeze([
+  specter,
   amplifiedSiphoning,
   shadestep,
   larcenousTorment,

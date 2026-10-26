@@ -7,13 +7,12 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import {
   balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
+  skillNumber,
+  skillNumberFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import { swapGunsaber } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import {
   dragonFlowPerInterval,
   maximumDragonCharges
@@ -113,13 +112,14 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
 
   if (!state.gunsaberActive) swapGunsaber(runtime, cast, true);
 
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.dragonTrigger);
+  // Entry reads the selected skill; charge capacity and optional overrides keep their own owners.
+  const profile = cast.skill;
   runtime.resourceController.refresh('dragonCharges');
-  const cost = balanceProfileNumber(profile, 'threshold');
+  const cost = skillNumber(profile, 'entryResourceCost');
   runtime.resourceController.spend('flow', cost);
   state.dragonTriggerActive = true;
   state.dragonTriggerStartedAt = runtime.time;
-  state.dragonTriggerChargeDeadline = canonicalTime(runtime.time + balanceProfileNumber(profile, 'cooldown'));
+  state.dragonTriggerChargeDeadline = canonicalTime(runtime.time + skillNumber(profile, 'duration'));
   runtime.resourceController.replace('dragonCharges', 0);
   state.dragonChargesPerInterval = state.tacticalReloadUntil > 0 && runtime.time < state.tacticalReloadUntil ? 2 : 1;
 
@@ -377,7 +377,7 @@ export const dragonTriggerAvailability: NonNullable<
   if (skill.id === ID.DRAGON_TRIGGER) {
     if (state.dragonTriggerActive) return denyCast('warrior.dragon-trigger', 'Dragon Trigger is already active.');
 
-    const cost = balanceNumberFromContext(runtime, PROFILE.dragonTrigger, 'threshold');
+    const cost = skillNumberFromContext(runtime, ID.DRAGON_TRIGGER, 'entryResourceCost');
 
     if (!resourceAtLeast(runtime.resourceController.value('flow'), cost))
       return denyCast('warrior.flow', `Dragon Trigger requires at least ${cost} flow.`);

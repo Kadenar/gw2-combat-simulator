@@ -1,8 +1,14 @@
-import { dataField, defineSkillFields } from '#gw2/platform/skills/field-specs.js';
+import { dataField, defineSkillFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
 /** Ranger pet fields read only by Ranger mechanics. */
 export const RANGER_CORE_SKILL_FIELDS = defineSkillFields(
   {
+    // Actor actions own autonomous recharge independently of the commanded skill cooldown.
+    autonomousRecharge: numberField({ unit: 'seconds', patch: 'primary' }),
+    quicknessAutonomousRecharge: numberField({ unit: 'seconds', patch: 'primary' }),
+    charges: numberField({ patch: 'primary' }),
+    echoDelay: numberField({ unit: 'seconds', patch: 'primary' }),
+    impairedDamageMultiplier: numberField({ patch: 'primary' }),
     // Executed by the pet rather than the player.
     petSkill: dataField,
     // Belongs to the selected pet family's skill set.

@@ -1,7 +1,6 @@
 import { BOON } from '#gw2/platform/constants.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -244,7 +243,7 @@ test('Avatar re-entry survives its previous depletion task', () => {
 test('Signet of the Wild evaluates readiness and preserves pet launch snapshots', () => {
   // Exercise the composed attribute hooks, including their declared ordering, as the runtime does.
   const ranger = rangerProfession.runtimeFor({ specialization: 'Core' });
-  const bonus = rangerCatalog.balanceProfilesById.get(PROFILE.signetOfTheWild).attributeBonus;
+  const bonus = rangerCatalog.skillsById.get(ID.SIGNET_OF_THE_WILD).attributeBonuses.ferocity;
   for (const selected of [false, true]) {
     for (const ready of [false, true]) {
       const context = {

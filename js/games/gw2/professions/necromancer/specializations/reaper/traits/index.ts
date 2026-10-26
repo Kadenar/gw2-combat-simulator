@@ -22,6 +22,13 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
+/** Shroud Knight owns Reaper Shroud's intrinsic life-force drain. */
+const shroudKnight = defineTrait({
+  id: TRAIT.SHROUD_KNIGHT,
+  name: 'Shroud Knight',
+  balance: { lifeForceDrain: 4, effects: [] }
+});
+
 /** Accepted Chill admits Bleeding only through the selected, enabled trait trigger. */
 const deathlyChill = defineTrait({
   id: TRAIT.DEATHLY_CHILL,
@@ -341,6 +348,7 @@ const soulEater = defineTrait({
 
 /** Registers each native trait owner once in its existing execution order. */
 export const necromancerReaperTraits = [
+  shroudKnight,
   deathlyChill,
   chillingNova,
   reapersOnslaught,

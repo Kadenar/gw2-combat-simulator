@@ -1,3 +1,4 @@
+import { SPECTER_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/specter/skills/guild-attacks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
@@ -13,6 +14,7 @@ export const specterModule = defineNativeModule({
   traitDefinitions: specterTraits,
   id: 'Specter',
   data: createThiefModuleData('Specter', {
+    extraSkills: SPECTER_GUILD_ATTACK_SKILLS,
     skillFields: SPECTER_SKILL_FIELDS,
     skillMechanics: SPECTER_SKILL_MECHANICS,
     balanceProfiles: SPECTER_BALANCE_PROFILES

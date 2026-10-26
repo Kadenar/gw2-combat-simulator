@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { CONTROL } from '#gw2/platform/constants.js';
 import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -64,7 +65,7 @@ function strikes(
         ...(attackType === 'summon-spirits'
           ? {
               sourceId: `ritualist.${spirit.key}.summon-spirits`,
-              weaponStrength: balanceNumberFromContext(runtime, PROFILE.resources, 'weaponStrength')
+              weaponStrength: balanceNumberFromContext(runtime, PROFILE.spiritCadence, 'weaponStrength')
             }
           : {
               weaponStrengthProfileId: 'transform.ritualist-shroud',
@@ -107,11 +108,11 @@ export const ritualistSpiritActions: NonNullable<
     const cast = context.cast;
     const spirit = spiritDefinition(runtime, cast.skill.id)!;
     summonRitualistSpirit(runtime, cast, spirit);
-    const opening = requireBalanceProfileFromContext(runtime, PROFILE.anguish);
+    const opening = cast.skill;
     runtime.effects.emit({
       kind: 'profile',
       profile: opening,
-      effects: opening.effects?.filter((effect) => effect.type === 'condition'),
+      effects: requireSkillAction(opening, 'opening').effects.filter((effect) => effect.type === 'condition'),
       attribution: attribution(cast),
       transform: (event) => ({
         ...event,
@@ -152,11 +153,11 @@ export const ritualistSpiritActions: NonNullable<
     const first = spirit.lingeringTicks[0];
 
     if (first) {
-      const opening = requireBalanceProfileFromContext(runtime, PROFILE.wanderlust);
+      const opening = cast.skill;
       runtime.effects.emit({
         kind: 'profile',
         profile: opening,
-        effects: opening.effects?.filter((effect) => effect.type === 'condition'),
+        effects: requireSkillAction(opening, 'opening').effects.filter((effect) => effect.type === 'condition'),
         at: canonicalTime(runtime.time + first.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
         attribution: { ...attribution(cast), ...spiritFields(key, 'initial') },
         transform: (event) => ({

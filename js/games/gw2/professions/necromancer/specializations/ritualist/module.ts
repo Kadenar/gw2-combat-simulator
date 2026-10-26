@@ -1,3 +1,5 @@
+import { RITUALIST_SPIRIT_ATTACK_SKILLS } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
+import { RITUALIST_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/ritualist/skill-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import { ritualistHooks } from '#gw2/professions/necromancer/specializations/ritualist/hooks.js';
@@ -15,6 +17,8 @@ export const ritualistModule = defineNativeModule({
   traitDefinitions: necromancerRitualistTraits,
   id: 'Ritualist',
   data: createNecromancerModuleData('Ritualist', {
+    extraSkills: RITUALIST_SPIRIT_ATTACK_SKILLS,
+    skillFields: RITUALIST_SKILL_FIELDS,
     skillMechanics: RITUALIST_BASE_SKILL_MECHANICS,
     balanceProfiles: RITUALIST_BALANCE_PROFILES
   }),

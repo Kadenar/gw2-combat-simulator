@@ -1,3 +1,4 @@
+import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ACTOR, COMBO_FINISHER, RECIPIENT, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -6,17 +7,18 @@ import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Both Maul variants share their strike, timing, recharge, and vulnerability; their bonus recipients differ.
 const maul: Partial<Skill> = {
+  // Each Maul variant independently owns the next-attack grant window.
+  duration: 10,
   cooldown: 4,
   castTimeMs: 840,
   effects: [
@@ -76,6 +78,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.ENDURING_SWING]: {
+    resourceGain: 15,
     castTimeMs: 800,
     effects: [
       {
@@ -91,7 +94,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
         do: {
           type: 'resourceGrant',
           resource: 'endurance',
-          amount: { profile: ID.ENDURING_SWING, field: 'resourceGain' }
+          amount: { skillField: 'resourceGain' }
         }
       }
     ]
@@ -205,7 +208,7 @@ function grantMaulAttackOfOpportunity(
       skillName: 'Attack of Opportunity',
 
       kind: `attack-of-opportunity-${recipient}`,
-      duration: balanceNumberFromContext(context, PROFILE.attackOfOpportunity, 'duration'),
+      duration: skillNumber(requireSkillFromContext(context, event.skillId!), 'duration'),
       stacks: 1,
       audience:
         recipient === 'pet'

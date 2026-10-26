@@ -27,6 +27,13 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 
+/** Spawning Power owns baseline shroud drain and the shared spirit pulse interval. */
+const spawningPower = defineTrait({
+  id: TRAIT.SPAWNING_POWER,
+  name: 'Spawning Power',
+  balance: { lifeForceDrain: 3, pulseInterval: 4, effects: [] }
+});
+
 /** Owns Spirits' Strength tuning and behavior at its existing execution boundaries. */
 const spiritsStrength = defineTrait({
   id: TRAIT.SPIRITS_STRENGTH,
@@ -163,6 +170,7 @@ const wieldersBoon = defineTrait({ id: TRAIT.WIELDERS_BOON, name: "Wielder's Boo
 
 /** Registers each native trait owner once in its existing execution order. */
 export const necromancerRitualistTraits = [
+  spawningPower,
   spiritsStrength,
   explosiveGrowth,
   boonOfCreation,

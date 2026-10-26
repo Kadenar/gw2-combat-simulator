@@ -15,11 +15,11 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { compileRechargeRules, onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumberFromContext,
+  skillNumber,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { mesmerConditionApplied } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
@@ -270,15 +270,22 @@ function triggerThePledge(context: MesmerRuntime, event: SimulationEvent): void 
 export function cryOfPainConfusion(
   context: unknown,
   condition: ConditionEffect | undefined,
-  profileId: BalanceProfile['id'] = TRAIT.CRY_OF_PAIN
+  flute?: MesmerSkill
 ): ConditionEffect | undefined {
   if (!condition || !hasTrait(context, TRAIT.CRY_OF_PAIN)) return condition;
 
-  const profile = requireBalanceProfileFromContext(context, profileId);
+  const profile = requireBalanceProfileFromContext(context, TRAIT.CRY_OF_PAIN);
   return {
     ...condition,
-    stacks: (condition.stacks ?? 1) + balanceProfileNumber(profile, 'additionalStacks'),
-    duration: (condition.duration ?? 0) * (1 + balanceProfileNumber(profile, 'durationMultiplier'))
+    stacks:
+      (condition.stacks ?? 1) +
+      (flute ? skillNumber(flute, 'cryOfPainAdditionalStacks') : balanceProfileNumber(profile, 'additionalStacks')),
+    duration:
+      (condition.duration ?? 0) *
+      (1 +
+        (flute
+          ? skillNumber(flute, 'cryOfPainDurationMultiplier')
+          : balanceProfileNumber(profile, 'durationMultiplier')))
   };
 }
 
@@ -415,7 +422,7 @@ export function phantasmalHasteSpeed(context: MesmerRuntime): number {
 export const masterOfMisdirectionRecharge = compileRechargeRules<MesmerRuntimeState, MesmerSkill>([
   {
     trait: TRAIT.MASTER_OF_MISDIRECTION,
-    when: (_runtime, skill) => Boolean(skill.shatter || skill.instrument || skill.crescendoProfileId),
+    when: (_runtime, skill) => Boolean(skill.shatter || skill.instrument || skill.id === ID.CRESCENDO),
     multiplier: { profile: TRAIT.MASTER_OF_MISDIRECTION, field: 'rechargeMultiplier' }
   }
 ]);
@@ -453,8 +460,8 @@ export function masterOfFragmentationRequiem(context: MesmerRuntime, packets: re
 }
 
 /** Crescendo uses the trait's per-instrument coefficient only when selected. */
-export function masterOfFragmentationCrescendo(context: MesmerRuntime, profile: BalanceProfile): number {
+export function masterOfFragmentationCrescendo(context: MesmerRuntime, skill: MesmerSkill): number {
   return hasTrait(context, TRAIT.MASTER_OF_FRAGMENTATION)
     ? balanceNumberFromContext(context, TRAIT.MASTER_OF_FRAGMENTATION, 'damageIncreasePerStack')
-    : balanceProfileNumber(profile, 'damageIncreasePerStack');
+    : skillNumber(skill, 'damageIncreasePerInstrument');
 }

@@ -61,7 +61,6 @@ import {
   thiefStealthLifecycle
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { activateVenom, applyActiveVenoms, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
 import {
   leadAttacksRechargeReduction,
@@ -235,7 +234,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
 export const thiefCoreHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
   thiefStealthLifecycle,
   infiltratorsSignetLifecycle,
-  ashenAssaultLifecycle(ID.ASHEN_ASSAULT, PROFILE.ashenAssaultRefund),
+  ashenAssaultLifecycle(ID.ASHEN_ASSAULT),
   coreLifecycle
 ]);
 

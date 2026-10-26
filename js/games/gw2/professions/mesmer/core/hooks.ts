@@ -1,3 +1,5 @@
+import { ACTOR } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -55,6 +57,26 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     buffPolicies: mesmerBuffPolicies,
     observeEffects: mesmerEffectStates,
     sideEffectHandlers: {
+      // Only the accepted landed-hit reaction emits the clone-cap replacement condition.
+      'mesmer.core.clone-limit'(runtime, context) {
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: context.skill,
+          effects: requireSkillAction(context.skill, 'clone-limit').effects,
+          transform: (event) => ({ ...event, name: context.skill.name }),
+          cause: context.kind === 'effect' ? context.trigger.event : undefined,
+          at: runtime.time,
+          fullEnd: runtime.time,
+          attribution: {
+            source: 'Player',
+            sourceId: context.skill.id,
+            skillId: context.skill.id,
+            skillName: context.skill.name,
+            activationId: context.kind === 'cast' ? context.cast.id : context.trigger.event.activationId,
+            actorType: ACTOR.PLAYER
+          }
+        });
+      },
       'mesmer.core.chaos-storm-poison'(runtime, context) {
         if (context.kind === 'cast') scheduleChaosStormPoison(runtime, context.cast);
       },

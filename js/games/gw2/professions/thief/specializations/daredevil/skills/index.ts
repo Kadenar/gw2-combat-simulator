@@ -4,7 +4,6 @@ import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { DAREDEVIL_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
 
 // Accepted physical skills fire the point where Brawler's Tenacity grants endurance.
 const PHYSICAL_ENDURANCE: NonNullable<Skill['sideEffects']> = [
@@ -214,6 +213,9 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.FIST_FLURRY]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    flipDuration: 5,
+
     cooldown: 16,
     initiativeCost: 0,
     castTimeMs: 680,
@@ -239,8 +241,7 @@ export const DAREDEVIL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
         when: (_runtime, cast) => cast.command.offTarget !== true && !castWasInterrupted(cast),
         do: {
           type: 'flipArm',
-          skillId: ID.PALM_STRIKE,
-          durationSec: { profile: PROFILE.palmStrike, field: 'flipDuration' }
+          skillId: ID.PALM_STRIKE
         }
       }
     ]

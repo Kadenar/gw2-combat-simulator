@@ -7,11 +7,12 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
   balanceNumberFromContext,
+  skillNumber,
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { paragonRefrains } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -24,7 +25,7 @@ export function startRefrain(runtime: WarriorRuntime): void {
   const state = paragonState.from(runtime);
   runtime.cancelOwner({ id: REFRAIN, generation: state.refrainGeneration });
   state.refrainGeneration++;
-  const interval = balanceNumberFromContext(runtime, PROFILE.resources, 'pulseInterval');
+  const interval = balanceNumberFromContext(runtime, TRAIT.RALLY_THE_VALIANT, 'pulseInterval');
 
   if (interval > 0)
     runtime.schedule(
@@ -40,7 +41,7 @@ export function startRefrain(runtime: WarriorRuntime): void {
 const paragonMotivationPolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
   state: (runtime) => paragonState.from(runtime).motivation,
-  maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
+  maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
   initial: () => 0,
   recovery: () => 0
 };
@@ -86,7 +87,7 @@ function pulseRefrain(runtime: WarriorRuntime): void {
     return;
   }
 
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.RALLY_THE_VALIANT);
   const level =
     motivation >= balanceProfileNumber(profile, 'threshold')
       ? 3
@@ -99,12 +100,14 @@ function pulseRefrain(runtime: WarriorRuntime): void {
 
   const { cost, kinds } = recipe.pulse(level);
 
-  const refrain = requireBalanceProfileFromContext(runtime, PROFILE.refrain);
+  const refrain = requireSkillAction(skill, 'chant');
   // Select the tier before spending; only Might scales its stacks with the tier and Enduring Refrain.
   runtime.effects.emit({
     kind: 'profile',
-    profile: refrain,
-    effects: refrain.effects?.filter((effect) => effect.type === 'boon' && kinds.includes(String(effect.boon))),
+    profile: skill,
+    effects: refrain.effects.filter(
+      (effect) => effect.type === 'boon' && effect.name?.startsWith('Refrain ') && kinds.includes(String(effect.boon))
+    ),
     attribution: {
       source: 'Paragon',
       sourceId: skill.id,
@@ -145,18 +148,21 @@ function pulseRefrain(runtime: WarriorRuntime): void {
 function activateChant(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const state = paragonState.from(runtime);
   state.activeRefrainId = cast.skill.id;
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.chants);
+  const action = requireSkillAction(cast.skill, 'chant');
   runtime.resourceController.grant(
     'motivation',
-    balanceProfileNumber(profile, 'resourceGain') + enduringRefrainMotivation(runtime)
+    skillNumber(cast.skill, 'resourceGain') + enduringRefrainMotivation(runtime)
   );
   startRefrain(runtime);
   const kinds = paragonRefrains[Number(cast.skill.id)].openingBoons;
 
   runtime.effects.emit({
     kind: 'profile',
-    profile: profile,
-    effects: (profile.effects ?? []).filter((effect) => effect.type === 'boon' && kinds.includes(String(effect.boon))),
+    profile: cast.skill,
+    // Entry and refrain components are independently removable on the same owning skill.
+    effects: action.effects.filter(
+      (effect) => effect.type === 'boon' && effect.name?.startsWith('Entry ') && kinds.includes(String(effect.boon))
+    ),
     attribution: {
       source: 'Paragon',
       sourceId: cast.skill.id,

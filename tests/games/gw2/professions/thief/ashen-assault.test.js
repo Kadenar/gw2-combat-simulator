@@ -5,12 +5,11 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 
 // Synthetic packets isolate cancellation, hit ownership, and the all-strikes refund without calibrating native timing.
-for (const [skillId, specialization, refund] of [
-  [ID.ASHEN_ASSAULT, 'Core', CORE.ashenAssaultRefund],
-  [ID.MALICIOUS_ASHEN_ASSAULT, 'Deadeye', DEADEYE.maliciousAshenAssault]
+for (const [skillId, specialization] of [
+  [ID.ASHEN_ASSAULT, 'Core'],
+  [ID.MALICIOUS_ASHEN_ASSAULT, 'Deadeye']
 ]) {
   test(`${specialization} Ashen channel keeps landed damage and refunds only an entirely landed activation`, () => {
     const run = ({ interruptAfterMs, missed = false } = {}) =>
@@ -22,18 +21,15 @@ for (const [skillId, specialization, refund] of [
             runtime.profession.core.stealthUntil = 10;
           },
           catalog: (catalog) =>
-            withSkill(
-              withProfile(withProfile(catalog, CORE.resources, { resourceGain: 0 }), refund, { resourceGain: 7 }),
-              skillId,
-              {
-                castTimeMs: 1000,
-                effects: [
-                  { type: 'strike', name: 'First', coefficient: 1, atMs: 200, timingAnchor: 'castStart' },
-                  { type: 'strike', name: 'Middle', coefficient: 1, atMs: 400, timingAnchor: 'castStart' },
-                  { type: 'strike', name: 'Final', coefficient: 1, atMs: 600, timingAnchor: 'castStart' }
-                ]
-              }
-            ),
+            withSkill(withProfile(catalog, CORE.resources, { resourceGain: 0 }), skillId, {
+              initiativeRefund: 7,
+              castTimeMs: 1000,
+              effects: [
+                { type: 'strike', name: 'First', coefficient: 1, atMs: 200, timingAnchor: 'castStart' },
+                { type: 'strike', name: 'Middle', coefficient: 1, atMs: 400, timingAnchor: 'castStart' },
+                { type: 'strike', name: 'Final', coefficient: 1, atMs: 600, timingAnchor: 'castStart' }
+              ]
+            }),
           extend: (native) => ({
             prepareEvent(runtime, event) {
               const prepared = native.prepareEvent?.(runtime, event) ?? event;

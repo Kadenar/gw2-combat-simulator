@@ -322,26 +322,6 @@ const lastingLegacy = defineTrait({
       }
     ]
   },
-  profiles: [
-    {
-      id: RENEGADE_PROFILE_IDS.heroicCommandLastingLegacy,
-      name: 'Heroic Command (Lasting Legacy)',
-      profileKind: 'skill-variant',
-
-      variantBadge: 'Lasting Legacy',
-      effects: [
-        {
-          name: boonKey(BOON.MIGHT),
-          type: 'boon',
-          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-          boon: BOON.MIGHT,
-          duration: 8,
-          stacks: 3,
-          actorType: ACTOR.PLAYER
-        }
-      ]
-    }
-  ],
   modifierRules: [
     {
       requiresSelection: false,
@@ -381,25 +361,7 @@ const lastingLegacy = defineTrait({
 /** Owns Righteous Rebel tuning and behavior at its established execution boundaries. */
 const righteousRebel = defineTrait({
   id: TRAIT.RIGHTEOUS_REBEL,
-  name: 'Righteous Rebel',
-  balance: {
-    id: RENEGADE_PROFILE_IDS.ordersFromAboveRighteousRebel,
-    variantBadge: 'Righteous Rebel',
-    effects: [
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.ALACRITY,
-        duration: 2,
-        stacks: 1,
-        applications: 6,
-        intervalMs: 1000,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed',
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  }
+  name: 'Righteous Rebel'
 });
 
 /** Owns Vindication tuning and behavior at its established execution boundaries. */

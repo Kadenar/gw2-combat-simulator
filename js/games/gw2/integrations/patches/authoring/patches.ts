@@ -1,4 +1,4 @@
-import { hasActionEffects } from '#gw2/platform/effects/actions.js';
+import { hasActionEffects, skillActions } from '#gw2/platform/effects/actions.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
 import { validateActionIds } from '#gw2/platform/effects/action-validation.js';
 import {
@@ -68,10 +68,10 @@ export interface EffectPatch extends EffectSelector {
   };
 }
 
-export type ActionEffectPatchEdit = Pick<SkillPatchEdit, 'effects' | 'removeEffects'>;
+export type ActionEffectPatchEdit = Pick<SkillPatchEdit, 'effects' | 'removeEffects' | 'addEffects'>;
 
 export interface SkillPatchEdit {
-  /** Select one existing cast action by its stable id; predicates and execution order stay authored. */
+  /** Select one existing cast or impact action by its stable id; predicates and execution order stay authored. */
   readonly sideEffects?: Readonly<Record<string, ActionEffectPatchEdit>>;
   /** Keep provisional balance assumptions attached to their canonical skill or trait profile edit. */
   readonly assumption?: string;
@@ -253,7 +253,7 @@ function actionEffectEdits(source: Skill | BalanceProfile, edit: SkillPatchEdit)
   if (!edit.sideEffects || typeof edit.sideEffects !== 'object' || Array.isArray(edit.sideEffects))
     throw new TypeError(`${source.name} sideEffects edits must be an object.`);
 
-  const actions = ((source as Skill).sideEffects ?? []).map((rule) => rule.do);
+  const actions = skillActions(source);
   validateActionIds(actions, source.name);
   return Object.entries(edit.sideEffects).map(([id, changes]) => {
     const action = actions.find((action) => 'id' in action && action.id === id);
@@ -264,11 +264,11 @@ function actionEffectEdits(source: Skill | BalanceProfile, edit: SkillPatchEdit)
       !changes ||
       typeof changes !== 'object' ||
       Array.isArray(changes) ||
-      Object.keys(changes).some((key) => !['effects', 'removeEffects'].includes(key))
+      Object.keys(changes).some((key) => !['effects', 'removeEffects', 'addEffects'].includes(key))
     )
-      throw new TypeError(`${source.name} action ${id} supports only effects and removeEffects edits.`);
+      throw new TypeError(`${source.name} action ${id} supports only effects, removeEffects, and addEffects edits.`);
 
-    for (const key of ['effects', 'removeEffects'] as const)
+    for (const key of ['effects', 'removeEffects', 'addEffects'] as const)
       if (changes[key] !== undefined && !Array.isArray(changes[key]))
         throw new TypeError(`${source.name} action ${id} ${key} must be an array.`);
     return { action, changes };
@@ -775,7 +775,7 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string, skillFiel
   Object.assign(mutable, patchEffects(clone, edit, ownerLabel));
 
   // Finish all reward edits before freezing and normalizing the cloned action declarations.
-  if (clone.sideEffects) mutable.sideEffects = snapshotActionDeclaration(clone.sideEffects);
+  if (clone.sideEffects) mutable.sideEffects = snapshotActionDeclaration(clone.sideEffects, normalizeSkillEffects);
 
   validateDurationFields(mutable, ownerLabel);
   return deepFreeze(clone);

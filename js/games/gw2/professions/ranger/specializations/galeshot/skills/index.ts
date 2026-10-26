@@ -28,13 +28,26 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     effects: []
   },
   [ID.MISTRAL]: {
+    // The enhancement window and its missile payload belong to the activating skill.
+    duration: 6,
     arrowsRestored: 1,
     castTimeMs: 320,
     effects: [],
     // Accepted starts restore the live arrow amount through the existing capped recovery clock.
     sideEffects: [
       // Open the enhancement before restoring arrows, matching the activation ordering.
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.mistral' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: {
+          type: 'ranger.mistral',
+          id: 'missile-trigger',
+          effects: [
+            { name: 'Strike', type: 'strike', coefficient: 0.3, hits: 1 },
+            { name: CONDITION.CHILLED, type: 'condition', condition: CONDITION.CHILLED, duration: 1, stacks: 1 }
+          ]
+        }
+      },
       {
         on: 'castStart',
         when: (_runtime, cast) => !cast.cancelled,

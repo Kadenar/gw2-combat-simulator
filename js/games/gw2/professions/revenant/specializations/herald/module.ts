@@ -4,7 +4,6 @@ import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-
 import { heraldHooks } from '#gw2/professions/revenant/specializations/herald/hooks.js';
 
 import { heraldUi } from '#gw2/professions/revenant/specializations/herald/presentation.js';
-import { HERALD_BALANCE_PROFILES } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import {
   HERALD_BASE_SKILL_MECHANICS,
   burstOfStrengthModifiers
@@ -19,8 +18,7 @@ export const heraldModule = defineNativeModule({
   id: 'Herald',
   data: createRevenantModuleData('Herald', {
     skillFields: HERALD_SKILL_FIELDS,
-    skillMechanics: HERALD_BASE_SKILL_MECHANICS,
-    balanceProfiles: HERALD_BALANCE_PROFILES
+    skillMechanics: HERALD_BASE_SKILL_MECHANICS
   }),
   state: { create: heraldState.create },
   attributes: heraldAttributes,

@@ -1,10 +1,11 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   buildRangerPacket,
-  emitRangerProfile,
+  emitRangerAction,
   type RangerProfileDelivery
 } from '#gw2/professions/ranger/core/events.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -17,10 +18,9 @@ export function grantSkillCharges(
   runtime: RangerRuntime,
   cast: RuntimeCast<RangerSkill>,
   type: string,
-  profileId: SkillId,
   summonOwner?: string
 ): void {
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
+  const skill = cast.skill;
   runtime.effects.emit({
     kind: 'packet',
     event: buildRangerPacket(
@@ -30,8 +30,8 @@ export function grantSkillCharges(
         skillName: cast.skill.name,
         activationId: cast.id,
         ...(summonOwner ? { summonOwner } : {}),
-        charges: balanceProfileNumber(profile, 'charges'),
-        duration: balanceProfileNumber(profile, 'duration')
+        charges: skillNumber(skill, 'charges'),
+        duration: skillNumber(skill, 'duration')
       },
       type
     )
@@ -39,19 +39,21 @@ export function grantSkillCharges(
 }
 
 /**
- * Spend one charge for an eligible hit, then deliver the profile's payload once at that hit. A patch that removes
+ * Spend one charge for an eligible hit, then deliver the action's payload once at that hit. A patch that removes
  * the payload leaves the charge unspent, because the grant exists only to deliver it.
  */
 export function deliverChargedHit(
   context: RangerResolverContext,
   event: Gw2ResolverEvent,
-  profileId: SkillId,
+  skillId: SkillId,
+  actionId: string,
   spend: () => boolean,
   delivery: RangerProfileDelivery
 ): void {
-  const profile = requireBalanceProfileFromContext(context, profileId);
+  const skill = requireSkillFromContext(context, skillId);
+  const action = requireSkillAction(skill, actionId);
 
-  if (!profile.effects?.length || !spend()) return;
+  if (!action.effects.length || !spend()) return;
 
-  emitRangerProfile(context, event.at, profile, delivery);
+  emitRangerAction(context, event.at, skill, actionId, delivery);
 }

@@ -182,15 +182,12 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
 }
 
 /** Selected first-hit profiles retain self-condition storage and derived enemy applications. */
-export function resolveNecromancerSkillConditions(
-  runtime: NecromancerRuntime,
-  event: Gw2ResolverEvent,
-  profileId: SkillId
-): void {
+export function resolveNecromancerSkillConditions(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   const skill = runtime.helpers.skillsById.get(event.skillId!)!;
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
-  for (const effect of profile.effects ?? []) {
-    if (effect.type !== 'condition') continue;
+  // The selected weapon owns its first-hit templates; self applications retain their recipient.
+  const profile = skill;
+  for (const effect of skill.effects ?? []) {
+    if (effect.type !== 'condition' || effect.packetLabel !== 'first-hit') continue;
 
     const condition = String(effect.condition);
     const stacks = effectNumber(profile, effect, 'stacks');

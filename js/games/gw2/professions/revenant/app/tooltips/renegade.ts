@@ -61,9 +61,16 @@ const heroicCommandTooltip: DescribeSimulationTooltip = (balanceContext, entity)
   description:
     "Refresh your active Kalla's Fervor stacks and grant might for each stack. Lasting Legacy replaces the base might amount. With no active Fervor, this grants no might.",
   facts: [
-    ...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'per Fervor stack').facts,
     ...simulationEffectFacts(
-      tooltipProfile(balanceContext, RENEGADE.heroicCommandLastingLegacy).effects,
+      balanceContext.catalog.skillsById
+        .get(entity.id)!
+        .effects?.filter((effect) => effect.name !== 'lasting-legacy-might'),
+      'per Fervor stack'
+    ).facts,
+    ...simulationEffectFacts(
+      balanceContext.catalog.skillsById
+        .get(ID.HEROIC_COMMAND)!
+        .effects?.filter((effect) => effect.name === 'lasting-legacy-might'),
       'per Fervor stack with Lasting Legacy instead'
     ).facts
   ]
@@ -73,9 +80,16 @@ const ordersFromAboveTooltip: DescribeSimulationTooltip = (balanceContext, entit
   description:
     'Pulse alacrity. Righteous Rebel replaces the base pulse package; together with Bold Reversal it also adds protection.',
   facts: [
-    ...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'base pulses').facts,
     ...simulationEffectFacts(
-      tooltipProfile(balanceContext, RENEGADE.ordersFromAboveRighteousRebel).effects,
+      balanceContext.catalog.skillsById
+        .get(entity.id)!
+        .effects?.filter((effect) => effect.name !== 'righteous-rebel-alacrity'),
+      'base pulses'
+    ).facts,
+    ...simulationEffectFacts(
+      balanceContext.catalog.skillsById
+        .get(ID.ORDERS_FROM_ABOVE)!
+        .effects?.filter((effect) => effect.name === 'righteous-rebel-alacrity'),
       'with Righteous Rebel instead'
     ).facts,
     ...simulationEffectFacts(
@@ -203,9 +217,14 @@ export const renegadeTooltips = {
         ['lifeSiphonDamagePerStack', 'Life-siphon damage per stack', tooltipPercent]
       ]
     ),
-    [TRAIT.RIGHTEOUS_REBEL]: profileTooltip(
-      RENEGADE.ordersFromAboveRighteousRebel,
-      'Orders from Above uses its extended alacrity pulse sequence.'
+    [TRAIT.RIGHTEOUS_REBEL]: traitTooltip(
+      'Orders from Above uses its extended alacrity pulse sequence.',
+      (balanceContext) =>
+        simulationEffectFacts(
+          balanceContext.catalog.skillsById
+            .get(ID.ORDERS_FROM_ABOVE)!
+            .effects?.filter((effect) => effect.name === 'righteous-rebel-alacrity')
+        ).facts
     )
   }
 } satisfies ProfessionTooltips;

@@ -1,18 +1,17 @@
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import {
-  fromProfile,
-  profileFact,
+  fromSkill,
+  skillFact,
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
   tooltipNumber,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
+import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js';
 import { warriorStrengthTooltips } from '#gw2/professions/warrior/app/tooltips/strength.js';
@@ -94,28 +93,28 @@ export const warriorCoreTooltips = {
           'Throw your spear at the primary target. Shards that only hit secondary enemies are excluded from this single-target simulation.'
       };
     },
-    [ID.COMBUSTIVE_SHOT]: (balanceContext) => {
-      const profile = tooltipProfile(balanceContext, CORE.combustiveShot);
+    [ID.COMBUSTIVE_SHOT]: (balanceContext, entity) => {
+      const selected = requireSkillFromContext(balanceContext, entity.id);
       // Burst tiers are alternatives; keep each field duration with its own damage and burning payload.
       return {
         description:
           'Spend adrenaline to create a fire field that repeatedly strikes and burns your target. Higher burst tiers add pulses and extend the field.',
-        facts: [profileFact(balanceContext, CORE.combustiveShot, 'pulseInterval', 'Pulse interval', tooltipSeconds)],
+        facts: [skillFact(balanceContext, entity.id, 'pulseInterval', 'Pulse interval', tooltipSeconds)],
         factTabs: [1, 2, 3].map((tier) => ({
           label: `Burst tier ${tier}`,
           facts: [
-            ...simulationEffectFacts(profile.effects?.map((effect) => ({ ...effect, applications: tier + 1 }))).facts,
+            ...simulationEffectFacts(selected.effects?.map((effect) => ({ ...effect, applications: tier + 1 }))).facts,
             {
               name: 'Combo field',
-              detail: `Fire · ${tooltipSeconds(tier * tooltipNumber(profile, 'durationPerTier'))}`
+              detail: `Fire · ${tooltipSeconds(tier * tooltipNumber(selected, 'durationPerTier'))}`
             }
           ]
         }))
       };
     },
-    [ID.DRAGONS_ROAR]: (balanceContext) => ({
+    [ID.DRAGONS_ROAR]: (balanceContext, entity) => ({
       description: 'Consume all available ammunition and fire one explosive strike for each round spent.',
-      facts: simulationEffectFacts(tooltipProfile(balanceContext, CORE.dragonsRoar).effects, 'per round spent').facts
+      facts: simulationEffectFacts(requireSkillFromContext(balanceContext, entity.id).effects, 'per round spent').facts
     }),
     [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger applicable dodge traits. Incoming attacks are outside simulation scope.',
@@ -124,19 +123,19 @@ export const warriorCoreTooltips = {
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: skillTooltip(
       'Swap to your other weapon set and trigger applicable weapon-swap effects.'
     ),
-    // Signet attributes live in mechanic profiles, separate from the active skill packets.
+    // Each signet owns its passive attributes and active tuning, so tooltips follow selected skill patches.
     [ID.SIGNET_OF_STAMINA]: skillTooltip(
       'Passively increases endurance regeneration while ready. Activation restores endurance and triggers signet traits.',
-      [fromProfile(CORE.signetPassives, 'enduranceRegenerationBonus', 'Passive endurance regeneration', tooltipPercent)]
+      [fromSkill(ID.SIGNET_OF_STAMINA, 'enduranceRegenerationBonus', 'Passive endurance regeneration', tooltipPercent)]
     ),
     [ID.SIGNET_OF_MIGHT]: skillTooltip('Passively grants power while ready. Activation grants might.', [
-      fromProfile(CORE.signetPassives, 'attributeBonus', 'Passive power')
+      fromSkill(ID.SIGNET_OF_MIGHT, 'attributeBonuses.power', 'Passive power')
     ]),
     [ID.SIGNET_OF_FURY]: skillTooltip(
       'Passively grants precision while ready. Activation grants adrenaline (Flow for Bladesworn) and temporarily increases precision and ferocity.',
       [
-        fromProfile(CORE.signetPassives, 'attributeBonus', 'Passive precision'),
-        fromProfile(CORE.signetOfFuryActive, 'attributeBonus', 'Precision and ferocity during the active buff')
+        fromSkill(ID.SIGNET_OF_FURY, 'attributeBonuses.precision', 'Passive precision'),
+        fromSkill(ID.SIGNET_OF_FURY, 'activeAttributeBonus', 'Precision and ferocity during the active buff')
       ]
     ),
     [ID.RIFLE_BUTT]: skillTooltip(
@@ -160,32 +159,30 @@ export const warriorCoreTooltips = {
             : []
         )
     ),
-    [ID.EVISCERATE]: (balanceContext, entity) => ({
-      description:
-        'Spend available adrenaline on a burst and gain might. Its strike uses the profile for the adrenaline tier spent.',
-      facts: [
-        ...simulationEffectFacts(
-          balanceContext.catalog.skillsById.get(entity.id)?.effects?.filter((effect) => effect.type !== 'strike')
-        ).facts,
-        ...[CORE.eviscerateTier1, CORE.eviscerateTier2, CORE.eviscerateTier3].flatMap(
-          (id, index) =>
-            simulationEffectFacts(tooltipProfile(balanceContext, id).effects, `burst tier ${index + 1}`).facts
-        )
-      ]
-    }),
-    [ID.BLOODTHIRSTER]: (balanceContext, entity) => {
-      const selected = balanceContext.catalog.skillsById.get(entity.id);
-
-      if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
-
+    // Named tier packets keep their identity when patches remove another tier's payload.
+    [ID.EVISCERATE]: (balanceContext, entity) => {
+      const selected = requireSkillFromContext(balanceContext, entity.id);
       return {
-        description:
-          'Spend adrenaline to strike your target. Replace the base Bleeding application with the tier for the adrenaline spent.',
+        description: 'Spend available adrenaline on a burst and gain might. Its strike uses the adrenaline tier spent.',
+        facts: [
+          ...simulationEffectFacts(selected.effects?.filter((effect) => effect.type !== 'strike')).facts,
+          ...[1, 2, 3].flatMap((tier) => {
+            const effect = requireEffect(selected, 'strike', `Tier ${tier}`);
+            return simulationEffectFacts(effect ? [effect] : [], `burst tier ${tier}`).facts;
+          })
+        ]
+      };
+    },
+    [ID.BLOODTHIRSTER]: (balanceContext, entity) => {
+      const selected = requireSkillFromContext(balanceContext, entity.id);
+      return {
+        description: 'Spend adrenaline to strike your target. Bleeding scales with the adrenaline tier spent.',
         facts: [
           ...simulationEffectFacts(selected.effects?.filter((effect) => effect.type !== 'condition')).facts,
-          ...(tooltipProfile(balanceContext, CORE.bloodthirsterTiers).effects?.flatMap(
-            (effect, index) => simulationEffectFacts([effect], `burst tier ${index + 1}`).facts
-          ) || [])
+          ...[1, 2, 3].flatMap((tier) => {
+            const effect = requireEffect(selected, 'condition', `Tier ${tier}`);
+            return simulationEffectFacts(effect ? [effect] : [], `burst tier ${tier}`).facts;
+          })
         ]
       };
     },

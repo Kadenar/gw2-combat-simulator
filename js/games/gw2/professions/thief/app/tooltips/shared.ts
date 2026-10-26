@@ -1,16 +1,16 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   tooltipFactorChange,
   tooltipSeconds,
-  profileFact,
   modifierFact,
   tooltipPercent,
-  tooltipProfile,
   simulationEffectFacts,
-  type DescribeSimulationTooltip
+  type DescribeSimulationTooltip,
+  skillFact
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
+
 import { BACKSTAB_DEFIANT_MULTIPLIER } from '#gw2/professions/thief/core/skills/weapons/dagger.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as DE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { TooltipFact } from '#gw2/platform/skills/types.js';
@@ -20,7 +20,7 @@ import type { TooltipFact } from '#gw2/platform/skills/types.js';
 /** Malice changes individual packets; display their base values and name the affected packet explicitly. */
 export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id) as ThiefSkill;
-  let effects = selected.effects || [];
+  let effects = (selected.effects || []).filter((effect) => effect.packetLabel !== 'malice');
   const facts: TooltipFact[] = [];
   let description =
     'Requires stealth or an available stealth-attack charge. Beginning the attack consumes that access.';
@@ -63,14 +63,14 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
   }
 
   if (selected.id === ID.MALICIOUS_SNEAK_ATTACK) {
-    const profile = tooltipProfile(balanceContext, DE.maliciousSneakAttack);
-    // The selected scaling profile owns the independent Torment packet.
-    effects = [...effects, ...(profile.effects || [])];
+    const profile = requireSkillAction(selected, 'malice');
+    // The selected action owns the independent Torment packet.
+    effects = [...effects, ...profile.effects];
     facts.push(
-      profileFact(
+      skillFact(
         balanceContext,
-        DE.maliciousSneakAttack,
-        'durationPerTier',
+        ID.MALICIOUS_SNEAK_ATTACK,
+        'durationPerMalice',
         'Additional torment duration per malice',
         tooltipSeconds
       )
@@ -103,35 +103,28 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
 
   if (selected.spearStealthAttack) {
     description += ' Restores initiative on completion and resets the spear chain to its lead attacks.';
-    facts.push(
-      profileFact(
-        balanceContext,
-        selected.malicious ? DE.maliciousAshenAssault : CORE.ashenAssaultRefund,
-        'resourceGain',
-        'Initiative restored'
-      )
-    );
+    facts.push(skillFact(balanceContext, selected.id, 'initiativeRefund', 'Initiative restored'));
 
     if (selected.malicious) {
       description +=
         ' Malice increases only the final strike coefficient. Positive malice also adds torment on completion.';
       facts.push(
-        profileFact(
+        skillFact(
           balanceContext,
-          DE.maliciousAshenAssault,
-          'coefficientMultiplier',
+          ID.MALICIOUS_ASHEN_ASSAULT,
+          'coefficientPerMalice',
           'Final strike coefficient increase per malice',
           tooltipPercent
         ),
-        profileFact(
+        skillFact(
           balanceContext,
-          DE.maliciousAshenAssault,
-          'durationPerTier',
+          ID.MALICIOUS_ASHEN_ASSAULT,
+          'durationPerMalice',
           'Additional torment duration per malice',
           tooltipSeconds
         ),
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, DE.maliciousAshenAssault).effects,
+          selected.effects?.filter((effect) => effect.packetLabel === 'malice'),
           'requires positive malice; base duration before malice'
         ).facts
       );

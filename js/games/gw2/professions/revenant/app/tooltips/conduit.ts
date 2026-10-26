@@ -23,10 +23,13 @@ const beguilingHazeTooltip: DescribeSimulationTooltip = (balanceContext, entity)
   facts: [
     ...simulationEffectFacts(balanceContext.catalog.skillsById.get(entity.id)!.effects, 'main cast').facts,
     ...simulationEffectFacts(
-      tooltipProfile(balanceContext, CONDUIT.beguilingHazeFollowUp).effects,
+      balanceContext.catalog.skillsById.get(ID.BEGUILING_HAZE_FOLLOW_UP)!.effects,
       'per follow-up instead'
     ).facts,
-    profileFact(balanceContext, CONDUIT.beguilingHazeFollowUp, 'maximumStacks', 'Follow-up charges')
+    {
+      name: 'Follow-up charges',
+      detail: String(tooltipNumber(balanceContext.catalog.skillsById.get(ID.BEGUILING_HAZE_FOLLOW_UP), 'maximumStacks'))
+    }
   ]
 });
 
@@ -96,7 +99,17 @@ const releasePotentialTooltip: DescribeSimulationTooltip = (balanceContext, enti
             ])
       ]),
       ...(selected.id === ID.RELEASE_POTENTIAL_DERVISH
-        ? [profileFact(balanceContext, CONDUIT.affinity, 'minimumStacks', 'Affinity for all Dervish legend effects')]
+        ? [
+            {
+              name: 'Affinity for all Dervish legend effects',
+              detail: String(
+                tooltipNumber(
+                  balanceContext.catalog.skillsById.get(ID.RELEASE_POTENTIAL_DERVISH),
+                  'allLegendAffinityThreshold'
+                )
+              )
+            }
+          ]
         : [])
     ]
   };

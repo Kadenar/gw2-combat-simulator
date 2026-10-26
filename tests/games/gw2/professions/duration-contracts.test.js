@@ -3,26 +3,25 @@ import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import {
-  balanceProfilePatchableNumericFields,
-  skillPatchableNumericFields
-} from '#gw2/integrations/patches/authoring/fields.js';
+import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { VENOMS, activateVenom } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { prepareTrap, thiefTrapAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 
-// Profile lifetime controls charge entitlement, independently of the duration on each triggered condition.
+// The skill's grant buff controls charge entitlement independently of its action's triggered condition duration.
 test('patched venom duration owns personal and allied charge expiry and tooltip facts', () => {
   for (const venom of VENOMS) {
-    const catalog = applyBalanceProfilePatch(thiefCatalog, {
-      balanceProfiles: { [venom.profileId]: { fields: { duration: 2 } } }
+    const source = thiefCatalog.skillsById.get(venom.skillId);
+    const grant = source.effects.find((effect) => effect.type === 'buff');
+    const catalog = applySkillPatch(thiefCatalog, {
+      skills: { [venom.skillId]: { effects: [{ type: 'buff', name: grant.name, duration: 2 }] } }
     });
     const recipients = [];
     const runtime = {
@@ -53,11 +52,11 @@ test('patched venom duration owns personal and allied charge expiry and tooltip 
 
     const context = { catalog };
     const { facts } = describeSimulationSkill(context, skill, thiefTooltips);
-    assert.equal(facts.find(({ name }) => name === 'Charge lifetime').detail, '2s');
-    assert.deepEqual(
-      catalog.balanceProfilesById.get(venom.profileId).effects,
-      thiefCatalog.balanceProfilesById.get(venom.profileId).effects
+    assert.match(
+      facts.find(({ name }) => name.toLowerCase() === venom.skillName.toLowerCase()).detail,
+      /^2s — charge grant/
     );
+    assert.deepEqual(requireSkillAction(skill, 'venom').effects, requireSkillAction(source, 'venom').effects);
   }
 });
 
@@ -97,12 +96,12 @@ test('duration and flip patches reject obsolete names while real multipliers rem
   for (const [catalog, id, field, collection, patchKey, patch, fields] of [
     [
       thiefCatalog,
-      PROFILE.spiderVenomProc,
+      ID.PREPARE_PITFALL,
       'duration',
-      'balanceProfilesById',
-      'balanceProfiles',
-      applyBalanceProfilePatch,
-      balanceProfilePatchableNumericFields
+      'skillsById',
+      'skills',
+      applySkillPatch,
+      (skill) => skillPatchableNumericFields(skill, thiefCatalog.skillFields)
     ],
     [
       elementalistCatalog,
@@ -114,7 +113,7 @@ test('duration and flip patches reject obsolete names while real multipliers rem
       (skill) => skillPatchableNumericFields(skill, elementalistCatalog.skillFields)
     ]
   ]) {
-    // Follow the canonical owner: Rock Barrier's flip lifetime now belongs to its skill.
+    // Preparation and flip lifetimes both belong to their canonical skills.
     const owner = catalog[collection].get(id);
     assert.equal(fields(owner)[field], owner[field]);
     assert.equal(fields(owner).durationMultiplier, undefined);
@@ -125,8 +124,7 @@ test('duration and flip patches reject obsolete names while real multipliers rem
         patch(catalog, {
           [patchKey]: { [id]: { fields: { [field]: 7, durationMultiplier: 7 } } }
         }),
-      // Profiles know the factor but this owner lacks it; no skill declares it, so it is unsupported there.
-      patchKey === 'skills' ? /unsupported patch field durationMultiplier/ : /does not expose durationMultiplier/
+      /unsupported patch field durationMultiplier/
     );
   }
 

@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
@@ -23,54 +24,57 @@ import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // Removing any spirit strike must leave surviving summon and coordinated attacks in their original tooltip groups.
-test('Ritualist tooltip packet roles survive balance-profile removals', () => {
+test('Ritualist tooltip packet roles survive canonical skill and action removals', () => {
   const base = withPatchPreview(necromancerProfession, null).resolvePatch().balanceContext;
   const facts = (context, skillId) =>
     describeSimulationSkill(context, context.catalog.skillsById.get(skillId), necromancerTooltips).facts;
-  for (const [profileId, skillId] of [
-    [RITUALIST.anguish, ID.ANGUISH],
-    [RITUALIST.wanderlust, ID.WANDERLUST],
-    [RITUALIST.preservation, ID.PRESERVATION]
-  ]) {
-    for (const effect of base.catalog.balanceProfilesById
-      .get(profileId)
-      .effects.filter((effect) => effect.type === 'strike')) {
-      const preview = withPatchPreview(necromancerProfession, {
-        id: 'spirit-tooltip-removal',
-        label: 'Spirit tooltip removal',
-        professions: {
-          necromancer: {
-            balanceProfiles: { [profileId]: { removeEffects: [{ type: effect.type, name: effect.name }] } }
+  for (const skillId of [ID.ANGUISH, ID.WANDERLUST, ID.PRESERVATION]) {
+    const summon = base.catalog.skillsById.get(skillId);
+    const actor = base.catalog.skillsById.get(summon.summonAttackId);
+    const command = base.catalog.skillsById.get(ID.SUMMON_SPIRITS);
+    // Each removal addresses its actual owner, preserving independent summon and command groups.
+    for (const [owner, action] of [
+      [actor, undefined],
+      [summon, 'opening'],
+      [command, 'commands']
+    ]) {
+      const effects = action ? requireSkillAction(owner, action).effects : owner.effects;
+      for (const effect of effects.filter((effect) => effect.type === 'strike')) {
+        const removal = { removeEffects: [{ type: effect.type, name: effect.name }] };
+        const preview = withPatchPreview(necromancerProfession, {
+          id: 'spirit-tooltip-removal',
+          label: 'Spirit tooltip removal',
+          professions: {
+            necromancer: { skills: { [owner.id]: action ? { sideEffects: { [action]: removal } } : removal } }
           }
+        }).resolvePatch({ id: 'spirit-tooltip-removal' }).balanceContext;
+        for (const id of [skillId, ID.SUMMON_SPIRITS]) {
+          assert.deepEqual(
+            facts(preview, id),
+            facts(base, id).filter((fact) => !fact.detail.includes(effect.name)),
+            `${effect.name} removed from tooltip ${id}`
+          );
         }
-      }).resolvePatch({ id: 'spirit-tooltip-removal' }).balanceContext;
-      for (const id of [skillId, ID.SUMMON_SPIRITS]) {
-        assert.deepEqual(
-          facts(preview, id),
-          facts(base, id).filter((fact) => !fact.detail.includes(effect.name)),
-          `${effect.name} removed from tooltip ${id}`
-        );
       }
     }
   }
 });
 
-// Tier-specific fields follow the selected balance profile without repeating the base field above the tabs.
+// Tier-specific fields follow the selected skill without repeating the base field above the tabs.
 test('Combustive Shot tooltip tabs own their patched field durations', async () => {
   const { warriorProfession } = await import('#gw2/professions/warrior/profession.js');
   const { warriorTooltips } = await import('#gw2/professions/warrior/app/tooltips.js');
-  const { WARRIOR_CORE_BALANCE_PROFILE_IDS: profiles } = await import('#gw2/professions/warrior/core/profiles.js');
+  const { WARRIOR_SKILL_IDS: skills } = await import('#gw2/professions/warrior/data/ids.js');
   const context = withPatchPreview(warriorProfession, {
     id: 'burst-field-preview',
     label: 'Burst field preview',
     professions: {
-      warrior: { balanceProfiles: { [profiles.combustiveShot]: { fields: { durationPerTier: 4 } } } }
+      warrior: { skills: { [skills.COMBUSTIVE_SHOT]: { fields: { durationPerTier: 4 } } } }
     }
   }).resolvePatch({ id: 'burst-field-preview' }).balanceContext;
   const tooltip = describeSimulationSkill(context, context.catalog.skillsById.get(14506), warriorTooltips);
@@ -727,8 +731,12 @@ test('Soulbeast condition triggers preserve the same patched stack count shown i
     label: 'Stance tooltip',
     professions: {
       ranger: {
-        balanceProfiles: {
-          'ranger.soulbeast.vulture-stance': { conditions: { Poisoned: { stacks: 3, duration: 6 } } }
+        skills: {
+          40498: {
+            sideEffects: {
+              'triggered-effects': { effects: [{ type: 'condition', name: 'Poisoned', stacks: 3, duration: 6 }] }
+            }
+          }
         }
       }
     }

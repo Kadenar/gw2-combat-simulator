@@ -161,9 +161,8 @@ const rallyTheValiant = defineTrait({
       }
     }
   ],
-  balance: {
-    resourceGain: 4
-  }
+  // The intrinsic trait owns Motivation capacity, tier thresholds, and refrain cadence.
+  balance: { resourceGain: 4, maximumStacks: 10, minimumStacks: 4, threshold: 7, pulseInterval: 3 }
 });
 
 /** Owns this trait's tuning and selected contributions. */

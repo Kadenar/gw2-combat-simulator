@@ -7,10 +7,13 @@ import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import {
   balanceNumberFromContext,
-  requireBalanceProfileFromContext as damageProfile
+  requireSkillFromContext as damageSkill
 } from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
-import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
+import {
+  NECROMANCER_SKILL_IDS as DAMAGE_SKILL,
+  NECROMANCER_TRAIT_IDS as TRAIT
+} from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistBuffPolicies } from '#gw2/professions/necromancer/specializations/ritualist/effect-state.js';
 import {
   emitPainfulBond,
@@ -25,10 +28,6 @@ import {
   ritualistSpiritTasks,
   startRitualistSpirits
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
-import {
-  RITUALIST_BALANCE_PROFILE_IDS as DAMAGE_PROFILE,
-  RITUALIST_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import {
   INNERVATE,
   ritualistSpiritActions
@@ -61,7 +60,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
         queueNightmareWeapon(
           runtime,
           damageInputEvent(runtime),
-          damageProfile(runtime, DAMAGE_PROFILE.nightmareWeaponProc),
+          damageSkill(runtime, DAMAGE_SKILL.NIGHTMARE_WEAPON),
           'personal'
         )
     },
@@ -72,11 +71,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
       unit: 'charge',
       sourceIds: [DAMAGE_SKILL.SPLINTER_WEAPON],
       emit: (runtime) =>
-        queueSplinterWeapon(
-          runtime,
-          damageInputEvent(runtime),
-          damageProfile(runtime, DAMAGE_PROFILE.splinterWeaponProc)
-        )
+        queueSplinterWeapon(runtime, damageInputEvent(runtime), damageSkill(runtime, DAMAGE_SKILL.SPLINTER_WEAPON))
     }
   ],
 
@@ -107,7 +102,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
         )
           return (
             (-runtime.profession.core.lifeForce.maximum *
-              balanceNumberFromContext(runtime, PROFILE.resources, 'lifeForceDrain')) /
+              balanceNumberFromContext(runtime, TRAIT.SPAWNING_POWER, 'lifeForceDrain')) /
             100
           );
 

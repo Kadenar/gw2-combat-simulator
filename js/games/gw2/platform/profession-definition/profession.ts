@@ -60,7 +60,6 @@ import type {
   NativeProfessionDefinition,
   NativeProfessionRuntimeState
 } from '#gw2/platform/profession-definition/module-types.js';
-import { defineTraitProfile } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTrait, prepareTraitAttributes } from '#gw2/platform/profession-definition/traits.js';
 import {
@@ -261,7 +260,20 @@ export function defineNativeModule<
             balanceProfiles: Object.freeze([
               ...(definition.data.balanceProfiles ?? []),
               ...traits.flatMap((trait) => [
-                ...(trait.balance ? [defineTraitProfile(trait.balance.id ?? trait.id, trait.name, trait.balance)] : []),
+                // Materialize trait-owned tuning once when compiling the module.
+                ...(trait.balance
+                  ? [
+                      {
+                        id: trait.balance.id ?? trait.id,
+                        name: trait.name,
+                        profileKind: 'trait' as const,
+                        categories: ['Trait'],
+                        skillFamily: 'Trait',
+                        effects: [],
+                        ...trait.balance
+                      }
+                    ]
+                  : []),
                 ...(trait.profiles ?? [])
               ])
             ])

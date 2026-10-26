@@ -3,7 +3,6 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { druidHooks } from '#gw2/professions/ranger/specializations/druid/hooks.js';
 import { bindDruidUi } from '#gw2/professions/ranger/specializations/druid/presentation.js';
-import { DRUID_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/druid/profiles.js';
 import { DRUID_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/druid/skills/index.js';
 import { DRUID_PUBLIC_STATE_PROJECTION, druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import { druidTraits } from '#gw2/professions/ranger/specializations/druid/traits/index.js';
@@ -15,8 +14,7 @@ export const druidModule = defineNativeModule({
   traitDefinitions: druidTraits,
   data: createRangerModuleData('Druid', {
     skillFields: DRUID_SKILL_FIELDS,
-    skillMechanics: DRUID_BASE_SKILL_MECHANICS,
-    balanceProfiles: DRUID_BALANCE_PROFILES
+    skillMechanics: DRUID_BASE_SKILL_MECHANICS
   }),
   state: { create: druidState.create, project: createPublicStateProjector(DRUID_PUBLIC_STATE_PROJECTION) },
   hooks: druidHooks,

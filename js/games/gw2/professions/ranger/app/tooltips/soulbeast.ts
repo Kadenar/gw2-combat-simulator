@@ -1,3 +1,5 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   tooltipFactorChange,
@@ -6,13 +8,12 @@ import {
   traitTooltip,
   skillTooltip,
   profileFact,
+  skillFact,
   tooltipPercent,
-  tooltipProfile,
   simulationEffectFacts,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 
 /** Compose soulbeast descriptions using the selected catalog's balance data. */
 export const soulbeastTooltips = {
@@ -26,17 +27,23 @@ export const soulbeastTooltips = {
     [ID.ONE_WOLF_PACK]: skillTooltip(
       'Qualifying player strikes trigger a delayed additional strike during the stance. The echo cannot trigger itself. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
       (balanceContext) => [
-        profileFact(balanceContext, SOULBEAST.oneWolfPack, 'duration', 'Base stance duration', tooltipSeconds),
-        profileFact(balanceContext, SOULBEAST.oneWolfPack, 'internalCooldown', 'Minimum echo interval', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, SOULBEAST.oneWolfPack).effects, 'per echo').facts
+        skillFact(balanceContext, ID.ONE_WOLF_PACK, 'duration', 'Base stance duration', tooltipSeconds),
+        skillFact(balanceContext, ID.ONE_WOLF_PACK, 'internalCooldown', 'Minimum echo interval', tooltipSeconds),
+        ...simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.ONE_WOLF_PACK), 'echo').effects,
+          'per echo'
+        ).facts
       ]
     ),
     [ID.VULTURE_STANCE]: skillTooltip(
       'Qualifying player strikes inflict poison and grant might during the stance, subject to its trigger interval. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
       (balanceContext) => [
-        profileFact(balanceContext, SOULBEAST.vultureStance, 'duration', 'Base stance duration', tooltipSeconds),
-        profileFact(balanceContext, SOULBEAST.vultureStance, 'internalCooldown', 'Trigger interval', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, SOULBEAST.vultureStance).effects, 'per trigger').facts
+        skillFact(balanceContext, ID.VULTURE_STANCE, 'duration', 'Base stance duration', tooltipSeconds),
+        skillFact(balanceContext, ID.VULTURE_STANCE, 'internalCooldown', 'Trigger interval', tooltipSeconds),
+        ...simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.VULTURE_STANCE), 'triggered-effects').effects,
+          'per trigger'
+        ).facts
       ]
     )
   },

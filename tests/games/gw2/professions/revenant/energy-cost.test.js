@@ -4,8 +4,7 @@ import test from 'node:test';
 
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
@@ -37,18 +36,18 @@ test('Conduit costs preserve follow-up charges, unmapped skills, and free active
 });
 
 // Form discounts come from the selected patch and stop at the exclusive deadline, even before expiry work runs.
-test('Mesmer costs read each selected profile and preserve native costs outside the active form', () => {
+test('Mesmer costs read each selected skill and preserve native costs outside the active form', () => {
   const skills = [
-    [SKILL.EMPOWERING_MISERY, PROFILE.mesmerEmpoweringMisery],
-    [SKILL.PAIN_ABSORPTION, PROFILE.mesmerPainAbsorption],
-    [SKILL.BANISH_ENCHANTMENT, PROFILE.mesmerBanishEnchantment],
-    [SKILL.CALL_TO_ANGUISH, PROFILE.mesmerCallToAnguish],
-    [SKILL.UNYIELDING_IMPACT, PROFILE.mesmerUnyieldingImpact],
-    [SKILL.EMBRACE_THE_DARKNESS, PROFILE.mesmerEmbraceTheDarkness]
+    [SKILL.EMPOWERING_MISERY],
+    [SKILL.PAIN_ABSORPTION],
+    [SKILL.BANISH_ENCHANTMENT],
+    [SKILL.CALL_TO_ANGUISH],
+    [SKILL.UNYIELDING_IMPACT],
+    [SKILL.EMBRACE_THE_DARKNESS]
   ];
   for (const cost of [0, 2, 27]) {
-    const catalog = applyBalanceProfilePatch(revenantCatalog, {
-      balanceProfiles: Object.fromEntries(skills.map(([, id]) => [id, { fields: { energyCost: cost } }]))
+    const catalog = applySkillPatch(revenantCatalog, {
+      skills: Object.fromEntries(skills.map(([id]) => [id, { fields: { mesmerEnergyCost: cost } }]))
     });
     const state = { conduitForm: 'Mesmer', cosmicWisdomUntil: 10 };
     const input = { specialization: 'Conduit', state, traits: new Set(), time: 9, catalog };
@@ -151,4 +150,15 @@ test('Energy Meld spending agrees with the composed cost for both variants and t
       assert.equal(planning.availability[skillId].ready, cost === 0);
     }
   }
+});
+
+// Temporary Haze charges select the follow-up's activation cost independently of its main skill.
+test('Beguiling Haze follows the selected follow-up Energy cost', () => {
+  const catalog = applySkillPatch(revenantCatalog, {
+    skills: { [SKILL.BEGUILING_HAZE_FOLLOW_UP]: { fields: { energyCost: 3 } } }
+  });
+  const input = { specialization: 'Conduit', state: { beguilingHazeCharges: 1 }, traits: new Set(), time: 0, catalog };
+  const skill = catalog.skillsById.get(SKILL.BEGUILING_HAZE);
+  assert.equal(effectiveRevenantEnergyCost(input, skill), 3);
+  assert.equal(effectiveRevenantEnergyCost({ ...input, state: { beguilingHazeCharges: 0 } }, skill), skill.energyCost);
 });

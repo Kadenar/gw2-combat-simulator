@@ -1,3 +1,4 @@
+import type { RANGER_CORE_SKILL_FIELDS } from '#gw2/professions/ranger/core/skill-fields.js';
 import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -83,7 +84,8 @@ export type RangerResolverContext = MechanicCombatContext &
 export type RangerRuntime = MechanicContext<RangerRuntimeState, RangerSkill> & { readonly config: RangerConfig };
 
 /** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
-export interface RangerSkill extends Skill, NumericSkillFields<typeof GALESHOT_SKILL_FIELDS> {
+export interface RangerSkill
+  extends Skill, NumericSkillFields<typeof GALESHOT_SKILL_FIELDS>, NumericSkillFields<typeof RANGER_CORE_SKILL_FIELDS> {
   readonly petSkill?: boolean;
   readonly petFamilySkill?: boolean;
   readonly petAutonomousSkill?: boolean;

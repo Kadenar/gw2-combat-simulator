@@ -6,7 +6,6 @@ import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
-import { MESMER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/core/profiles.js';
 
 /** At impact, full clones or notes replace the resource reward with torment; blades keep their own reward. */
 function atEtherCloneLimit(runtime: MechanicQueryContext<MesmerRuntimeState>): boolean {
@@ -75,9 +74,11 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Par
             packets: 'first',
             when: (runtime, { event }) => Number(event.coefficient) > 0 && atEtherCloneLimit(runtime),
             do: {
-              type: 'emitProfile',
-              profileId: PROFILE.etherClone,
-              attribution: { source: 'Player', sourceId: ID.ETHER_CLONE, actorType: ACTOR.PLAYER, name: 'Ether Clone' }
+              id: 'clone-limit',
+              type: 'mesmer.core.clone-limit',
+              effects: [
+                { name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 9, stacks: 1 }
+              ]
             }
           },
           {

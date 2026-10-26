@@ -5,6 +5,9 @@ export const BLADESWORN_SKILL_FIELDS = defineSkillFields(
   {
     // Available only while the gunsaber is drawn.
     gunsaberSkill: dataField,
+    // Dragon Trigger owns its baseline charge capacity and entry charge.
+    maximumCharges: numberField({ patch: 'primary' }),
+    entryResourceCost: numberField({ patch: 'primary' }),
     // Dragon Trigger charge skill.
     dragonTriggerSkill: dataField,
     // Milliseconds from release to the Dragon Slash impact.

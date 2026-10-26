@@ -1,3 +1,4 @@
+import { NECROMANCER_MINION_ATTACK_SKILLS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 /**
  * Core skill mechanics owned by the Core Necromancer module.
  *
@@ -59,5 +60,6 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Part
 export const NECROMANCER_CORE_EXTRA_SKILLS = Object.freeze([
   ...NECROMANCER_CORE_TRAIT_SKILLS,
   ...CORE_ACTIONS,
+  ...NECROMANCER_MINION_ATTACK_SKILLS,
   ...NECROMANCER_AXE_EXTRA_SKILLS
 ]);

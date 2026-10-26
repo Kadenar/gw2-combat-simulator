@@ -11,6 +11,8 @@ import test from 'node:test';
 
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { selectSkillEffects } from '#gw2/platform/execution/cast-effects.js';
+import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { elementalistConditionEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -238,7 +240,12 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
     const module = await import(`#gw2/professions/${profession}/catalog.js`);
     for (const [id, totalStacks] of Object.entries(skills)) {
       const skill = module[`${profession}Catalog`].skillsById.get(Number(id));
-      const packets = skill.effects
+      // Sun Crystal selects its ordinary cast payload separately from the Meticulous trait template.
+      const effects =
+        profession === 'thief' && skill.id === THIEF.ZEPHYRITE_SUN_CRYSTAL
+          ? selectSkillEffects({ queries: {} }, { skill })
+          : skill.effects;
+      const packets = effects
         .flatMap((effect) =>
           materializeSkillEffectApplications({
             skill,

@@ -4,7 +4,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isActivePetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { deliverChargedHit } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -41,6 +40,21 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
       {
         type: 'buff',
         kind: 'pet-sharpen-spines',
+        // This applied buff owns both arming and the later pet-attributed condition.
+        reactions: [
+          {
+            on: 'buff.applied',
+            actor: ACTOR.SUMMON,
+            packets: 'first',
+            do: {
+              type: 'ranger.sharpen-spines',
+              id: 'sharpen-spines',
+              effects: [
+                { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }
+              ]
+            }
+          }
+        ],
         duration: 30,
         stacks: 5,
         audience: {
@@ -121,15 +135,24 @@ export function consumePetSharpenSpines(context: RangerResolverContext, event: G
   if (!pet || rangerPetForState(context.profession.core).name !== 'Bristleback' || !isActivePetStrike(context, event))
     return;
 
-  deliverChargedHit(context, event, PROFILE.petSharpenSpines, () => consumeCharge(pet.sharpenSpines, event.at), {
-    attribution: {
-      source: 'ranger-pet',
-      sourceId: ID.BRISTLEBACK_SHARPEN_SPINES,
-      actorType: ACTOR.SUMMON,
-      skillId: ID.BRISTLEBACK_SHARPEN_SPINES,
-      skillName: 'Sharpen Spines',
-      activationId: event.activationId
-    },
-    fields: rangerPetCombatMetadata(context)
-  });
+  if (pet.sharpenSpines.charges <= 0) return;
+
+  deliverChargedHit(
+    context,
+    event,
+    ID.BRISTLEBACK_SHARPEN_SPINES,
+    'sharpen-spines',
+    () => consumeCharge(pet.sharpenSpines, event.at),
+    {
+      attribution: {
+        source: 'ranger-pet',
+        sourceId: ID.BRISTLEBACK_SHARPEN_SPINES,
+        actorType: ACTOR.SUMMON,
+        skillId: ID.BRISTLEBACK_SHARPEN_SPINES,
+        skillName: 'Sharpen Spines',
+        activationId: event.activationId
+      },
+      fields: rangerPetCombatMetadata(context)
+    }
+  );
 }

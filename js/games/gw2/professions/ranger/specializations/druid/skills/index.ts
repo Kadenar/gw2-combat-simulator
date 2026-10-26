@@ -26,6 +26,8 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: []
   },
   [ID.CELESTIAL_AVATAR]: {
+    // The form owns its maximum window; its resource clock derives depletion from this duration.
+    duration: 15,
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     effects: [],

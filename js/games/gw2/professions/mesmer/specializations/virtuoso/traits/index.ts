@@ -36,6 +36,13 @@ import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
+/** Psychic Blades owns the specialization's baseline blade capacity. */
+const psychicBlades = defineTrait<MesmerSkill>({
+  id: TRAIT.PSYCHIC_BLADES,
+  name: 'Psychic Blades',
+  balance: { maximumStacks: 5 }
+});
+
 /** Deadly Blades shares patched tuning with its existing packet and resource boundaries. */
 const deadlyBlades = defineTrait<MesmerSkill>({
   triggers: [
@@ -293,7 +300,9 @@ const infiniteForge = defineTrait<MesmerSkill>({
 });
 
 /** Collect the eight implemented Virtuoso trait owners. */
+// The intrinsic trait owns its specialization's shared resource/window tuning.
 export const virtuosoTraits = [
+  psychicBlades,
   quietIntensity,
   mentalFocus,
   sharpeningSorrow,

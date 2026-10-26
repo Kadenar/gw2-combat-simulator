@@ -156,7 +156,8 @@ const sunAndMoonStyle = defineTrait({
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
 const spellbreakersConviction = defineTrait({
   id: TRAIT.SPELLBREAKERS_CONVICTION,
-  name: "Spellbreaker's Conviction"
+  name: "Spellbreaker's Conviction",
+  balance: { maximumStacks: 20 }
 });
 
 /** Register native owners once in declaration order. */

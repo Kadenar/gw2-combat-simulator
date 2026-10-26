@@ -1,14 +1,13 @@
 import { RECIPIENT, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { conditionEffectTicks, impactEffects } from '#gw2/platform/effects/authoring.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import {
   affinity,
   effectiveConduitAffinity
@@ -17,7 +16,8 @@ import {
 /** Capture equipped-legend eligibility at acceptance; full affinity unlocks every Dervish component. */
 const releaseLegend = (legend: string) => (runtime: MechanicQueriesOf<RevenantRuntime>) =>
   runtime.profession.core.selectedLegendIds.includes(legend) ||
-  effectiveConduitAffinity(runtime) >= balanceNumberFromContext(runtime, PROFILE.affinity, 'minimumStacks');
+  effectiveConduitAffinity(runtime) >=
+    skillNumberFromContext(runtime, ID.RELEASE_POTENTIAL_DERVISH, 'allLegendAffinityThreshold');
 
 /** Releases inherit active-weapon attribution; Assassin durations snapshot affinity, Mesmer conditions resolve live. */
 function releaseEffects(
@@ -115,6 +115,8 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
+    // This release unlocks all legend rewards at its own Affinity threshold.
+    allLegendAffinityThreshold: 3,
     // Strike damage reads current affinity at impact, independently of the selected legend components.
     modifiers: [
       {

@@ -1,10 +1,10 @@
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   simulationEffectFacts,
   tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
@@ -12,7 +12,6 @@ import {
 import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/soul-reaping/procs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 
 /** Describe soul reaping tooltips from the selected balance data. */
@@ -68,7 +67,7 @@ export const necromancerSoulReapingTooltips = {
     const scourge = specialization === 'Scourge';
     const { effect, interval } = dhuumfireProjection(
       context,
-      scourge ? shadeDhuumfireParameters(tooltipProfile(context, SCOURGE.shade)) : undefined,
+      scourge ? shadeDhuumfireParameters(requireSkillFromContext(context, ID.MANIFEST_SAND_SHADE)) : undefined,
       specialization === 'Harbinger' ? context.catalog.skillsById.get(ID.TAINTED_BOLTS)?.dhuumfireDuration : undefined
     );
     const effects = simulationEffectFacts(effect ? [effect] : [], scourge ? 'on shade strikes' : 'on shroud skill 1');

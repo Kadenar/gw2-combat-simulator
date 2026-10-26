@@ -3,7 +3,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/condition-profiles.js';
+import { mesmerShatterCondition } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 
 /** Resolve blade packets once for runtime and tooltips; defensive tiers retain hit-trait identity without damage. */
 export function bladesongTier(shatter: MesmerShatter, skill: MesmerSkill, spent: number) {
@@ -58,11 +58,7 @@ export function bladesongEffects(
   const tier = bladesongTier(shatter, skill, spent);
   const confusion =
     shatter.kind === 'blade-confusion'
-      ? bladesongConfusion(
-          shatter,
-          spent,
-          mesmerConditionFromProfile(context, shatter.balanceProfileId, CONDITION.CONFUSION)
-        )
+      ? bladesongConfusion(shatter, spent, mesmerShatterCondition(context, skill.id, CONDITION.CONFUSION))
       : undefined;
   return [...(tier.strike ? [tier.strike] : []), ...(confusion ? [confusion] : []), ...tier.effects];
 }

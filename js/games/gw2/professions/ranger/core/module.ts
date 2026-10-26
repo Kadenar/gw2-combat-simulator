@@ -12,7 +12,6 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 
 import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
-import { RANGER_CORE_BALANCE_PROFILES } from '#gw2/professions/ranger/core/profiles.js';
 import { rangerPassiveAttributes } from '#gw2/professions/ranger/core/skills/attribute-passives.js';
 import {
   RANGER_CORE_BASE_SKILL_MECHANICS,
@@ -34,7 +33,6 @@ export const rangerCoreModule = defineNativeModule({
   data: createRangerModuleData('Core', {
     skillFields: RANGER_CORE_SKILL_FIELDS,
     skillMechanics: RANGER_CORE_BASE_SKILL_MECHANICS,
-    balanceProfiles: RANGER_CORE_BALANCE_PROFILES,
     extraSkills: RANGER_CORE_EXTRA_SKILLS
   }),
   state: { create: createRangerCoreState, project: projectRangerCoreState },

@@ -9,7 +9,6 @@ import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -27,7 +26,7 @@ test('Wind Force survives dismissal as pending work and grants once at the selec
     },
     {
       catalog: (catalog) =>
-        withSkill(withProfile(catalog, PROFILE.resources, { minimumStacks: 2.5 }), ID.BLUSTER, {
+        withSkill(withProfile(catalog, TRAIT.TEACHINGS_OF_THE_TENGU, { minimumStacks: 2.5 }), ID.BLUSTER, {
           castTimeMs: 200,
           windForceApplyMs: 1000,
           windForceGain: 6,
@@ -133,7 +132,7 @@ test('Wind Force has no passive recovery and isolates selected capacities', () =
       [wait(5000)],
       { specialization: 'Galeshot' },
       {
-        catalog: (catalog) => withProfile(catalog, PROFILE.resources, { minimumStacks: maximum })
+        catalog: (catalog) => withProfile(catalog, TRAIT.TEACHINGS_OF_THE_TENGU, { minimumStacks: maximum })
       }
     );
     assert.deepEqual(result.warnings, []);

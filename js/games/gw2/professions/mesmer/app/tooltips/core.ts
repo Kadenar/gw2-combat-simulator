@@ -1,19 +1,19 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  fromProfile,
+  fromSkill,
   tooltipSeconds,
   skillTooltip,
   tooltipPercent,
   tooltipDecimal,
   tooltipNumber,
-  tooltipProfile,
   simulationEffectFacts,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { MESMER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -110,13 +110,15 @@ export const mesmerCoreTooltips = {
     }),
     [ID.CHAOS_STORM]: skillTooltip(
       'Create a storm that strikes repeatedly, dazes on its opening pulse, and poisons the target on the subsequent condition pulses.',
-      (context) => simulationEffectFacts(tooltipProfile(context, CORE.chaosStormPoison).effects).facts
+      (context) =>
+        simulationEffectFacts(requireSkillAction(requireSkillFromContext(context, ID.CHAOS_STORM), 'poison').effects)
+          .facts
     ),
     [ID.SIGNET_OF_ILLUSIONS]: skillTooltip(
       "Passively generate your specialization's resource while equipped and recharged. Activate to reset eligible shatter and instrument cooldowns, restoring one ammunition charge where applicable. Continuum Split is excluded. The passive restarts after the signet recharges.",
       [
-        fromProfile(CORE.signetOfIllusions, 'pulseInterval', 'Passive interval', tooltipSeconds),
-        fromProfile(CORE.signetOfIllusions, 'resourceGain', 'Resources per passive pulse')
+        fromSkill(ID.SIGNET_OF_ILLUSIONS, 'pulseInterval', 'Passive interval', tooltipSeconds),
+        fromSkill(ID.SIGNET_OF_ILLUSIONS, 'resourceGain', 'Resources per passive pulse')
       ]
     ),
     [ID.SIGNET_OF_THE_ETHER]: skillTooltip(
@@ -124,15 +126,27 @@ export const mesmerCoreTooltips = {
     ),
     [ID.SIGNET_OF_DOMINATION]: skillTooltip(
       'Passively gain condition damage while the signet is available. Activate to stun your target.',
-      [fromProfile(CORE.signetOfDomination, 'conditionDamageBonus', 'Passive condition damage')]
+      (context) => [
+        {
+          name: 'Passive condition damage',
+          detail: tooltipDecimal(
+            skillNumberFromContext(context, ID.SIGNET_OF_DOMINATION, 'attributeBonuses.conditionDamage')
+          )
+        }
+      ]
     ),
     [ID.SIGNET_OF_MIDNIGHT]: skillTooltip(
       'Passively gain expertise while the signet is available. Activate to blind nearby enemies.',
-      [fromProfile(CORE.signetOfMidnight, 'expertiseBonus', 'Passive expertise')]
+      (context) => [
+        {
+          name: 'Passive expertise',
+          detail: tooltipDecimal(skillNumberFromContext(context, ID.SIGNET_OF_MIDNIGHT, 'attributeBonuses.expertise'))
+        }
+      ]
     ),
     [ID.MIMIC]: skillTooltip(
       "Arm a window for your next completed utility skill. If its cast begins within the window, reduce its recharge to 1 second and add its original recharge to Mimic's base 20-second recharge, before Alacrity. Continuum Split does not restore Mimic's recharge. Follow-up skills do not consume Mimic; ammunition charges are not replenished.",
-      [fromProfile(CORE.mimic, 'duration', 'Mimic window', tooltipSeconds)]
+      [fromSkill(ID.MIMIC, 'duration', 'Mimic window', tooltipSeconds)]
     ),
     [ID.MIND_THE_GAP]: skillTooltip('Strike, generate a resource, and gain Clarity for a subsequent spear skill.'),
     [ID.IMAGINARY_INVERSION]: skillTooltip(
@@ -142,7 +156,7 @@ export const mesmerCoreTooltips = {
       'Strike and generate a clone. If already at the clone limit when the strike lands, inflict the additional condition instead. Other specializations generate their own resource.',
       (context) =>
         simulationEffectFacts(
-          tooltipProfile(context, CORE.etherClone).effects,
+          requireSkillAction(requireSkillFromContext(context, ID.ETHER_CLONE), 'clone-limit').effects,
           'instead of creating a clone at the clone limit'
         ).facts
     ),

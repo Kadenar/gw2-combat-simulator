@@ -6,16 +6,17 @@ import {
   traitTooltip,
   skillTooltip,
   tooltipPercent,
-  type ProfessionTooltips
+  type ProfessionTooltips,
+  fromSkill
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { DAREDEVIL_BALANCE_PROFILE_IDS as DD } from '#gw2/professions/thief/specializations/daredevil/profiles.js';
+
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Describe daredevil tooltips from the selected balance data. */
 export const daredevilTooltips = {
   skills: {
     [ID.FIST_FLURRY]: skillTooltip('Land the completed flurry to unlock Palm Strike for a limited window.', [
-      fromProfile(DD.palmStrike, 'flipDuration', 'Palm Strike window', tooltipSeconds)
+      fromSkill(ID.FIST_FLURRY, 'flipDuration', 'Palm Strike window', tooltipSeconds)
     ]),
     [ID.PALM_STRIKE]: skillTooltip('Consume the follow-up unlocked by a completed Fist Flurry.')
   },

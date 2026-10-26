@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
@@ -29,15 +29,21 @@ test('Beguiling selects its final follow-up before consuming the charge, even wi
         { ...config, selectedTraitIds: [TRAIT.SHARED_WISDOM] },
         {
           catalog: (catalog) =>
-            applyBalanceProfilePatch(catalog, {
-              balanceProfiles: {
-                [PROFILE.beguilingHazeFollowUp]: {
-                  fields: { maximumStacks: 1 },
-                  ...(removed ? { removeEffects: [{ type: 'strike', name: 'Beguiling Haze — Follow-Up' }] } : {})
-                },
-                [PROFILE.sharedWisdom]: { effects: [{ type: 'boon', name: 'beguiling-haze', stacks: 2 }] }
+            applyBalanceProfilePatch(
+              applySkillPatch(catalog, {
+                skills: {
+                  [ID.BEGUILING_HAZE_FOLLOW_UP]: {
+                    fields: { maximumStacks: 1 },
+                    ...(removed ? { removeEffects: [{ type: 'strike', name: 'Beguiling Haze — Follow-Up' }] } : {})
+                  }
+                }
+              }),
+              {
+                balanceProfiles: {
+                  [PROFILE.sharedWisdom]: { effects: [{ type: 'boon', name: 'beguiling-haze', stacks: 2 }] }
+                }
               }
-            })
+            )
         }
       );
       assert.deepEqual(result.warnings, []);

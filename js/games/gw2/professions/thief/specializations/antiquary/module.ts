@@ -1,3 +1,4 @@
+import { ANTIQUARY_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/antiquary/skills/guild-attacks.js';
 import { kryptisTurretModifiers } from '#gw2/professions/thief/specializations/antiquary/skills/artifact-actions.js';
 import { projectAntiquaryPlanningState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryTraits } from '#gw2/professions/thief/specializations/antiquary/traits/index.js';
@@ -16,6 +17,7 @@ export const antiquaryModule = defineNativeModule({
   traitDefinitions: antiquaryTraits,
   id: 'Antiquary',
   data: createThiefModuleData('Antiquary', {
+    extraSkills: ANTIQUARY_GUILD_ATTACK_SKILLS,
     skillFields: ANTIQUARY_SKILL_FIELDS,
     skillMechanics: ANTIQUARY_SKILL_MECHANICS,
     balanceProfiles: ANTIQUARY_BALANCE_PROFILES

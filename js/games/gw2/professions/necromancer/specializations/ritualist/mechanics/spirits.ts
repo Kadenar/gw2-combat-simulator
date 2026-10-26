@@ -1,4 +1,4 @@
-import { effectNumber, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 
 import { strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 /**
@@ -34,7 +34,7 @@ interface SpiritStrikeTick {
   readonly coefficient: number;
 }
 
-// Decode each spirit's named balance-profile effects into its initial,
+// Decode each spirit's named skill and action effects into its initial,
 // autonomous, lingering, and active attack timings.
 export function spiritDefinition(context: NecromancerRuntime, skillId: SkillId): SpiritDefinition | undefined {
   const attacks = spiritAttackEffects(context, skillId);
@@ -48,11 +48,11 @@ export function spiritDefinition(context: NecromancerRuntime, skillId: SkillId):
     effect ? strikeEffectTicks(effect).map((tick) => ({ atMs: tick.atMs, coefficient: tick.coefficient })) : [];
   return {
     key,
-    initialBusyMs: balanceProfileNumber(profile, 'initialBusyMs'),
-    autoattackImpactDelayMs: balanceProfileNumber(profile, 'autoattackImpactDelayMs'),
+    initialBusyMs: skillNumber(profile, 'initialBusyMs'),
+    autoattackImpactDelayMs: skillNumber(profile, 'autoattackImpactDelayMs'),
     // A removed autoattack leaves a zero coefficient, which disables the autonomous loop.
     attackCoefficient: autoattack ? effectNumber(profile, autoattack, 'coefficient') : 0,
-    attackWeaponStrength: balanceProfileNumber(profile, 'weaponStrength'),
+    attackWeaponStrength: skillNumber(profile, 'weaponStrength'),
     summonTicks: ticks(attacks.initial),
     lingeringTicks: ticks(attacks.lingering),
     activeTicks: ticks(active),

@@ -1,7 +1,8 @@
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
-  fromProfile,
   profileFact,
+  skillFact,
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
@@ -13,10 +14,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import {
-  NECROMANCER_MINION_PROFILE_BY_SKILL_ID,
-  NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/necromancer/core/profiles.js';
+import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import {
   castLifeForceGrants,
   effectLifeForceGrants
@@ -91,7 +89,7 @@ const addleTooltip: DescribeSimulationTooltip = skillTooltip(
 const perforateTooltip: DescribeSimulationTooltip = skillTooltip(
   'Strike repeatedly. Each hit can consume an available Soul Shard for an additional life-steal strike. Soul Shard damage increases against a low-health target.',
   (balanceContext) => [
-    ...simulationEffectFacts(tooltipProfile(balanceContext, PROFILE.soulShards).effects, 'per Soul Shard consumed')
+    ...simulationEffectFacts(requireSkillFromContext(balanceContext, ID.SOUL_SHARDS).effects, 'per Soul Shard consumed')
       .facts,
     profileFact(
       balanceContext,
@@ -115,8 +113,9 @@ const distressTooltip: DescribeSimulationTooltip = skillTooltip(
 );
 
 const minionTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
-  const profileId = NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(entity.id)];
-  const profile = tooltipProfile(balanceContext, profileId);
+  const summon = requireSkillFromContext(balanceContext, entity.id);
+  const profileId = summon.summonAttackId as import('#gw2/platform/skills/types.js').SkillId;
+  const profile = requireSkillFromContext(balanceContext, profileId);
   const effects = simulationEffectFacts(profile.effects, 'per minion attack cycle');
   return {
     ...effects,
@@ -124,10 +123,10 @@ const minionTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
       "Summon persistent minions that attack independently and unlock their command skill. Summon recharge begins when the corresponding minions die. Attack values use the minion's own attributes." +
       (profile.alternateEvery ? ' The alternate volley replaces the normal volley at the listed cadence.' : ''),
     facts: [
-      profileFact(balanceContext, profileId, 'minionCount', 'Minions summoned'),
-      profileFact(balanceContext, profileId, 'pulseInterval', 'Base attack cycle', tooltipSeconds),
+      skillFact(balanceContext, entity.id, 'minionCount', 'Minions summoned'),
+      skillFact(balanceContext, profileId, 'pulseInterval', 'Base attack cycle', tooltipSeconds),
       ...(profile.alternateEvery
-        ? [profileFact(balanceContext, profileId, 'alternateEvery', 'Alternate volley every N cycles')]
+        ? [skillFact(balanceContext, profileId, 'alternateEvery', 'Alternate volley every N cycles')]
         : []),
       ...effects.facts
     ]
@@ -153,16 +152,13 @@ const corruptionTooltip: DescribeSimulationTooltip = skillTooltip(
     ).facts
 );
 
+// Ordinary templates already contribute their facts; do not repeat first-hit packets through a second reader.
 const darkPactTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Strike and bleed your target. The first hit also immobilizes the target and makes you bleed. The simulated target has no boons to remove, so this skill generates no life force.',
-  (balanceContext) =>
-    simulationEffectFacts(tooltipProfile(balanceContext, PROFILE.darkPactOnHit).effects, 'on the first hit').facts
+  'Strike and bleed your target. The first hit also immobilizes the target and makes you bleed. The simulated target has no boons to remove, so this skill generates no life force.'
 );
 
 const lifeSiphonTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Channel repeated strikes. The first hit makes you bleed. Healing is outside combat simulation scope.',
-  (balanceContext) =>
-    simulationEffectFacts(tooltipProfile(balanceContext, PROFILE.lifeSiphonOnHit).effects, 'on the first hit').facts
+  'Channel repeated strikes. The first hit makes you bleed. Healing is outside combat simulation scope.'
 );
 
 const devouringDarknessTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
@@ -259,32 +255,22 @@ export const necromancerCoreTooltips = {
     [ID.LOCUST_SWARM]: skillTooltip(
       "Pulse life siphon every half second, gaining life force on each landed impact, and grant party swiftness. Banshee's Wail increases siphon base damage, pulse count, and swiftness duration."
     ),
-    // Passive signet packets have separate profile IDs and must accompany the active skill facts.
+    // Passive signet tuning is selected from the same skill as its active effects.
     [ID.SIGNET_OF_SPITE]: skillTooltip(
       'Passively grants power while its passive is available. Activate to inflict the listed conditions.',
-      [fromProfile(PROFILE.signetOfSpite, 'attributeBonus', 'Passive power')]
+      (context) => [skillFact(context, ID.SIGNET_OF_SPITE, 'attributeBonuses.power', 'Passive power')]
     ),
     [ID.SIGNET_OF_UNDEATH]: skillTooltip(
       'Periodically generates life force while its passive is available. Allied revival is outside combat simulation scope.',
-      [
-        fromProfile(PROFILE.signetOfUndeathPassive, 'lifeForceGain', 'Passive life force per pulse', lifeForce),
-        fromProfile(PROFILE.signetOfUndeathPassive, 'pulseInterval', 'Passive pulse interval', tooltipSeconds)
+      (context) => [
+        skillFact(context, ID.SIGNET_OF_UNDEATH, 'lifeForceGain', 'Passive life force per pulse', lifeForce),
+        skillFact(context, ID.SIGNET_OF_UNDEATH, 'pulseInterval', 'Passive pulse interval', tooltipSeconds)
       ]
     ),
     [ID.SIGNET_OF_VAMPIRISM]: skillTooltip(
       'Periodically siphons life while its passive is available. Activation triggers the listed active life-siphon attacks. Healing is outside combat simulation scope.',
       (balanceContext) => [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, PROFILE.signetOfVampirismPassive).effects,
-          'per passive pulse'
-        ).facts,
-        profileFact(
-          balanceContext,
-          PROFILE.signetOfVampirismPassive,
-          'pulseInterval',
-          'Passive pulse interval',
-          tooltipSeconds
-        )
+        skillFact(balanceContext, ID.SIGNET_OF_VAMPIRISM, 'pulseInterval', 'Passive pulse interval', tooltipSeconds)
       ]
     ),
     [ID.GRAVEDIGGER]: skillTooltip(

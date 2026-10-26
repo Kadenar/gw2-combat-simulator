@@ -1,17 +1,13 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -26,10 +22,7 @@ function emitShroudEffects(
   effects: readonly SkillEffect[]
 ): void {
   // Delay hostile Desert Shroud packets intrinsically; barrier and activation traits keep their own timing.
-  const impactDelayMs =
-    cast.skill.id === ID.DESERT_SHROUD
-      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.desertShroud), 'impactDelayMs')
-      : 0;
+  const impactDelayMs = cast.skill.id === ID.DESERT_SHROUD ? skillNumber(cast.skill, 'impactDelayMs') : 0;
   runtime.effects.emit({
     kind: 'profile',
     profile: cast.skill,
@@ -65,8 +58,9 @@ const scourgeShroudActions = {
   'scourge.garish-pillar'(runtime, context) {
     if (context.kind !== 'cast') return;
 
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.garishPillar);
-    const fear = requireEffect(profile, 'condition', CONDITION.FEAR);
+    const profile = context.skill;
+    const action = requireSkillAction(profile, 'garishPillar');
+    const fear = requireEffect(profile, 'condition', CONDITION.FEAR, action);
 
     if (fear) {
       // Shared emission owns transport; the mechanic selects attribution and delivery.
@@ -101,19 +95,11 @@ const scourgeShroudActions = {
   },
   'scourge.desert-shroud'(runtime, context) {
     if (context.kind === 'cast')
-      emitShroudEffects(
-        runtime,
-        context.cast,
-        requireBalanceProfileFromContext(runtime, PROFILE.desertShroud).effects ?? []
-      );
+      emitShroudEffects(runtime, context.cast, requireSkillAction(context.skill, 'desertShroud').effects);
   },
   'scourge.sandstorm-shroud'(runtime, context) {
     if (context.kind === 'cast')
-      emitShroudEffects(
-        runtime,
-        context.cast,
-        requireBalanceProfileFromContext(runtime, PROFILE.sandstormShroud).effects ?? []
-      );
+      emitShroudEffects(runtime, context.cast, requireSkillAction(context.skill, 'sandstormShroud').effects);
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['sideEffectHandlers']>;
 

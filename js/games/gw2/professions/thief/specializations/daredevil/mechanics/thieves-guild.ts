@@ -1,7 +1,6 @@
-import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import type { ThiefGuildSummonProfile } from '#gw2/professions/thief/types.js';
 
-// Daredevil replaces the third Thieves Guild summon with its staff-wielding specialist.
+/** The selected elite owns actor identity and stream startup; attack packets live on canonical actor skills. */
 export const DAREDEVIL_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.freeze({
   id: 'thief.daredevil.thieves-guild',
   profileKind: 'mechanic',
@@ -9,36 +8,20 @@ export const DAREDEVIL_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.f
   name: 'Staff Daredevil',
   displayName: 'Daredevil',
   variant: 'Daredevil',
-  weapon: WEAPON.STAFF,
+  weapon: 'Staff',
   weaponStrengthProfileId: 'weapon.staff',
   attacks: [
     {
-      name: 'Vault',
       skillId: 41056,
-      coefficientPerHit: 2.4,
-      hits: 1,
-      initialDelay: 1.72,
-      interval: 11.36
+      initialDelay: 1.72
     },
     {
-      name: 'Impairing Daggers',
       skillId: 40482,
-      coefficientPerHit: 0.25,
-      hits: 3,
-      initialDelay: 2.72,
-      conditions: [
-        { condition: CONDITION.POISONED, stacks: 3, duration: 8 },
-        { condition: CONDITION.SLOW, stacks: 1, duration: 4 },
-        { condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
-      ]
+      initialDelay: 2.72
     },
     {
-      name: 'Weakening Charge',
       skillId: 40005,
-      coefficientPerHit: 0.45,
-      hits: 2,
-      initialDelay: 4.04,
-      interval: 3.36
+      initialDelay: 4.04
     }
   ]
 });

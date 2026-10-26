@@ -1,3 +1,4 @@
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -8,7 +9,6 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { timeKey } from '#kernel/core/clock.js';
@@ -25,7 +25,7 @@ function scheduleFlowTick(runtime: WarriorRuntime): void {
 /** Credit the interval ending now before closing its windows; no future rate or event-history projection is needed. */
 function flowTick(runtime: WarriorRuntime): void {
   const state = bladeswornState.from(runtime);
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.GUN_X_SWORD);
   const active = (start: number, end: number) => start < runtime.time && runtime.time <= end;
   const stabilizers = state.flowStabilizerWindows.filter((window) => active(window.startedAt, window.expiresAt));
   const rate =
@@ -54,7 +54,7 @@ const flowTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] =
 const bladeswornFlowPolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
   state: (runtime) => bladeswornState.from(runtime).flow,
-  maximum: (runtime) => balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks'),
+  maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.GUN_X_SWORD, 'maximumStacks'),
   initial: (runtime, maximum) => boundedNumber(runtime.config.initialResource ?? 0, 0, 0, maximum),
   recovery: () => 0
 };

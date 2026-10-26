@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -107,7 +106,7 @@ test('Flow caps use the selected profile', () => {
     id: 'flow-cap',
     label: 'Flow cap',
     professions: {
-      warrior: { balanceProfiles: { [PROFILE.resources]: { fields: { maximumStacks: { from: 100, to: 7 } } } } }
+      warrior: { balanceProfiles: { [TRAIT.GUN_X_SWORD]: { fields: { maximumStacks: { from: 100, to: 7 } } } } }
     }
   });
   const result = run([combat, wait(1000)], { initialResource: 100, patchId: 'flow-cap' }, patched);
@@ -356,7 +355,7 @@ test('Dragon Trigger admits its exact deadline then expires autonomously and sta
     id: 'short-trigger',
     label: 'Short charge deadline',
     professions: {
-      warrior: { balanceProfiles: { [PROFILE.dragonTrigger]: { fields: { cooldown: { from: 30, to: 0.48 } } } } }
+      warrior: { skills: { [ID.DRAGON_TRIGGER]: { fields: { duration: { from: 30, to: 0.48 } } } } }
     }
   });
   const config = { patchId: 'short-trigger', initialResource: 20 };
@@ -735,7 +734,11 @@ test('cartridge component removal separates its bonus and Burning and a removed 
       label: 'Cartridge removal',
       professions: {
         warrior: {
-          balanceProfiles: { [PROFILE.overchargedCartridges]: { removeEffects: [{ type: removed, all: true }] } }
+          skills: {
+            [ID.OVERCHARGED_CARTRIDGES]: {
+              sideEffects: { cartridges: { removeEffects: [{ type: removed, all: true }] } }
+            }
+          }
         }
       }
     });
@@ -762,8 +765,10 @@ test('cartridge component removal separates its bonus and Burning and a removed 
     label: 'Upgrade removed',
     professions: {
       warrior: {
-        balanceProfiles: {
-          [PROFILE.overchargedCartridges]: { removeEffects: [{ type: 'buff', name: 'supercharged-cartridges' }] }
+        skills: {
+          [ID.OVERCHARGED_CARTRIDGES]: {
+            sideEffects: { cartridges: { removeEffects: [{ type: 'buff', name: 'supercharged-cartridges' }] } }
+          }
         }
       }
     }

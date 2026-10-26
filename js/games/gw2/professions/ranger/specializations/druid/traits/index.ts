@@ -121,6 +121,7 @@ const eclipse = defineTrait({
   id: TRAIT.ECLIPSE,
   name: 'Eclipse',
   balance: {
+    coefficientMultiplier: 2,
     effects: [
       {
         name: 'Cosmic Ray',
@@ -191,7 +192,14 @@ const bloodMoon = defineTrait({
 });
 
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
-export const druidTraits = [naturalMender, naturalBalance, graceOfTheLand, eclipse, bloodMoon];
+/** The unlocking minor owns baseline specialization policy even when omitted from explicit selections. */
+const intrinsicPolicy = defineTrait({
+  id: TRAIT.CELESTIAL_BEING,
+  name: 'Celestial Being',
+  balance: { maximumStacks: 100, astralForceRetentionMultiplier: 0.5, resourceGain: 0.75 }
+});
+
+export const druidTraits = [intrinsicPolicy, naturalMender, naturalBalance, graceOfTheLand, eclipse, bloodMoon];
 
 /** Fires at the Avatar transition before chain reset and swap reactions. */
 function applyNaturalBalance(runtime: RangerRuntime): void {

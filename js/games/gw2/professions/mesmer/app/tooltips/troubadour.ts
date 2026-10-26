@@ -1,4 +1,6 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   fromProfile,
@@ -9,66 +11,54 @@ import {
   traitTooltip,
   skillTooltip,
   profileFact,
+  skillFact,
   tooltipPercent,
-  tooltipProfile,
   simulationEffectFacts,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import {
-  TROUBADOUR_BALANCE_PROFILE_IDS as TROUBADOUR,
-  TROUBADOUR_INSTRUMENT_PROFILE_IDS
-} from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
+import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 
-/** Describe troubadour tooltips from the selected balance data. */
+/** Describe the selected skills and their intrinsic trait policy without a second payload catalog. */
 export const troubadourTooltips = {
   skills: {
     ...Object.fromEntries(
-      Object.keys(TROUBADOUR_INSTRUMENT_PROFILE_IDS).map((id) => [
+      Object.keys(MESMER_TROUBADOUR_INSTRUMENTS).map((id) => [
         Number(id),
-        (balanceContext, entity) => ({
+        (context, entity) => ({
           description:
-            "Perform this instrument's attack, then spend your notes to keep the instrument active. Additional notes extend its duration. Different instruments can overlap; a new performance replaces the same instrument's previous window. Instrument and note-spending traits apply.",
+            "Perform this instrument's attack, then spend notes to keep it playing. Additional notes extend its duration. Different instruments overlap; performing the same instrument replaces its previous window. Instrument and note-spending traits apply.",
           facts: [
-            ...simulationEffectFacts(
-              tooltipProfile(balanceContext, TROUBADOUR_INSTRUMENT_PROFILE_IDS[Number(entity.id)]).effects
-            ).facts,
-            ...simulationEffectFacts(
-              balanceContext.catalog.skillsById.get(entity.id)!.effects?.filter((effect) => effect.type === 'control')
-            ).facts,
+            ...simulationEffectFacts(requireSkillFromContext(context, entity.id).effects).facts,
+            profileFact(context, TRAIT.WANDERING_MINSTREL, 'baseDuration', 'Base instrument duration', tooltipSeconds),
             profileFact(
-              balanceContext,
-              TROUBADOUR.instruments,
-              'baseDuration',
-              'Base instrument duration',
-              tooltipSeconds
-            ),
-            profileFact(
-              balanceContext,
-              TROUBADOUR.instruments,
+              context,
+              TRAIT.WANDERING_MINSTREL,
               'durationPerTier',
               'Additional duration per note',
               tooltipSeconds
             ),
             ...([ID.HARMONIOUS_HARP, ID.HARMONIOUS_HARP_ALTERNATE].some((id) => id === entity.id)
-              ? simulationEffectFacts(tooltipProfile(balanceContext, TROUBADOUR.instruments).effects).facts
+              ? simulationEffectFacts(
+                  requireSkillAction(requireSkillFromContext(context, entity.id), 'distortion').effects
+                ).facts
               : [])
           ]
         })
       ])
     ),
-    [ID.CRESCENDO]: (balanceContext) => ({
+    [ID.CRESCENDO]: (context) => ({
       description:
-        'Strike with increased damage for each instrument still active when the attack lands. Fragmentation increases that bonus. Altered Chord adds an effect from your most recent instrument; Life of the Party grants boons, and Fortissimo generates notes over time.',
+        'Strike with increased damage for each instrument still active at impact. Fragmentation increases that bonus. Altered Chord, Life of the Party, and Fortissimo can add rewards.',
       facts: [
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, TROUBADOUR.crescendo).effects,
+          requireSkillAction(requireSkillFromContext(context, ID.CRESCENDO), 'crescendo').effects,
           'before active-instrument bonus'
         ).facts,
-        profileFact(
-          balanceContext,
-          TROUBADOUR.crescendo,
-          'damageIncreasePerStack',
+        skillFact(
+          context,
+          ID.CRESCENDO,
+          'damageIncreasePerInstrument',
           'Strike damage per active instrument',
           tooltipPercent
         )
@@ -77,52 +67,43 @@ export const troubadourTooltips = {
     [SHARED_SKILL_IDS.DODGE]: skillTooltip('Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.'),
     ...Object.fromEntries(
       [
-        [ID.TALE_OF_THE_HONORABLE_ROGUE, TROUBADOUR.honorableRogue, 'Drum'],
-        [ID.TALE_OF_THE_SOULKEEPER, TROUBADOUR.soulkeeper, 'Lute'],
-        [ID.TALE_OF_THE_VALIANT_MARSHAL, TROUBADOUR.valiantMarshal, 'Harp']
-      ].map(([id, profileId, instrument]) => [
+        [ID.TALE_OF_THE_HONORABLE_ROGUE, 'Drum'],
+        [ID.TALE_OF_THE_SOULKEEPER, 'Lute'],
+        [ID.TALE_OF_THE_VALIANT_MARSHAL, 'Harp']
+      ].map(([id, instrument]) => [
         id,
         skillTooltip(
-          `Tell a tale and grant its boons to your party. If ${instrument} is active when the cast begins, gain notes. Raconteur adds protection.` +
+          `Tell a tale and grant its boons to your party. If ${instrument} was playing at acceptance, gain notes. Raconteur adds protection.` +
             (id === ID.TALE_OF_THE_HONORABLE_ROGUE ? ' Restore 50 endurance.' : ''),
-          (balanceContext) => [
+          (context) => [
             ...simulationEffectFacts(
-              tooltipProfile(balanceContext, profileId).effects?.map((effect) => ({
+              requireSkillAction(requireSkillFromContext(context, id), 'tale').effects.map((effect) => ({
                 ...effect,
                 audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
               }))
             ).facts,
-            profileFact(balanceContext, profileId, 'resourceGain', 'Notes with matching instrument')
+            skillFact(context, id, 'noteGain', 'Notes with matching instrument')
           ]
         )
       ])
     ),
     [ID.TALE_OF_THE_TORTURED_MASTERMIND]: skillTooltip(
-      'Tell a tale and strike your target. Gain a note if Flute was active when the cast began. Raconteur also grants party protection.'
+      'Tell a tale and strike your target. Gain a note if Flute was playing at acceptance. Raconteur grants party protection.'
     ),
-    // Describe the same acceptance-time performance requirement used by the tale's resource reward.
     [ID.TALE_OF_THE_SECOND_SCION]: skillTooltip(
-      'Tell a tale. Gain a note if at least two instruments were playing when the cast began. Raconteur grants party protection.',
-      (balanceContext) => [
-        profileFact(balanceContext, TROUBADOUR.secondScion, 'resourceGain', 'Notes with two or more instruments')
-      ]
+      'Tell a tale. Gain notes if at least two instruments were playing at acceptance. Raconteur grants party protection.',
+      (context) => [skillFact(context, ID.TALE_OF_THE_SECOND_SCION, 'noteGain', 'Notes with two or more instruments')]
     ),
     [ID.TALE_OF_THE_AUGUST_QUEEN]: skillTooltip(
-      'Grant Chaos Aura and Distortion, and start every instrument playing in the background. Duration increases with the number already playing when the tale completes. Raconteur grants party protection.',
-      (balanceContext) => [
-        profileFact(
-          balanceContext,
-          TROUBADOUR.augustQueen,
-          'baseDuration',
-          'Base instrument duration',
-          (value) => `${value}s`
-        ),
-        profileFact(
-          balanceContext,
-          TROUBADOUR.augustQueen,
+      'Grant Chaos Aura and Distortion, and start every instrument playing. Duration increases with the number already playing at commitment. Raconteur grants party protection.',
+      (context) => [
+        skillFact(context, ID.TALE_OF_THE_AUGUST_QUEEN, 'baseDuration', 'Base instrument duration', tooltipSeconds),
+        skillFact(
+          context,
+          ID.TALE_OF_THE_AUGUST_QUEEN,
           'durationPerTier',
           'Duration per playing instrument',
-          (value) => `${value}s`
+          tooltipSeconds
         )
       ]
     )

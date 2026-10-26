@@ -20,7 +20,6 @@ import {
   type MinionDefinition
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
 import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_MINION_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/core/profiles.js';
 import { necromanticCorruptionMultiplier } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import type {
   NecromancerRuntime,
@@ -118,9 +117,7 @@ function emitHorrorEffects(runtime: NecromancerRuntime, key: string, terminal: b
 
 /** Active creatures own their commands and prevent death-gated summons from bypassing recharge. */
 export function necromancerMinionAvailability(runtime: MechanicQueriesOf<NecromancerRuntime>, skill: NecromancerSkill) {
-  const definition = Boolean(NECROMANCER_MINION_PROFILE_BY_SKILL_ID[Number(skill.id)])
-    ? minionDefinitionForSkill(runtime, skill.id)
-    : undefined;
+  const definition = Boolean(skill.summonAttackId) ? minionDefinitionForSkill(runtime, skill.id) : undefined;
   const active = runtime.profession.core.activeMinions;
 
   if (definition && skill.rechargeOnMinionDeath && active[definition.key] > 0)

@@ -37,7 +37,7 @@ test('Conduit affinity initializes empty and exposes the selected cap through de
       [wait(5000), '__combat_start'],
       { specialization: 'Conduit' },
       {
-        catalog: (base) => (catalog = withProfile(base, CONDUIT.affinity, { maximumStacks })),
+        catalog: (base) => (catalog = withProfile(base, TRAIT.ENIGMATIC_CONNECTION, { maximumStacks })),
         initialize(runtime) {
           gainAffinity(runtime.mechanics, 100);
         }
@@ -74,9 +74,13 @@ test('Expanded Consciousness distinguishes cap crossings from virtual affinity, 
     },
     {
       catalog: (base) =>
-        withProfile(withProfile(base, CONDUIT.affinity, { maximumStacks: 2.5 }), CONDUIT.expandedConsciousness, {
-          resourceGain: 7
-        }),
+        withProfile(
+          withProfile(base, TRAIT.ENIGMATIC_CONNECTION, { maximumStacks: 2.5 }),
+          CONDUIT.expandedConsciousness,
+          {
+            resourceGain: 7
+          }
+        ),
       timeline: [
         {
           at: 0.04,
@@ -133,9 +137,13 @@ test('legend swap clears affinity before trait gains and permits a fresh cap-cro
     {
       catalog: (base) =>
         withProfile(
-          withProfile(withProfile(base, CONDUIT.affinity, { maximumStacks: 2 }), CONDUIT.lingeringDetermination, {
-            resourceGain: 1
-          }),
+          withProfile(
+            withProfile(base, TRAIT.ENIGMATIC_CONNECTION, { maximumStacks: 2 }),
+            CONDUIT.lingeringDetermination,
+            {
+              resourceGain: 1
+            }
+          ),
           CONDUIT.expandedConsciousness,
           { resourceGain: 7 }
         ),

@@ -13,7 +13,6 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as UNTAMED } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 
 /** Replace the delivery marker with its selected trait payload when describing ambush damage. */
@@ -36,8 +35,8 @@ export const untamedTooltips = {
     [ID.UNLEASH_RANGER]: skillTooltip(
       "Unleash yourself and restore your pet's ordinary commands. Open a temporary unleashed-ambush window when the shared ambush cooldown is ready.",
       [
-        fromProfile(UNTAMED.resources, 'duration', 'Ambush window', tooltipSeconds),
-        fromProfile(UNTAMED.resources, 'internalCooldown', 'Ambush grant cooldown', tooltipSeconds)
+        fromProfile(TRAIT.UNLEASHED_POWER, 'duration', 'Ambush window', tooltipSeconds),
+        fromProfile(TRAIT.UNLEASHED_POWER, 'internalCooldown', 'Ambush grant cooldown', tooltipSeconds)
       ]
     ),
     [ID.UNLEASH_PET]: skillTooltip(
@@ -45,17 +44,7 @@ export const untamedTooltips = {
     ),
     ...Object.fromEntries(UNTAMED_AMBUSH_SKILL_IDS.map((id) => [id, ambushTooltip])),
     [ID.EXPLODING_SPORES]: skillTooltip(
-      'Strike, poison, and control the target. Gain might if you were unleashed at cast start, or protection if your pet was unleashed.',
-      (balanceContext) => [
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, UNTAMED.explodingSporesRanger).effects,
-          'ranger unleashed; alternative'
-        ).facts,
-        ...simulationEffectFacts(
-          tooltipProfile(balanceContext, UNTAMED.explodingSporesPet).effects,
-          'pet unleashed; alternative'
-        ).facts
-      ]
+      'Strike, poison, and control the target. Gain might if you were unleashed at cast start, or protection if your pet was unleashed.'
     ),
     [ID.VENOMOUS_OUTBURST]: skillTooltip(
       'Your unleashed pet attacks. It additionally applies vulnerability against a defiant target.'

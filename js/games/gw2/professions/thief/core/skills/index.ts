@@ -1,3 +1,4 @@
+import { CORE_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/core/skills/guild-attacks.js';
 import { createWeaponSwapSkill, createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
 
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -31,6 +32,7 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
 });
 
 export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
+  ...CORE_GUILD_ATTACK_SKILLS,
   Object.freeze(createWeaponSwapSkill()),
   Object.freeze(
     createDodgeSkill({

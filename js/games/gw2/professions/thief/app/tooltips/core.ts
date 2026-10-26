@@ -1,13 +1,12 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ACTOR } from '#gw2/platform/constants.js';
+
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   fromProfile,
   tooltipFactorChange,
   tooltipSeconds,
   skillTooltip,
-  profileTooltip,
-  profileFact,
   modifierFact,
   tooltipPercent,
   tooltipDecimal,
@@ -15,13 +14,15 @@ import {
   tooltipProfile,
   simulationEffectFacts,
   type ProfessionTooltips,
-  type DescribeSimulationTooltip
+  type DescribeSimulationTooltip,
+  fromSkill,
+  skillFact
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+
 import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
 import { thiefShadowArtsTooltips } from '#gw2/professions/thief/app/tooltips/shadow-arts.js';
 import { thiefDeadlyArtsTooltips } from '#gw2/professions/thief/app/tooltips/deadly-arts.js';
@@ -61,35 +62,25 @@ const activateTrapTooltip: DescribeSimulationTooltip = skillTooltip(
   'Activate and consume the armed preparation. Its trigger recharge also delays the next placement if that would otherwise be ready sooner.'
 );
 
+// The ordinary venom grant and its named trigger component share one selected skill owner.
 const venomTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
-  const id =
-    entity.id === ID.SPIDER_VENOM
-      ? CORE.spiderVenomProc
-      : entity.id === ID.SKALE_VENOM
-        ? CORE.skaleVenomProc
-        : CORE.devourerVenomProc;
-  return profileTooltip(
-    id,
-    'Grant venom charges to yourself and configured allies. Each eligible player strike consumes one charge from each active venom. Recasts add independently expiring charges; allied applications follow the configured venom assumptions.',
-    (context, profileId) => [
-      // Charge counts represent the granted venom, so use its skill icon even with a generic fact label.
-      {
-        ...profileFact(context, profileId, 'maximumStacks', 'Charges granted per recipient'),
-        icon: context.catalog.skillsById.get(entity.id)?.icon
-      },
-      profileFact(context, profileId, 'duration', 'Charge lifetime', tooltipSeconds)
-    ],
-    'per consumed charge'
-  )(balanceContext, entity);
+  const skill = balanceContext.catalog.skillsById.get(entity.id)!;
+  return {
+    description:
+      'Grant independently expiring venom charges to yourself and configured allies. Each eligible strike consumes one charge from each active venom.',
+    facts: [
+      ...simulationEffectFacts(skill.effects, 'charge grant').facts,
+      ...simulationEffectFacts(requireSkillAction(skill, 'venom').effects, 'per consumed charge').facts
+    ]
+  };
 };
 
-const assassinsSignetTooltip: DescribeSimulationTooltip = profileTooltip(
-  CORE.assassinsSignet,
+const assassinsSignetTooltip: DescribeSimulationTooltip = skillTooltip(
   'Passively grants power while ready. Activation temporarily replaces the passive bonus with the larger active bonus; the passive returns when recharge ends.',
-  [
-    ['attributeBonus', 'Passive power'],
-    ['attributePerStack', 'Active power'],
-    ['duration', 'Active duration', tooltipSeconds]
+  (_context, skill) => [
+    { name: 'Passive power', detail: String(skill.attributeBonuses!.power) },
+    { name: 'Active power', detail: String(skill.activePowerBonus) },
+    { name: 'Active duration', detail: tooltipSeconds(tooltipNumber(skill, 'duration')) }
   ]
 );
 
@@ -99,30 +90,15 @@ const thievesGuildTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
     description:
       'Summon thieves that run their attack rotations while combat is active. The final thief depends on your specialization. Their strikes use fixed companion attributes; their conditions inherit your condition attributes. Lifetime begins when casting starts, including time before combat. Recasting replaces the previous guild.',
     facts: [
-      { name: 'Lifetime', detail: tooltipSeconds(profile.duration) },
+      skillFact(balanceContext, entity.id, 'duration', 'Lifetime', tooltipSeconds),
       { name: 'Companion power', detail: tooltipDecimal(profile.basePower) },
       { name: 'Companion critical chance', detail: tooltipPercent(profile.criticalChance) },
       { name: 'Companion critical damage', detail: `${tooltipDecimal(profile.criticalDamage * 100)}%` },
       ...profile.summons.flatMap((summon) =>
-        (summon.attacks || []).flatMap(
-          (attack) =>
-            simulationEffectFacts(
-              [
-                {
-                  type: 'strike',
-                  actorType: ACTOR.SUMMON,
-                  coefficient: attack.coefficientPerHit * (attack.hits ?? 1),
-                  hits: attack.hits ?? 1
-                },
-                ...(attack.conditions || []).map((condition): SkillEffect => ({
-                  ...condition,
-                  type: 'condition',
-                  actorType: ACTOR.SUMMON
-                }))
-              ],
-              `${summon.name}${summon.variant ? ': core alternative' : ''} · ${attack.name}, per attack`
-            ).facts
-        )
+        (summon.attacks || []).flatMap((attack) => {
+          const skill = balanceContext.catalog.skillsById.get(attack.skillId)!;
+          return simulationEffectFacts(skill.effects, `${summon.name} — ${skill.name}`).facts;
+        })
       )
     ]
   };
@@ -153,17 +129,17 @@ const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
   if (entity.id === ID.FALLING_SPIDER) {
     description += ' Following Entangling Asp empowers its strike and adds bleeding and poison stacks.';
     facts.push(
-      profileFact(
+      skillFact(
         balanceContext,
-        CORE.fallingSpiderEmpowered,
-        'damageMultiplier',
+        ID.FALLING_SPIDER,
+        'empoweredDamageMultiplier',
         'Strike damage after Entangling Asp',
         tooltipFactorChange
       ),
-      profileFact(
+      skillFact(
         balanceContext,
-        CORE.fallingSpiderEmpowered,
-        'resourceGain',
+        ID.FALLING_SPIDER,
+        'empoweredConditionStacks',
         'Additional bleeding and poison stacks after Entangling Asp'
       )
     );
@@ -173,7 +149,7 @@ const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
     description =
       'At the start of a spear chain, or after a finisher, this acts as a lead attack. Following a finisher also starts a strike-damage bonus.';
     facts.push(
-      profileFact(balanceContext, CORE.distractingThrow, 'duration', 'Bonus duration', tooltipSeconds),
+      skillFact(balanceContext, ID.DISTRACTING_THROW, 'duration', 'Bonus duration', tooltipSeconds),
       modifierFact(balanceContext, 'thief.distracting-throw-finisher', 'amount', 'Strike damage after a finisher')
     );
   }
@@ -237,16 +213,16 @@ export const thiefCoreTooltips = {
     ),
     [ID.UNLOAD]: skillTooltip(
       'Fire the volley. Restore initiative only if the final bullet is reached and the attack is not cancelled.',
-      [fromProfile(CORE.unloadRefund, 'resourceGain', 'Initiative restored after the volley')]
+      [fromSkill(ID.UNLOAD, 'initiativeRefund', 'Initiative restored after the volley')]
     ),
     [ID.INFILTRATORS_SIGNET]: skillTooltip(
       'Passively regenerates additional initiative while ready. Activation shadowsteps and pauses the passive until recharge completes.'
     ),
     [ID.SIGNET_OF_AGILITY]: skillTooltip(
       "Passively grants precision while ready. Activation restores endurance, capped by the specialization's endurance pool.",
-      [
-        fromProfile(CORE.signetOfAgility, 'attributeBonus', 'Passive precision'),
-        fromProfile(CORE.signetOfAgility, 'resourceGain', 'Endurance restored on activation')
+      (context, skill) => [
+        { name: 'Passive precision', detail: String(skill.attributeBonuses!.precision) },
+        skillFact(context, skill.id, 'enduranceGain', 'Endurance restored on activation')
       ]
     ),
     [ID.HARROWING_STORM]: skillTooltip(

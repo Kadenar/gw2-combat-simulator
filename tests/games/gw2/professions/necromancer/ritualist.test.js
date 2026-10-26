@@ -5,7 +5,7 @@ import test from 'node:test';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { anguishConditionModifier } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
@@ -36,15 +36,19 @@ test('Anguish condition bonus follows spirit ownership and attack type', () => {
 
 // Editing a delayed condition cannot remove a sibling condition or stop the spirit's autonomous lifetime.
 test('Ritualist opening conditions use selected profiles independently of their sibling attacks', () => {
-  for (const [skillId, profileId, removed, retained] of [
-    [ID.ANGUISH, PROFILE.anguish, 'Crippled', 'Vulnerability'],
-    [ID.WANDERLUST, PROFILE.wanderlust, 'Chilled', 'Weakness']
+  for (const [skillId, removed, retained] of [
+    [ID.ANGUISH, 'Crippled', 'Vulnerability'],
+    [ID.WANDERLUST, 'Chilled', 'Weakness']
   ]) {
     const result = run([cast(ID.RITUALISTS_SHROUD), cast(skillId), wait(13000)], {
-      balanceProfiles: {
-        [profileId]: {
-          removeEffects: [{ type: 'condition', name: removed }],
-          effects: [{ type: 'condition', name: retained, duration: 9 }]
+      skills: {
+        [skillId]: {
+          sideEffects: {
+            opening: {
+              removeEffects: [{ type: 'condition', name: removed }],
+              effects: [{ type: 'condition', name: retained, duration: 9 }]
+            }
+          }
         }
       }
     });
@@ -66,10 +70,10 @@ test('Ritualist opening conditions use selected profiles independently of their 
 // The same compiled native family supplies the live state, traits, and selected effect-removal profiles.
 function run(
   rotation,
-  { config = base, events = [], balanceProfiles = {}, output, combatStartTime, bondInitialDelay } = {}
+  { config = base, events = [], balanceProfiles = {}, skills = {}, output, combatStartTime, bondInitialDelay } = {}
 ) {
   const native = necromancerProfession.runtimeFor(config);
-  let catalog = applyBalanceProfilePatch(native.catalog, { balanceProfiles });
+  let catalog = applySkillPatch(applyBalanceProfilePatch(native.catalog, { balanceProfiles }), { skills });
 
   // Timing is not a user patch field; this fixture also exercises the runtime's valid zero-delay profile contract.
   if (bondInitialDelay != null) {
@@ -222,9 +226,7 @@ test('allied opportunities consume independent finite grants on the actual strik
   assert.equal(grants['ally:1'].charges, 0);
   assert.equal(grants['ally:2'].charges, 0);
   const allied = spellDamage(result, ID.SPLINTER_WEAPON).filter((event) => event.metadata.triggeredByAlly === 1);
-  const cooldown = necromancerProfession
-    .runtimeFor(config)
-    .catalog.balanceProfilesById.get(PROFILE.splinterWeaponProc).internalCooldown;
+  const cooldown = necromancerProfession.runtimeFor(config).catalog.skillsById.get(ID.SPLINTER_WEAPON).internalCooldown;
   assert.ok(allied.every((event, index) => index === 0 || event.at - allied[index - 1].at > cooldown));
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 6);
   assert.equal(
@@ -317,13 +319,13 @@ test('weapon spell recipients are selected at grant time and Wielders Boon chang
 
 test('removed weapon spell strikes preserve independent Nightmare conditions and wholly removed procs spend nothing', () => {
   const config = { ...base, allies: { count: 1, strikesPerSecond: 1 } };
-  const balanceProfiles = {
-    [PROFILE.nightmareWeaponProc]: { removeEffects: [{ type: 'strike', name: 'Strike' }] },
-    [PROFILE.splinterWeaponProc]: { removeEffects: [{ type: 'strike', name: 'Strike' }] }
+  const skills = {
+    [ID.NIGHTMARE_WEAPON]: { sideEffects: { triggered: { removeEffects: [{ type: 'strike', name: 'Strike' }] } } },
+    [ID.SPLINTER_WEAPON]: { sideEffects: { triggered: { removeEffects: [{ type: 'strike', name: 'Strike' }] } } }
   };
   const result = run([cast(ID.NIGHTMARE_WEAPON), cast(ID.SPLINTER_WEAPON), wait(1000)], {
     config,
-    balanceProfiles,
+    skills,
     events: [hit(0.75)],
     combatStartTime: 0
   });
@@ -445,10 +447,11 @@ test('Summon Spirits checks its initial window and busy state before an autonomo
 
 // A commanded attack can make a spirit busy after its autonomous animation starts but before its impact arrives.
 test('busy spirits suppress an in-flight autonomous impact without shifting later attacks', () => {
-  const resources = necromancerProfession.catalog.balanceProfilesById.get(PROFILE.resources);
+  const resources = necromancerProfession.catalog.balanceProfilesById.get(PROFILE.spiritCadence);
+  const pulseInterval = necromancerProfession.catalog.balanceProfilesById.get(TRAIT.SPAWNING_POWER).pulseInterval;
   const opening = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(resources.initialDelay * 1000 + 40)];
-  const baseline = run([...opening, wait(resources.pulseInterval * 2000)]);
-  const commanded = run([...opening, cast(ID.SUMMON_SPIRITS), wait(resources.pulseInterval * 2000)]);
+  const baseline = run([...opening, wait(pulseInterval * 2000)]);
+  const commanded = run([...opening, cast(ID.SUMMON_SPIRITS), wait(pulseInterval * 2000)]);
   const autos = (result) => result.resolvedEvents.filter((event) => event.metadata?.spiritAttackType === 'autoattack');
   const baselineAutos = autos(baseline);
   const commandedAt = commanded.steps.find((step) => step.skillId === ID.SUMMON_SPIRITS).start / 1000;
@@ -499,12 +502,16 @@ test('creature traits observe actual Core minion and staggered horror creation w
 });
 
 test('removed initial spirit attacks preserve the creature and independent effects without backdating live state', () => {
-  const balanceProfiles = {
-    [PROFILE.anguish]: { removeEffects: [{ type: 'strike', name: 'Anguish Initial Barrage' }] },
-    [PROFILE.wanderlust]: { removeEffects: [{ type: 'strike', name: 'Wanderlust Initial Swing' }] }
+  const skills = {
+    [ID.ANGUISH]: {
+      sideEffects: { opening: { removeEffects: [{ type: 'strike', name: 'Anguish Initial Barrage' }] } }
+    },
+    [ID.WANDERLUST]: {
+      sideEffects: { opening: { removeEffects: [{ type: 'strike', name: 'Wanderlust Initial Swing' }] } }
+    }
   };
   const result = run([cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), cast(ID.WANDERLUST), wait(5000)], {
-    balanceProfiles
+    skills
   });
   assert.deepEqual(Object.keys(state(result).activeSpirits), ['anguish', 'wanderlust']);
   assert.equal(

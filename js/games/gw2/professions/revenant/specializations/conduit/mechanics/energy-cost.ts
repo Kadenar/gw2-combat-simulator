@@ -1,26 +1,25 @@
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import type { RevenantEnergyCostInput, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { BEGUILING_HAZE_SKILL_IDS } from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
 
-/** Only these canonical Demon skills use Mesmer cost profiles; other skills retain their native costs. */
-const MESMER_FORM_COSTS: ReadonlyMap<SkillId, SkillId> = new Map([
-  [ID.EMPOWERING_MISERY, PROFILE.mesmerEmpoweringMisery],
-  [ID.PAIN_ABSORPTION, PROFILE.mesmerPainAbsorption],
-  [ID.BANISH_ENCHANTMENT, PROFILE.mesmerBanishEnchantment],
-  [ID.CALL_TO_ANGUISH, PROFILE.mesmerCallToAnguish],
-  [ID.UNYIELDING_IMPACT, PROFILE.mesmerUnyieldingImpact],
-  [ID.EMBRACE_THE_DARKNESS, PROFILE.mesmerEmbraceTheDarkness]
+/** Only these canonical Demon skills use Mesmer form costs; other skills retain their native costs. */
+const MESMER_FORM_COSTS: ReadonlySet<SkillId> = new Set([
+  ID.EMPOWERING_MISERY,
+  ID.PAIN_ABSORPTION,
+  ID.BANISH_ENCHANTMENT,
+  ID.CALL_TO_ANGUISH,
+  ID.UNYIELDING_IMPACT,
+  ID.EMBRACE_THE_DARKNESS
 ]);
 
 /** Reject malformed form costs on entry even when score output never queries the affected skill. */
 export function validateConduitMesmerEnergyCosts(catalog: CanonicalCatalog): void {
-  for (const profileId of MESMER_FORM_COSTS.values()) {
-    balanceNumberFromContext({ catalog }, profileId, 'energyCost');
+  for (const skillId of MESMER_FORM_COSTS.values()) {
+    skillNumberFromContext({ catalog }, skillId, 'mesmerEnergyCost');
   }
 }
 
@@ -37,14 +36,14 @@ export function applyConduitEnergyCostRules(
 ): number {
   if (baseCost <= 0) return 0;
 
-  if (isBeguilingHazeFollowUp(state, skill)) return 0;
+  // Temporary charges select the follow-up's own cost before any form-specific pricing.
+  if (isBeguilingHazeFollowUp(state, skill))
+    return Math.max(0, skillNumberFromContext({ catalog }, ID.BEGUILING_HAZE_FOLLOW_UP, 'energyCost'));
 
   // The exclusive deadline also governs queries before queued form-expiry work runs.
   if (!revenantConduitFormIsActive(state, 'Mesmer', time)) return baseCost;
 
-  const profileId = MESMER_FORM_COSTS.get(skill.id);
+  if (!MESMER_FORM_COSTS.has(skill.id)) return baseCost;
 
-  if (profileId === undefined) return baseCost;
-
-  return Math.max(0, balanceNumberFromContext({ catalog }, profileId, 'energyCost'));
+  return Math.max(0, skillNumberFromContext({ catalog }, skill.id, 'mesmerEnergyCost'));
 }

@@ -6,10 +6,10 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
 import {
@@ -31,7 +31,6 @@ import {
   strikeResourcesGranted,
   weaponSwapped
 } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/core/profiles.js';
 import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
@@ -92,16 +91,25 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     'warrior.spend-magazine'(runtime, context) {
       if (context.kind === 'cast') spendWarriorMagazine(runtime, context.cast);
     },
-    // Reuse existing delivery priority and labels; the skill declaration owns eligibility and its profile owns tuning.
+    // The landed critical owns delivery; the selected skill owns the independently removable reward.
     'warrior.critical-might'(runtime, context) {
-      if (context.kind === 'effect') {
-        // The selected profile owns its ordinary payload; this side effect supplies only delivery priority.
-        const trait = Number(context.skill.id);
-        emitTraitProfile(runtime, trait, trait, context.trigger.event, {
-          effects: (effect) => ['boon', 'buff', 'condition'].includes(effect.type),
-          attribution: { priority: 5 }
-        });
-      }
+      if (context.kind !== 'effect') return;
+
+      const action = requireSkillAction(context.skill, 'critical-might');
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: context.skill,
+        effects: action.effects,
+        cause: context.trigger.event,
+        priority: 5,
+        attribution: {
+          source: context.skill.name,
+          sourceId: context.skill.id,
+          actorType: ACTOR.EFFECT,
+          skillId: context.skill.id,
+          skillName: context.skill.name
+        }
+      });
     },
     'warrior.grant-combat-resource'(runtime, _cast, action) {
       if (action.type !== 'warrior.grant-combat-resource' || action.amount == null)
@@ -136,7 +144,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
       const stamina =
         selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_STAMINA) &&
         at >= gw2CooldownReadyAt(runtime.cooldownController.readyAt(ID.SIGNET_OF_STAMINA) ?? 0)
-          ? balanceNumberFromContext(runtime, PROFILE.signetPassives, 'enduranceRegenerationBonus')
+          ? skillNumberFromContext(runtime, ID.SIGNET_OF_STAMINA, 'enduranceRegenerationBonus')
           : 0;
       return Math.min(ENDURANCE.maximumRegenerationPerSecond, enduranceRegenerationRate(vigor, stamina));
     }

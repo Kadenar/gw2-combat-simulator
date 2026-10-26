@@ -3,14 +3,13 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 
 /** Affinity starts empty with no passive recovery; the selected profile retains its minimum-one capacity rule. */
 export const conduitAffinityPolicy: ResourcePolicy<RevenantRuntime> = {
   kind: 'continuous',
   state: (runtime) => conduitState.from(runtime).affinity,
-  maximum: (runtime) => Math.max(1, balanceNumberFromContext(runtime, PROFILE.affinity, 'maximumStacks')),
+  maximum: (runtime) => Math.max(1, balanceNumberFromContext(runtime, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks')),
   initial: () => 0,
   recovery: () => 0
 };

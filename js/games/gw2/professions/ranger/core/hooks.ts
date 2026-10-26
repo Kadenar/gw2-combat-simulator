@@ -1,3 +1,5 @@
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { createStealthLifecycle, endStealth, stealthActive } from '#gw2/platform/combat/stealth.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
@@ -56,6 +58,30 @@ import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/ty
 
 const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   buffPolicies: rangerBuffPolicies,
+  sideEffectHandlers: {
+    'ranger.strength-of-the-pack'(runtime, context) {
+      runtime.effects.emit({
+        kind: 'packet',
+        event: buildRangerPacket(
+          {
+            at: runtime.time,
+            skillId: context.skill.id,
+            skillName: context.skill.name,
+            kind: 'strength-of-the-pack',
+            duration: skillNumber(context.skill, 'duration'),
+            stacks: 1
+          },
+          'buff'
+        )
+      });
+    },
+    'ranger.paralyzing-venom'(runtime, context) {
+      if (context.kind === 'effect') armParalyzingVenom(runtime, context.trigger.event);
+    },
+    'ranger.sharpen-spines'(runtime, context) {
+      if (context.kind === 'effect') armPetSharpenSpines(runtime, context.trigger.event);
+    }
+  },
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
   // Pet recharge belongs to the incarnation accepting the command, not whichever pet is active later.
@@ -148,8 +174,6 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
     },
     'buff.applied'(runtime, event) {
       runtime.fireTrigger(buffApplied, { event });
-      armPetSharpenSpines(runtime, event);
-      armParalyzingVenom(runtime, event);
     }
   }
 };

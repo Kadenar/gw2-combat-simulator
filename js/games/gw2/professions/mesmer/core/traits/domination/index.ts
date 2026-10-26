@@ -184,7 +184,7 @@ export const rendingShatter = defineTrait<MesmerSkill>({
       when: (runtime, event) => {
         const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
         return (
-          !missesTarget(event) && event.sourceId === skill?.id && Boolean(skill.instrument || skill.crescendoProfileId)
+          !missesTarget(event) && event.sourceId === skill?.id && Boolean(skill.instrument || skill.id === ID.CRESCENDO)
         );
       }
     }

@@ -3,7 +3,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isActivePetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { deliverChargedHit } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -90,6 +89,27 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
       {
         type: 'buff',
         kind: 'paralyzing-venom',
+        // This applied buff owns both arming and the later pet-attributed condition.
+        reactions: [
+          {
+            on: 'buff.applied',
+            actor: ACTOR.SUMMON,
+            packets: 'first',
+            do: {
+              type: 'ranger.paralyzing-venom',
+              id: 'paralyzing-venom',
+              effects: [
+                {
+                  name: CONDITION.IMMOBILIZED,
+                  type: 'condition',
+                  condition: CONDITION.IMMOBILIZED,
+                  stacks: 1,
+                  duration: 3
+                }
+              ]
+            }
+          }
+        ],
         duration: 20,
         stacks: 1,
         source: 'ranger-pet',
@@ -159,15 +179,24 @@ export function consumeParalyzingVenom(context: RangerResolverContext, event: Gw
 
   if (!pet || !isActivePetStrike(context, event)) return;
 
-  deliverChargedHit(context, event, PROFILE.paralyzingVenom, () => consumeCharge(pet.paralyzingVenom, event.at), {
-    attribution: {
-      source: 'ranger-pet',
-      sourceId: ID.PARALYZING_VENOM,
-      actorType: ACTOR.SUMMON,
-      skillId: ID.PARALYZING_VENOM,
-      skillName: 'Paralyzing Venom',
-      activationId: event.activationId
-    },
-    fields: rangerPetCombatMetadata(context)
-  });
+  if (pet.paralyzingVenom.charges <= 0) return;
+
+  deliverChargedHit(
+    context,
+    event,
+    ID.PARALYZING_VENOM,
+    'paralyzing-venom',
+    () => consumeCharge(pet.paralyzingVenom, event.at),
+    {
+      attribution: {
+        source: 'ranger-pet',
+        sourceId: ID.PARALYZING_VENOM,
+        actorType: ACTOR.SUMMON,
+        skillId: ID.PARALYZING_VENOM,
+        skillName: 'Paralyzing Venom',
+        activationId: event.activationId
+      },
+      fields: rangerPetCombatMetadata(context)
+    }
+  );
 }

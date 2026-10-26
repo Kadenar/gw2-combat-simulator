@@ -5,7 +5,8 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-export type EffectReactionStage = 'damage.resolved' | 'condition.applied' | 'control.resolved' | 'combo.resolved';
+export type EffectReactionStage =
+  'damage.resolved' | 'condition.applied' | 'control.resolved' | 'combo.resolved' | 'buff.applied';
 
 export type ResolvedEffectTrigger<Stage extends EffectReactionStage = EffectReactionStage> = {
   [On in Stage]: {

@@ -6,9 +6,6 @@ import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/mec
 import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as DEADEYE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
-import { SPECTER_BALANCE_PROFILE_IDS as SPECTER } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import {
@@ -21,11 +18,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // Small rotations exercise patched scheduler/resolver contracts without benchmark snapshots.
-function run(balanceProfiles, specialization, rotation, config = {}) {
+function run(balanceProfiles, specialization, rotation, config = {}, skills = {}) {
   const profession = withPatchPreview(thiefProfession, {
     id: 'thief-removal',
     label: 'Thief removal',
-    professions: { thief: { balanceProfiles } }
+    professions: { thief: { balanceProfiles, skills } }
   });
   const simulate = createObservedProfessionSimulator(profession, {
     patchId: 'thief-removal',
@@ -40,6 +37,9 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
   assert.deepEqual(result.warnings, []);
   return result;
 }
+
+// Skill fixtures patch their canonical owner; trait fixtures retain generated profile targets.
+const runSkills = (skills, specialization, rotation, config = {}) => run({}, specialization, rotation, config, skills);
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const packet = (result, type, sourceId) =>
@@ -83,15 +83,15 @@ test('Shade Step retains skill identities and surviving edits after removing its
   assert.equal(boons.find((event) => event.skillId === ID.MIND_SHOCK).kind, 'aegis');
 });
 
-for (const id of [SPECTER.enterShadowShroud, SPECTER.dawnsReposeBarrier]) {
+for (const id of [ID.ENTER_SHADOW_SHROUD, ID.DAWNS_REPOSE]) {
   test(`${id} removal suppresses barrier reactions while shroud remains active`, () => {
-    const result = run(
+    const result = runSkills(
       {
-        [SPECTER.enterShadowShroud]: remove('buff', 'barrier'),
-        ...(id === SPECTER.dawnsReposeBarrier ? { [id]: remove('buff', 'barrier') } : {})
+        [ID.ENTER_SHADOW_SHROUD]: { sideEffects: { barrier: remove('buff', 'barrier') } },
+        ...(id === ID.DAWNS_REPOSE ? { [id]: { sideEffects: { barrier: remove('buff', 'barrier') } } } : {})
       },
       'Specter',
-      ['Enter Shadow Shroud', ...(id === SPECTER.dawnsReposeBarrier ? ["Dawn's Repose"] : [])],
+      ['Enter Shadow Shroud', ...(id === ID.DAWNS_REPOSE ? ["Dawn's Repose"] : [])],
       {
         initialShadowForce: 100,
         allies: { count: 4, strikesPerSecond: 2 },
@@ -109,7 +109,7 @@ for (const id of [SPECTER.enterShadowShroud, SPECTER.dawnsReposeBarrier]) {
     assert.equal(result.planningState.profession.shadowShroudActive, true);
     assert.ok(result.planningState.profession.shadowClock.value < 100);
 
-    if (id === SPECTER.dawnsReposeBarrier) assert.ok(packet(result, 'buff', TRAIT.SHADESTEP).length);
+    if (id === ID.DAWNS_REPOSE) assert.ok(packet(result, 'buff', TRAIT.SHADESTEP).length);
   });
 }
 
@@ -226,8 +226,8 @@ test('removed critical Fury leaves its cooldown unclaimed', () => {
 });
 
 test('Malicious Sneak Attack removal preserves Bleeding and malice spending', () => {
-  const result = run(
-    { [DEADEYE.maliciousSneakAttack]: remove('condition', 'Torment') },
+  const result = runSkills(
+    { [ID.MALICIOUS_SNEAK_ATTACK]: { sideEffects: { malice: remove('condition', 'Torment') } } },
     'Deadeye',
     ["Deadeye's Mark", 'Hide in Shadows', 'Malicious Sneak Attack'],
     {
@@ -248,20 +248,26 @@ test('Malicious Sneak Attack removal preserves Bleeding and malice spending', ()
   assert.equal(result.planningState.profession.malice.value, 0);
 });
 
-for (const id of [ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous]) {
-  test(`${id} keeps Bomb edits when Dash is removed`, () => {
-    const base = id === ANTIQUARY.forgedSurfer ? 1.2 : 1.4;
-    const result = run(
+for (const enhanced of [false, true]) {
+  test(`${enhanced} keeps Bomb edits when Dash is removed`, () => {
+    const base = !enhanced ? 1.2 : 1.4;
+    const result = runSkills(
       {
-        [id]: {
-          ...remove('strike', 'Dash'),
-          effects: [{ type: 'strike', name: 'Bomb', coefficient: { from: base, to: 2 } }]
+        [ID.FORGED_SURFER_DASH]: {
+          sideEffects: {
+            surfer: {
+              ...remove('strike', enhanced ? 'Meticulous Dash' : 'Dash'),
+              effects: [
+                { type: 'strike', name: enhanced ? 'Meticulous Bomb' : 'Bomb', coefficient: { from: base, to: 2 } }
+              ]
+            }
+          }
         }
       },
       'Antiquary',
       ['Skritt Swipe', 'Forged Surfer Dash', { type: 'wait', durationMs: 5000 }],
       {
-        selectedTraitIds: id === ANTIQUARY.forgedSurfer ? [] : [TRAIT.METICULOUS_CUSTODIAN]
+        selectedTraitIds: !enhanced ? [] : [TRAIT.METICULOUS_CUSTODIAN]
       }
     );
     const strikes = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.FORGED_SURFER_DASH);
@@ -274,8 +280,8 @@ for (const id of [ANTIQUARY.forgedSurfer, ANTIQUARY.forgedSurferMeticulous]) {
 
 for (const type of ['strike', 'condition']) {
   test(`Cannon success independently removes ${type}`, () => {
-    const result = run(
-      { [ANTIQUARY.cannonSuccess]: remove(type, type === 'strike' ? 'Stone Summit Cannon - Success' : 'Burning') },
+    const result = runSkills(
+      { [ID.STONE_SUMMIT_CANNON]: remove(type, type === 'strike' ? 'Stone Summit Cannon - Success' : 'Burning') },
       'Antiquary',
       [{ type: 'cast', skillId: 76725 }],
       {
@@ -312,10 +318,11 @@ test('Possessive Hoarder removal preserves Alacrity without substituting Protect
 });
 
 test('Mistburn removal suppresses its charge grant while spending the artifact', () => {
-  const result = run({ [ANTIQUARY.mistburnProc]: remove('condition', 'Burning') }, 'Antiquary', [
-    'Skritt Swipe',
-    'Mistburn Mortar'
-  ]);
+  const result = runSkills(
+    { [ID.MISTBURN_MORTAR]: { sideEffects: { charged: remove('condition', 'Burning') } } },
+    'Antiquary',
+    ['Skritt Swipe', 'Mistburn Mortar']
+  );
   assert.equal(result.planningState.profession.mistburn.charges, 0);
   assert.equal(result.planningState.profession.artifactUsesRemaining, 0);
 });
@@ -376,7 +383,7 @@ test('patched Preparedness and Maleficent Seven capacities initialize before res
       {
         [CORE.resources]: { fields: { maximumStacks: 18 } },
         [TRAIT.PREPAREDNESS]: { fields: { maximumStacks: 21 } },
-        [DEADEYE.resources]: { fields: { maximumStacks: 9 } },
+        [TRAIT.DEADEYES_GAZE]: { fields: { maximumStacks: 9 } },
         [TRAIT.MALEFICENT_SEVEN]: { fields: { maximumStacks: 11 } }
       },
       'Deadeye',

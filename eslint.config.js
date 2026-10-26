@@ -362,10 +362,19 @@ export default [
   {
     files: ['js/games/gw2/professions/**/data/**/*.ts'],
     rules: {
-      'no-restricted-imports': restrictedImports({
-        regex: '(^|/)(app|core|integrations|specializations)(/|$)|(^|/)presentation\\.js$',
-        message: 'Profession data must not import behavior, presentation, application, or integration modules.'
-      })
+      'no-restricted-imports': restrictedImports(
+        {
+          regex:
+            '^(?!#gw2/professions/[^/]+/(?:core|specializations/[^/]+)/skill-fields\\.js$).*(?:(?:^|/)(app|core|integrations|specializations)(?:/|$)|/presentation\\.js$)',
+          message: 'Profession data must not import behavior, presentation, application, or integration modules.'
+        },
+        {
+          // Erased registry imports derive numeric field types without loading module behavior into generated data.
+          regex: '^#gw2/professions/[^/]+/(?:core|specializations/[^/]+)/skill-fields\\.js$',
+          allowTypeImports: true,
+          message: 'Profession data may import skill-field registries only as types.'
+        }
+      )
     }
   },
 

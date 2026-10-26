@@ -19,7 +19,6 @@ import {
 } from '#gw2/professions/warrior/core/presentation.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
@@ -41,8 +40,8 @@ const NO_WEAPON_BURSTS: Readonly<Record<string, number>> = Object.freeze({});
 
 function resources(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
-  // The live pool wins; authoring before simulation uses the selected Flow profile.
-  const maximum = state.flow?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+  // The live pool wins; authoring before simulation uses the intrinsic Gun X Sword capacity.
+  const maximum = state.flow?.maximum ?? balanceNumberFromContext(context, TRAIT.GUN_X_SWORD, 'maximumStacks');
   return [
     {
       id: 'flow',
@@ -84,7 +83,7 @@ function bladeswornSkillDamageOccurrence(context: SkillDamagePreviewContext, ski
   if (!isDragonSlash && !includes(DRAGON_TRIGGER_SKILLS) && id !== ID.DRAGON_TRIGGER) return null;
 
   // Entering the stance spends Flow, so every Dragon Trigger probe starts from the selected Flow maximum.
-  const flow = balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks');
+  const flow = balanceNumberFromContext(context, TRAIT.GUN_X_SWORD, 'maximumStacks');
 
   if (id === ID.DRAGON_TRIGGER) return { initialResource: flow };
 

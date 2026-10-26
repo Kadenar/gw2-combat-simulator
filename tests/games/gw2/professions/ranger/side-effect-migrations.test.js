@@ -2,15 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 
 // Variants add only their selected live boon, preserving independently authored hostile effects.
 test('Exploding Spores variants retain base packets and honor boon removal', () => {
   for (const unleashed of [true, false]) {
     for (const removed of [true, false]) {
-      const profileId = unleashed ? PROFILE.explodingSporesRanger : PROFILE.explodingSporesPet;
       const kind = unleashed ? 'might' : 'protection';
       const result = runRanger(
         [ID.EXPLODING_SPORES, { type: 'wait', durationMs: 2000 }],
@@ -20,10 +18,16 @@ test('Exploding Spores variants retain base packets and honor boon removal', () 
             runtime.profession.specialization.state.rangerUnleashed = unleashed;
           },
           extend(native) {
-            const profile = native.catalog.balanceProfilesById.get(profileId);
+            const skill = native.catalog.skillsById.get(ID.EXPLODING_SPORES);
             return {
-              catalog: withProfile(native.catalog, profileId, {
-                effects: removed ? [] : profile.effects.map((effect) => ({ ...effect, duration: 7 }))
+              catalog: withSkill(native.catalog, ID.EXPLODING_SPORES, {
+                effects: skill.effects.flatMap((effect) =>
+                  effect.type === 'boon' && effect.boon.toLowerCase() === kind
+                    ? removed
+                      ? []
+                      : [{ ...effect, duration: 7 }]
+                    : [effect]
+                )
               })
             };
           }

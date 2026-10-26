@@ -3,7 +3,8 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
-  requireBalanceProfileFromContext
+  requireBalanceProfileFromContext,
+  skillNumberFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -44,25 +45,11 @@ export function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): num
 }
 
 /** Identity lifetimes use the live Meticulous profile at commitment. */
-export function artifactWindow(runtime: ThiefRuntime): {
-  windows: ReturnType<typeof requireBalanceProfileFromContext>;
-  duration: number;
-} {
-  const windows = requireBalanceProfileFromContext(runtime, PROFILE.artifactWindows);
-  const duration = balanceProfileNumber(
-    hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)
-      ? requireBalanceProfileFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN)
-      : windows,
-    'duration'
-  );
-  return { windows, duration };
-}
-
-/** Resolve the selected Surfer packet profile at every occurrence, as before migration. */
-export function forgedSurferProfile(runtime: ThiefRuntime) {
-  return requireBalanceProfileFromContext(
+export function artifactWindowDuration(runtime: ThiefRuntime): number {
+  return balanceNumberFromContext(
     runtime,
-    hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? PROFILE.forgedSurferMeticulous : PROFILE.forgedSurfer
+    hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? TRAIT.METICULOUS_CUSTODIAN : PROFILE.artifactWindows,
+    'duration'
   );
 }
 
@@ -70,5 +57,5 @@ export function forgedSurferProfile(runtime: ThiefRuntime) {
 export function meticulousKryptisDuration(runtime: ThiefRuntime): number {
   return hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)
     ? balanceNumberFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN, 'kryptisDuration')
-    : balanceNumberFromContext(runtime, PROFILE.artifactWindows, 'minimumStacks');
+    : skillNumberFromContext(runtime, ID.SUMMON_KRYPTIS_TURRET, 'duration');
 }

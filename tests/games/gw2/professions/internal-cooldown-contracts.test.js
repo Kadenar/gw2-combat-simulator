@@ -22,7 +22,7 @@ import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
-import { createFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/initial-state.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import { mesmerControlAccepted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
@@ -505,7 +505,10 @@ test('Magebane Tether admits a burst at its native recharge boundary', () => {
 });
 
 test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
-  const state = createFirebrandState();
+  const state = firebrandState.create({
+    config: {},
+    balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+  });
   state.ashes.charges = 2;
   state.ashes.expiresAt = 10;
   state.ashes.readyAt = READY_AT;

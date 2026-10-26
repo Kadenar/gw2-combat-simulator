@@ -49,6 +49,13 @@ import {
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
+/** Wandering Minstrel owns baseline note capacity and instrument playing durations. */
+const wanderingMinstrel = defineTrait<MesmerSkill>({
+  id: TRAIT.WANDERING_MINSTREL,
+  name: 'Wandering Minstrel',
+  balance: { maximumStacks: 3, baseDuration: 5, durationPerTier: 5 }
+});
+
 /** Harmonize owns its existing profile and ordered performance consequences. */
 export const harmonize = defineTrait<MesmerSkill>({
   id: TRAIT.HARMONIZE,
@@ -307,6 +314,7 @@ export const syncopate = defineTrait<MesmerSkill>({
 
 /** Collect trait owners while instruments, notes, afterimage packets, and endurance remain shared mechanics. */
 export const troubadourTraits = [
+  wanderingMinstrel,
   harmonize,
   mayhem,
   raconteur,

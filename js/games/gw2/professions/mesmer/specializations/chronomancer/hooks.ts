@@ -1,8 +1,7 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { masterOfFragmentationDuration } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
-import { CHRONOMANCER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/chronomancer/profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -61,7 +60,7 @@ function createChronomancerMechanics(context: MesmerRuntime) {
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
     refreshAmmo: context.cooldownController.refreshAmmo,
     consumeResources: actions.consumeResources,
-    durationPerSource: balanceNumberFromContext(context, PROFILE.continuumSplit, 'durationPerTier'),
+    durationPerSource: skillNumberFromContext(context, ID.CONTINUUM_SPLIT, 'durationPerTier'),
     bonusDuration: masterOfFragmentationDuration(context),
     scheduleExpiry: (at) => context.schedule('mesmer.continuum-expire', at, at, undefined, -30)
   });

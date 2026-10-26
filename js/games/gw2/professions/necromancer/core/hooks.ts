@@ -1,3 +1,4 @@
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -51,7 +52,6 @@ import {
   soulShardLifecycle
 } from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
 import { necromancerSwordLifecycle } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { torchLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import { necromancerLifeForceCapacity } from '#gw2/professions/necromancer/core/state.js';
@@ -117,6 +117,47 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     regenerationRate: (_runtime, vigor) => enduranceRegenerationRate(vigor)
   },
   sideEffectHandlers: {
+    // The landed reaction selects only its own weapon template, retaining the strike's causal parent.
+    'necromancer.addle-control'(runtime, context) {
+      if (context.kind !== 'effect') return;
+
+      const effect = requireEffect(context.skill, 'control', 'Daze');
+
+      if (effect)
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: context.skill,
+          effects: [effect],
+          cause: context.trigger.event,
+          attribution: {
+            source: 'necromancer',
+            sourceId: context.skill.id,
+            skillId: context.skill.id,
+            skillName: context.skill.name,
+            actorType: ACTOR.PLAYER
+          }
+        });
+    },
+    'necromancer.addle-immobilize'(runtime, context) {
+      if (context.kind !== 'effect') return;
+
+      const effect = requireEffect(context.skill, 'condition', 'Immobilized');
+
+      if (effect)
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: context.skill,
+          effects: [effect],
+          cause: context.trigger.event,
+          attribution: {
+            source: 'necromancer',
+            sourceId: context.skill.id,
+            skillId: context.skill.id,
+            skillName: context.skill.name,
+            actorType: ACTOR.PLAYER
+          }
+        });
+    },
     'necromancer.corruption'(runtime, context) {
       if (context.kind === 'cast') completeNecromancerCorruption(runtime, context.cast);
     },
@@ -163,12 +204,10 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
       if (context.kind === 'effect') reactToNecromancerAxeHealth(runtime, context.trigger.event);
     },
     'necromancer.life-siphon'(runtime, context) {
-      if (context.kind === 'effect')
-        resolveNecromancerSkillConditions(runtime, context.trigger.event, PROFILE.lifeSiphonOnHit);
+      if (context.kind === 'effect') resolveNecromancerSkillConditions(runtime, context.trigger.event);
     },
     'necromancer.dark-pact'(runtime, context) {
-      if (context.kind === 'effect')
-        resolveNecromancerSkillConditions(runtime, context.trigger.event, PROFILE.darkPactOnHit);
+      if (context.kind === 'effect') resolveNecromancerSkillConditions(runtime, context.trigger.event);
     },
     'necromancer.transfer'(runtime, context) {
       if (context.kind === 'effect') resolveNecromancerTransfer(runtime, context.trigger.event);

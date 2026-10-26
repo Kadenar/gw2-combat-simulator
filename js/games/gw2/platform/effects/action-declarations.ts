@@ -1,4 +1,4 @@
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import { isCustomSideEffectAction, type SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
@@ -8,8 +8,11 @@ const authoredReactions = new WeakSet<readonly EffectReaction[]>();
 const declarationSnapshots = new WeakSet();
 const immutableSnapshots = new WeakSet();
 
-/** Detach and freeze declaration data while preserving executable authoring callbacks. */
-export function snapshotActionDeclaration<T>(value: T): T {
+/** Detach declarations using the caller's effect normalizer, keeping snapshot ownership independent of validation. */
+export function snapshotActionDeclaration<T>(
+  value: T,
+  normalizeEffects: (effects: readonly SkillEffect[], label: string) => readonly SkillEffect[]
+): T {
   if (!value || typeof value !== 'object') return value;
 
   // Rebuilt catalogs can retain already detached immutable declarations without copying them again.
@@ -20,14 +23,14 @@ export function snapshotActionDeclaration<T>(value: T): T {
   if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) return value;
 
   const snapshot = Array.isArray(value)
-    ? value.map(snapshotActionDeclaration)
+    ? value.map((entry) => snapshotActionDeclaration(entry, normalizeEffects))
     : Object.fromEntries(
         Object.entries(value).map(([key, entry]) => [
           key,
           // Inline action payloads are canonical effects, not a second execution path.
           key === 'effects' && isCustomSideEffectAction(value)
-            ? normalizeSkillEffects(entry, `action=${value.id ?? value.type}`)
-            : snapshotActionDeclaration(entry)
+            ? normalizeEffects(entry, `action=${value.id ?? value.type}`)
+            : snapshotActionDeclaration(entry, normalizeEffects)
         ])
       );
 
@@ -40,8 +43,11 @@ export function snapshotActionDeclaration<T>(value: T): T {
 }
 
 /** Only normalized, detached reaction lists qualify for the registry's authored-declaration fast path. */
-export function snapshotEffectReactions(reactions: readonly EffectReaction[]): readonly EffectReaction[] {
-  const snapshot = snapshotActionDeclaration(reactions);
+export function snapshotEffectReactions(
+  reactions: readonly EffectReaction[],
+  normalizeEffects: (effects: readonly SkillEffect[], label: string) => readonly SkillEffect[]
+): readonly EffectReaction[] {
+  const snapshot = snapshotActionDeclaration(reactions, normalizeEffects);
 
   if (immutableSnapshots.has(snapshot)) authoredReactions.add(snapshot);
 

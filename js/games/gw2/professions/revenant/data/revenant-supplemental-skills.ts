@@ -9,6 +9,15 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 const records: readonly Skill[] = [
   {
+    id: 77047,
+    name: 'Beguiling Haze (Follow-Up)',
+    type: 'Action',
+    slot: 'Action',
+    specialization: 'Conduit',
+    categories: ['Skill'],
+    weapon: ''
+  },
+  {
     id: 26650,
     name: 'Legendary Dwarf Stance',
     description: 'Invoke the power of the legendary dwarf King Jalis Ironhammer.',

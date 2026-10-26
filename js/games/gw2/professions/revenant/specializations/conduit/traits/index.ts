@@ -392,7 +392,15 @@ const sharedWisdom = defineTrait({
   }
 });
 
+/** Enigmatic Connection owns the intrinsic Affinity capacity of every Conduit build. */
+const enigmaticConnection = defineTrait({
+  id: TRAIT.ENIGMATIC_CONNECTION,
+  name: 'Enigmatic Connection',
+  balance: { maximumStacks: 5 }
+});
+
 export const traitDefinitions = [
+  enigmaticConnection,
   kineticInsight,
   lingeringDetermination,
   enhancedEmbodiment,

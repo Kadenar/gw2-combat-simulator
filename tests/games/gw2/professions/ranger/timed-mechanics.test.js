@@ -6,8 +6,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { galeshotModule } from '#gw2/professions/ranger/specializations/galeshot/module.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import { DRUID_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/druid/profiles.js';
+import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {
   initialAstralForce: 100,
@@ -97,7 +96,7 @@ test('Avatar lifetime remains present at its exact deadline until exit cleanup c
       [ID.CELESTIAL_AVATAR, { type: 'wait', durationMs: 1000 }],
       { specialization: 'Druid' },
       {
-        catalog: (catalog) => withProfile(catalog, PROFILE.resources, { duration }),
+        catalog: (catalog) => withSkill(catalog, ID.CELESTIAL_AVATAR, { duration }),
         extend: (native) => ({
           tasks: {
             ...native.tasks,

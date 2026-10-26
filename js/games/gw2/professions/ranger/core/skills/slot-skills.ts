@@ -1,3 +1,4 @@
+import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 import { RECIPIENT, COMBO_FIELD, COMBO_FINISHER, CONTROL, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
@@ -17,12 +18,11 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { buildRangerPacket, emitRangerProfile } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerPacket, emitRangerProfile, emitRangerAction } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -96,6 +96,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.SIGNET_OF_THE_WILD]: {
+    // Player and pet passive readers share the selected signet attribute grant.
+    attributeBonuses: { ferocity: 180 },
     castTimeMs: 520,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -304,13 +306,19 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     categories: ['Command'],
     // The command completes on the 840 ms action tick before its buffs and command traits apply.
     castTimeMs: 840,
-    effects: [
+    // Opening the command window owns the Might emitted by later qualifying strikes.
+    sideEffects: [
       {
-        type: 'buff',
-        kind: 'strength-of-the-pack',
-        duration: 10,
-        stacks: 1
-      },
+        on: 'castCommit',
+        do: {
+          type: 'ranger.strength-of-the-pack',
+          id: 'triggered-might',
+          effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 1 }]
+        }
+      }
+    ],
+    duration: 10,
+    effects: [
       {
         type: 'boon',
         boon: BOON.FURY,
@@ -335,12 +343,25 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.SHARPENING_STONE]: {
+    // Unspent charges and their delivered conditions have independent lifetimes.
+    charges: 10,
+    duration: 30,
     castTimeMs: 0,
     canCastConcurrently: true,
     effects: [],
     // Activate the intrinsic reward at its declared boundary, before common trait observers.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'ranger.sharpening-stone' } }
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: {
+          type: 'ranger.sharpening-stone',
+          id: 'sharpening-stone',
+          effects: [
+            { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 8 }
+          ]
+        }
+      }
     ]
   },
   [ID.SPIRIT_OF_NATURE]: {
@@ -461,6 +482,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.SIC_EM]: {
+    // Command duration belongs to the selected command skill for either recipient.
+    duration: 10,
     categories: ['Command'],
     castTimeMs: 0,
     effects: [],
@@ -626,7 +649,7 @@ function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
               : { recipients: RECIPIENT.SELF },
           priority: -20,
           stacks: 1,
-          duration: balanceNumberFromContext(runtime, PROFILE.sicEm, 'duration')
+          duration: skillNumber(skill, 'duration')
         },
         'buff'
       )
@@ -686,7 +709,8 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
   deliverChargedHit(
     context,
     event,
-    PROFILE.sharpeningStone,
+    ID.SHARPENING_STONE,
+    'sharpening-stone',
     () => consumeChargeBatch(state.sharpeningStoneGrants, event.at) !== undefined,
     {
       attribution: {
@@ -707,8 +731,7 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
 export const sharpeningStoneLifecycle = {
   sideEffectHandlers: {
     'ranger.sharpening-stone'(runtime, context) {
-      if (context.kind === 'cast')
-        grantSkillCharges(runtime, context.cast, 'ranger.sharpening-stone', PROFILE.sharpeningStone);
+      if (context.kind === 'cast') grantSkillCharges(runtime, context.cast, 'ranger.sharpening-stone');
     }
   },
   eventHandlers: { 'ranger.sharpening-stone': handleRangerSharpeningStone }
@@ -750,7 +773,7 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
   // Only the Ranger's own live Strength of the Pack window arms the proc.
   if (context.combat.activeBuffStacks('strength-of-the-pack', event.at, 1) === 0) return;
 
-  emitRangerProfile(context, event.at, requireBalanceProfileFromContext(context, PROFILE.strengthOfThePack), {
+  emitRangerAction(context, event.at, requireSkillFromContext(context, ID.STRENGTH_OF_THE_PACK), 'triggered-might', {
     attribution: {
       source: 'ranger',
       sourceId: ID.STRENGTH_OF_THE_PACK,

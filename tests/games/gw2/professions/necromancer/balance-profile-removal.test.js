@@ -1,13 +1,11 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import {
   createObservedProfessionSimulator,
@@ -21,11 +19,11 @@ const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const patched = (balanceProfiles) => applyBalanceProfilePatch(necromancerCatalog, { balanceProfiles });
 
 // Patched rotations exercise profile compilation and actual live effect ownership together.
-function run(balanceProfiles, specialization, rotation, config = {}) {
+function run(balanceProfiles, specialization, rotation, config = {}, skills = {}) {
   const profession = withPatchPreview(necromancerProfession, {
     id: 'necromancer-removal',
     label: 'Necromancer removal',
-    professions: { necromancer: { balanceProfiles } }
+    professions: { necromancer: { balanceProfiles, skills } }
   });
   const result = createObservedProfessionSimulator(profession, {
     attributeInputs: baseAttributeInputs({
@@ -75,13 +73,15 @@ test('removed minion Vampiric siphon keeps the player siphon bound to its own va
 
 test('removing every alternate minion packet compiles no alternate cadence', () => {
   const context = {
-    catalog: patched({
-      [CORE.boneFiendAttack]: {
-        removeEffects: [
-          { type: 'strike', name: 'Bone Shard - Crippling Volley - First Projectile' },
-          { type: 'strike', name: 'Bone Shard - Crippling Volley - Second Projectile' },
-          { type: 'condition', name: 'Crippled' }
-        ]
+    catalog: applySkillPatch(necromancerCatalog, {
+      skills: {
+        ['necromancer.minion.bone-fiend.attack']: {
+          removeEffects: [
+            { type: 'strike', name: 'Bone Shard - Crippling Volley - First Projectile' },
+            { type: 'strike', name: 'Bone Shard - Crippling Volley - Second Projectile' },
+            { type: 'condition', name: 'Crippled' }
+          ]
+        }
       }
     })
   };
@@ -93,10 +93,11 @@ test('removing every alternate minion packet compiles no alternate cadence', () 
 
 test('removed Anguish autoattack stops autonomous attacks while its summon barrage survives', () => {
   const result = run(
-    { [RITUALIST.anguish]: remove('strike', 'Anguish Autoattack') },
+    {},
     'Ritualist',
     ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 9000 }],
-    { initialResource: 100 }
+    { initialResource: 100 },
+    { ['necromancer.ritualist.anguish.autoattack']: remove('strike', 'Anguish Autoattack') }
   );
   assert.equal(
     result.events.some((event) => event.type === 'necromancer.spirit-attack'),

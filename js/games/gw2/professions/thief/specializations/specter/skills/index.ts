@@ -10,6 +10,9 @@ const SHADOW_SHROUD_PALETTE_TILE = 'specter-shadow-shroud';
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SIPHON]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    shadowForceGain: 25,
+
     stealTraitSkill: true,
     // Siphon adds Lead Attacks and Sleight of Hand reductions instead of multiplying them.
     stealRechargeMode: 'additive',
@@ -44,7 +47,28 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     // The skill owns this transition at successful commitment.
     sideEffects: [
       { on: 'castCommit', do: { type: 'thief.enter-shadow-shroud' } },
-      { on: 'castCommit', do: { type: 'thief.shroud-entry-barrier' } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'thief.shroud-entry-barrier',
+          id: 'barrier',
+          effects: [
+            {
+              type: 'buff',
+              name: 'barrier',
+              kind: 'barrier',
+              stacks: 1,
+              duration: 5,
+              audience: {
+                recipients: RECIPIENT.PARTY,
+                affectsSelf: false,
+                maximumRecipients: 1,
+                eligibleCompanionIds: []
+              }
+            }
+          ]
+        }
+      }
     ]
   },
   [ID.HAUNT_SHOT]: {
@@ -156,7 +180,29 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
     ]),
     // Successful completion grants the intrinsic barrier independently of trait rewards.
     sideEffects: [
-      { on: 'castCommit', when: (_runtime, cast) => !castWasInterrupted(cast), do: { type: 'thief.dawns-barrier' } }
+      {
+        on: 'castCommit',
+        when: (_runtime, cast) => !castWasInterrupted(cast),
+        do: {
+          type: 'thief.dawns-barrier',
+          id: 'barrier',
+          effects: [
+            {
+              type: 'buff',
+              name: 'barrier',
+              kind: 'barrier',
+              stacks: 1,
+              duration: 5,
+              audience: {
+                recipients: RECIPIENT.PARTY,
+                affectsSelf: true,
+                maximumRecipients: 5,
+                eligibleCompanionIds: []
+              }
+            }
+          ]
+        }
+      }
     ]
   },
   [ID.WELL_OF_SILENCE]: {

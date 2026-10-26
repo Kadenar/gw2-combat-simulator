@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -361,5 +361,161 @@ test('Twin Moon affinity belongs to each resolved player packet, independently o
       assert.deepEqual(result.warnings, []);
       assert.equal(conduitState.from(observedRuntime(result)).affinity.value, removed || offTarget ? 0 : 4);
     }
+  }
+});
+
+// Removed profile targets reject edits; specialization minors retain intrinsic capacity without explicit selection.
+test('Revenant intrinsic profiles have one canonical owner', () => {
+  const catalog = revenantProfession.catalog;
+  assert.equal(catalog.balanceProfiles.filter((profile) => profile.profileKind === 'skill-variant').length, 0);
+  for (const id of [
+    'revenant.nature-assassin',
+    'revenant.conduit.affinity',
+    'revenant.conduit.beguiling-haze-follow-up',
+    'revenant.renegade.heroic-command-lasting-legacy',
+    'revenant.renegade.orders-from-above-righteous-rebel'
+  ]) {
+    assert.throws(
+      () => applyBalanceProfilePatch(catalog, { balanceProfiles: { [id]: { fields: { maximumStacks: 4 } } } }),
+      /unknown balance profile/i
+    );
+  }
+});
+
+// The skill owns both Might templates; trait selection and effect removal never borrow a sibling's output.
+test('Heroic Command selects independent skill-owned Might and still refreshes Fervor after removal', () => {
+  for (const legacy of [false, true]) {
+    for (const removed of [false, true]) {
+      const name = legacy ? 'lasting-legacy-might' : 'might';
+      const result = runRevenant(
+        ['Heroic Command'],
+        {
+          specialization: 'Renegade',
+          initialEnergy: 100,
+          selectedTraitIds: legacy ? [TRAIT.LASTING_LEGACY] : []
+        },
+        {
+          catalog: (catalog) =>
+            applySkillPatch(catalog, {
+              skills: {
+                [ID.HEROIC_COMMAND]: removed
+                  ? { removeEffects: [{ type: 'boon', name }] }
+                  : { effects: [{ type: 'boon', name, stacks: 4 }] }
+              }
+            }),
+          initialize(runtime) {
+            renegadeState.from(runtime).kallasFervor = [{ at: 0, expiresAt: 1 }];
+          }
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const might = result.events.find(
+        (event) => event.type === 'buff' && event.kind === 'might' && event.skillId === ID.HEROIC_COMMAND
+      );
+      assert.equal(might?.stacks ?? 0, removed ? 0 : 4);
+      assert.ok(renegadeState.from(observedRuntime(result)).kallasFervor[0].expiresAt > 1);
+    }
+  }
+});
+
+// Righteous Rebel replaces the base component; removing either branch must not synthesize the other branch.
+test('Orders from Above isolates base and Righteous Rebel component removal', () => {
+  for (const rebel of [false, true]) {
+    const result = runRevenant(
+      ['Orders from Above', wait(1000)],
+      {
+        specialization: 'Renegade',
+        initialEnergy: 100,
+        selectedTraitIds: rebel ? [TRAIT.RIGHTEOUS_REBEL] : []
+      },
+      {
+        catalog: (catalog) =>
+          applySkillPatch(catalog, {
+            skills: {
+              [ID.ORDERS_FROM_ABOVE]: {
+                removeEffects: [{ type: 'boon', name: rebel ? 'righteous-rebel-alacrity' : 'base-alacrity' }]
+              }
+            }
+          })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.events.some((event) => event.type === 'buff' && event.kind === 'alacrity'),
+      false
+    );
+  }
+});
+
+// A removed siphon must not claim its cooldown; the facet lifecycle and Energy upkeep still activate.
+test('Facet of Nature owns its Assassin payload and independent proc cooldown', () => {
+  for (const removed of [false, true]) {
+    const result = runRevenant(
+      ['Facet of Nature', 'Preparation Thrust'],
+      {
+        specialization: 'Herald',
+        initialEnergy: 100,
+        primaryWeapon: 'Sword',
+        secondaryWeapon: 'Sword',
+        selectedLegends: [LEGEND.ASSASSIN, LEGEND.DRAGON],
+        startingLegend: LEGEND.ASSASSIN
+      },
+      {
+        catalog: (catalog) =>
+          applySkillPatch(catalog, {
+            skills: {
+              [ID.FACET_OF_NATURE]: {
+                fields: { internalCooldown: 3 },
+                sideEffects: {
+                  'assassin-siphon': removed
+                    ? { removeEffects: [{ type: 'strike', name: 'Life Siphon' }] }
+                    : {
+                        effects: [{ type: 'strike', name: 'Life Siphon', flatStrikeBase: 777, flatStrikePowerCoeff: 0 }]
+                      }
+                }
+              }
+            }
+          })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    const siphon = result.events.find((event) => event.type === 'damage' && event.skillId === ID.FACET_OF_NATURE);
+    assert.equal(Boolean(siphon), !removed);
+    assert.equal(runtime.procs.deadline('revenant.herald.natureSiphon'), removed ? 0 : siphon.at + 3);
+    assert.ok(core(result).activeUpkeeps.some((upkeep) => upkeep.skillId === ID.FACET_OF_NATURE));
+  }
+});
+
+// Dervish's all-legend threshold is independent of the shared Affinity cap and works without explicit minor selection.
+test('Dervish release reads its selected all-legend Affinity threshold', () => {
+  for (const threshold of [2, 4]) {
+    const result = runRevenant(
+      ['Release Potential: Dervish'],
+      {
+        specialization: 'Conduit',
+        initialEnergy: 100,
+        selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.ENTITY,
+        selectedTraitIds: []
+      },
+      {
+        catalog: (catalog) =>
+          applySkillPatch(catalog, {
+            skills: { [ID.RELEASE_POTENTIAL_DERVISH]: { fields: { allLegendAffinityThreshold: threshold } } }
+          }),
+        initialize(runtime) {
+          runtime.resourceController.replace('affinity', 3);
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(
+      result.events.some(
+        (event) => event.type === 'buff' && event.kind === 'might' && event.skillId === ID.RELEASE_POTENTIAL_DERVISH
+      ),
+      threshold === 2
+    );
+    assert.equal(conduitState.from(observedRuntime(result)).affinity.maximum, 5);
   }
 });

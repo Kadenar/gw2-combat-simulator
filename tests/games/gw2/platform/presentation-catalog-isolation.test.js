@@ -36,20 +36,17 @@ import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/ha
 import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ritualist/presentation.js';
 
 const skill = (id, name, fields = {}) => ({ id, name, castTimeMs: 0, effects: [], ...fields });
-// Fixture catalogs accept the same profession-owned fields as the real modules whose presentation they bind.
-const FIXTURE_SKILL_FIELDS = combineSkillFields(
-  Object.entries({
-    ENGINEER_CORE_SKILL_FIELDS,
-    HOLOSMITH_SKILL_FIELDS,
-    RANGER_CORE_SKILL_FIELDS,
-    DRUID_SKILL_FIELDS,
-    GALESHOT_SKILL_FIELDS,
-    LUMINARY_SKILL_FIELDS,
-    FIREBRAND_SKILL_FIELDS,
-    NECROMANCER_CORE_SKILL_FIELDS
-  }).map(([owner, fields]) => ({ owner, fields }))
-);
-const catalog = (...skills) => createCanonicalCatalog({ extraSkills: skills, skillFields: FIXTURE_SKILL_FIELDS });
+// Select only the current profession's field vocabulary, matching real catalog assembly.
+const catalogFor = (...tables) => {
+  const skillFields = combineSkillFields(tables.map((fields, index) => ({ owner: `fixture-${index}`, fields })));
+  return (...skills) => createCanonicalCatalog({ extraSkills: skills, skillFields });
+};
+
+const engineerCatalog = catalogFor(ENGINEER_CORE_SKILL_FIELDS, HOLOSMITH_SKILL_FIELDS);
+const rangerCatalog = catalogFor(RANGER_CORE_SKILL_FIELDS, DRUID_SKILL_FIELDS, GALESHOT_SKILL_FIELDS);
+const guardianCatalog = catalogFor(LUMINARY_SKILL_FIELDS, FIREBRAND_SKILL_FIELDS);
+const necromancerCatalog = catalogFor(NECROMANCER_CORE_SKILL_FIELDS);
+const elementalistCatalog = catalogFor();
 const groupIds = (ui, context, id) => ui.paletteGroups(context).find((group) => group.id === id).skillIds;
 
 // Read each instance with its selected catalog before and after binding another, in both initialization orders.
@@ -68,7 +65,9 @@ function assertIsolated(bind, catalogs, read, expected) {
 }
 
 test('Engineer Core and elite toolbelts use their own catalogs without Core binding side effects', () => {
-  const catalogs = [1, 2].map((id) => catalog(skill(100, 'Heal'), skill(id, 'Toolbelt', { toolbeltParentId: 100 })));
+  const catalogs = [1, 2].map((id) =>
+    engineerCatalog(skill(100, 'Heal'), skill(id, 'Toolbelt', { toolbeltParentId: 100 }))
+  );
   const context = { config: { selectedSkillIds: [100] } };
   for (const bind of [bindEngineerCoreUi, bindHolosmithUi, bindAmalgamUi, bindScrapperUi]) {
     assertIsolated(
@@ -85,7 +84,7 @@ test('Engineer kit and toolbelt projections follow IDs when catalog labels chang
   const equip = skill(5805, 'Renamed bundle', { kitTransition: 'equip' });
   const grenade = skill(5807, 'Renamed attack', { kitId: equip.id, slot: 'Weapon_1' });
   const toolbelt = skill(5810, 'Renamed toolbelt', { toolbeltParentId: equip.id });
-  const ui = bindEngineerCoreUi(catalog(equip, grenade, toolbelt));
+  const ui = bindEngineerCoreUi(engineerCatalog(equip, grenade, toolbelt));
   const context = { config: { selectedSkillIds: [equip.id] }, professionState: { activeKit: equip.id } };
   assert.deepEqual(groupIds(ui, context, 'engineer-kit-5805'), [grenade.id]);
   assert.deepEqual(groupIds(ui, context, 'engineer-profession'), [toolbelt.id]);
@@ -97,7 +96,7 @@ test('Engineer Forge and protocol controls retain their local skill lists and lo
   // Protocol eligibility uses authored identities, so vary two legal options while retaining isolated catalogs.
   const ids = [ENGINEER_ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, ENGINEER_ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163];
   const catalogs = ids.map((id) =>
-    catalog(
+    engineerCatalog(
       skill(id, 'Protocol', { forgeSkill: true, specialization: 'Amalgam', categories: ['Morph'], mechanicSlot: 2 })
     )
   );
@@ -121,7 +120,7 @@ test('all Ranger pet palettes use the catalog supplied to their own factory', ()
   const petState = { petNames: ['Lynx', 'Pig'], activePetSlot: 1 };
   const skillId = rangerPetForState(petState).skillIds.at(-1);
   const catalogs = [false, true].map((petAutonomousSkill) =>
-    catalog(skill(skillId, 'Pet attack', { petSkill: true, petAutonomousSkill }))
+    rangerCatalog(skill(skillId, 'Pet attack', { petSkill: true, petAutonomousSkill }))
   );
   const context = { professionState: { ...petState, beastmodeActive: false } };
   for (const bind of [bindRangerCoreUi, bindDruidUi, bindGaleshotUi, bindSoulbeastUi, bindUntamedUi]) {
@@ -131,7 +130,7 @@ test('all Ranger pet palettes use the catalog supplied to their own factory', ()
 
 test('Untamed and Soulbeast derived skill collections remain instance-local', () => {
   const catalogs = [true, false].map((enabled) =>
-    catalog(skill(1, 'Beast attack', { unleashedPetSkill: enabled, beastmodeSkill: enabled }))
+    rangerCatalog(skill(1, 'Beast attack', { unleashedPetSkill: enabled, beastmodeSkill: enabled }))
   );
   assertIsolated(bindUntamedUi, catalogs, (ui) => groupIds(ui, {}, 'ranger-untamed-profession').includes(1), [
     true,
@@ -148,7 +147,7 @@ test('Guardian virtue and mode helpers use each Core or elite instance catalog',
     [bindWillbenderUi, 62668]
   ]) {
     const catalogs = [1, 2].map((variant) =>
-      catalog(
+      guardianCatalog(
         skill(id, `Renamed virtue ${variant}`),
         skill(variant, 'Mode action', { tome: 'justice', radiantForgeSkill: true })
       )
@@ -169,7 +168,7 @@ test('Necromancer transform palettes do not depend on the last Core catalog boun
     [bindHarbingerUi, 'harbinger'],
     [bindRitualistUi, 'ritualist']
   ]) {
-    const catalogs = [1, 2].map((id) => catalog(skill(id, 'Shroud attack', { shroud })));
+    const catalogs = [1, 2].map((id) => necromancerCatalog(skill(id, 'Shroud attack', { shroud })));
     assertIsolated(bind, catalogs, (ui) => groupIds(ui, {}, 'shroud'), [[1], [2]]);
   }
 });
@@ -182,7 +181,7 @@ test('Elementalist family and Core factories receive their own assembled catalog
   // Family controls must work even when Core presentation has never been initialized.
   assertIsolated(
     bindElementalistFamilyUi,
-    ['first', 'second'].map((icon) => catalog(...skills(icon))),
+    ['first', 'second'].map((icon) => elementalistCatalog(...skills(icon))),
     (ui) => ui.startControls({})[0].options[0].icon,
     ['first', 'second']
   );

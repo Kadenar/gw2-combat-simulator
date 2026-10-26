@@ -43,7 +43,6 @@ import {
   untamedStrike,
   untamedUnleashed
 } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -111,7 +110,7 @@ const letLoose = defineTrait({
 
           if (
             state.rangerUnleashed &&
-            runtime.procs.claim(PROFILE.resources, 'ranger.untamed.unleashedPower', runtime.time)
+            runtime.procs.claim(TRAIT.UNLEASHED_POWER, 'ranger.untamed.unleashedPower', runtime.time)
           )
             grantAmbush(runtime);
         }
@@ -444,7 +443,15 @@ interface UntamedModifierState {
 const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ...UNTAMED_AMBUSH_SKILL_IDS]);
 
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
+/** The unlocking minor owns baseline specialization policy even when omitted from explicit selections. */
+const intrinsicPolicy = defineTrait({
+  id: TRAIT.UNLEASHED_POWER,
+  name: 'Unleashed Power',
+  balance: { duration: 4, internalCooldown: 9 }
+});
+
 export const untamedTraits = [
+  intrinsicPolicy,
   naturalFortitude,
   letLoose,
   blindingOutburst,

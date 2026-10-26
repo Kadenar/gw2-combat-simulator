@@ -1,14 +1,7 @@
-import {
-  tooltipSeconds,
-  profileFact,
-  tooltipProfile,
-  simulationEffectFacts
-} from '#gw2/app/shared/simulation-tooltip.js';
-import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
+import { tooltipSeconds, skillFact, simulationEffectFacts } from '#gw2/app/shared/simulation-tooltip.js';
+import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import { cloneShatterEffects } from '#gw2/professions/mesmer/core/mechanics/shatter-projection.js';
 import { bladesongEffects } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesong-projection.js';
-import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
@@ -19,9 +12,7 @@ import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-toolt
 export const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const id = Number(entity.id);
   const bladesong = MESMER_VIRTUOSO_SHATTERS[id] != null;
-  const definition = { ...MESMER_CORE_SHATTERS, ...MESMER_CHRONOMANCER_SHATTERS, ...MESMER_VIRTUOSO_SHATTERS }[id];
-  const shatter = mesmerProfiledShatter(balanceContext, definition);
-  const profile = tooltipProfile(balanceContext, definition.balanceProfileId);
+  const shatter = mesmerSelectedShatter(balanceContext, id);
   const native = balanceContext.catalog.skillsById.get(entity.id)! as MesmerSkill;
   const projectEffects = bladesong ? bladesongEffects : cloneShatterEffects;
   // Resolve by resource tier so removing a strike cannot relabel its surviving neighbors.
@@ -32,12 +23,12 @@ export const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity
     return simulationEffectFacts(projectEffects(balanceContext, shatter, native, tier), qualifier).facts;
   });
 
-  if (profile.rechargeReduction != null)
+  if (native.rechargeReductionPerSource != null)
     facts.push(
-      profileFact(
+      skillFact(
         balanceContext,
-        profile.id,
-        'rechargeReduction',
+        native.id,
+        'rechargeReductionPerSource',
         'Recharge reduction per shatter source',
         tooltipSeconds
       )

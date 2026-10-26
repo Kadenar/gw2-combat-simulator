@@ -22,7 +22,8 @@ import {
 } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
-import { mesmerInstruments } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/runtime.js';
+import { mesmerSelectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-projection.js';
+import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import {
   troubadourCrescendoResolved,
   troubadourInstrumentAnnounced,
@@ -31,7 +32,8 @@ import {
   troubadourInstrumentControl,
   troubadourInstrumentStrike
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
-import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   activeTroubadourInstrumentsAt,
   troubadourState
@@ -39,6 +41,16 @@ import {
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { mesmerProfessionActionCommitted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
+
+/** Resolve selected instrument tuning for the performance handlers that consume it. */
+function mesmerInstruments(context: MesmerRuntime) {
+  return Object.fromEntries(
+    Object.entries(MESMER_TROUBADOUR_INSTRUMENTS).map(([skillId]) => [
+      Number(skillId),
+      mesmerSelectedInstrument(context, Number(skillId))
+    ])
+  );
+}
 
 /** Lists one hit per native packet; Harp's damageless pulse still hits foes once at its impact. */
 function instrumentHits(data: MesmerInstrument, damageAt: number): MesmerShatterTraitHit[] {
@@ -194,7 +206,7 @@ function commitInstrument(
   const spent = createMesmerActions(context).consumeResources(at, {
     activationId: cast.id
   });
-  const instrumentsProfile = requireBalanceProfileFromContext(context, PROFILE.instruments);
+  const instrumentsProfile = requireBalanceProfileFromContext(context, TRAIT.WANDERING_MINSTREL);
   const baseDuration = balanceProfileNumber(instrumentsProfile, 'baseDuration');
   const durationPerNote = balanceProfileNumber(instrumentsProfile, 'durationPerTier');
   // Playing windows are exact and replace only the matching instrument, without action-tick rounding.
@@ -234,15 +246,14 @@ export function resolveCrescendo(
   at: number,
   delivery: EffectDelivery = {}
 ): void {
-  const damageAt = canonicalTime(cast.start + Number(skill.damageAtMs || 0) / 1000);
+  const damageAt = canonicalTime(cast.start + (skill.damageAtMs ?? 0) / 1000);
   const activeInstruments = activeTroubadourInstrumentsAt(
     context.facts.read().filter((event) => event.type === 'mesmer.instrument'),
     damageAt
   );
-  const crescendoProfile = requireBalanceProfileFromContext(context, skill.crescendoProfileId!);
-  const strike = requireEffect(crescendoProfile, 'strike', 'Strike');
+  const strike = requireEffect(skill, 'strike', 'Strike', requireSkillAction(skill, 'crescendo'));
   // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.
-  const effectiveness = masterOfFragmentationCrescendo(context, crescendoProfile);
+  const effectiveness = masterOfFragmentationCrescendo(context, skill);
 
   if (strike)
     buildMesmerStrikes(context, skill, damageAt, {

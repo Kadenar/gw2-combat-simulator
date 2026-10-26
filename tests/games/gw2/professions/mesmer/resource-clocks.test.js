@@ -270,7 +270,9 @@ for (const [specialization, key, maximum] of [
       professions: {
         mesmer: {
           balanceProfiles: {
-            [`mesmer.${specialization.toLowerCase()}.resources`]: { fields: { maximumStacks: 2 } }
+            [specialization === 'Virtuoso' ? TRAIT.PSYCHIC_BLADES : TRAIT.WANDERING_MINSTREL]: {
+              fields: { maximumStacks: 2 }
+            }
           }
         }
       }

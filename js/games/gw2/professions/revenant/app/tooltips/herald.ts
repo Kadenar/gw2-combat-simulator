@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   outsideScopeTooltip,
   profileFact,
@@ -7,14 +8,12 @@ import {
   tooltipDecimal,
   tooltipNumber,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { HERALD_NATURE_ASSASSIN_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { upkeepTooltip } from '#gw2/professions/revenant/app/tooltips/shared.js';
 
 const facetConsumeTooltip: DescribeSimulationTooltip = skillTooltip(
@@ -46,16 +45,15 @@ export const heraldTooltips = {
       'Maintain a passive tied to the active legend. Dragon extends outgoing boon duration beyond its normal cap; Assassin adds life siphons to player strikes. The upkeep persists through legend swaps and exposes the matching True Nature consume. Draconic Echo can retain its passive.',
       (balanceContext) => [
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, HERALD_NATURE_ASSASSIN_PROFILE_ID).effects,
+          requireSkillAction(balanceContext.catalog.skillsById.get(ID.FACET_OF_NATURE)!, 'assassin-siphon').effects,
           'Assassin: per eligible strike'
         ).facts,
-        profileFact(
-          balanceContext,
-          HERALD_NATURE_ASSASSIN_PROFILE_ID,
-          'cooldown',
-          'Assassin siphon cooldown',
-          tooltipSeconds
-        )
+        {
+          name: 'Assassin siphon cooldown',
+          detail: tooltipSeconds(
+            tooltipNumber(balanceContext.catalog.skillsById.get(ID.FACET_OF_NATURE), 'internalCooldown')
+          )
+        }
       ]
     ),
     [ID.TRUE_NATURE_DRAGON]: (balanceContext, entity) => {

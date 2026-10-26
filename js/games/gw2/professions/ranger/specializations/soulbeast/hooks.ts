@@ -7,7 +7,6 @@ import {
   reactToSoulbeastBuff,
   reactToSoulbeastDamage
 } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { activateSoulbeastStance } from '#gw2/professions/ranger/specializations/soulbeast/skills/stance-skills.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -19,11 +18,11 @@ export const soulbeastHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkil
     buffPolicies: soulbeastBuffPolicies,
     sideEffectHandlers: {
       'ranger.vulture-stance'(runtime, context) {
-        activateSoulbeastStance(runtime, context.skill, 'vulture-stance', PROFILE.vultureStance);
+        activateSoulbeastStance(runtime, context.skill, 'vulture-stance');
       },
       'ranger.one-wolf-pack'(runtime, context) {
         soulbeastState.from(runtime).oneWolfPackUntil =
-          runtime.time + activateSoulbeastStance(runtime, context.skill, 'one-wolf-pack', PROFILE.oneWolfPack);
+          runtime.time + activateSoulbeastStance(runtime, context.skill, 'one-wolf-pack');
       }
     },
     reactions: {

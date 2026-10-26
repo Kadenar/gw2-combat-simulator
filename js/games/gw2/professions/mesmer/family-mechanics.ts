@@ -13,7 +13,7 @@ import type {
   MesmerShatterResolution
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
-import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
+import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { bountifulBladesSpawnModifiers } from '#gw2/professions/mesmer/core/traits/domination/index.js';
 import { createMesmerIllusionRewards, destroyClone } from '#gw2/professions/mesmer/family-resources.js';
@@ -46,7 +46,7 @@ export function createMesmerActions(context: MesmerRuntime) {
     // Resolve only the requested shatter against the current catalog; no cross-run cache can retain another patch.
     shatterFor: (id) => {
       const definition = mesmerShatterDefinition(context, id);
-      return definition ? mesmerProfiledShatter(context, definition) : undefined;
+      return definition ? mesmerSelectedShatter(context, id) : undefined;
     },
     shatterResolvers: {
       'mesmer.core.clone-shatter': resolveCloneShatter,

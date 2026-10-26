@@ -2,19 +2,21 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
-import { BERSERKER_BALANCE_PROFILE_IDS as BERSERKER } from '#gw2/professions/warrior/specializations/berserker/profiles.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS as SPELLBREAKER } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as BLADESWORN } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT, WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 /** Patch invocation catalogs directly so simultaneous runs exercise the selected policy before initialization hooks. */
-function run(config, rotation = [], profiles = {}) {
+function run(config, rotation = [], profiles = {}, skills = {}) {
   const native = warriorProfession.runtimeFor(config);
-  const catalog = Object.entries(profiles).reduce(
-    (current, [id, fields]) => withProfile(current, id, fields),
+  const profileCatalog = Object.entries(profiles).reduce(
+    (current, [id, fields]) => withProfile(current, Number.isNaN(Number(id)) ? id : Number(id), fields),
     native.catalog
+  );
+  // Intrinsic stance tuning is patched on the selected skill independently of trait-owned resource policy.
+  const catalog = Object.entries(skills).reduce(
+    (current, [id, fields]) => withSkill(current, Number(id), fields),
+    profileCatalog
   );
   const result = observeGw2Runtime({ profession: { ...native, catalog }, config, rotation });
   assert.deepEqual(result.warnings, []);
@@ -45,8 +47,8 @@ test('Signet of Stamina restores endurance, triggers Signet Mastery, and gates p
 test('selected Warrior clocks seed against patched caps without an earlier factory or Core clamp', () => {
   for (const [specialization, key, profile, maximum] of [
     ['Core', 'adrenaline', CORE.resources, 60],
-    ['Spellbreaker', 'adrenaline', SPELLBREAKER.resources, 45],
-    ['Bladesworn', 'flow', BLADESWORN.resources, 125]
+    ['Spellbreaker', 'adrenaline', TRAIT.SPELLBREAKERS_CONVICTION, 45],
+    ['Bladesworn', 'flow', TRAIT.GUN_X_SWORD, 125]
   ]) {
     for (const cap of [0, 7.5, maximum]) {
       const result = run({ specialization, initialResource: 150 }, [], { [profile]: { maximumStacks: cap } });
@@ -71,7 +73,7 @@ test('selected Warrior clocks seed against patched caps without an earlier facto
 
 test('Berserk refresh clamps its patched mode cap and expiry restores capacity without refilling', () => {
   const config = { specialization: 'Berserker', initialResource: 60 };
-  const profiles = { [CORE.resources]: { maximumStacks: 60 }, [BERSERKER.resources]: { maximumStacks: 7.5 } };
+  const profiles = { [CORE.resources]: { maximumStacks: 60 }, [TRAIT.PRIMAL_RAGE]: { maximumStacks: 7.5 } };
   const entered = run(config, ['Berserk'], profiles);
   assert.equal(entered.planningState.profession.adrenaline.maximum, 7.5);
   assert.equal(entered.planningState.profession.adrenaline.value, 7.5);
@@ -124,14 +126,16 @@ test('Warrior resource gates share pool tolerance and a short Flow interval stal
 });
 
 test('doubled Dragon Trigger gains cap at selected charges and release reports the spend after clearing the clock', () => {
-  const profiles = { [BLADESWORN.dragonTrigger]: { maximumStacks: 3, minimumStacks: 2 } };
+  const profiles = { [TRAIT.DARING_DRAGON]: { maximumStacks: 2 } };
+  const skills = { [ID.DRAGON_TRIGGER]: { maximumCharges: 3 } };
   for (const selectedTraitIds of [[], [TRAIT.DARING_DRAGON]]) {
     const maximum = selectedTraitIds.length ? 2 : 3;
     const config = { specialization: 'Bladesworn', initialResource: 100, selectedSkillIds: [62901], selectedTraitIds };
     const result = run(
       config,
       ['Tactical Reload', 'Dragon Trigger', { skillId: ID.DRAGON_SLASH_FORCE, releaseAtCharges: 10 }],
-      profiles
+      profiles,
+      skills
     );
     const state = observedRuntime(result).profession.specialization.state;
     const release = result.events.find(

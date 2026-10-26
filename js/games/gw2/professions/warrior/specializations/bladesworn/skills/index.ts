@@ -10,17 +10,13 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { slashEffects } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { BLADESWORN_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/bladesworn/profiles.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -45,6 +41,11 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.gunsaber-enter' } }]
   },
   [ID.DRAGON_TRIGGER]: {
+    // The mode's selected skill owns baseline charging and its admission cost.
+    maximumCharges: 10,
+    resourceCost: 5,
+    entryResourceCost: 15,
+    duration: 30,
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     canCastConcurrently: false,
@@ -161,7 +162,34 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: [],
     // Activation precedes completion, so acceptance schedules its own guarded wake.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'warrior.cartridges-schedule' } }
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: {
+          type: 'warrior.cartridges-schedule',
+          id: 'cartridges',
+          effects: [
+            {
+              name: 'overcharged-cartridges',
+              type: 'buff',
+              kind: 'overcharged-cartridges',
+              stacks: 1,
+              duration: 8,
+              damageIncreasePerStack: 0.15
+            },
+            { name: 'Overcharged Burning', type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 },
+            {
+              name: 'supercharged-cartridges',
+              type: 'buff',
+              kind: 'supercharged-cartridges',
+              stacks: 1,
+              duration: 8,
+              damageIncreasePerStack: 0.2
+            },
+            { name: 'Supercharged Burning', type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5 }
+          ]
+        }
+      }
     ]
   },
   // Only explicitly named explosion packets trigger explosion modifiers and traits; ordinary gunsaber hits do not.
@@ -268,10 +296,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
     castTimeMs: 680,
-    effects: [],
+    effects: [
+      { name: 'One round', type: 'strike', coefficient: 2, hits: 1 },
+      { name: 'Two rounds', type: 'strike', coefficient: 3, hits: 1 },
+      { name: 'Control', type: 'control', controlKind: CONTROL.DAZE }
+    ],
     effectVariants: [
       {
-        profileId: PROFILE.artillerySlash,
         when: () => true,
         transform: (runtime, cast) => artilleryEffects(runtime, cast, false)
       }
@@ -512,9 +543,29 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
     ])
   }),
   sharpAsTheWindVariant(ID.SHARP_ARTILLERY_SLASH, ID.ARTILLERY_SLASH, 'Artillery Slash', {
+    // Ammunition selects only this skill's authored payload alternatives.
+    effects: [
+      { name: 'Strike', type: 'strike', coefficient: 2, hits: 1 },
+      {
+        name: 'One round',
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 3,
+        duration: 6,
+        packetLabel: 'one round spent'
+      },
+      {
+        name: 'Two rounds',
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 4,
+        duration: 7,
+        packetLabel: 'two rounds spent'
+      },
+      { name: 'Control', type: 'control', controlKind: CONTROL.DAZE }
+    ],
     effectVariants: [
       {
-        profileId: PROFILE.sharpArtillerySlash,
         when: () => true,
         transform: (runtime, cast) => artilleryEffects(runtime, cast, true)
       }
@@ -591,15 +642,12 @@ export const BLADESWORN_SHARP_AS_THE_WIND_SKILLS: readonly Skill[] = Object.free
 
 /** Artillery spends every captured round while the shared completion consumes its final reserved round. */
 function artilleryEffects(
-  runtime: WarriorRuntime,
+  _runtime: WarriorRuntime,
   cast: RuntimeCast<WarriorSkill>,
   sharp: boolean
 ): readonly SkillEffect[] {
   const rounds = warriorAmmunition.get(cast)!.rounds;
-  const profile = requireBalanceProfileFromContext(
-    runtime,
-    sharp ? PROFILE.sharpArtillerySlash : PROFILE.artillerySlash
-  );
+  const profile = cast.skill;
   const strike = requireEffect(profile, 'strike', sharp ? 'Strike' : rounds >= 2 ? 'Two rounds' : 'One round');
   const effects: SkillEffect[] = [];
 
@@ -646,9 +694,10 @@ function activateCartridges(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
   if (active?.supercharged) return;
 
   const supercharged = Boolean(active);
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.overchargedCartridges);
+  const profile = requireSkillFromContext(runtime, ID.OVERCHARGED_CARTRIDGES);
+  const action = requireSkillAction(profile, 'cartridges');
   const kind = supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges';
-  const buff = requireEffect(profile, 'buff', kind);
+  const buff = requireEffect(profile, 'buff', kind, action);
 
   if (!buff) return;
 
@@ -658,7 +707,12 @@ function activateCartridges(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
 
   if (active) active.expiresAt = runtime.time;
 
-  const burning = requireEffect(profile, 'condition', supercharged ? 'Supercharged Burning' : 'Overcharged Burning');
+  const burning = requireEffect(
+    profile,
+    'condition',
+    supercharged ? 'Supercharged Burning' : 'Overcharged Burning',
+    action
+  );
   const expiresAt = gw2EffectExpiresAt(runtime.time, duration);
   state.overchargedCartridgeWindows.push({
     startedAt: runtime.time,
@@ -695,11 +749,13 @@ export function cartridgeExplosion(runtime: WarriorRuntime, event: Gw2ResolverEv
 
   if (!window || window.burningDuration <= 0) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.overchargedCartridges);
+  const profile = requireSkillFromContext(runtime, ID.OVERCHARGED_CARTRIDGES);
+  const action = requireSkillAction(profile, 'cartridges');
   const burning = requireEffect(
     profile,
     'condition',
-    window.supercharged ? 'Supercharged Burning' : 'Overcharged Burning'
+    window.supercharged ? 'Supercharged Burning' : 'Overcharged Burning',
+    action
   );
 
   if (burning)
@@ -821,8 +877,9 @@ function cartridgeDamageBonus(context: Gw2ModifierContext): number {
 
   if (latest.expiresAt <= context.time) return 0;
 
-  const profile = requireBalanceProfileFromContext(context, PROFILE.overchargedCartridges);
-  const effect = requireEffect(profile, 'buff', latest.kind);
+  const profile = requireSkillFromContext(context, ID.OVERCHARGED_CARTRIDGES);
+  const action = requireSkillAction(profile, 'cartridges');
+  const effect = requireEffect(profile, 'buff', latest.kind, action);
   return effect ? effectNumber(profile, effect, 'damageIncreasePerStack') : 0;
 }
 

@@ -88,7 +88,18 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
       }
     ]),
     // Arm subsequent qualifying hits only on semantic commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'ranger.winter-bite' } }]
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'ranger.winter-bite',
+          id: 'beastmode-weakness',
+          effects: [
+            { name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, duration: 10, stacks: 1 }
+          ]
+        }
+      }
+    ]
   },
   [ID.PATH_OF_SCARS]: {
     castTimeMs: 440,

@@ -11,7 +11,6 @@ import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { defineSkillVariantProfile as variant } from '#gw2/platform/profession-definition/profile-authoring.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
@@ -33,7 +32,6 @@ import {
   harbingerShroudEntered,
   harbingerStrike
 } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/trigger-points.js';
-import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type {
   NecromancerResolverContext,
@@ -42,6 +40,13 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+
+/** Dark Disciple owns intrinsic Blight growth, capacity, and shroud life-force drain. */
+const darkDisciple = defineTrait({
+  id: TRAIT.DARK_DISCIPLE,
+  name: 'Dark Disciple',
+  balance: { maximumStacks: 25, lifeForceDrain: 5, blightGain: 2, pulseInterval: 1, effects: [] }
+});
 
 /** Owns Cascading Corruption tuning and behavior at its existing execution boundaries. */
 const cascadingCorruption = defineTrait({
@@ -161,22 +166,7 @@ const doomApproaches = defineTrait({
         actorType: ACTOR.EFFECT
       }
     ]
-  },
-  profiles: [
-    variant(
-      HARBINGER_BALANCE_PROFILE_IDS.darkBarrageDoomApproaches,
-      ID.DARK_BARRAGE,
-      'Dark Barrage — Doom Approaches',
-      {
-        pulseCount: 8,
-        pulseInterval: 0.75 / 8,
-        effects: [
-          { name: 'Strike', type: 'strike', coefficient: 0.6 },
-          { name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, stacks: 1, duration: 3 }
-        ]
-      }
-    )
-  ]
+  }
 });
 
 /** Owns Deathly Haste tuning and behavior at its existing execution boundaries. */
@@ -399,6 +389,7 @@ function activeBlight(context: Gw2ModifierContext): number {
 
 /** Registers each native trait owner once in its existing execution order. */
 export const necromancerHarbingerTraits = [
+  darkDisciple,
   cascadingCorruption,
   septicCorruption,
   doomApproaches,

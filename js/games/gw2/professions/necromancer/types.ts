@@ -1,3 +1,4 @@
+import type { RITUALIST_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/ritualist/skill-fields.js';
 import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
@@ -57,12 +58,15 @@ export interface NecromancerSkill
   extends
     Skill,
     NumericSkillFields<
-      typeof NECROMANCER_CORE_SKILL_FIELDS & typeof HARBINGER_SKILL_FIELDS & typeof SCOURGE_SKILL_FIELDS
+      typeof NECROMANCER_CORE_SKILL_FIELDS &
+        typeof HARBINGER_SKILL_FIELDS &
+        typeof SCOURGE_SKILL_FIELDS &
+        typeof RITUALIST_SKILL_FIELDS
     > {
   readonly shroud?: string;
   readonly shroudEntry?: string;
   readonly shroudExit?: string;
-  readonly shroudProfileId?: string;
+  readonly shroudProfileId?: SkillId;
   readonly usableInShroud?: boolean;
   readonly shroudSlot?: number;
   readonly slotSelectable?: boolean;

@@ -1,7 +1,7 @@
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
@@ -325,7 +325,7 @@ test('endurance integration and Dodge readiness follow actual pooled Vigor windo
   }
 });
 
-// The critical reward reads live profile tuning and stays absent when its packet is removed.
+// The critical reward reads its landed action tuning and stays absent when its packet is removed.
 test('Keen Strike critical Might is patchable and removable', () => {
   const config = {
     specialization: 'Spellbreaker',
@@ -334,11 +334,15 @@ test('Keen Strike critical Might is patchable and removable', () => {
   };
   const native = warriorProfession.runtimeFor(config);
   for (const removed of [false, true]) {
-    const catalog = applyBalanceProfilePatch(native.catalog, {
-      balanceProfiles: {
-        [ID.KEEN_STRIKE]: removed
-          ? { removeEffects: [{ type: 'boon', name: 'Might' }] }
-          : { effects: [{ type: 'boon', name: 'Might', duration: 9 }] }
+    const catalog = applySkillPatch(native.catalog, {
+      skills: {
+        [ID.KEEN_STRIKE]: {
+          sideEffects: {
+            'critical-might': removed
+              ? { removeEffects: [{ type: 'boon', name: 'Might' }] }
+              : { effects: [{ type: 'boon', name: 'Might', duration: 9 }] }
+          }
+        }
       }
     });
     const result = observeGw2Runtime({
@@ -348,9 +352,15 @@ test('Keen Strike critical Might is patchable and removable', () => {
     });
     assert.deepEqual(result.warnings, []);
     const might = result.events.filter(
-      (event) => event.type === 'buff' && event.source === 'Trait' && event.sourceId === ID.KEEN_STRIKE
+      (event) => event.type === 'buff' && event.parentEventOrder != null && event.sourceId === ID.KEEN_STRIKE
     );
     assert.equal(might.length > 0, !removed);
-    assert.ok(might.every((event) => event.duration === 9));
+    assert.ok(might.every((event) => event.duration === 9 && event.actorType === 'effect'));
+    // Removing the reaction reward preserves the independently authored ordinary Might.
+    assert.ok(
+      result.events.some(
+        (event) => event.kind === 'might' && event.sourceId === ID.KEEN_STRIKE && event.parentEventOrder == null
+      )
+    );
   }
 });

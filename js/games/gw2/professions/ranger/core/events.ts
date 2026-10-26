@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
@@ -47,6 +48,31 @@ export function emitRangerProfile(
   context.effects.emit({
     kind: 'profile',
     profile,
+    at,
+    fullEnd: at,
+    attribution: delivery.attribution,
+    durationContext: delivery.durationContext,
+    transform: (packet) => ({
+      ...packet,
+      ...(delivery.name != null ? { name: delivery.name } : {}),
+      ...delivery.fields
+    })
+  });
+}
+
+/** Deliver only the selected action's payload; ordinary skill packets never leak into triggered follow-ups. */
+export function emitRangerAction(
+  context: Pick<MechanicCombatContext, 'effects'>,
+  at: number,
+  skill: Skill,
+  actionId: string,
+  delivery: RangerProfileDelivery
+): void {
+  const action = requireSkillAction(skill, actionId);
+  context.effects.emit({
+    kind: 'profile',
+    profile: skill,
+    effects: action.effects,
     at,
     fullEnd: at,
     attribution: delivery.attribution,

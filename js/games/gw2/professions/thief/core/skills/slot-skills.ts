@@ -1,10 +1,9 @@
-import { STATUS, RECIPIENT, ACTOR, WEAPON, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { STATUS, RECIPIENT, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
@@ -97,10 +96,28 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
 
     castTimeMs: 0,
     effects: [
-      { type: 'buff', kind: 'spider-venom', duration: 24, stacks: 6, audience: { recipients: RECIPIENT.PARTY } }
+      {
+        type: 'buff',
+        name: 'spider-venom',
+        kind: 'spider-venom',
+        duration: 24,
+        stacks: 6,
+        audience: { recipients: RECIPIENT.PARTY }
+      }
     ],
     // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-venom' } }]
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'thief.activate-venom',
+          id: 'venom',
+          effects: [
+            { type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 1, duration: 3 }
+          ]
+        }
+      }
+    ]
   },
   [ID.BLINDING_POWDER]: {
     cooldown: 20,
@@ -125,6 +142,11 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }]
   },
   [ID.ASSASSINS_SIGNET]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    attributeBonuses: { power: 180 },
+    activePowerBonus: 540,
+    duration: 5,
+
     cooldown: 20,
     initiativeCost: 0,
 
@@ -146,10 +168,35 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
 
     castTimeMs: 0,
     effects: [
-      { type: 'buff', kind: 'skale-venom', duration: 24, stacks: 4, audience: { recipients: RECIPIENT.PARTY } }
+      {
+        type: 'buff',
+        name: 'skale-venom',
+        kind: 'skale-venom',
+        duration: 24,
+        stacks: 4,
+        audience: { recipients: RECIPIENT.PARTY }
+      }
     ],
     // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-venom' } }]
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'thief.activate-venom',
+          id: 'venom',
+          effects: [
+            {
+              type: 'condition',
+              name: CONDITION.VULNERABILITY,
+              condition: CONDITION.VULNERABILITY,
+              stacks: 1,
+              duration: 10
+            },
+            { type: 'condition', name: CONDITION.TORMENT, condition: CONDITION.TORMENT, stacks: 1, duration: 3 }
+          ]
+        }
+      }
+    ]
   },
   [ID.PREPARE_PITFALL]: {
     cooldown: 25,
@@ -163,11 +210,15 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.prepare-trap' } }]
   },
   [ID.SIGNET_OF_AGILITY]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    attributeBonuses: { precision: 180 },
+    enduranceGain: 100,
+
     cooldown: 30,
     initiativeCost: 0,
     castTimeMs: 0,
     effects: [],
-    // The active grant commits once and uses the selected balance profile.
+    // The active grant commits once and uses the selected skill.
     sideEffects: [
       ...SIGNET_COMPLETED,
       {
@@ -175,7 +226,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
         do: {
           type: 'resourceGrant',
           resource: 'endurance',
-          amount: { profile: PROFILE.signetOfAgility, field: 'resourceGain' }
+          amount: { skillField: 'enduranceGain' }
         }
       }
     ]
@@ -219,83 +270,50 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
   [ID.THIEVES_GUILD]: {
     cooldown: 120,
     initiativeCost: 0,
+    // Lifetime belongs to the summon; actor attributes and stream startup remain shared policy.
+    duration: 24,
     summonAttack: {
       basePower: 1750,
       criticalChance: 0.2,
       criticalDamage: 1.5,
-      duration: 24,
       summons: [
         {
           name: 'Male Dual-Pistol Thief',
           displayName: 'Thief',
-          weapon: WEAPON.PISTOL,
+          weapon: 'Pistol',
           weaponStrengthProfileId: 'weapon.pistol',
           attacks: [
             {
-              name: 'Black Powder',
               skillId: 3669,
-              coefficientPerHit: 0.8,
-              hits: 1,
               initialDelay: 1.44
             },
             {
-              name: 'Unload',
               skillId: 3666,
-              coefficientPerHit: 0.175,
-              hits: 12,
-              initialDelay: 3.56,
-              interval: 5.8
+              initialDelay: 3.56
             }
           ]
         },
         {
           name: 'Female Dual-Dagger Thief',
           displayName: 'Thief',
-          weapon: WEAPON.DAGGER,
+          weapon: 'Dagger',
           weaponStrengthProfileId: 'weapon.dagger',
           attacks: [
             {
-              name: 'Scorpion Wire',
               skillId: 3665,
-              coefficientPerHit: 1.5,
-              hits: 1,
-              initialDelay: 1.72,
-              conditions: [
-                {
-                  condition: CONDITION.POISONED,
-                  stacks: 2,
-                  duration: 10
-                },
-                {
-                  condition: CONDITION.WEAKNESS,
-                  stacks: 1,
-                  duration: 4
-                }
-              ]
+              initialDelay: 1.72
             },
             {
-              name: 'Twisting Fang I',
               skillId: 3661,
-              coefficientPerHit: 0.6,
-              hits: 2,
-              initialDelay: 2.52,
-              interval: 2.68
+              initialDelay: 2.52
             },
             {
-              name: 'Twisting Fang II',
               skillId: 3662,
-              coefficientPerHit: 1.6,
-              hits: 1,
-              initialDelay: 3.08,
-              interval: 2.68
+              initialDelay: 3.08
             },
             {
-              name: 'Twisting Fang III',
               skillId: 3663,
-              coefficientPerHit: 2.5,
-              hits: 1,
-              initialDelay: 3.72,
-              interval: 2.68
+              initialDelay: 3.72
             }
           ]
         },
@@ -303,10 +321,14 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
           name: 'Sword Thief',
           displayName: 'Thief',
           variant: 'Core Thief',
-          weapon: WEAPON.SWORD,
+          weapon: 'Sword',
           weaponStrengthProfileId: 'weapon.sword',
-          // The core summon owns its basic attack, so an empty list can disable it.
-          attacks: [{ name: 'Basic Attack', coefficientPerHit: 1.2, hits: 1, initialDelay: 1, interval: 1 }]
+          attacks: [
+            {
+              skillId: 'thief.guild.core.basic',
+              initialDelay: 1
+            }
+          ]
         }
       ]
     },
@@ -350,10 +372,28 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<
 
     castTimeMs: 0,
     effects: [
-      { type: 'buff', kind: 'devourer-venom', duration: 24, stacks: 2, audience: { recipients: RECIPIENT.PARTY } }
+      {
+        type: 'buff',
+        name: 'devourer-venom',
+        kind: 'devourer-venom',
+        duration: 24,
+        stacks: 2,
+        audience: { recipients: RECIPIENT.PARTY }
+      }
     ],
     // The skill owns this transition at successful commitment.
-    sideEffects: [{ on: 'castCommit', do: { type: 'thief.activate-venom' } }]
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'thief.activate-venom',
+          id: 'venom',
+          effects: [
+            { type: 'condition', name: CONDITION.IMMOBILIZED, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }
+          ]
+        }
+      }
+    ]
   },
   [ID.BASILISK_VENOM]: {
     cooldown: 40,

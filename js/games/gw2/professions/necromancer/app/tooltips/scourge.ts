@@ -1,7 +1,8 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   outsideScopeTooltip,
-  profileFact,
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
@@ -13,7 +14,6 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as SCOURGE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 
 /** Describes implemented Necromancer mechanics locally; numbers remain in selected rules and profiles. */
@@ -41,33 +41,41 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
 
   if (!description) throw new Error(`Unknown shade skill: ${id}`);
 
-  const profileId = (
+  const actionId = (
     {
-      [ID.GARISH_PILLAR]: SCOURGE.garishPillar,
-      [ID.DESERT_SHROUD]: SCOURGE.desertShroud,
-      [ID.SANDSTORM_SHROUD]: SCOURGE.sandstormShroud
+      [ID.GARISH_PILLAR]: 'garishPillar',
+      [ID.DESERT_SHROUD]: 'desertShroud',
+      [ID.SANDSTORM_SHROUD]: 'sandstormShroud'
     } as Record<number, string>
   )[id];
   const shared = simulationEffectFacts(
-    tooltipProfile(balanceContext, SCOURGE.shade).effects?.filter((effect) => effect.type !== 'buff'),
+    requireSkillAction(requireSkillFromContext(balanceContext, ID.MANIFEST_SAND_SHADE), 'shade').effects.filter(
+      (effect) => effect.type !== 'buff'
+    ),
     id === ID.MANIFEST_SAND_SHADE ? '' : 'shared shade attack'
   );
   return {
     description,
     facts: [
       ...shared.facts,
-      ...(profileId ? simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects).facts : []),
+      ...(actionId
+        ? simulationEffectFacts(requireSkillAction(requireSkillFromContext(balanceContext, id), actionId).effects).facts
+        : []),
       ...(id === ID.MANIFEST_SAND_SHADE
         ? (
             [
-              [SCOURGE.shade, 'Sand shades'],
+              [ID.MANIFEST_SAND_SHADE, 'Sand shades'],
               [TRAIT.SAND_SAVANT, 'With Sand Savant']
             ] as const
           ).map(([profile, name]) => {
             // Pair each shade limit with its own lifetime so alternative values stay compact and distinct.
-            const capacity = profileFact(balanceContext, profile, 'maximumStacks', name);
+            const ordinary = profile === ID.MANIFEST_SAND_SHADE;
+            const owner = ordinary
+              ? requireSkillFromContext(balanceContext, profile)
+              : tooltipProfile(balanceContext, profile);
+            const capacity = { name, detail: String(skillNumber(owner, 'maximumStacks')) };
             const lifetime = simulationEffectFacts(
-              tooltipProfile(balanceContext, profile).effects?.filter(
+              (ordinary ? requireSkillAction(owner, 'shade').effects : owner.effects)?.filter(
                 (effect) => effect.type === 'buff' && effect.kind === 'active-shade'
               )
             );

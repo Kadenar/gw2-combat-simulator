@@ -2,7 +2,7 @@ import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
@@ -11,7 +11,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { startTroubadourInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
-import { TROUBADOUR_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 interface TroubadourTaleInvocation {
@@ -23,11 +23,10 @@ interface TroubadourTaleInvocation {
 
 /** Resolves a Tale's profile boons, eligible performance notes, and Troubadour trait effects together. */
 function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleInvocation): void {
-  const profileId = skill.tale?.profileId;
-  const profile = profileId ? requireBalanceProfileFromContext(context, profileId) : null;
+  const action = requireSkillAction(skill, 'tale');
   const partyRecipients = { audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } };
 
-  for (const boon of (profile?.effects || []).filter((effect) => effect.type === 'boon')) {
+  for (const boon of action.effects.filter((effect) => effect.type === 'boon')) {
     const packet = buildMesmerPacket({
       type: 'buff',
       at,
@@ -46,10 +45,10 @@ function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleI
     });
   }
 
-  if (eligible && profileId) {
+  if (eligible && skill.tale) {
     createMesmerIllusionRewards(context).queueResources(
       at,
-      balanceNumberFromContext(context, profileId, 'resourceGain'),
+      skillNumber(skill, 'noteGain'),
       mesmerActivePrimaryWeapon(context),
       skill.name
     );
@@ -67,8 +66,7 @@ const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState, Mesmer
     const at = runtime.time;
     const playing = activeTroubadourInstrumentsAt(runtime.facts.read(), at).size;
     const duration =
-      balanceNumberFromContext(runtime, PROFILE.augustQueen, 'baseDuration') +
-      playing * balanceNumberFromContext(runtime, PROFILE.augustQueen, 'durationPerTier');
+      skillNumber(context.skill, 'baseDuration') + playing * skillNumber(context.skill, 'durationPerTier');
     const expiresAt = canonicalTime(at + duration);
     const instruments = new Set(
       Object.values(MESMER_TROUBADOUR_INSTRUMENTS).map((instrument) => instrument.instrument)

@@ -1,11 +1,11 @@
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { balanceProfileNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { skillNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Doom Approaches repeats only strikes and conditions; combat and tooltips consume the same selected volley. */
-export function darkBarrageEffects(profile: BalanceProfile, effects: readonly SkillEffect[]): SkillEffect[] {
-  const ticks = Array.from({ length: balanceProfileNumber(profile, 'pulseCount') }, (_, index) => ({
-    atMs: (index + 1) * balanceProfileNumber(profile, 'pulseInterval') * 1000
+export function darkBarrageEffects(profile: Skill, effects: readonly SkillEffect[]): SkillEffect[] {
+  const ticks = Array.from({ length: skillNumber(profile, 'doomApproachesPulseCount') }, (_, index) => ({
+    atMs: (index + 1) * skillNumber(profile, 'doomApproachesPulseInterval') * 1000
   }));
 
   // An empty volley must not become an untimed application when passed to the ordinary effect expander.

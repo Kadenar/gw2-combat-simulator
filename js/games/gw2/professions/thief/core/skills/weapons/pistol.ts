@@ -1,7 +1,6 @@
 import { ACTOR, COMBO_FINISHER, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -178,6 +177,9 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.REPEATER_ID_59526 } }]
   },
   [ID.UNLOAD]: {
+    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    initiativeRefund: 2,
+
     cooldown: 0,
     initiativeCost: 3,
     requiredMainHand: WEAPON.PISTOL,
@@ -229,7 +231,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         do: {
           type: 'resourceGrant',
           resource: 'initiative',
-          amount: { profile: PROFILE.unloadRefund, field: 'resourceGain' }
+          amount: { skillField: 'initiativeRefund' }
         }
       }
     ]

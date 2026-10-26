@@ -7,8 +7,10 @@ import { GUARDIAN_TRAIT_IDS as GUARDIAN_TRAIT } from '#gw2/professions/guardian/
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as NECROMANCER_PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import {
+  NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT,
+  NECROMANCER_SKILL_IDS as NECROMANCER_SKILL
+} from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { THIEF_TRAIT_IDS as THIEF_TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -17,12 +19,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 // Exercise authored edits through catalog composition and actual scheduling/resolution.
-function run(profession, balanceProfiles, specialization, rotation, config = {}, simulate = simulateGw2) {
+function run(profession, balanceProfiles, specialization, rotation, config = {}, simulate = simulateGw2, skills = {}) {
   return simulate({
     profession: withPatchPreview(profession, {
       id: 'zero-values',
       label: 'Zero values',
-      professions: { [profession.id]: { balanceProfiles } }
+      professions: { [profession.id]: { balanceProfiles, skills } }
     }),
     rotation,
     config: {
@@ -139,17 +141,19 @@ test('Thief zero Quick Pockets gain matches a swap without the trait', () => {
 test('Zero periodic intervals disable signet pulses without stalling resource advancement', () => {
   const result = run(
     necromancerProfession,
-    {
-      [NECROMANCER_PROFILE.signetOfUndeathPassive]: { fields: { pulseInterval: 0 } },
-      [NECROMANCER_PROFILE.signetOfVampirismPassive]: { fields: { pulseInterval: 0 } }
-    },
+    {},
     'Core',
     [{ type: 'wait', durationMs: 4000 }],
     {
       initialResource: 0,
       selectedSkillIds: [10611, 21762]
     },
-    runRuntime
+    runRuntime,
+    // Each equipped signet owns its passive scheduler interval.
+    {
+      [NECROMANCER_SKILL.SIGNET_OF_UNDEATH]: { fields: { pulseInterval: 0 } },
+      [NECROMANCER_SKILL.SIGNET_OF_VAMPIRISM]: { fields: { pulseInterval: 0 } }
+    }
   );
   assert.equal(result.planningState.profession.lifeForce.value, 0);
   assert.equal(result.strikeDamage, 0);

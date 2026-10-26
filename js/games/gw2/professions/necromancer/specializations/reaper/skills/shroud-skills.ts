@@ -1,3 +1,4 @@
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { ACTOR, COMBO_FINISHER, COMBO_FIELD, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
@@ -6,7 +7,6 @@ import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-fo
  */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { REAPER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/reaper/profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Supplies Reaper Shroud fragments to specialization composition. */
@@ -187,7 +187,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     cooldown: 10,
     specialization: 'Reaper',
     shroudEntry: 'reaper',
-    shroudProfileId: PROFILE.resources,
+    shroudProfileId: TRAIT.SHROUD_KNIGHT,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap',

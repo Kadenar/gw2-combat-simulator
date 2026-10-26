@@ -1,14 +1,14 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   harbingerBlightConsumed,
   harbingerShroudEntered
 } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/trigger-points.js';
-import { HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 import {
   addBlight,
   harbingerBlightMaximum,
@@ -24,6 +24,17 @@ import type {
 } from '#gw2/professions/necromancer/types.js';
 
 const BLIGHT = 'harbinger.blight-clock';
+
+/** Align accrual to a strictly later clock boundary; disabling accrual must leave stack expiry active. */
+function nextBlightAt(runtime: NecromancerRuntime): number {
+  const cadence = balanceNumberFromContext(runtime, TRAIT.DARK_DISCIPLE, 'pulseInterval');
+
+  if (cadence <= 0) return Infinity;
+
+  const interval = canonicalInterval(cadence);
+  const next = Math.floor(timeKey(runtime.time) / timeKey(interval)) + 1;
+  return canonicalTime(next * interval);
+}
 
 /** One replaceable wake owns the next actual accrual, expiry, or Meltdown deadline. */
 function refreshBlight(runtime: NecromancerRuntime): void {
@@ -58,11 +69,7 @@ export function publishBlight(runtime: NecromancerRuntime): void {
 /** Spending counts once at commitment; only the delayed explosion can damage the target. */
 export function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): boolean {
   const state = harbingerState.from(runtime);
-  const cost = balanceNumberFromContext(
-    runtime,
-    HARBINGER_EMPOWERED_PROFILE_BY_SKILL_ID[Number(cast.skill.id)],
-    'blightCost'
-  );
+  const cost = skillNumber(cast.skill, 'blightCost');
   const empowered = state.blightExpiries.length >= cost;
   const consumed = empowered ? consumeBlight(state, cost, runtime.time, harbingerBlightMaximum(runtime)) : 0;
   runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed });
@@ -77,7 +84,7 @@ function initializeHarbingerBlight(runtime: NecromancerRuntime): void {
     onEnter(skill) {
       if (skill.shroudEntry !== 'harbinger') return;
 
-      harbingerState.from(runtime).nextBlightAt = Math.floor(runtime.time) + 1;
+      harbingerState.from(runtime).nextBlightAt = nextBlightAt(runtime);
       runtime.fireTrigger(harbingerShroudEntered, { skill });
       refreshBlight(runtime);
     },
@@ -104,7 +111,7 @@ const harbingerBlightTasks = {
         runtime.time,
         harbingerBlightMaximum(runtime)
       );
-      state.nextBlightAt = runtime.time + 1;
+      state.nextBlightAt = nextBlightAt(runtime);
     }
 
     publishBlight(runtime);

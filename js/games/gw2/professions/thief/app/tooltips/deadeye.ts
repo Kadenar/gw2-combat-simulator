@@ -7,13 +7,13 @@ import {
   outsideScopeTooltip,
   traitTooltip,
   skillTooltip,
-  profileTooltip,
   tooltipPercent,
   simulationEffectFacts,
   type ProfessionTooltips,
-  type DescribeSimulationTooltip
+  type DescribeSimulationTooltip,
+  fromSkill
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as DE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
+
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
@@ -21,27 +21,26 @@ import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
 const deadeyesMarkTooltip: DescribeSimulationTooltip = skillTooltip(
   'Mark the target, trigger stealing traits, and grant the configured Deadeye stolen skill. Marked initiative attacks build malice on their first hit, with additional gain from critical hits. Remarking preserves existing malice; Malicious Intent adds its grant.',
   [
-    fromProfile(DE.resources, 'duration', 'Mark duration', tooltipSeconds),
-    fromProfile(DE.resources, 'maximumStacks', 'Maximum malice'),
+    fromSkill(ID.DEADEYES_MARK, 'duration', 'Mark duration', tooltipSeconds),
+    fromProfile(TRAIT.DEADEYES_GAZE, 'maximumStacks', 'Maximum malice'),
     fromProfile(TRAIT.MALEFICENT_SEVEN, 'maximumStacks', 'Maximum malice with Maleficent Seven'),
-    fromProfile(DE.resources, 'resourceGain', 'Malice per initiative attack'),
-    fromProfile(DE.resources, 'playerStacks', 'Additional malice from a critical hit')
+    fromProfile(TRAIT.DEADEYES_GAZE, 'resourceGain', 'Malice per initiative attack'),
+    fromProfile(TRAIT.DEADEYES_GAZE, 'playerStacks', 'Additional malice from a critical hit')
   ]
 );
 
-const deadeyeMercyTooltip: DescribeSimulationTooltip = profileTooltip(
-  DE.mercy,
+const deadeyeMercyTooltip: DescribeSimulationTooltip = skillTooltip(
   "Consume current malice, restore initiative, and recharge Deadeye's Mark. Clears the Maleficent Seven cycle so it can trigger again.",
   [
-    ['resourceGain', 'Base initiative restored'],
-    ['attributePerStack', 'Additional initiative per malice']
+    fromSkill(ID.MERCY, 'initiativeRefund', 'Base initiative restored'),
+    fromSkill(ID.MERCY, 'initiativePerMalice', 'Additional initiative per malice')
   ]
 );
 
 const deadeyeShadowFlareTooltip: DescribeSimulationTooltip = skillTooltip(
   'Create a damaging field and temporarily unlock Shadow Swap. Its strikes deal increased damage against your active mark.',
   [
-    fromProfile(DE.shadowFlare, 'flipDuration', 'Shadow Swap window', tooltipSeconds),
+    fromSkill(ID.SHADOW_FLARE, 'flipDuration', 'Shadow Swap window', tooltipSeconds),
     fromModifier('thief.shadow-flare-marked', 'factor', 'Strike damage against your mark', tooltipFactorChange)
   ]
 );

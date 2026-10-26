@@ -1,20 +1,18 @@
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import assert from 'node:assert/strict';
@@ -81,11 +79,11 @@ test('Untamed control declarations gate cooldowns on the selected surviving effe
 });
 
 // Small patched rotations exercise removal through the real scheduler and resolver.
-function run(balanceProfiles, specialization, rotation, config = {}) {
+function run(balanceProfiles, specialization, rotation, config = {}, skills = {}) {
   const profession = withPatchPreview(rangerProfession, {
     id: 'ranger-removal',
     label: 'Ranger removal',
-    professions: { ranger: { balanceProfiles } }
+    professions: { ranger: { balanceProfiles, skills } }
   });
   const result = createObservedProfessionSimulator(profession, {
     initialAstralForce: 100,
@@ -99,14 +97,14 @@ function run(balanceProfiles, specialization, rotation, config = {}) {
 }
 
 // Resolver contexts expose the owned state that a removed packet must leave untouched.
-function resolverContext(balanceProfiles, selectedTraitIds, specialization) {
+function resolverContext(balanceProfiles, selectedTraitIds, specialization, skills = {}) {
   const config = { specialization: specialization?.kind ?? 'Core', selectedTraitIds };
   const queued = [];
   const context = {
     procs: createProcRegistry(() => context),
     config,
     traits: new Set(config.selectedTraitIds),
-    catalog: patched(rangerCatalog, balanceProfiles),
+    catalog: applySkillPatch(applyBalanceProfilePatch(rangerCatalog, { balanceProfiles }), { skills }),
     boons: new Map(),
     buffs: new Map(),
     // Neutral stats keep derived boon durations at their authored values.
@@ -146,11 +144,13 @@ test('removing one Eclipse pulse packet never rebinds another Celestial Avatar s
 });
 
 test('removed One Wolf Pack echo emits no strike while the stance still applies', () => {
-  const result = run({ [SOULBEAST.oneWolfPack]: remove('strike', 'Strike') }, 'Soulbeast', [
-    ID.ONE_WOLF_PACK,
-    ID.DRAKES_SWIPE,
-    wait(1000)
-  ]);
+  const result = run(
+    {},
+    'Soulbeast',
+    [ID.ONE_WOLF_PACK, ID.DRAKES_SWIPE, wait(1000)],
+    {},
+    { [ID.ONE_WOLF_PACK]: { sideEffects: { echo: remove('strike', 'Strike') } } }
+  );
   assert.ok(result.events.some((event) => event.kind === 'one-wolf-pack'));
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === ID.ONE_WOLF_PACK_STRIKE),
@@ -190,7 +190,9 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
 });
 
 test('removed Poisonous Strikes poison leaves its charges unspent', () => {
-  const context = resolverContext({ [CORE.poisonousStrikes]: remove('condition', 'Poisoned') }, []);
+  const context = resolverContext({}, [], undefined, {
+    [ID.DOUBLE_ARC]: { sideEffects: { 'poisonous-strikes': remove('condition', 'Poisoned') } }
+  });
   context.profession.core.pet.poisonousStrikes = grantCharges(2, 10);
   triggerPoisonousStrikes(context, { type: 'damage', at: 1, source: 'ranger-pet', coefficient: 1 });
   assert.equal(context.profession.core.pet.poisonousStrikes.charges, 2);
@@ -269,12 +271,9 @@ test("removed Stalker's Strike impaired Poison keeps the skill's own Poison and 
   const strike = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.STALKERS_STRIKE).damage;
   const baseline = run({}, 'Core', ["Stalker's Strike"], config);
-  const removed = run(
-    { [CORE.stalkersStrikeImpaired]: remove('condition', 'Poisoned') },
-    'Core',
-    ["Stalker's Strike"],
-    config
-  );
+  const removed = run({}, 'Core', ["Stalker's Strike"], config, {
+    [ID.STALKERS_STRIKE]: { sideEffects: { 'impaired-poison': remove('condition', 'Poisoned') } }
+  });
   assert.equal(poisonStacks(baseline), 5);
   assert.equal(poisonStacks(removed), 3);
   assert.equal(strike(removed), strike(baseline));
@@ -291,10 +290,12 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
       },
       {
         extend: (native) => ({
-          catalog: patched(native.catalog, {
-            [TRAIT.PACK_ALPHA]: { fields: { rechargeMultiplier: 0.5 } },
-            [CORE.cripplingAnguishQuickness]: { fields: { cooldown: 5 } }
-          })
+          catalog: applySkillPatch(
+            applyBalanceProfilePatch(native.catalog, {
+              balanceProfiles: { [TRAIT.PACK_ALPHA]: { fields: { rechargeMultiplier: 0.5 } } }
+            }),
+            { skills: { [ID.CRIPPLING_ANGUISH_PET]: { fields: { quicknessAutonomousRecharge: 5 } } } }
+          )
         }),
         initialize(runtime) {
           if (quickness)

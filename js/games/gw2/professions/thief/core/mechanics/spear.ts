@@ -4,8 +4,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
+import { skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 
@@ -18,11 +17,8 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Each Ashen channel refunds only after every authored strike lands; missed and cancelled packets cannot qualify. */
-export function ashenAssaultLifecycle(
-  skillId: SkillId,
-  refundProfile: SkillId
-): RuntimeHooks<ThiefRuntimeState, ThiefSkill> {
-  const channels = new WeakMap<object, Map<string, number>>();
+export function ashenAssaultLifecycle(skillId: SkillId): RuntimeHooks<ThiefRuntimeState, ThiefSkill> {
+  const channels = new WeakMap<object, Map<string, { remaining: number; refund: number }>>();
   const cleanup = `thief.ashen-channel-${skillId}`;
   const finish = (runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void => {
     if (cast.skill.id === skillId) runtime.schedule(cleanup, runtime.time, cast.id, undefined, 20);
@@ -40,7 +36,8 @@ export function ashenAssaultLifecycle(
         (count, effect) => count + (effect.type === 'strike' ? effect.ticks?.length || effect.hits || 1 : 0),
         0
       );
-      active.set(cast.id, hits);
+      // Capture the accepted skill's refund with the channel so later impacts retain its owner.
+      active.set(cast.id, { remaining: hits, refund: skillNumber(cast.skill, 'initiativeRefund') });
     },
     onCastCommit: finish,
     onCastCancel: finish,
@@ -50,20 +47,17 @@ export function ashenAssaultLifecycle(
 
         const active = channels.get(runtime);
         const id = String(event.activationId);
-        const remaining = active?.get(id);
+        const channel = active?.get(id);
 
-        if (remaining == null || remaining <= 0) return;
+        if (!channel || channel.remaining <= 0) return;
 
-        if (remaining > 1) {
-          active!.set(id, remaining - 1);
+        if (channel.remaining > 1) {
+          channel.remaining -= 1;
           return;
         }
 
         active!.delete(id);
-        runtime.resourceController.grant(
-          'initiative',
-          balanceNumberFromContext(runtime, refundProfile, 'resourceGain')
-        );
+        runtime.resourceController.grant('initiative', channel.refund);
       }
     },
     // Cleanup follows same-time impacts, so a final hit at the cancellation boundary can still earn its refund.
@@ -112,7 +106,7 @@ export function grantDistractingThrowWindow(runtime: ThiefRuntime): void {
   replaceThiefBuff(
     runtime,
     'distracting-throw',
-    balanceNumberFromContext(runtime, PROFILE.distractingThrow, 'duration'),
+    skillNumberFromContext(runtime, ID.DISTRACTING_THROW, 'duration'),
     ID.DISTRACTING_THROW,
     'Distracting Throw',
     'thief'

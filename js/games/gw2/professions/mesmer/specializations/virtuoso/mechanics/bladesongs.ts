@@ -2,7 +2,7 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { mesmerConditionFromProfile } from '#gw2/professions/mesmer/core/mechanics/condition-profiles.js';
+import { mesmerShatterCondition } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import {
   buildMesmerConditions,
   buildMesmerStrikes,
@@ -65,11 +65,7 @@ export function resolveBladesong(
   }
 
   if (shatter.kind === 'blade-confusion') {
-    const baseConfusion = mesmerConditionFromProfile(
-      context,
-      shatter.balanceProfileId || skill.id,
-      CONDITION.CONFUSION
-    );
+    const baseConfusion = mesmerShatterCondition(context, skill.id, CONDITION.CONFUSION);
     const confusion = bladesongConfusion(shatter, spent, cryOfPainConfusion(context, baseConfusion));
     const ticks = packetTicks();
 

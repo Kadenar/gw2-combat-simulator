@@ -3,14 +3,10 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
-import { PARAGON_COMMAND_ECHO_PROFILES } from '#gw2/professions/warrior/specializations/paragon/skills/index.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -40,29 +36,27 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
   const ownerId = `${ECHO}.${activationId}`;
   runtime.cancelOwner({ id: ownerId, generation: echo.generation });
   const skill = runtime.helpers.skillsById.get(echo.skillId)!;
-  const profileId = PARAGON_COMMAND_ECHO_PROFILES[Number(skill.id)];
-
-  if (profileId) {
-    const payload = requireBalanceProfileFromContext(runtime, profileId);
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: payload,
-      attribution: {
-        source: 'Paragon',
-        sourceId: skill.id,
-        actorType: ACTOR.PLAYER,
-        skillId: skill.id,
-        skillName: skill.name,
-        activationId
-      },
-      transform: (event) => ({
-        ...event,
-        name: `${skill.name} — ${event.type === 'buff' ? event.kind : event.name}`,
-        ...(event.type === 'buff' ? { audience: { recipients: RECIPIENT.PARTY } } : {})
-      })
-    });
-    runtime.resourceController.grant('adrenaline', balanceProfileNumber(payload, 'resourceGain'));
-  }
+  // The selected command owns its reward; echo consumption alone decides when it is emitted.
+  const action = requireSkillAction(skill, 'echo');
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: skill,
+    effects: action.effects,
+    attribution: {
+      source: 'Paragon',
+      sourceId: skill.id,
+      actorType: ACTOR.PLAYER,
+      skillId: skill.id,
+      skillName: skill.name,
+      activationId
+    },
+    transform: (event) => ({
+      ...event,
+      name: `${skill.name} — ${event.type === 'buff' ? event.kind : event.name}`,
+      ...(event.type === 'buff' ? { audience: { recipients: RECIPIENT.PARTY } } : {})
+    })
+  });
+  runtime.resourceController.grant('adrenaline', skillNumber(skill, 'echoResourceGain'));
 
   echo.remaining--;
   const interval = balanceNumberFromContext(runtime, PROFILE.commands, 'pulseInterval');

@@ -1,12 +1,11 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import assert from 'node:assert/strict';
@@ -42,15 +41,12 @@ test('natural pet recharge uses the active skill catalog on both execution paths
 });
 
 // Measured Iboga exceptions retain their own patchable recharge instead of becoming scheduler constants.
-test('Iboga autonomous recharge reads its owner profiles', () => {
-  for (const [skillId, profileId] of [
-    [ID.NARCOTIC_SPORES_PET, PROFILE.narcoticSporesAutonomous],
-    [ID.CRIPPLING_ANGUISH_PET, PROFILE.cripplingAnguishAutonomous]
-  ]) {
+test('Iboga autonomous recharge reads its owning skill fields', () => {
+  for (const skillId of [ID.NARCOTIC_SPORES_PET, ID.CRIPPLING_ANGUISH_PET]) {
     const result = runRanger(
       [{ type: 'combat-start' }, { type: 'wait', durationMs: 6000 }],
       { selectedPet: 'Fanged Iboga', selectedTraitIds: [TRAIT.PACK_ALPHA] },
-      { extend: (native) => ({ catalog: withProfile(native.catalog, profileId, { cooldown: 50 }) }) }
+      { extend: (native) => ({ catalog: withSkill(native.catalog, skillId, { autonomousRecharge: 50 }) }) }
     );
     assert.deepEqual(result.warnings, []);
     const recharge = observedRuntime(result).cooldownController.rechargeFor(skillId);

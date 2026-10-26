@@ -158,7 +158,7 @@ test('Conduit import requires Haze timing only for discovered Haze actions', () 
   assert.deepEqual(normalizeConduitHazeActions([action], catalog), [action]);
   assert.throws(
     () => normalizeConduitHazeActions([{ ...action, rawSkillId: 77141 }], catalog),
-    /missing required profile/
+    /missing required skill/
   );
 });
 

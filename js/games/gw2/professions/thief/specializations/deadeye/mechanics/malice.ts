@@ -1,3 +1,4 @@
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
@@ -8,7 +9,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { maliceGained, maliceSpent } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
-import { DEADEYE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/deadeye/profiles.js';
 import { deadeyeMarked } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
 import { refundMaliciousTacticalStrike } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';
 import { STOLEN_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
@@ -76,7 +76,7 @@ export function reactDeadeyeMalice(
 
   if (!firstHit && !firstCritical) return;
 
-  const resources = requireBalanceProfileFromContext(runtime, PROFILE.resources);
+  const resources = requireBalanceProfileFromContext(runtime, TRAIT.DEADEYES_GAZE);
   runtime.resourceController.grant(
     'malice',
     (firstHit ? balanceProfileNumber(resources, 'resourceGain') : 0) +

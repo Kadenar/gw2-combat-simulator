@@ -1,22 +1,21 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  fromProfile,
+  fromSkill,
   fromModifier,
   tooltipFactorChange,
   tooltipSeconds,
   skillTooltip,
-  profileFact,
+  skillFact,
   modifierFact,
   tooltipDecimal,
-  tooltipProfile,
   simulationEffectFacts,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/ranger/core/profile-ids.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as SOULBEAST } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 import { rangerMarksmanshipTooltips } from '#gw2/professions/ranger/app/tooltips/marksmanship.js';
 import { rangerNatureMagicTooltips } from '#gw2/professions/ranger/app/tooltips/nature-magic.js';
@@ -47,7 +46,7 @@ function spiritTooltip(description: string): DescribeSimulationTooltip {
 export const rangerCoreTooltips = {
   skillFacts: (balanceContext, entity) => [
     ...(entity.id === ID.ENDURING_SWING
-      ? [profileFact(balanceContext, ID.ENDURING_SWING, 'resourceGain', 'Endurance gained')]
+      ? [skillFact(balanceContext, ID.ENDURING_SWING, 'resourceGain', 'Endurance gained')]
       : []),
     // Some weapon packets opt into conditional rules through damageKind rather than a custom handler.
     ...(entity.effects?.some((effect) => String(effect.damageKind).startsWith('ranger-unleashed-disabled'))
@@ -128,7 +127,10 @@ export const rangerCoreTooltips = {
     [ID.WINTERS_BITE]: skillTooltip(
       "Strike and chill the target. Arm Weakness for a later qualifying hit through Soulbeast's Winter's Bite reaction.",
       (balanceContext) =>
-        simulationEffectFacts(tooltipProfile(balanceContext, SOULBEAST.wintersBite).effects, 'armed follow-up').facts
+        simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.WINTERS_BITE), 'beastmode-weakness').effects,
+          'armed follow-up'
+        ).facts
     ),
     [ID.SUN_SPIRIT]: skillTooltip(
       "Apply the spirit's effects and trigger Solar Flare Burning.",
@@ -138,33 +140,40 @@ export const rangerCoreTooltips = {
     [ID.SHARPENING_STONE]: skillTooltip(
       'Arm bleeding charges for your qualifying strikes. Each hit consumes the charge with the earliest expiry.',
       (balanceContext) => [
-        profileFact(balanceContext, CORE.sharpeningStone, 'charges', 'Bleeding charges'),
-        profileFact(balanceContext, CORE.sharpeningStone, 'duration', 'Charge lifetime', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.sharpeningStone).effects, 'per charge consumed')
-          .facts
+        skillFact(balanceContext, ID.SHARPENING_STONE, 'charges', 'Bleeding charges'),
+        skillFact(balanceContext, ID.SHARPENING_STONE, 'duration', 'Charge lifetime', tooltipSeconds),
+        ...simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.SHARPENING_STONE), 'sharpening-stone').effects,
+          'per charge consumed'
+        ).facts
       ]
     ),
     [ID.DOUBLE_ARC]: skillTooltip(
       "Strike and arm Poisonous Strikes. Your pet's qualifying hits consume the charges; while merged in Beastmode, your hits consume the same charges instead.",
       (balanceContext) => [
-        profileFact(balanceContext, CORE.poisonousStrikes, 'charges', 'Poison charges'),
-        profileFact(balanceContext, CORE.poisonousStrikes, 'duration', 'Charge lifetime', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.poisonousStrikes).effects, 'per charge consumed')
-          .facts
+        skillFact(balanceContext, ID.DOUBLE_ARC, 'charges', 'Poison charges'),
+        skillFact(balanceContext, ID.DOUBLE_ARC, 'duration', 'Charge lifetime', tooltipSeconds),
+        ...simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.DOUBLE_ARC), 'poisonous-strikes').effects,
+          'per charge consumed'
+        ).facts
       ]
     ),
     [ID.CRIPPLING_SHOT]: skillTooltip(
       'Cripple the target and arm Blood Thirst. Subsequent qualifying hits consume its bleeding charges; the arming skill cannot spend them.',
       (balanceContext) => [
-        profileFact(balanceContext, CORE.bloodThirst, 'charges', 'Bleeding charges'),
-        profileFact(balanceContext, CORE.bloodThirst, 'duration', 'Charge lifetime', tooltipSeconds),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.bloodThirst).effects, 'per charge consumed').facts
+        skillFact(balanceContext, ID.CRIPPLING_SHOT, 'charges', 'Bleeding charges'),
+        skillFact(balanceContext, ID.CRIPPLING_SHOT, 'duration', 'Charge lifetime', tooltipSeconds),
+        ...simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.CRIPPLING_SHOT), 'blood-thirst').effects,
+          'per charge consumed'
+        ).facts
       ]
     ),
     [ID.SIC_EM]: skillTooltip(
       "Temporarily increase your active pet's strike damage. Soulbeast applies the separate player bonus while merged.",
       [
-        fromProfile(CORE.sicEm, 'duration', 'Base duration', tooltipSeconds),
+        fromSkill(ID.SIC_EM, 'duration', 'Base duration', tooltipSeconds),
         fromModifier('ranger.sic-em-pet', 'factor', 'Pet strike damage', tooltipFactorChange),
         fromModifier('ranger.sic-em-player', 'factor', 'Merged player strike damage', tooltipFactorChange)
       ]
@@ -189,9 +198,9 @@ export const rangerCoreTooltips = {
     [ID.CRIPPLING_ANGUISH_PET]: skillTooltip(
       'The pet applies confusion and torment. Quickness uses a separate autonomous recharge.',
       [
-        fromProfile(
-          CORE.cripplingAnguishQuickness,
-          'cooldown',
+        fromSkill(
+          ID.CRIPPLING_ANGUISH_PET,
+          'quicknessAutonomousRecharge',
           'Pet recharge with quickness before Alacrity',
           tooltipSeconds
         )
@@ -205,7 +214,7 @@ export const rangerCoreTooltips = {
             ? 'Strike and grant yourself Attack of Opportunity after the impact while merged. It empowers your next direct attack. Trait and stance damage cannot consume it.'
             : "Strike and grant your pet Attack of Opportunity after the impact. It empowers your pet's next direct attack. Trait and stance damage cannot consume it.",
           [
-            fromProfile(CORE.attackOfOpportunity, 'duration', 'Next-attack window', tooltipSeconds),
+            fromSkill(id, 'duration', 'Next-attack window', tooltipSeconds),
             fromModifier(
               'ranger.attack-of-opportunity',
               id === ID.MAUL_SOULBEAST ? 'playerFactor' : 'petFactor',
@@ -245,25 +254,28 @@ export const rangerCoreTooltips = {
       'Grant the listed boons and arm might generation for your active pet. While the buff lasts, your qualifying strikes grant might to that pet.',
       (balanceContext) =>
         simulationEffectFacts(
-          tooltipProfile(balanceContext, CORE.strengthOfThePack).effects,
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.STRENGTH_OF_THE_PACK), 'triggered-might')
+            .effects,
           'to your active pet per qualifying player hit'
         ).facts
     ),
     [ID.SIGNET_OF_THE_WILD]: skillTooltip(
       'Gain passive ferocity while the signet is ready. Activating the signet applies its listed effects and suspends the passive until recharge finishes.',
-      [fromProfile(CORE.signetOfTheWild, 'attributeBonus', 'Passive ferocity')]
+      [fromSkill(ID.SIGNET_OF_THE_WILD, 'attributeBonuses.ferocity', 'Passive ferocity')]
     ),
     [ID.STALKERS_STRIKE]: skillTooltip(
       'Strike and poison your target. Against a movement-impaired target, the strike deals increased damage and adds further poison.',
       (balanceContext) => [
-        profileFact(
+        skillFact(
           balanceContext,
-          CORE.stalkersStrikeImpaired,
-          'damageMultiplier',
+          ID.STALKERS_STRIKE,
+          'impairedDamageMultiplier',
           'Strike damage against movement-impaired targets',
           tooltipFactorChange
         ),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.stalkersStrikeImpaired).effects).facts
+        ...simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.STALKERS_STRIKE), 'impaired-poison').effects
+        ).facts
       ]
     ),
     [ID.FROST_TRAP]: skillTooltip(

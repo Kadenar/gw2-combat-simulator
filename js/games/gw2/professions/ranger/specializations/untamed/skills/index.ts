@@ -1,5 +1,5 @@
 import { ACTOR, COMBO_FIELD, CONTROL, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 /**
  * Owns Untamed Unleash, ambush, and specialization skill catalog fragments only.
  * Persistent Unleash state and transitions live under `mechanics/`.
@@ -7,7 +7,6 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { UNTAMED_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/untamed/profiles.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { naturalFortitudeAmbushEffect } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
 import { UNTAMED_WEAPON_AMBUSH_MECHANICS } from '#gw2/professions/ranger/specializations/untamed/skills/weapon-ambushes.js';
@@ -89,28 +88,33 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
           duration: 5
         }))
       },
+      // Capture unleash at acceptance while leaving each branch independently patchable/removable.
+      {
+        name: 'Ranger unleashed Might',
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks: 8,
+        duration: 10,
+        timingAnchor: 'castEnd',
+        atMs: 0,
+        when: (runtime) => untamedState.from(runtime).rangerUnleashed
+      },
+      {
+        name: 'Pet unleashed Protection',
+        type: 'boon',
+        boon: BOON.PROTECTION,
+        stacks: 1,
+        duration: 4,
+        timingAnchor: 'castEnd',
+        atMs: 0,
+        when: (runtime) => !untamedState.from(runtime).rangerUnleashed
+      },
       {
         type: 'control',
         atMs: 1640,
         controlKind: CONTROL.KNOCKDOWN
       }
-    ]),
-    // Capture Unleash at acceptance, adding the selected live boon to the skill's hostile packets.
-    effectVariants: (
-      [
-        [true, PROFILE.explodingSporesRanger, boonKey(BOON.MIGHT)],
-        [false, PROFILE.explodingSporesPet, boonKey(BOON.PROTECTION)]
-      ] as const
-    ).map<NonNullable<Skill['effectVariants']>[number]>(([unleashed, profileId, boon]) => ({
-      when: (runtime) => untamedState.from(runtime).rangerUnleashed === unleashed,
-      profileId,
-      transform: (_runtime, cast, effects) => [
-        ...(cast.skill.effects ?? []),
-        ...effects
-          .filter((effect) => effect.type === 'boon' && effect.name === boon)
-          .map((effect) => ({ ...effect, timingAnchor: 'castEnd' as const, atMs: 0 }))
-      ]
-    }))
+    ])
   },
   [ID.FORESTS_FORTIFICATION]: {
     // Use the effective cast duration so defensive boons begin at the corrected completion time.

@@ -21,8 +21,16 @@ const boldReversalOrderEffects: NonNullable<NonNullable<Skill['effectVariants']>
 const righteousRebelOrderVariants: NonNullable<Skill['effectVariants']> = [
   {
     when: (runtime) => hasTrait(runtime, TRAIT.RIGHTEOUS_REBEL),
-    profileId: PROFILE.ordersFromAboveRighteousRebel,
-    transform: boldReversalOrderEffects
+    transform: (runtime, cast, effects) =>
+      boldReversalOrderEffects(
+        runtime,
+        cast,
+        effects.filter((effect) => effect.name === 'righteous-rebel-alacrity')
+      )
+  },
+  {
+    when: () => true,
+    transform: (_runtime, _cast, effects) => effects.filter((effect) => effect.name !== 'righteous-rebel-alacrity')
   }
 ];
 
@@ -59,7 +67,17 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     cooldown: 10,
     energyCost: 10,
     castTimeMs: 480,
+    // Commitment selects exactly one Might template after counting live Fervor.
     effects: [
+      {
+        name: 'lasting-legacy-might',
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.MIGHT,
+        duration: 8,
+        stacks: 3,
+        actorType: ACTOR.PLAYER
+      },
       {
         name: boonKey(BOON.MIGHT),
         type: 'boon',
@@ -79,8 +97,23 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     cooldown: 20,
     energyCost: 20,
     castTimeMs: 0,
+    // Trait selection replaces the ordinary pulse template without changing activation ownership.
     effects: [
       {
+        name: 'righteous-rebel-alacrity',
+        type: 'boon',
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        boon: BOON.ALACRITY,
+        duration: 2,
+        stacks: 1,
+        applications: 6,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        name: 'base-alacrity',
         type: 'boon',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.ALACRITY,

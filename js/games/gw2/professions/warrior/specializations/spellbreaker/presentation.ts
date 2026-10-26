@@ -1,10 +1,9 @@
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { SPELLBREAKER_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/specializations/spellbreaker/profiles.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import {
   formatSecondsRemaining,
@@ -20,7 +19,7 @@ import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
 
 export const spellbreakerUi: WarriorUiSlice = Object.freeze({
-  /** Spellbreaker's starting cap belongs to its own resource profile; Core applies the shared configuration field. */
+  /** Spellbreaker's starting cap belongs to its intrinsic Conviction trait; Core applies the shared configuration field. */
   previewControls(context) {
     const preview = createPreviewControls(context);
     // Insight uses native timed stacks in both isolated previews, separate from combat-earned stacks.
@@ -44,7 +43,7 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceNumberFromContext(context, SPELLBREAKER_BALANCE_PROFILE_IDS.resources, 'maximumStacks'),
+      max: balanceNumberFromContext(context, TRAIT.SPELLBREAKERS_CONVICTION, 'maximumStacks'),
       initial: Number(context.build.initialResource) || 0,
       description: 'Adrenaline before setup; bursts use the Spellbreaker tier'
     });
@@ -62,7 +61,11 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
     return warriorBurstPaletteOverride(context, skill);
   },
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS),
-  resourceViews: (context: WarriorUiContext) => warriorAdrenalineResourceViews(context, 20),
+  resourceViews: (context: WarriorUiContext) =>
+    warriorAdrenalineResourceViews(
+      context,
+      balanceNumberFromContext(context, TRAIT.SPELLBREAKERS_CONVICTION, 'maximumStacks')
+    ),
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);

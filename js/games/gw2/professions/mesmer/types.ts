@@ -117,6 +117,8 @@ export interface MesmerAmbushStrike extends Partial<StrikeEffect> {
 
 /** A catalog skill also supplies the player and clone variants used by the Mirage controller. */
 export interface MesmerAmbushAttack extends MesmerSkill {
+  /** Whether this skill owns a separately removable Vulnerability template. */
+  readonly hasVulnerability?: boolean;
   readonly player: MesmerAmbushStrike;
   readonly clone: MesmerAmbushStrike;
   readonly vulnerability?: {
@@ -130,6 +132,8 @@ export interface MesmerAmbushAttack extends MesmerSkill {
  * Inherited persistsAfterInterrupt lets launched performance packets outlive interruption after commitment.
  */
 export interface MesmerInstrument extends Partial<StrikeEffect> {
+  /** Harp intentionally has no native strike; other instruments retain their named strike owner after removal. */
+  readonly hasStrike?: boolean;
   readonly slot: number;
   readonly instrument: string;
   readonly damageAtMs?: number;

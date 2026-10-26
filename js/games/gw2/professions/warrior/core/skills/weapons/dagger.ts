@@ -58,7 +58,21 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
                 details.hitContext.critical.chance > 0 &&
                 details.hitContext.critical.didCrit
               ),
-            do: { type: 'warrior.critical-might' }
+            // Critical Might belongs to this landed strike and is never an ordinary cast reward.
+            do: {
+              type: 'warrior.critical-might',
+              id: 'critical-might',
+              effects: [
+                {
+                  name: BOON.MIGHT,
+                  type: 'boon',
+                  boon: BOON.MIGHT,
+                  audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+                  stacks: 1,
+                  duration: 5
+                }
+              ]
+            }
           }
         ],
         coefficient: 1.05

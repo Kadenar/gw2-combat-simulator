@@ -1,3 +1,6 @@
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/skill-fields.js';
+import type { MESMER_CORE_SKILL_FIELDS } from '#gw2/professions/mesmer/core/skill-fields.js';
 import type { SimulationActorType } from '#gw2/platform/constants.js';
 /** Declarative Mesmer skill records shared by generated data and runtime consumers. */
 import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
@@ -78,15 +81,15 @@ type MesmerTrackedHitDamage = Partial<MesmerStrikeEffect> & {
   readonly skillId?: SkillId;
 };
 
-export interface MesmerSkill extends Skill {
+export interface MesmerSkill
+  extends
+    Skill,
+    NumericSkillFields<typeof MESMER_CORE_SKILL_FIELDS>,
+    NumericSkillFields<typeof TROUBADOUR_SKILL_FIELDS> {
   readonly id: number;
   readonly ambush?: boolean;
-  readonly crescendoProfileId?: string;
   readonly tale?: {
     readonly name: string;
-    readonly profileId: string;
-    readonly resourceGain: number;
-    readonly effects: readonly SkillEffect[];
   } &
     // Performance rewards require either a named instrument or a minimum number of distinct instruments.
     (
@@ -110,9 +113,6 @@ export interface MesmerSkill extends Skill {
     readonly delay?: number;
     readonly anchor?: 'castStart' | 'castCommit';
   };
-  // The data layer cannot import module declarations, so these Core skill-field types are written here as well.
-  readonly parentCooldownIncrease?: number;
-  readonly phantasmSummonProgress?: number;
   readonly trackedHitDamage?: MesmerTrackedHitDamage;
   // Authored packets use shared effect forms, including conditions whose values live on individual ticks.
   readonly effects?: readonly (SkillEffect & {

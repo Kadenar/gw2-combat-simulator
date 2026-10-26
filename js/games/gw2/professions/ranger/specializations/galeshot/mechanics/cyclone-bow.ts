@@ -1,3 +1,5 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
@@ -9,17 +11,11 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import {
-  balanceNumberFromContext,
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket, buildRangerStrikes } from '#gw2/professions/ranger/core/events.js';
 import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { GALESHOT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/galeshot/profiles.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -57,9 +53,14 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
 
   if (!enhanced) return;
 
-  const profile = requireBalanceProfileFromContext(context, PROFILE.mistral);
-  const strike = requireEffect(profile, 'strike', 'Strike');
-  const chilled = requireEffect(profile, 'condition', CONDITION.CHILLED);
+  const profile = requireSkillFromContext(context, ID.MISTRAL);
+  const strike = requireEffect(profile, 'strike', 'Strike', requireSkillAction(profile, 'missile-trigger'));
+  const chilled = requireEffect(
+    profile,
+    'condition',
+    CONDITION.CHILLED,
+    requireSkillAction(profile, 'missile-trigger')
+  );
   // Each missile-triggered Mistral is its own effect activation while its
   // strike and condition packets remain grouped under one identity.
   const activationId = strike || chilled ? 'mistral:' + event.eventOrder : undefined;
@@ -158,7 +159,7 @@ export const missileResolved = defineTriggerPoint<{ readonly event: Gw2ResolverE
 const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
   kind: 'continuous',
   state: (context) => galeshotState.from(context).windForce,
-  maximum: (context) => balanceNumberFromContext(context, PROFILE.resources, 'minimumStacks'),
+  maximum: (context) => balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'minimumStacks'),
   initial: () => 0,
   recovery: () => 0
 };
@@ -167,10 +168,10 @@ const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
 const galeshotArrows: ResourcePolicy<RangerRuntime> = {
   kind: 'discrete',
   state: (context) => galeshotState.from(context).arrows,
-  maximum: (context) => balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks'),
+  maximum: (context) => balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'maximumStacks'),
   initial: (context, maximum) => context.config.initialArrows ?? maximum,
   recovery: (context) => ({
-    interval: balanceNumberFromContext(context, PROFILE.resources, 'pulseInterval'),
+    interval: balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'pulseInterval'),
     amount: 1,
     start: 'immediate'
   })
@@ -191,7 +192,7 @@ export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<Rang
 /** Later projectiles consume this live window through the shared Mistral observer. */
 function activateMistral(runtime: RangerRuntime): void {
   galeshotState.from(runtime).mistralUntil = canonicalTime(
-    runtime.time + balanceNumberFromContext(runtime, PROFILE.mistral, 'duration')
+    runtime.time + skillNumber(requireSkillFromContext(runtime, ID.MISTRAL), 'duration')
   );
 }
 

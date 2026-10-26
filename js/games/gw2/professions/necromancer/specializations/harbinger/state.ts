@@ -1,3 +1,4 @@
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import {
   projectPublicProfessionState,
@@ -11,16 +12,12 @@ import { boundedInteger } from '#kernel/core/numeric.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { HARBINGER_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/specializations/harbinger/profiles.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
 
 /** Resolve one selected capacity for initialization, live stacks, observations, and previews. */
 export function harbingerBlightMaximum(context: unknown): number {
-  return Math.max(
-    0,
-    Math.trunc(balanceNumberFromContext(context, HARBINGER_BALANCE_PROFILE_IDS.resources, 'maximumStacks'))
-  );
+  return Math.max(0, Math.trunc(balanceNumberFromContext(context, TRAIT.DARK_DISCIPLE, 'maximumStacks')));
 }
 
 /** Starting progress cannot itself complete a cycle; a live Blight consumption must trigger the trait. */

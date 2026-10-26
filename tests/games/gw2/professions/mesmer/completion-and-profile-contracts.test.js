@@ -2,12 +2,12 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerProfiledShatter } from '#gw2/professions/mesmer/core/profiles.js';
-import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
+import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 
 // Cancelled completions retain existing cooldowns instead of granting successful reset effects.
 test('cancelled Ether preserves an established phantasm cooldown', () => {
@@ -111,20 +111,26 @@ test('instrument commitment requires a performance that was not cancelled', () =
 
 // The supported patch API must change executable blade ticks without mutating the base or zero-blade tier.
 test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier', () => {
-  const profileId = MESMER_VIRTUOSO_SHATTERS[ID.BLADESONG_HARMONY].balanceProfileId;
-  const original = mesmerCatalog.balanceProfilesById.get(profileId);
+  const skillId = ID.BLADESONG_HARMONY;
+  const original = requireSkillAction(mesmerCatalog.skillsById.get(skillId), 'shatter');
   const before = structuredClone(original);
   const patch = {
-    balanceProfiles: {
-      [profileId]: { effects: [{ effectIndex: 5, tickIndex: 0, coefficient: { from: 0.7, to: 7 } }] }
+    skills: {
+      [skillId]: {
+        sideEffects: {
+          shatter: {
+            effects: [{ type: 'strike', name: '5 resources', tickIndex: 0, coefficient: { from: 0.7, to: 7 } }]
+          }
+        }
+      }
     }
   };
-  const catalog = applyBalanceProfilePatch(mesmerCatalog, patch);
-  const shatter = mesmerProfiledShatter({ catalog }, MESMER_VIRTUOSO_SHATTERS[ID.BLADESONG_HARMONY]);
+  const catalog = applySkillPatch(mesmerCatalog, patch);
+  const shatter = mesmerSelectedShatter({ catalog }, skillId);
   const profession = {
     runtimeFor(config) {
       const runtime = mesmerProfession.runtimeFor(config);
-      return { ...runtime, catalog: applyBalanceProfilePatch(runtime.catalog, patch) };
+      return { ...runtime, catalog: applySkillPatch(runtime.catalog, patch) };
     }
   };
   const result = runMesmer(['Bladesong Harmony', { name: '__wait', waitMs: 1000 }], createDefaultConfig(), {
@@ -137,9 +143,12 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
   assert.equal(shatter.strikes[5].ticks[0].coefficient, 7);
   assert.equal(shatter.strikes[0].coefficient, 0);
   assert.equal(shatter.strikes[0].ticks, undefined);
-  assert.deepEqual(catalog.balanceProfilesById.get(profileId).effects[0], before.effects[0]);
+  assert.deepEqual(requireSkillAction(catalog.skillsById.get(skillId), 'shatter').effects[0], before.effects[0]);
   assert.deepEqual(original, before);
-  assert.equal(MESMER_VIRTUOSO_SHATTERS[ID.BLADESONG_HARMONY].ticks[5][0].coefficient, 0.7);
+  assert.equal(
+    requireSkillAction(mesmerCatalog.skillsById.get(skillId), 'shatter').effects[5].ticks[0].coefficient,
+    0.7
+  );
 });
 
 // Removing a skill's declared CC removes the event even when a shatter or phantasm handler owns its other effects.

@@ -1,6 +1,6 @@
 import { overflowingThirst } from '#gw2/professions/necromancer/core/traits/blood-magic/index.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
@@ -17,7 +17,6 @@ import { necromancerProfession } from '#gw2/professions/necromancer/profession.j
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { RANGER_CORE_BALANCE_PROFILE_IDS as RANGER_PROFILE } from '#gw2/professions/ranger/core/profile-ids.js';
 import {
   handleRangerSharpeningStone,
   triggerSharpeningStone
@@ -173,8 +172,13 @@ test('Sharpening Stone batches spend earliest expiry and prune without spending 
     core.sharpeningStoneGrants.map((grant) => [grant.charges, grant.expiresAt]),
     [[2, 11]]
   );
-  context.catalog = applyBalanceProfilePatch(context.catalog, {
-    balanceProfiles: { [RANGER_PROFILE.sharpeningStone]: { removeEffects: [{ type: 'condition', name: 'Bleeding' }] } }
+  // Remove only the skill-owned follow-up while retaining the independently expiring charge batches.
+  context.catalog = applySkillPatch(context.catalog, {
+    skills: {
+      [RANGER.SHARPENING_STONE]: {
+        sideEffects: { 'sharpening-stone': { removeEffects: [{ type: 'condition', name: 'Bleeding' }] } }
+      }
+    }
   });
   triggerSharpeningStone(context, { ...hit, at: 6 });
   assert.equal(core.sharpeningStoneGrants[0].charges, 2);

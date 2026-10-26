@@ -1,3 +1,4 @@
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { COMBO_FIELD, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
@@ -150,6 +151,8 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     sideEffects: [{ on: 'castCommit', do: { type: 'scourge.strike' } }]
   },
   [ID.GARISH_PILLAR]: {
+    // The lifecycle action owns deferred packets; shared commands read this selected skill.
+
     cost: SCOURGE_LIFE_FORCE_COST,
     specialization: 'Scourge',
     lifeForceCost: 3685,
@@ -158,10 +161,28 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
       { on: 'castCommit', do: { type: 'scourge.strike' } },
-      { on: 'castCommit', do: { type: 'scourge.garish-pillar' } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'scourge.garish-pillar',
+          id: 'garishPillar',
+          effects: [
+            {
+              name: CONDITION.FEAR,
+              type: 'condition',
+              condition: CONDITION.FEAR,
+              stacks: 1,
+              duration: 1,
+              actorType: ACTOR.PLAYER
+            }
+          ]
+        }
+      }
     ]
   },
   [ID.DESERT_SHROUD]: {
+    // The lifecycle action owns deferred packets; shared commands read this selected skill.
+    impactDelayMs: 520,
     cost: SCOURGE_LIFE_FORCE_COST,
     specialization: 'Scourge',
     lifeForceCost: 4606,
@@ -173,10 +194,38 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
       { on: 'castCommit', do: { type: 'scourge.strike' } },
-      { on: 'castCommit', do: { type: 'scourge.desert-shroud' } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'scourge.desert-shroud',
+          id: 'desertShroud',
+          effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+            {
+              name: 'Strike',
+              type: 'strike',
+              ticks: Array.from({ length: 7 }, (_, index) => ({ atMs: index * 1000, coefficient: 3.15 / 7 })),
+              actorType: ACTOR.PLAYER
+            },
+            {
+              name: CONDITION.TORMENT,
+              type: 'condition',
+              condition: CONDITION.TORMENT,
+              stacks: 1,
+              duration: 5,
+              applications: 7,
+              intervalMs: 1000,
+              actorType: ACTOR.PLAYER
+            }
+          ])
+        }
+      }
     ]
   },
   [ID.MANIFEST_SAND_SHADE]: {
+    // The lifecycle action owns deferred packets; shared commands read this selected skill.
+    maximumStacks: 3,
+    dhuumfireDuration: 2,
+    dhuumfireInterval: 1,
     cooldown: 15,
     ammo: 3,
     ammoRecharge: 15,
@@ -186,10 +235,43 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
       { on: 'castStart', do: { type: 'scourge.manifest-start' } },
-      { on: 'castCommit', do: { type: 'scourge.manifest' } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'scourge.manifest',
+          id: 'shade',
+          effects: [
+            {
+              name: 'Strike',
+              type: 'strike',
+              coefficient: 0.666,
+              hits: 1,
+              actorType: ACTOR.PLAYER
+            },
+            {
+              name: CONDITION.TORMENT,
+              type: 'condition',
+              condition: CONDITION.TORMENT,
+              stacks: 1,
+              duration: 2,
+              actorType: ACTOR.PLAYER
+            },
+            {
+              name: 'active-shade',
+              type: 'buff',
+              kind: 'active-shade',
+              stacks: 1,
+              duration: 15,
+              actorType: ACTOR.PLAYER
+            }
+          ]
+        }
+      }
     ]
   },
   [ID.SANDSTORM_SHROUD]: {
+    // The lifecycle action owns deferred packets; shared commands read this selected skill.
+
     cost: SCOURGE_LIFE_FORCE_COST,
     specialization: 'Scourge',
     lifeForceCost: 3224,
@@ -201,7 +283,77 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     // Each command declares its intrinsic work; barrier and shroud trait observers retain their shared owners.
     sideEffects: [
       { on: 'castCommit', do: { type: 'scourge.strike' } },
-      { on: 'castCommit', do: { type: 'scourge.sandstorm-shroud' } }
+      {
+        on: 'castCommit',
+        do: {
+          type: 'scourge.sandstorm-shroud',
+          id: 'sandstormShroud',
+          effects: [
+            ...impactEffects({ atMs: 3500, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+              { name: 'Strike', type: 'strike', coefficient: 3, hits: 1, actorType: ACTOR.PLAYER },
+              {
+                name: CONDITION.TORMENT,
+                type: 'condition',
+                condition: CONDITION.TORMENT,
+                stacks: 6,
+                duration: 5,
+                actorType: ACTOR.PLAYER
+              }
+            ]),
+            {
+              // Barrier is independent of Protection; its accepted application owns the trait rewards at each pulse.
+              name: 'barrier pulses',
+              type: 'buff',
+              kind: 'barrier',
+              stacks: 1,
+              duration: 5,
+              applications: 3,
+              intervalMs: 1000,
+              timingAnchor: 'castEnd',
+              timingScale: 'fixed',
+              actorType: ACTOR.PLAYER,
+              audience: { recipients: RECIPIENT.PARTY }
+            },
+            {
+              name: 'protection pulses',
+              type: 'boon',
+              boon: BOON.PROTECTION,
+              stacks: 1,
+              duration: 1.5,
+              applications: 3,
+              intervalMs: 1000,
+              timingAnchor: 'castEnd',
+              timingScale: 'fixed',
+              actorType: ACTOR.PLAYER,
+              audience: { recipients: RECIPIENT.PARTY }
+            },
+            {
+              name: 'barrier detonation',
+              type: 'buff',
+              kind: 'barrier',
+              stacks: 1,
+              duration: 5,
+              atMs: 3500,
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              actorType: ACTOR.PLAYER,
+              audience: { recipients: RECIPIENT.PARTY }
+            },
+            {
+              name: boonKey(BOON.PROTECTION),
+              type: 'boon',
+              boon: BOON.PROTECTION,
+              stacks: 1,
+              duration: 3,
+              atMs: 3500,
+              timingAnchor: 'castStart',
+              timingScale: 'fixed',
+              actorType: ACTOR.PLAYER,
+              audience: { recipients: RECIPIENT.PARTY }
+            }
+          ]
+        }
+      }
     ]
   }
 });

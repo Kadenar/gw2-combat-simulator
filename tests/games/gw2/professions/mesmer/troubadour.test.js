@@ -11,10 +11,7 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import {
-  TROUBADOUR_BALANCE_PROFILE_IDS,
-  TROUBADOUR_BALANCE_PROFILES
-} from '#gw2/professions/mesmer/specializations/troubadour/profiles.js';
+
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Trait-owned scheduling must keep honoring balance edits for both the disable proc and delayed wave.
@@ -261,9 +258,7 @@ test('Blinding Dissipation blinds on the player Flustering Flute impact only', (
 
 // Cry of Pain augments the player's native confusion; the afterimage replay keeps the base application.
 test('Cry of Pain upgrades only the player Flustering Flute confusion', () => {
-  const traited = TROUBADOUR_BALANCE_PROFILES.find(
-    (profile) => profile.id === TROUBADOUR_BALANCE_PROFILE_IDS.flusteringFluteCryOfPain
-  );
+  const traited = mesmerProfession.catalog.skillsById.get(ID.FLUSTERING_FLUTE);
   const confusion = (result, actorType) =>
     result.events.filter(
       (event) => event.type === 'condition' && event.condition === 'Confusion' && event.actorType === actorType
@@ -274,11 +269,11 @@ test('Cry of Pain upgrades only the player Flustering Flute confusion', () => {
 
   assert.equal(
     playerConfusion.reduce((total, event) => total + event.stacks, 0),
-    confusion(base, 'player').reduce((total, event) => total + event.stacks, 0) + traited.additionalStacks
+    confusion(base, 'player').reduce((total, event) => total + event.stacks, 0) + traited.cryOfPainAdditionalStacks
   );
   assert.ok(
     playerConfusion.every(
-      (event) => event.duration === confusion(base, 'player')[0].duration * (1 + traited.durationMultiplier)
+      (event) => event.duration === confusion(base, 'player')[0].duration * (1 + traited.cryOfPainDurationMultiplier)
     )
   );
   assert.ok(confusion(base, 'summon').length > 0);

@@ -97,7 +97,7 @@ export function hasActionEffects(value: unknown): value is PayloadSideEffectActi
  * the cast itself never emits them, because each action's handler decides when its payload applies.
  */
 export function skillActionEffects(skill: Skill): readonly SkillEffect[] {
-  return (skill.sideEffects ?? []).flatMap(({ do: action }) => (hasActionEffects(action) ? action.effects : []));
+  return skillActions(skill).flatMap((action) => (hasActionEffects(action) ? action.effects : []));
 }
 
 /**
@@ -105,7 +105,15 @@ export function skillActionEffects(skill: Skill): readonly SkillEffect[] {
  * read their rewards through this, so a missing declaration fails loudly instead of granting nothing.
  */
 export function requireSkillAction(skill: Skill, id: string): PayloadSideEffectAction {
-  for (const { do: action } of skill.sideEffects ?? []) if (hasActionEffects(action) && action.id === id) return action;
+  for (const action of skillActions(skill)) if (hasActionEffects(action) && action.id === id) return action;
 
   throw new TypeError(`Skill ${skill.id} (${skill.name}) has no payload action ${id}.`);
+}
+
+/** Cast and impact actions share stable skill-local identities for selected-catalog reads and patch edits. */
+export function skillActions(skill: Skill): readonly SideEffectAction[] {
+  return [
+    ...(skill.sideEffects ?? []).map((rule) => rule.do),
+    ...(skill.effects ?? []).flatMap((effect) => (effect.reactions ?? []).flatMap((rule) => rule.do))
+  ];
 }

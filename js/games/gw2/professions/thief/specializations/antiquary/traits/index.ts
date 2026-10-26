@@ -15,7 +15,8 @@ import {
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
@@ -32,7 +33,6 @@ import {
   artifactsPilfered,
   type ArtifactPilfer
 } from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import {
@@ -170,29 +170,7 @@ const meticulousCustodian = defineTrait({
       );
     }
   },
-  profiles: [
-    {
-      id: PROFILE.forgedSurferMeticulous,
-      name: 'Forged Surfer Dash - Meticulous',
-      profileKind: 'skill-variant',
-      parentId: ID.FORGED_SURFER_DASH,
-      duration: 13,
-      effects: [
-        { type: 'strike', name: 'Dash', coefficient: 2.8, hits: 1 },
-        // Meticulous replaces the dash burn with one eight-second stack before expertise.
-        { type: 'condition', name: 'Dash', condition: CONDITION.BURNING, stacks: 1, duration: 8 },
-        { type: 'strike', name: 'Bomb', coefficient: 1.4, hits: 1 },
-        { type: 'condition', name: 'Bomb', condition: CONDITION.BURNING, stacks: 1, duration: 4.5 }
-      ]
-    },
-    {
-      id: PROFILE.sunCrystalMeticulous,
-      name: 'Zephyrite Sun Crystal - Meticulous',
-      profileKind: 'skill-variant',
-      parentId: ID.ZEPHYRITE_SUN_CRYSTAL,
-      effects: [{ type: 'condition', name: CONDITION.BURNING, condition: CONDITION.BURNING, stacks: 1, duration: 5 }]
-    }
-  ],
+
   modifierRules: [
     {
       order: 404,
@@ -304,7 +282,15 @@ const scoundrelsLuck = defineTrait({
 });
 
 /** Native trait owners, in stable authoring order. */
+// Intrinsic specialization policy is available without explicit minor selection.
+const trinketCollector = defineTrait({
+  id: TRAIT.TRINKET_COLLECTOR,
+  name: 'Trinket Collector',
+  balance: { maximumStacks: 1 }
+});
+
 export const antiquaryTraits = Object.freeze([
+  trinketCollector,
   repeatRansacker,
   scoundrelsLuck,
   combatHigh,
@@ -429,16 +415,18 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, { cause: event
   )
     return;
 
-  const sunCrystalMeticulousProfile = requireBalanceProfileFromContext(context, PROFILE.sunCrystalMeticulous);
-  const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', CONDITION.BURNING);
+  const sunCrystalMeticulousProfile = requireSkillFromContext(context, ID.ZEPHYRITE_SUN_CRYSTAL);
+  const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Meticulous Burning');
 
   // Explicit removal suppresses this packet without restoring baseline tuning.
   if (!burning) return;
 
-  emitTraitProfile(context, PROFILE.sunCrystalMeticulous, PROFILE.sunCrystalMeticulous, undefined, {
+  context.effects.emit({
+    kind: 'profile',
+    profile: sunCrystalMeticulousProfile,
+    transform: (packet) => ({ ...packet, name: 'Zephyrite Sun Crystal - Meticulous Burning' }),
+    effects: [burning],
     at: event.at,
-    fullEnd: event.at,
-    effect: { type: 'condition', name: CONDITION.BURNING },
     settlement: 'reaction',
     attribution: {
       source: 'thief',
@@ -446,7 +434,6 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, { cause: event
       actorType: ACTOR.PLAYER,
       skillId: ID.ZEPHYRITE_SUN_CRYSTAL,
       skillName: 'Zephyrite Sun Crystal',
-      name: 'Zephyrite Sun Crystal - Meticulous Burning',
       triggeredBy: event.skillName
     }
   });

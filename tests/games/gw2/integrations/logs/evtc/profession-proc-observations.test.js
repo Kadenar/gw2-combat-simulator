@@ -15,7 +15,6 @@ import { analyzeNecromancerBarbedPrecisionObservation } from '#gw2/integrations/
 import { analyzeRangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { MESMER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/mesmer/core/profiles.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
@@ -138,8 +137,9 @@ function fixture(
   };
 }
 
-function catalog(profiles) {
+function catalog(profiles, additionalSkills = []) {
   const skills = [
+    ...additionalSkills,
     {
       id: EXPLOSION_SKILL_ID,
       name: 'Test Explosion',
@@ -418,16 +418,10 @@ test('pairs player-attributed Sharper Images applications across Signet of Midni
       ]
     ),
     PLAYER,
-    catalog([
-      sharperImagesProfile,
-      {
-        id: MESMER_CORE_BALANCE_PROFILE_IDS.signetOfMidnight,
-        name: 'Signet of Midnight - Passive',
-        profileKind: 'skill-variant',
-        expertiseBonus: 180,
-        effects: []
-      }
-    ]),
+    catalog(
+      [sharperImagesProfile],
+      [{ id: 10234, name: 'Signet of Midnight', attributeBonuses: { expertise: 180 }, effects: [] }]
+    ),
     {
       selectedTraitIds: [MESMER_TRAIT.SHARPER_IMAGES],
       selectedSkillIds: [10234],

@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -7,7 +8,8 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  balanceProfileNumber,
+  requireSkillFromContext,
+  skillNumber,
   effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
@@ -15,7 +17,6 @@ import {
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { scourgeShadeManifested } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
-import { SCOURGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/scourge/profiles.js';
 import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type {
   NecromancerRuntime,
@@ -40,12 +41,10 @@ function refreshShadeExpiry(runtime: NecromancerRuntime): void {
 
 /** Every shade command owns one common strike and Torment application, independent of the number of active shades. */
 function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.shade);
+  const profile = requireSkillFromContext(runtime, ID.MANIFEST_SAND_SHADE);
+  const action = requireSkillAction(profile, 'shade');
   // Desert Shroud's shared shade hit lands with its first pulse, so hit-triggered traits wait for impact.
-  const impactDelayMs =
-    cast.skill.id === ID.DESERT_SHROUD
-      ? balanceProfileNumber(requireBalanceProfileFromContext(runtime, PROFILE.desertShroud), 'impactDelayMs')
-      : 0;
+  const impactDelayMs = cast.skill.id === ID.DESERT_SHROUD ? skillNumber(cast.skill, 'impactDelayMs') : 0;
   const attribution = {
     at: canonicalTime(runtime.time + impactDelayMs / 1000),
     source: 'necromancer',
@@ -55,7 +54,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
     skillName: cast.skill.id === ID.NEFARIOUS_FAVOR ? 'Manifest Sand Shade' : 'Manifest Sand Shade (F1/F5)',
     parentSkillName: cast.skill.name
   };
-  const strike = requireEffect(profile, 'strike', 'Strike');
+  const strike = requireEffect(profile, 'strike', 'Strike', action);
 
   if (strike) {
     // Shared emission owns transport; the mechanic selects attribution and delivery.
@@ -86,7 +85,7 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
     });
   }
 
-  const torment = requireEffect(profile, 'condition', CONDITION.TORMENT);
+  const torment = requireEffect(profile, 'condition', CONDITION.TORMENT, action);
 
   if (torment) {
     // Shared emission owns transport; the mechanic selects attribution and delivery.
@@ -116,16 +115,18 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
 
 /** Select shade lifetime and capacity from the active patch's ordinary or Sand Savant profile. */
 function sandSavantShadeProfile(runtime: NecromancerRuntime) {
-  return requireBalanceProfileFromContext(
-    runtime,
-    hasTrait(runtime, TRAIT.SAND_SAVANT) ? TRAIT.SAND_SAVANT : PROFILE.shade
-  );
+  return hasTrait(runtime, TRAIT.SAND_SAVANT)
+    ? { profile: requireBalanceProfileFromContext(runtime, TRAIT.SAND_SAVANT), action: undefined }
+    : {
+        profile: requireSkillFromContext(runtime, ID.MANIFEST_SAND_SHADE),
+        action: requireSkillAction(requireSkillFromContext(runtime, ID.MANIFEST_SAND_SHADE), 'shade')
+      };
 }
 
 /** Manifest refreshes the capped shade lifetime before its queued impact. */
 function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  const profile = sandSavantShadeProfile(runtime);
-  const lifetime = requireEffect(profile, 'buff', 'active-shade');
+  const { profile, action } = sandSavantShadeProfile(runtime);
+  const lifetime = requireEffect(profile, 'buff', 'active-shade', action);
 
   if (lifetime) {
     const state = scourgeState.from(runtime);
@@ -133,7 +134,7 @@ function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<Necromance
       at: runtime.time,
       expiresAt: canonicalTime(runtime.time + effectNumber(profile, lifetime, 'duration')),
       count: 1,
-      maximumStacks: balanceProfileNumber(profile, 'maximumStacks'),
+      maximumStacks: Number(profile.maximumStacks),
       retain: 'latest-expiry'
     }).reverse();
     refreshShadeExpiry(runtime);

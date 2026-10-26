@@ -1,3 +1,4 @@
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { specterBuffPolicies } from '#gw2/professions/thief/specializations/specter/effect-state.js';
@@ -8,7 +9,6 @@ import {
   shadowForce,
   specterAvailability
 } from '#gw2/professions/thief/specializations/specter/mechanics/shadow-shroud.js';
-import { SPECTER_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/specter/profiles.js';
 import { grantBarrier } from '#gw2/professions/thief/specializations/specter/skills/barrier.js';
 import { completeSiphon } from '#gw2/professions/thief/specializations/specter/skills/siphon.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
@@ -34,13 +34,11 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       setShadowShroud(runtime, false, context.skill);
     },
     'thief.shroud-entry-barrier'(runtime, context) {
-      if (context.kind === 'cast')
-        grantBarrier(runtime, context.cast, PROFILE.enterShadowShroud, 'Enter Shadow Shroud - Barrier');
+      if (context.kind === 'cast') grantBarrier(runtime, context.cast, 'Enter Shadow Shroud - Barrier');
     },
     'thief.dawns-barrier'(runtime, context) {
       // The intrinsic barrier is independent of Shadestep's cast-commit reward.
-      if (context.kind === 'cast')
-        grantBarrier(runtime, context.cast, PROFILE.dawnsReposeBarrier, "Dawn's Repose - Barrier");
+      if (context.kind === 'cast') grantBarrier(runtime, context.cast, "Dawn's Repose - Barrier");
     }
   },
 
@@ -53,7 +51,7 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     if (cost > 0)
       runtime.resourceController.grant(
         'shadowForce',
-        cost * balanceNumberFromContext(runtime, PROFILE.resources, 'resourceGain')
+        cost * balanceNumberFromContext(runtime, TRAIT.SPECTER, 'resourceGain')
       );
   },
   onCooldownReset(runtime) {

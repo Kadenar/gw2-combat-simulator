@@ -14,7 +14,6 @@ import {
   THIEF_ARTIFACT_IDS,
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -42,7 +41,7 @@ export function storeAntiquaryArtifacts(runtime: ThiefRuntime, source: 'swipe' |
     );
 
   state.artifactUsesRemaining =
-    balanceNumberFromContext(runtime, PROFILE.resources, 'maximumStacks') +
+    balanceNumberFromContext(runtime, TRAIT.TRINKET_COLLECTOR, 'maximumStacks') +
     prolificPlundererUses(runtime, source) +
     improvisationArtifactUses(runtime, source);
 }

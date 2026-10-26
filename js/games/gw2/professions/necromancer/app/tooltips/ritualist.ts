@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   fromModifier,
   fromProfile,
@@ -47,12 +48,6 @@ const weaponSpellTooltip: DescribeSimulationTooltip = (balanceContext, entity, _
       `${personal} charges on yourself · ${allied} charges on each ally`
     );
   });
-  const profileId = (
-    {
-      [ID.NIGHTMARE_WEAPON]: RITUALIST.nightmareWeaponProc,
-      [ID.SPLINTER_WEAPON]: RITUALIST.splinterWeaponProc
-    } as Record<number, string>
-  )[Number(entity.id)];
   return {
     description:
       'Grant weapon-spell charges to yourself and eligible party recipients. Their qualifying strikes spend charges to trigger the listed attack, with an independent interval for each recipient.' +
@@ -60,12 +55,8 @@ const weaponSpellTooltip: DescribeSimulationTooltip = (balanceContext, entity, _
     incomplete: effects.some((model) => model.incomplete),
     facts: [
       ...effects.flatMap((model) => model.facts),
-      ...(profileId
-        ? [
-            ...simulationEffectFacts(tooltipProfile(balanceContext, profileId).effects, 'per charge spent').facts,
-            profileFact(balanceContext, profileId, 'internalCooldown', 'Minimum interval per recipient', tooltipSeconds)
-          ]
-        : [])
+      ...simulationEffectFacts(requireSkillAction(skill, 'triggered').effects, 'per charge spent').facts,
+      { name: 'Minimum interval per recipient', detail: tooltipSeconds(tooltipNumber(skill, 'internalCooldown')) }
     ]
   };
 };
@@ -96,7 +87,7 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
     };
 
   const attacks = spiritAttackEffects(balanceContext, id)!;
-  const { profile } = attacks;
+  const { opening } = attacks;
   return {
     description:
       'Summon or replace this spirit, apply its opening effects, and start its autonomous attacks. Busy spirits skip recurring attack opportunities.' +
@@ -111,12 +102,12 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
         [attacks.autoattack, attacks.initial, attacks.lingering].flatMap((effect) => (effect ? [effect] : []))
       ).facts,
       ...simulationEffectFacts(
-        profile.effects?.filter((effect) => effect.type === 'condition'),
+        opening.effects.filter((effect) => effect.type === 'condition'),
         'opening conditions'
       ).facts,
       profileFact(
         balanceContext,
-        RITUALIST.resources,
+        TRAIT.SPAWNING_POWER,
         'pulseInterval',
         'Autonomous attack pulse interval',
         tooltipSeconds

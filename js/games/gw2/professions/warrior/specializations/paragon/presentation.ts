@@ -1,8 +1,7 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import {
   warriorAdrenalineResourceViews,
   warriorBurstPaletteOverride,
@@ -22,8 +21,8 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       id: 'motivation',
       singular: 'motivation',
       plural: 'motivation',
-      // Reflect the initialized pool, including patch-selected Motivation limits.
-      maximum: state.motivation?.maximum ?? balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks'),
+      // Reflect the live pool or the intrinsic Rally the Valiant capacity before initialization.
+      maximum: state.motivation?.maximum ?? balanceNumberFromContext(context, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
       value: state.motivation?.value ?? 0,
       canStart: false,
       step: 1,
@@ -61,7 +60,7 @@ export const paragonUi: WarriorUiSlice = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceNumberFromContext(context, PROFILE.resources, 'maximumStacks'),
+      max: balanceNumberFromContext(context, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
       description: 'Current motivation'
     });
     preview.add({
