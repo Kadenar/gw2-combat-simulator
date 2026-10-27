@@ -8,11 +8,11 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   effectNumber,
-  requireBalanceProfileFromContext,
+  skillNumber,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -84,8 +84,8 @@ export function applyJusticeBurn(
     readonly passiveBurnDuration?: number;
   }
 ): JusticeBurnOutcome {
-  const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
-  const burn = requireEffect(justiceProfile, 'condition', active ? 'Burning (active)' : 'Burning (passive)');
+  const justiceSkill = requireSkillFromContext(context, GUARDIAN_SKILL_IDS.JUSTICE);
+  const burn = requireEffect(justiceSkill, 'condition', active ? 'Burning (active)' : 'Burning (passive)');
 
   if (!burn) return null;
 
@@ -108,9 +108,9 @@ export function applyJusticeBurn(
       causalOrder: event.causalOrder ?? event.eventOrder,
       name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
       condition: String(burn.condition),
-      stacks: effectNumber(justiceProfile, burn, 'stacks'),
+      stacks: effectNumber(justiceSkill, burn, 'stacks'),
       duration:
-        !active && passiveBurnDuration != null ? passiveBurnDuration : effectNumber(justiceProfile, burn, 'duration')
+        !active && passiveBurnDuration != null ? passiveBurnDuration : effectNumber(justiceSkill, burn, 'duration')
     })
   });
 
@@ -167,11 +167,11 @@ export function reactToJusticeHitWithOptions(
 
   if (!retainsPassive && event.at < (state.virtueReadyAt.justice || 0)) return null;
 
-  const justiceProfile = requireBalanceProfileFromContext(context, PROFILE.justice);
+  const justiceSkill = requireSkillFromContext(context, GUARDIAN_SKILL_IDS.JUSTICE);
 
-  if (!requireEffect(justiceProfile, 'condition', 'Burning (passive)')) return null;
+  if (!requireEffect(justiceSkill, 'condition', 'Burning (passive)')) return null;
 
-  const triggerHits = permeatingWrathThreshold(context, 'justice', PROFILE.justice);
+  const triggerHits = permeatingWrathThreshold(context, 'justice', skillNumber(justiceSkill, 'threshold'));
   // Reset accepted passive hit progress before burning can cause another reaction.
   const progress = advanceCounter(state.justiceHitCount, 1, triggerHits, 'reset');
   state.justiceHitCount = progress.value;

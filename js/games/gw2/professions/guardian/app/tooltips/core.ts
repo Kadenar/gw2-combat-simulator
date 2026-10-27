@@ -2,18 +2,16 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromSkill,
-  profileFact,
+  skillFact,
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
-  tooltipProfile,
   tooltipSeconds,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { virtueTooltip } from '#gw2/professions/guardian/app/tooltips/shared.js';
 import { guardianZealTooltips } from '#gw2/professions/guardian/app/tooltips/zeal.js';
@@ -115,8 +113,8 @@ export const guardianCoreTooltips = {
     [ID.JUSTICE]: skillTooltip(
       'Activate Justice to arm Burning on your next qualifying hit. While its passive is ready, qualifying hits periodically burn the target; activation and the passive use their listed alternatives.',
       (balanceContext) => [
-        profileFact(balanceContext, CORE.justice, 'threshold', 'Base qualifying hits per passive trigger'),
-        ...simulationEffectFacts(tooltipProfile(balanceContext, CORE.justice).effects).facts
+        skillFact(balanceContext, ID.JUSTICE, 'threshold', 'Base qualifying hits per passive trigger'),
+        ...simulationEffectFacts(requireSkillFromContext(balanceContext, ID.JUSTICE).effects).facts
       ]
     ),
     [ID.BANISH]: skillTooltip("Strike and knock back your target. A completed cast resets Mighty Blow's recharge.")

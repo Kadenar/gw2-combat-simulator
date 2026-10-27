@@ -148,7 +148,7 @@ export const firebrandTooltips = {
           ? [
               {
                 name: 'Selected adjustment',
-                detail: `${tooltipProfile(context, ashes.payloadProfileId).name} — provisional`
+                detail: `${tooltipProfile(context, ashes.overrideTraitId).name} — provisional`
               },
               ...ashesBurningFacts(ashes.baseline, 'baseline per charge')
             ]

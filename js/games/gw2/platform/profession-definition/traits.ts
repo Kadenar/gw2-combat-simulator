@@ -117,6 +117,28 @@ export interface TraitDefinition<TSkill extends Skill = Skill> {
   readonly grantedAttributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
 }
 
+/** Catalog assembly and trigger validation derive the same trait-owned tuning without module profile inputs. */
+export function traitBalanceProfiles<TSkill extends Skill>(
+  traits: readonly TraitDefinition<TSkill>[]
+): readonly BalanceProfile[] {
+  return traits.flatMap((trait) => [
+    ...(trait.balance
+      ? [
+          {
+            id: trait.balance.id ?? trait.id,
+            name: trait.name,
+            profileKind: 'trait' as const,
+            categories: ['Trait'],
+            skillFamily: 'Trait',
+            effects: [],
+            ...trait.balance
+          }
+        ]
+      : []),
+    ...(trait.profiles ?? [])
+  ]);
+}
+
 type FlatAttributeEffect = Extract<Gw2AttributeEffect, { kind: 'flat' }>;
 type ConversionAttributeEffect = Extract<Gw2AttributeEffect, { kind: 'conversion' }>;
 

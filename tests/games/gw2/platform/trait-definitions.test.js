@@ -41,13 +41,11 @@ function selectionFixture() {
   const data = (traits) => ({
     generatedSkills: [skill],
     traits,
-    specializations: [line(traits)],
-    balanceProfiles: [
-      { id: 'fixture.tuning', name: 'Tuning', profileKind: 'mechanic', maximumStacks: 2, duration: 1, effects: [] }
-    ]
+    specializations: [line(traits)]
   });
+  const traitDefinitions = [{ ...first, balance: { maximumStacks: 2, duration: 1 } }];
   const replacement = new Proxy(
-    defineNativeModule({ id: 'Core', data: data([second, first]), state: { create: () => ({}) } }),
+    defineNativeModule({ id: 'Core', data: data([second, first]), traitDefinitions, state: { create: () => ({}) } }),
     {
       get(target, key, receiver) {
         // Compiling a family reads module declarations; value changes must never revisit them.
@@ -60,7 +58,9 @@ function selectionFixture() {
   const family = defineNativeProfession({
     id: 'fixture',
     name: 'Fixture',
-    modules: [defineNativeModule({ id: 'Core', data: data([first, second]), state: { create: () => ({}) } })],
+    modules: [
+      defineNativeModule({ id: 'Core', data: data([first, second]), traitDefinitions, state: { create: () => ({}) } })
+    ],
     moduleVariants: { 'fixture-rework': replacement }
   });
   const profession = withPatchPreview(family, {
@@ -75,7 +75,7 @@ function selectionFixture() {
             traitId: '301',
             label: 'Charges',
             specialization: 'Line',
-            profileId: 'fixture.tuning',
+            profileId: '301',
             field: 'maximumStacks',
             minimum: 1,
             maximum: 9,
@@ -87,7 +87,7 @@ function selectionFixture() {
             traitId: '301',
             label: 'Duration',
             specialization: 'Line',
-            profileId: 'fixture.tuning',
+            profileId: '301',
             field: 'duration',
             minimum: 0,
             maximum: 9,
@@ -164,7 +164,7 @@ test('resolved patch normalization, isolation and serialization share a cached s
   }
 
   assert.equal(declarationReads(), before);
-  assert.equal(base.catalog.balanceProfilesById.get('fixture.tuning').maximumStacks, 2);
+  assert.equal(base.catalog.balanceProfilesById.get(301).maximumStacks, 2);
   const config = JSON.parse(
     JSON.stringify(
       createBuildContext({ build, patch, transitionDelays: normalizeTransitionDelays() }).simulationConfig()
@@ -172,10 +172,7 @@ test('resolved patch normalization, isolation and serialization share a cached s
   );
   assert.equal(profession.resolvePatch(selectionFromConfig(config)), patch);
   const runtime = profession.runtimeFor(config);
-  assert.deepEqual(
-    runtime.catalog.balanceProfilesById.get('fixture.tuning'),
-    patch.catalog.balanceProfilesById.get('fixture.tuning')
-  );
+  assert.deepEqual(runtime.catalog.balanceProfilesById.get(301), patch.catalog.balanceProfilesById.get(301));
   // A warmed runtime also reuses its compiled declarations when only the overlay changes.
   const compiled = declarationReads();
   profession.runtimeFor({ ...config, previewValues: { charges: 5 } });

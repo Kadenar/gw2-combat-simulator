@@ -61,9 +61,11 @@ with `defineNativeModule()`:
 | `traitDefinitions` | Trait-owned profiles, modifier rules, triggers, hooks, and build contributions |
 | `presentation`     | UI contributions, optionally catalog-aware                                     |
 
-TypeScript and native module validation reject unknown module fields and retired state sections.
-`defineNativeProfession()` composes Core with the selected specialization and exposes `runtimeFor(config)`. There is one
-mutable state instance per run.
+TypeScript and native module validation reject unknown module fields, retired state sections, and authored
+`data.balanceProfiles`. Catalog assembly derives trait profiles from `traitDefinitions`; intrinsic skill tuning lives on
+the owning skill, and fixed mechanic rules remain in their existing implementation files. `defineNativeProfession()`
+composes Core with the selected specialization and exposes `runtimeFor(config)`. There is one mutable state instance per
+run.
 
 `defineTrait()` definitions expand once in `defineNativeModule()`. Ordinary rules receive live trait-selection gates;
 rules for already-created effects may opt out with `requiresSelection: false` and an explicit event predicate. Trait
@@ -338,9 +340,9 @@ normalized. `toApplicationBuild()` additionally turns on console Quickness and A
 normalized commands. Unreadable local data falls back to defaults; explicit imports surface wrong-profession and
 future-version errors.
 
-`platform/attributes/calculation.ts` owns attribute assembly: `calculateCommonAttributes()` handles equipment, consumables,
-infusions, sigils, and base derived stats; professions pass their trait/skill deltas to `finalizeBuildAttributes()`,
-which recomputes crit chance, crit damage, boon duration, and condition duration.
+`platform/attributes/calculation.ts` owns attribute assembly: `calculateCommonAttributes()` handles equipment,
+consumables, infusions, sigils, and base derived stats; professions pass their trait/skill deltas to
+`finalizeBuildAttributes()`, which recomputes crit chance, crit damage, boon duration, and condition duration.
 
 Canonical build calculation lives in `build-context/`, outside the application and platform layers. A profession's
 `build/context.ts` exports `createBuildContext({ build, patchId, transitionDelays, disabledModifier? })` and the bound

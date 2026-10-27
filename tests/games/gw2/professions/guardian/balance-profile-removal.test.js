@@ -1,7 +1,7 @@
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { willbenderBuffPolicies } from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -184,12 +184,14 @@ for (const [type, name] of [
 ]) {
   test(`Ashes ${type} removal preserves Might and page spending without granting charges`, () => {
     const result = run(
-      type === 'condition' ? { 'guardian.firebrand.ashes-of-the-just': remove(type, name) } : {},
+      {},
       'Firebrand',
       ['Tome of Justice', 'Epilogue: Ashes of the Just'],
       [],
       {},
-      type === 'buff' ? { [SKILL.ASHES_OF_THE_JUST]: { sideEffects: { grant: remove(type, name) } } } : {}
+      type === 'buff'
+        ? { [SKILL.ASHES_OF_THE_JUST]: { sideEffects: { grant: remove(type, name) } } }
+        : { [ashesBurningSkill.id]: remove(type, name) }
     );
     assert.equal(has(result, 'buff', 'kind', 'ashes-of-the-just'), false);
     assert.equal(result.planningState.profession.ashes.charges, 0);
@@ -361,8 +363,8 @@ test('deleted Justice Burning preserves the Willbender cycle trigger and its sur
     label: 'Justice removal',
     professions: {
       guardian: {
-        balanceProfiles: {
-          [CORE_PROFILE.justice]: remove('condition', 'Burning (active)')
+        skills: {
+          [SKILL.JUSTICE]: remove('condition', 'Burning (active)')
         }
       }
     }
@@ -417,14 +419,14 @@ test('deleted Justice Burning preserves the Willbender cycle trigger and its sur
 test('Dragonhunter passive Crippled depends on emitted Burning and each surviving payload retains hit attribution', () => {
   // Cross one passive threshold with a single accepted hit to isolate the dependency between the two payloads.
   for (const removed of ['none', 'burning', 'crippled']) {
-    const balanceProfiles =
-      removed === 'burning' ? { [CORE_PROFILE.justice]: remove('condition', 'Burning (passive)') } : {};
-    const skills =
-      removed === 'crippled' ? { [SKILL.SPEAR_OF_JUSTICE]: remove('condition', 'Crippled (passive)') } : {};
+    const skills = {
+      ...(removed === 'burning' ? { [SKILL.JUSTICE]: remove('condition', 'Burning (passive)') } : {}),
+      ...(removed === 'crippled' ? { [SKILL.SPEAR_OF_JUSTICE]: remove('condition', 'Crippled (passive)') } : {})
+    };
     const profession = withPatchPreview(guardianProfession, {
       id: 'passive-removal',
       label: 'Passive removal',
-      professions: { guardian: { balanceProfiles, skills } }
+      professions: { guardian: { skills } }
     });
     const result = runGuardian(
       [{ type: 'wait', durationMs: 2000 }],

@@ -1,5 +1,5 @@
 import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
-import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -281,9 +281,11 @@ test('Fervid removes components before claiming but rejects nonpositive grant nu
         guardian: {
           reworks: ['firebrand-rework'],
           balanceProfiles: {
-            [REWORK.FERVID_CONVICTION]: grant,
+            [REWORK.FERVID_CONVICTION]: grant
+          },
+          skills: {
             ...(mode === 'burning'
-              ? { [ASHES_PROFILE.mechanic]: { removeEffects: [{ type: 'condition', name: 'Burning' }] } }
+              ? { [ashesBurningSkill.id]: { removeEffects: [{ type: 'condition', name: 'Burning' }] } }
               : {})
           }
         }

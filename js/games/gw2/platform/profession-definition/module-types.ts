@@ -7,7 +7,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
-import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -27,7 +27,6 @@ export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
   readonly skillMechanics?: Readonly<Record<string, Partial<TSkill>>>;
   readonly skillOverrides?: Readonly<Record<string, Partial<TSkill>>>;
   readonly extraSkills?: readonly TSkill[];
-  readonly balanceProfiles?: readonly BalanceProfile[];
   /** Skill fields read only by this module's profession code; assembly gives each field one owning module. */
   readonly skillFields?: SkillFieldSpecs;
   readonly traits?: readonly CatalogEntity[];

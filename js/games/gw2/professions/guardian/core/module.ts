@@ -1,4 +1,3 @@
-import { GUARDIAN_CORE_BALANCE_PROFILES } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_CORE_TRAIT_SKILLS } from '#gw2/professions/guardian/core/skills/trait-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { guardianCoreHooks } from '#gw2/professions/guardian/core/hooks.js';
@@ -21,8 +20,7 @@ export const guardianCoreModule = defineNativeModule({
   data: createGuardianModuleData('Core', {
     skillMechanics: GUARDIAN_CORE_SKILL_MECHANICS,
     extraSkills: [...GUARDIAN_CORE_EXTRA_SKILLS, ...GUARDIAN_CORE_TRAIT_SKILLS],
-    skillFields: GUARDIAN_CORE_SKILL_FIELDS,
-    balanceProfiles: GUARDIAN_CORE_BALANCE_PROFILES
+    skillFields: GUARDIAN_CORE_SKILL_FIELDS
   }),
   state: { create: createGuardianCoreState, project: projectGuardianPlanningState },
   hooks: guardianCoreHooks,

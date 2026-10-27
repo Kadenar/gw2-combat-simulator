@@ -61,7 +61,11 @@ import type {
   NativeProfessionRuntimeState
 } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { defineTrait, prepareTraitAttributes } from '#gw2/platform/profession-definition/traits.js';
+import {
+  defineTrait,
+  prepareTraitAttributes,
+  traitBalanceProfiles
+} from '#gw2/platform/profession-definition/traits.js';
 import {
   assertTraitTrigger,
   compileProfessionRules,
@@ -122,6 +126,11 @@ function assertNativeModuleDefinition(definition: object): void {
     throw new TypeError('canSwapWeaponSetsInCombat must be a boolean.');
 
   assertObject(candidate.data, `${candidate.id}.data`);
+
+  // Module data admits skills and metadata; trait definitions are the only source of trait balance profiles.
+  if (Object.hasOwn(candidate.data!, 'balanceProfiles'))
+    throw new TypeError('Module data.balanceProfiles is not supported; declare skill tuning or traitDefinitions.');
+
   assertObject(candidate.state, `${candidate.id}.state`);
   for (const key of Object.keys(candidate.state!)) {
     if (!['create', 'project'].includes(key)) throw new TypeError(`Unsupported native state field: ${key}.`);
@@ -253,33 +262,7 @@ export function defineNativeModule<
     ...definition,
     kind: 'native-profession-module' as const,
     ...(definition.traitDefinitions ? { traitDefinitions: Object.freeze(traits) } : {}),
-    data: Object.freeze({
-      ...definition.data,
-      ...(traits.length
-        ? {
-            balanceProfiles: Object.freeze([
-              ...(definition.data.balanceProfiles ?? []),
-              ...traits.flatMap((trait) => [
-                // Materialize trait-owned tuning once when compiling the module.
-                ...(trait.balance
-                  ? [
-                      {
-                        id: trait.balance.id ?? trait.id,
-                        name: trait.name,
-                        profileKind: 'trait' as const,
-                        categories: ['Trait'],
-                        skillFamily: 'Trait',
-                        effects: [],
-                        ...trait.balance
-                      }
-                    ]
-                  : []),
-                ...(trait.profiles ?? [])
-              ])
-            ])
-          }
-        : {})
-    }),
+    data: Object.freeze({ ...definition.data }),
     modifiers: ownedRules.length
       ? { ...sourceModifiers, modifierRules: [...(sourceModifiers.modifierRules ?? []), ...ownedRules] }
       : sourceModifiers,
@@ -420,10 +403,10 @@ export function defineNativeProfession<
 
     // A Core rule cannot refer to an inactive elite profile; elite rules may use Core contributions.
     const profiles = new Map(
-      [...(modules[0].data.balanceProfiles ?? []), ...(module.data.balanceProfiles ?? [])].map((profile) => [
-        profile.id,
-        profile
-      ])
+      [
+        ...traitBalanceProfiles(modules[0].traitDefinitions ?? []),
+        ...traitBalanceProfiles(module.traitDefinitions ?? [])
+      ].map((profile) => [profile.id, profile])
     );
     for (const trigger of module.hooks?.traitTriggers ?? []) {
       assertTraitTrigger(trigger, `${module.id} trait ${trigger.trait}`);

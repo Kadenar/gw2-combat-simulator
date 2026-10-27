@@ -142,8 +142,7 @@ test('profession catalog binding preserves authored admission, specialization se
   const core = createData('Core', {
     skillMechanics: { 1: {}, 3: {} },
     skillOverrides: { 1: { cooldown: 5 }, 2: { cooldown: 10 } },
-    extraSkills: [skill(5, 'Explicit extra')],
-    balanceProfiles: [{ id: 'fixture.profile', name: 'Fixture profile', profileKind: 'mechanic' }]
+    extraSkills: [skill(5, 'Explicit extra')]
   });
   const elite = createData('Elite', { skillMechanics: { 2: {}, 4: {} } });
   assert.deepEqual(
@@ -155,8 +154,8 @@ test('profession catalog binding preserves authored admission, specialization se
     [3, 5]
   );
   assert.deepEqual(core.skillOverrides, { 1: { cooldown: 5 } });
-  assert.deepEqual(core.balanceProfiles, [{ id: 'fixture.profile', name: 'Fixture profile', profileKind: 'mechanic' }]);
-  assert.deepEqual(elite.balanceProfiles, []);
+  assert.equal(Object.hasOwn(core, 'balanceProfiles'), false);
+  assert.equal(Object.hasOwn(elite, 'balanceProfiles'), false);
   assert.deepEqual(
     elite.extraSkills.map(({ id }) => id),
     [4]
@@ -196,10 +195,22 @@ test('profession catalog binding preserves authored admission, specialization se
     defineNativeModule({
       id: index === 0 ? 'Core' : 'Elite',
       data,
+      traitDefinitions: [{ id: index === 0 ? 10 : 11, name: 'Tuning', balance: { duration: 5 } }],
       state: { create: () => ({}) }
     })
   );
   const assembly = getNativeCatalogAssembly(modules, undefined);
+  // Trait tuning is derived at assembly and retains the declaring module's ownership.
+  assert.ok(modules.every((module) => !Object.hasOwn(module.data, 'balanceProfiles')));
+  assert.equal(assembly.catalog.balanceProfilesById.get(10).duration, 5);
+  assert.deepEqual(
+    assembly.fragments.get('Core').balanceProfiles.map(({ id }) => id),
+    [10]
+  );
+  assert.deepEqual(
+    assembly.fragments.get('Elite').balanceProfiles.map(({ id }) => id),
+    [11]
+  );
   assert.deepEqual(
     assembly.catalog.skills.map(({ id }) => id),
     [2, 1, 3, 4, 5]
@@ -289,6 +300,22 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
   assert.throws(
     () => defineNativeModule({ id: 'Broken', data: {}, state: {} }),
     /Broken\.state\.create must be a function/
+  );
+});
+
+// Both entry points reject obsolete profile input instead of silently dropping authored tuning.
+test('module definitions and data factories reject authored balanceProfiles', () => {
+  assert.throws(
+    () => defineNativeModule({ id: 'Core', data: { balanceProfiles: [] }, state: { create: () => ({}) } }),
+    /Module data\.balanceProfiles is not supported/
+  );
+  assert.throws(
+    () => createNativeModuleData({ id: 'Core', balanceProfiles: [] }),
+    /Module data\.balanceProfiles is not supported/
+  );
+  assert.throws(
+    () => createProfessionModuleDataFactory({})('Core', { skillMechanics: {}, balanceProfiles: [] }),
+    /Module data\.balanceProfiles is not supported/
   );
 });
 

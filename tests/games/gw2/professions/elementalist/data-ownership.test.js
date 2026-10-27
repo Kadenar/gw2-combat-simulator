@@ -174,8 +174,8 @@ test('Elementalist weapon skill fragments compose without duplicates or omission
 });
 
 test('Specialized Elements models percentage recharge changes as multipliers', () => {
-  const profiles = new Map(evokerModule.data.balanceProfiles.map((profile) => [profile.id, profile]));
-  const trait = profiles.get(ELEMENTALIST_TRAIT_IDS.SPECIALIZED_ELEMENTS);
+  const catalog = assembleNativeApplicationCatalog([elementalistCoreModule, evokerModule]);
+  const trait = catalog.balanceProfilesById.get(ELEMENTALIST_TRAIT_IDS.SPECIALIZED_ELEMENTS);
 
   assert.equal(Object.hasOwn(trait, 'rechargeReduction'), false);
   assert.equal(trait.rechargeMultiplier, 0.9);

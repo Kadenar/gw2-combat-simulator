@@ -1,5 +1,5 @@
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { resolveAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
 import { emitAshesForInspection } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
@@ -236,9 +236,9 @@ test('Righteous Flames tunes self and allied Burning per charge only when select
     [false, { ashesDuration: 4, ashesStacks: 2 }]
   ]) {
     const catalog = profession.resolvePatch({ id: patchId, values: previewValues }).catalog;
-    const expected = catalog.balanceProfilesById
-      .get(selected ? REWORK.RIGHTEOUS_FLAMES : ASHES_PROFILE.mechanic)
-      .effects.find((effect) => effect.type === 'condition');
+    const expected = (
+      selected ? catalog.balanceProfilesById.get(REWORK.RIGHTEOUS_FLAMES) : catalog.skillsById.get(ashesBurningSkill.id)
+    ).effects.find((effect) => effect.type === 'condition');
     const { duration, stacks } = expected;
     const durationBonus = catalog.balanceProfilesById.get(TRAIT.RADIANT_FIRE).conditionDurationBonus;
     const result = run(
@@ -493,12 +493,12 @@ test('Ashes resolves live Quickfire and preview Righteous Flames without mixing 
       id,
       ...(id === patchId ? { values: { ashesDuration: 4, ashesStacks: 2 } } : {})
     }).catalog;
-    const base = catalog.balanceProfilesById.get(ASHES_PROFILE.mechanic).effects[0];
+    const base = catalog.skillsById.get(ashesBurningSkill.id).effects[0];
     for (const traitId of [REWORK.RIGHTEOUS_FLAMES, String(REWORK.RIGHTEOUS_FLAMES)]) {
       const resolved = resolveAshes({ catalog, traits: new Set([traitId]) });
       assert.deepEqual(resolved.baseline, { stacks: base.stacks, baseDurationSeconds: base.duration });
       assert.deepEqual(resolved.burning, id === patchId ? { stacks: 2, baseDurationSeconds: 4 } : resolved.baseline);
-      assert.equal(resolved.payloadProfileId, id === patchId ? REWORK.RIGHTEOUS_FLAMES : ASHES_PROFILE.mechanic);
+      assert.equal(resolved.payloadId, id === patchId ? REWORK.RIGHTEOUS_FLAMES : ashesBurningSkill.id);
       assert.equal(resolved.overrideTraitId, id === patchId ? REWORK.RIGHTEOUS_FLAMES : undefined);
     }
   }
@@ -506,36 +506,38 @@ test('Ashes resolves live Quickfire and preview Righteous Flames without mixing 
 
 test('Ashes rejects malformed references and missing selected data while intentional removal retains its contract', () => {
   const selected = profession.resolvePatch({ id: patchId }).catalog;
-  const mechanic = selected.balanceProfilesById.get(ASHES_PROFILE.mechanic);
-  const select = (profiles) =>
+  const mechanic = selected.skillsById.get(ashesBurningSkill.id);
+  const select = (catalog) =>
     resolveAshes({
-      catalog: { ...selected, balanceProfilesById: profiles },
+      catalog,
       traits: new Set([REWORK.RIGHTEOUS_FLAMES])
     });
   for (const reference of [null, {}, '', NaN]) {
-    const profiles = new Map(selected.balanceProfilesById);
-    profiles.set(mechanic.id, { ...mechanic, burningOverrideTrait: reference });
-    assert.throws(() => select(profiles), /Invalid Ashes burningOverrideTrait/);
+    const skills = new Map(selected.skillsById);
+    skills.set(mechanic.id, { ...mechanic, burningOverrideTrait: reference });
+    assert.throws(() => select({ ...selected, skillsById: skills }), /Invalid Ashes burningOverrideTrait/);
   }
 
   const missing = new Map(selected.balanceProfilesById);
   missing.delete(REWORK.RIGHTEOUS_FLAMES);
-  assert.throws(() => select(missing), /Missing.*profile/i);
-  for (const removedId of [ASHES_PROFILE.mechanic, REWORK.RIGHTEOUS_FLAMES]) {
+  assert.throws(() => select({ ...selected, balanceProfilesById: missing }), /Missing.*profile/i);
+  for (const removedId of [ashesBurningSkill.id, REWORK.RIGHTEOUS_FLAMES]) {
     const patched = withPatchPreview(guardianProfession, {
       id: 'ashes-removal',
       label: 'Ashes removal',
       professions: {
         guardian: {
           reworks: ['firebrand-rework'],
-          balanceProfiles: { [removedId]: { removeEffects: [{ type: 'condition', name: 'Burning' }] } }
+          [removedId === ashesBurningSkill.id ? 'skills' : 'balanceProfiles']: {
+            [removedId]: { removeEffects: [{ type: 'condition', name: 'Burning' }] }
+          }
         }
       }
     });
     const catalog = patched.resolvePatch({ id: 'ashes-removal' }).catalog;
     const resolved = resolveAshes({ catalog, traits: new Set([REWORK.RIGHTEOUS_FLAMES]) });
 
-    if (removedId === ASHES_PROFILE.mechanic) assert.equal(resolved, undefined);
+    if (removedId === ashesBurningSkill.id) assert.equal(resolved, undefined);
     else {
       assert.deepEqual(resolved.burning, resolved.baseline);
       assert.equal(resolved.overrideTraitId, undefined);
@@ -644,7 +646,7 @@ test('Ashes tooltips resolve build trait positions and distinguish baseline from
     facts.some(
       (fact) => fact.name === 'Burning' && fact.stacks === stacks && fact.detail === `${duration}s — ${qualifier}`
     );
-  const base = patch.catalog.balanceProfilesById.get(ASHES_PROFILE.mechanic).effects[0];
+  const base = patch.catalog.skillsById.get(ashesBurningSkill.id).effects[0];
   assert.ok(burning(selected.facts, 2, 4, 'per charge'));
   assert.ok(burning(selected.facts, base.stacks, base.duration, 'baseline per charge'));
   assert.ok(
@@ -660,16 +662,14 @@ test('Ashes tooltips resolve build trait positions and distinguish baseline from
   assert.ok(burning(tooltip().facts, base.stacks, base.duration, 'baseline per charge · no build selected'));
 });
 
-test('Ashes Burning edits remain relevant to a grant-trait build without an Epilogue cast', () => {
+test('observed Ashes Burning exposes its skill edits without an Epilogue cast', () => {
   const patched = withPatchPreview(guardianProfession, {
     id: 'ashes-overview',
     label: 'Ashes overview',
     professions: {
       guardian: {
-        balanceProfiles: {
-          [ASHES_PROFILE.mechanic]: { effects: [{ type: 'condition', name: 'Burning', duration: 4 }] }
-        },
         skills: {
+          [ashesBurningSkill.id]: { effects: [{ type: 'condition', name: 'Burning', duration: 4 }] },
           [SKILL.ASHES_OF_THE_JUST]: {
             sideEffects: { grant: { effects: [{ type: 'buff', name: 'ashes-of-the-just', duration: 7 }] } }
           }
@@ -679,12 +679,18 @@ test('Ashes Burning edits remain relevant to a grant-trait build without an Epil
   });
   const notes = patched.patchOverviewFor(
     { specialization: 'Firebrand', selectedTraitIds: [TRAIT.QUICKFIRE], selectedSkillIds: [] },
+    [ashesBurningSkill.id]
+  );
+  // Selection alone cannot imply a proc; comparison observations supply its actual source identity.
+  assert.deepEqual(
+    patched.patchOverviewFor(
+      { specialization: 'Firebrand', selectedTraitIds: [TRAIT.QUICKFIRE], selectedSkillIds: [] },
+      []
+    ),
     []
   );
   assert.ok(
-    notes.some(
-      (entry) => entry.subject === guardianProfession.catalog.balanceProfilesById.get(ASHES_PROFILE.mechanic).name
-    )
+    notes.some((entry) => entry.subject === guardianProfession.catalog.skillsById.get(ashesBurningSkill.id).name)
   );
   assert.ok(
     !notes.some((entry) => entry.subject === guardianProfession.catalog.skillsById.get(SKILL.ASHES_OF_THE_JUST).name)

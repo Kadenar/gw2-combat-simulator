@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { dragonhunterVirtueLifecycle } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
@@ -28,8 +27,8 @@ test('passive Justice resets before Burning while active entitlement and cooldow
   core.virtueReadyAt.justice = 2;
   const observations = [];
   const context = {
-    helpers: applyBalanceProfilePatch(guardianCatalog, {
-      balanceProfiles: { [CORE_PROFILE.justice]: { fields: { threshold: { from: 5, to: 2.5 } } } }
+    helpers: applySkillPatch(guardianCatalog, {
+      skills: { [ID.JUSTICE]: { fields: { threshold: { from: 5, to: 2.5 } } } }
     }),
     traits: new Set(),
     profession: { core },
@@ -73,9 +72,9 @@ test('removed Justice effects cannot grant an outcome or consume passive progres
     core.justiceActiveArmed = active;
     const emissions = captureEffectEmissions();
     const context = {
-      helpers: applyBalanceProfilePatch(guardianCatalog, {
-        balanceProfiles: {
-          [CORE_PROFILE.justice]: {
+      helpers: applySkillPatch(guardianCatalog, {
+        skills: {
+          [ID.JUSTICE]: {
             removeEffects: [{ type: 'condition', name: `Burning (${active ? 'active' : 'passive'})` }]
           }
         }

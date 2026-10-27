@@ -1,5 +1,5 @@
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 /** Canonical Core guardian skill fragments grouped by their GW2 owner. */
@@ -10,7 +10,29 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.JUSTICE]: {
     castTimeMs: 0,
-    effects: [],
+    // Justice owns the shared burn recipes; activation only arms the next eligible hit.
+    threshold: 5,
+    effects: [
+      {
+        type: 'condition',
+        name: 'Burning (active)',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 2,
+        actorType: ACTOR.PLAYER,
+        packetLabel: 'active'
+      },
+      {
+        type: 'condition',
+        name: 'Burning (passive)',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 1.2,
+        actorType: ACTOR.PLAYER,
+        packetLabel: 'passive'
+      }
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }],
     // A committed activation entitles the next eligible hit to the selected active burn.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-justice' } }]
   },
@@ -27,7 +49,7 @@ export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
 const guardianJusticeActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.arm-justice'(runtime) {
     runtime.profession.core.justiceActiveArmed = Boolean(
-      requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.justice), 'condition', 'Burning (active)')
+      requireEffect(requireSkillFromContext(runtime, ID.JUSTICE), 'condition', 'Burning (active)')
     );
   }
 };

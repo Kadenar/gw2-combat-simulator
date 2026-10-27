@@ -18,7 +18,7 @@ function preview(skills = {}, balanceProfiles = {}) {
   });
 }
 
-test('Guardian removes skill profiles and retains only explicitly shared Justice and Ashes mechanics', () => {
+test('Guardian derives only trait profiles and keeps Justice and Ashes tuning on skills', () => {
   const profiles = guardianProfession.catalog.balanceProfiles;
   assert.equal(
     profiles.some((profile) => profile.profileKind === 'skill-variant'),
@@ -29,9 +29,11 @@ test('Guardian removes skill profiles and retains only explicitly shared Justice
       .filter((profile) => profile.profileKind === 'mechanic')
       .map((profile) => profile.id)
       .sort(),
-    ['guardian.core.justice', 'guardian.firebrand.ashes-of-the-just']
+    []
   );
   for (const id of [
+    'guardian.core.justice',
+    'guardian.firebrand.ashes-of-the-just',
     'guardian.core.bane-signet-passive',
     'guardian.core.signet-of-wrath-passive',
     ...['helio-rush-illuminated', 'gleaming-disc-illuminated', 'solar-storm-illuminated', 'symbol-of-luminance'].map(

@@ -348,7 +348,17 @@ test('full previews and selected runtimes preserve removals without leaking acro
         defineNativeModule({ id: 'Core', data: {}, state: { create: () => ({}) } }),
         defineNativeModule({
           id: 'Elite',
-          data: { generatedSkills: [skill], balanceProfiles: [profile, { ...profile, id: 2, name: 'Unedited' }] },
+          data: {
+            generatedSkills: [skill],
+            traits: [
+              { id: 1, name: profile.name },
+              { id: 2, name: 'Unedited' }
+            ]
+          },
+          traitDefinitions: [
+            { id: 1, name: profile.name, balance: { procChance: 0, intervalMs: 0, effects: [first, second] } },
+            { id: 2, name: 'Unedited', balance: { procChance: 0, intervalMs: 0, effects: [first, second] } }
+          ],
           state: { create: () => ({}) }
         })
       ]

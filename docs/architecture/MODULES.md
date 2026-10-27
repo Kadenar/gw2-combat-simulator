@@ -45,7 +45,7 @@ shared application views
 | You're adding or changing...                                          | Usually belongs in...                                                                  |
 | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Skill coefficient, hit count, condition, boon, timing, cooldown, etc. | Owning `skills/index.ts` or `skills/<group>.ts`                                        |
-| Shared mechanic data used by several skills                           | The module's `profiles.ts`                                                             |
+| Shared mechanic data used by several skills                           | Owning skill or trait definition; fixed rules stay in the existing mechanic file       |
 | Profession runtime resource or state                                  | The module's `state.ts`                                                                |
 | Skill availability rule                                               | An `availability` hook in the owning mechanic or `hooks.ts`                            |
 | Resource gain/spend/regeneration                                      | `mechanics/<resource>.ts` (for example `mechanics/life-force.ts`)                      |
@@ -339,11 +339,10 @@ module is active for an elite build. `defineNativeProfession()` composes them in
     state.ts               <Profession>CoreState next to its factory
     hooks.ts               cast hooks, tasks, and reactions
     modifiers.ts           modifier rules and imperative modify* callbacks
-    profiles.ts            balance profiles
     presentation.ts
     skills/  mechanics/  traits/
   specializations/<name>/
-    module.ts  state.ts  hooks.ts  profiles.ts  presentation.ts  skills/  traits/
+    module.ts  state.ts  hooks.ts  presentation.ts  skills/  traits/
     mechanics/  modifiers.ts  types.ts        when the specialization needs them
 ```
 
@@ -353,9 +352,9 @@ composition/query exceptions, not places for individual skill or trait implement
 creates an initialization cycle.
 
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`, `types.js`,
-`data/**`, and `profiles.js` files. Log integrations import helpers from `data/`, never `profession.js`, so lazy log
-chunks don't load the whole profession graph. Tests are exempt. The shared `professions/shared/` helpers are not a
-profession. `eslint.config.js` enforces these import boundaries.
+`data/**`, and fixed subsystem `profiles.js` tables. Log integrations import helpers from `data/`, never
+`profession.js`, so lazy log chunks don't load the whole profession graph. Tests are exempt. The shared
+`professions/shared/` helpers are not a profession. `eslint.config.js` enforces these import boundaries.
 
 The shared `build-context/create.ts` prepares equipment and selected traits, then uses `shared/build-attributes.ts`'s
 `createBuildAttributeContext` and `finalizeProfessionBuildAttributes` to evaluate and cache attribute previews. Focused
@@ -374,8 +373,7 @@ export const berserkerModule = defineNativeModule({
   traitDefinitions: warriorBerserkerTraits,
   id: 'Berserker',
   data: createWarriorModuleData('Berserker', {
-    skillMechanics: BERSERKER_SKILL_MECHANICS,
-    balanceProfiles: BERSERKER_BALANCE_PROFILES
+    skillMechanics: BERSERKER_SKILL_MECHANICS
   }),
   state: { create: berserkerState.create, project: createPublicStateProjector(BERSERKER_PUBLIC_STATE_PROJECTION) },
   attributes: berserkerAttributes,
@@ -387,9 +385,10 @@ export const berserkerModule = defineNativeModule({
 
 Ownership rules for the sections:
 
-- **`data`**: skill mechanics, balance profiles, synthetic action skills, trait and weapon metadata, and autoattack
-  chains contributed by this module. Modules never import their profession's completed catalog; they contribute data
-  upward and receive the completed catalog only through composition or presentation boundaries.
+- **`data`**: skill mechanics, synthetic action skills, trait and weapon metadata, and autoattack chains contributed by
+  this module. Modules never import their profession's completed catalog; they contribute data upward and receive the
+  completed catalog only through composition or presentation boundaries. Authored `data.balanceProfiles` is rejected;
+  catalog assembly derives trait profiles from `traitDefinitions`.
 - **`state`**: one `create` factory and an optional `project` function that builds the detached public planning state.
   Do not put temporary runtime mechanics into application build state just because the UI needs to show them.
 - **`modifiers` and `hooks`**: `modifiers.ts` assembles modifier rules and `modify*` callbacks; `hooks.ts` assembles
@@ -413,7 +412,6 @@ Ownership rules for the sections:
 | `data/module-data.ts`                      | Generated metadata selection, catalog transforms, and module data options                                        |
 | `skills/index.ts`, `skills/<group>.ts`     | Authoritative skill declarations and intrinsic runtime helpers, grouped by weapon, slot family, or skill concept |
 | `skills/actions.ts`                        | Profession-owned synthetic actions (Core modules)                                                                |
-| `profiles.ts`                              | Balance profiles shared by several skills or mechanics; patch previews edit these directly                       |
 | `state.ts`                                 | Module state, its factory, and its public projection                                                             |
 | `hooks.ts`                                 | Registration and explicit sequencing of skill, trait, and mechanic callbacks                                     |
 | `modifiers.ts`                             | The module's modifier rules plus imperative `modify*` attribute and damage callbacks                             |
@@ -564,8 +562,8 @@ ordinary simulator rotations before execution. See
 ### Patch previews (`js/games/gw2/integrations/patches/`)
 
 Patch previews are sparse overlays on profession-owned data. A preview patches a value where it already lives: skill
-fields in `skills/`, profile values in `profiles.ts`, modifier parameters in declarative modifier rules, and behavior in
-ordinary patch-aware code. The local authoring application lives in `patches/app/`. See
+fields in `skills/`, trait balance values in `traitDefinitions`, modifier parameters in declarative modifier rules, and
+behavior in ordinary patch-aware code. The local authoring application lives in `patches/app/`. See
 [PATCH-PREVIEW.md](./PATCH-PREVIEW.md).
 
 ## Adding things
@@ -573,13 +571,14 @@ ordinary patch-aware code. The local authoring application lives in `patches/app
 ### A new mechanic
 
 1. **Who owns it?** All professions → platform. One profession → Core. One specialization → that specialization.
-2. **Is it data or behavior?** Skill and effect numbers → `skills/`. Shared mechanic values → `profiles.ts`. Runtime
-   state → `state.ts`. Execution behavior → the owning skill, trait, or mechanic file. Presentation → `presentation.ts`.
+2. **Is it data or behavior?** Skill and effect numbers → `skills/`. Trait tuning → `traitDefinitions`. Fixed mechanic
+   rules → their existing mechanic file. Runtime state → `state.ts`. Execution behavior → the owning skill, trait, or
+   mechanic file. Presentation → `presentation.ts`.
 3. **Which phase owns it?** Before or during a cast, or delayed state → cast hook or named task. Damage, condition, or
    result reaction → combat reaction.
-4. **Does it already have a source of truth?** Extend existing state, events, or profiles rather than creating parallel
-   copies. For example, if a timed buff already exists in the event timeline, the UI reads that timeline instead of
-   keeping its own timer.
+4. **Does it already have a source of truth?** Extend existing skill or trait definitions, state, or events rather than
+   creating parallel copies. For example, if a timed buff already exists in the event timeline, the UI reads that
+   timeline instead of keeping its own timer.
 
 ### A new elite specialization
 

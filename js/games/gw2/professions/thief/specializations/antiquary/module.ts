@@ -8,7 +8,6 @@ import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.j
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
 
 import { antiquaryUi } from '#gw2/professions/thief/specializations/antiquary/presentation.js';
-import { ANTIQUARY_ARTIFACT_WINDOWS } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-windows.js';
 import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { ANTIQUARY_SKILL_FIELDS } from '#gw2/professions/thief/specializations/antiquary/skill-fields.js';
@@ -19,8 +18,7 @@ export const antiquaryModule = defineNativeModule({
   data: createThiefModuleData('Antiquary', {
     extraSkills: ANTIQUARY_GUILD_ATTACK_SKILLS,
     skillFields: ANTIQUARY_SKILL_FIELDS,
-    skillMechanics: ANTIQUARY_SKILL_MECHANICS,
-    balanceProfiles: [ANTIQUARY_ARTIFACT_WINDOWS]
+    skillMechanics: ANTIQUARY_SKILL_MECHANICS
   }),
   state: { create: antiquaryState.create, project: projectAntiquaryPlanningState },
   // Register the skill/mechanic-owned rules alongside trait declarations.

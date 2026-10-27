@@ -1,9 +1,9 @@
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebrand/hooks.js';
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
-import { ashesMechanic } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
 import {
   firebrandState,
@@ -16,10 +16,9 @@ import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specialization
 export const firebrandModule = defineNativeModule({
   id: 'Firebrand',
   data: createGuardianModuleData('Firebrand', {
+    extraSkills: [ashesBurningSkill],
     skillFields: FIREBRAND_SKILL_FIELDS,
-    skillMechanics: FIREBRAND_SKILL_MECHANICS,
-
-    balanceProfiles: [ashesMechanic]
+    skillMechanics: FIREBRAND_SKILL_MECHANICS
   }),
   state: {
     // Initialize pages from the selected patch's compiled trait profiles.

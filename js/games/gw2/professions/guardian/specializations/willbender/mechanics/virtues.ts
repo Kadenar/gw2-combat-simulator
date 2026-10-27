@@ -1,5 +1,4 @@
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RECIPIENT, ACTOR, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
@@ -14,12 +13,12 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   effectNumber,
-  requireBalanceProfileFromContext,
+  balanceNumberFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { admitVirtueActivation, completeVirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
@@ -135,7 +134,11 @@ function reactToWillbenderHit(
 
     if (!(until > 0) || runtime.time > until) continue;
 
-    const threshold = permeatingWrathThreshold(runtime, virtue, TRAIT.WILLBENDER_TRAINING);
+    const threshold = permeatingWrathThreshold(
+      runtime,
+      virtue,
+      balanceNumberFromContext(runtime, TRAIT.WILLBENDER_TRAINING, 'threshold')
+    );
     // Each open virtue owns its cycle; reset it before traits and virtue rewards react to completion.
     const progress = advanceCounter(state.virtueHitCounts[virtue], 1, threshold, 'reset');
     state.virtueHitCounts[virtue] = progress.value;
@@ -145,7 +148,7 @@ function reactToWillbenderHit(
     runtime.fireTrigger(willbenderVirtueTriggered, { cause: event, virtue });
 
     if (virtue === 'justice') {
-      const profile = requireBalanceProfileFromContext(runtime, CORE_PROFILE.justice);
+      const profile = requireSkillFromContext(runtime, ID.JUSTICE);
       const burn = requireEffect(profile, 'condition', 'Burning (active)');
 
       if (burn) {

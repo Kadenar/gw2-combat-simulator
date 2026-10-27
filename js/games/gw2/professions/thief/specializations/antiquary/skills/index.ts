@@ -18,6 +18,8 @@ const ARTIFACT_END: NonNullable<Skill['sideEffects']> = [
 const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
   // The artifact owns the number of stealth attacks granted by its identity window.
   maximumStacks: 3,
+  // Both guitar identities retain the skill-owned lifetime of their stealth attack grant.
+  duration: 10,
   cooldown: 0,
   initiativeCost: 0,
   artifactKind: 'offensive',
@@ -124,6 +126,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     ]
   },
   [ID.HOLO_DANCER_DECOY]: {
+    // The artifact owns its identity window; Meticulous Custodian replaces the duration when selected.
+    duration: 10,
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     rechargeMultiplier: 0.2,
 
@@ -298,6 +302,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     sideEffects: [...ARTIFACT_START, ...ARTIFACT_END]
   },
   [ID.CHAK_SHIELD]: {
+    // The artifact owns its identity window; Meticulous Custodian replaces the duration when selected.
+    duration: 10,
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     refundCharges: 3,
     maximumStacks: 4,
@@ -501,6 +507,8 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.skritt-scuffle' as const } }]
   },
   [ID.MISTBURN_MORTAR]: {
+    // The artifact owns its identity window; Meticulous Custodian replaces the duration when selected.
+    duration: 10,
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     maximumStacks: 5,
 

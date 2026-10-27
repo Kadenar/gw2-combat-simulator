@@ -1,3 +1,4 @@
+import { traitBalanceProfiles } from '#gw2/platform/profession-definition/traits.js';
 import { createCanonicalCatalog, type AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import { toEntries } from '#kernel/core/collections.js';
 import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -24,22 +25,29 @@ function canonicalModuleName(value: object, specializations: readonly CatalogEnt
  * Selects generated identity metadata for one semantic owner while retaining
  * the module's locally authored mechanics and extra skills.
  */
-export function createNativeModuleData<TSkill extends Skill = Skill>({
-  id,
-  generatedSkills = [],
-  sharedExtraSkills = [],
-  skillMechanics = {},
-  skillOverrides = {},
-  extraSkills = [],
-  balanceProfiles = [],
-  skillFields,
-  traits = [],
-  specializations = [],
-  weapons = [],
-  weaponHands = {},
-  autoattackChains,
-  specializationOnlySkillIds = []
-}: NativeModuleDataSelection<TSkill>): NativeModuleCatalogData<TSkill> {
+export function createNativeModuleData<TSkill extends Skill = Skill>(
+  selection: NativeModuleDataSelection<TSkill>
+): NativeModuleCatalogData<TSkill> {
+  // Reject obsolete module tuning before selection could silently discard it.
+  if (Object.hasOwn(selection, 'balanceProfiles')) {
+    throw new TypeError('Module data.balanceProfiles is not supported; declare skill tuning or traitDefinitions.');
+  }
+
+  const {
+    id,
+    generatedSkills = [],
+    sharedExtraSkills = [],
+    skillMechanics = {},
+    skillOverrides = {},
+    extraSkills = [],
+    skillFields,
+    traits = [],
+    specializations = [],
+    weapons = [],
+    weaponHands = {},
+    autoattackChains,
+    specializationOnlySkillIds = []
+  } = selection;
   // Treat authored mechanics as the support allowlist so raw API metadata cannot
   // enter the simulator merely because a new skill is absent from an exclusion list.
   // The declaration owns admission because API specialization labels can be stale.
@@ -59,7 +67,6 @@ export function createNativeModuleData<TSkill extends Skill = Skill>({
     skillMechanics: Object.freeze({ ...skillMechanics }),
     skillOverrides: Object.freeze(localOverrides),
     extraSkills: Object.freeze([...sharedExtra, ...extraSkills]),
-    balanceProfiles: Object.freeze([...balanceProfiles]),
     ...(skillFields == null ? {} : { skillFields }),
     sharedExtraSkillOrder: new Map(sharedExtra.map((skill) => [skill.id, sharedExtraSkills.indexOf(skill)])),
     traits: Object.freeze(traits.filter((trait) => canonicalModuleName(trait, specializations) === id)),
@@ -151,7 +158,7 @@ function composeNativeCatalog<TSkill extends Skill>(
   const extras = mergeEntityArrays(modules, (module) => module.data.extraSkills || [], 'extra skill id');
   const balanceProfiles = mergeEntityArrays(
     modules,
-    (module) => module.data.balanceProfiles || [],
+    (module) => traitBalanceProfiles(module.traitDefinitions ?? []),
     'balance profile id'
   );
   restoreSharedSourceOrder(generated.values, modules, (module) => module.data.generatedSkillOrder);

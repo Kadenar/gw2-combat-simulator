@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
-import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // A Quickfire-sized grant isolates allied charge retention from the player's tome and strike activity.
@@ -44,9 +44,7 @@ function run({ duration = 5, charges = 1, combatStartTime = 3, output, secondGra
 }
 
 const burns = (result) =>
-  result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
-  );
+  result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === ashesBurningSkill.id);
 
 test('precast Ashes retains its charge for the first eligible allied strike and keeps recipient attribution', () => {
   const result = run();
@@ -68,7 +66,7 @@ test('precast Ashes retains its charge for the first eligible allied strike and 
 
 // Allies refresh like the player: a live grant keeps its strict cooldown, while an exhausted grant starts ready.
 test('later Ashes grants refresh the ally grant under the player cooldown policy', () => {
-  const interval = guardianProfession.catalog.balanceProfilesById.get(ASHES_PROFILE.mechanic).internalCooldown;
+  const interval = guardianProfession.catalog.skillsById.get(ashesBurningSkill.id).internalCooldown;
   const options = { combatStartTime: 0, secondGrantAt: 0.8, end: 0.5 + interval + 0.6 };
   const live = burns(run({ ...options, charges: 2 }));
   // The allied strike exactly at the cooldown deadline is blocked; the following strike fires.

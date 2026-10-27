@@ -256,8 +256,9 @@ function fixture({ skill = {}, hooks = {} } = {}) {
               ...skill
             }
           ],
-          balanceProfiles: [{ id: 'test.proc', name: 'Proc', profileKind: 'trait', maximumStacks: 2, effects: [] }]
+          traits: [{ id: 'test.proc', name: 'Proc' }]
         },
+        traitDefinitions: [{ id: 'test.proc', name: 'Proc', balance: { maximumStacks: 2 } }],
         state: { create: () => ({ energy: { value: 0, maximum: 10, updatedAt: 0, rate: 0 } }) },
         hooks: {
           resources: {

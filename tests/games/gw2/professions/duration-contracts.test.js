@@ -151,7 +151,7 @@ test('duration and flip patches reject obsolete names while real multipliers rem
 
 // Both catalog construction and patch application reject malformed seconds before they enter runtime math.
 test('duration fields validate finite nonnegative seconds and preserve explicit zero', () => {
-  for (const field of ['duration', 'baseDuration', 'durationPerTier', 'durationExtension', 'flipDuration']) {
+  for (const field of ['duration', 'baseDuration', 'durationPerTier', 'durationExtension']) {
     const profile = { id: 1, name: 'Duration', profileKind: 'mechanic', [field]: 2 };
     const catalog = createCanonicalCatalog({ balanceProfiles: [profile] });
     for (const value of [-1, NaN, Infinity, '3', null]) {
@@ -168,4 +168,17 @@ test('duration fields validate finite nonnegative seconds and preserve explicit 
       0
     );
   }
+
+  // Flip windows now belong to skills, so validate and patch them through the skill contract.
+  const skill = { id: 1, name: 'Flip', flipDuration: 2 };
+  const catalog = createCanonicalCatalog({ generated: [skill] });
+  for (const value of [-1, NaN, Infinity, '3', null]) {
+    assert.throws(() => createCanonicalCatalog({ generated: [{ ...skill, flipDuration: value }] }));
+    assert.throws(() => applySkillPatch(catalog, { skills: { 1: { fields: { flipDuration: value } } } }));
+  }
+
+  assert.equal(
+    applySkillPatch(catalog, { skills: { 1: { fields: { flipDuration: 0 } } } }).skillsById.get(1).flipDuration,
+    0
+  );
 });

@@ -1,10 +1,9 @@
-import { ASHES_PROFILE } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { activeChargeCount, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
-import { GUARDIAN_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/guardian/core/profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -746,8 +745,8 @@ test('removed Firebrand components preserve independent page grants and Might wi
     label: 'Firebrand component removal',
     professions: {
       guardian: {
+        skills: { [ashesBurningSkill.id]: { removeEffects: [{ type: 'condition', all: true }] } },
         balanceProfiles: {
-          [ASHES_PROFILE.mechanic]: { removeEffects: [{ type: 'condition', all: true }] },
           [TRAIT.WEIGHTY_TERMS]: { removeEffects: [{ type: 'condition', all: true }] },
           [TRAIT.STALWART_SPEED]: { removeEffects: [{ type: 'boon', all: true }] }
         }
@@ -910,7 +909,7 @@ test('removed Justice packets cannot arm an active charge or advance the passive
     id: 'no-justice',
     label: 'No Justice',
     professions: {
-      guardian: { balanceProfiles: { [PROFILE.justice]: { removeEffects: [{ type: 'condition', all: true }] } } }
+      guardian: { skills: { [ID.JUSTICE]: { removeEffects: [{ type: 'condition', all: true }] } } }
     }
   });
   for (const rotation of [[wait(1000)], [ID.JUSTICE, wait(1000)]]) {

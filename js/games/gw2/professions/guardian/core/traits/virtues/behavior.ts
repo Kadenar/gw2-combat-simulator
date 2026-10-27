@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SelectedContentContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { balanceNumberFromContext, balanceProfileNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianResolverContext, GuardianVirtue, GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
@@ -17,15 +17,11 @@ export function guardianResolutionMultiplier(context: SelectedContentContext): n
 export function permeatingWrathThreshold(
   context: GuardianResolverContext,
   virtue: GuardianVirtue,
-  baseProfile: SkillId
+  baseThreshold: number
 ): number {
-  return balanceNumberFromContext(
-    context,
-    virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
-      ? GUARDIAN_TRAIT_IDS.PERMEATING_WRATH
-      : baseProfile,
-    'threshold'
-  );
+  return virtue === 'justice' && hasTrait(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH)
+    ? balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.PERMEATING_WRATH, 'threshold')
+    : baseThreshold;
 }
 
 /** Dragonhunter keeps pulse scheduling and passive readiness while this owner selects its interval. */

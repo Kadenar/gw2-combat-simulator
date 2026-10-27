@@ -5,7 +5,7 @@ import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-met
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebrand/hooks.js';
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
-import { ashesMechanic } from '#gw2/professions/guardian/specializations/firebrand/ashes-profiles.js';
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
 import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
 import {
@@ -83,9 +83,9 @@ export const firebrandReworkModule = defineNativeModule({
     traits: [...specialization.minorTraits, ...specialization.majorTraits.flat()],
     specializations: [specialization],
     // Only the reworked ruleset selects Righteous Flames; live Quickfire shares its numeric identity.
-    balanceProfiles: [
+    extraSkills: [
       {
-        ...ashesMechanic,
+        ...ashesBurningSkill,
         name: 'Ashes of the Just: Burning per charge (replaced when Righteous Flames is selected)',
         burningOverrideTrait: REWORK.RIGHTEOUS_FLAMES
       }

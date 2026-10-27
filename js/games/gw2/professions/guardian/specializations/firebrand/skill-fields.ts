@@ -3,6 +3,8 @@ import { dataField, defineSkillFields, numberField } from '#gw2/platform/skills/
 /** Firebrand tome fields read only by Firebrand mechanics. */
 export const FIREBRAND_SKILL_FIELDS = defineSkillFields(
   {
+    // Rework-specific trait that can replace the shared Ashes Burning payload.
+    burningOverrideTrait: dataField,
     // The tome whose pages this skill spends.
     tome: dataField,
     dormantCooldown: numberField({ patch: 'primary', unit: 'seconds' })

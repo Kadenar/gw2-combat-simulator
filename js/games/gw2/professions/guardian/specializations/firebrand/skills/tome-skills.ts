@@ -12,6 +12,26 @@ const scorchedAftermathApplicationMs = 440;
  * Persistent tome page state and behavior remain under `mechanics/`.
  */
 
+/** Tome and trait grants consume one shared triggered Burning skill, independent of their charge windows. */
+export const ashesBurningSkill: Skill = {
+  // Match the emitted source so observed damage identifies this skill in patch notes.
+  id: 'guardian.ashes-of-the-just',
+  name: 'Ashes of the Just: Burning per charge',
+  type: 'Proc',
+  simulatorExcluded: true,
+  internalCooldown: 1,
+  effects: [
+    {
+      type: 'condition',
+      name: CONDITION.BURNING,
+      condition: CONDITION.BURNING,
+      stacks: 1,
+      duration: 2,
+      actorType: ACTOR.PLAYER
+    }
+  ]
+};
+
 export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SEARING_SPELL]: {
     // Debit on commitment before the earned Swift Scholar refund.

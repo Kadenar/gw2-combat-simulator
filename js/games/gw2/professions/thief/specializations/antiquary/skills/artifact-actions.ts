@@ -80,14 +80,14 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.guitar'(runtime, context) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const duration = artifactWindowDuration(runtime);
+      const duration = artifactWindowDuration(runtime, context.skill);
       // Guitar replaces the active bonus-attack grant with the selected artifact count and lifetime.
       state.bonusStealthAttack = grantCharges(skillNumber(context.skill, 'maximumStacks'), at + duration);
     },
     'thief.mortar'(runtime, context) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const duration = artifactWindowDuration(runtime);
+      const duration = artifactWindowDuration(runtime, context.skill);
 
       if (!requireEffect(context.skill, 'condition', CONDITION.BURNING, requireSkillAction(context.skill, 'charged')))
         return;
@@ -102,7 +102,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
     'thief.chak'(runtime, context) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const duration = artifactWindowDuration(runtime);
+      const duration = artifactWindowDuration(runtime, context.skill);
       // Three refunds are added up to four total; unused grants keep their own expiry instead of becoming permanent.
       const grants = activeChargeGrants(state.chakInitiativeRefunds, at);
       const remaining = grants.reduce((sum, grant) => sum + grant.charges, 0);
@@ -117,10 +117,10 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
         'earliest-expiry'
       );
     },
-    'thief.holo'(runtime) {
+    'thief.holo'(runtime, context) {
       const state = antiquaryState.from(runtime);
       const at = runtime.time;
-      const duration = artifactWindowDuration(runtime);
+      const duration = artifactWindowDuration(runtime, context.skill);
       // Store the exact canonical deadline so an expiry-tick utility cannot spend this grant.
       state.holoUtilityCooldownReductionExpirations = [
         ...state.holoUtilityCooldownReductionExpirations,

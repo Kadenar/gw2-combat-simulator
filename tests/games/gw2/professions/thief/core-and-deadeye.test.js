@@ -18,7 +18,6 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
-import { ANTIQUARY_ARTIFACT_WINDOWS } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-windows.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -144,13 +143,13 @@ test('bonus stealth attacks consume only active elite charges and prefer ordinar
 test('Silent Scope and Guitar replace bonus stealth attacks with selected counts and lifetimes', () => {
   for (const specialization of ['Deadeye', 'Antiquary']) {
     const deadeye = specialization === 'Deadeye';
-    const profile = deadeye ? TRAIT.SILENT_SCOPE : ANTIQUARY_ARTIFACT_WINDOWS.id;
+    const profile = deadeye ? TRAIT.SILENT_SCOPE : ID.METAL_LEGION_GUITAR;
     const patched = withPatchPreview(thiefProfession, {
       id: 'bonus-stealth-test',
       label: 'Bonus stealth test',
       professions: {
         thief: {
-          balanceProfiles: {
+          [deadeye ? 'balanceProfiles' : 'skills']: {
             [profile]: { fields: { duration: 7 } }
           }
         }
