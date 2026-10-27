@@ -76,21 +76,20 @@ const config = {
 };
 const cast = (skillId) => ({ type: 'cast', skillId });
 const wait = (durationMs) => ({ type: 'wait', durationMs });
-function native(
-  hooks = {},
-  state = () => ({
-    energy: createResourceClock(),
-    pages: createDiscreteResourceClock(),
-    endurancePool: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
-    starts: [],
-    grants: 0
-  }),
-  modifiers = {}
-) {
+// Each fixture owns fresh resource clocks and hook observations for an isolated runtime.
+function native(hooks = {}, modifiers = {}) {
   const core = defineNativeModule({
     id: 'Core',
     data: { generatedSkills: skills, weapons: ['Sword'] },
-    state: { create: state },
+    state: {
+      create: () => ({
+        energy: createResourceClock(),
+        pages: createDiscreteResourceClock(),
+        endurancePool: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
+        starts: [],
+        grants: 0
+      })
+    },
     modifiers,
     hooks: {
       onCastStart(runtime, activation) {
@@ -175,7 +174,6 @@ test('live modifier hooks read executed history independently of report collecti
           runtime.effects.emit({ kind: 'packet', event: hit(1.5) });
         }
       },
-      undefined,
       {
         // The rule reads only executed history, even when detailed reporting is disabled.
         modifierRules: [

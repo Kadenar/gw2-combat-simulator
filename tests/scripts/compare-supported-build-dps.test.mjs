@@ -130,11 +130,7 @@ test('absolute DPS comparison output identifies the fixed tolerance', (context) 
   const output = [];
 
   context.mock.method(console, 'log', (message) => output.push(message));
-  printDpsComparison(
-    [{ profession: 'mesmer', benchmarkDps: 40_000, dps: 40_100 }],
-    MAXIMUM_RELATIVE_ERROR,
-    MAXIMUM_ABSOLUTE_DPS_ERROR
-  );
+  printDpsComparison([{ profession: 'mesmer', benchmarkDps: 40_000, dps: 40_100 }], MAXIMUM_ABSOLUTE_DPS_ERROR);
 
   assert.ok(output.some((line) => line.includes('within 100 DPS of benchmark DPS.')));
 });

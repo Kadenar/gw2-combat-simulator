@@ -25,10 +25,6 @@ export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRunti
   return state.pet.id;
 }
 
-function petHasSelectedSkill(context: RangerRuntime, skillId: number): boolean {
-  return selectedSkillIdSet(context.config.selectedSkillIds).has(skillId);
-}
-
 /** Selected Signet of the Wild grants ferocity only while ready; callers supply their own observation clock. */
 function signetOfTheWildBonus(context: unknown, selected: boolean, ready = true): number {
   return selected && ready
@@ -57,7 +53,7 @@ function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
   if (runtime)
     attributes.ferocity += signetOfTheWildBonus(
       context,
-      petHasSelectedSkill(runtime, ID.SIGNET_OF_THE_WILD),
+      selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_THE_WILD),
       (runtime.cooldownController.readyAt(ID.SIGNET_OF_THE_WILD) || 0) <= runtime.time
     );
 

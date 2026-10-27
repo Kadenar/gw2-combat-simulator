@@ -3,7 +3,7 @@ import type { SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { mesmerShatterCondition } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
+import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 
 /** Share player-plus-clone packet expansion between execution and presentation without scheduling effects. */
 export function cloneShatterTier(shatter: MesmerShatter, skill: MesmerSkill, spent: number) {
@@ -56,7 +56,7 @@ export function cloneShatterEffects(
   const tier = cloneShatterTier(shatter, skill, spent);
   const confusion =
     shatter.kind === CONDITION.CONFUSION.toLowerCase()
-      ? cloneShatterConfusion(mesmerShatterCondition(context, skill.id, CONDITION.CONFUSION), tier.sources)
+      ? cloneShatterConfusion(mesmerShatterConfusion(context, skill.id), tier.sources)
       : undefined;
   return [...(shatter.kind === 'defense' ? [] : tier.strikes), ...(confusion ? [confusion] : []), ...tier.effects];
 }

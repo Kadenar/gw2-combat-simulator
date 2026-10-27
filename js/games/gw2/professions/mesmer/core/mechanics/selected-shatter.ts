@@ -1,3 +1,4 @@
+import { CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -17,8 +18,8 @@ export function mesmerSelectedShatter(context: unknown, id: SkillId): MesmerShat
   };
 }
 
-/** A removed condition stays removed independently of the shatter's resource and strike transactions. */
-export function mesmerShatterCondition(context: unknown, id: SkillId, name: string) {
+/** Removed Confusion stays removed independently of the shatter's resource and strike transactions. */
+export function mesmerShatterConfusion(context: unknown, id: SkillId) {
   const skill = requireSkillFromContext(context, id);
-  return requireEffect(skill, 'condition', name, requireSkillAction(skill, 'shatter'));
+  return requireEffect(skill, 'condition', CONDITION.CONFUSION, requireSkillAction(skill, 'shatter'));
 }

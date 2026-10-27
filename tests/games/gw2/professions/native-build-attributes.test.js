@@ -44,9 +44,10 @@ const revenantConduitRules = revenantProfession.resolveProfession({
   specialization: 'Conduit'
 });
 
-function traitDelta(calculate, build, trait, attribute, selectedSkillIds = [], weaponSet = 1) {
-  const withTrait = calculate(build, selectedSkillIds, weaponSet).attributes;
-  const withoutTrait = calculate(build, selectedSkillIds, weaponSet, trait).attributes;
+// Isolate one trait contribution on weapon set one without selected skill passives.
+function traitDelta(calculate, build, trait, attribute) {
+  const withTrait = calculate(build, [], 1).attributes;
+  const withoutTrait = calculate(build, [], 1, trait).attributes;
 
   return withTrait[attribute].final - withoutTrait[attribute].final;
 }

@@ -1,4 +1,4 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
 /** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -19,11 +19,11 @@ export function warriorActiveBoonCount(context: Gw2ModifierContext): number {
   return countActiveBoons(context, { actor: ACTOR.PLAYER }, (boon) => warriorBoonActive(context, boon));
 }
 
-// Test both weapon hands at query time, including projected modifier-evaluation swaps.
-export function warriorWieldingWeapon(context: Gw2ModifierContext, weapon: string): boolean {
-  if (skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === weapon) return true;
+// Recognize Sword attacks or an equipped Sword in either hand, including projected weapon swaps.
+export function warriorWieldingSword(context: Gw2ModifierContext): boolean {
+  if (skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === WEAPON.SWORD) return true;
 
   const weaponSet = Number(context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet) === 2 ? 2 : 1;
   const [primary, secondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);
-  return (primary || '') === weapon || (secondary || '') === weapon;
+  return primary === WEAPON.SWORD || secondary === WEAPON.SWORD;
 }

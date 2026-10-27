@@ -28,7 +28,7 @@ import {
 import {
   warriorActiveBuffStacks,
   warriorBoonActive,
-  warriorWieldingWeapon
+  warriorWieldingSword
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
@@ -365,7 +365,7 @@ export const blademaster = defineTrait({
           amount: balanceProfileNumber(profile, 'attributeBonus'),
           // The sword bonus joins conversion inputs only while its weapon requirement is satisfied.
           feedsConversions: 'all',
-          enabled: warriorWieldingWeapon(context, WEAPON.SWORD)
+          enabled: warriorWieldingSword(context)
         }
       ]
     };

@@ -11,12 +11,12 @@ export function resolveGameData(root, gameId) {
   return Object.fromEntries(game.runtimeData.map(({ kind, source }) => [kind, path.resolve(root, source)]));
 }
 
-/** Reads and removes the shared --game option while preserving command-specific arguments. */
-export function parseGameOption(args, fallback = 'gw2') {
+/** Reads the shared --game option, defaulting to GW2, while preserving command-specific arguments. */
+export function parseGameOption(args) {
   const values = args.filter((argument) => argument.startsWith('--game=')).map((argument) => argument.slice(7));
 
   if (values.length > 1) throw new TypeError('Specify --game only once.');
 
-  const gameId = values[0] || fallback;
+  const gameId = values[0] || 'gw2';
   return { gameId, args: args.filter((argument) => !argument.startsWith('--game=')) };
 }

@@ -54,9 +54,10 @@ function scenario(name, specialization, traits, options = {}, family = families[
     config,
     profession,
     query,
-    declared(time = 0, runtime = null, event = null, liveQuery = false) {
+    // Evaluate declarations directly so their results can be compared with combat-query stats.
+    declared(time = 0, runtime = null) {
       const context = attributeContext(
-        { config, profession, time, runtime, event, query: liveQuery ? query : undefined },
+        { config, profession, time, runtime },
         { catalog: profession.catalog, modifierRulesById: new Map() }
       );
       return resolveAttributeContributions(

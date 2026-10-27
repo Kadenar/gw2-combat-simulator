@@ -412,8 +412,9 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   }
 });
 
-function equippedLegend(context: Gw2ModifierContext, legendId: string): boolean {
-  return (revenantRuntimeCoreState(context).selectedLegendIds || []).includes(legendId);
+// Assassin resonance applies whenever the legend is equipped, including when it is inactive.
+function assassinLegendEquipped(context: Gw2ModifierContext): boolean {
+  return (revenantRuntimeCoreState(context).selectedLegendIds || []).includes(LEGEND.ASSASSIN);
 }
 
 // Equipped-legend resonance retains the outgoing multiplier stage for every authored strike.
@@ -424,15 +425,13 @@ export const conduitEntityModifierRules: readonly Gw2ModifierRule[] = [
     operation: 'multiply',
     // Assassin resonance doubles Beguiling Haze damage when Assassin is equipped (not necessarily active).
     factor: 2,
-    when: (context) =>
-      BEGUILING_HAZE_SKILL_IDS.has(Number(context.event?.skillId)) && equippedLegend(context, LEGEND.ASSASSIN)
+    when: (context) => BEGUILING_HAZE_SKILL_IDS.has(Number(context.event?.skillId)) && assassinLegendEquipped(context)
   },
   {
     id: 'revenant.twin-moon-assassin-resonance',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.5,
-    when: (context) =>
-      TWIN_MOON_SKILL_IDS.has(Number(context.event?.skillId)) && equippedLegend(context, LEGEND.ASSASSIN)
+    when: (context) => TWIN_MOON_SKILL_IDS.has(Number(context.event?.skillId)) && assassinLegendEquipped(context)
   }
 ];

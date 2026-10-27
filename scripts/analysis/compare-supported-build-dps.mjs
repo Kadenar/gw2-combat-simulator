@@ -94,16 +94,14 @@ function printComparisonTable(rows, baselineLabel, resultLabel) {
   }
 }
 
-/** Keep saved-benchmark drift separate from balance changes, using the selected regression tolerance. */
-export function printDpsComparison(
-  metrics,
-  maximumRelativeError = MAXIMUM_RELATIVE_ERROR,
-  maximumAbsoluteDpsError = null
-) {
-  const mismatches = findDpsMismatches(metrics, maximumRelativeError, maximumAbsoluteDpsError);
+/** Report saved-benchmark drift using the fixed relative tolerance or a requested absolute tolerance. */
+export function printDpsComparison(metrics, maximumAbsoluteDpsError = null) {
+  const mismatches = findDpsMismatches(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
   const professionCount = new Set(metrics.map((metric) => metric.profession)).size;
   const tolerance =
-    maximumAbsoluteDpsError == null ? `${(maximumRelativeError * 100).toFixed(2)}%` : `${maximumAbsoluteDpsError} DPS`;
+    maximumAbsoluteDpsError == null
+      ? `${(MAXIMUM_RELATIVE_ERROR * 100).toFixed(2)}%`
+      : `${maximumAbsoluteDpsError} DPS`;
 
   console.log('\nLIVE BENCHMARK CHECK');
 
@@ -394,7 +392,7 @@ if (import.meta.main) {
     previewMetrics = await captureSupportedBuildMetrics(undefined, { gameId, patchId: activePatchPreview.id });
   }
 
-  const mismatches = printDpsComparison(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
+  const mismatches = printDpsComparison(metrics, maximumAbsoluteDpsError);
 
   if (activePatchPreview) printPatchPreviewComparison(metrics, previewMetrics, activePatchPreview);
 

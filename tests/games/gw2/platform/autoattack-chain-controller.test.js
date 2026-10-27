@@ -15,7 +15,8 @@ const skill = (id, name, extra = {}) => ({
   ...extra
 });
 
-function chainProfession(autoattackChains, root = {}) {
+// Keep fixture skills fixed while varying chain definitions to exercise controller behavior.
+function chainProfession(autoattackChains) {
   const core = defineNativeModule({
     id: 'Core',
     data: {
@@ -26,8 +27,7 @@ function chainProfession(autoattackChains, root = {}) {
           slot: 'Weapon_1',
           nextChainId: 2,
           castTimeMs: 1000,
-          interruptCommitMs: 500,
-          ...root
+          interruptCommitMs: 500
         }),
         skill(2, 'Second A', {
           type: 'Weapon',

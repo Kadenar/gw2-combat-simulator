@@ -126,18 +126,18 @@ for (const [name, traitId, action, catalog, procs] of [
 }
 
 /** Builds the smallest resolver context needed to exercise Core Thief hit, condition, and boon reactions. */
-function traitContext(selectedTraitIds = [], config = {}) {
-  const fullConfig = { ...config, selectedTraitIds };
+function traitContext(selectedTraitIds = []) {
+  const config = { selectedTraitIds };
   const events = [];
   const conditions = [];
-  const core = createThiefCoreState(fullConfig, {
+  const core = createThiefCoreState(config, {
     balanceContext: { catalog: thiefCatalog, modifierRulesById: new Map() }
   });
   const context = {
     procs: createProcRegistry(() => context),
     profession: { core, specialization: { kind: 'Core', state: {} } },
     catalog: thiefCatalog,
-    config: fullConfig,
+    config,
     traits: new Set(selectedTraitIds),
     activeWeaponSet: 1,
     queue: new StableEventQueue(),

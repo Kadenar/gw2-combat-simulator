@@ -1,7 +1,7 @@
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { mesmerShatterCondition } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
+import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import {
   buildMesmerConditions,
   buildMesmerStrikes,
@@ -79,7 +79,7 @@ export function resolveCloneShatter(
         });
       });
 
-    const baseConfusion = mesmerShatterCondition(context, skill.id, CONDITION.CONFUSION);
+    const baseConfusion = mesmerShatterConfusion(context, skill.id);
     const confusion = cloneShatterConfusion(cryOfPainConfusion(context, baseConfusion), sources);
 
     if (confusion)
