@@ -534,7 +534,6 @@ function fireAimAssistedRocket(context: EngineerRuntime, event: EngineerResolver
   // Preserve the cumulative total used to select each orbital strike.
   const progress = advanceCyclicCounter(
     core.aimAssistedRocketCount,
-    1,
     balanceNumberFromContext(context, TRAIT.AIM_ASSISTED_ROCKET, 'maximumStacks')
   );
   core.aimAssistedRocketCount = progress.value;

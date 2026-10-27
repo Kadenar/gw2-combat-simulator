@@ -18,7 +18,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import { activeEngineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   amalgamStruck,
@@ -132,9 +132,7 @@ const willingHost = defineTrait({
           TRAIT.WILLING_HOST,
           target === MODIFIER_TARGET.CONDITION_DAMAGE ? 'conditionDamageIncrease' : 'damageIncrease'
         ),
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        activeEngineerSpecializationState(context, 'Amalgam', 'willingHostUntil')
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeAmalgamState(context, 'willingHostUntil')
     }
   ]
 });

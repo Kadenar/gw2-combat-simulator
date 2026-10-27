@@ -335,12 +335,12 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
 
   ui.isSlotSkillSelectable = (context: ProfessionPaletteContext, skill: Skill) => {
     const selected = scalarSlices(context, skill);
-    return everyUiSlice(
-      selected.slices,
-      'isSlotSkillSelectable',
-      [selected.context, skill],
-      (result) => result !== false
-    );
+    // Only an explicit rejection from an owning slice disables selection.
+    return selected.slices.every((slice) => {
+      const callback = slice.isSlotSkillSelectable;
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare -- Untyped slices may return no decision; only explicit false rejects selection.
+      return typeof callback !== 'function' || callback(selected.context as ProfessionPaletteContext, skill) !== false;
+    });
   };
 
   for (const name of ['paletteActionSkills', 'paletteWeaponSkills', 'paletteSelectedSlotSkills'] as const) {
@@ -492,18 +492,5 @@ function someUiSlice(
   return slices.some((slice) => {
     const callback = slice[name];
     return typeof callback === 'function' && isTrue((callback as UiCallback)(...args));
-  });
-}
-
-/** True unless some owning slice's result fails `isAllowed`. Non-owners pass. */
-function everyUiSlice(
-  slices: readonly UiSliceLike[],
-  name: string,
-  args: readonly unknown[],
-  isAllowed: (result: unknown) => boolean
-): boolean {
-  return slices.every((slice) => {
-    const callback = slice[name];
-    return typeof callback !== 'function' || isAllowed((callback as UiCallback)(...args));
   });
 }

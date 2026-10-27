@@ -235,12 +235,12 @@ function bindProfessionSelector(): void {
   }
 
   void renderLoaderArtwork(document);
-  mountGw2IconFallback(document);
-  mountRotationWorkspace(document);
-  mountRotationTimelineSize(document);
+  mountGw2IconFallback();
+  mountRotationWorkspace();
+  mountRotationTimelineSize();
   mountCommunityActions(document);
-  mountSimulatorTutorial(document);
-  mountSimulatorNavigation(document);
+  mountSimulatorTutorial();
+  mountSimulatorNavigation();
   mountStickyHeader(document);
   renderProfessionCards(document);
 }

@@ -217,13 +217,14 @@ export function createGw2CombatQuery({
     return null;
   };
 
-  const boonStacksAt = (
-    kind: string,
+  // Might stays capped at 25; isolated companions read only grants addressed to their own incarnation.
+  const mightStacksAt = (
     time: number,
-    maximum: number,
     runtime: Gw2QueryRuntime | null | undefined,
     event: SimulationEvent | null | undefined
   ): number => {
+    const kind = boonKey(BOON.MIGHT);
+    const maximum = 25;
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
     // Isolated summons don't inherit the player's configured permanent boons —
     // they only receive boons explicitly targeted at summons via the runtime.
@@ -242,12 +243,6 @@ export function createGw2CombatQuery({
     const dynamic = appliedEffectStacks({ runtime, timeline, time }, kind, maximum, { actor: ACTOR.PLAYER }, 1);
     return clamp(configured + dynamic, 0, maximum);
   };
-
-  const mightStacksAt = (
-    time: number,
-    runtime: Gw2QueryRuntime | null | undefined,
-    event: SimulationEvent | null | undefined
-  ): number => boonStacksAt(boonKey(BOON.MIGHT), time, 25, runtime, event);
 
   const furyActiveAt = (
     time: number,

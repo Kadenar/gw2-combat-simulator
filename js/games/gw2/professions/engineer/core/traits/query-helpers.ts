@@ -32,13 +32,3 @@ export function engineerSpecializationState(context: Gw2ModifierContext, expecte
 
 /** Re-exports shared boon, health, and target-condition queries for Engineer modifier rules. */
 export { activeBoonStacks, playerHealthFraction, targetConditionCount, targetHealthFraction };
-
-/** Reports whether a timed field on the active Engineer specialization remains active. */
-export function activeEngineerSpecializationState(
-  context: Gw2ModifierContext,
-  expectedKind: string,
-  field: keyof EngineerState
-): boolean {
-  const state = engineerSpecializationState(context, expectedKind);
-  return Number(state[field] || 0) > context.time;
-}

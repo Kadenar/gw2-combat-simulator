@@ -10,7 +10,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { skillNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import { activeEngineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   AMALGAM_MORPH_KIND_BY_SKILL_ID,
@@ -108,8 +108,7 @@ export const plasmaticStateModifiers: readonly Gw2ModifierRule[] = Object.freeze
     operation: 'damage-additive',
     amount: 0.07,
     when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      activeEngineerSpecializationState(context, 'Amalgam', 'plasmaticStateUntil')
+      isGw2PlayerModifierOwnedEvent(context.event) && activeAmalgamState(context, 'plasmaticStateUntil')
   }
 ]);
 

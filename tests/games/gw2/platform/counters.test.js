@@ -51,11 +51,11 @@ test('reset progress keeps incomplete cycles and clears exact or overshooting co
 
 // Cumulative selectors use exact multiples, even when a profile changes the period between accepted events.
 test('cyclic counters retain totals and select exact multiples without rounding or resetting', () => {
-  assert.deepEqual(advanceCyclicCounter(4, 1, 5), { value: 5, reached: true });
-  assert.deepEqual(advanceCyclicCounter(5, 1, 5), { value: 6, reached: false });
-  assert.deepEqual(advanceCyclicCounter(5, 1, 3), { value: 6, reached: true });
-  assert.deepEqual(advanceCyclicCounter(1, 1, 1.5), { value: 2, reached: false });
-  assert.deepEqual(advanceCyclicCounter(2, 1, 1.5), { value: 3, reached: true });
-  assert.deepEqual(advanceCyclicCounter(4, 1, 0), { value: 5, reached: false });
-  assert.throws(() => advanceCyclicCounter(0, 1, Infinity), RangeError);
+  assert.deepEqual(advanceCyclicCounter(4, 5), { value: 5, reached: true });
+  assert.deepEqual(advanceCyclicCounter(5, 5), { value: 6, reached: false });
+  assert.deepEqual(advanceCyclicCounter(5, 3), { value: 6, reached: true });
+  assert.deepEqual(advanceCyclicCounter(1, 1.5), { value: 2, reached: false });
+  assert.deepEqual(advanceCyclicCounter(2, 1.5), { value: 3, reached: true });
+  assert.deepEqual(advanceCyclicCounter(4, 0), { value: 5, reached: false });
+  assert.throws(() => advanceCyclicCounter(0, Infinity), RangeError);
 });

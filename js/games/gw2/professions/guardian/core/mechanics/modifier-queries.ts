@@ -18,12 +18,13 @@ export function guardianBoonActive(context: Gw2ModifierContext, boon: string): b
   );
 }
 
-export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: string): SimulationEvent | null {
+/** Select the latest accepted Radiant Armaments grant, including shorter replacements. */
+export function latestRadiantArmaments(context: Gw2ModifierContext): SimulationEvent | null {
   // A live latest-application query includes only accepted grants, including shorter replacements.
   if (context.runtime)
     return (
       context.runtime.buffs
-        ?.get(kind)
+        ?.get('guardian-radiant-armaments')
         ?.filter((application) => application.at <= context.time)
         .at(-1)?.event ?? null
     );
@@ -32,7 +33,7 @@ export function latestGuardianTimedBuff(context: Gw2ModifierContext, kind: strin
   for (const event of context.events || []) {
     if (event.at > context.time) break;
 
-    if (event.type === 'buff' && event.kind === kind) latest = event;
+    if (event.type === 'buff' && event.kind === 'guardian-radiant-armaments') latest = event;
   }
 
   return latest;

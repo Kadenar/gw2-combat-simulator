@@ -130,9 +130,9 @@ function viewportScrollPosition(root: Document): ScrollPosition {
  * builds direct profession navigation and simulator tabs, and
  * wires hash/history-driven view switching with per-view scroll restoration.
  */
-export function mountSimulatorNavigation(root: Document = document): void {
-  const body = root.body;
-  const header = root.querySelector<HTMLElement>('#app > header');
+export function mountSimulatorNavigation(): void {
+  const body = document.body;
+  const header = document.querySelector<HTMLElement>('#app > header');
 
   if (!body || !header || header.querySelector('.simulator-view-tabs')) return;
 
@@ -140,29 +140,29 @@ export function mountSimulatorNavigation(root: Document = document): void {
 
   if (!professionId) return;
 
-  const navigation = root.createElement('nav');
+  const navigation = document.createElement('nav');
   navigation.className = 'simulator-view-tabs';
   navigation.setAttribute('aria-label', 'Simulator sections');
 
-  const pathname = root.defaultView?.location.pathname || 'index.html';
-  let activeView = simulatorViewFromHash(root.defaultView?.location.hash || '');
+  const pathname = document.defaultView?.location.pathname || 'index.html';
+  let activeView = simulatorViewFromHash(document.defaultView?.location.hash || '');
   // Full profession portraits stay legible in the picker; native popovers handle Escape and outside-click dismissal.
-  const professionControl = root.createElement('div');
+  const professionControl = document.createElement('div');
   professionControl.className = 'simulator-profession-control';
-  const selector = root.createElement('button');
+  const selector = document.createElement('button');
   selector.type = 'button';
   selector.setAttribute('popovertarget', 'simulator-profession-menu');
   selector.setAttribute('aria-label', 'Choose profession');
   selector.setAttribute('aria-expanded', 'false');
   selector.textContent = professionRegistry.find(({ id }) => id === professionId)?.name || professionId;
-  const professionMenu = root.createElement('div');
+  const professionMenu = document.createElement('div');
   professionMenu.id = 'simulator-profession-menu';
   professionMenu.className = 'simulator-profession-menu';
   professionMenu.setAttribute('popover', 'auto');
   professionMenu.setAttribute('role', 'group');
   professionMenu.setAttribute('aria-label', 'Professions');
   for (const profession of professionRegistry) {
-    const option = root.createElement('a');
+    const option = document.createElement('a');
     option.className = `simulator-profession-option profession-card-${profession.id}`;
     option.dataset.route = profession.route;
 
@@ -176,7 +176,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
     const artwork = portraits?.length ? portraits[Math.floor(Math.random() * portraits.length)] : undefined;
 
     if (artwork?.conceptArt) {
-      const image = root.createElement('img');
+      const image = document.createElement('img');
       image.src = artwork.conceptArt;
       image.alt = '';
       image.loading = 'lazy';
@@ -184,7 +184,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
       option.append(image);
     }
 
-    const name = root.createElement('span');
+    const name = document.createElement('span');
     name.textContent = profession.name;
     option.append(name);
     professionMenu.append(option);
@@ -192,7 +192,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
 
   // Anchor the open picker below the selector, clamped inside the viewport.
   const positionProfessionMenu = (): void => {
-    const window = root.defaultView;
+    const window = document.defaultView;
 
     if (!window || !professionMenu.matches(':popover-open')) return;
 
@@ -210,27 +210,27 @@ export function mountSimulatorNavigation(root: Document = document): void {
     for (const link of professionMenu.querySelectorAll<HTMLAnchorElement>('a')) {
       link.href = navigationRoute(
         simulatorViewHref(link.dataset.route!, activeView),
-        root.defaultView?.location.search
+        document.defaultView?.location.search
       );
     }
 
     // The menu is only measurable once open, and the async toggle event can land after the first paint, which
     // flashed the unpositioned popover at the viewport origin. An animation frame runs after the popover opens but
     // before that first paint.
-    root.defaultView?.requestAnimationFrame(positionProfessionMenu);
+    document.defaultView?.requestAnimationFrame(positionProfessionMenu);
   });
   // Keep an open picker inside the viewport when the header reflows after a resize.
-  root.defaultView?.addEventListener('resize', positionProfessionMenu);
+  document.defaultView?.addEventListener('resize', positionProfessionMenu);
   professionControl.append(selector, professionMenu);
   navigation.append(professionControl);
-  const scrollPositions = new Map<SimulatorView, ScrollPosition>([[activeView, viewportScrollPosition(root)]]);
+  const scrollPositions = new Map<SimulatorView, ScrollPosition>([[activeView, viewportScrollPosition(document)]]);
   // Restore twice (now + next frame) so layout that settles after the view swap
   // doesn't clobber the scroll; bail if the view changed again in between.
   const restoreScrollPosition = (view: SimulatorView, position: ScrollPosition): void => {
     const restore = (): void => {
       if (view !== activeView) return;
 
-      root.defaultView?.scrollTo({
+      document.defaultView?.scrollTo({
         left: position.left,
         top: position.top,
         behavior: 'auto'
@@ -238,19 +238,19 @@ export function mountSimulatorNavigation(root: Document = document): void {
     };
 
     restore();
-    root.defaultView?.requestAnimationFrame(restore);
+    document.defaultView?.requestAnimationFrame(restore);
   };
 
   // Switches to a view, saving the outgoing scroll and restoring the incoming.
   const showView = (view: SimulatorView): void => {
     if (view === activeView) {
-      updateActiveView(root, view);
+      updateActiveView(document, view);
       return;
     }
 
-    scrollPositions.set(activeView, viewportScrollPosition(root));
+    scrollPositions.set(activeView, viewportScrollPosition(document));
     activeView = view;
-    updateActiveView(root, view);
+    updateActiveView(document, view);
     const position = scrollPositions.get(view) ?? { left: 0, top: 0 };
     restoreScrollPosition(view, position);
   };
@@ -258,7 +258,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
   for (const view of ['workspace', 'analysis', 'gear-optimizer', 'benchmarks'] as const) {
     const route = simulatorViewHref(pathname, view);
     const link = createNavigationLink(
-      root,
+      document,
       view,
       view === 'workspace'
         ? 'Workspace'
@@ -276,7 +276,7 @@ export function mountSimulatorNavigation(root: Document = document): void {
       }
 
       event.preventDefault();
-      const window = root.defaultView;
+      const window = document.defaultView;
 
       if (window?.location.hash !== VIEW_HASHES[view]) {
         window?.history.pushState(null, '', VIEW_HASHES[view]);
@@ -287,12 +287,12 @@ export function mountSimulatorNavigation(root: Document = document): void {
   }
 
   header.prepend(navigation);
-  mountAnalysisView(root);
-  updateActiveView(root, activeView);
-  root.defaultView?.addEventListener('hashchange', () => {
-    showView(simulatorViewFromHash(root.defaultView?.location.hash || ''));
+  mountAnalysisView(document);
+  updateActiveView(document, activeView);
+  document.defaultView?.addEventListener('hashchange', () => {
+    showView(simulatorViewFromHash(document.defaultView?.location.hash || ''));
   });
-  root.defaultView?.addEventListener('popstate', () => {
-    showView(simulatorViewFromHash(root.defaultView?.location.hash || ''));
+  document.defaultView?.addEventListener('popstate', () => {
+    showView(simulatorViewFromHash(document.defaultView?.location.hash || ''));
   });
 }

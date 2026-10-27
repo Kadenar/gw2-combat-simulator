@@ -41,8 +41,8 @@ export function advanceCounter(
   return { value: next, reached };
 }
 
-/** Retains cumulative progress and selects exact multiples of a period; a zero period never selects a reward. */
-export function advanceCyclicCounter(value: number, increment: number, period: number): CounterStep {
-  const progress = advanceCounter(value, increment, period, 'retain');
+/** Counts one accepted occurrence and selects exact multiples of a period; a zero period never selects a reward. */
+export function advanceCyclicCounter(value: number, period: number): CounterStep {
+  const progress = advanceCounter(value, 1, period, 'retain');
   return { value: progress.value, reached: progress.value % period === 0 };
 }

@@ -221,14 +221,15 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
 
     if (this.heap.length > 0 && last) {
       this.heap[0] = last;
-      this.siftDown(0);
+      this.siftDown();
     }
 
     return first;
   }
 
-  private siftDown(start: number): void {
-    let index = start;
+  /** Restore heap order from the replacement head after removing the earliest event. */
+  private siftDown(): void {
+    let index = 0;
     while (true) {
       const left = index * 2 + 1;
       const right = left + 1;

@@ -43,11 +43,11 @@ const mountedDocuments = new WeakSet<Document>();
  * Retries failed ArenaNet icons through the backup host, then renders a local
  * placeholder. Image errors do not bubble, so this listener uses capture.
  */
-export function mountGw2IconFallback(root: Document = document): void {
-  if (mountedDocuments.has(root)) return;
+export function mountGw2IconFallback(): void {
+  if (mountedDocuments.has(document)) return;
 
-  mountedDocuments.add(root);
-  root.addEventListener(
+  mountedDocuments.add(document);
+  document.addEventListener(
     'error',
     (event) => {
       if (typeof HTMLImageElement === 'undefined' || !(event.target instanceof HTMLImageElement)) {

@@ -208,22 +208,22 @@ function tutorialDialog(root: Document): HTMLDialogElement {
 }
 
 /** Mounts one lazy-loading tutorial entry point on landing and profession pages. */
-export function mountSimulatorTutorial(root: Document = document): void {
-  if (root.getElementById(TUTORIAL_DIALOG_ID) || !root.body) return;
+export function mountSimulatorTutorial(): void {
+  if (document.getElementById(TUTORIAL_DIALOG_ID) || !document.body) return;
 
   // Page initialization mounts this shared header host before attaching the compact tutorial launcher.
-  const host = root.querySelector('.community-actions');
+  const host = document.querySelector('.community-actions');
 
   if (!host) return;
 
-  const trigger = tutorialTrigger(root);
-  const dialog = tutorialDialog(root);
+  const trigger = tutorialTrigger(document);
+  const dialog = tutorialDialog(document);
   let activeTutorialId = DEFAULT_TUTORIAL_ID;
 
   host.prepend(trigger);
-  root.body.append(dialog);
+  document.body.append(dialog);
 
-  const motionPreference = root.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const motionPreference = document.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)');
   const shouldPlay = (): boolean => !motionPreference?.matches;
   bindDialog(dialog);
 
@@ -234,7 +234,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
     activateTutorialPanel(dialog, activeTutorialId, shouldPlay());
   };
 
-  root.querySelectorAll<HTMLButtonElement>('[data-tutorial-trigger]').forEach((tutorialTrigger) => {
+  document.querySelectorAll<HTMLButtonElement>('[data-tutorial-trigger]').forEach((tutorialTrigger) => {
     tutorialTrigger.addEventListener('click', openDialog);
   });
   dialog.addEventListener('click', (event) => {
@@ -249,7 +249,7 @@ export function mountSimulatorTutorial(root: Document = document): void {
         `[data-tutorial-panel="${activeTutorialId}"] .tutorial-animation`
       );
 
-      if (image) restartTutorialAnimation(image, root.defaultView);
+      if (image) restartTutorialAnimation(image, document.defaultView);
     }
   });
   dialog.addEventListener('close', () => activateTutorialPanel(dialog, activeTutorialId, false));

@@ -3,10 +3,8 @@ import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import {
-  activeBoonStacks,
-  activeEngineerSpecializationState
-} from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
 import { evolveAttributeFactor } from '#gw2/professions/engineer/specializations/amalgam/traits/index.js';
 
 // Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.
@@ -25,9 +23,9 @@ const EVOLVE_ATTRIBUTES = Object.freeze([
 
 /** Evolve reads immutable common inputs; Titanic adds live Might outside conversion eligibility. */
 export const amalgamAttributes: Gw2AttributeContributionCalculator = (context) => {
-  const evolved = activeEngineerSpecializationState(context, 'Amalgam', 'evolvedUntil');
+  const evolved = activeAmalgamState(context, 'evolvedUntil');
   const factor = evolved ? evolveAttributeFactor(context) - 1 : 0;
-  const titanic = activeEngineerSpecializationState(context, 'Amalgam', 'titanicUntil')
+  const titanic = activeAmalgamState(context, 'titanicUntil')
     ? activeBoonStacks(context, boonKey(BOON.MIGHT)) *
       skillNumberFromContext(context, ID.OFFENSIVE_PROTOCOL_OBLITERATE, 'titanicAttributePerStack')
     : 0;

@@ -168,11 +168,13 @@ export const luminaryEffectLifecycle = {
   tasks: luminaryEffectTasks
 } satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
 
-/** Applies a stance modifier to its own impact or proc only when an older application was already active. */
-function stanceModifierActive(context: Gw2ModifierContext, kind: string, skillId: number, skillName: string): boolean {
+/** Daring Advance boosts its own impact or proc only when an older application was already active. */
+function daringAdvanceModifierActive(context: Gw2ModifierContext): boolean {
+  const kind = 'guardian-daring-advance';
+
   if (!buffActive(context, kind)) return false;
 
-  if (context.event?.skillId !== skillId && context.event?.triggeredBy !== skillName) return true;
+  if (context.event?.skillId !== ID.DARING_ADVANCE && context.event?.triggeredBy !== 'Daring Advance') return true;
 
   return (context.events || []).some(
     (event) =>
@@ -201,6 +203,6 @@ export const luminaryStanceModifiers: readonly Gw2ModifierRule[] = Object.freeze
     // order: 100 places this after additive stacking; multiplicative modifiers
     // that interact with additive sums must sort after them.
     order: 100,
-    when: (context) => stanceModifierActive(context, 'guardian-daring-advance', ID.DARING_ADVANCE, 'Daring Advance')
+    when: (context) => daringAdvanceModifierActive(context)
   }
 ]);

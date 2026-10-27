@@ -89,15 +89,16 @@ export function setRotationDeadTimeVisibility(root: Document, visible: boolean):
   storeDeadTimeVisibility(root, visible);
 }
 
-export function mountRotationTimelineSize(root: Document = document): void {
-  const timeline = root.getElementById('rotation-timeline');
+/** Restore display preferences and bind the current page's timeline controls once they are available. */
+export function mountRotationTimelineSize(): void {
+  const timeline = document.getElementById('rotation-timeline');
   const toolbar = timeline?.closest<HTMLElement>('.rotation-panel')?.querySelector<HTMLElement>('.rotation-mid');
   const panel = timeline?.closest<HTMLElement>('.rotation-panel');
 
   if (!timeline || !toolbar || !panel) return;
 
-  const storedSize = readStoredSize(root);
-  const showDeadTime = readStoredRotationDeadTimeVisibility(root);
+  const storedSize = readStoredSize(document);
+  const showDeadTime = readStoredRotationDeadTimeVisibility(document);
   panel.dataset.rotationSize = storedSize;
   panel.dataset.showDeadTime = String(showDeadTime);
 
@@ -105,7 +106,7 @@ export function mountRotationTimelineSize(root: Document = document): void {
   let controls = toolbar.querySelector('.rotation-display-controls');
 
   if (!controls) {
-    controls = root.createElement('div');
+    controls = document.createElement('div');
     controls.className = 'rotation-display-controls';
     toolbar.insertBefore(
       controls,
@@ -113,24 +114,24 @@ export function mountRotationTimelineSize(root: Document = document): void {
     );
   }
 
-  const existing = root.getElementById('rotation-timeline-size');
+  const existing = document.getElementById('rotation-timeline-size');
 
   if (existing?.tagName === 'SELECT') {
     (existing as HTMLSelectElement).value = storedSize;
   } else {
-    const control = root.createElement('label');
+    const control = document.createElement('label');
     control.className = 'rotation-size-control';
     control.htmlFor = 'rotation-timeline-size';
 
-    const label = root.createElement('span');
+    const label = document.createElement('span');
     label.textContent = 'Timeline size';
     control.append(label);
 
-    const select = root.createElement('select');
+    const select = document.createElement('select');
     select.id = 'rotation-timeline-size';
     select.title = 'Change the size of skills in the rotation timeline';
     for (const option of ROTATION_TIMELINE_SIZE_OPTIONS) {
-      const element = root.createElement('option');
+      const element = document.createElement('option');
       element.value = option.value;
       element.textContent = option.label;
       select.append(element);
@@ -141,7 +142,7 @@ export function mountRotationTimelineSize(root: Document = document): void {
       const size = normalizeRotationTimelineSize(select.value);
       select.value = size;
       panel.dataset.rotationSize = size;
-      storeSize(root, size);
+      storeSize(document, size);
     });
     control.append(select);
 
@@ -149,17 +150,17 @@ export function mountRotationTimelineSize(root: Document = document): void {
   }
 
   // Timing emphasis is a display preference, independent of zoom and simulation settings.
-  if (!root.getElementById('rotation-timing-display')) {
-    const control = root.createElement('label');
+  if (!document.getElementById('rotation-timing-display')) {
+    const control = document.createElement('label');
     control.className = 'rotation-size-control';
     control.htmlFor = 'rotation-timing-display';
     control.innerHTML = '<span>Display</span>';
-    const select = root.createElement('select');
+    const select = document.createElement('select');
     select.id = 'rotation-timing-display';
     select.innerHTML = '<option value="classic">Classic</option><option value="timings">Larger timings</option>';
     try {
       select.value =
-        root.defaultView?.localStorage.getItem(TIMING_DISPLAY_STORAGE_KEY) === 'timings' ? 'timings' : 'classic';
+        document.defaultView?.localStorage.getItem(TIMING_DISPLAY_STORAGE_KEY) === 'timings' ? 'timings' : 'classic';
     } catch {
       // Keep the classic default when browser storage is unavailable.
     }
@@ -168,13 +169,13 @@ export function mountRotationTimelineSize(root: Document = document): void {
     select.addEventListener('change', () => {
       panel.dataset.timingDisplay = select.value;
       try {
-        root.defaultView?.localStorage.setItem(TIMING_DISPLAY_STORAGE_KEY, select.value);
+        document.defaultView?.localStorage.setItem(TIMING_DISPLAY_STORAGE_KEY, select.value);
       } catch {
         // The display still changes when browser storage is unavailable.
       }
     });
     control.append(select);
-    root.getElementById('rotation-timeline-size')?.closest('label')?.after(control);
+    document.getElementById('rotation-timeline-size')?.closest('label')?.after(control);
   }
 }
 

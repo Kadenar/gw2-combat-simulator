@@ -145,10 +145,6 @@ function assertOptionalCallback(container: object, name: string, scope: string):
   }
 }
 
-function assertCallbackContainer(container: object, names: readonly string[], scope: string): void {
-  for (const name of names) assertOptionalCallback(container, name, scope);
-}
-
 /**
  * Creates immutable state and modifier capabilities with stable defaults.
  * Executable resource policies are validated separately with the runtime hooks.
@@ -163,7 +159,8 @@ export function defineProfession<TProfessionState extends object, TSkill extends
   assertModifierDefinition(modifiers);
   // Compile even empty declarations so equipment always participates exactly once in the damage bucket.
   const compiled = compileGw2ModifierRules(modifiers.modifierRules ?? [], modifiers.damageBuckets);
-  assertCallbackContainer(resources, ['createState', 'projectPlanningState'], 'resources');
+  // Resource state callbacks are optional, but any declared owner must be callable.
+  for (const name of ['createState', 'projectPlanningState']) assertOptionalCallback(resources, name, 'resources');
   const composedHooks: DynamicFields = {};
   for (const name of MODIFIER_HOOK_NAMES) {
     const source = modifiers[name];

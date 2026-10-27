@@ -1,8 +1,6 @@
 /** Owns the simulator page's rotation workspace layout, focus mode, and live DPS strip. */
 import { trackEmbeddedViewport } from '#browser/page/embed.js';
 
-export type RotationWorkspaceAction = 'toggle-focus';
-
 export type RotationWorkspaceState = Readonly<{
   focus: boolean;
 }>;
@@ -42,12 +40,9 @@ export function enterRotationFocus(): void {
   applyWorkspaceState(controller, { focus: true });
 }
 
-export function reduceRotationWorkspaceState(
-  state: RotationWorkspaceState,
-  action: RotationWorkspaceAction
-): RotationWorkspaceState {
-  // Settings use a native disclosure; only full-screen focus needs shared workspace state.
-  return action === 'toggle-focus' ? { focus: !state.focus } : state;
+/** Toggle workspace focus independently of the native settings disclosure. */
+export function toggleRotationFocusState(state: RotationWorkspaceState): RotationWorkspaceState {
+  return { focus: !state.focus };
 }
 
 function applyWorkspaceState(controller: RotationWorkspaceController, state: RotationWorkspaceState): void {
@@ -147,34 +142,34 @@ export function mountRotationDpsSummary(root: Document, rotationPanel: HTMLEleme
 }
 
 /** Mounts the rotation builder while native inline settings remain available in normal and focus modes. */
-export function mountRotationWorkspace(root: Document = document): void {
-  if (controllers.has(root)) return;
+export function mountRotationWorkspace(): void {
+  if (controllers.has(document)) return;
 
-  const workspace = root.querySelector<HTMLElement>('.simulation-workspace');
+  const workspace = document.querySelector<HTMLElement>('.simulation-workspace');
   const rotationHeading = workspace?.querySelector<HTMLElement>('.rotation-panel > h3');
   const rotationPanel = rotationHeading?.closest<HTMLElement>('.rotation-panel');
   const rotationSection = rotationPanel?.closest<HTMLElement>('.rotation-section');
 
-  if (!root.body || !workspace || !rotationHeading || !rotationPanel || !rotationSection) return;
+  if (!document.body || !workspace || !rotationHeading || !rotationPanel || !rotationSection) return;
 
-  const panelShell = root.createElement('div');
+  const panelShell = document.createElement('div');
   panelShell.className = 'rotation-panel-shell';
   rotationPanel.before(panelShell);
   panelShell.append(rotationPanel);
-  mountRotationDpsSummary(root, rotationPanel);
+  mountRotationDpsSummary(document, rotationPanel);
 
-  const focusButton = mountRotationHeading(root, rotationHeading);
+  const focusButton = mountRotationHeading(document, rotationHeading);
 
   const controller: RotationWorkspaceController = {
-    document: root,
+    document,
     focusButton,
     rotationSection,
     state: DEFAULT_ROTATION_WORKSPACE_STATE
   };
-  controllers.set(root, controller);
+  controllers.set(document, controller);
   applyWorkspaceState(controller, controller.state);
 
   focusButton.addEventListener('click', () => {
-    applyWorkspaceState(controller, reduceRotationWorkspaceState(controller.state, 'toggle-focus'));
+    applyWorkspaceState(controller, toggleRotationFocusState(controller.state));
   });
 }

@@ -18,7 +18,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { latestGuardianTimedBuff } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { latestRadiantArmaments } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -139,10 +139,10 @@ const radiantArmaments = defineTrait({
       operation: 'damage-additive',
       amount: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_ARMAMENTS, 'damageIncrease'),
       when: (context) => {
-        const armament = latestGuardianTimedBuff(context, 'guardian-radiant-armaments');
+        const armament = latestRadiantArmaments(context);
         // The buff is emitted for every radiant weapon, but the +7% bonus is
         // exclusive to the hammer (Dazzling Hammer). The shared effect-clock expiry check is
-        // necessary because latestGuardianTimedBuff returns the most-recently
+        // necessary because latestRadiantArmaments returns the most-recently
         // applied record regardless of whether it has expired.
         return (
           armament?.metadata?.radiantWeapon === 'hammer' &&

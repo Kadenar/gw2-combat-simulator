@@ -59,7 +59,6 @@ const EFFECT_FIELDS = new Set([
   'packetLabel',
   'damageBreakdownName',
   'phantasmEntityIndex',
-  'requiredTrait',
   'source',
   'sourceId',
   'actorType',

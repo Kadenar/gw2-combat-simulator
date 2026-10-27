@@ -148,8 +148,6 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
   }
 
   for (const effect of effects) {
-    if (effect.requiredTrait != null && !hasTrait(runtime, Number(effect.requiredTrait))) continue;
-
     if (effect.type === 'condition')
       applySelfCondition(
         runtime,

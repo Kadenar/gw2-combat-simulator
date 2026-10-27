@@ -5,15 +5,15 @@ import { mountHeaderDps, updateHeaderDps } from '#browser/shell/header-dps.js';
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
   mountRotationDpsSummary,
-  reduceRotationWorkspaceState
+  toggleRotationFocusState
 } from '#browser/shell/rotation-workspace.js';
 
 // Inline settings own their native disclosure state independently of full-screen focus.
 test('rotation workspace toggles focus independently of simulation settings', () => {
   assert.deepEqual(DEFAULT_ROTATION_WORKSPACE_STATE, { focus: false });
-  const focused = reduceRotationWorkspaceState(DEFAULT_ROTATION_WORKSPACE_STATE, 'toggle-focus');
+  const focused = toggleRotationFocusState(DEFAULT_ROTATION_WORKSPACE_STATE);
   assert.deepEqual(focused, { focus: true });
-  assert.deepEqual(reduceRotationWorkspaceState(focused, 'toggle-focus'), { focus: false });
+  assert.deepEqual(toggleRotationFocusState(focused), { focus: false });
 });
 
 test('rotation DPS summary mounts directly after the timeline', () => {
