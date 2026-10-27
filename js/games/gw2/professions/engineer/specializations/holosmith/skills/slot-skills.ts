@@ -30,6 +30,9 @@ import type {
   HolosmithSkillFragment
 } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
+// Seconds from Launch Wall's heat event to its walls' shared impact.
+const LAUNCH_WALL_IMPACT_DELAY = 0.48;
+
 /** Supplies Holosmith slot-skill fragments to Holosmith module composition. */
 export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.COOLANT_BLAST]: {
@@ -50,7 +53,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     highStrikeFactor: 1,
     basePacketCount: 1,
     highPacketCount: 3,
-    initialDelay: 0.48,
     enhancedStrikeFactor: 1.35,
     cooldown: 0.5,
     requiresArmedFlip: true,
@@ -397,7 +399,7 @@ function handleLaunchWall(context: EngineerResolverContext, event: HolosmithReso
   const tier = holosmithHeatTier(snapshot, context);
   const skill = requireSkillFromContext(context, ID.LAUNCH_WALL);
   const walls = Math.max(0, Math.trunc(skillNumber(skill, tier === 'base' ? 'basePacketCount' : 'highPacketCount')));
-  const at = event.at + Math.max(0, skillNumber(skill, 'initialDelay'));
+  const at = event.at + LAUNCH_WALL_IMPACT_DELAY;
   const strikeFactor = holosmithSkillStrikeFactor(context, ID.LAUNCH_WALL, snapshot);
   const strike = requireEffect(skill, 'strike', 'Launch Wall Heat Tier', requireSkillAction(skill, 'heat-payload'));
   const condition = requireEffect(

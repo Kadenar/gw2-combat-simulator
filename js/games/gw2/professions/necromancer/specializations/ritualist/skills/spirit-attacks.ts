@@ -8,8 +8,6 @@ export const painfulBondSkill: Skill = {
   type: 'Proc',
   simulatorExcluded: true,
   pulseInterval: 1,
-  // Preserve the existing first-pulse offset without changing duration stacking or cadence.
-  initialDelay: 0.004,
   icon: 'https://render.guildwars2.com/file/9CA8D4479BEE9A28C810CCB0E234BAC7712104A0/3680170.png',
   effects: [
     {

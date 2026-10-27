@@ -36,6 +36,9 @@ import type {
 // Only these sword autoattacks use the shared default heat factors.
 const swordHeatFactors = { highStrikeFactor: 1.2, enhancedStrikeFactor: 1.3 };
 
+// Seconds from Refraction Cutter's heat event to its extra blades' impact.
+const REFRACTION_CUTTER_BLADE_DELAY = 0.36;
+
 /** Supplies Holosmith sword fragments to Holosmith module composition. */
 export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.SUN_EDGE]: {
@@ -137,7 +140,6 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     baseExtraBlades: 0,
     highExtraBlades: 2,
     enhancedExtraBlades: 4,
-    initialDelay: 0.36,
     cooldown: 6,
 
     castTimeMs: 520,
@@ -266,7 +268,6 @@ function handleRadiantArcQuickness(context: EngineerResolverContext, event: Holo
 function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   const extraBlades = Math.max(0, Math.trunc(holosmithEventMetadata(event).extraBlades || 0));
   const skill = requireSkillFromContext(context, ID.REFRACTION_CUTTER);
-  const delay = Math.max(0, skillNumber(skill, 'initialDelay'));
   const strike = requireEffect(
     skill,
     'strike',
@@ -276,7 +277,7 @@ function handleRefractionCutterExtraBlades(context: EngineerResolverContext, eve
   const condition = requireEffect(skill, 'condition', CONDITION.BLEEDING, requireSkillAction(skill, 'heat-payload'));
   // Materialize each extra blade independently so its strike can own a matching combo attempt and bleed.
   for (let blade = 0; blade < extraBlades; blade += 1) {
-    const at = event.at + delay;
+    const at = event.at + REFRACTION_CUTTER_BLADE_DELAY;
 
     if (strike) {
       context.effects.emit({

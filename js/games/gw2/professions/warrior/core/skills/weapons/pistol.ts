@@ -1,9 +1,13 @@
 import { WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { skillNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+
+// Dragon's Roar bullets land at fixed fractions of its cast: the first at 6/7, then one every 2/7.
+const DRAGONS_ROAR_FIRST_PACKET_RATIO = 6 / 7;
+const DRAGONS_ROAR_PACKET_INTERVAL_RATIO = 2 / 7;
 
 export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.GUNSTINGER]: {
@@ -45,10 +49,8 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Par
     cooldown: 5,
     ammoCastLockout: 1,
     castTimeMs: 560,
-    // The selected magazine packet expands only after ammunition has been captured.
-    firstPacketRatio: 6 / 7,
-    packetIntervalRatio: 2 / 7,
     effects: [{ name: 'Strike', type: 'strike', coefficient: 0.75, hits: 1 }],
+    // The selected magazine packet expands only after ammunition has been captured.
     effectVariants: [
       {
         when: () => true,
@@ -60,8 +62,8 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Par
           if (!strike) return [];
 
           const durationMs = (cast.effectiveEnd - cast.start) * 1000;
-          const first = durationMs * skillNumber(profile, 'firstPacketRatio');
-          const interval = durationMs * skillNumber(profile, 'packetIntervalRatio');
+          const first = durationMs * DRAGONS_ROAR_FIRST_PACKET_RATIO;
+          const interval = durationMs * DRAGONS_ROAR_PACKET_INTERVAL_RATIO;
           return [
             {
               type: 'strike',

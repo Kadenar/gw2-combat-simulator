@@ -36,7 +36,7 @@ export interface RitualistState {
   resummonedSpiritAutoCycle: boolean;
   weaponSpells: Record<string, NecromancerWeaponSpellState>;
   soulTwistingAvailable: boolean;
-  painfulBondPulseAnchorAt: number;
+  painfulBondLastPulseAt: number;
 }
 
 /** Declares Ritualist's public fields and missing-state defaults, used only when Ritualist is selected. */
@@ -69,8 +69,8 @@ function createRitualistState(): RitualistState {
     resummonedSpiritAutoCycle: false,
     weaponSpells: {},
     soulTwistingAvailable: false,
-    // NaN signals "no pulse scheduled yet"; first apply event sets the anchor
-    painfulBondPulseAnchorAt: Number.NaN
+    // NaN signals "no scheduled pulse emitted yet"; the next application pulses immediately.
+    painfulBondLastPulseAt: Number.NaN
   };
   return state;
 }

@@ -9,14 +9,16 @@ export const NECROMANCER_CORE_SKILL_FIELDS = defineSkillFields(
     minionCount: numberField({ patch: 'primary' }),
     pulseInterval: numberField({ unit: 'seconds', patch: 'advanced' }),
     lifeForceGain: numberField({ patch: 'primary' }),
-    openingAttackWindupMs: numberField({ unit: 'milliseconds', patch: 'advanced' }),
-    commandRecoveryDelayMs: numberField({ unit: 'milliseconds', patch: 'advanced' }),
+    // Minion attack timings are measured actor behavior, not patch-note values, so patches cannot edit them.
+    openingAttackWindupMs: numberField({ unit: 'milliseconds' }),
+    commandRecoveryDelayMs: numberField({ unit: 'milliseconds' }),
     basePower: numberField({ patch: 'primary' }),
     weaponStrength: numberField({ patch: 'primary' }),
     damagePerCoefficient: numberField({ patch: 'primary' }),
     criticalChance: numberField({ patch: 'primary' }),
     criticalDamage: numberField({ patch: 'primary' }),
-    alternateEvery: numberField({ patch: 'primary' }),
+    // Every Nth autonomous attack uses the alternate packets; an attack-cycle internal that authoring never shows.
+    alternateEvery: numberField({ runtimeOnly: true }),
     // Core Dhuumfire reads skill-owned duration overrides from Harbinger and Scourge.
     dhuumfireDuration: numberField({ patch: 'primary', unit: 'seconds' }),
     // Shroud entries explicitly select skill-owned Core tuning or elite minor-trait tuning.
@@ -37,8 +39,8 @@ export const NECROMANCER_CORE_SKILL_FIELDS = defineSkillFields(
     rechargeOnMinionDeath: dataField,
     // Lifetime in seconds of the summoned minion.
     summonDuration: numberField(),
-    // Seconds between summoned minion attacks.
-    summonInterval: numberField({ unit: 'seconds', patch: 'advanced' }),
+    // Seconds between summoned minion attacks; measured actor timing, not patchable.
+    summonInterval: numberField({ unit: 'seconds' }),
     // Conditions moved from the player to the target.
     conditionsTransferred: numberField({ patch: 'primary' }),
     // Cap on conditions consumed or transferred by the skill.

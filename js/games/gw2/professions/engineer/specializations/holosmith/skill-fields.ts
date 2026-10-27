@@ -11,7 +11,6 @@ export const HOLOSMITH_SKILL_FIELDS = defineSkillFields(
     basePacketCount: numberField({ patch: 'primary' }),
     highPacketCount: numberField({ patch: 'primary' }),
     packetInterval: numberField({ patch: 'primary', unit: 'seconds' }),
-    initialDelay: numberField({ patch: 'primary', unit: 'seconds' }),
     packetCount: numberField({ patch: 'primary' }),
     enhancedConditionBaseDurationFactor: numberField({ patch: 'primary' }),
     highDuration: numberField({ patch: 'primary', unit: 'seconds' }),

@@ -11,10 +11,8 @@ import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
 const EFFECT_RUNTIME_ONLY_NUMERIC_FIELDS = [
   'alternateEvery',
   'atMs',
-  'firstPacketRatio',
   'initialDelay',
   'interruptCommitMs',
-  'packetIntervalRatio',
   'quicknessCastMultiplier'
 ];
 

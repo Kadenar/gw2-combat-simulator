@@ -79,16 +79,13 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
 
   if (!(interval > 0)) return;
 
-  const firstApplication = !Number.isFinite(state.painfulBondPulseAnchorAt);
-
-  if (firstApplication)
-    state.painfulBondPulseAnchorAt = canonicalTime(runtime.time + skillNumber(profile, 'initialDelay'));
-
-  // At an existing cadence boundary its prior pulse has already settled before this new ordinary application.
-  const index = firstApplication
-    ? 0
-    : Math.max(0, Math.floor(canonicalTime(runtime.time - state.painfulBondPulseAnchorAt) / interval) + 1);
-  const at = canonicalTime(state.painfulBondPulseAnchorAt + index * interval);
+  // The first pulse lands with the first application, which Anguish delivers with its first summon strike. Later
+  // applications resume the last pulse's cadence at the first boundary not yet pulsed, so a boundary shared with this
+  // application pulses exactly once whichever of the two settles first.
+  const last = state.painfulBondLastPulseAt;
+  const at = Number.isFinite(last)
+    ? canonicalTime(last + Math.max(1, Math.ceil(canonicalTime(runtime.time - last) / interval)) * interval)
+    : runtime.time;
 
   if (requireEffect(profile, 'strike', 'Strike') && at < bondExpiresAt(runtime))
     runtime.schedule(BOND, at, event, identity);
@@ -226,6 +223,8 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
       const profile = requireSkillFromContext(runtime, painfulBondSkill.id);
       const strike = requireEffect(profile, 'strike', 'Strike');
       emitPainfulBond(runtime, data as Gw2ResolverEvent);
+      // Only scheduled pulses define the cadence; trait-triggered Bond damage does not.
+      state.painfulBondLastPulseAt = runtime.time;
       const at = canonicalTime(runtime.time + skillNumber(profile, 'pulseInterval'));
 
       if (strike && at > runtime.time && at < bondExpiresAt(runtime))

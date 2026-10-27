@@ -166,8 +166,8 @@
           "benchmarkDps": 40599,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 41032, "phase": 41032 },
-            "80-60": { "cumulative": 37437, "phase": 34445 },
-            "60-40": { "cumulative": 38852, "phase": 42090 },
+            "80-60": { "cumulative": 37477, "phase": 34518 },
+            "60-40": { "cumulative": 38852, "phase": 41999 },
             "40-20": { "cumulative": 39697, "phase": 42484 },
             "20-0": { "cumulative": 40599, "phase": 40599 }
           }

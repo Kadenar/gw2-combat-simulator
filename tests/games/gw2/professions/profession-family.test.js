@@ -609,7 +609,7 @@ const inactiveStateKeys = Object.freeze({
     'resummonedSpiritAutoCycle',
     'weaponSpells',
     'soulTwistingAvailable',
-    'painfulBondPulseAnchorAt'
+    'painfulBondLastPulseAt'
   ]
 });
 

@@ -10,8 +10,6 @@ export const WARRIOR_CORE_SKILL_FIELDS = defineSkillFields(
     activeAttributeBonus: numberField({ patch: 'primary' }),
     pulseInterval: numberField({ unit: 'seconds', patch: 'primary' }),
     durationPerTier: numberField({ unit: 'seconds', patch: 'primary' }),
-    firstPacketRatio: numberField({ patch: 'advanced' }),
-    packetIntervalRatio: numberField({ patch: 'advanced' }),
     // Adrenaline spent by the skill.
     adrenalineCost: numberField()
   },

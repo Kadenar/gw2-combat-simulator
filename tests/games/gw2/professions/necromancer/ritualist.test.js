@@ -70,22 +70,10 @@ test('Ritualist opening conditions use selected profiles independently of their 
 // The same compiled native family supplies the live state, traits, and selected effect-removal profiles.
 function run(
   rotation,
-  { config = base, events = [], balanceProfiles = {}, skills = {}, output, combatStartTime, bondInitialDelay } = {}
+  { config = base, events = [], balanceProfiles = {}, skills = {}, output, combatStartTime } = {}
 ) {
   const native = necromancerProfession.runtimeFor(config);
-  let catalog = applySkillPatch(applyBalanceProfilePatch(native.catalog, { balanceProfiles }), { skills });
-
-  // Timing is not a user patch field; this fixture also exercises the runtime's valid zero-delay profile contract.
-  if (bondInitialDelay != null) {
-    const skills = catalog.skills.map((skill) =>
-      skill.id === painfulBondSkill.id ? { ...skill, initialDelay: bondInitialDelay } : skill
-    );
-    catalog = {
-      ...catalog,
-      skills,
-      skillsById: new Map(skills.map((skill) => [skill.id, skill]))
-    };
-  }
+  const catalog = applySkillPatch(applyBalanceProfilePatch(native.catalog, { balanceProfiles }), { skills });
 
   return observeGw2Runtime({
     profession: {
@@ -366,27 +354,21 @@ test('Painful Bond duration stacks without duplicate pulses and preserves cadenc
   const result = run([wait(4100)], { events: [bond(0, 1), bond(0.5, 1), bond(3, 1)] });
   assert.deepEqual(
     bondDamage(result).map((event) => event.at),
-    [0.004, 1.004, 3.004]
+    [0, 1, 3]
   );
   assert.ok(
     observedRuntime(result).combat.activeBuffStacks('necromancer-painful-bond', observedRuntime(result).time, 1) === 0
   );
-  assert.equal(state(result).painfulBondPulseAnchorAt, 0.004);
-  const boundary = run([wait(2100)], {
-    events: [bond(0, 1), bond(1, 1)],
-    bondInitialDelay: 0
-  });
+  assert.equal(state(result).painfulBondLastPulseAt, 3);
+  // A reapplication on the boundary an active chain pulses at must not pulse twice at that instant.
+  const boundary = run([wait(3100)], { events: [bond(0, 2), bond(1, 1)] });
   assert.deepEqual(
     bondDamage(boundary).map((event) => event.at),
-    [0]
+    [0, 1, 2]
   );
 });
 
-test('Painful Bond honors a zero initial delay, removed output, target gates, and the observation end', () => {
-  assert.deepEqual(
-    bondDamage(run([wait(1500)], { events: [bond(0, 2)], bondInitialDelay: 0 })).map((event) => event.at),
-    [0, 1]
-  );
+test('Painful Bond honors removed output, target gates, and the observation end', () => {
   assert.equal(
     run([wait(2000)], {
       events: [bond(0, 1)],
