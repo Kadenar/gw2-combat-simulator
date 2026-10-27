@@ -3,7 +3,6 @@ import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  fromProfile,
   tooltipFactorChange,
   tooltipSeconds,
   skillTooltip,
@@ -18,7 +17,6 @@ import {
   fromSkill,
   skillFact
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -118,7 +116,7 @@ const thievesGuildTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
 
 const kneelTooltip: DescribeSimulationTooltip = skillTooltip(
   'Kneel to replace rifle skills with their kneeling variants and increase initiative regeneration. Free Action or swapping weapons ends Kneel.',
-  [fromProfile(CORE.resources, 'kneelingInitiativeRegenerationBonus', 'Additional initiative per second')]
+  [fromSkill(ID.KNEEL, 'kneelingInitiativeRegenerationBonus', 'Additional initiative per second')]
 );
 
 const freeActionTooltip: DescribeSimulationTooltip = skillTooltip(

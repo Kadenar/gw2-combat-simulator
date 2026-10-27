@@ -10,7 +10,6 @@ export const THIEF_CORE_BALANCE_PROFILES: readonly BalanceProfile[] = Object.fre
     profileKind: 'mechanic',
     maximumStacks: 12,
     resourceGain: 1,
-    kneelingInitiativeRegenerationBonus: 1 / 3,
     effects: []
   }
 ]);

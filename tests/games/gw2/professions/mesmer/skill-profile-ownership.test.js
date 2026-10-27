@@ -10,7 +10,7 @@ import { mesmerSelectedAmbush } from '#gw2/professions/mesmer/specializations/mi
 import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
-// Intrinsic skills have one patch owner; only shared clone and mirror policy remains outside skills and traits.
+// Intrinsic skills have one patch owner; only shared clone policy remains outside skills and traits.
 test('Mesmer catalog removes skill profiles and assigns intrinsic specialization policy to traits', () => {
   assert.deepEqual(
     mesmerCatalog.balanceProfiles.filter((profile) => profile.profileKind === 'skill-variant'),
@@ -21,7 +21,7 @@ test('Mesmer catalog removes skill profiles and assigns intrinsic specialization
       .filter((profile) => profile.profileKind === 'mechanic')
       .map(({ id }) => id)
       .sort(),
-    ['mesmer.core.resources', 'mesmer.mirage.mechanics']
+    ['mesmer.core.resources']
   );
   for (const id of [TRAIT.PSYCHIC_BLADES, TRAIT.WANDERING_MINSTREL, TRAIT.MIRAGE_CLOAK])
     assert.equal(mesmerCatalog.balanceProfilesById.get(id).profileKind, 'trait');

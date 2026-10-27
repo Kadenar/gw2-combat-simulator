@@ -417,7 +417,7 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     cooldown: 10,
     specialization: 'Ritualist',
     shroudEntry: 'ritualist',
-    shroudProfileId: TRAIT.SPAWNING_POWER,
+    shroudTuning: { kind: 'trait', id: TRAIT.SPAWNING_POWER },
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap',

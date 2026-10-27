@@ -1,10 +1,4 @@
-import {
-  balanceNumberFromContext,
-  requireSkillFromContext,
-  skillNumber,
-  effectNumber
-} from '#gw2/platform/skills/balance-profiles.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
+import { requireSkillFromContext, skillNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -19,7 +13,6 @@ export interface MinionAttack {
   readonly castTimeMs?: number;
   readonly skillId?: SkillId;
   readonly icon?: string;
-  readonly weaponStrength?: number;
   readonly damagePerCoefficient?: number;
   readonly comboFinishers?: SkillEffect['comboFinishers'];
   readonly condition?: readonly (string | number)[];
@@ -33,7 +26,7 @@ export interface MinionDefinition {
   /** Time from engaging an in-range target to the first impact, independent of repeat cadence. */
   readonly openingAttackWindupMs: number;
   readonly commandId?: SkillId;
-  readonly weaponStrength?: number;
+  readonly weaponStrength: number;
   readonly basePower?: number;
   readonly damagePerCoefficient?: number;
   readonly criticalChance?: number;
@@ -105,7 +98,7 @@ export function minionDefinitionForSkill(context: unknown, skillId: SkillId): Mi
     interval: skillNumber(profile, 'pulseInterval'),
     openingAttackWindupMs: skillNumber(profile, 'openingAttackWindupMs'),
     commandId: profile.commandId as SkillId | undefined,
-    weaponStrength: profile.weaponStrength == null ? undefined : skillNumber(profile, 'weaponStrength'),
+    weaponStrength: skillNumber(profile, 'weaponStrength'),
     basePower: skillNumber(profile, 'basePower'),
     damagePerCoefficient: skillNumber(profile, 'damagePerCoefficient'),
     criticalChance: skillNumber(profile, 'criticalChance'),
@@ -127,10 +120,6 @@ export function minionDefinitionFor(context: unknown, key: string): MinionDefini
   }
 
   return undefined;
-}
-
-export function summonWeaponStrength(context: unknown): number {
-  return balanceNumberFromContext(context, PROFILE.summonAttributes, 'weaponStrength');
 }
 
 /** Compiles a command skill's declarative packets into its command payload. */

@@ -2,11 +2,10 @@ import { RECIPIENT } from '#gw2/platform/constants.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/necromancer/core/profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 /**
  * Shared live Carapace, Soul Shard, and creature-summon operations.
@@ -19,12 +18,9 @@ import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necr
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
 
-/** The selected profile owns whole-stack capacity for both combat grants and presentation. */
+/** The selected canonical siphon owns whole-stack capacity for both combat grants and presentation. */
 export function necromancerSoulShardMaximum(context: unknown): number {
-  return Math.max(
-    0,
-    Math.trunc(balanceNumberFromContext(context, NECROMANCER_CORE_BALANCE_PROFILE_IDS.soulShards, 'maximumStacks'))
-  );
+  return Math.max(0, Math.trunc(skillNumberFromContext(context, ID.SOUL_SHARDS, 'maximumStacks')));
 }
 
 /** Returns stable identities for minions eligible to receive shared effects. */

@@ -15,7 +15,6 @@ import {
   commandDefinitionFor,
   minionDefinitionFor,
   minionDefinitionForSkill,
-  summonWeaponStrength,
   type MinionAttack,
   type MinionDefinition
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
@@ -176,7 +175,7 @@ function emitAttack(
         comboFinishers: attack.comboFinishers,
         skillWeapon: 'Unequipped',
         canCrit: true,
-        weaponStrength: attack.weaponStrength ?? definition.weaponStrength ?? summonWeaponStrength(runtime),
+        weaponStrength: definition.weaponStrength,
         summonBasePower: definition.basePower,
         summonDamagePerCoefficient: attack.damagePerCoefficient ?? definition.damagePerCoefficient,
         summonCriticalChance: definition.criticalChance,

@@ -176,6 +176,7 @@ test('precast autoattack axes survive build loading and initialize a recallable 
   assert.deepEqual(core.spinningAxes, Array(4).fill({ skillId: ID.SPINNING_AXE, expiresAt: Infinity }));
   assert.equal(initial.events.filter((event) => event.type === 'damage').length, 0);
   const control = resourceDisplayViews(profession, {
+    catalog: profession.catalog,
     build,
     config,
     professionState: initial.planningState.profession

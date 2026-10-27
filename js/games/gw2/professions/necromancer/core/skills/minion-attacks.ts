@@ -23,6 +23,8 @@ export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze(
       openingAttackWindupMs: 880,
       // Measured animation plus fixed idle time; only the animation benefits from received Quickness.
       pulseInterval: 3.16,
+      // Each minion owns its strike attributes in the selected attack skill.
+      weaponStrength: 1048,
       basePower: 2400,
       damagePerCoefficient: 4338,
       criticalChance: 0.05,
@@ -53,6 +55,8 @@ export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze(
       openingAttackWindupMs: 3080,
       pulseInterval: 3.08,
       commandRecoveryDelayMs: 2120,
+      // Each minion owns its strike attributes in the selected attack skill.
+      weaponStrength: 1048,
       basePower: 1500,
       damagePerCoefficient: 1430,
       criticalChance: 0.05,
@@ -142,6 +146,8 @@ export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze(
       // Both minions share the measured windup even when they reach the target at different times.
       openingAttackWindupMs: 720,
       pulseInterval: 3.56,
+      // Each minion owns its strike attributes in the selected attack skill.
+      weaponStrength: 1048,
       basePower: 2250,
       damagePerCoefficient: 4750,
       criticalChance: 0.05,
@@ -172,6 +178,8 @@ export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze(
       openingAttackWindupMs: 1760,
       pulseInterval: 1.76,
       commandRecoveryDelayMs: 3580,
+      // Each minion owns its strike attributes in the selected attack skill.
+      weaponStrength: 1048,
       basePower: 1700,
       damagePerCoefficient: 1750,
       criticalChance: 0.05,
@@ -201,6 +209,8 @@ export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze(
       // Only the first Slash's windup gates engagement; the existing three-hit chain remains unchanged.
       openingAttackWindupMs: 320,
       pulseInterval: 4,
+      // Each minion owns its strike attributes in the selected attack skill.
+      weaponStrength: 1048,
       basePower: 2500,
       damagePerCoefficient: 3744,
       criticalChance: 0.05,

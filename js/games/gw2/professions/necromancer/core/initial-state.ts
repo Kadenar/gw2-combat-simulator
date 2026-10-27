@@ -36,7 +36,6 @@ export function createNecromancerCoreState(
     activeShroud: '',
     activeShroudEntryId: null,
     activeShroudExitId: null,
-    activeShroudProfileId: '',
     soulShardGrant: grantCharges(0, 0),
     carapaceExpiries: [],
     activeMinions: {},

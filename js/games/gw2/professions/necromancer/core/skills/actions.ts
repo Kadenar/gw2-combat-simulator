@@ -12,6 +12,10 @@ const extraSkills: Skill[] = [
   // Consumed shards invoke this canonical payload without adding a player activation.
   {
     id: ID.SOUL_SHARDS,
+    // The canonical siphon owns charge capacity and its target-health damage bonus.
+    maximumStacks: 6,
+    threshold: 0.5,
+    damageMultiplier: 1.5,
     name: 'Soul Shards',
     type: 'Proc',
     simulatorExcluded: true,

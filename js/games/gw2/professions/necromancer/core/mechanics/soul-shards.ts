@@ -5,9 +5,8 @@ import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
-  balanceProfileNumber,
+  skillNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
   requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -16,7 +15,6 @@ import {
   consumeSoulShards,
   necromancerSoulShardMaximum
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
@@ -42,7 +40,6 @@ export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent):
 
 /** One shard's payload is shared with the conditional calculator. */
 export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.soulShards);
   const skill = requireSkillFromContext(runtime, ID.SOUL_SHARDS);
   const strike = requireEffect(skill, 'strike', 'Soul Shards');
 
@@ -67,8 +64,8 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
       flatStrikeBase: effectNumber(skill, strike, 'flatStrikeBase'),
       flatStrikePowerCoeff: effectNumber(skill, strike, 'flatStrikePowerCoeff'),
       flatStrikeMultiplier: soulBarbsSiphonMultiplier(runtime),
-      flatStrikeHealthThreshold: balanceProfileNumber(profile, 'threshold'),
-      flatStrikeThresholdMultiplier: balanceProfileNumber(profile, 'damageMultiplier'),
+      flatStrikeHealthThreshold: skillNumber(skill, 'threshold'),
+      flatStrikeThresholdMultiplier: skillNumber(skill, 'damageMultiplier'),
       canCrit: strike.canCrit !== false,
       damageKind: strike.damageKind || ''
     })

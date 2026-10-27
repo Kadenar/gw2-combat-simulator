@@ -6,7 +6,7 @@ export const MIRAGE_SKILL_FIELDS = defineSkillFields(
     // Clone this skill summons.
     clone: dataField,
     // Payload a mirror replays for this skill.
-    mirrorPayload: dataField,
+    mirrorPayloadSkillId: dataField,
     // Ambush payload applied by the player's own attack.
     player: dataField,
     // Identifies the separately removable Vulnerability template on the skill.

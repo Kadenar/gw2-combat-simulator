@@ -4,7 +4,6 @@ import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/in
 import { ghastlyClawsVulnerabilityModifier } from '#gw2/professions/necromancer/core/skills/weapons/axe.js';
 import { lifeSiphonBleedingModifier } from '#gw2/professions/necromancer/core/skills/weapons/dagger.js';
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
-import { NECROMANCER_CORE_BALANCE_PROFILES } from '#gw2/professions/necromancer/core/profiles.js';
 import { necromancerPassiveAttributes } from '#gw2/professions/necromancer/core/skills/attribute-passives.js';
 import {
   NECROMANCER_CORE_BASE_SKILL_MECHANICS,
@@ -24,7 +23,6 @@ export const necromancerCoreModule = defineNativeModule({
     skillFields: NECROMANCER_CORE_SKILL_FIELDS,
     skillMechanics: NECROMANCER_CORE_BASE_SKILL_MECHANICS,
     extraSkills: NECROMANCER_CORE_EXTRA_SKILLS,
-    balanceProfiles: NECROMANCER_CORE_BALANCE_PROFILES,
     autoattackChains: {
       // The API does not link Echo to the omitted final step, so declare the complete in-game sequence explicitly.
       additional: [[ID.ENERVATION_BLADE, ID.ENERVATION_ECHO, ID.DEATHLY_ENERVATION]]

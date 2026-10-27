@@ -669,6 +669,20 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
 
 export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([
   ...Object.values(MESMER_MIRAGE_AMBUSH_SKILLS),
+  // One canonical mirror owns the shared ground lifetime and independently removable pickup rewards.
+  {
+    id: ID.MIRAGE_MIRROR_DAMAGE,
+    name: 'Mirage Mirror',
+    type: 'Proc',
+    specialization: 'Mirage',
+    simulatorExcluded: true,
+    castTimeMs: 0,
+    effects: [
+      { name: 'Strike', type: 'strike', coefficient: 0.6, hits: 1 },
+      { name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 },
+      { name: 'mirage-mirror', type: 'buff', kind: 'mirage-mirror', duration: 8, stacks: 1 }
+    ]
+  },
   {
     name: 'Dodge / Mirage Cloak',
     id: ID.DODGE_MIRAGE_CLOAK,
@@ -695,7 +709,7 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze(
   {
     name: 'Pick Up Mirage Mirror',
     id: ID.PICK_UP_MIRAGE_MIRROR,
-    mirrorPayload: { profileId: 'mesmer.mirage.mechanics', skillId: ID.MIRAGE_MIRROR_DAMAGE, name: 'Mirage Mirror' },
+    mirrorPayloadSkillId: ID.MIRAGE_MIRROR_DAMAGE,
     // Pickup is a movement mechanic, not an additional skill-bar key press.
     description: 'Pick up an available Mirage Mirror, damaging nearby enemies and gaining Mirage Cloak.',
     icon: 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
@@ -714,9 +728,3 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze(
     effects: []
   }
 ] satisfies readonly MesmerSkill[]);
-
-// Only a successful mirror pickup materializes this patchable intrinsic payload.
-export const MIRAGE_MIRROR_EFFECTS: readonly SkillEffect[] = [
-  { name: 'Strike', type: 'strike', coefficient: 0.6, hits: 1 },
-  { name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }
-];

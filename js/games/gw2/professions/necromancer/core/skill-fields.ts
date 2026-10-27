@@ -19,8 +19,12 @@ export const NECROMANCER_CORE_SKILL_FIELDS = defineSkillFields(
     alternateEvery: numberField({ patch: 'primary' }),
     // Core Dhuumfire reads skill-owned duration overrides from Harbinger and Scourge.
     dhuumfireDuration: numberField({ patch: 'primary', unit: 'seconds' }),
-    // Profile owning the shroud this skill enters.
-    shroudProfileId: dataField,
+    // Shroud entries explicitly select skill-owned Core tuning or elite minor-trait tuning.
+    shroudTuning: dataField,
+    lifeForceDrain: numberField({ patch: 'primary' }),
+    // Soul Shards checks target health, independently of the fixed full-health player.
+    threshold: numberField({ maximum: 1, patch: 'primary' }),
+    damageMultiplier: numberField({ patch: 'primary' }),
     // Shroud bar slot this skill occupies.
     shroudSlot: dataField,
     // Remains castable while a shroud is active.

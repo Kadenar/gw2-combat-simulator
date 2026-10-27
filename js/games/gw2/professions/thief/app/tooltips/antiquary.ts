@@ -19,7 +19,7 @@ import {
   skillFact,
   fromSkill
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as ANTIQUARY } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
+import { ANTIQUARY_ARTIFACT_WINDOWS } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-windows.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 
@@ -34,7 +34,7 @@ const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
     facts.push(
       kryptis
         ? skillFact(balanceContext, entity.id, 'duration', 'Effect window', tooltipSeconds)
-        : profileFact(balanceContext, ANTIQUARY.artifactWindows, 'duration', 'Effect window', tooltipSeconds),
+        : profileFact(balanceContext, ANTIQUARY_ARTIFACT_WINDOWS.id, 'duration', 'Effect window', tooltipSeconds),
       profileFact(
         balanceContext,
         TRAIT.METICULOUS_CUSTODIAN,

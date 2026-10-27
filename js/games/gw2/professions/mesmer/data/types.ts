@@ -96,7 +96,7 @@ export interface MesmerSkill
       | { readonly instrument: string; readonly minimumInstruments?: never }
       | { readonly instrument?: never; readonly minimumInstruments: number }
     );
-  readonly mirrorPayload?: { readonly profileId: string; readonly skillId: number; readonly name: string };
+  readonly mirrorPayloadSkillId?: number;
   readonly duration?: number;
   readonly phantasm?: boolean;
   readonly phantasmTiming?: Partial<

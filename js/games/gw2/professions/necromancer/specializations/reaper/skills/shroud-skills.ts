@@ -187,7 +187,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     cooldown: 10,
     specialization: 'Reaper',
     shroudEntry: 'reaper',
-    shroudProfileId: TRAIT.SHROUD_KNIGHT,
+    shroudTuning: { kind: 'trait', id: TRAIT.SHROUD_KNIGHT },
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap',

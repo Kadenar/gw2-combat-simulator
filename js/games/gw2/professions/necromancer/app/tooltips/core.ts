@@ -1,7 +1,6 @@
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
-  profileFact,
   skillFact,
   simulationEffectFacts,
   skillTooltip,
@@ -14,7 +13,6 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import {
   castLifeForceGrants,
   effectLifeForceGrants
@@ -91,16 +89,16 @@ const perforateTooltip: DescribeSimulationTooltip = skillTooltip(
   (balanceContext) => [
     ...simulationEffectFacts(requireSkillFromContext(balanceContext, ID.SOUL_SHARDS).effects, 'per Soul Shard consumed')
       .facts,
-    profileFact(
+    skillFact(
       balanceContext,
-      PROFILE.soulShards,
+      ID.SOUL_SHARDS,
       'threshold',
       'Soul Shard target health threshold',
       (value) => `${tooltipDecimal(value * 100)}%`
     ),
-    profileFact(
+    skillFact(
       balanceContext,
-      PROFILE.soulShards,
+      ID.SOUL_SHARDS,
       'damageMultiplier',
       'Soul Shard damage below threshold',
       tooltipFactorChange

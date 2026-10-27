@@ -3,7 +3,6 @@ import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-fo
 /** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
@@ -28,7 +27,9 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   [ID.DEATH_SHROUD]: {
     cooldown: 10,
     shroudEntry: 'death',
-    shroudProfileId: PROFILE.shroud,
+    // Core drain belongs to the entry skill; elite entries select their minor trait.
+    shroudTuning: { kind: 'skill', id: ID.DEATH_SHROUD },
+    lifeForceDrain: 3,
     minimumShroudLifeForcePercent: 10,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap',

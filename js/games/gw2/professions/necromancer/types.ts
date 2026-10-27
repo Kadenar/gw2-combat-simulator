@@ -66,7 +66,7 @@ export interface NecromancerSkill
   readonly shroud?: string;
   readonly shroudEntry?: string;
   readonly shroudExit?: string;
-  readonly shroudProfileId?: SkillId;
+  readonly shroudTuning?: { readonly kind: 'skill' | 'trait'; readonly id: SkillId };
   readonly usableInShroud?: boolean;
   readonly shroudSlot?: number;
   readonly slotSelectable?: boolean;

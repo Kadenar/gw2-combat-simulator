@@ -1,3 +1,4 @@
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import {
   fromProfile,
@@ -7,12 +8,10 @@ import {
   skillTooltip,
   profileFact,
   tooltipPercent,
-  tooltipProfile,
   simulationEffectFacts,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { MIRAGE_BALANCE_PROFILE_IDS as MIRAGE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
 import { mesmerSelectedAmbush } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -81,7 +80,9 @@ export const mirageTooltips = {
           "Create a Mirage Mirror after this skill's mirror delay. Pick up the mirror before it expires to strike, weaken the target, and gain Mirage Cloak.",
           (balanceContext, entity) => [
             ...simulationEffectFacts(
-              tooltipProfile(balanceContext, MIRAGE.mechanics).effects?.filter((effect) => effect.type === 'buff'),
+              requireSkillFromContext(balanceContext, ID.MIRAGE_MIRROR_DAMAGE).effects?.filter(
+                (effect) => effect.type === 'buff'
+              ),
               'mirror pickup window'
             ).facts,
             ...((entity as MesmerSkill).tasks || [])
@@ -108,7 +109,9 @@ export const mirageTooltips = {
         'Consume an available, unexpired Mirage Mirror to strike, weaken your target, and gain Mirage Cloak. Picking up a mirror opens the ambush window and triggers cloak traits.',
       facts: [
         ...simulationEffectFacts(
-          tooltipProfile(balanceContext, MIRAGE.mechanics).effects?.filter((effect) => effect.type !== 'buff')
+          requireSkillFromContext(balanceContext, ID.MIRAGE_MIRROR_DAMAGE).effects?.filter(
+            (effect) => effect.type !== 'buff'
+          )
         ).facts,
         ...cloakFacts(balanceContext)
       ]

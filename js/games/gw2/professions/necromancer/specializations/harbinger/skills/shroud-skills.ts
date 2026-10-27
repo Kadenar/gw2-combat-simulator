@@ -91,7 +91,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     cooldown: 10,
     specialization: 'Harbinger',
     shroudEntry: 'harbinger',
-    shroudProfileId: TRAIT.DARK_DISCIPLE,
+    shroudTuning: { kind: 'trait', id: TRAIT.DARK_DISCIPLE },
     minimumShroudLifeForcePercent: 0,
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap',

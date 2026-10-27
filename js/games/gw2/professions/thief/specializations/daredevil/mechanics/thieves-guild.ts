@@ -1,10 +1,7 @@
-import type { ThiefGuildSummonProfile } from '#gw2/professions/thief/types.js';
+import type { ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
 
 /** The selected elite owns actor identity and stream startup; attack packets live on canonical actor skills. */
-export const DAREDEVIL_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.freeze({
-  id: 'thief.daredevil.thieves-guild',
-  profileKind: 'mechanic',
-  effects: [],
+export const DAREDEVIL_THIEVES_GUILD_ACTOR: ThiefSummonDefinition = Object.freeze({
   name: 'Staff Daredevil',
   displayName: 'Daredevil',
   variant: 'Daredevil',

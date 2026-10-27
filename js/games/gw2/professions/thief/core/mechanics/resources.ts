@@ -1,7 +1,9 @@
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   balanceNumberFromContext,
+  skillNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -31,7 +33,7 @@ export function thiefInitiativeRegenerationRate(state: Pick<ThiefCoreState, 'kne
   const profile = requireBalanceProfileFromContext(context, PROFILE.resources);
   return (
     balanceProfileNumber(profile, 'resourceGain') +
-    (state.kneeling ? balanceProfileNumber(profile, 'kneelingInitiativeRegenerationBonus') : 0)
+    (state.kneeling ? skillNumberFromContext(context, ID.KNEEL, 'kneelingInitiativeRegenerationBonus') : 0)
   );
 }
 

@@ -406,7 +406,7 @@ test('a surviving Shredding note is independent of the removed Lute attack', () 
 
 test('removed mirror window never creates pickup state and zero forge interval disables recurrence', () => {
   const mirage = run(
-    { balanceProfiles: { 'mesmer.mirage.mechanics': { removeEffects: [{ type: 'buff', name: 'mirage-mirror' }] } } },
+    { skills: { [ID.MIRAGE_MIRROR_DAMAGE]: { removeEffects: [{ type: 'buff', name: 'mirage-mirror' }] } } },
     'Mirage',
     ['Sand through Glass', { type: 'wait', durationMs: 1000 }]
   );

@@ -1,3 +1,5 @@
+import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import {
   profileFact,
   skillTooltip,
@@ -23,7 +25,7 @@ export const flipTooltip: DescribeSimulationTooltip = skillTooltip(
 );
 
 export const shroudTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
-  const selected = balanceContext.catalog.skillsById.get(entity.id);
+  const selected: NecromancerSkill | undefined = balanceContext.catalog.skillsById.get(entity.id);
 
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
 
@@ -34,7 +36,7 @@ export const shroudTooltip: DescribeSimulationTooltip = (balanceContext, entity)
       facts: []
     };
 
-  const profileId = selected.shroudProfileId as import('#gw2/platform/skills/types.js').SkillId;
+  const owner = selected.shroudTuning!;
   return {
     description: `Enter shroud, replace your weapon skills, and trigger applicable shroud-entry traits. Life force drains while shroud is active.${selected.shroudEntry === 'harbinger' ? " Gain Blight on the shroud's recurring resource pulse." : ''}`,
     facts: [
@@ -42,11 +44,11 @@ export const shroudTooltip: DescribeSimulationTooltip = (balanceContext, entity)
         name: 'Minimum life force to enter',
         detail: lifeForce(tooltipNumber(selected, 'minimumShroudLifeForcePercent'))
       },
-      profileFact(balanceContext, profileId, 'lifeForceDrain', 'Life force drained per second', lifeForce),
+      { name: 'Life force drained per second', detail: lifeForce(necromancerShroudDrain(balanceContext, selected)) },
       ...(selected.shroudEntry === 'harbinger'
         ? [
-            profileFact(balanceContext, profileId, 'blightGain', 'Blight per pulse'),
-            profileFact(balanceContext, profileId, 'pulseInterval', 'Blight pulse interval', tooltipSeconds)
+            profileFact(balanceContext, owner.id, 'blightGain', 'Blight per pulse'),
+            profileFact(balanceContext, owner.id, 'pulseInterval', 'Blight pulse interval', tooltipSeconds)
           ]
         : [])
     ]

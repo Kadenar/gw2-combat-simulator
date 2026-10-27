@@ -11,7 +11,6 @@ import {
   runNecromancerShroudEnter,
   runNecromancerShroudExit
 } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
-import { NECROMANCER_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/core/profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
@@ -71,7 +70,6 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   state.activeShroud = '';
   state.activeShroudEntryId = null;
   state.activeShroudExitId = null;
-  state.activeShroudProfileId = '';
   runNecromancerShroudExit(runtime);
   runtime.resourceController.refresh('lifeForce');
   runtime.cooldownController.clear(ID.ISOLATE);
@@ -109,7 +107,6 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
   runtime.fireTrigger(shroudEntering);
   state.activeShroud = skill.shroudEntry!;
   state.activeShroudEntryId = skill.id;
-  state.activeShroudProfileId = skill.shroudProfileId || PROFILE.shroud;
   const exit = [...runtime.helpers.skillsById.values()].find((candidate) => candidate.shroudExit === skill.shroudEntry);
   state.activeShroudExitId = exit?.id ?? null;
 

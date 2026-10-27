@@ -1,3 +1,4 @@
+import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
@@ -884,7 +885,7 @@ test('shroud depletion precedes a simultaneous life-force refill', () => {
   const config = { ...base, initialResource: 10 };
   const native = necromancerProfession.runtimeFor(config);
   const entry = native.catalog.skillsById.get(ID.REAPERS_SHROUD);
-  const drain = native.catalog.balanceProfilesById.get(entry.shroudProfileId).lifeForceDrain;
+  const drain = necromancerShroudDrain(native, entry);
   const at = Math.ceil(10 / drain / 0.04) * 0.04;
   const profession = {
     ...native,

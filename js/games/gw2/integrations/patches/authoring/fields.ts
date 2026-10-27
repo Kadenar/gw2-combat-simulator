@@ -49,7 +49,6 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'energyCost',
   'energyRegenerationPerSecond',
   'enduranceRegenerationMultiplier',
-  'kneelingInitiativeRegenerationBonus',
   'astralForceRetentionMultiplier',
   'vigorRegenerationMultiplier',
 

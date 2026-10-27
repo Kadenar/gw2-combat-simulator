@@ -41,7 +41,6 @@ export interface NecromancerCoreState {
   activeShroud: string;
   activeShroudEntryId?: SkillId | null;
   activeShroudExitId?: SkillId | null;
-  activeShroudProfileId?: SkillId;
   soulShardGrant: ChargeGrant;
   carapaceExpiries: number[];
   activeMinions: Record<string, number>;

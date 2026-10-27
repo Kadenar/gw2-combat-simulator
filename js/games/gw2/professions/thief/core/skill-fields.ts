@@ -4,6 +4,7 @@ import { dataField, defineSkillFields, numberField } from '#gw2/platform/skills/
 export const THIEF_CORE_SKILL_FIELDS = defineSkillFields(
   {
     // Skill-owned tuning remains independently patchable from shared execution policy.
+    kneelingInitiativeRegenerationBonus: numberField({ label: 'additional initiative per second', patch: 'primary' }),
     initiativeRefund: numberField({ label: 'initiative refunded', patch: 'primary' }),
     enduranceGain: numberField({ label: 'endurance restored', patch: 'primary' }),
     activePowerBonus: numberField({ label: 'active power bonus', patch: 'primary' }),

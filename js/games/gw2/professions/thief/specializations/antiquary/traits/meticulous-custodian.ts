@@ -8,7 +8,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { ANTIQUARY_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/specializations/antiquary/profiles.js';
+import { ANTIQUARY_ARTIFACT_WINDOWS } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-windows.js';
 
 // Meticulous Custodian boosts the base strike coefficient of each artifact to its "enhanced" value; factors below are enhanced/base
 export const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
@@ -48,7 +48,7 @@ export function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): num
 export function artifactWindowDuration(runtime: ThiefRuntime): number {
   return balanceNumberFromContext(
     runtime,
-    hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? TRAIT.METICULOUS_CUSTODIAN : PROFILE.artifactWindows,
+    hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? TRAIT.METICULOUS_CUSTODIAN : ANTIQUARY_ARTIFACT_WINDOWS.id,
     'duration'
   );
 }

@@ -25,12 +25,11 @@ import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 /** Mirage-owned cloak, ambush, and deception behavior. */
 import {
   balanceNumberFromContext,
-  requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { MesmerClone, MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { MIRAGE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/mesmer/specializations/mirage/profiles.js';
 import type {
   MesmerMirageCloakOptions,
   MesmerMirageController
@@ -62,8 +61,8 @@ export function createMirageActionController({
 }: MirageActionControllerOptions): MesmerMirageController {
   // Ground mirrors use exact half-open pickup windows; skill metadata owns any creation delay.
   const createMirrors = (at: number, count: number) => {
-    const mechanicsProfile = requireBalanceProfileFromContext(state, PROFILE.mechanics);
-    const mirror = requireEffect(mechanicsProfile, 'buff', 'mirage-mirror');
+    const mirrorSkill = requireSkillFromContext(state, ID.MIRAGE_MIRROR_DAMAGE);
+    const mirror = requireEffect(mirrorSkill, 'buff', 'mirage-mirror');
 
     if (!mirror) return;
 
@@ -173,14 +172,14 @@ export function createMirageActionController({
     if (index < 0) return false;
 
     mirrors.splice(index, 1);
+    const payload = requireSkillFromContext(state, skill.mirrorPayloadSkillId!);
     const pseudo = {
-      id: skill.mirrorPayload!.skillId,
-      name: skill.mirrorPayload!.name,
+      id: payload.id,
+      name: payload.name,
       weapon: activePrimaryWeapon(),
       blade: false
     };
-    const mechanicsProfile = requireBalanceProfileFromContext(state, skill.mirrorPayload!.profileId);
-    const strike = requireEffect(mechanicsProfile, 'strike', 'Strike');
+    const strike = requireEffect(payload, 'strike', 'Strike');
 
     if (strike)
       buildMesmerStrikes(state, pseudo, at, {
@@ -198,7 +197,7 @@ export function createMirageActionController({
       });
 
     // Only a consumed, available mirror applies its authored Weakness.
-    const weakness = requireEffect(mechanicsProfile, 'condition', CONDITION.WEAKNESS);
+    const weakness = requireEffect(payload, 'condition', CONDITION.WEAKNESS);
 
     if (weakness)
       buildMesmerConditions(state, pseudo.name, at, weakness, 'Player', '', {

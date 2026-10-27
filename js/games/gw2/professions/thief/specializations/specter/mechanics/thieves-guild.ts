@@ -3,13 +3,10 @@ import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targe
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
-import type { ThiefGuildSummonProfile } from '#gw2/professions/thief/types.js';
+import type { ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
 
 /** The selected elite owns actor identity and stream startup; attack packets live on canonical actor skills. */
-export const SPECTER_THIEVES_GUILD_PROFILE: ThiefGuildSummonProfile = Object.freeze({
-  id: 'thief.specter.thieves-guild',
-  profileKind: 'mechanic',
-  effects: [],
+export const SPECTER_THIEVES_GUILD_ACTOR: ThiefSummonDefinition = Object.freeze({
   name: 'Scepter Specter',
   displayName: 'Specter',
   variant: 'Specter',

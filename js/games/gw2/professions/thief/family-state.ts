@@ -1,19 +1,19 @@
 import type { ThiefGuildContribution } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
 import { createThievesGuildHooks } from '#gw2/professions/thief/core/mechanics/thieves-guild.js';
-import { ANTIQUARY_THIEVES_GUILD_PROFILE } from '#gw2/professions/thief/specializations/antiquary/mechanics/thieves-guild.js';
-import { DAREDEVIL_THIEVES_GUILD_PROFILE } from '#gw2/professions/thief/specializations/daredevil/mechanics/thieves-guild.js';
-import { DEADEYE_THIEVES_GUILD_PROFILE } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
+import { ANTIQUARY_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/antiquary/mechanics/thieves-guild.js';
+import { DAREDEVIL_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/daredevil/mechanics/thieves-guild.js';
+import { DEADEYE_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
 import {
-  SPECTER_THIEVES_GUILD_PROFILE,
+  SPECTER_THIEVES_GUILD_ACTOR,
   guildAttackConditions
 } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
 
 const guildContributions: Readonly<Record<string, ThiefGuildContribution | null>> = Object.freeze({
   Core: null,
-  Antiquary: { profileId: ANTIQUARY_THIEVES_GUILD_PROFILE.id },
-  Daredevil: { profileId: DAREDEVIL_THIEVES_GUILD_PROFILE.id },
-  Deadeye: { profileId: DEADEYE_THIEVES_GUILD_PROFILE.id },
-  Specter: { profileId: SPECTER_THIEVES_GUILD_PROFILE.id, conditions: guildAttackConditions }
+  Antiquary: { actor: ANTIQUARY_THIEVES_GUILD_ACTOR },
+  Daredevil: { actor: DAREDEVIL_THIEVES_GUILD_ACTOR },
+  Deadeye: { actor: DEADEYE_THIEVES_GUILD_ACTOR },
+  Specter: { actor: SPECTER_THIEVES_GUILD_ACTOR, conditions: guildAttackConditions }
 });
 
 /** Select once at the family boundary; Core receives no inactive policies or static summon definitions. */

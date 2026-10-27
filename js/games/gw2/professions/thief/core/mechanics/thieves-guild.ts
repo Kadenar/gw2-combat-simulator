@@ -3,14 +3,13 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  requireBalanceProfileFromContext,
   requireSkillFromContext,
   skillNumber,
   effectNumber,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { ThiefGuildSummonProfile, ThiefRuntimeState } from '#gw2/professions/thief/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ThiefRuntimeState } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
@@ -32,7 +31,7 @@ interface GuildAttackWork {
 
 /** A family binding supplies elite identity and live condition policy, never baseline attack data. */
 export interface ThiefGuildContribution {
-  readonly profileId: SkillId;
+  readonly actor: ThiefSummonDefinition;
   readonly conditions?: (runtime: ThiefRuntime, skill: Skill) => readonly ConditionEffect[];
 }
 
@@ -47,9 +46,7 @@ export function createThievesGuildHooks(
 
     if (!profile) return [];
 
-    const third = contribution
-      ? (requireBalanceProfileFromContext(runtime, contribution.profileId) as ThiefGuildSummonProfile)
-      : profile.summons.find((summon) => summon.variant === 'Core Thief');
+    const third = contribution ? contribution.actor : profile.summons.find((summon) => summon.variant === 'Core Thief');
     return [...profile.summons.filter((summon) => summon.variant == null), ...(third ? [third] : [])];
   }
 

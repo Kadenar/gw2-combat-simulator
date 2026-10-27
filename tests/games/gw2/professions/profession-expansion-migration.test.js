@@ -326,7 +326,6 @@ test('ready native professions expose deliberate public end-state keys', async (
       'pendingShroudEntryId',
       'activeShroudEntryId',
       'activeShroudExitId',
-      'activeShroudProfileId',
       'pendingSoulTwistSkill',
       'plagueSendingArmed',
       'painfulBondPulseAnchorAt',

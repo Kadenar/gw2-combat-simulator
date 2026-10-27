@@ -311,6 +311,8 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.KNEEL]: {
+    // Kneel owns its extra recovery; Core continues to own base initiative policy.
+    kneelingInitiativeRegenerationBonus: 1 / 3,
     inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
     cooldown: 0.5,
     initiativeCost: 1,
