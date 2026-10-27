@@ -1,3 +1,4 @@
+import type { RotationReferenceDescriptor } from '#gw2/app/rotation/comparison-state.js';
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import { readJsonFile } from '#gw2/app/import-export/files.js';
 import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
@@ -31,6 +32,7 @@ const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,ap
 type RotationImportDestination = 'current' | 'reference';
 
 export interface RotationImportPreview {
+  readonly reference?: RotationReferenceDescriptor;
   readonly rotation: readonly RotationCommand[];
   readonly actionCount: number;
   readonly description: string;
@@ -145,6 +147,15 @@ export async function previewManifestRotation(
     rotation,
     actionCount: rotation.length,
     description: `Loaded ${name}`,
+    // Keep manifest context across shared-config refreshes; published figures never become event evidence.
+    reference: {
+      label: name,
+      warnings: [],
+      publishedBenchmarks: {
+        ...(preset.benchmarkDps == null ? {} : { current: preset.benchmarkDps }),
+        ...(preset.patchPreview ? { [preset.patchPreview.patchId]: preset.patchPreview.benchmarkDps } : {})
+      }
+    },
     warnings: [],
     observations: []
   };
@@ -330,7 +341,7 @@ export function bindRotationImportDialog(
   button: HTMLElement,
   fileInput: HTMLInputElement,
   destination: RotationImportDestination = 'current'
-): void {
+): HTMLDialogElement {
   fileInput.accept = ROTATION_IMPORT_ACCEPT;
   button.setAttribute('aria-haspopup', 'dialog');
   button.title = 'Load a rotation JSON or reconstruct one from an EVTC/dps.report/gw2wingman log';
@@ -488,8 +499,16 @@ export function bindRotationImportDialog(
       return;
     }
 
-    if (destination === 'reference') app.loadRotationReference(activePreview.rotation);
-    else applyRotationImportPreview(app, activePreview);
+    if (destination === 'reference') {
+      app.loadRotationReference(activePreview.rotation);
+
+      // Keep display context beside the imported reference without changing the simulation API.
+      if (app.rotationComparison)
+        app.rotationComparison.reference = activePreview.reference ?? {
+          label: activePreview.description,
+          warnings: activePreview.warnings
+        };
+    } else applyRotationImportPreview(app, activePreview);
 
     activePreview = null;
     elements.dialog.close();
@@ -498,4 +517,5 @@ export function bindRotationImportDialog(
     activePreview = null;
     importer.cancel();
   });
+  return elements.dialog;
 }

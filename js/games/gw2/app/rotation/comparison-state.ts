@@ -3,7 +3,19 @@ import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { ProfessionAppState, ProfessionAppResult } from '#gw2/app/types.js';
 import { cloneRotation, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
 
+/** Optional import context belongs to the pinned reference, not the simulator or its results. */
+export interface RotationReferenceDescriptor {
+  readonly label: string;
+  readonly warnings: readonly string[];
+  readonly publishedBenchmarks?: Readonly<Record<string, number>>;
+}
+
+export type ComparisonWindowMode = 'shared' | 'full';
+
 export interface RotationComparisonState {
+  view: 'timelines' | 'insights';
+  windowMode: ComparisonWindowMode;
+  reference: RotationReferenceDescriptor | null;
   referenceRotation: RotationCommand[];
   referenceResult: Gw2SimulationResult | null;
   referenceStatus: 'empty' | 'fresh' | 'queued' | 'error';
@@ -21,9 +33,12 @@ export function emptyRotationComparisonSession(): RotationComparisonSession {
 }
 
 /** Opens comparison only when Current has a fresh result to compare against. */
-export function beginRotationComparison(app: ProfessionAppState): boolean {
+export function beginRotationComparison(
+  app: ProfessionAppState,
+  view: RotationComparisonState['view'] = 'timelines'
+): boolean {
   if (
-    app.rotationComparison ||
+    app.rotationComparison?.view === view ||
     !app.build.rotation.length ||
     !app.results ||
     app.resultRevision !== app.buildRevision ||
@@ -31,7 +46,16 @@ export function beginRotationComparison(app: ProfessionAppState): boolean {
   )
     return false;
 
+  // Switching from a standalone report to timelines reuses the same pinned reference and result.
+  if (app.rotationComparison) {
+    app.rotationComparison.view = view;
+    return true;
+  }
+
   app.rotationComparison = {
+    view,
+    windowMode: 'shared',
+    reference: null,
     referenceRotation: [],
     referenceResult: null,
     referenceStatus: 'empty',
@@ -45,6 +69,7 @@ export function setRotationReference(app: ProfessionAppState, rotation: readonly
   if (!app.rotationComparison || !rotation.length) return false;
 
   Object.assign(app.rotationComparison, {
+    reference: null,
     referenceRotation: cloneRotation(rotation),
     referenceResult: null,
     referenceStatus: 'queued',
@@ -58,6 +83,7 @@ export function clearRotationReference(app: ProfessionAppState): boolean {
   if (!app.rotationComparison) return false;
 
   Object.assign(app.rotationComparison, {
+    reference: null,
     referenceRotation: [],
     referenceResult: null,
     referenceStatus: 'empty',
@@ -85,6 +111,7 @@ export function swapRotationComparison(app: ProfessionAppState): boolean {
   const currentResult = app.results;
   app.build.rotation = cloneRotation(comparison.referenceRotation);
   app.results = comparison.referenceResult as ProfessionAppResult;
+  comparison.reference = { label: 'Previous current rotation', warnings: [] };
   comparison.referenceRotation = currentRotation;
   comparison.referenceResult = currentResult;
   comparison.referenceStatus = 'fresh';
@@ -109,7 +136,7 @@ export function queueRotationReference(app: RotationComparisonSession): void {
   app.rotationComparison.referenceError = '';
 }
 
-/** Publishes only a requested reference result; clearing or leaving comparison rejects late output. */
+/** The baseline queue rejects superseded jobs; session state rejects cleared or closed references. */
 export function publishRotationReference(
   app: RotationComparisonSession,
   result: Gw2SimulationResult | null | undefined

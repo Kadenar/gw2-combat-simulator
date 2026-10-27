@@ -175,7 +175,8 @@ export function createProfessionRuntime({
       contentId: profession.id,
       rotation: cloneRotation(app.build.rotation),
       damageDiagnostics: app.damageDiagnostics,
-      collectChartData: analysisViewIsActive(),
+      // Comparison requests exact effect histories for both runs under the same configuration.
+      collectChartData: analysisViewIsActive() || Boolean(app.rotationComparison?.referenceRotation.length),
       ...(app.rotationComparison?.referenceStatus === 'queued'
         ? { referenceRotation: cloneRotation(app.rotationComparison.referenceRotation) }
         : null),

@@ -2,8 +2,10 @@ import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import {
+  beginRotationComparison,
   queueRotationReference,
   publishRotationReference,
   failRotationReference
@@ -110,11 +112,33 @@ test('comparison rejects empty or stale Current and opens with an empty referenc
   const app = comparisonApp();
   app.startRotationComparison();
   assert.deepEqual(app.rotationComparison, {
+    view: 'timelines',
+    windowMode: 'shared',
+    reference: null,
     referenceRotation: [],
     referenceResult: null,
     referenceStatus: 'empty',
     referenceError: ''
   });
+});
+
+// The standalone report pins the same reference without requiring the two-timeline workspace.
+test('standalone insights retain reference and window selection when entering comparison', () => {
+  const app = comparisonApp();
+  assert.equal(beginRotationComparison(app, 'insights'), true);
+  app.loadRotationReference([{ type: 'cast', skillId: 2 }]);
+  app.rotationComparison.reference = { label: 'Report reference', warnings: [] };
+  const session = app.rotationComparison;
+  session.windowMode = 'full';
+  publishRotationReference(app, result('reference'));
+  app.simulationStatus = 'idle';
+  app.startRotationComparison();
+  assert.equal(app.rotationComparison, session);
+  assert.equal(session.view, 'timelines');
+  assert.equal(session.windowMode, 'full');
+  assert.equal(session.reference.label, 'Report reference');
+  assert.equal(session.referenceStatus, 'fresh');
+  assert.equal(app.scheduledRevisions.length, 1);
 });
 
 test('loading and clearing Reference preserve Current and its history', () => {
@@ -179,6 +203,88 @@ test('reference completion and failure respect the comparison lifecycle', () => 
   assert.equal(app.results, current);
 });
 
+// Exercise the real queue: replacing a reference does not require a second ID in the simulation payload.
+test('the baseline queue rejects replaced references at the same build revision', (t) => {
+  t.mock.method(globalThis, 'setTimeout', (callback) => {
+    callback();
+    return null;
+  });
+  const previousWorker = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  const workers = [];
+  class ControlledWorker {
+    listeners = new Map();
+    messages = [];
+    constructor() {
+      workers.push(this);
+    }
+    addEventListener(type, callback) {
+      this.listeners.set(type, callback);
+    }
+    postMessage(message) {
+      this.messages.push(message);
+    }
+    terminate() {}
+    respond(job, payload) {
+      this.listeners.get('message')({ data: { requestId: job.requestId, ...payload } });
+    }
+  }
+  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: ControlledWorker });
+  t.after(() => {
+    if (previousWorker) Object.defineProperty(globalThis, 'Worker', previousWorker);
+    else delete globalThis.Worker;
+  });
+  const app = comparisonApp();
+  app.adapter = {
+    baselineSimulationRequest: () => ({
+      rotation: app.build.rotation,
+      referenceRotation: app.rotationComparison?.referenceRotation
+    })
+  };
+  app.publishBaselineSimulation = (output) => {
+    app.results = output.result;
+    app.simulationStatus = 'idle';
+    publishRotationReference(app, output.referenceResult);
+  };
+
+  app.failBaselineSimulation = (error) => failRotationReference(app, error);
+  app.baselineSimulationRunner = new BaselineSimulationRunner(app);
+  t.after(() => app.baselineSimulationRunner.cancel());
+  app.startRotationComparison();
+  app.loadRotationReference([{ type: 'cast', skillId: 1 }]);
+  app.rotationComparison.reference = { label: 'Old import', warnings: [], publishedBenchmarks: { current: 40000 } };
+  const worker = workers[0];
+  const oldJob = worker.messages[0];
+  app.loadRotationReference([{ type: 'cast', skillId: 2 }]);
+  assert.equal(app.rotationComparison.reference, null, 'replacement drops old import context');
+  worker.respond(oldJob, { output: { result: result('old-current'), referenceResult: result('old-reference') } });
+  assert.equal(app.results.id, 'current');
+  assert.equal(app.rotationComparison.referenceResult, null);
+  const replacement = worker.messages[1];
+  worker.respond(replacement, { output: { result: result('current'), referenceResult: result('fresh') } });
+  assert.equal(app.rotationComparison.referenceResult.id, 'fresh');
+
+  // Superseded failures likewise cannot fail the newly requested reference.
+  app.loadRotationReference([{ type: 'cast', skillId: 3 }]);
+  const failedJob = worker.messages[2];
+  app.loadRotationReference([{ type: 'cast', skillId: 4 }]);
+  worker.respond(failedJob, { error: 'Old failure' });
+  assert.equal(app.rotationComparison.referenceStatus, 'queued');
+  assert.equal(app.rotationComparison.referenceError, '');
+
+  // Clear does not schedule a new baseline; the existing session guard rejects its late reference output.
+  const clearedJob = worker.messages[3];
+  app.clearRotationReference();
+  worker.respond(clearedJob, { output: { result: result('current'), referenceResult: result('cleared') } });
+  assert.equal(app.rotationComparison.referenceStatus, 'empty');
+  assert.equal(app.rotationComparison.referenceResult, null);
+
+  app.loadRotationReference([{ type: 'cast', skillId: 5 }]);
+  const closedJob = worker.messages[4];
+  app.exitRotationComparison();
+  worker.respond(closedJob, { output: { result: result('current'), referenceResult: result('closed') } });
+  assert.equal(app.rotationComparison, null);
+});
+
 test('swap exchanges independent rotations and results and resets Current history', () => {
   const referenceRotation = [{ type: 'cast', skillId: 1 }];
   const currentRotation = [{ type: 'cast', skillId: 2 }];
@@ -186,6 +292,9 @@ test('swap exchanges independent rotations and results and resets Current histor
   const currentResult = result('current');
   const app = comparisonApp(currentRotation, currentResult);
   app.rotationComparison = {
+    view: 'timelines',
+    windowMode: 'shared',
+    reference: { label: 'Test reference', warnings: [] },
     referenceRotation,
     referenceResult,
     referenceStatus: 'fresh',

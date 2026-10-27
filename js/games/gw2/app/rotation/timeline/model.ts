@@ -223,6 +223,7 @@ export function timelineDeadTimeMarkers(
     end: number;
     insertionIndex: number;
     containsSkill: boolean;
+    explicitWait?: boolean;
   }> = [];
 
   for (const step of steps) {
@@ -237,7 +238,7 @@ export function timelineDeadTimeMarkers(
     const insertionIndex = Number(step.ri);
 
     if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
-      intervals.push({ start, end, insertionIndex, containsSkill: isSkill });
+      intervals.push({ start, end, insertionIndex, containsSkill: isSkill, explicitWait: !isSkill });
 
       // Wait commands are known idle intervals. Keep them in the occupancy
       // union to suppress duplicate gap markers, but report their full shape.
@@ -293,7 +294,33 @@ export function timelineDeadTimeMarkers(
     }
   }
 
-  const markers: TimelineDeadTimeMarker[] = [...explicitWaitMarkers];
+  // A wait overlapping an occupied action or forced recovery is not uncovered player time.
+  // Merge wait fragments as well, so concurrent waits cannot inflate the shared idle summary.
+  const uncoveredWaits: TimelineDeadTimeMarker[] = [];
+  for (const wait of explicitWaitMarkers) {
+    let cursor = wait.start;
+    for (const occupied of intervals.filter((interval) => !interval.explicitWait)) {
+      if (occupied.end <= cursor || occupied.start >= wait.end) continue;
+
+      if (occupied.start > cursor)
+        uncoveredWaits.push({ ...wait, start: cursor, end: occupied.start, durationMs: occupied.start - cursor });
+
+      cursor = Math.max(cursor, occupied.end);
+    }
+
+    if (cursor < wait.end) uncoveredWaits.push({ ...wait, start: cursor, durationMs: wait.end - cursor });
+  }
+
+  const markers: TimelineDeadTimeMarker[] = [];
+  for (const wait of uncoveredWaits.sort((a, b) => a.start - b.start)) {
+    const previous = markers.at(-1);
+
+    if (previous && wait.start <= previous.end) {
+      const end = Math.max(previous.end, wait.end);
+      markers[markers.length - 1] = { ...previous, end, durationMs: end - previous.start };
+    } else markers.push(wait);
+  }
+
   const futureContainsSkill = new Array<boolean>(busy.length);
   let containsFutureSkill = false;
   for (let index = busy.length - 1; index >= 0; index -= 1) {

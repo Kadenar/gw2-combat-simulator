@@ -129,7 +129,7 @@ body[data-rotation-comparison] .rotation-panel-shell > .rotation-panel {
 
 body[data-rotation-comparison] .rotation-comparison-summary {
   min-width: 0;
-  flex: 1 1 440px;
+  flex: 0 1 460px;
   margin: 0;
 }
 
@@ -186,8 +186,8 @@ body[data-rotation-comparison] .rotation-comparison-reference-actions {
 body[data-rotation-comparison] .rotation-comparison-reference-header {
   flex: 0 0 auto;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px 16px;
+  justify-content: flex-start;
+  gap: 8px 20px;
   margin: 3px 0;
   padding: 6px 0;
   border-block: 1px solid var(--border);
@@ -1024,4 +1024,256 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   line-height: 9px;
   text-align: center;
   white-space: pre-line;
+}
+
+/* Keep comparison metrics grouped and give the loss outline a consistent, readable hierarchy. */
+body[data-rotation-comparison] .rotation-comparison-summary {
+  text-align: left;
+}
+body[data-rotation-comparison] .rotation-comparison-stat {
+  padding-inline: 12px;
+  border-left: 1px solid var(--border);
+}
+/* Give insights a bounded workspace and a clear empty state before a reference is loaded. */
+#rotation-insights {
+  --dialog-width: 1040px;
+  padding: 24px;
+  font:
+    13px/1.5 'Segoe UI',
+    system-ui,
+    sans-serif;
+  text-align: left;
+}
+.rotation-insights-header,
+.rotation-insights-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.rotation-insights-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.rotation-insights-toolbar {
+  flex-wrap: wrap;
+  padding: 6px 0;
+}
+#rotation-insights [hidden] {
+  display: none;
+}
+.rotation-insights-placeholder {
+  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px;
+  border: 1px dashed var(--border-light);
+  border-radius: 10px;
+  background: radial-gradient(ellipse at top, color-mix(in srgb, var(--accent) 6%, transparent), transparent 70%);
+  text-align: center;
+}
+.insights-placeholder-icon {
+  width: 80px;
+  height: 64px;
+  margin-bottom: 16px;
+  stroke: var(--border-light);
+}
+.insights-placeholder-current,
+.insights-placeholder-reference {
+  stroke: var(--accent);
+  stroke-width: 6px;
+  stroke-linecap: round;
+}
+.insights-placeholder-reference {
+  stroke: var(--text-dim);
+}
+.rotation-insights-placeholder p {
+  max-width: 440px;
+  margin: 0 0 20px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+.rotation-insights-placeholder .insights-load-primary {
+  padding: 9px 20px;
+  border-color: var(--accent-dim);
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-panel));
+  color: var(--text-bright);
+  font-size: 13px;
+}
+.rotation-insights-placeholder .insights-load-primary:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 24%, var(--bg-panel));
+}
+.rotation-insights-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+}
+.rotation-insights-toolbar select {
+  padding: 5px 8px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: var(--bg-panel-alt);
+  color: var(--text);
+  font: inherit;
+}
+#rotation-insights summary {
+  cursor: pointer;
+  padding: 5px 0;
+  color: var(--text-dim);
+}
+#rotation-insights summary:hover {
+  color: var(--text-bright);
+}
+.rotation-insights-content {
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+.rotation-insights-overview {
+  padding: 6px 0 20px;
+}
+.rotation-insights-overview > strong {
+  font-size: 20px;
+  font-weight: 600;
+}
+.rotation-insights-overview p {
+  margin: 3px 0 0;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.rotation-insights-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+/* Spacing separates the result columns; only table rows need separators. */
+.rotation-insights-section {
+  min-width: 0;
+  overflow-x: auto;
+}
+.rotation-insights-content h4 {
+  margin: 0 0 10px;
+  color: var(--text-bright);
+  font: inherit;
+  font-weight: 600;
+}
+.rotation-insights-content details {
+  margin-top: 10px;
+}
+.rotation-insights-content > details {
+  padding-top: 5px;
+}
+.rotation-insights-content details p {
+  color: var(--text-dim);
+}
+.insights-loss-labels {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+.insights-loss-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.insights-loss-list li {
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+}
+.insights-loss-list li > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+.insights-skill-name {
+  min-width: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+#rotation-insights summary:focus-visible {
+  outline: 2px solid var(--text-bright);
+  outline-offset: 3px;
+}
+.insights-loss-list strong {
+  white-space: nowrap;
+  font-weight: 600;
+}
+.insights-loss-list small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+.insights-loss {
+  color: #e8a397;
+}
+.insights-gain {
+  color: #97c9ae;
+}
+.rotation-insights-content table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+  font-size: 11px;
+}
+.rotation-insights-content th {
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 500;
+}
+.rotation-insights-content th,
+.rotation-insights-content td {
+  padding: 8px 6px;
+  vertical-align: top;
+}
+.rotation-insights-content thead th {
+  padding-top: 0;
+  padding-bottom: 6px;
+}
+.rotation-insights-content tbody tr {
+  border-top: 1px solid var(--border);
+}
+.rotation-insights-content th:first-child,
+.rotation-insights-content td:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.rotation-insights-content td:not(:first-child) {
+  white-space: nowrap;
+}
+.rotation-insights-content td:last-child,
+.rotation-insights-content th:last-child {
+  padding-right: 0;
+}
+
+@media (max-width: 900px) {
+  body[data-rotation-comparison] .rotation-comparison-summary {
+    flex-basis: 100%;
+  }
+  body[data-rotation-comparison] .rotation-comparison-stat {
+    padding-inline: 6px;
+  }
+  body[data-rotation-comparison] .rotation-comparison-stat:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .rotation-insights-columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  #rotation-insights {
+    padding: 16px;
+  }
+  .insights-wide-break {
+    display: none;
+  }
 }

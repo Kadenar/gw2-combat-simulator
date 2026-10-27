@@ -103,6 +103,8 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.SHADOW_STRIKE]: {
+    // The retreat shadowsteps away, enabling shared shadowstep rewards such as Peitha.
+    shadowstepSkill: true,
     cooldown: 0,
     initiativeCost: 4,
     requiredMainHand: WEAPON.PISTOL,

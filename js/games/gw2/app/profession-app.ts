@@ -467,7 +467,7 @@ export class ProfessionApp implements ProfessionAppState {
 
       if (weaponSet) weaponSet.value = String(this.attributeWeaponSet);
 
-      if (this.rotationComparison) enterRotationFocus(document);
+      if (this.rotationComparison?.view === 'timelines') enterRotationFocus(document);
 
       this.renderBuildSections(true);
       this.adapter.buildEditor.updateSelection?.(this);

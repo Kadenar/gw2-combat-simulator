@@ -1,3 +1,5 @@
+import { beginRotationComparison } from '#gw2/app/rotation/comparison-state.js';
+import { renderRotationInsights, openRotationInsights } from '#gw2/app/rotation/insights/rotation-insights-view.js';
 import { enterRotationFocus } from '#browser/shell/rotation-workspace.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
@@ -144,12 +146,32 @@ function comparisonHeadingButtons(app: ProfessionAppState): void {
     controls.append(compareButton);
   }
 
-  const comparing = Boolean(app.rotationComparison);
+  const comparing = app.rotationComparison?.view === 'timelines';
   compareButton.disabled = !comparing && !currentIsFresh(app);
   compareButton.setAttribute('aria-pressed', String(comparing));
   compareButton.textContent = comparing ? 'Exit compare' : 'Compare';
   compareButton.title = comparing ? 'Exit rotation comparison' : 'Open rotation comparison';
   compareButton.onclick = comparing ? () => app.exitRotationComparison() : () => app.startRotationComparison();
+  // Reports can pin a reference without enabling focus mode or displaying a second timeline.
+  let insightsButton = controls.querySelector<HTMLButtonElement>('[data-insights-open]');
+
+  if (!insightsButton) {
+    insightsButton = document.createElement('button');
+    insightsButton.type = 'button';
+    insightsButton.className = 'btn btn-io';
+    insightsButton.dataset.insightsOpen = '';
+    insightsButton.textContent = 'Rotation insights';
+    insightsButton.setAttribute('aria-haspopup', 'dialog');
+    controls.append(insightsButton);
+  }
+
+  insightsButton.hidden = comparing;
+  insightsButton.disabled = !app.rotationComparison && !currentIsFresh(app);
+  insightsButton.onclick = () => {
+    if (!app.rotationComparison && !beginRotationComparison(app, 'insights')) return;
+
+    openRotationInsights(app, () => renderRotationComparison(app));
+  };
 }
 
 function removeComparisonView(): void {
@@ -164,7 +186,7 @@ function removeComparisonView(): void {
   document.getElementById('rotation-comparison-summary')?.remove();
   document.getElementById('rotation-comparison-current-label')?.remove();
   document.getElementById('rotation-comparison-reference')?.remove();
-  document.querySelector('dialog[data-rotation-import-destination="reference"]')?.remove();
+  document.querySelector('dialog[data-comparison-import]')?.remove();
 }
 
 /** Aligns the nearest combat-time cast with the source's top row, preserving its partial scroll offset. */
@@ -278,7 +300,15 @@ function createComparisonView(
     throw new Error('Rotation comparison timeline failed to initialize.');
   }
 
-  bindRotationImportDialog(app, loadButton, fileInput, 'reference');
+  const importDialog = bindRotationImportDialog(app, loadButton, fileInput, 'reference');
+  importDialog.dataset.comparisonImport = '';
+  const insightsButton = document.createElement('button');
+  insightsButton.type = 'button';
+  insightsButton.className = 'btn btn-io';
+  insightsButton.textContent = 'Rotation insights';
+  insightsButton.setAttribute('aria-haspopup', 'dialog');
+  insightsButton.onclick = () => openRotationInsights(app, () => renderRotationComparison(app));
+  referenceSection.querySelector('header')?.append(insightsButton);
   emptyLoadButton.onclick = () => loadButton.click();
 
   // Keep comparison metrics beside reference actions instead of consuming a separate timeline row.
@@ -330,7 +360,9 @@ export function renderRotationComparison(app: ProfessionAppState): void {
   comparisonHeadingButtons(app);
   const comparison = app.rotationComparison;
 
-  if (!comparison) {
+  renderRotationInsights(app, currentIsFresh(app) && comparison?.referenceStatus === 'fresh');
+
+  if (!comparison || comparison.view === 'insights') {
     removeComparisonView();
     return;
   }
