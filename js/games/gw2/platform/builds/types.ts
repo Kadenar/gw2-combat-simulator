@@ -113,6 +113,8 @@ export interface Gw2Build extends Gw2BuildResources {
   rune?: string;
   weaponSigils?: string[][];
   relic?: string;
+  /** Opening relic stacks are saved with equipment and shared by all simulations of the build. */
+  initialThornsStacks?: number;
   food?: string;
   utility?: string;
   jadeBotCore?: boolean;

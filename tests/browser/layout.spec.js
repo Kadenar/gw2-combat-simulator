@@ -383,7 +383,7 @@ test('relic comparison controls survive a narrow host', async ({ page }) => {
     });
   });
   const comparison = page.locator('[data-layout-fixture="relic-comparison"] .relic-cmp');
-  const relicSelect = comparison.getByRole('combobox', { name: 'Comparison relic' });
+  const relicSelect = comparison.locator('select[data-role="relic-comparison-target"]');
   await expect(relicSelect.locator('optgroup')).toHaveCount(3);
   await expect(comparison.locator('[data-role="relic-comparison-stacks-control"]')).toBeHidden();
   await expect(comparison.getByRole('button', { name: 'Run comparison' })).toBeEnabled();

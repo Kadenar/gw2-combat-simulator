@@ -631,6 +631,17 @@ test('snapshot is immutable; empty selections retain current equipment', () => {
   assert.throws(() => ordinaryEquipmentAt(space, 1n), /outside search/);
 });
 
+// Candidate equipment changes retain the workspace's captured Thorns opening stacks.
+test('optimizer relic candidates inherit the captured workspace Thorns stacks', () => {
+  const captured = request({ relic: ['Thorns', 'Fractal'] }, { relic: 'Thorns', initialThornsStacks: 7 });
+  const evaluator = createOptimizerEvaluator(captured, adapter);
+  for (const relic of ['Thorns', 'Fractal']) {
+    const config = evaluator.prepare({ ...optimizerEquipment(captured.build), relic });
+    assert.equal(config.relic, relic);
+    assert.equal(config.initialThornsStacks, 7);
+  }
+});
+
 test('optimizer requirements validate numeric bounds and reject inverted toughness ranges', () => {
   for (const key of ['minToughness', 'maxToughness', 'minVitality', 'minBoonDuration', 'minQuicknessDuration']) {
     for (const value of [null, '', '10', NaN, Infinity, -1]) assert.throws(() => request({ [key]: value }), /Invalid/);

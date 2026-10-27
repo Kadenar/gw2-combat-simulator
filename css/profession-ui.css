@@ -1657,7 +1657,8 @@
   margin: 0;
 }
 
-.proc-rate-control {
+.proc-rate-control,
+.relic-stacks-control {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -1666,7 +1667,8 @@
   font-size: 12px;
 }
 
-.proc-rate-control input {
+.proc-rate-control input,
+.relic-stacks-control input {
   box-sizing: border-box;
   width: 76px;
   min-height: 30px;
@@ -1679,6 +1681,7 @@
 }
 
 .proc-rate-control input:focus-visible,
+.relic-stacks-control input:focus-visible,
 .trait-proc-rates > summary:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

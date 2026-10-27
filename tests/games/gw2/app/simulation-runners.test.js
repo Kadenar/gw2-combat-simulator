@@ -1073,7 +1073,8 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
     comparison = calculateRelicComparison(
       {
         rotation: STRIKE_ROTATION,
-        baseConfig: { relic: 'Fractal' },
+        // Comparison stacks override the saved main-run value only for the comparison's Thorns relic.
+        baseConfig: { relic: 'Fractal', initialThornsStacks: 8 },
         opponentRelic: 'Fractal',
         comparisonRelic,
         opponentResult: results,
@@ -1091,12 +1092,12 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
   assert.deepEqual(
     simulatedConfigs.map(({ relic, initialThornsStacks }) => ({ relic, initialThornsStacks })),
     [
-      { relic: 'Akeem', initialThornsStacks: undefined },
-      { relic: '', initialThornsStacks: undefined },
+      { relic: 'Akeem', initialThornsStacks: 8 },
+      { relic: '', initialThornsStacks: 8 },
       { relic: 'Thorns', initialThornsStacks: 4 },
-      { relic: '', initialThornsStacks: undefined },
-      { relic: 'Mirage', initialThornsStacks: undefined },
-      { relic: '', initialThornsStacks: undefined }
+      { relic: '', initialThornsStacks: 8 },
+      { relic: 'Mirage', initialThornsStacks: 8 },
+      { relic: '', initialThornsStacks: 8 }
     ]
   );
   assert.equal(comparison.opponentRelic, 'Fractal');

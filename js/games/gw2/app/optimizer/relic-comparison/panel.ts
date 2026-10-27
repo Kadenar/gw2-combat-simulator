@@ -4,6 +4,8 @@ import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/r
 import { groupedOptionsHtml } from '#ui/shared/select-options.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
+import { enhanceDetailedSelect } from '#gw2/app/shared/equipment/picker.js';
+import { relicOptionLabel } from '#gw2/app/shared/equipment/labels.js';
 
 export interface RelicComparisonPanelModel {
   readonly relicComparison?: RelicComparisonModel | null;
@@ -39,11 +41,15 @@ export function mountRelicComparison(
     10,
     Math.max(0, Math.trunc(Number(model.relicComparisonInitialStacks) || 0))
   );
+  // Keep the closed selector compact; full relic descriptions remain searchable inside its menu.
   const relicComparisonAction = `<label class="relic-cmp-control">
           Compare with
-          <select data-role="relic-comparison-target" aria-label="Comparison relic">
-            ${groupedOptionsHtml(relicComparisonGroups, relicComparisonTarget, (name) => `Relic of ${name}`)}
+          <span class="gear-select-display">
+          <select id="relic-comparison-target" class="gear-select" data-role="relic-comparison-target" aria-label="Comparison relic">
+            ${groupedOptionsHtml(relicComparisonGroups, relicComparisonTarget, relicOptionLabel)}
           </select>
+          <button type="button" class="gear-select-trigger">${escapeHtml(relicComparisonTarget)}</button>
+          </span>
         </label>
         <label class="relic-cmp-control" data-role="relic-comparison-stacks-control"${relicComparisonTarget === 'Thorns' ? '' : ' hidden'}>
           Starting stacks
@@ -92,6 +98,11 @@ export function mountRelicComparison(
         relicComparisonStacksControl.hidden = relicComparisonTargetInput.value !== 'Thorns';
     };
   }
+
+  // Use the workspace's grouped, searchable equipment menu while keeping comparison values and handlers local.
+  container.querySelectorAll<HTMLSelectElement>('select.gear-select').forEach((select) => {
+    enhanceDetailedSelect(select, select.id);
+  });
 
   if (runRelicComparison && typeof onRunRelicComparison === 'function') {
     runRelicComparison.onclick = () => {

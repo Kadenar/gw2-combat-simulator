@@ -14,6 +14,7 @@ interface SimulationConfigOptions extends Omit<BuildContextInput, 'patch'> {
 }
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
+import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
 import { simulationRandomnessFromAssumptions } from '#gw2/platform/builds/randomness-assumptions.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
@@ -108,6 +109,8 @@ export function createGw2SimulationConfig({
     attributeInputs,
     sigilSets,
     relic: disabled?.type === 'Relic' ? '' : build.relic,
+    // Share the build's opening Thorns state with main runs, workers, and optimizer candidates.
+    initialThornsStacks: boundedInteger(build.initialThornsStacks, 0, 0, THORNS_MAX_STACKS),
     // Temporary relic selections travel with every simulation of this build, including optimizer candidates.
     precastRelics: [...(build.precastRelics || [])],
     food: disabled?.type === 'Food' ? '' : build.food,

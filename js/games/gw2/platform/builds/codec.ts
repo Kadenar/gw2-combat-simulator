@@ -4,6 +4,7 @@ import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
 import { RELIC_NAMES, PRECAST_RELIC_NAMES, normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
+import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
 import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
@@ -134,6 +135,8 @@ export function createGw2BuildCodec<TBuild extends Gw2CanonicalBuild>({
       rune: optionalEquipmentName(RUNE_NAMES, saved.rune) ? saved.rune : defaults.rune,
       // Older builds opt out of relic preparation until the user explicitly selects it.
       precastRelics: normalizePrecastRelics(saved.precastRelics),
+      // Normalize opening relic stacks alongside equipment so every profession uses the same saved field.
+      initialThornsStacks: boundedInteger(saved.initialThornsStacks, 0, 0, THORNS_MAX_STACKS),
       food: optionalEquipmentName(FOOD_NAMES, saved.food) ? saved.food : defaults.food,
       utility: optionalEquipmentName(UTILITY_NAMES, saved.utility) ? saved.utility : defaults.utility,
       jadeBotCore: typeof saved.jadeBotCore === 'boolean' ? saved.jadeBotCore : Boolean(defaults.jadeBotCore),
@@ -885,6 +888,17 @@ function validateCommonBuild(
 
   if (!optionalEquipmentName(RELIC_NAMES, candidate.relic)) {
     errors.push('relic must be a known relic.');
+  }
+
+  // Reject malformed canonical equipment state before optimizer and simulation requests are captured.
+  if (
+    candidate.initialThornsStacks !== undefined &&
+    (typeof candidate.initialThornsStacks !== 'number' ||
+      !Number.isInteger(candidate.initialThornsStacks) ||
+      candidate.initialThornsStacks < 0 ||
+      candidate.initialThornsStacks > THORNS_MAX_STACKS)
+  ) {
+    errors.push(`initialThornsStacks must be an integer between 0 and ${THORNS_MAX_STACKS}.`);
   }
 
   if (

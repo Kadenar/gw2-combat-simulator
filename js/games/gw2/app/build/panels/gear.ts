@@ -8,6 +8,7 @@ import { PREFIX_GROUPS } from '#gw2/platform/equipment/gear/prefixes/catalog.js'
 import { INFUSION_BONUS, INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
 import { RELIC_GROUPS, PRECAST_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
+import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
 import {
   candidatePicker,
   updatePicker,
@@ -35,7 +36,7 @@ import {
 } from '#gw2/app/shared/equipment/labels.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { clamp } from '#kernel/core/numeric.js';
+import { boundedInteger, clamp } from '#kernel/core/numeric.js';
 
 // Decorative item icons identify equipment slots without inventing selectable armor or trinket items.
 function equipmentIcon(source?: string): string {
@@ -321,6 +322,7 @@ export function renderGear(app: ProfessionAppState): void {
             <section class="equipment-upgrades workspace-card">${sectionHeading('Upgrades')}
             ${selectRow('Rune', 'sel-rune', b.rune, groupedOptionsHtml(RUNE_GROUPS, b.rune, runeOptionLabel), EQUIPMENT_ICONS[b.rune] || '')}
             ${selectRow('Relic', 'sel-relic', b.relic, groupedOptionsHtml(RELIC_GROUPS, b.relic, relicOptionLabel), (RELIC_DATA as Record<string, { icon?: string }>)[b.relic]?.icon || '')}
+            ${b.relic === 'Thorns' ? `<label class="relic-stacks-control" title="Thorns stacks at the start of the simulation. Leave blank to start at 0.">Starting Thorns stacks <input id="initial-thorns-stacks" type="number" min="0" max="${THORNS_MAX_STACKS}" step="1" placeholder="0" value="${boundedInteger(b.initialThornsStacks, 0, 0, THORNS_MAX_STACKS)}"></label>` : ''}
             <div id="precast-relics">
               ${candidatePicker('precastRelics', 'Precast relics', PRECAST_RELIC_NAMES, b.precastRelics || [], 0, relicOptionLabel, 'No precast relics')}
             </div>
@@ -355,6 +357,18 @@ export function renderGear(app: ProfessionAppState): void {
 
   bindValue('sel-rune', (value) => (b.rune = value));
   bindValue('sel-relic', (value) => (b.relic = value));
+  // Save opening stacks with the build and rerun without replacing the focused input.
+  const thornsStacks = document.querySelector<HTMLInputElement>('#initial-thorns-stacks');
+  thornsStacks?.addEventListener('change', () => {
+    if (!thornsStacks.checkValidity()) {
+      thornsStacks.reportValidity();
+      return;
+    }
+
+    b.initialThornsStacks = boundedInteger(thornsStacks.value, 0, 0, THORNS_MAX_STACKS);
+    thornsStacks.value = String(b.initialThornsStacks);
+    app.changed(true, false);
+  });
   // Reuse the icon popover for adding preparation relics while keeping the shared removable chips.
   const precastPicker = requiredElement('precast-relics');
   const precastSelect = precastPicker.querySelector<HTMLSelectElement>('select')!;

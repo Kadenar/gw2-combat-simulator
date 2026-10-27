@@ -144,7 +144,7 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   await tab.click();
   const comparison = page.locator('#optimizer-relic-comparison');
-  await expect(comparison.getByRole('combobox', { name: 'Comparison relic' })).toBeVisible();
+  await expect(comparison.getByRole('button', { name: 'Comparison relic', exact: true })).toBeVisible();
   await comparison.getByRole('button', { name: 'Run comparison', exact: true }).click();
   await expect(comparison.locator('[data-role="relic-comparison-chart"]')).toBeVisible();
   await page.getByRole('link', { name: 'Analysis', exact: true }).click();

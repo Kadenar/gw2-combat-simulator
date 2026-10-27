@@ -17,7 +17,7 @@
   display: none;
 }
 
-.relic-cmp-control input {
+.relic-cmp-control > input {
   width: 46px;
   padding: 5px;
   color: var(--text-bright);
@@ -28,10 +28,14 @@
   border-radius: 5px;
 }
 
-/* Left-aligned names keep grouped relic choices easy to scan; shared menu styles accent the group headings. */
-.relic-cmp-control select {
-  min-width: 180px;
-  padding: 5px 8px;
+/* Size the shared workspace picker locally without shrinking its search field or popover. */
+.relic-cmp-control .gear-select-display {
+  width: 180px;
+  max-width: 100%;
+}
+
+.relic-cmp-control .gear-select-trigger {
+  padding: 5px 22px 5px 8px;
   font-size: 11px;
   text-align: left;
 }

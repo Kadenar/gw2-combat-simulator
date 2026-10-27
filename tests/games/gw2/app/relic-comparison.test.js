@@ -338,7 +338,7 @@ test('relic comparison passes assumptions and shows the selected relic controls'
 
   assert.match(container.innerHTML, /Relic break-even comparison/);
   assert.doesNotMatch(container.innerHTML, /Off by default/);
-  assert.match(container.innerHTML, /<option value="Akeem">Relic of Akeem<\/option>/);
+  assert.match(container.innerHTML, /<option value="Akeem">Akeem —/);
   assert.match(container.innerHTML, /<optgroup label="Condition">/);
   assert.doesNotMatch(container.innerHTML, /<optgroup label="(?:Power|Hybrid)">/);
   assert.doesNotMatch(container.innerHTML, /value="Fractal"/);
@@ -412,5 +412,5 @@ test('relic comparison groups available choices by damage category', () => {
       ['Hybrid', ['Nourys']]
     ]
   );
-  assert.match(container.innerHTML, /<option value="Thorns" selected>Relic of Thorns<\/option>/);
+  assert.match(container.innerHTML, /<option value="Thorns" selected>Thorns —/);
 });
