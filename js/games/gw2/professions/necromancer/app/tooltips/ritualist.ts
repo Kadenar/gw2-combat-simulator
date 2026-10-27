@@ -1,4 +1,5 @@
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromModifier,
   fromProfile,
@@ -6,10 +7,10 @@ import {
   profileFact,
   simulationEffectFacts,
   skillTooltip,
+  skillFact,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
-  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
@@ -21,7 +22,7 @@ import {
   RITUALIST_SPIRIT_SKILL_IDS,
   spiritAttackEffects
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as RITUALIST } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 
 const innervateTooltip: DescribeSimulationTooltip = skillTooltip(
@@ -115,17 +116,19 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
       ...(id === ID.ANGUISH
         ? [
             ...simulationEffectFacts(
-              tooltipProfile(balanceContext, RITUALIST.painfulBond).effects?.filter((effect) => effect.type === 'buff')
+              requireSkillFromContext(balanceContext, painfulBondSkill.id).effects?.filter(
+                (effect) => effect.type === 'buff'
+              )
             ).facts,
             ...simulationEffectFacts(
-              tooltipProfile(balanceContext, RITUALIST.painfulBond).effects?.filter(
+              requireSkillFromContext(balanceContext, painfulBondSkill.id).effects?.filter(
                 (effect) => effect.type === 'strike'
               ),
               'per Painful Bond pulse'
             ).facts,
-            profileFact(
+            skillFact(
               balanceContext,
-              RITUALIST.painfulBond,
+              painfulBondSkill.id,
               'pulseInterval',
               'Painful Bond pulse interval',
               tooltipSeconds

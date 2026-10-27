@@ -11,7 +11,6 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { variantEffects } from '#gw2/professions/revenant/app/tooltips/shared.js';
 
 /** Describe invocation tooltips from the selected balance data. */
@@ -77,11 +76,11 @@ export const revenantInvocationTooltips = {
           facts: [
             ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.CALL_OF_THE_RENEGADE)!.effects).facts,
             // The invocation hook grants two stacks; their durations come from the selected Fervor profiles.
-            ...[RENEGADE.kallasFervor, RENEGADE.kallasFervorLastingLegacy].flatMap(
+            ...[TRAIT.AMBUSH_COMMANDER, TRAIT.LASTING_LEGACY].flatMap(
               (id) =>
                 simulationEffectFacts(
                   tooltipProfile(balanceContext, id).effects?.map((effect) => ({ ...effect, stacks: 2 })),
-                  id === RENEGADE.kallasFervor ? 'base duration' : 'with Lasting Legacy instead'
+                  id === TRAIT.AMBUSH_COMMANDER ? 'base duration' : 'with Lasting Legacy instead'
                 ).facts
             )
           ]

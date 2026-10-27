@@ -373,6 +373,8 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.SUMMON_SPIRITS]: {
+    // Commanded spirit attacks use this skill-owned strength independently of autonomous attacks.
+    weaponStrength: 1056,
     type: 'Profession',
     slot: 'Weapon_5',
     shroud: 'ritualist',

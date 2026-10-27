@@ -12,16 +12,18 @@ import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mec
  * Hammer skill effects, including Grand Finale's projectiles, live in `skills/weapons/hammer.ts`.
  */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   type ElementalistAttunement,
   type ElementalistCoreState
 } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
+/** Orb skills share a fixed admission delay independently of their authored lifetimes. */
+export const HAMMER_ORB_REUSE_DELAY = 0.48;
 
 /** Orb elements still live at `at`; shared by availability gating and the Weaver orb handler. */
 export function activeHammerOrbElements(
@@ -51,7 +53,7 @@ export function createHammerOrbs(
 ): void {
   const state = professionCoreState(context);
   const at = cast.effectiveEnd;
-  const duration = balanceNumberFromContext(context, PROFILE.hammerOrbs, 'duration');
+  const duration = skillNumber(skill, 'orbDuration');
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
   for (const element of previouslyActive) {
     state.hammerOrbs[element] = at + duration;

@@ -208,7 +208,7 @@ export const activePatchPreview: PatchPreview = {
             'TBD: 10% strike damage below full endurance is assumed, multiplying the shared outgoing-damage bucket like the removed Leviathan Strength. Final percentage and stacking are unconfirmed. Outgoing healing is outside simulation scope.',
           fields: { damageIncrease: { from: 0, to: 0.1 } }
         },
-        'revenant.renegade.kallas-fervor-lasting-legacy': {
+        [REVENANT_TRAIT_IDS.LASTING_LEGACY]: {
           fields: {
             damageIncreasePerStack: {
               from: 0.05,

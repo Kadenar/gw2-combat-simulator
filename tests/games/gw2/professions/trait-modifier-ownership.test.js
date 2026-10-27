@@ -16,7 +16,6 @@ import { RANGER_SKILL_IDS as RANGER_SKILL, RANGER_TRAIT_IDS as RANGER } from '#g
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { REVENANT_TRAIT_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 
 // Patch the registered trait owner so disconnected declarations cannot satisfy these formula contracts.
 function patched(profession, balanceProfiles, skills = {}) {
@@ -68,7 +67,7 @@ test('Radiance declarations extend only their selected Burning sources at the ba
 
 test('Brutal Momentum adds only its selected full-endurance increase above the attribute baseline', () => {
   const family = patched(revenantProfession, {
-    [RENEGADE_PROFILE_IDS.brutalMomentum]: { fields: { criticalChance: 0.15, fullEnduranceCriticalChance: 0.4 } }
+    [REVENANT.BRUTAL_MOMENTUM]: { fields: { criticalChance: 0.15, fullEnduranceCriticalChance: 0.4 } }
   });
   for (const [patchId, baseline, full] of [
     ['current', 0.1, 0.33],

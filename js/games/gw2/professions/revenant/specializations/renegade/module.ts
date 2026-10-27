@@ -3,7 +3,6 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
 import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 import { renegadeUi } from '#gw2/professions/revenant/specializations/renegade/presentation.js';
-import { RENEGADE_BALANCE_PROFILES } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { RENEGADE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/index.js';
 import { RENEGADE_EXTRA_SKILLS } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import {
@@ -18,8 +17,7 @@ export const renegadeModule = defineNativeModule({
   id: 'Renegade',
   data: createRevenantModuleData('Renegade', {
     skillMechanics: RENEGADE_BASE_SKILL_MECHANICS,
-    extraSkills: RENEGADE_EXTRA_SKILLS,
-    balanceProfiles: RENEGADE_BALANCE_PROFILES
+    extraSkills: RENEGADE_EXTRA_SKILLS
   }),
   state: { create: renegadeState.create, project: createPublicStateProjector(RENEGADE_PUBLIC_STATE_PROJECTION) },
   hooks: renegadeHooks,

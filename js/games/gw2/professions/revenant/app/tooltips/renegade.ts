@@ -1,4 +1,8 @@
 import {
+  RAZORCLAW_PROC_ID,
+  SOULCLEAVE_PROC_ID
+} from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
+import {
   fromProfile,
   outsideScopeTooltip,
   profileTooltip,
@@ -15,7 +19,6 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
-import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { upkeepReleaseTooltip } from '#gw2/professions/revenant/app/tooltips/shared.js';
 
 const bandTogetherTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
@@ -31,13 +34,13 @@ const bandTogetherTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
       ...(selected.id === ID.RAZORCLAWS_RAGE
         ? [
             ...simulationEffectFacts(
-              balanceContext.catalog.skillsById.get(RENEGADE.razorclawsRageProc)!.effects,
+              balanceContext.catalog.skillsById.get(RAZORCLAW_PROC_ID)!.effects,
               'per charge consumed'
             ).facts,
             {
               name: 'Bleed trigger cooldown',
               detail: tooltipSeconds(
-                tooltipNumber(balanceContext.catalog.skillsById.get(RENEGADE.razorclawsRageProc), 'cooldown')
+                tooltipNumber(balanceContext.catalog.skillsById.get(RAZORCLAW_PROC_ID), 'cooldown')
               )
             }
           ]
@@ -49,7 +52,7 @@ const bandTogetherTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
         label: 'Base effects',
         facts: [
           ...simulationEffectFacts(selected.effects).facts,
-          ...simulationEffectFacts(tooltipProfile(balanceContext, RENEGADE.bandTogether).effects).facts
+          ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.LEGENDARY_RENEGADE_STANCE)!.effects).facts
         ]
       },
       { label: 'Enhanced effects', facts: simulationEffectFacts(enhanced.effects).facts }
@@ -93,7 +96,7 @@ const ordersFromAboveTooltip: DescribeSimulationTooltip = (balanceContext, entit
       'with Righteous Rebel instead'
     ).facts,
     ...simulationEffectFacts(
-      tooltipProfile(balanceContext, RENEGADE.boldReversalRighteousRebel).effects,
+      tooltipProfile(balanceContext, TRAIT.BOLD_REVERSAL).effects,
       'additional pulses with both Righteous Rebel and Bold Reversal'
     ).facts
   ]
@@ -115,27 +118,25 @@ export const renegadeTooltips = {
       "Maintain Soulcleave's upkeep. Eligible attacks trigger additional life-siphon damage with an internal cooldown. The simulation also includes the configured allied attackers; Kalla's Fervor increases the siphon damage.",
       (balanceContext) => [
         ...simulationEffectFacts(
-          balanceContext.catalog.skillsById.get(RENEGADE.soulcleavesSummitProc)!.effects,
+          balanceContext.catalog.skillsById.get(SOULCLEAVE_PROC_ID)!.effects,
           'per eligible attack'
         ).facts,
         {
           name: 'Siphon trigger cooldown',
-          detail: tooltipSeconds(
-            tooltipNumber(balanceContext.catalog.skillsById.get(RENEGADE.soulcleavesSummitProc), 'cooldown')
-          )
+          detail: tooltipSeconds(tooltipNumber(balanceContext.catalog.skillsById.get(SOULCLEAVE_PROC_ID), 'cooldown'))
         }
       ]
     )
   },
   traits: {
     [TRAIT.AMBUSH_COMMANDER]: profileTooltip(
-      RENEGADE.kallasFervor,
+      TRAIT.AMBUSH_COMMANDER,
       "Qualifying critical or positional hits grant Kalla's Fervor. Defiant targets satisfy the simulator's positional condition.",
       [
         ['maximumStacks', 'Maximum stacks'],
-        fromProfile(RENEGADE.kallasFervor, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
+        fromProfile(TRAIT.AMBUSH_COMMANDER, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
         fromProfile(
-          RENEGADE.kallasFervor,
+          TRAIT.AMBUSH_COMMANDER,
           'conditionDamageIncreasePerStack',
           'Condition damage per stack',
           tooltipPercent
@@ -143,11 +144,11 @@ export const renegadeTooltips = {
         ['lifeSiphonDamagePerStack', 'Life-siphon damage per stack', tooltipPercent]
       ]
     ),
-    [TRAIT.ENDLESS_ENMITY]: profileTooltip(RENEGADE.endlessEnmity, 'Eligible critical hits grant fury to the party.', [
+    [TRAIT.ENDLESS_ENMITY]: profileTooltip(TRAIT.ENDLESS_ENMITY, 'Eligible critical hits grant fury to the party.', [
       ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]),
     [TRAIT.BRUTAL_MOMENTUM]: profileTooltip(
-      RENEGADE.brutalMomentum,
+      TRAIT.BRUTAL_MOMENTUM,
       'Gain critical-strike chance. Receiving fury grants vigor.',
       [
         ['criticalChance', 'Critical chance', tooltipPercent],
@@ -156,7 +157,7 @@ export const renegadeTooltips = {
       ]
     ),
     [TRAIT.ASHEN_DEMEANOR]: profileTooltip(
-      RENEGADE.ashenDemeanor,
+      TRAIT.ASHEN_DEMEANOR,
       "Using a healing skill grants boons and Kalla's Fervor.",
       [
         ['cooldown', 'Internal cooldown', tooltipSeconds],
@@ -164,7 +165,7 @@ export const renegadeTooltips = {
       ]
     ),
     [TRAIT.BLOOD_FURY]: profileTooltip(
-      RENEGADE.bloodFury,
+      TRAIT.BLOOD_FURY,
       "Fury applications grant Kalla's Fervor. Bleeding lasts longer while you have fury.",
       [
         ['cooldown', 'Fervor cooldown', tooltipSeconds],
@@ -173,7 +174,7 @@ export const renegadeTooltips = {
     ),
     [TRAIT.WROUGHT_IRON_WILL]: outsideScopeTooltip,
     [TRAIT.BOLD_REVERSAL]: profileTooltip(
-      RENEGADE.boldReversalRighteousRebel,
+      TRAIT.BOLD_REVERSAL,
       'Orders from Above also grants protection when Righteous Rebel is selected.',
       undefined,
       'with Righteous Rebel'
@@ -190,26 +191,21 @@ export const renegadeTooltips = {
         fromProfile(TRAIT.HEARTPIERCER, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange)
       ]
     ),
-    [TRAIT.ALL_FOR_ONE]: profileTooltip(RENEGADE.allForOne, 'An empowered Band Together skill recharges faster.', [
+    [TRAIT.ALL_FOR_ONE]: profileTooltip(TRAIT.ALL_FOR_ONE, 'An empowered Band Together skill recharges faster.', [
       ['rechargeMultiplier', 'Empowered summon recharge duration', tooltipFactorChange]
     ]),
     [TRAIT.VINDICATION]: profileTooltip(
-      RENEGADE.vindication,
+      TRAIT.VINDICATION,
       "Citadel Bombardment's first impact applies a daze control event."
     ),
     [TRAIT.LASTING_LEGACY]: profileTooltip(
-      RENEGADE.kallasFervorLastingLegacy,
+      TRAIT.LASTING_LEGACY,
       "Kalla's Fervor lasts longer and grants stronger damage bonuses. Heroic Command grants additional might per Fervor stack.",
       [
         ['maximumStacks', 'Maximum stacks'],
+        fromProfile(TRAIT.LASTING_LEGACY, 'damageIncreasePerStack', 'Strike damage per stack', tooltipPercent),
         fromProfile(
-          RENEGADE.kallasFervorLastingLegacy,
-          'damageIncreasePerStack',
-          'Strike damage per stack',
-          tooltipPercent
-        ),
-        fromProfile(
-          RENEGADE.kallasFervorLastingLegacy,
+          TRAIT.LASTING_LEGACY,
           'conditionDamageIncreasePerStack',
           'Condition damage per stack',
           tooltipPercent

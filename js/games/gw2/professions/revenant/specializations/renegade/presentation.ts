@@ -14,7 +14,6 @@ import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/re
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
-import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import type {
   ProfessionEffectPresentation,
   RotationStateSnapshotItem
@@ -33,7 +32,7 @@ function fervorMaximum(context: RevenantUiContext & Pick<ProfessionStateSnapshot
     1,
     balanceNumberFromContext(
       context.balanceContext,
-      lastingLegacy ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor,
+      lastingLegacy ? TRAIT.LASTING_LEGACY : TRAIT.AMBUSH_COMMANDER,
       'maximumStacks'
     )
   );
@@ -96,7 +95,7 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
       scope: ['damage'],
       max: balanceNumberFromContext(
         context,
-        preview.has('Lasting Legacy') ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor,
+        preview.has('Lasting Legacy') ? TRAIT.LASTING_LEGACY : TRAIT.AMBUSH_COMMANDER,
         'maximumStacks'
       ),
       description: 'Active Fervor stacks'

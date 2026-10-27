@@ -2,7 +2,6 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -28,6 +27,29 @@ const combat = { type: 'combat-start' };
 const state = (result) => observedRuntime(result).profession.specialization.state;
 const core = (result) => observedRuntime(result).profession.core;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
+
+// Independent command instances mature using their own selected delay, even while another command remains pending.
+test('command skill patches retain independent echo deadlines', () => {
+  const source = withPatchPreview(warriorProfession, {
+    id: 'echo-delays',
+    label: 'Echo delays',
+    professions: {
+      warrior: {
+        skills: {
+          [ID.FIND_THEIR_WEAKNESS]: { fields: { pulseInterval: 1 } },
+          [ID.WE_SHALL_RETURN]: { fields: { pulseInterval: 4 } }
+        }
+      }
+    }
+  });
+  const result = run([ID.FIND_THEIR_WEAKNESS, ID.WE_SHALL_RETURN, wait(2000)], { patchId: 'echo-delays' }, source);
+  assert.deepEqual(
+    Object.values(state(result).commandEchoes).map(({ skillId }) => skillId),
+    [ID.WE_SHALL_RETURN]
+  );
+  const completed = run([ID.FIND_THEIR_WEAKNESS, ID.WE_SHALL_RETURN, wait(5000)], { patchId: 'echo-delays' }, source);
+  assert.deepEqual(state(completed).commandEchoes, {});
+});
 
 // A selected cap applies before chant rewards; snapshots and meters share the resulting detached clock.
 test('Motivation policies initialize empty, cap fractional rewards, and isolate selected catalogs', () => {
@@ -359,10 +381,12 @@ test('removed opening packets and disabled cadences retain chant state without q
     label: 'Silent Paragon',
     professions: {
       warrior: {
-        skills: { [ID.CHANT_OF_ACTION]: { sideEffects: { chant: { removeEffects: [{ type: 'boon', all: true }] } } } },
+        skills: {
+          [ID.CHANT_OF_ACTION]: { sideEffects: { chant: { removeEffects: [{ type: 'boon', all: true }] } } },
+          [ID.WE_SHALL_RETURN]: { fields: { pulseInterval: { from: 3, to: 0 } } }
+        },
         balanceProfiles: {
-          [TRAIT.RALLY_THE_VALIANT]: { fields: { pulseInterval: { from: 3, to: 0 } } },
-          [PROFILE.commands]: { fields: { pulseInterval: { from: 3, to: 0 } } }
+          [TRAIT.RALLY_THE_VALIANT]: { fields: { pulseInterval: { from: 3, to: 0 } } }
         }
       }
     }

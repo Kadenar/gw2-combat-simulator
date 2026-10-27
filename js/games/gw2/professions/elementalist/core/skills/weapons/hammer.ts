@@ -94,6 +94,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
       }
     ],
     // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   // Three simultaneous strike/Burning pairs at a single packet time.
@@ -306,6 +307,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
       }
     ],
     // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   // Leap finisher; the single impact is its whole payload.
@@ -459,6 +461,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
       }
     ],
     // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   // Small strike that mainly exists for its self-Superspeed and crowd-control application.
@@ -614,6 +617,7 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
       }
     ],
     // Create this element's orb and refresh existing orb lifetimes without duplicating their buffs.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   // Defensive channel with no packets; only its long cast time and recharge affect the rotation.

@@ -1,3 +1,4 @@
+import { RAZORCLAW_PROC_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -15,7 +16,6 @@ import {
   effectiveConduitAffinity,
   affinity as modifierAffinity
 } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
-import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { razorclawsRage } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -279,7 +279,7 @@ for (const [name, skillId, cooldown] of [
     const daggers = skillId === SKILL.ENCHANTED_DAGGERS;
     const skill = revenantCatalog.skillsById.get(skillId);
     const buff = skill.effects.find((effect) => effect.type === 'buff');
-    const procId = RENEGADE_PROFILE_IDS.razorclawsRageProc;
+    const procId = RAZORCLAW_PROC_ID;
     const owner = (runtime) => (daggers ? runtime.profession.core : runtime.profession.specialization.state);
     const key = daggers ? 'enchantedDaggers' : 'razorclawsRage';
     const scenario = (seed, hits, untilMs) =>
@@ -361,7 +361,7 @@ test("Razorclaw's Rage arms its charges and assumed allies' Bleeding at completi
 
 test('Razorclaw rejects a missing proc and keeps charges when its bleed is removed', () => {
   // A missing declaration is invalid content, while an explicit removal leaves the charge for no packet to spend.
-  const procId = RENEGADE_PROFILE_IDS.razorclawsRageProc;
+  const procId = RAZORCLAW_PROC_ID;
   const run = (catalog) =>
     runRevenant(
       [wait(2000)],
@@ -388,7 +388,7 @@ test('Razorclaw rejects a missing proc and keeps charges when its bleed is remov
 // Player and ally grants are separate, but one expiry and cooldown policy decides every recipient's spend.
 for (const cooldown of [0, 1]) {
   test(`Razorclaw allies spend under the player's expiry and ${cooldown ? 'cooldown' : 'same-timestamp'} policy`, () => {
-    const procId = RENEGADE_PROFILE_IDS.razorclawsRageProc;
+    const procId = RAZORCLAW_PROC_ID;
     const skill = revenantCatalog.skillsById.get(SKILL.RAZORCLAWS_RAGE);
     // Surplus charges leave only expiry and the cooldown able to stop spending.
     const profile = {

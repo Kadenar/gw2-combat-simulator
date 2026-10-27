@@ -12,7 +12,6 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 
@@ -83,8 +82,8 @@ test('ordinary completion replaces the timed Band Together buff and cannot grant
   grant(99);
   runtime.time = ordinary.effectiveEnd;
   apply(ordinary, 'castCommit');
-  const duration = runtime.helpers.balanceProfilesById
-    .get(PROFILE.bandTogether)
+  const duration = runtime.helpers.skillsById
+    .get(ID.LEGENDARY_RENEGADE_STANCE)
     .effects.find((effect) => effect.kind === 'band-together').duration;
   assert.equal(effectStateValue(observe(), runtime.time).count, 1);
   assert.equal(effectStateValue(observe(), runtime.time).expiresAt, runtime.time + duration);

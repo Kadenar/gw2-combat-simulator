@@ -1,7 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
@@ -10,11 +9,14 @@ import {
   inFlightAutoattackCarryover,
   progressedAutoattackCarryover
 } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { elementalEnchantmentRecharge } from '#gw2/professions/elementalist/core/traits/arcane/index.js';
 import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
+// Single-attunement swaps recharge the departed element and briefly delay the untouched elements.
+const ATTUNEMENT_RECHARGE_SECONDS = 10;
+const OFF_ATTUNEMENT_DELAY_SECONDS = 1.5;
 
 /** Identifies one shared attunement-entry trait effect so a specialization can veto it. */
 export interface ElementalistAttunementTraitTrigger {
@@ -87,24 +89,21 @@ export function onAttunementComplete(
     }
   } else {
     state.primaryAttunement = target;
-    const resourcesProfile = requireBalanceProfileFromContext(context, PROFILE.resources);
-    // Single swap: the attunement just left takes the full recharge, while the two
+    // Fixed attunement rules: the one just left takes the full recharge, while the two
     // untouched attunements only serve the short off-attunement delay.
     setElementalistAttunementReadyAt(
       context,
       previous,
       Math.max(
         attunementReadyAtBefore[previous],
-        at + elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'recharge'))
+        at + elementalistAttunementRechargeDuration(context, skill, ATTUNEMENT_RECHARGE_SECONDS)
       )
     );
     for (const attunement of ELEMENTALIST_ATTUNEMENTS) {
       if (attunement === target || attunement === previous) continue;
 
       const existingReadyAt = attunementReadyAtBefore[attunement];
-      const defaultReadyAt =
-        at +
-        elementalistAttunementRechargeDuration(context, skill, balanceProfileNumber(resourcesProfile, 'initialDelay'));
+      const defaultReadyAt = at + elementalistAttunementRechargeDuration(context, skill, OFF_ATTUNEMENT_DELAY_SECONDS);
       // Pending hits may reset Air later; they cannot shorten an actual cooldown before resolving.
       const nextReadyAt = Math.max(existingReadyAt, defaultReadyAt);
       setElementalistAttunementReadyAt(context, attunement, nextReadyAt);

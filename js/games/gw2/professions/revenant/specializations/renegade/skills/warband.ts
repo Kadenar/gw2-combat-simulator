@@ -1,3 +1,4 @@
+import { RAZORCLAW_PROC_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import {
@@ -10,17 +11,12 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
@@ -71,7 +67,7 @@ export function beginBandTogether(runtime: RevenantRuntime, cast: RuntimeCast<Re
 
 /** A missing proc declaration is invalid content, unlike an explicitly removed Bleeding that leaves charges unspent. */
 function razorclawProcProfile(runtime: RevenantRuntime): RevenantSkill {
-  const proc = runtime.helpers.skillsById.get(PROFILE.razorclawsRageProc);
+  const proc = runtime.helpers.skillsById.get(RAZORCLAW_PROC_ID);
 
   if (!proc) throw new Error("Missing Razorclaw's Rage proc declaration.");
 
@@ -172,7 +168,7 @@ export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast
 
   if (selected.enhanced) return;
 
-  const window = requireBalanceProfileFromContext(runtime, PROFILE.bandTogether);
+  const window = requireSkillFromContext(runtime, ID.LEGENDARY_RENEGADE_STANCE);
   const effect = requireEffect(window, 'buff', 'band-together');
 
   // The enhancement window is the buff, so a removed buff arms no enhancement.

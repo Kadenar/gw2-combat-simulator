@@ -4,7 +4,6 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 
 /** Runtime and detached modifier queries resolve Fervor tuning from their selected catalog. */
 export function fervorProfile(
@@ -12,7 +11,7 @@ export function fervorProfile(
 ): BalanceProfile {
   return requireBalanceProfileFromContext(
     runtime,
-    hasTrait(runtime, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor
+    hasTrait(runtime, TRAIT.LASTING_LEGACY) ? TRAIT.LASTING_LEGACY : TRAIT.AMBUSH_COMMANDER
   );
 }
 

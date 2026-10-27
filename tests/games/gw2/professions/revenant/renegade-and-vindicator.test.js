@@ -455,7 +455,7 @@ test('Ashen Demeanor grants self Fervor, Might, and Resistance on its healing-sk
   const ashen = result.events.filter((event) => event.skillName === 'Ashen Demeanor');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(revenantCatalog.balanceProfilesById.get('revenant.renegade.ashen-demeanor').cooldown, 10);
+  assert.equal(revenantCatalog.balanceProfilesById.get(TRAIT.ASHEN_DEMEANOR).cooldown, 10);
   assert.deepEqual(
     ashen
       .filter((event) => event.kind === 'kallas-fervor')
@@ -945,7 +945,7 @@ test('All for One refunds Energy and halves only enhanced-skill recharge', () =>
   // Only the enhanced Icerazor refunds the authored All for One Energy once.
   assert.equal(
     traited.planningState.profession.energy.value - base.planningState.profession.energy.value,
-    revenantCatalog.balanceProfilesById.get('revenant.renegade.all-for-one').resourceGain
+    revenantCatalog.balanceProfilesById.get(TRAIT.ALL_FOR_ONE).resourceGain
   );
   assert.equal(
     traited.planningState.cooldowns[SKILL.ICERAZORS_IRE].remaining,

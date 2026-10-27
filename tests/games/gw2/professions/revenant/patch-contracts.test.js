@@ -7,7 +7,6 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -21,8 +20,44 @@ const conduitConfig = {
   initialEnergy: 100
 };
 
+// The stance owns the shared enhancement window; ordinary warband casts deliver its selected duration.
+test('Band Together uses the stance skill window and retires its former profile target', () => {
+  const result = runRevenant(
+    [ID.ICERAZORS_IRE, wait(1000)],
+    {
+      specialization: 'Renegade',
+      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.RENEGADE,
+      initialEnergy: 100
+    },
+    {
+      catalog: (catalog) =>
+        applySkillPatch(catalog, {
+          skills: {
+            [ID.LEGENDARY_RENEGADE_STANCE]: { effects: [{ type: 'buff', name: 'band-together', duration: 0.5 }] }
+          }
+        })
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const grant = result.events.find((event) => event.type === 'buff' && event.kind === 'band-together');
+  assert.equal(grant.duration, 0.5);
+  assert.equal(grant.sourceId, ID.LEGENDARY_RENEGADE_STANCE);
+  const runtime = observedRuntime(result);
+  assert.equal(runtime.combat.activeBuffStacks('band-together', runtime.time, 1), 0);
+  for (const id of [
+    'revenant.renegade.band-together',
+    'revenant.renegade.bold-reversal-righteous-rebel',
+    'revenant.renegade.vindication'
+  ])
+    assert.throws(
+      () => applyBalanceProfilePatch(revenantCatalog, { balanceProfiles: { [id]: { fields: {} } } }),
+      /unknown balance profile/
+    );
+});
+
 // Trait-owned tuning accepts only the canonical identity, and patching never mutates the base catalog.
-test('Herald and Conduit patches use canonical trait IDs and reject obsolete profile IDs', () => {
+test('Revenant specialization patches use canonical trait IDs and reject obsolete profile IDs', () => {
   for (const [trait, obsolete, field] of [
     [TRAIT.ELEVATED_COMPASSION, 'revenant.elevated-compassion', 'threshold'],
     [TRAIT.SHARED_EMPOWERMENT, 'revenant.shared-empowerment', 'internalCooldown'],
@@ -32,7 +67,14 @@ test('Herald and Conduit patches use canonical trait IDs and reject obsolete pro
     [TRAIT.EXPANDED_CONSCIOUSNESS, 'revenant.conduit.expanded-consciousness', 'resourceGain'],
     [TRAIT.SHARED_WISDOM, 'revenant.conduit.shared-wisdom', null],
     [TRAIT.NUMINOUS_GIFT, 'revenant.conduit.numinous-gift', 'damageIncrease'],
-    [TRAIT.MISTFIRE, 'revenant.conduit.mistfire', 'internalCooldown']
+    [TRAIT.MISTFIRE, 'revenant.conduit.mistfire', 'internalCooldown'],
+    [TRAIT.AMBUSH_COMMANDER, 'revenant.renegade.kallas-fervor', 'maximumStacks'],
+    [TRAIT.LASTING_LEGACY, 'revenant.renegade.kallas-fervor-lasting-legacy', 'damageIncreasePerStack'],
+    [TRAIT.ALL_FOR_ONE, 'revenant.renegade.all-for-one', 'resourceGain'],
+    [TRAIT.ASHEN_DEMEANOR, 'revenant.renegade.ashen-demeanor', 'cooldown'],
+    [TRAIT.BLOOD_FURY, 'revenant.renegade.blood-fury', 'conditionDurationBonus'],
+    [TRAIT.BRUTAL_MOMENTUM, 'revenant.renegade.brutal-momentum', 'criticalChance'],
+    [TRAIT.ENDLESS_ENMITY, 'revenant.renegade.endless-enmity', 'internalCooldown']
   ]) {
     const original = revenantCatalog.balanceProfilesById.get(trait);
     assert.equal(original.profileKind, 'trait');
@@ -284,8 +326,8 @@ test('Core and Entity invocation consume the patched call skill', () => {
 test('Revenant stack displays use patched skill and selected trait caps', () => {
   const catalog = applyBalanceProfilePatch(withSkill(revenantCatalog, ID.ABYSSAL_RAZE, { maximumStacks: 7 }), {
     balanceProfiles: {
-      [RENEGADE.kallasFervor]: { fields: { maximumStacks: 2 } },
-      [RENEGADE.kallasFervorLastingLegacy]: { fields: { maximumStacks: 8 } }
+      [TRAIT.AMBUSH_COMMANDER]: { fields: { maximumStacks: 2 } },
+      [TRAIT.LASTING_LEGACY]: { fields: { maximumStacks: 8 } }
     }
   });
   for (const selected of [false, true]) {

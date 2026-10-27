@@ -1,3 +1,4 @@
+import { HAMMER_ORB_REUSE_DELAY } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -8,10 +9,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
  */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { denyCast, retryCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE_PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
@@ -64,9 +63,7 @@ export function weaverHammerAvailability(
   // Every dual hammer skill shares one short lockout after the last orb cast.
   // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
   const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
-    ? canonicalTime(
-        state.hammerOrbLastCastAt + balanceNumberFromContext(context, CORE_PROFILE.hammerOrbs, 'initialDelay')
-      )
+    ? canonicalTime(state.hammerOrbLastCastAt + HAMMER_ORB_REUSE_DELAY)
     : state.hammerOrbLastCastAt;
 
   if (retryAt > context.time) {

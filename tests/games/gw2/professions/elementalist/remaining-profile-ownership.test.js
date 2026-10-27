@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
@@ -19,6 +20,57 @@ import {
 import { applyCalcifyProtection } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+
+// The creating skill refreshes existing orbs as well as its own elements, and presentation reads that same duration.
+test('Core and Weaver orb skills own refresh duration and expiry', () => {
+  for (const [id, specialization, elements] of [
+    [ID.FLAME_WHEEL, 'Core', ['Fire']],
+    [ID.DUAL_ORBITS_FIRE_AND_WATER, 'Weaver', ['Fire', 'Water']]
+  ]) {
+    const catalog = applySkillPatch(elementalistCatalog, { skills: { [id]: { fields: { orbDuration: 2.5 } } } });
+    const result = runElementalist(
+      [{ type: 'wait', durationMs: 3000 }],
+      { specialization, primaryWeapon: 'Hammer' },
+      {
+        catalog: () => catalog,
+        initialize(runtime) {
+          runtime.profession.core.hammerOrbs.Air = 10;
+          createHammerOrbs(
+            runtime,
+            { id: 'orb-grant', effectiveEnd: 0, command: {}, skill: catalog.skillsById.get(id) },
+            catalog.skillsById.get(id),
+            elements
+          );
+        },
+        probes: [
+          [
+            1,
+            (runtime) => {
+              for (const element of ['Air', ...elements])
+                assert.equal(runtime.profession.core.hammerOrbs[element], 2.5);
+            }
+          ],
+          [
+            3,
+            (runtime) => {
+              for (const element of ['Air', ...elements])
+                assert.equal(runtime.profession.core.hammerOrbs[element], null);
+            }
+          ]
+        ]
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const { tooltip: model } = fixture(id, { fields: { orbDuration: 2.5 } }, specialization, {});
+    assert.equal(model.facts.find(({ name }) => name === 'Refreshed orb duration').detail, '2.5s');
+  }
+
+  for (const id of ['elementalist.core.resources', 'elementalist.core.hammer-orbs'])
+    assert.throws(
+      () => applyBalanceProfilePatch(elementalistCatalog, { balanceProfiles: { [id]: { fields: {} } } }),
+      /unknown balance profile/
+    );
+});
 
 // Isolate accepted proc boundaries while retaining canonical skill patches and real packet materialization.
 function fixture(id, edit, specialization, state) {

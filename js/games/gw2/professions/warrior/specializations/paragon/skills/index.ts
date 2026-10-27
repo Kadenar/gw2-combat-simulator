@@ -6,6 +6,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.WE_WILL_NEVER_YIELD]: {
     echoResourceGain: 0,
+    // Each command owns the delay used for its initial and repeated echoes.
+    pulseInterval: 3,
     categories: ['Command'],
     castTimeMs: 667,
 
@@ -16,6 +18,8 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   [ID.WE_SHALL_RETURN]: {
     echoResourceGain: 10,
     cooldown: 20,
+    // Each command owns the delay used for its initial and repeated echoes.
+    pulseInterval: 3,
     categories: ['Command'],
     castTimeMs: 667,
     effects: [],
@@ -48,6 +52,8 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   [ID.FIND_THEIR_WEAKNESS]: {
     echoResourceGain: 3,
     cooldown: 15,
+    // Each command owns the delay used for its initial and repeated echoes.
+    pulseInterval: 3,
     categories: ['Command'],
     castTimeMs: 333,
     effects: [
@@ -96,6 +102,8 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   [ID.ON_YOUR_KNEES]: {
     echoResourceGain: 0,
     cooldown: 15,
+    // Each command owns the delay used for its initial and repeated echoes.
+    pulseInterval: 3,
     categories: ['Command'],
     castTimeMs: 167,
     effects: [

@@ -405,17 +405,17 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
   );
   // Base Fervor and Lasting Legacy expose their own strike rates to authoring.
   assert.equal(
-    renegade.balanceProfiles.find((entry) => entry.id === 'revenant.renegade.kallas-fervor').patchableFields
+    renegade.balanceProfiles.find((entry) => entry.id === REVENANT_TRAIT_IDS.AMBUSH_COMMANDER).patchableFields
       .damageIncreasePerStack,
     0.02
   );
   assert.equal(
-    renegade.balanceProfiles.find((entry) => entry.id === 'revenant.renegade.kallas-fervor-lasting-legacy')
-      .patchableFields.damageIncreasePerStack,
+    renegade.balanceProfiles.find((entry) => entry.id === REVENANT_TRAIT_IDS.LASTING_LEGACY).patchableFields
+      .damageIncreasePerStack,
     0.05
   );
   assert.equal(
-    renegade.balanceProfiles.find((entry) => entry.id === 'revenant.renegade.blood-fury').patchableFields
+    renegade.balanceProfiles.find((entry) => entry.id === REVENANT_TRAIT_IDS.BLOOD_FURY).patchableFields
       .conditionDurationBonus,
     0.25
   );

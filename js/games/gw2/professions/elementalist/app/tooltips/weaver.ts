@@ -13,7 +13,6 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -75,7 +74,7 @@ export const weaverTooltips = {
         id,
         skillTooltip(
           'Create hammer orbs for both attunements and refresh all active orb durations. Grand Finale consumes those orbs. An existing matching orb must be consumed before this dual attack can create it again.',
-          [fromProfile(CORE.hammerOrbs, 'duration', 'Refreshed orb duration', tooltipSeconds)]
+          [fromSkill(id, 'orbDuration', 'Refreshed orb duration', tooltipSeconds)]
         )
       ])
     ),

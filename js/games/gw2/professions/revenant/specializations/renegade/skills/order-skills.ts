@@ -5,7 +5,6 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { RENEGADE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 
 /** Adds protection only for the selected enhancement, retaining the order's pulse cadence. */
 const boldReversalOrderEffects: NonNullable<NonNullable<Skill['effectVariants']>[number]['transform']> = (
@@ -14,7 +13,7 @@ const boldReversalOrderEffects: NonNullable<NonNullable<Skill['effectVariants']>
   effects
 ) =>
   hasTrait(runtime, TRAIT.BOLD_REVERSAL)
-    ? [...effects, ...(requireBalanceProfileFromContext(runtime, PROFILE.boldReversalRighteousRebel).effects ?? [])]
+    ? [...effects, ...(requireBalanceProfileFromContext(runtime, TRAIT.BOLD_REVERSAL).effects ?? [])]
     : effects;
 
 /** Supplies Orders from Above's trait-selected pulse variant at skill materialization. */

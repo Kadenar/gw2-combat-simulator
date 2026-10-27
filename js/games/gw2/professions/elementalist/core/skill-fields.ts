@@ -3,6 +3,8 @@ import { defineSkillFields, numberField } from '#gw2/platform/skills/field-specs
 /** Core Elementalist skill fields consumed by its weapon and summon mechanics. */
 export const ELEMENTALIST_CORE_SKILL_FIELDS = defineSkillFields(
   {
+    // Creating an orb refreshes every active orb to this skill's duration.
+    orbDuration: numberField({ unit: 'seconds', patch: 'primary' }),
     // Fraction of a weapon skill's recharge retained by its own mechanic, before trait recharge reductions.
     rechargeMultiplier: numberField({ patch: 'primary' }),
     // Dazing Discharge and Ripple apply this factor to the next eligible weapon skill's recharge.

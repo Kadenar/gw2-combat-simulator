@@ -14,7 +14,6 @@ import { GUARDIAN_TRAIT_IDS as GUARDIAN } from '#gw2/professions/guardian/data/i
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { REVENANT_TRAIT_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -44,7 +43,7 @@ for (const [name, profession, specialization, trait, profile, effect, fields] of
     revenantProfession,
     'Renegade',
     REVENANT.ENDLESS_ENMITY,
-    RENEGADE.endlessEnmity,
+    REVENANT.ENDLESS_ENMITY,
     { type: 'boon', name: 'fury' },
     { forceCrit: true }
   ]

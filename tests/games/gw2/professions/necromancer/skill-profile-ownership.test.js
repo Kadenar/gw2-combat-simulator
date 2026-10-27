@@ -142,6 +142,8 @@ test('obsolete intrinsic profiles are absent and reject patch edits', () => {
     false
   );
   for (const id of [
+    'necromancer.ritualist.spirit-cadence',
+    'necromancer.ritualist.painful-bond',
     'necromancer.harbinger.resources',
     'necromancer.reaper.resources',
     'necromancer.scourge.shade',

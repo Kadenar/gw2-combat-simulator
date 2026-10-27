@@ -6,7 +6,7 @@ import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runt
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { anguishConditionModifier } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
 
@@ -77,13 +77,13 @@ function run(
 
   // Timing is not a user patch field; this fixture also exercises the runtime's valid zero-delay profile contract.
   if (bondInitialDelay != null) {
-    const profiles = catalog.balanceProfiles.map((profile) =>
-      profile.id === PROFILE.painfulBond ? { ...profile, initialDelay: bondInitialDelay } : profile
+    const skills = catalog.skills.map((skill) =>
+      skill.id === painfulBondSkill.id ? { ...skill, initialDelay: bondInitialDelay } : skill
     );
     catalog = {
       ...catalog,
-      balanceProfiles: profiles,
-      balanceProfilesById: new Map(profiles.map((profile) => [profile.id, profile]))
+      skills,
+      skillsById: new Map(skills.map((skill) => [skill.id, skill]))
     };
   }
 
@@ -339,6 +339,29 @@ test('removed weapon spell strikes preserve independent Nightmare conditions and
   );
 });
 
+// Anguish reads the triggered skill's grant and damage together without borrowing its autonomous attack tuning.
+test('Painful Bond skill patches control Anguish grants and recurring damage', () => {
+  const result = run([cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(2500)], {
+    skills: {
+      [painfulBondSkill.id]: {
+        effects: [
+          { type: 'buff', name: 'necromancer-painful-bond', duration: 1 },
+          { type: 'strike', name: 'Strike', flatStrikeBase: 400, flatStrikePowerCoeff: 0.8 }
+        ]
+      }
+    }
+  });
+  assert.deepEqual(result.warnings, []);
+  const grant = result.resolvedEvents.find(
+    (event) => event.type === 'buff' && event.kind === 'necromancer-painful-bond'
+  );
+  assert.ok(Math.abs(grant.duration - 1) < 1e-9);
+  const damage = bondDamage(result);
+  assert.ok(damage.length > 0);
+  assert.ok(damage.every((event) => event.flatStrikeBase === 400 && event.flatStrikePowerCoeff === 0.8));
+  assert.ok(damage.every((event) => event.at < grant.at + grant.duration));
+});
+
 test('Painful Bond duration stacks without duplicate pulses and preserves cadence across inactive gaps', () => {
   const result = run([wait(4100)], { events: [bond(0, 1), bond(0.5, 1), bond(3, 1)] });
   assert.deepEqual(
@@ -367,7 +390,7 @@ test('Painful Bond honors a zero initial delay, removed output, target gates, an
   assert.equal(
     run([wait(2000)], {
       events: [bond(0, 1)],
-      balanceProfiles: { [PROFILE.painfulBond]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
+      skills: { [painfulBondSkill.id]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
     }).totalDamage,
     0
   );
@@ -447,9 +470,8 @@ test('Summon Spirits checks its initial window and busy state before an autonomo
 
 // A commanded attack can make a spirit busy after its autonomous animation starts but before its impact arrives.
 test('busy spirits suppress an in-flight autonomous impact without shifting later attacks', () => {
-  const resources = necromancerProfession.catalog.balanceProfilesById.get(PROFILE.spiritCadence);
   const pulseInterval = necromancerProfession.catalog.balanceProfilesById.get(TRAIT.SPAWNING_POWER).pulseInterval;
-  const opening = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(resources.initialDelay * 1000 + 40)];
+  const opening = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(7400)];
   const baseline = run([...opening, wait(pulseInterval * 2000)]);
   const commanded = run([...opening, cast(ID.SUMMON_SPIRITS), wait(pulseInterval * 2000)]);
   const autos = (result) => result.resolvedEvents.filter((event) => event.metadata?.spiritAttackType === 'autoattack');

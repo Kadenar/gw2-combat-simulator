@@ -4,7 +4,6 @@ import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.
 import { hammerOrbModifiers } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { frostBowDurationModifier } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILES } from '#gw2/professions/elementalist/core/profiles.js';
 import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
 import {
   ELEMENTALIST_CORE_EXTRA_SKILLS,
@@ -30,8 +29,7 @@ export const elementalistCoreModule = defineNativeModule({
   data: createElementalistModuleData('Core', {
     skillFields: ELEMENTALIST_CORE_SKILL_FIELDS,
     skillMechanics: ELEMENTALIST_CORE_SKILL_MECHANICS,
-    extraSkills: ELEMENTALIST_CORE_EXTRA_SKILLS,
-    balanceProfiles: ELEMENTALIST_CORE_BALANCE_PROFILES
+    extraSkills: ELEMENTALIST_CORE_EXTRA_SKILLS
   }),
   state: {
     create: createElementalistCoreState,

@@ -37,10 +37,6 @@ import {
   bandTogetherReady,
   grantKallasFervor
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import {
-  RENEGADE_PROFILE_IDS as PROFILE,
-  RENEGADE_PROFILE_IDS
-} from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { warbandCompleted } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { fervorMaximumStacks } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
@@ -55,7 +51,6 @@ const allForOne = defineTrait({
   id: TRAIT.ALL_FOR_ONE,
   name: 'All for One',
   balance: {
-    id: RENEGADE_PROFILE_IDS.allForOne,
     icon: 'https://render.guildwars2.com/file/9398D8F8E764A23596E17EDAA35B99961D62F061/1769993.png',
     categories: ['Trait'],
     skillFamily: 'Trait',
@@ -65,7 +60,7 @@ const allForOne = defineTrait({
   rechargeRules: [
     {
       when: (runtime, skill) => bandTogetherReady(runtime, skill.id),
-      multiplier: { profile: PROFILE.allForOne, field: 'rechargeMultiplier' }
+      multiplier: { profile: TRAIT.ALL_FOR_ONE, field: 'rechargeMultiplier' }
     }
   ]
 });
@@ -86,7 +81,6 @@ const ambushCommander = defineTrait({
   balance: {
     damageIncreasePerStack: 0.02,
     conditionDamageIncreasePerStack: 0.02,
-    id: RENEGADE_PROFILE_IDS.kallasFervor,
     maximumStacks: 5,
     lifeSiphonDamagePerStack: 0.02,
     effects: [
@@ -112,7 +106,6 @@ const ashenDemeanorTrait = defineTrait({
   id: TRAIT.ASHEN_DEMEANOR,
   name: 'Ashen Demeanor',
   balance: {
-    id: RENEGADE_PROFILE_IDS.ashenDemeanor,
     cooldown: 10,
     fervorStacks: 3,
     effects: [
@@ -132,7 +125,6 @@ const bloodFury = defineTrait({
   id: TRAIT.BLOOD_FURY,
   name: 'Blood Fury',
   balance: {
-    id: RENEGADE_PROFILE_IDS.bloodFury,
     conditionDurationBonus: 0.25,
     icon: 'https://render.guildwars2.com/file/10FA58BEA8CF9AAB3F7841B154DC26E95A4FC705/1769989.png',
     categories: ['Trait'],
@@ -145,7 +137,7 @@ const bloodFury = defineTrait({
       order: 104,
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, RENEGADE_PROFILE_IDS.bloodFury, 'conditionDurationBonus'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.BLOOD_FURY, 'conditionDurationBonus'),
       // Blood Fury shares the chronological player-Fury query used by Core Revenant modifiers.
       when: (context) => context.condition === CONDITION.BLEEDING && boonActive(context, boonKey(BOON.FURY))
     }
@@ -157,7 +149,6 @@ const boldReversal = defineTrait({
   id: TRAIT.BOLD_REVERSAL,
   name: 'Bold Reversal',
   balance: {
-    id: RENEGADE_PROFILE_IDS.boldReversalRighteousRebel,
     effects: [
       {
         type: 'boon',
@@ -184,7 +175,7 @@ const brutalMomentum = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => {
-        const profile = requireBalanceProfileFromContext(context, RENEGADE_PROFILE_IDS.brutalMomentum);
+        const profile = requireBalanceProfileFromContext(context, TRAIT.BRUTAL_MOMENTUM);
         return (
           balanceProfileNumber(profile, 'fullEnduranceCriticalChance') - balanceProfileNumber(profile, 'criticalChance')
         );
@@ -192,13 +183,12 @@ const brutalMomentum = defineTrait({
       when: (context) => resourceAtLeast(revenantRuntimeCoreState(context).endurance?.value ?? 0, ENDURANCE.maximum)
     }
   ],
-  attributes: traitAttributeBonuses(RENEGADE_PROFILE_IDS.brutalMomentum, (profile) => ({
+  attributes: traitAttributeBonuses(TRAIT.BRUTAL_MOMENTUM, (profile) => ({
     traitCriticalChance: 100 * balanceProfileNumber(profile, 'criticalChance')
   })),
   id: TRAIT.BRUTAL_MOMENTUM,
   name: 'Brutal Momentum',
   balance: {
-    id: RENEGADE_PROFILE_IDS.brutalMomentum,
     criticalChance: 0.1,
     fullEnduranceCriticalChance: 0.33,
     internalCooldown: 8,
@@ -206,20 +196,20 @@ const brutalMomentum = defineTrait({
   },
   triggers: [
     {
-      emit: PROFILE.brutalMomentum,
+      emit: TRAIT.BRUTAL_MOMENTUM,
       on: 'buff.applied',
       cooldown: 'profile',
       when: (runtime, event) =>
         (event.kind || '').toLowerCase() === boonKey(BOON.FURY) &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
         Boolean(
-          requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.brutalMomentum), 'boon', boonKey(BOON.VIGOR))
+          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.BRUTAL_MOMENTUM), 'boon', boonKey(BOON.VIGOR))
         ),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.VIGOR),
       attribution: {
         source: 'revenant',
         actorType: ACTOR.PLAYER,
-        skillId: PROFILE.brutalMomentum,
+        skillId: TRAIT.BRUTAL_MOMENTUM,
         skillName: 'Brutal Momentum',
         name: undefined
       }
@@ -232,7 +222,6 @@ const endlessEnmity = defineTrait({
   id: TRAIT.ENDLESS_ENMITY,
   name: 'Endless Enmity',
   balance: {
-    id: RENEGADE_PROFILE_IDS.endlessEnmity,
     icon: 'https://render.guildwars2.com/file/A4D16BE749A19FE8A8B5783EE2BD1DF899156D47/1769999.png',
     categories: ['Trait'],
     skillFamily: 'Trait',
@@ -251,7 +240,7 @@ const endlessEnmity = defineTrait({
   },
   triggers: [
     {
-      emit: PROFILE.endlessEnmity,
+      emit: TRAIT.ENDLESS_ENMITY,
       on: 'damage.resolved',
       cooldown: 'profile',
       when: (runtime, event, details) =>
@@ -259,7 +248,7 @@ const endlessEnmity = defineTrait({
         Number(event.coefficient) > 0 &&
         Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit) &&
         Boolean(
-          requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.endlessEnmity), 'boon', boonKey(BOON.FURY))
+          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.ENDLESS_ENMITY), 'boon', boonKey(BOON.FURY))
         ),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.FURY),
       attribution: {
@@ -307,7 +296,6 @@ const lastingLegacy = defineTrait({
   balance: {
     damageIncreasePerStack: 0.05,
     conditionDamageIncreasePerStack: 0.03,
-    id: RENEGADE_PROFILE_IDS.kallasFervorLastingLegacy,
     variantBadge: 'Lasting Legacy',
     maximumStacks: 5,
     lifeSiphonDamagePerStack: 0.03,
@@ -334,7 +322,7 @@ const lastingLegacy = defineTrait({
         kallasFervorStacks(context) *
         balanceNumberFromContext(
           context,
-          hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor,
+          hasTrait(context, TRAIT.LASTING_LEGACY) ? TRAIT.LASTING_LEGACY : TRAIT.AMBUSH_COMMANDER,
           'damageIncreasePerStack'
         ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && kallasFervorStacks(context) > 0
@@ -350,7 +338,7 @@ const lastingLegacy = defineTrait({
         kallasFervorStacks(context) *
         balanceNumberFromContext(
           context,
-          hasTrait(context, TRAIT.LASTING_LEGACY) ? PROFILE.kallasFervorLastingLegacy : PROFILE.kallasFervor,
+          hasTrait(context, TRAIT.LASTING_LEGACY) ? TRAIT.LASTING_LEGACY : TRAIT.AMBUSH_COMMANDER,
           'conditionDamageIncreasePerStack'
         ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && kallasFervorStacks(context) > 0
@@ -369,7 +357,6 @@ const vindication = defineTrait({
   id: TRAIT.VINDICATION,
   name: 'Vindication',
   balance: {
-    id: RENEGADE_PROFILE_IDS.vindication,
     icon: 'https://render.guildwars2.com/file/3453B30240026E36661AACD3FA94FB0DBFC8246C/1769995.png',
     categories: ['Trait'],
     skillFamily: 'Trait',
@@ -386,7 +373,7 @@ const vindication = defineTrait({
     {
       on: 'damage.resolved',
       when: (_runtime, event) => event.skillId === ID.CITADEL_BOMBARDMENT && Number(event.hitIndex || 1) === 1,
-      emit: PROFILE.vindication,
+      emit: TRAIT.VINDICATION,
       effects: (effect) => effect.type === 'control' && effect.name === CONTROL.DAZE,
       attribution: {
         source: 'revenant',
@@ -417,7 +404,7 @@ export const traitDefinitions = [
 /** Applies the trait at the mechanic's existing execution boundary. */
 function grantAllForOneEnergy(runtime: RevenantRuntime, enhanced: boolean): void {
   if (enhanced)
-    runtime.resourceController.grant('energy', balanceNumberFromContext(runtime, PROFILE.allForOne, 'resourceGain'));
+    runtime.resourceController.grant('energy', balanceNumberFromContext(runtime, TRAIT.ALL_FOR_ONE, 'resourceGain'));
 }
 
 /** Actual critical and positional facts drive Ambush Commander and Endless Enmity. */
@@ -433,14 +420,14 @@ function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?:
 function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (cast.skill.slot !== 'Heal') return;
 
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.ashenDemeanor);
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ASHEN_DEMEANOR);
 
   if (!runtime.procs.claimCooldown('ashenDemeanor', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
 
   for (let stack = 0; stack < Math.max(0, balanceProfileNumber(profile, 'fervorStacks')); stack += 1)
     grantKallasFervor(runtime, { sourceId: TRAIT.ASHEN_DEMEANOR, sourceName: profile.name });
   // Fervor has settled; surviving self boons use the same authored materialization as other traits.
-  emitTraitProfile(runtime, TRAIT.ASHEN_DEMEANOR, PROFILE.ashenDemeanor, undefined, {
+  emitTraitProfile(runtime, TRAIT.ASHEN_DEMEANOR, TRAIT.ASHEN_DEMEANOR, undefined, {
     at: runtime.time,
     activationId: cast.id,
     effects: (effect) => effect.type === 'boon',
@@ -464,7 +451,7 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
     !runtime.procs.claimCooldown(
       'revenant.renegade.bloodFury',
       runtime.time,
-      Math.max(0, balanceNumberFromContext(runtime, PROFILE.bloodFury, 'cooldown'))
+      Math.max(0, balanceNumberFromContext(runtime, TRAIT.BLOOD_FURY, 'cooldown'))
     )
   )
     return;

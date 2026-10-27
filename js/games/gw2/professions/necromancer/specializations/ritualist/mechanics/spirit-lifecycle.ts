@@ -5,11 +5,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
@@ -19,7 +15,6 @@ import {
   spiritDefinition,
   type SpiritDefinition
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { lingeringSpiritsActive } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type {
@@ -31,6 +26,9 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 const AUTO = 'ritualist.spirit-auto';
 const PACKET = 'ritualist.spirit-packet';
+// Initial and resummoned actors have distinct fixed startup delays before joining the shared attack cadence.
+const INITIAL_SPIRIT_ATTACK_DELAY_SECONDS = 7.36;
+const RESUMMONED_SPIRIT_ATTACK_DELAY_SECONDS = 4.14;
 const owner = (key: string, generation: number) => ({ id: `spirit:${key}`, generation });
 interface SpiritPacket {
   key: string;
@@ -149,19 +147,19 @@ export function startRitualistSpirits(runtime: NecromancerRuntime): void {
 
     if (!spirit) continue;
 
-    const resources = requireBalanceProfileFromContext(runtime, PROFILE.spiritCadence);
     const interval = balanceNumberFromContext(runtime, TRAIT.SPAWNING_POWER, 'pulseInterval');
 
     if (!(interval > 0) || !(spirit.attackCoefficient > 0)) continue;
 
     actor.started = true;
 
+    // Startup is a fixed actor lifecycle delay; Spawning Power still owns the repeating attack cadence.
     if (!Number.isFinite(state.spiritAutoAnchorAt)) {
       state.spiritAutoAnchorAt = canonicalTime(
         runtime.time +
           (state.resummonedSpiritAutoCycle
-            ? balanceProfileNumber(resources, 'resummonedSpiritAttackDelayMs') / 1000
-            : balanceProfileNumber(resources, 'initialDelay'))
+            ? RESUMMONED_SPIRIT_ATTACK_DELAY_SECONDS
+            : INITIAL_SPIRIT_ATTACK_DELAY_SECONDS)
       );
       state.resummonedSpiritAutoCycle = false;
     }

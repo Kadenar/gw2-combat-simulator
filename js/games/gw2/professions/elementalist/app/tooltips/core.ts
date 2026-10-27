@@ -3,7 +3,6 @@ import { ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS } from '#gw2/professions/eleme
 import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import {
-  fromProfile,
   fromSkill,
   skillFact,
   modifierFact,
@@ -27,7 +26,6 @@ import {
   EARTH_ELEMENTAL_EVTC_PROFILE as EARTH_ELEMENTAL,
   FIRE_ELEMENTAL_EVTC_PROFILE as FIRE_ELEMENTAL
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
@@ -129,7 +127,7 @@ export const elementalistCoreTooltips = {
         id,
         skillTooltip(
           "Create this attunement's hammer orb and refresh all active orb durations. Grand Finale consumes the active orbs and replaces their pending attacks with elemental projectiles.",
-          [fromProfile(CORE.hammerOrbs, 'duration', 'Refreshed orb duration', tooltipSeconds)]
+          [fromSkill(Number(id), 'orbDuration', 'Refreshed orb duration', tooltipSeconds)]
         )
       ])
     ),

@@ -1,3 +1,4 @@
+import { HAMMER_ORB_REUSE_DELAY } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import {
@@ -8,7 +9,6 @@ import {
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   AURA_TRANSMUTE_SKILLS,
@@ -25,7 +25,6 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
 import { weaponAttunementAvailable } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
-import { ELEMENTALIST_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/elementalist/core/profile-ids.js';
 import { elementalExplosionAvailability } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -189,7 +188,7 @@ function hammerAvailability(context: MechanicQueriesOf<ElementalistRuntime>, ski
   if (hammerElements) {
     // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
     const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
-      ? canonicalTime(state.hammerOrbLastCastAt + balanceNumberFromContext(context, PROFILE.hammerOrbs, 'initialDelay'))
+      ? canonicalTime(state.hammerOrbLastCastAt + HAMMER_ORB_REUSE_DELAY)
       : state.hammerOrbLastCastAt;
 
     if (retryAt > context.time) {

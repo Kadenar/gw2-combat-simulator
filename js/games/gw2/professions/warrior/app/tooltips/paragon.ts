@@ -16,7 +16,6 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PARAGON } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 
 /** Commands describe their selected echo action; shared cadence remains command policy. */
 const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
@@ -33,7 +32,7 @@ const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
       const selected = requireSkillFromContext(context, entity.id);
       const echo = requireSkillAction(selected, 'echo');
       return [
-        profileFact(context, PARAGON.commands, 'pulseInterval', 'Delay before echo', tooltipSeconds),
+        skillFact(context, entity.id, 'pulseInterval', 'Delay before echo', tooltipSeconds),
         ...simulationEffectFacts(
           echo.effects.map((effect) =>
             effect.type === 'boon' ? { ...effect, audience: { recipients: RECIPIENT.PARTY } } : effect

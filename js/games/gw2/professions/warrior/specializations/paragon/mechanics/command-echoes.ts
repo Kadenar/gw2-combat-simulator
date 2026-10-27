@@ -5,7 +5,6 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { balanceNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { PARAGON_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/warrior/specializations/paragon/profiles.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -59,7 +58,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
   runtime.resourceController.grant('adrenaline', skillNumber(skill, 'echoResourceGain'));
 
   echo.remaining--;
-  const interval = balanceNumberFromContext(runtime, PROFILE.commands, 'pulseInterval');
+  const interval = skillNumber(skill, 'pulseInterval');
 
   if (echo.remaining <= 0 || interval <= 0) {
     delete state.commandEchoes[activationId];
@@ -78,7 +77,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
 
 /** Command instances retain independent repeats; a successful burst consumes one repeat from each pending command. */
 function activateCommand(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  const interval = balanceNumberFromContext(runtime, PROFILE.commands, 'pulseInterval');
+  const interval = skillNumber(cast.skill, 'pulseInterval');
   const remaining = reverberationEchoCount(runtime);
 
   if (interval <= 0 || remaining <= 0) return;

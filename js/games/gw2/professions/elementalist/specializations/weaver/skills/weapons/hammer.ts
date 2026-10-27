@@ -44,6 +44,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
     ]),
     // Create both authored hand elements and refresh the shared orb lifetime.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_FIRE_AND_AIR]: {
@@ -63,6 +64,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 1.5 }
     ]),
     // Create both authored hand elements and refresh the shared orb lifetime.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_FIRE_AND_EARTH]: {
@@ -82,6 +84,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 2.5 }
     ]),
     // Create both authored hand elements and refresh the shared orb lifetime.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_WATER_AND_AIR]: {
@@ -101,6 +104,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 1.5 }
     ]),
     // Create both authored hand elements and refresh the shared orb lifetime.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_WATER_AND_EARTH]: {
@@ -120,6 +124,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       { type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
     ]),
     // Create both authored hand elements and refresh the shared orb lifetime.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   },
   [ID.DUAL_ORBITS_AIR_AND_EARTH]: {
@@ -139,6 +144,7 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 1.5 }
     ]),
     // Create both authored hand elements and refresh the shared orb lifetime.
+    orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   }
 });

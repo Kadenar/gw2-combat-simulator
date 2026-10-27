@@ -7,9 +7,9 @@ import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/st
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  balanceNumberFromContext,
+  skillNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -28,7 +28,7 @@ import {
   spiritDefinition,
   type SpiritDefinition
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
-import { RITUALIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/necromancer/specializations/ritualist/profiles.js';
+import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -65,7 +65,7 @@ function strikes(
         ...(attackType === 'summon-spirits'
           ? {
               sourceId: `ritualist.${spirit.key}.summon-spirits`,
-              weaponStrength: balanceNumberFromContext(runtime, PROFILE.spiritCadence, 'weaponStrength')
+              weaponStrength: skillNumber(cast.skill, 'weaponStrength')
             }
           : {
               weaponStrengthProfileId: 'transform.ritualist-shroud',
@@ -121,7 +121,7 @@ export const ritualistSpiritActions: NonNullable<
       })
     });
     strikes(runtime, cast, spirit, spirit.summonTicks, 'initial');
-    const profile = requireBalanceProfileFromContext(runtime, PROFILE.painfulBond);
+    const profile = requireSkillFromContext(runtime, painfulBondSkill.id);
     const effect = requireEffect(profile, 'buff', 'necromancer-painful-bond');
 
     if (effect && spirit.summonTicks.length) {

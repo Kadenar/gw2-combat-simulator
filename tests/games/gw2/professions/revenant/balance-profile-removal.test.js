@@ -9,7 +9,6 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
-import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -28,7 +27,7 @@ const RENEGADE_CONFIG = Object.freeze({
 // Migrated profiles expose one canonical ICD field and leave it unclaimed when their output is removed.
 for (const [specialization, trait, profile, type, name] of [
   ['Herald', TRAIT.SHARED_EMPOWERMENT, TRAIT.SHARED_EMPOWERMENT, 'boon', 'might'],
-  ['Renegade', TRAIT.BRUTAL_MOMENTUM, RENEGADE.brutalMomentum, 'boon', 'vigor'],
+  ['Renegade', TRAIT.BRUTAL_MOMENTUM, TRAIT.BRUTAL_MOMENTUM, 'boon', 'vigor'],
   ['Conduit', TRAIT.MISTFIRE, TRAIT.MISTFIRE, 'condition', 'Burning']
 ]) {
   test(`${specialization} declared proc honors effect removal and the patched internal cooldown`, () => {
@@ -179,12 +178,12 @@ test('Battle Scars honors skill damage patches and trait grant removal and expir
 });
 
 test('removed Band Together buff arms no enhancement while the unpatched window still does', () => {
-  for (const [balanceProfiles, ready] of [
-    [{ [RENEGADE.bandTogether]: remove('buff', 'band-together') }, false],
+  for (const [skills, ready] of [
+    [{ [ID.LEGENDARY_RENEGADE_STANCE]: remove('buff', 'band-together') }, false],
     [{}, true]
   ]) {
     const result = runRevenant([{ type: 'cast', skillId: 40485 }], RENEGADE_CONFIG, {
-      catalog: patched(balanceProfiles)
+      catalog: (catalog) => applySkillPatch(catalog, { skills })
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(planningBuffStacks(result.planningState, 'band-together'), ready ? 1 : 0);

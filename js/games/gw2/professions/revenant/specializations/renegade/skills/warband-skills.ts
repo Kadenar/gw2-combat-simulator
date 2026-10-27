@@ -1,12 +1,16 @@
 import { ACTOR, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Renegade warband, enhanced Band Together, stance, and triggered skill identities.
- * Patchable mechanic and trait values live in sibling `profiles.ts`.
+ * Stance-owned enhancement and triggered payloads are authored here; traits own their tuning.
  */
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { RENEGADE_PROFILE_IDS } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+
+/** Triggered attacks keep their own skill identities across player and allied grants. */
+export const RAZORCLAW_PROC_ID = 'revenant.renegade.razorclaws-rage-proc';
+
+export const SOULCLEAVE_PROC_ID = 'revenant.renegade.soulcleaves-summit-proc';
 
 const BASE_RAZORCLAW_EFFECTS = Object.freeze([
   {
@@ -313,7 +317,11 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 0,
-    effects: []
+    // Warband completion delivers this stance-owned window; entering the stance never grants it.
+    effects: [
+      { name: 'band-together', type: 'buff', kind: 'band-together', duration: 4, stacks: 1, actorType: ACTOR.PLAYER }
+    ],
+    effectVariants: [{ when: () => true, transform: () => [] }]
   },
   [ID.CALL_OF_THE_RENEGADE]: {
     cooldown: 0,
@@ -354,7 +362,7 @@ function triggeredRenegadeAction(skill: Skill): Skill {
 export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   triggeredRenegadeAction({
     name: "Razorclaw's Rage — Empowered Attack",
-    id: RENEGADE_PROFILE_IDS.razorclawsRageProc,
+    id: RAZORCLAW_PROC_ID,
     // Consecutive allied attacks consume the four buff charges without an internal cooldown.
     cooldown: 0,
     effects: [
@@ -370,7 +378,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   }),
   triggeredRenegadeAction({
     name: "Soulcleave's Summit — Triggered Attack",
-    id: RENEGADE_PROFILE_IDS.soulcleavesSummitProc,
+    id: SOULCLEAVE_PROC_ID,
     cooldown: 1,
     effects: [
       {
