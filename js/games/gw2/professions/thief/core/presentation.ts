@@ -15,13 +15,18 @@ import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import type {
+  ProfessionCatalogContext,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { preparednessInitiativeCapacity } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
@@ -275,9 +280,16 @@ export const thiefCoreUi = Object.freeze({
   targetHealthThresholds: () => [0.8, 0.5, 0.25],
   paletteGroups: (context: ThiefUiContext) =>
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],
-  resourceViews: (context: ThiefUiContext) => {
+  resourceViews: (context: ThiefUiContext & ProfessionCatalogContext) => {
     const state = thiefUiState(context);
     const specialization = context.specialization || context.config?.specialization || 'Core';
+    // Starting controls resolve saved traits against the active patch so Preparedness permits all 15 points.
+    const initiativeCapacity = context.build
+      ? preparednessInitiativeCapacity({
+          ...context,
+          traits: new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
+        })
+      : context.resources!.initiative!.maximum;
     const enduranceCapacity = state.endurance?.maximum ?? context.resources!.endurance!.maximum;
     const endurance = state.endurance?.value ?? enduranceCapacity;
     return [
@@ -285,9 +297,9 @@ export const thiefCoreUi = Object.freeze({
         id: 'initiative',
         singular: 'initiative',
         plural: 'initiative',
-        maximum: state.initiative?.maximum ?? context.resources?.initiative?.maximum ?? 12,
+        maximum: state.initiative?.maximum ?? initiativeCapacity,
         value: state.initiative?.value ?? context.initialInitiative ?? 12,
-        startMaximum: context.resources?.initiative?.maximum ?? state.initiative?.maximum ?? 15,
+        startMaximum: initiativeCapacity,
         canStart: true,
         buildKey: 'initialInitiative',
         step: 1,
