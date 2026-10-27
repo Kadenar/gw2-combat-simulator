@@ -341,6 +341,33 @@
         }
       },
       {
+        "label": "Power (Staff - Sword/Sword)",
+        "build": "data/gw2/builds/revenant/b-power-conduit-staff-sword-sword.json",
+        "rotation": "data/gw2/rotations/revenant/r-power-conduit-staff-sword-sword-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-staff-sword-sword",
+        "benchmarkDps": 41075,
+        "upToDate": true,
+        "benchmarkApm": 67.1,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 42937, "phase": 42937 },
+          "80-60": { "cumulative": 38916, "phase": 35518 },
+          "60-40": { "cumulative": 39379, "phase": 40337 },
+          "40-20": { "cumulative": 40305, "phase": 43351 },
+          "20-0": { "cumulative": 41075, "phase": 41075 }
+        },
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 42128,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 44248, "phase": 44248 },
+            "80-60": { "cumulative": 40331, "phase": 37040 },
+            "60-40": { "cumulative": 41014, "phase": 42445 },
+            "40-20": { "cumulative": 40995, "phase": 40939 },
+            "20-0": { "cumulative": 42128, "phase": 47162 }
+          }
+        }
+      },
+      {
         "label": "Power Quickness Staff - Sword/Sword",
         "build": "data/gw2/builds/revenant/b-power-quick-conduit-staff-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-quick-conduit-staff-sword-sword-bench.json",
