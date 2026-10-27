@@ -242,8 +242,6 @@ export const pyromancersPuissance = defineTrait({
   ],
   name: "Pyromancer's Puissance",
   balance: {
-    // Measured Fire-exit-to-impact delay, separate from the instant attunement swap.
-    initialDelay: 0.68,
     maximumStacks: 10,
     damageIncreasePerStack: 0.1,
     durationPerTier: 0.5,

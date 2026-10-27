@@ -12,6 +12,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
 
 /** Describe illusions tooltips from the selected balance data. */
 export const mesmerIllusionsTooltips = {
@@ -43,8 +44,9 @@ export const mesmerIllusionsTooltips = {
     'Your own burning applications from The Prestige and Phantasmal Mage apply additional burning. Phantasm and trait-proc applications do not trigger this.'
   ),
   [TRAIT.ESCAPE_ARTIST]: outsideScopeTooltip,
-  [TRAIT.PHANTASMAL_HASTE]: traitTooltip('Phantasms perform their attacks faster.', [
-    ['quicknessCastMultiplier', 'Phantasm action speed', (value) => `${tooltipDecimal(value)}×`]
+  // The trait grants the shared Quickness rate without owning separate balance tuning.
+  [TRAIT.PHANTASMAL_HASTE]: traitTooltip('Phantasms perform their attacks faster.', () => [
+    { name: 'Phantasm action speed', detail: `${tooltipDecimal(GW2_QUICKNESS_ACTION_RATE)}×` }
   ]),
   [TRAIT.MAIM_THE_DISILLUSIONED]: traitTooltip(
     'Eligible first-strike shatter packets inflict torment.',

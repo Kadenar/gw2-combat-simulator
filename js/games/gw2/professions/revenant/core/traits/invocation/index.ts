@@ -28,8 +28,6 @@ export const chargedMists = defineTrait({
   id: TRAIT.CHARGED_MISTS,
   name: 'Charged Mists',
   balance: {
-    categories: ['Trait'],
-    skillFamily: 'Trait',
     resourceGain: 75,
     threshold: 10,
     effects: []

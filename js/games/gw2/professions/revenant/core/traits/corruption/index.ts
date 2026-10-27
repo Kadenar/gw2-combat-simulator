@@ -32,8 +32,6 @@ export const abyssalChill = defineTrait({
   id: TRAIT.ABYSSAL_CHILL,
   name: 'Abyssal Chill',
   balance: {
-    categories: ['Trait'],
-    skillFamily: 'Trait',
     effects: [
       {
         name: CONDITION.TORMENT,
@@ -102,8 +100,6 @@ export const invokingTorment = defineTrait({
   name: 'Invoking Torment',
   balance: {
     id: TRAIT.INVOKING_TORMENT,
-    categories: ['Trait'],
-    skillFamily: 'Trait',
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',

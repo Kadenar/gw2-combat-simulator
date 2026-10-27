@@ -23,8 +23,6 @@ export const dwarvenBattleTraining = defineTrait({
   name: 'Dwarven Battle Training',
   balance: {
     damageMultiplier: 1.1,
-    categories: ['Trait'],
-    skillFamily: 'Trait',
     effects: [
       {
         name: CONDITION.WEAKNESS,
@@ -100,8 +98,6 @@ export const viciousReprisalTrait = defineTrait({
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.1,
-    categories: ['Trait'],
-    skillFamily: 'Trait',
     cooldown: 1,
     effects: [
       {

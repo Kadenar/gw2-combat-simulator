@@ -18,6 +18,7 @@ import {
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import { PHOTONIC_BLAST_DELAY_SECONDS } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -270,9 +271,10 @@ export const holosmithTooltips = {
     ),
     [TRAIT.PHOTONIC_BLASTING_MODULE]: traitTooltip(
       "Overheating triggers a delayed explosion and burning. Cooling occurs only after overheating; Laser's Edge remains active while heat remains.",
-      [
-        ['initialDelay', 'Explosion delay', tooltipSeconds],
-        ['cooldown', 'Overheat recharge', tooltipSeconds]
+      // Share the fixed delivery delay with the scheduler; recharge remains selected balance data.
+      (context, id) => [
+        { name: 'Explosion delay', detail: tooltipSeconds(PHOTONIC_BLAST_DELAY_SECONDS) },
+        profileFact(context, id, 'cooldown', 'Overheat recharge', tooltipSeconds)
       ]
     )
   }

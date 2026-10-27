@@ -117,7 +117,6 @@ const photonicBlastingModule = defineTrait({
   id: TRAIT.PHOTONIC_BLASTING_MODULE,
   name: 'Photonic Blasting Module',
   balance: {
-    initialDelay: 1.56,
     cooldown: 5,
     effects: [
       { name: 'Photonic Blasting Module', type: 'strike', coefficient: 5, hits: 1 },

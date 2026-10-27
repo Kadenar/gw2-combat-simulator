@@ -60,7 +60,6 @@ const explosiveGrowth = defineTrait({
   id: TRAIT.EXPLOSIVE_GROWTH,
   name: 'Explosive Growth',
   balance: {
-    categories: ['Trait'],
     effects: [{ name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, actorType: ACTOR.EFFECT }]
   }
 });
@@ -75,7 +74,7 @@ const boonOfCreation = defineTrait({
   ],
   id: TRAIT.BOON_OF_CREATION,
   name: 'Boon of Creation',
-  balance: { categories: ['Trait'], attributeBonus: 180, lifeForceGain: 10, effects: [] },
+  balance: { attributeBonus: 180, lifeForceGain: 10, effects: [] },
   attributes: traitAttributeEffects(TRAIT.BOON_OF_CREATION, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
   ])
@@ -92,7 +91,6 @@ const empoweringSpirits = defineTrait({
   id: TRAIT.EMPOWERING_SPIRITS,
   name: 'Empowering Spirits',
   balance: {
-    categories: ['Trait'],
     effects: [
       {
         name: boonKey(BOON.QUICKNESS),

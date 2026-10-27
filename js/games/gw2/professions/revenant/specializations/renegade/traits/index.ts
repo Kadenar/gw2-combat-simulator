@@ -52,8 +52,6 @@ const allForOne = defineTrait({
   name: 'All for One',
   balance: {
     icon: 'https://render.guildwars2.com/file/9398D8F8E764A23596E17EDAA35B99961D62F061/1769993.png',
-    categories: ['Trait'],
-    skillFamily: 'Trait',
     resourceGain: 10,
     rechargeMultiplier: 0.5
   },
@@ -127,8 +125,6 @@ const bloodFury = defineTrait({
   balance: {
     conditionDurationBonus: 0.25,
     icon: 'https://render.guildwars2.com/file/10FA58BEA8CF9AAB3F7841B154DC26E95A4FC705/1769989.png',
-    categories: ['Trait'],
-    skillFamily: 'Trait',
     cooldown: 3
   },
   modifierRules: [
@@ -223,8 +219,6 @@ const endlessEnmity = defineTrait({
   name: 'Endless Enmity',
   balance: {
     icon: 'https://render.guildwars2.com/file/A4D16BE749A19FE8A8B5783EE2BD1DF899156D47/1769999.png',
-    categories: ['Trait'],
-    skillFamily: 'Trait',
     internalCooldown: 8,
     effects: [
       {
@@ -358,8 +352,6 @@ const vindication = defineTrait({
   name: 'Vindication',
   balance: {
     icon: 'https://render.guildwars2.com/file/3453B30240026E36661AACD3FA94FB0DBFC8246C/1769995.png',
-    categories: ['Trait'],
-    skillFamily: 'Trait',
     effects: [
       {
         name: CONTROL.DAZE,

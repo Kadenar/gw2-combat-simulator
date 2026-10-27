@@ -40,6 +40,9 @@ export function preservesPhotonicHeat(context: EngineerRuntime<HolosmithSkill>):
   return hasTrait(context.traits, TRAIT.PHOTONIC_BLASTING_MODULE) && !holosmithState.from(context).overheated;
 }
 
+// Overheating admits a blast with a fixed delivery delay, independent of its balance payload.
+export const PHOTONIC_BLAST_DELAY_SECONDS = 1.56;
+
 /** PBM supplies its delayed blast timestamp and toolbelt penalty before overheat state changes. */
 export function photonicOverheatTiming(
   context: EngineerRuntime<HolosmithSkill>,
@@ -49,7 +52,7 @@ export function photonicOverheatTiming(
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.PHOTONIC_BLASTING_MODULE);
   return {
-    at: at + balanceProfileNumber(profile, 'initialDelay'),
+    at: at + PHOTONIC_BLAST_DELAY_SECONDS,
     cooldown: balanceProfileNumber(profile, 'cooldown')
   };
 }

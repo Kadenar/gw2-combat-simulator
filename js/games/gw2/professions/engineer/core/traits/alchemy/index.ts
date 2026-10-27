@@ -38,7 +38,6 @@ export const hgh = defineTrait({
   name: 'HGH',
   balance: {
     durationMultiplier: 1.2,
-    initialDelay: 6,
     effects: [
       { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 12 },
       { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 },
@@ -167,11 +166,14 @@ function isElixirSkill(skill: EngineerSkill | undefined): boolean {
   return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'elixir'));
 }
 
+// HGH's final Acid Bomb pulse uses a fixed delivery offset from the completed cast.
+const HGH_ACID_BOMB_DELAY_SECONDS = 6;
+
 /** Schedules Acid Bomb's extended final pulse while HGH is selected. */
 function applyHghAcidBomb(context: EngineerRuntime, cast: RuntimeCast<EngineerSkill>): void {
   // HGH adds one admitted field extension with Acid Bomb ownership; the profile owns the damage formula.
   emitTraitProfile(context, TRAIT.HGH, TRAIT.HGH, undefined, {
-    at: cast.fullEnd + balanceNumberFromContext(context, TRAIT.HGH, 'initialDelay'),
+    at: cast.fullEnd + HGH_ACID_BOMB_DELAY_SECONDS,
     effect: { type: 'strike', name: 'HGH' },
     activationId: cast.id,
     skillWeaponFallback: 'Unequipped',

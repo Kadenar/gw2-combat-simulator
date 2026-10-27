@@ -18,6 +18,10 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
+import {
+  CALL_AND_RESPONSE_DELAY_SECONDS,
+  SYNCOPATE_DELAY_SECONDS
+} from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
 
 /** Describe the selected skills and their intrinsic trait policy without a second payload catalog. */
 export const troubadourTooltips = {
@@ -129,7 +133,8 @@ export const troubadourTooltips = {
     [TRAIT.RACONTEUR]: traitTooltip('Resolving a tale grants protection.'),
     [TRAIT.SYNCOPATE]: traitTooltip(
       'Control effects and Method of Madness trigger an immediate strike. Deafening Drum also emits a delayed strike and daze.',
-      [['initialDelay', 'Drum wave delay', tooltipSeconds]]
+      // Display the same fixed wave offset used by the scheduler.
+      () => [{ name: 'Drum wave delay', detail: tooltipSeconds(SYNCOPATE_DELAY_SECONDS) }]
     ),
     [TRAIT.SHREDDING]: traitTooltip(
       'Lively Lute gains an additional strike. While Lute is playing, gain additional personal strike and condition damage.',
@@ -156,9 +161,10 @@ export const troubadourTooltips = {
     ),
     [TRAIT.CALL_AND_RESPONSE]: traitTooltip(
       'Spending exactly the required notes on an instrument causes an afterimage to repeat its attack after a delay.',
-      [
-        ['threshold', 'Notes required'],
-        ['initialDelay', 'Repeat delay', tooltipSeconds]
+      // Only the note threshold is balance tuning; the afterimage shares its scheduling constant.
+      (context, id) => [
+        profileFact(context, id, 'threshold', 'Notes required'),
+        { name: 'Repeat delay', detail: tooltipSeconds(CALL_AND_RESPONSE_DELAY_SECONDS) }
       ]
     ),
     [TRAIT.ALTERED_CHORD]: traitTooltip(

@@ -49,6 +49,11 @@ import {
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
+// Afterimages and Syncopate waves retain fixed delivery offsets while their payloads remain patchable.
+export const CALL_AND_RESPONSE_DELAY_SECONDS = 1.5;
+
+export const SYNCOPATE_DELAY_SECONDS = 3;
+
 /** Wandering Minstrel owns baseline note capacity and instrument playing durations. */
 const wanderingMinstrel = defineTrait<MesmerSkill>({
   id: TRAIT.WANDERING_MINSTREL,
@@ -244,8 +249,7 @@ const callAndResponse = defineTrait<MesmerSkill>({
   id: TRAIT.CALL_AND_RESPONSE,
   name: 'Call and Response',
   balance: {
-    threshold: 3,
-    initialDelay: 1.5
+    threshold: 3
   }
 });
 
@@ -300,7 +304,6 @@ export const syncopate = defineTrait<MesmerSkill>({
   id: TRAIT.SYNCOPATE,
   name: 'Syncopate',
   balance: {
-    initialDelay: 3,
     effects: [
       { type: 'strike', name: 'Immediate wave', coefficient: 0.75, hits: 1 },
       { type: 'strike', name: 'Delayed wave', coefficient: 1, hits: 1 },
@@ -426,7 +429,7 @@ function applyCallAndResponse(
   delivery: EffectDelivery = {}
 ): void {
   if (spent === balanceNumberFromContext(context, TRAIT.CALL_AND_RESPONSE, 'threshold')) {
-    const afterimageAt = at + balanceNumberFromContext(context, TRAIT.CALL_AND_RESPONSE, 'initialDelay');
+    const afterimageAt = at + CALL_AND_RESPONSE_DELAY_SECONDS;
     afterimageInstrumentAttack(context, skill, data, afterimageAt, delivery);
     context.effects.emit({
       ...delivery,
@@ -566,7 +569,7 @@ function scheduleSyncopateDrumWave(
   if (instrument.instrument !== 'Drum') return;
 
   const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
-  const delayedAt = damageAt + balanceProfileNumber(syncopateProfile, 'initialDelay');
+  const delayedAt = damageAt + SYNCOPATE_DELAY_SECONDS;
   const delayedWave = requireEffect(syncopateProfile, 'strike', 'Delayed wave');
   const daze = requireEffect(syncopateProfile, 'control', 'Delayed daze');
 

@@ -98,9 +98,10 @@ removeEffects: [{ effectIndex: 1, type: 'condition', condition: 'Poisoned' }];
 
 ### Balance profiles and modifier rules
 
-`balanceProfiles` uses profile IDs with the same `fields` and `effects` grammar as skills. Trait definitions expand at
-native module registration; preview reconstruction consumes those expanded declarations without registering them again.
-Callbacks, build calculations, and tooltips use the selected balance context.
+`balanceProfiles` uses profile IDs with the same `fields` and `effects` grammar as skills. Catalog assembly derives
+these profiles from `traitDefinitions`; module data does not accept authored profiles. Preview reconstruction consumes
+the assembled catalog without registering trait behavior again. Callbacks, build calculations, and tooltips use the
+selected balance context.
 
 A trait may contribute several rules. Target the stable modifier-rule ID, not the trait ID:
 

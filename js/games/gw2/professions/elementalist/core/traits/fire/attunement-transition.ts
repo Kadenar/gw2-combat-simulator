@@ -23,6 +23,9 @@ const SUNSPOT_ICON = 'https://render.guildwars2.com/file/1405047ED70DE30F80B1F63
 
 const FLAME_EXPULSION_ICON = 'https://render.guildwars2.com/file/998095CB1FD2CF0164B8A36BABFDB911DF08DB02/1012313.png';
 
+// Flame Expulsion uses the measured Fire-exit-to-impact delay, separate from the instant attunement swap.
+export const FLAME_EXPULSION_DELAY_SECONDS = 0.68;
+
 /** Shared per-occurrence payload; the caller owns activation eligibility. */
 export function emitSunspot(
   context: ElementalistRuntime,
@@ -105,7 +108,7 @@ export function emitFlameExpulsion(
   emissionCast?: EffectDelivery['cast']
 ): void {
   const pyromancersPuissanceProfile = requireBalanceProfileFromContext(context, TRAIT.PYROMANCERS_PUISSANCE);
-  const impactAt = at + balanceProfileNumber(pyromancersPuissanceProfile, 'initialDelay');
+  const impactAt = at + FLAME_EXPULSION_DELAY_SECONDS;
   const cappedMight = Math.min(
     balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks'),
     context.config.boons?.might

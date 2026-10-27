@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  profileFact,
   outsideScopeTooltip,
   tooltipDecimal,
   tooltipFactorChange,
@@ -10,6 +11,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { FLAME_EXPULSION_DELAY_SECONDS } from '#gw2/professions/elementalist/core/traits/fire/attunement-transition.js';
 import { percentagePoints } from '#gw2/professions/elementalist/app/tooltips/shared.js';
 
 /** Describe fire tooltips from the selected balance data. */
@@ -67,11 +69,12 @@ export const elementalistFireTooltips = {
   ),
   [TRAIT.PYROMANCERS_PUISSANCE]: traitTooltip(
     'Using skills in Fire grants might. Leaving Fire or completing Overload Fire triggers Flame Expulsion: snapshot your capped might, scale its strike and burning, and grant that many might stacks to other allies.',
-    [
-      ['initialDelay', 'Flame Expulsion delay', tooltipSeconds],
-      ['maximumStacks', 'Maximum might counted'],
-      ['damageIncreasePerStack', 'Additional strike coefficient per might'],
-      ['durationPerTier', 'Additional burning duration per might', tooltipSeconds]
+    // The scheduler owns delivery timing; the selected profile still supplies might scaling.
+    (context, id) => [
+      { name: 'Flame Expulsion delay', detail: tooltipSeconds(FLAME_EXPULSION_DELAY_SECONDS) },
+      profileFact(context, id, 'maximumStacks', 'Maximum might counted'),
+      profileFact(context, id, 'damageIncreasePerStack', 'Additional strike coefficient per might'),
+      profileFact(context, id, 'durationPerTier', 'Additional burning duration per might', tooltipSeconds)
     ],
     'listed Flame Expulsion damage is before might scaling'
   ),
