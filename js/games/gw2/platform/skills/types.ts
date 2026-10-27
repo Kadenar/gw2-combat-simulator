@@ -204,13 +204,11 @@ export interface BalanceProfile extends CatalogEntity {
     readonly field: string;
     readonly opportunity: string;
   };
-  /** Summon inheritance baselines, fractions, and attribute caps. */
-  readonly baseAttribute?: number;
+  /** Trait-owned summon inheritance fractions and attribute caps. */
   readonly inheritanceRatio?: number;
   readonly secondaryAttributeCap?: number;
   readonly powerCap?: number;
   readonly precisionCap?: number;
-  readonly basePrecision?: number;
   readonly effects?: readonly SkillEffect[];
   /** Amount of the resource selected by the consuming profession mechanic. */
   readonly resourceGain?: number;
