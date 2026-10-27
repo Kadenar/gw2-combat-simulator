@@ -7,7 +7,7 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/warrior/core/profiles.js';
+import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 
 import type { PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
@@ -244,7 +244,7 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         group: 'Mechanic',
         kind: 'special',
         scope: ['damage'],
-        max: balanceNumberFromContext(context, WARRIOR_CORE_BALANCE_PROFILE_IDS.resources, 'maximumStacks'),
+        max: WARRIOR_MAXIMUM_ADRENALINE,
         initial: Number(context.build.initialResource) || 0,
         description: 'Adrenaline before setup; bursts spend it normally'
       });

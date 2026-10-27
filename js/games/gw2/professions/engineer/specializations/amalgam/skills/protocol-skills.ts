@@ -81,6 +81,9 @@ const shred: Partial<AmalgamSkill> = {
 };
 
 const thorns: Partial<AmalgamSkill> = {
+  // Evolve and Silver Lining grant this skill's persistent Rapacious payload.
+  rapaciousDuration: 8,
+  rapaciousInternalCooldown: 0.48,
   // The intrinsic field-gated retaliation is scheduled once; Morph trait rewards remain shared.
   maximumStacks: 6,
   retaliationInterval: 1,
@@ -108,7 +111,14 @@ const thorns: Partial<AmalgamSkill> = {
         effects: [{ name: 'Amalgam Morphs', type: 'strike', coefficient: 0.5, hits: 1 }]
       }
     },
-    { on: 'castCommit', do: { type: 'engineer.morph', id: 'strain', effects: [] } }
+    {
+      on: 'castCommit',
+      do: {
+        type: 'engineer.morph',
+        id: 'strain',
+        effects: [{ name: 'Rapacious Strain', type: 'strike', coefficient: 0.3, hits: 1 }]
+      }
+    }
   ]
 };
 
@@ -173,6 +183,8 @@ const demolish: Partial<AmalgamSkill> = {
 };
 
 const obliterate: Partial<AmalgamSkill> = {
+  // Titanic grants this additional Power and Condition Damage per live Might stack.
+  titanicAttributePerStack: 5,
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 800,

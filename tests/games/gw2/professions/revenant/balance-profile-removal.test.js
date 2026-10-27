@@ -1,6 +1,6 @@
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/revenant/core/profiles.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import {
   REVENANT_SKILL_IDS as ID,
@@ -94,7 +94,8 @@ test('removed Brutality quickness leaves the weapon-swap cooldown unclaimed', ()
 test('removed Battle Scars siphon keeps the scars it would have spent', () => {
   // A landed player strike spends a scar only to deliver its siphon.
   const result = runRevenant([{ type: 'wait', durationMs: 3000 }], RENEGADE_CONFIG, {
-    catalog: patched({ [CORE.battleScars]: remove('strike', 'Battle Scars — Life Siphon') }),
+    catalog: (catalog) =>
+      applySkillPatch(catalog, { skills: { [battleScarsSkill.id]: remove('strike', 'Battle Scars — Life Siphon') } }),
     initialize(runtime) {
       runtime.profession.core.battleScars = [30, 10];
       runtime.effects.emit({ kind: 'packet', event: revenantHit(2) });
@@ -105,6 +106,76 @@ test('removed Battle Scars siphon keeps the scars it would have spent', () => {
     result.events.some((event) => event.name === 'Battle Scars — Life Siphon'),
     false
   );
+});
+
+// Dance of Death owns grant duration and count; the shared skill owns the consuming siphon.
+test('Battle Scars honors skill damage patches and trait grant removal and expiry', () => {
+  for (const removed of [false, true]) {
+    const result = runRevenant(
+      [{ type: 'wait', durationMs: 4000 }],
+      {
+        selectedTraitIds: [TRAIT.DANCE_OF_DEATH]
+      },
+      {
+        catalog: (catalog) =>
+          applySkillPatch(
+            applyBalanceProfilePatch(catalog, {
+              balanceProfiles: {
+                [TRAIT.DANCE_OF_DEATH]: removed
+                  ? remove('buff', 'battle-scars')
+                  : {
+                      effects: [{ type: 'buff', name: 'battle-scars', duration: 2, stacks: 2 }]
+                    }
+              }
+            }),
+            {
+              skills: {
+                [battleScarsSkill.id]: {
+                  effects: [
+                    {
+                      type: 'strike',
+                      name: 'Battle Scars — Life Siphon',
+                      flatStrikeBase: 234,
+                      flatStrikePowerCoeff: 0.012
+                    }
+                  ]
+                }
+              }
+            }
+          ),
+        initialize(runtime) {
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'condition',
+              at: 1,
+              condition: 'Vulnerability',
+              stacks: 1,
+              duration: 10,
+              source: 'fixture',
+              sourceId: 'fixture',
+              skillName: 'Fixture',
+              actorType: 'player'
+            }
+          });
+          for (const at of [2, 3]) runtime.effects.emit({ kind: 'packet', event: revenantHit(at) });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const siphons = result.events.filter((event) => event.skillId === battleScarsSkill.id);
+    assert.deepEqual(
+      siphons.map((event) => event.at),
+      removed ? [] : [2]
+    );
+
+    if (!removed) {
+      assert.equal(siphons[0].flatStrikeBase, 234);
+      assert.equal(siphons[0].flatStrikePowerCoeff, 0.012);
+    }
+
+    assert.deepEqual(observedRuntime(result).profession.core.battleScars, []);
+  }
 });
 
 test('removed Band Together buff arms no enhancement while the unpatched window still does', () => {

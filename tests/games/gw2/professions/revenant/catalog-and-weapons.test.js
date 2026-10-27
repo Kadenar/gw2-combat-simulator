@@ -1,3 +1,4 @@
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { BOON } from '#gw2/platform/constants.js';
@@ -22,7 +23,6 @@ import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS,
@@ -95,21 +95,27 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
   const core = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Core');
   const skill = (id) => core.skills.find((entry) => entry.id === id);
   const profile = (id) => core.balanceProfiles.find((entry) => entry.id === id);
-  const resources = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.resources);
   const chargedMists = profile(REVENANT_TRAIT_IDS.CHARGED_MISTS);
-  const battleScars = profile(REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars);
+  const battleScars = skill(battleScarsSkill.id);
 
   assert.equal(skill(SHARED_SKILL_IDS.DODGE).patchableFields.resourceCost, undefined);
   assert.equal(skill(SKILL.SWAP_LEGENDS).patchableFields.resourceGain, 50);
   assert.equal(skill(SKILL.ANCIENT_ECHO).patchableFields.resourceGain, 25);
-  assert.deepEqual(resources.patchableFields, {
-    energyRegenerationPerSecond: 5
-  });
+  assert.equal(profile('revenant.core.resources'), undefined);
+  assert.equal(profile('revenant.core.battle-scars'), undefined);
+  for (const id of ['revenant.core.resources', 'revenant.core.battle-scars'])
+    assert.throws(
+      () =>
+        applyBalanceProfilePatch(revenantCatalog, {
+          balanceProfiles: { [id]: { fields: { maximumStacks: 1 } } }
+        }),
+      /unknown balance profile/
+    );
   assert.deepEqual(chargedMists.patchableFields, {
     resourceGain: 75,
     threshold: 10
   });
-  assert.equal(battleScars.profile.effects[1].flatStrikeBase, 117);
+  assert.equal(battleScars.skill.effects[0].flatStrikeBase, 117);
   assert.equal(
     skill(SKILL.ABYSSAL_RAZE).skill.effects.find((effect) => effect.type === 'strike').damageIncreasePerStack,
     0.33
@@ -124,13 +130,9 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
             damageIncreasePerStack: { from: 0.33, to: 0.4 }
           }
         ]
-      }
-    },
-    balanceProfiles: {
-      [resources.id]: {
-        fields: {
-          energyRegenerationPerSecond: { from: 5, to: 6 }
-        }
+      },
+      [battleScarsSkill.id]: {
+        fields: { maximumStacks: { from: 25, to: 10 } }
       }
     }
   });
@@ -141,7 +143,7 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
       .damageIncreasePerStack,
     0.4
   );
-  assert.equal(preview.balanceProfilesById.get(resources.id).energyRegenerationPerSecond, 6);
+  assert.equal(preview.skillsById.get(battleScarsSkill.id).maximumStacks, 10);
 });
 
 test('Call of the Dwarf exposes Song of the Mists damage and Weakness to patch authoring', () => {

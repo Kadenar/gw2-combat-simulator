@@ -1,44 +1,16 @@
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/skills/balance-profiles.js';
-import { SOULBEAST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/attributes/stats.js';
 
-/** Build and runtime use the same patch values for the selected pet archetype. */
-export function soulbeastArchetypeAttributes(
-  context: unknown,
-  archetype: string
-): Readonly<Partial<Record<Gw2NumericStatKey, number>>> {
-  switch (archetype) {
-    case 'Stout':
-      const stoutArchetypeProfile = requireBalanceProfileFromContext(context, PROFILE.stoutArchetype);
-      return {
-        toughness: balanceProfileNumber(stoutArchetypeProfile, 'attributeBonus'),
-        vitality: balanceProfileNumber(stoutArchetypeProfile, 'weaponAttributeBonus')
-      };
-    case 'Deadly':
-      const deadlyArchetypeProfile = requireBalanceProfileFromContext(context, PROFILE.deadlyArchetype);
-      return {
-        conditionDamage: balanceProfileNumber(deadlyArchetypeProfile, 'attributeBonus'),
-        precision: balanceProfileNumber(deadlyArchetypeProfile, 'weaponAttributeBonus')
-      };
-    case 'Versatile':
-      const versatileArchetypeProfile = requireBalanceProfileFromContext(context, PROFILE.versatileArchetype);
-      return {
-        vitality: balanceProfileNumber(versatileArchetypeProfile, 'attributeBonus'),
-        concentration: balanceProfileNumber(versatileArchetypeProfile, 'weaponAttributeBonus')
-      };
-    case 'Ferocious':
-      const ferociousArchetypeProfile = requireBalanceProfileFromContext(context, PROFILE.ferociousArchetype);
-      return {
-        power: balanceProfileNumber(ferociousArchetypeProfile, 'attributeBonus'),
-        ferocity: balanceProfileNumber(ferociousArchetypeProfile, 'weaponAttributeBonus')
-      };
-    case 'Supportive':
-      return { vitality: balanceNumberFromContext(context, PROFILE.supportiveArchetype, 'attributeBonus') };
-    default:
-      return {};
-  }
+// Archetype bonuses are fixed merge rules shared by preview and combat.
+const ARCHETYPE_ATTRIBUTES: Readonly<Record<string, Readonly<Partial<Record<Gw2NumericStatKey, number>>>>> =
+  Object.freeze({
+    Stout: Object.freeze({ toughness: 200, vitality: 100 }),
+    Deadly: Object.freeze({ conditionDamage: 150, precision: 100 }),
+    Versatile: Object.freeze({ vitality: 200, concentration: 225 }),
+    Ferocious: Object.freeze({ power: 150, ferocity: 100 }),
+    Supportive: Object.freeze({ vitality: 100 })
+  });
+
+/** The active pet selects its fixed bonus; an unknown archetype supplies no attributes. */
+export function soulbeastArchetypeAttributes(archetype: string): Readonly<Partial<Record<Gw2NumericStatKey, number>>> {
+  return Object.hasOwn(ARCHETYPE_ATTRIBUTES, archetype) ? ARCHETYPE_ATTRIBUTES[archetype] : {};
 }

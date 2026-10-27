@@ -7,7 +7,6 @@ import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-
 import { amalgamHooks } from '#gw2/professions/engineer/specializations/amalgam/hooks.js';
 
 import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
-import { AMALGAM_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import {
   AMALGAM_PUBLIC_STATE_PROJECTION,
@@ -22,8 +21,7 @@ export const amalgamModule = defineNativeModule({
   traitDefinitions: amalgamTraits,
   data: createEngineerModuleData('Amalgam', {
     skillFields: AMALGAM_SKILL_FIELDS,
-    skillMechanics: AMALGAM_SKILL_MECHANICS,
-    balanceProfiles: AMALGAM_BALANCE_PROFILES
+    skillMechanics: AMALGAM_SKILL_MECHANICS
   }),
   state: { create: amalgamState.create, project: createPublicStateProjector(AMALGAM_PUBLIC_STATE_PROJECTION) },
   attributes: amalgamAttributes,

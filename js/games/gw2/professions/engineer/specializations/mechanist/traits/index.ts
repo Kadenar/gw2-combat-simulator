@@ -23,7 +23,7 @@ import {
   mechanistCombatReady,
   type MechanistCastCompletion
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
-import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
+import { MECH_BASE_ATTRIBUTES } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import { MECHANIST_MECH_ATTACK_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/mech-attack-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 
@@ -218,7 +218,7 @@ const variableMassDistributor = defineTrait({
       id: 'engineer.mech-base-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, PROFILE.resources, 'criticalChance'),
+      amount: MECH_BASE_ATTRIBUTES.criticalChance,
       when: (context) =>
         isEngineerMechEvent(context.event) && !hasTrait(context, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR)
     }

@@ -1,18 +1,14 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 
 /** One active Battle Scar becomes a life siphon on a landed player strike. */
 export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
+  const profile = requireSkillFromContext(runtime, battleScarsSkill.id);
   const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
 
   // Scars are spent only to deliver the siphon, so a removed strike leaves them in place.
@@ -29,7 +25,7 @@ export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEv
 
 /** Resolve one scar without requiring a prior grant or consuming another attack. */
 export function emitBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
+  const profile = requireSkillFromContext(runtime, battleScarsSkill.id);
   const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
 
   if (!strike) return;

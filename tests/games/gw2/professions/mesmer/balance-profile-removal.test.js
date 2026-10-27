@@ -1,5 +1,5 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
@@ -343,15 +343,14 @@ test('removing Chronomancer boon preserves its sibling and clone refund', () => 
   assert.equal(result.planningState.profession.resource, 1);
 });
 
-test('selected resource capacity is shared by simulation and presentation', () => {
-  const balanceProfiles = { 'mesmer.core.resources': { fields: { maximumStacks: { from: 3, to: 0 } } } };
-  const result = run({ balanceProfiles: balanceProfiles }, 'Core', ['Ether Bolt'], {
+// Core clones use the same fixed entity limit in simulation and presentation.
+test('fixed clone capacity is shared by simulation and presentation', () => {
+  const result = run({}, 'Core', ['Ether Bolt'], {
     primaryWeapon: 'Scepter',
-    initialResource: 2
+    initialResource: 10
   });
-  assert.equal(result.planningState.profession.resource, 0);
-  const catalog = applyBalanceProfilePatch(mesmerCatalog, { balanceProfiles });
-  assert.equal(mesmerCoreUi.resourceViews({ catalog })[0].maximum, 0);
+  assert.equal(result.planningState.profession.resource, 3);
+  assert.equal(mesmerCoreUi.resourceViews({ catalog: mesmerCatalog })[0].maximum, 3);
 });
 
 test('removing the first Fury packet keeps the edited allied packet bound to allies', () => {

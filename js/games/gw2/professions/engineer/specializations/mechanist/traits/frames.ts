@@ -10,7 +10,9 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
-import { MECHANIST_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
+
+/** The mech's base attributes are fixed; Mechanical Genius and selected frames own inherited-stat tuning. */
+export const MECH_BASE_ATTRIBUTES = Object.freeze({ attribute: 1000, precision: 1, criticalChance: 0.05 });
 
 interface EngineerMechAttributes {
   power: number;
@@ -53,9 +55,7 @@ export function engineerMechAttributes(
     : undefined;
   const variable = hasTrait(traits, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR);
 
-  // Base mech attributes use mechanic balance; selected frame improvements use their own trait balance.
-  const resourcesProfile = requireBalanceProfileFromContext(balanceContext, PROFILE.resources);
-  const baseAttribute = balanceProfileNumber(resourcesProfile, 'baseAttribute');
+  const baseAttribute = MECH_BASE_ATTRIBUTES.attribute;
   const inheritanceRatio = balanceNumberFromContext(balanceContext, TRAIT.MECHANICAL_GENIUS, 'inheritanceRatio');
   const secondaryCap = balanceNumberFromContext(balanceContext, TRAIT.MECHANICAL_GENIUS, 'secondaryAttributeCap');
   // Secondary stats inherit 50 % of the player's value up to 750.
@@ -78,9 +78,9 @@ export function engineerMechAttributes(
     precision: variable
       ? Math.min(
           balanceNumberFromContext(balanceContext, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR, 'precisionCap'),
-          balanceProfileNumber(resourcesProfile, 'basePrecision') + playerAttribute(playerStats, 'precision', 1000)
+          MECH_BASE_ATTRIBUTES.precision + playerAttribute(playerStats, 'precision', 1000)
         )
-      : balanceProfileNumber(resourcesProfile, 'basePrecision'),
+      : MECH_BASE_ATTRIBUTES.precision,
     toughness: baseAttribute + playerAttribute(playerStats, 'toughness', 1000),
     vitality: baseAttribute + playerAttribute(playerStats, 'vitality', 1000),
     ferocity: secondary('ferocity'),

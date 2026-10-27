@@ -18,7 +18,6 @@ import {
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import { AMALGAM_BALANCE_PROFILE_IDS as AMALGAM } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { TooltipFact, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
@@ -31,21 +30,31 @@ function strainFacts(
 ): readonly TooltipFact[] {
   const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skillId);
   const skill = balanceContext.catalog.skillsById.get(skillId)!;
-  const facts = simulationEffectFacts(requireSkillAction(skill, 'strain').effects, qualifier).facts.slice();
+  const effects = requireSkillAction(skill, 'strain').effects;
+  const facts = simulationEffectFacts(
+    effects,
+    kind === 'thorns' ? `${qualifier} · per eligible subsequent strike` : qualifier
+  ).facts.slice();
 
   if (kind === 'thorns')
     facts.push(
-      profileFact(balanceContext, AMALGAM.rapaciousStrain, 'duration', 'Rapacious Strain duration', tooltipSeconds),
-      ...simulationEffectFacts(
-        tooltipProfile(balanceContext, AMALGAM.rapaciousStrain).effects,
-        `${qualifier} · per eligible subsequent strike`
-      ).facts,
-      profileFact(
+      skillFact(balanceContext, skillId, 'rapaciousDuration', 'Rapacious Strain duration', tooltipSeconds),
+      skillFact(
         balanceContext,
-        AMALGAM.rapaciousStrain,
-        'internalCooldown',
+        skillId,
+        'rapaciousInternalCooldown',
         'Rapacious Strain internal cooldown',
         tooltipSeconds
+      )
+    );
+
+  if (kind === 'obliterate')
+    facts.push(
+      skillFact(
+        balanceContext,
+        skillId,
+        'titanicAttributePerStack',
+        'Additional Power and Condition Damage per Might stack'
       )
     );
 

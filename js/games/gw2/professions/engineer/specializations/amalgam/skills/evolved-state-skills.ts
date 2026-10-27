@@ -1,9 +1,8 @@
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 /**
@@ -218,8 +217,13 @@ export function applyAmalgamStrain(context: EngineerRuntime, skill: EngineerSkil
   const action = requireSkillAction(skill, 'strain');
 
   if (morphKind === 'thorns') {
-    const duration = balanceNumberFromContext(context, PROFILE.rapaciousStrain, 'duration');
-    state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + duration);
+    // Retain the granting slot's identity; removing its payload cannot arm an empty proc window.
+    if (requireEffect(skill, 'strike', 'Rapacious Strain', action)) {
+      state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + skillNumber(skill, 'rapaciousDuration'));
+      state.rapaciousSkillId = skill.id;
+    }
+
+    return;
   }
 
   // The selected packet owns its effect and duration; state windows follow their associated boon.
@@ -242,8 +246,10 @@ export function applyAmalgamStrain(context: EngineerRuntime, skill: EngineerSkil
     if (effect.type !== 'boon' && effect.type !== 'buff') continue;
 
     if (effect.type === 'boon') {
-      if (morphKind === 'obliterate') state.titanicUntil = Math.max(state.titanicUntil || 0, at + effect.duration);
-      else if (morphKind === 'shred') state.predatorUntil = Math.max(state.predatorUntil || 0, at + effect.duration);
+      if (morphKind === 'obliterate') {
+        state.titanicUntil = Math.max(state.titanicUntil || 0, at + effect.duration);
+        state.titanicSkillId = skill.id;
+      } else if (morphKind === 'shred') state.predatorUntil = Math.max(state.predatorUntil || 0, at + effect.duration);
       else if (morphKind === 'demolish')
         state.berserkerUntil = Math.max(state.berserkerUntil || 0, at + effect.duration);
     }

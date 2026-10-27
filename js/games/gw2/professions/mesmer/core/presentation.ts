@@ -5,7 +5,6 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionEffectPresentation,
@@ -16,7 +15,6 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerResourceProfileId } from '#gw2/professions/mesmer/family-state.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
@@ -86,13 +84,13 @@ export function mesmerResourceViews(
   const state = mesmerUiState(context);
   // Palette pips use the same selected capacity as runtime resource spending.
   const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
-  const clock = definition.id === 'clones' ? undefined : state[definition.id];
-  const maximum =
-    clock?.maximum ?? balanceNumberFromContext(context, mesmerResourceProfileId(specialization), 'maximumStacks');
+  // Clones are live entities; only blades and notes use a resource pool.
+  const eliteResource = definition.id === 'clones' ? undefined : state[definition.id];
+  const maximum = eliteResource?.maximum ?? mesmerResourceDefinition(specialization, context).maximum;
   const value =
     definition.id === 'clones'
       ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
-      : Number(clock?.value ?? context.value ?? 0);
+      : Number(eliteResource?.value ?? context.value ?? 0);
   return [
     {
       ...definition,

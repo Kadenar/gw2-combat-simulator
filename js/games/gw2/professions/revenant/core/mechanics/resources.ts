@@ -10,7 +10,7 @@ import { REVENANT_ENERGY_DEPLETED, revenantUpkeepDrain } from '#gw2/professions/
 import {
   REVENANT_MAXIMUM_ENERGY,
   REVENANT_PRECOMBAT_ENERGY_CEILING,
-  revenantBaseEnergyRegeneration,
+  REVENANT_ENERGY_REGENERATION,
   revenantStartingEnergy
 } from '#gw2/professions/revenant/core/resource-values.js';
 import { enduringRecoveryBonus } from '#gw2/professions/revenant/core/traits/retribution/index.js';
@@ -22,7 +22,7 @@ export const revenantEnergy: ResourcePolicy<RevenantRuntime> = {
   state: (runtime) => runtime.profession.core.energy,
   maximum: () => REVENANT_MAXIMUM_ENERGY,
   initial: (runtime) => revenantStartingEnergy(runtime.config as RevenantConfig),
-  recovery: (runtime) => revenantBaseEnergyRegeneration(runtime) - revenantUpkeepDrain(runtime),
+  recovery: (runtime) => REVENANT_ENERGY_REGENERATION - revenantUpkeepDrain(runtime),
   recoveryMaximum: (runtime) =>
     runtime.profession.core.combatBeganAt == null ? REVENANT_PRECOMBAT_ENERGY_CEILING : REVENANT_MAXIMUM_ENERGY,
   // Starvation keeps its place before upkeep pulses while the resource controller replaces obsolete wakes.

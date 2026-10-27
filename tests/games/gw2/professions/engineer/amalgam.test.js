@@ -4,7 +4,7 @@ import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarat
 import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
@@ -12,7 +12,6 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -47,20 +46,30 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
     [0.9, 7, 3],
     [0, 1, 1]
   ]) {
-    const catalog = applyBalanceProfilePatch(engineerCatalog, {
-      balanceProfiles: {
-        [TRAIT.CARBOLIC_COMPOSITION]: { effects: [{ type: 'condition', duration, stacks }] },
-        [PROFILE.rapaciousStrain]: {
-          effects: [{ type: 'strike', coefficient }]
+    const catalog = applySkillPatch(
+      applyBalanceProfilePatch(engineerCatalog, {
+        balanceProfiles: { [TRAIT.CARBOLIC_COMPOSITION]: { effects: [{ type: 'condition', duration, stacks }] } }
+      }),
+      {
+        skills: {
+          [ID.DEFENSIVE_PROTOCOL_THORNS]: {
+            sideEffects: { strain: { effects: [{ type: 'strike', name: 'Rapacious Strain', coefficient }] } }
+          }
         }
       }
-    });
+    );
     const conditions = [];
     const context = {
       procs: createProcRegistry(() => context),
       helpers: catalog,
       traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
-      profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
+      profession: {
+        core: {},
+        specialization: {
+          kind: 'Amalgam',
+          state: { evolvedUntil: 10, rapaciousUntil: 10, rapaciousSkillId: ID.DEFENSIVE_PROTOCOL_THORNS }
+        }
+      },
       queue: new StableEventQueue(),
       effects: captureEffectEmissions({
         submit(event, delivery) {
@@ -88,10 +97,8 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
 });
 
 test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic Composition', () => {
-  const catalog = applyBalanceProfilePatch(engineerCatalog, {
-    balanceProfiles: {
-      [PROFILE.rapaciousStrain]: { fields: { internalCooldown: 0 } }
-    }
+  const catalog = applySkillPatch(engineerCatalog, {
+    skills: { [ID.DEFENSIVE_PROTOCOL_THORNS]: { fields: { rapaciousInternalCooldown: 0 } } }
   });
   const conditions = [];
   const context = {
@@ -99,7 +106,13 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
     helpers: catalog,
     traits: new Set([TRAIT.CARBOLIC_COMPOSITION]),
     queue: new StableEventQueue(),
-    profession: { core: {}, specialization: { kind: 'Amalgam', state: { evolvedUntil: 10, rapaciousUntil: 10 } } },
+    profession: {
+      core: {},
+      specialization: {
+        kind: 'Amalgam',
+        state: { evolvedUntil: 10, rapaciousUntil: 10, rapaciousSkillId: ID.DEFENSIVE_PROTOCOL_THORNS }
+      }
+    },
     effects: captureEffectEmissions({
       submit(event, delivery) {
         if (delivery.settlement === 'reaction') conditions.push(event);

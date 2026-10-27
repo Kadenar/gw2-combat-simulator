@@ -1,6 +1,8 @@
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
@@ -13,7 +15,6 @@ import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.j
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
-import { SOULBEAST_BALANCE_PROFILE_IDS as SB } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as R } from '#gw2/professions/revenant/data/ids.js';
 import { conduitModule } from '#gw2/professions/revenant/specializations/conduit/module.js';
@@ -162,6 +163,27 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
   }
 });
 
+// Fixed archetypes expose their named attributes and cannot be edited as balance profiles.
+test('Soulbeast archetypes use fixed merge bonuses and reject removed profile targets', () => {
+  for (const [archetype, attributes] of [
+    ['Stout', { toughness: 200, vitality: 100 }],
+    ['Deadly', { conditionDamage: 150, precision: 100 }],
+    ['Versatile', { vitality: 200, concentration: 225 }],
+    ['Ferocious', { power: 150, ferocity: 100 }],
+    ['Supportive', { vitality: 100 }]
+  ]) {
+    assert.deepEqual(soulbeastArchetypeAttributes(archetype), attributes);
+    const id = `ranger.soulbeast.archetype.${archetype.toLowerCase()}`;
+    assert.equal(rangerCatalog.balanceProfilesById.has(id), false);
+    assert.throws(
+      () => applyBalanceProfilePatch(rangerCatalog, { balanceProfiles: { [id]: { fields: { attributeBonus: 1 } } } }),
+      /unknown balance profile/
+    );
+  }
+
+  assert.deepEqual(soulbeastArchetypeAttributes('unknown'), {});
+});
+
 // Merge state and the current pet select intrinsic attributes from the same common seed.
 test('Soulbeast evaluates archetypes across merge state and pet changes', () => {
   const calculate = createCalculateAttributes(
@@ -173,10 +195,6 @@ test('Soulbeast evaluates archetypes across merge state and pet changes', () => 
   const lynx = calculate({ ...build, selectedPet: 'Lynx' }).attributes;
   assert.equal(pig.Power.final - lynx.Power.final, 150);
   assert.equal(lynx['Condition Damage'].final - pig['Condition Damage'].final, 150);
-  const profiles = new Map([
-    [SB.deadlyArchetype, { attributeBonus: 175, weaponAttributeBonus: 125 }],
-    [SB.ferociousArchetype, { attributeBonus: 999, weaponAttributeBonus: 999 }]
-  ]);
 
   for (const merged of [false, true]) {
     const input = {
@@ -189,7 +207,7 @@ test('Soulbeast evaluates archetypes across merge state and pet changes', () => 
     const actual = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
       {
         config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
-        catalog: { balanceProfilesById: profiles },
+        catalog: rangerCatalog,
         runtime: {
           profession: {
             core: { petNames: ['Pig', 'Lynx'], activePetSlot: 2, pet: null },
@@ -202,8 +220,8 @@ test('Soulbeast evaluates archetypes across merge state and pet changes', () => 
     assert.deepEqual(actual, {
       power: 1000,
       ferocity: 0,
-      conditionDamage: merged ? 175 : 0,
-      precision: merged ? 1125 : 1000,
+      conditionDamage: merged ? 150 : 0,
+      precision: merged ? 1100 : 1000,
       vitality: 1050
     });
     assert.equal(input.power, 1000);

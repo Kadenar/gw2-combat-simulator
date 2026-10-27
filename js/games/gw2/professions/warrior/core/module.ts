@@ -4,7 +4,6 @@ import { warriorCoreHooks } from '#gw2/professions/warrior/core/hooks.js';
 import { warriorBurstSkillModifiers } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { warriorDaggerSkillModifiers } from '#gw2/professions/warrior/core/skills/weapons/dagger.js';
 import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
-import { WARRIOR_CORE_BALANCE_PROFILES } from '#gw2/professions/warrior/core/profiles.js';
 import { warriorPassiveAttributes } from '#gw2/professions/warrior/core/skills/attribute-passives.js';
 import {
   WARRIOR_CORE_SKILL_MECHANICS,
@@ -27,7 +26,6 @@ export const warriorCoreModule = defineNativeModule({
   data: createWarriorModuleData('Core', {
     skillFields: WARRIOR_CORE_SKILL_FIELDS,
     skillMechanics: WARRIOR_CORE_SKILL_MECHANICS,
-    balanceProfiles: WARRIOR_CORE_BALANCE_PROFILES,
     extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS, ...WARRIOR_CORE_TRAIT_SKILLS]
   }),
   state: {

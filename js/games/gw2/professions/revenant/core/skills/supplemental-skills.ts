@@ -3,6 +3,30 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
+/** All scar-granting traits feed one charge pool and one patchable life-siphon payload. */
+export const battleScarsSkill: Skill = {
+  id: 'revenant.battle-scars',
+  name: 'Battle Scars',
+  type: 'Action',
+  slot: 'Action',
+  slotSelectable: false,
+  simulatorExcluded: true,
+  cooldown: 0,
+  maximumStacks: 25,
+  effects: [
+    {
+      type: 'strike',
+      coefficient: 0,
+      hits: 1,
+      damageKind: 'life-steal',
+      flatStrikeBase: 117,
+      flatStrikePowerCoeff: 0.006,
+      name: 'Battle Scars — Life Siphon',
+      actorType: ACTOR.EFFECT
+    }
+  ]
+};
+
 export const REVENANT_SUPPLEMENTAL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.INVOKE_TORMENT]: {
     cooldown: 0,

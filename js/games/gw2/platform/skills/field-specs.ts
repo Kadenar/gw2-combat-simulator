@@ -127,11 +127,6 @@ export function assertSkillFieldGroups(fields: SkillFieldSpecs): void {
   }
 }
 
-/** Read a direct or dotted value without treating missing intermediate groups as errors. */
-export function skillFieldValue(owner: unknown, field: string): unknown {
-  return skillFieldValueAtPath(owner, field.split('.'));
-}
-
 /** Reuse compiled paths during catalog validation while preserving own-property checks for grouped values. */
 function skillFieldValueAtPath(owner: unknown, path: readonly string[]): unknown {
   let value = owner;

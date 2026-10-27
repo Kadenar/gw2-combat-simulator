@@ -1,14 +1,13 @@
 import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   activeBoonStacks,
-  activeEngineerSpecializationState
+  activeEngineerSpecializationState,
+  engineerSpecializationState
 } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { evolveAttributeFactor } from '#gw2/professions/engineer/specializations/amalgam/traits/index.js';
-
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 
 // Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.
 // Derived armor/crit fields update from toughness, ferocity, and precision.
@@ -30,7 +29,11 @@ export const amalgamAttributes: Gw2AttributeContributionCalculator = (context) =
   const factor = evolved ? evolveAttributeFactor(context) - 1 : 0;
   const titanic = activeEngineerSpecializationState(context, 'Amalgam', 'titanicUntil')
     ? activeBoonStacks(context, boonKey(BOON.MIGHT)) *
-      balanceNumberFromContext(context, PROFILE.strains, 'attributePerStack')
+      skillNumberFromContext(
+        context,
+        engineerSpecializationState(context, 'Amalgam').titanicSkillId!,
+        'titanicAttributePerStack'
+      )
     : 0;
   return [
     {

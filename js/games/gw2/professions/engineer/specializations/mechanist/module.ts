@@ -7,7 +7,6 @@ import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-
 import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
 
 import { mechanistUi } from '#gw2/professions/engineer/specializations/mechanist/presentation.js';
-import { MECHANIST_BALANCE_PROFILES } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { MECHANIST_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/index.js';
 import {
   MECHANIST_PUBLIC_STATE_PROJECTION,
@@ -22,8 +21,7 @@ export const mechanistModule = defineNativeModule({
   traitDefinitions: mechanistTraits,
   data: createEngineerModuleData('Mechanist', {
     skillFields: MECHANIST_SKILL_FIELDS,
-    skillMechanics: MECHANIST_SKILL_MECHANICS,
-    balanceProfiles: MECHANIST_BALANCE_PROFILES
+    skillMechanics: MECHANIST_SKILL_MECHANICS
   }),
   state: { create: mechanistState.create, project: createPublicStateProjector(MECHANIST_PUBLIC_STATE_PROJECTION) },
   attributes: mechanistAttributes,

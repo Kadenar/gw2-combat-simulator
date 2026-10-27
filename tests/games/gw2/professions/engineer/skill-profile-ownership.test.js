@@ -14,6 +14,10 @@ import {
 } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { holosmithSkillStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
+import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 
 // Returning to Current must restore the canonical owner without retaining any preview mutations.
 function preview(skills, balanceProfiles = {}) {
@@ -50,7 +54,9 @@ test('Engineer rejects removed skill profiles and exposes no skill-variant catal
     'engineer.mechanist.force-signet',
     'engineer.mechanist.superconducting-signet',
     ID.OVERCLOCK_SIGNET,
-    'engineer.amalgam.morphs'
+    'engineer.amalgam.morphs',
+    'engineer.amalgam.strains',
+    'engineer.amalgam.rapacious-strain'
   ]) {
     assert.equal(engineerCatalog.balanceProfilesById.has(id), false);
     assert.throws(
@@ -311,4 +317,141 @@ test('Forge entry reads its selected kit lockout and primary beam damage precede
   );
   assert.ok(hits[0].name.includes('Packet 1'));
   assert.ok(hits.slice(1).some((event) => event.name === 'Field Damage'));
+});
+
+// Every slot owns independent Rapacious tuning; a retained grant survives reselection but expires on its own deadline.
+for (const id of [
+  ID.DEFENSIVE_PROTOCOL_THORNS,
+  ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104,
+  ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163
+]) {
+  test('Thorns ' + id + ' owns Rapacious cooldown, payload, expiry, and tooltip', () => {
+    const family = preview({
+      [id]: {
+        fields: { rapaciousDuration: 1.5, rapaciousInternalCooldown: 0.6 },
+        sideEffects: { strain: { effects: [{ type: 'strike', name: 'Rapacious Strain', coefficient: 0.9 }] } }
+      }
+    });
+    const result = runEngineer(
+      [{ type: 'wait', durationMs: 2000 }],
+      {
+        specialization: 'Amalgam',
+        patchId: 'engineer-ownership'
+      },
+      {
+        profession: family,
+        initialize(runtime) {
+          const state = runtime.profession.specialization.state;
+          state.evolvedUntil = 10;
+          applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(id), 0);
+          for (const at of [0.25, 0.5, 1, 1.5])
+            runtime.schedule('test.emit', at, {
+              type: 'damage',
+              at,
+              source: 'fixture',
+              sourceId: ID.OFFENSIVE_PROTOCOL_SHRED,
+              actorType: 'player',
+              skillId: ID.OFFENSIVE_PROTOCOL_SHRED,
+              skillName: 'Trigger',
+              coefficient: 1,
+              weaponStrength: 1000
+            });
+        },
+        probes: [
+          [
+            0.3,
+            (runtime) => {
+              runtime.profession.specialization.state.selectedMorphSkillIds = [];
+            }
+          ]
+        ]
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const procs = result.events.filter(
+      (event) => event.type === 'damage' && event.sourceId === 'engineer.rapacious-strain'
+    );
+    assert.deepEqual(
+      procs.map((event) => event.at),
+      [0.25, 1]
+    );
+    assert.ok(procs.every((event) => event.coefficient === 0.9));
+    assert.equal(observedRuntime(result).profession.specialization.state.rapaciousSkillId, id);
+    const selected = family.resolvePatch({ id: 'engineer-ownership' }).balanceContext;
+    const tooltip = describeSimulationSkill(selected, selected.catalog.skillsById.get(id), engineerTooltips);
+    assert.equal(tooltip.facts.find((fact) => fact.name === 'Rapacious Strain duration').detail, '1.5s');
+    assert.equal(engineerCatalog.skillsById.get(id).rapaciousDuration, 8);
+  });
+}
+
+// Effect removal must suppress both the initial grant and future proc cooldown claims.
+test('removed Rapacious payload cannot arm a strain through Evolve or Silver Lining', () => {
+  const id = ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104;
+  for (const silver of [false, true]) {
+    const result = runEngineer(
+      [silver ? id : ID.EVOLVE_BASE],
+      {
+        specialization: 'Amalgam',
+        selectedMorphSkillIds: [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, id, ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954],
+        selectedTraitIds: silver ? [TRAIT.SILVER_LINING] : []
+      },
+      {
+        catalog: (catalog) =>
+          applySkillPatch(catalog, {
+            skills: {
+              [id]: {
+                sideEffects: { strain: { removeEffects: [{ type: 'strike', name: 'Rapacious Strain' }] } }
+              }
+            }
+          })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    assert.equal(runtime.profession.specialization.state.rapaciousUntil, 0);
+    assert.equal(runtime.profession.specialization.state.rapaciousSkillId, null);
+    assert.equal(runtime.procs.deadline('rapacious'), 0);
+  }
+});
+
+// Titanic reads the granting Obliterate, while expiry removes its contribution and live Might determines its size.
+test('Obliterate owns Titanic scaling after protocol reselection and until strain expiry', () => {
+  for (const id of [
+    ID.OFFENSIVE_PROTOCOL_OBLITERATE,
+    ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806,
+    ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901
+  ]) {
+    const catalog = applySkillPatch(engineerCatalog, { skills: { [id]: { fields: { titanicAttributePerStack: 9 } } } });
+    const result = runEngineer(
+      [],
+      { specialization: 'Amalgam' },
+      {
+        catalog: () => catalog,
+        initialize(runtime) {
+          applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(id), 0);
+          runtime.profession.specialization.state.selectedMorphSkillIds = [];
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const state = observedRuntime(result).profession.specialization.state;
+    assert.equal(state.titanicSkillId, id);
+    for (const [time, expected] of [
+      [1, 1090],
+      [state.titanicUntil, 1000]
+    ]) {
+      const actual = evaluateAttributeDeclarations(
+        {
+          catalog,
+          time,
+          config: { boons: { might: 10 } },
+          runtime: { profession: { specialization: { kind: 'Amalgam', state } } }
+        },
+        { power: 1000, conditionDamage: 1000 },
+        amalgamAttributes
+      );
+      assert.equal(actual.power, expected);
+      assert.equal(actual.conditionDamage, expected);
+    }
+  }
 });

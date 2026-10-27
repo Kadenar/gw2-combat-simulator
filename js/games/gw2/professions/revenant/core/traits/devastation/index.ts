@@ -20,6 +20,7 @@ import {
   balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
+  skillNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -35,7 +36,7 @@ import {
   type RevenantCastCompletion,
   type RevenantStrike
 } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
@@ -125,7 +126,13 @@ export const brutality = defineTrait({
 export const danceOfDeath = defineTrait({
   triggers: [onTriggerPoint(revenantConditionApplied, { run: reactDanceOfDeath })],
   id: TRAIT.DANCE_OF_DEATH,
-  name: 'Dance of Death'
+  name: 'Dance of Death',
+  // Each accepted Vulnerability stack grants this trait's independently patchable scar payload.
+  balance: {
+    effects: [
+      { name: 'battle-scars', type: 'buff', kind: 'battle-scars', duration: 10, stacks: 1, actorType: ACTOR.PLAYER }
+    ]
+  }
 });
 
 /** Owns Destructive Impulses tuning and behavior at its established execution boundaries. */
@@ -373,7 +380,7 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
 
   const interval = canonicalInterval(balanceProfileNumber(profile, 'cooldown'));
   const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
-  const maximum = balanceNumberFromContext(runtime, PROFILE.battleScars, 'maximumStacks');
+  const maximum = skillNumberFromContext(runtime, battleScarsSkill.id, 'maximumStacks');
 
   if (core.nextThrillOfCombatAt == null)
     core.nextThrillOfCombatAt = canonicalTime((core.combatBeganAt ?? runtime.time) + interval);
@@ -441,9 +448,15 @@ function completeBattleScarred(runtime: RevenantRuntime, { cast }: RevenantCastC
 
 /** Runs the trait at its original ordered mechanic boundary. */
 function reactDanceOfDeath(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.DANCE_OF_DEATH);
+  const buff = requireEffect(profile, 'buff', 'battle-scars');
+
+  if (!buff) return;
+
   if (event.condition === CONDITION.VULNERABILITY)
     grantBattleScars(runtime, {
-      stacks: event.stacks || 0,
+      stacks: (event.stacks || 0) * effectNumber(profile, buff, 'stacks'),
+      duration: effectNumber(profile, buff, 'duration'),
       sourceId: TRAIT.DANCE_OF_DEATH,
       sourceName: 'Dance of Death',
       cause: event
@@ -457,28 +470,16 @@ function grantBattleScars(
     stacks,
     sourceId,
     sourceName,
-    duration: authored,
+    duration,
     cause = null
   }: {
     readonly stacks: number;
     readonly sourceId: SkillId;
     readonly sourceName: string;
-    readonly duration?: number;
+    readonly duration: number;
     readonly cause?: Gw2ResolverEvent | null;
   }
 ): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.battleScars);
-  let duration = authored;
-
-  // Grants without their own duration inherit the core buff's; removing that buff leaves them nothing to grant.
-  if (duration === undefined) {
-    const buff = requireEffect(profile, 'buff', 'battle-scars');
-
-    if (!buff) return;
-
-    duration = effectNumber(profile, buff, 'duration');
-  }
-
   duration = Math.max(0, duration);
   const core = runtime.profession.core;
   const { expiries, added } = addTimedStacks(
@@ -486,7 +487,7 @@ function grantBattleScars(
     stacks,
     runtime.time,
     duration,
-    balanceProfileNumber(profile, 'maximumStacks')
+    skillNumberFromContext(runtime, battleScarsSkill.id, 'maximumStacks')
   );
   core.battleScars = expiries;
 

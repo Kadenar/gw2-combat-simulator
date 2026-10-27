@@ -7,11 +7,10 @@ import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legen
 import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import {
   REVENANT_MAXIMUM_ENERGY,
   REVENANT_PRECOMBAT_ENERGY_CEILING,
-  revenantBaseEnergyRegeneration,
+  REVENANT_ENERGY_REGENERATION,
   revenantStartingEnergy
 } from '#gw2/professions/revenant/core/resource-values.js';
 import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
@@ -54,22 +53,19 @@ export interface RevenantCoreState {
 
 // Initialize bounded energy and endurance plus complete legend, upkeep, flip,
 // weapon-chain, and trait bookkeeping.
-export function createRevenantCoreState(
-  config: RevenantConfig,
-  preparation: { balanceContext: ProfessionBalanceContext }
-): RevenantCoreState {
+export function createRevenantCoreState(config: RevenantConfig): RevenantCoreState {
   const selectedLegendIds = normalizeRevenantLegendIds(config.selectedLegends, config.specialization);
   const configuredStartingLegend = config.startingLegend || '';
   const activeLegendId = selectedLegendIds.includes(configuredStartingLegend)
     ? configuredStartingLegend
     : selectedLegendIds[0] || '';
   return {
-    // Standalone construction (attribute previews) shares the runtime policy's values and selected regeneration;
+    // Standalone construction (attribute previews) shares the runtime policy's fixed energy values;
     // no upkeep is active yet, so the base rate is the whole rate.
     energy: {
       ...createResourceClock(revenantStartingEnergy(config)),
       maximum: REVENANT_MAXIMUM_ENERGY,
-      rate: revenantBaseEnergyRegeneration(preparation.balanceContext),
+      rate: REVENANT_ENERGY_REGENERATION,
       recoveryMaximum: REVENANT_PRECOMBAT_ENERGY_CEILING
     },
     activationClaims: {},

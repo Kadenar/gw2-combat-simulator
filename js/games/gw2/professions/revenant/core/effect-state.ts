@@ -4,7 +4,8 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */
 export function revenantBuffPolicies(_context: unknown): BuffStatePolicy[] {
@@ -28,7 +29,7 @@ export function revenantEffectStates(
     timedEffectState(
       'battle-scars',
       core.battleScars.map((expiresAt) => ({ expiresAt, stacks: 1 })),
-      balanceProfileNumber(balanceProfileFromContext(runtime, 'revenant.core.battle-scars')!, 'maximumStacks')
+      skillNumberFromContext(runtime, battleScarsSkill.id, 'maximumStacks')
     )
   ];
   effects.push(

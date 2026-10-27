@@ -1,9 +1,9 @@
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { revenantEnduranceRate } from '#gw2/professions/revenant/core/mechanics/resources.js';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/revenant/core/profiles.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
@@ -488,7 +488,7 @@ test('Battle Scars rejects overflow and consumes newest before longest-lived', (
   const healed = scars(3000);
   assert.ok(healed.length > 1);
   assert.ok(healed.slice(1).every((expiresAt) => expiresAt === 13));
-  const cap = revenantCatalog.balanceProfilesById.get(REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars).maximumStacks;
+  const cap = revenantCatalog.skillsById.get(battleScarsSkill.id).maximumStacks;
   const full = scars(4500);
   assert.equal(full.length, cap);
   assert.deepEqual(scars(5500), full, 'overflow cannot replace or refresh retained scars');
@@ -496,21 +496,25 @@ test('Battle Scars rejects overflow and consumes newest before longest-lived', (
 });
 
 test('Thrill of Combat catches up on its original cadence while capped grants remain rejected', () => {
-  const profileId = REVENANT_CORE_BALANCE_PROFILE_IDS.battleScars;
+  const skillId = battleScarsSkill.id;
   // Without the siphon the catch-up hits cannot also consume the scars they grant.
   const withoutSiphon = (catalog) =>
-    applyBalanceProfilePatch(catalog, {
-      balanceProfiles: {
-        [profileId]: { removeEffects: [{ type: 'strike', name: 'Battle Scars — Life Siphon' }] },
-        [TRAIT.THRILL_OF_COMBAT]: { effects: [{ type: 'buff', name: 'battle-scars', stacks: 2 }] }
+    applyBalanceProfilePatch(
+      applySkillPatch(catalog, {
+        skills: { [skillId]: { removeEffects: [{ type: 'strike', name: 'Battle Scars — Life Siphon' }] } }
+      }),
+      {
+        balanceProfiles: {
+          [TRAIT.THRILL_OF_COMBAT]: { effects: [{ type: 'buff', name: 'battle-scars', stacks: 2 }] }
+        }
       }
-    });
+    );
   const run = (untilMs) => {
     const result = runRevenant(
       ['__combat_start', wait(untilMs)],
       { selectedTraitIds: [TRAIT.THRILL_OF_COMBAT] },
       {
-        catalog: (catalog) => withProfile(withoutSiphon(catalog), profileId, { maximumStacks: 3 }),
+        catalog: (catalog) => withSkill(withoutSiphon(catalog), skillId, { maximumStacks: 3 }),
         initialize: (runtime) =>
           [3, 12].forEach((at) => runtime.effects.emit({ kind: 'packet', event: revenantHit(at) }))
       }

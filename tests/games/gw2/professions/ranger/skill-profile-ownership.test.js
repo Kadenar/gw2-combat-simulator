@@ -6,10 +6,9 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
-// The migration leaves actor archetypes shared and rejects obsolete persisted patch targets.
-test('Ranger has only actor mechanic profiles and generated trait tuning', () => {
-  assert.equal(rangerCatalog.balanceProfiles.filter((profile) => profile.profileKind === 'skill-variant').length, 0);
-  assert.equal(rangerCatalog.balanceProfiles.filter((profile) => profile.profileKind === 'mechanic').length, 5);
+// Skills own their payloads and archetypes use fixed rules, leaving only generated trait tuning.
+test('Ranger balance profiles contain only generated trait tuning', () => {
+  assert.ok(rangerCatalog.balanceProfiles.every((profile) => profile.profileKind === 'trait'));
   for (const id of [
     'ranger.core.sic-em',
     'ranger.druid.resources',

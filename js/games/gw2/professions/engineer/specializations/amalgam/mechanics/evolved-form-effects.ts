@@ -1,11 +1,12 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  skillNumber,
+  effectNumber,
+  requireSkillFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerStrike } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
-import { AMALGAM_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/engineer/specializations/amalgam/profiles.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
@@ -27,28 +28,33 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
   const state = context.procs;
   context.fireTrigger(amalgamStruck, { cause: event });
 
-  const rapaciousStrainProfile = requireBalanceProfileFromContext(context, PROFILE.rapaciousStrain);
-  // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.
-  const cooldown = balanceProfileNumber(rapaciousStrainProfile, 'internalCooldown');
+  const strain = amalgamState.from(context);
 
   if (
-    event.actorType !== ACTOR.SUMMON &&
-    event.sourceId !== 'engineer.rapacious-strain' &&
-    (amalgamState.from(context).evolvedUntil || 0) > event.at &&
-    (amalgamState.from(context).rapaciousUntil || 0) > event.at &&
-    (cooldown === 0 || isInternalCooldownReady(event.at, state.deadline('rapacious') || 0))
-  ) {
-    state.setDeadline('rapacious', event.at + cooldown);
-    const strike = requireEffect(rapaciousStrainProfile, 'strike', 'Rapacious Strain');
+    event.actorType === ACTOR.SUMMON ||
+    event.sourceId === 'engineer.rapacious-strain' ||
+    strain.evolvedUntil <= event.at ||
+    strain.rapaciousUntil <= event.at
+  )
+    return;
+
+  // The retained grant owns the proc even if a different protocol is selected afterwards.
+  const skill = requireSkillFromContext(context, strain.rapaciousSkillId!);
+  // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.
+  const cooldown = skillNumber(skill, 'rapaciousInternalCooldown');
+
+  if (cooldown === 0 || isInternalCooldownReady(event.at, state.deadline('rapacious') || 0)) {
+    const strike = requireEffect(skill, 'strike', 'Rapacious Strain', requireSkillAction(skill, 'strain'));
 
     // Keep Rapacious effect-owned for proc gating while inheriting the player's outgoing modifiers.
     if (strike) {
+      state.setDeadline('rapacious', event.at + cooldown);
       context.effects.emit({
         kind: 'packet',
         event: buildEngineerStrike(event, {
           skillWeapon: 'Unequipped',
           name: 'Rapacious Strain',
-          coefficient: Number(strike.coefficient),
+          coefficient: effectNumber(skill, strike, 'coefficient'),
           sourceId: 'engineer.rapacious-strain',
           actorType: ACTOR.EFFECT,
           ownerActorType: ACTOR.PLAYER
@@ -56,7 +62,7 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
       });
 
       context.effects.emit({
-        attribution: { source: 'Trait', sourceId: PROFILE.rapaciousStrain, actorType: ACTOR.EFFECT },
+        attribution: { source: 'engineer', sourceId: skill.id, actorType: ACTOR.EFFECT },
         kind: 'announcement',
         cause: event,
         announcement: {

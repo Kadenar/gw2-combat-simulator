@@ -12,7 +12,7 @@ export const soulbeastAttributes: Gw2AttributeContributionCalculator = (context)
 
   return [
     {
-      attributeEffects: Object.entries(soulbeastArchetypeAttributes(context, activeRangerPet(context).archetype)).map(
+      attributeEffects: Object.entries(soulbeastArchetypeAttributes(activeRangerPet(context).archetype)).map(
         ([key, amount]) => ({
           kind: 'flat',
           to: ATTRIBUTE_NAMES[key as keyof typeof ATTRIBUTE_NAMES],

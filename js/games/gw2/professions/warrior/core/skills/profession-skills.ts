@@ -45,8 +45,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effectVariants: [
       {
         when: () => true,
-        transform(runtime, cast, effects) {
-          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
+        transform(_runtime, cast, effects) {
+          const tier = warriorBurstTier(warriorBurstSpend(cast)!);
           return effects.filter((effect) => effect.type !== 'strike' || effect.name === `Tier ${tier}`);
         }
       }
@@ -81,8 +81,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effectVariants: [
       {
         when: () => true,
-        transform(runtime, cast, effects) {
-          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
+        transform(_runtime, cast, effects) {
+          const tier = warriorBurstTier(warriorBurstSpend(cast)!);
           return effects.map((effect) =>
             effect.type === 'boon' && effect.boon === BOON.FURY
               ? { ...effect, duration: effect.duration * [1, 1.5, 2][tier - 1] }
@@ -147,8 +147,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effectVariants: [
       {
         when: () => true,
-        transform(runtime, cast, effects) {
-          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
+        transform(_runtime, cast, effects) {
+          const tier = warriorBurstTier(warriorBurstSpend(cast)!);
           return effects.map((effect) =>
             effect.type === 'strike'
               ? { ...effect, coefficient: (Number(effect.coefficient) * [2.25, 2.75, 3.25][tier - 1]) / 2.25 }
@@ -200,9 +200,9 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effectVariants: [
       {
         when: () => true,
-        transform(runtime, cast) {
+        transform(_runtime, cast) {
           const spent = warriorBurstSpend(cast)!;
-          const tier = warriorBurstTier(runtime, spent);
+          const tier = warriorBurstTier(spent);
           const profile = cast.skill;
           const interval = skillNumber(profile, 'pulseInterval');
           const pulses = interval > 0 ? tier + 1 : 1;
@@ -415,8 +415,8 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     effectVariants: [
       {
         when: () => true,
-        transform(runtime, cast, effects) {
-          const tier = warriorBurstTier(runtime, warriorBurstSpend(cast)!);
+        transform(_runtime, cast, effects) {
+          const tier = warriorBurstTier(warriorBurstSpend(cast)!);
           // Each authored bleeding tier remains independently patchable and removable.
           return effects.filter((effect) => effect.type !== 'condition' || effect.name === `Tier ${tier}`);
         }
@@ -455,7 +455,7 @@ export const combustiveShotFields: NonNullable<
 > = (runtime, cast, fields) => {
   if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
 
-  const tier = warriorBurstTier(runtime, warriorBurstRules(runtime).spend(runtime, cast.skill));
+  const tier = warriorBurstTier(warriorBurstRules(runtime).spend(runtime, cast.skill));
   const duration = tier * skillNumber(cast.skill, 'durationPerTier');
   return fields?.flatMap((field) =>
     field.ownerId !== 'warrior' ? [field] : duration > 0 ? [{ ...field, duration }] : []

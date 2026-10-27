@@ -1,6 +1,5 @@
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
 import { berserkersPower } from '#gw2/professions/warrior/core/traits/strength/index.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -18,30 +17,29 @@ const preview = (patch) =>
     professions: { warrior: patch }
   });
 
-// Selected caps initialize before elite overrides, and the same pools supply resource presentation.
-test('Warrior initialization and resource displays honor selected caps', () => {
-  for (const maximum of [10, 50]) {
+// Fixed Core capacity and trait-owned elite capacities agree with resource presentation.
+test('Warrior initialization and displays share fixed Core and selected elite caps', () => {
+  for (const initialResource of [10, 60]) {
     const family = preview({
       balanceProfiles: {
-        [CORE.resources]: { fields: { maximumStacks: maximum } },
         [TRAIT.GUN_X_SWORD]: { fields: { maximumStacks: 80 } },
         [TRAIT.RALLY_THE_VALIANT]: { fields: { maximumStacks: 12 } },
         [TRAIT.SPELLBREAKERS_CONVICTION]: { fields: { maximumStacks: 8 } }
       }
     });
     for (const [specialization, adrenalineCap] of [
-      ['Core', maximum],
-      ['Berserker', maximum],
-      ['Paragon', maximum],
+      ['Core', 30],
+      ['Berserker', 30],
+      ['Paragon', 30],
       ['Spellbreaker', 8],
       ['Bladesworn', 0]
     ]) {
-      const config = { specialization, patchId, initialResource: 60 };
+      const config = { specialization, patchId, initialResource };
       const result = observeGw2Runtime({ profession: family.runtimeFor(config), config, rotation: [] });
       assert.deepEqual(result.warnings, []);
       const state = result.planningState.profession;
       assert.equal(state.adrenaline.maximum, adrenalineCap);
-      assert.equal(state.adrenaline.value, adrenalineCap);
+      assert.equal(state.adrenaline.value, Math.min(initialResource, adrenalineCap));
       const resources = family.ui.resourceViews({
         specialization,
         catalog: family.resolvePatch({ id: patchId }).catalog,

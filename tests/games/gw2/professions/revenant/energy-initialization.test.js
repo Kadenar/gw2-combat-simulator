@@ -1,22 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { REVENANT_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/core/profiles.js';
 import {
   REVENANT_MAXIMUM_ENERGY,
   REVENANT_PRECOMBAT_ENERGY_CEILING,
   revenantStartingEnergy
 } from '#gw2/professions/revenant/core/resource-values.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { REVENANT_TEST_CONFIG } from '#tests/helpers/revenant-simulation.js';
 import { constructedAndInitializedPool } from '#tests/helpers/resource-initialization.js';
 
-// A distinct patched rate proves both paths read the selected profile rather than a copied default.
-const REGENERATION = 7;
-const patched = (catalog) => withProfile(catalog, PROFILE.resources, { energyRegenerationPerSecond: REGENERATION });
-
 // Standalone construction and runtime initialization share one energy authority before combat begins.
-test('constructed and initialized energy agree on the selected profile', () => {
+test('constructed and initialized energy agree on fixed base recovery', () => {
   const aboveCeiling = (REVENANT_PRECOMBAT_ENERGY_CEILING + REVENANT_MAXIMUM_ENERGY) / 2;
 
   for (const [initialEnergy, value] of [
@@ -25,11 +19,11 @@ test('constructed and initialized energy agree on the selected profile', () => {
     [aboveCeiling, aboveCeiling]
   ]) {
     const config = { ...REVENANT_TEST_CONFIG, specialization: 'Core', initialEnergy };
-    const { constructed, initialized } = constructedAndInitializedPool(revenantProfession, config, 'energy', patched);
+    const { constructed, initialized } = constructedAndInitializedPool(revenantProfession, config, 'energy');
     const expected = {
       value,
       maximum: REVENANT_MAXIMUM_ENERGY,
-      rate: REGENERATION,
+      rate: 5,
       recoveryMaximum: REVENANT_PRECOMBAT_ENERGY_CEILING
     };
     assert.deepEqual(constructed, expected, String(initialEnergy));

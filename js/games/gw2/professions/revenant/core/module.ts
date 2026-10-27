@@ -7,7 +7,6 @@ import {
   REVENANT_CORE_BASE_SKILL_MECHANICS,
   REVENANT_CORE_EXTRA_SKILLS
 } from '#gw2/professions/revenant/core/skills/index.js';
-import { REVENANT_CORE_BALANCE_PROFILES } from '#gw2/professions/revenant/core/profiles.js';
 import { revenantCoreHooks } from '#gw2/professions/revenant/core/hooks.js';
 import { REVENANT_CORE_SKILL_FIELDS } from '#gw2/professions/revenant/core/skill-fields.js';
 
@@ -18,8 +17,7 @@ export const revenantCoreModule = defineNativeModule({
   data: createRevenantModuleData('Core', {
     skillFields: REVENANT_CORE_SKILL_FIELDS,
     skillMechanics: REVENANT_CORE_BASE_SKILL_MECHANICS,
-    extraSkills: REVENANT_CORE_EXTRA_SKILLS,
-    balanceProfiles: REVENANT_CORE_BALANCE_PROFILES
+    extraSkills: REVENANT_CORE_EXTRA_SKILLS
   }),
   state: {
     create: createRevenantCoreState,

@@ -3,6 +3,9 @@ import {
   definePublicStateDefaults
 } from '#gw2/platform/profession-definition/state.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 
 export interface AmalgamState {
   selectedMorphSkillIds: number[];
@@ -10,8 +13,10 @@ export interface AmalgamState {
   willingHostUntil: number;
   plasmaticStateUntil: number;
   rapaciousUntil: number;
+  rapaciousSkillId: SkillId | null;
   predatorUntil: number;
   titanicUntil: number;
+  titanicSkillId: SkillId;
   berserkerUntil: number;
 }
 
@@ -38,8 +43,14 @@ function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
     willingHostUntil: 0, // set by any morph cast (Willing Host trait)
     plasmaticStateUntil: 0, // set by Plasmatic State cast
     rapaciousUntil: 0, // Rapacious Strain (Thorns silver-lining strain)
+    rapaciousSkillId: null,
     predatorUntil: 0, // Predator Strain (Shred silver-lining strain)
     titanicUntil: 0, // Titanic Strain (Obliterate silver-lining strain) — boosts might scaling
+    // Isolated previews use the selected Obliterate, or the canonical action when previewing an unequipped strain.
+    // Live grants replace this identity with the actual source and retain it through later selection changes.
+    titanicSkillId:
+      config.selectedMorphSkillIds?.find((id) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id) === 'obliterate') ??
+      ID.OFFENSIVE_PROTOCOL_OBLITERATE,
     berserkerUntil: 0 // Berserker Strain (Demolish silver-lining strain)
   };
 }

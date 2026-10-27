@@ -24,7 +24,6 @@ import {
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { mesmerProfiledTraitDamage } from '#gw2/professions/mesmer/core/profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
@@ -166,14 +165,15 @@ const phantasmalBlades = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerPhantasmPreparing, {
       run(runtime, traitEffects: MesmerPhantasmTraitEffects) {
-        const damage = mesmerProfiledTraitDamage(runtime, TRAIT.PHANTASMAL_BLADES);
+        const profile = requireBalanceProfileFromContext(runtime, TRAIT.PHANTASMAL_BLADES);
+        const strike = requireEffect(profile, 'strike', 'Strike');
 
-        if (damage.type === 'strike')
+        if (strike)
           traitEffects.bonusStrike = {
             name: 'Phantasmal Blade',
             traitId: TRAIT.PHANTASMAL_BLADES,
             traitName: 'Phantasmal Blades',
-            damage
+            damage: { weaponStrength: balanceProfileNumber(profile, 'weaponStrength'), ...strike, name: undefined }
           };
       }
     })

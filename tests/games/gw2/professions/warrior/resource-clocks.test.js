@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/warrior/core/profiles.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { warriorBurstTier } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_TRAIT_IDS as TRAIT, WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -22,6 +23,29 @@ function run(config, rotation = [], profiles = {}, skills = {}) {
   assert.deepEqual(result.warnings, []);
   return result;
 }
+
+// Fixed Core bars determine capacity and burst tiers independently of selected balance data.
+test('Core adrenaline retains its fixed capacity and burst thresholds without profile patch targets', () => {
+  const result = run({ specialization: 'Core', initialResource: 60 });
+  assert.equal(result.planningState.profession.adrenaline.maximum, 30);
+  assert.equal(result.planningState.profession.adrenaline.value, 30);
+  for (const [spent, tier] of [
+    [10, 1],
+    [19.5, 1],
+    [20, 2],
+    [29.5, 2],
+    [30, 3]
+  ])
+    assert.equal(warriorBurstTier(spent), tier);
+  for (const id of ['warrior.core.resources', 'warrior.core.burst-tiers'])
+    assert.throws(
+      () =>
+        applyBalanceProfilePatch(warriorCatalog, {
+          balanceProfiles: { [id]: { fields: { maximumStacks: 50 } } }
+        }),
+      /unknown balance profile/
+    );
+});
 
 // The equipped signet grants its active resource and suspends its passive until recharge, while retaining trait procs.
 test('Signet of Stamina restores endurance, triggers Signet Mastery, and gates passive regeneration on recharge', () => {
@@ -46,7 +70,6 @@ test('Signet of Stamina restores endurance, triggers Signet Mastery, and gates p
 
 test('selected Warrior clocks seed against patched caps without an earlier factory or Core clamp', () => {
   for (const [specialization, key, profile, maximum] of [
-    ['Core', 'adrenaline', CORE.resources, 60],
     ['Spellbreaker', 'adrenaline', TRAIT.SPELLBREAKERS_CONVICTION, 45],
     ['Bladesworn', 'flow', TRAIT.GUN_X_SWORD, 125]
   ]) {
@@ -64,21 +87,18 @@ test('selected Warrior clocks seed against patched caps without an earlier facto
     }
 
     const unpatched = run({ specialization, initialResource: 150 });
-    assert.equal(
-      unpatched.planningState.profession[key].maximum,
-      specialization === 'Core' ? 30 : specialization === 'Spellbreaker' ? 20 : 100
-    );
+    assert.equal(unpatched.planningState.profession[key].maximum, specialization === 'Spellbreaker' ? 20 : 100);
   }
 });
 
 test('Berserk refresh clamps its patched mode cap and expiry restores capacity without refilling', () => {
   const config = { specialization: 'Berserker', initialResource: 60 };
-  const profiles = { [CORE.resources]: { maximumStacks: 60 }, [TRAIT.PRIMAL_RAGE]: { maximumStacks: 7.5 } };
+  const profiles = { [TRAIT.PRIMAL_RAGE]: { maximumStacks: 7.5 } };
   const entered = run(config, ['Berserk'], profiles);
   assert.equal(entered.planningState.profession.adrenaline.maximum, 7.5);
   assert.equal(entered.planningState.profession.adrenaline.value, 7.5);
   const expired = run(config, ['Berserk', { type: 'wait', durationMs: 20000 }], profiles);
-  assert.equal(expired.planningState.profession.adrenaline.maximum, 60);
+  assert.equal(expired.planningState.profession.adrenaline.maximum, 30);
   assert.equal(expired.planningState.profession.adrenaline.value, 7.5);
 });
 

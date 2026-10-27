@@ -6,7 +6,6 @@ import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data
 import { soulbeastHooks } from '#gw2/professions/ranger/specializations/soulbeast/hooks.js';
 
 import { bindSoulbeastUi } from '#gw2/professions/ranger/specializations/soulbeast/presentation.js';
-import { SOULBEAST_BALANCE_PROFILES } from '#gw2/professions/ranger/specializations/soulbeast/profiles.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/index.js';
 import {
   SOULBEAST_PUBLIC_STATE_PROJECTION,
@@ -20,8 +19,7 @@ export const soulbeastModule = defineNativeModule({
   attributes: soulbeastAttributes,
   traitDefinitions: soulbeastTraits,
   data: createRangerModuleData('Soulbeast', {
-    skillMechanics: SOULBEAST_BASE_SKILL_MECHANICS,
-    balanceProfiles: SOULBEAST_BALANCE_PROFILES
+    skillMechanics: SOULBEAST_BASE_SKILL_MECHANICS
   }),
   state: { create: soulbeastState.create, project: createPublicStateProjector(SOULBEAST_PUBLIC_STATE_PROJECTION) },
   // The merged command bonus belongs to this elite; Core traits register their own rules.

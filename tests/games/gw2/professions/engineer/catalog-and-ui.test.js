@@ -22,7 +22,6 @@ import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mec
 import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { MECHANIST_BALANCE_PROFILE_IDS } from '#gw2/professions/engineer/specializations/mechanist/profiles.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
@@ -96,9 +95,9 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
   );
 });
 
-// Canonical inheritance edits survive loading and application; obsolete fields must fail validation.
-test('Mechanist profile overrides preserve canonical edits and reject obsolete fields', () => {
-  const resourceId = MECHANIST_BALANCE_PROFILE_IDS.resources;
+// Trait inheritance remains patchable while base actor attributes have no balance-authoring target.
+test('Mechanist preserves trait inheritance edits and rejects the removed base attribute profile', () => {
+  const resourceId = 'engineer.mechanist.mech';
   const saved = {
     id: 'mech-inheritance',
     label: 'Mech inheritance',
@@ -108,13 +107,7 @@ test('Mechanist profile overrides preserve canonical edits and reject obsolete f
           [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]: { fields: { precisionCap: 300 } },
           [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]: { fields: { inheritanceRatio: 0.75, secondaryAttributeCap: 80 } },
           [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]: { fields: { inheritanceRatio: 0.75, secondaryAttributeCap: 80 } },
-          [TRAIT.MECHANICAL_GENIUS]: { fields: { inheritanceRatio: 0.25, secondaryAttributeCap: 50, powerCap: 500 } },
-          [resourceId]: {
-            fields: {
-              baseAttribute: 100,
-              basePrecision: 2
-            }
-          }
+          [TRAIT.MECHANICAL_GENIUS]: { fields: { inheritanceRatio: 0.25, secondaryAttributeCap: 50, powerCap: 500 } }
         }
       }
     }
@@ -133,26 +126,16 @@ test('Mechanist profile overrides preserve canonical edits and reject obsolete f
   assert.equal(attributes.power, 500);
   assert.equal(attributes.precision, 300);
   assert.equal(attributes.ferocity, 50);
-  for (const invalid of [
-    { minimumStacks: 20, secondaryAttributeCap: 30 },
-    { secondaryAttributeCap: { from: 99, to: 200 } },
-    { secondaryAttributeCap: NaN },
-    { imaginaryCap: 20 }
-  ]) {
-    assert.throws(() => applyEngineerPatch({ balanceProfiles: { [resourceId]: { fields: invalid } } }));
-  }
-
-  for (const field of [
-    'attributeBonus',
-    'attributeConversion',
-    'minimumStacks',
-    'maximumStacks',
-    'threshold',
-    'weaponAttributeBonus',
-    'coefficientMultiplier',
-    'basePower'
-  ]) {
-    assert.throws(() => applyEngineerPatch({ balanceProfiles: { [resourceId]: { fields: { [field]: 1 } } } }));
+  const untraited = engineerMechAttributes({}, {}, { catalog });
+  assert.equal(untraited.precision, 1);
+  assert.equal(untraited.toughness, 2000);
+  assert.equal(untraited.vitality, 2000);
+  assert.equal(catalog.balanceProfilesById.has(resourceId), false);
+  for (const field of ['baseAttribute', 'basePrecision', 'criticalChance']) {
+    assert.throws(
+      () => applyEngineerPatch({ balanceProfiles: { [resourceId]: { fields: { [field]: 1 } } } }),
+      /unknown balance profile/
+    );
   }
 });
 
