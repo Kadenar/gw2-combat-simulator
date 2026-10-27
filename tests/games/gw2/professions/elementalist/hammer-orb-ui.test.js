@@ -6,7 +6,8 @@ import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
-function createHammerApp(hammerOrbs, time = 0) {
+// Observe the supplied orb state at combat start to exercise palette availability.
+function createHammerApp(hammerOrbs) {
   const build = elementalistAppAdapter.toApplicationBuild({
     ...elementalistProfession.createBuildDefaults(),
     weapons: ['Hammer', ''],
@@ -28,7 +29,7 @@ function createHammerApp(hammerOrbs, time = 0) {
       planningState: {
         availability: {},
         activeWeaponSet: 1,
-        atSeconds: time,
+        atSeconds: 0,
         cooldowns: {},
         // Orb state changes independently of the canonical ammo projection.
         ammoBySkillId: {},

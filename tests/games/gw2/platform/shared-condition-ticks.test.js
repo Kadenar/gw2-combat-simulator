@@ -221,9 +221,10 @@ for (const name of CANONICAL_TARGET_CONDITIONS) {
   });
 }
 
-function packetDamage(result, name = 'Bleeding') {
+// Aggregate Bleeding contributions at each tick to check shared condition settlement.
+function bleedingPacketDamage(result) {
   const packets = new Map();
-  for (const application of applications(result).filter(({ condition }) => condition === name)) {
+  for (const application of applications(result).filter(({ condition }) => condition === 'Bleeding')) {
     for (const { at, damage } of application.damageTicks) packets.set(at, (packets.get(at) || 0) + damage);
   }
 
@@ -641,7 +642,7 @@ test('same-owner conditions sum across skills before one half-even rounding in b
         59
       );
       assert.equal(result.conditionBreakdown[0].damage, 59);
-      assert.deepEqual(packetDamage(result), [59]);
+      assert.deepEqual(bleedingPacketDamage(result), [59]);
     }
 
     assert.equal(
@@ -837,7 +838,7 @@ test('ordinary state changes follow shared samples and boundary applications owe
     }
   );
   // The sample ending at 1s uses prior state; the new multiplier affects subsequent intervals.
-  assert.deepEqual(packetDamage(result), [30, 118]);
+  assert.deepEqual(bleedingPacketDamage(result), [30, 118]);
 });
 
 test('ordinary priorities cannot outrank condition settlement', () => {

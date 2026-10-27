@@ -178,11 +178,12 @@ test('offscreen charts wait for their own viewport entry and never replay on ret
   await expect.poll(pixels).toEqual(complete);
 });
 
-async function hoverChart(page, kind, ratio = 0.5) {
+// Hover the plotted midpoint so tooltip checks use a consistent observation position.
+async function hoverChart(page, kind) {
   const canvas = page.locator(`[data-role="${kind}-canvas"]`);
   await canvas.scrollIntoViewIfNeeded();
   const box = await canvas.boundingBox();
-  await canvas.hover({ position: { x: 54 + (box.width - 70) * ratio, y: 100 } });
+  await canvas.hover({ position: { x: 54 + (box.width - 70) / 2, y: 100 } });
 }
 
 async function dragChart(page, kind, from, to) {

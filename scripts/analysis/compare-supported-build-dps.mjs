@@ -21,18 +21,14 @@ export const MAXIMUM_RELATIVE_ERROR = 0.01;
 export const MAXIMUM_ABSOLUTE_DPS_ERROR = 100;
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 
-/** Keep the default 1% contract while allowing the CLI to opt into a fixed-DPS regression threshold. */
-export function findDpsMismatches(
-  metrics,
-  maximumRelativeError = MAXIMUM_RELATIVE_ERROR,
-  maximumAbsoluteDpsError = null
-) {
+/** Keep the fixed 1% contract while allowing the CLI to opt into an absolute DPS regression threshold. */
+export function findDpsMismatches(metrics, maximumAbsoluteDpsError = null) {
   return metrics.flatMap((metric) => {
     const difference = metric.dps - metric.benchmarkDps;
     const relativeDifference = difference / metric.benchmarkDps;
     const isWithinTolerance =
       maximumAbsoluteDpsError == null
-        ? Math.abs(relativeDifference) <= maximumRelativeError
+        ? Math.abs(relativeDifference) <= MAXIMUM_RELATIVE_ERROR
         : Math.abs(difference) <= maximumAbsoluteDpsError;
 
     if (isWithinTolerance) return [];
@@ -96,7 +92,7 @@ function printComparisonTable(rows, baselineLabel, resultLabel) {
 
 /** Report saved-benchmark drift using the fixed relative tolerance or a requested absolute tolerance. */
 export function printDpsComparison(metrics, maximumAbsoluteDpsError = null) {
-  const mismatches = findDpsMismatches(metrics, MAXIMUM_RELATIVE_ERROR, maximumAbsoluteDpsError);
+  const mismatches = findDpsMismatches(metrics, maximumAbsoluteDpsError);
   const professionCount = new Set(metrics.map((metric) => metric.profession)).size;
   const tolerance =
     maximumAbsoluteDpsError == null

@@ -46,14 +46,14 @@ const queryProfession = defineProfession({
   name: 'Query Fixture'
 });
 
-/** Builds the resolved recipient facts expected by low-level query fixtures. */
-function resolvedAudience({ includesSelf = true, alliedPlayerCount = 0, companionIds = [] } = {}) {
+/** Builds self and companion recipient facts for the low-level query fixtures. */
+function resolvedAudience({ includesSelf = true, companionIds = [] } = {}) {
   return {
     includesSelf,
     includesSummons: companionIds.length > 0,
-    alliedPlayerCount,
+    alliedPlayerCount: 0,
     companionIds,
-    recipientCount: Number(includesSelf) + alliedPlayerCount + companionIds.length
+    recipientCount: Number(includesSelf) + companionIds.length
   };
 }
 

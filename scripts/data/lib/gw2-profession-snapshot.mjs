@@ -35,9 +35,9 @@ function englishPath(pathname) {
   return `${pathname}${pathname.includes('?') ? '&' : '?'}lang=en`;
 }
 
-// Fetches a Guild Wars 2 API object by its path, throwing an error if the request fails.
-export async function fetchGw2Api(pathname, { fetchImpl = fetch, apiRoot = GW2_API_ROOT, headers } = {}) {
-  const response = await fetchImpl(`${apiRoot}${englishPath(pathname)}`, headers ? { headers } : undefined);
+// Fetch public English API data from the canonical endpoint, retaining transport injection for fixtures.
+export async function fetchGw2Api(pathname, { fetchImpl = fetch } = {}) {
+  const response = await fetchImpl(`${GW2_API_ROOT}${englishPath(pathname)}`);
 
   if (!response.ok) {
     throw new Error(`Guild Wars 2 API request failed (${response.status}): ${pathname}`);
@@ -310,13 +310,8 @@ export function createProfessionSnapshot({ profession, specializationData, trait
 }
 
 // Fetches a snapshot of a profession's data from the GW2 API for use in the patch preview.
-export async function fetchProfessionSnapshot({
-  professionName,
-  config = {},
-  fetchImpl = fetch,
-  apiRoot = GW2_API_ROOT
-}) {
-  const options = { fetchImpl, apiRoot };
+export async function fetchProfessionSnapshot({ professionName, config = {}, fetchImpl = fetch }) {
+  const options = { fetchImpl };
   const profession = await fetchGw2Api(`/professions/${professionName}`, options);
   const specializationData = await fetchManyGw2('specializations', profession.specializations || [], options);
   const traitData = await fetchManyGw2(

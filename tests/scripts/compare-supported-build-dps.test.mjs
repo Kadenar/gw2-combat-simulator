@@ -93,7 +93,7 @@ test('absolute DPS comparison reports only builds more than 100 DPS from the man
     { id: 'below', benchmarkDps: 40_000, dps: 39_899 }
   ];
 
-  const mismatches = findDpsMismatches(metrics, MAXIMUM_RELATIVE_ERROR, MAXIMUM_ABSOLUTE_DPS_ERROR);
+  const mismatches = findDpsMismatches(metrics, MAXIMUM_ABSOLUTE_DPS_ERROR);
 
   assert.equal(MAXIMUM_ABSOLUTE_DPS_ERROR, 100);
   assert.deepEqual(

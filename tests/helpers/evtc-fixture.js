@@ -67,13 +67,8 @@ export function log(overrides = {}) {
   };
 }
 
-/** Encodes the smallest binary EVTC fixture needed by parser and importer tests. */
-export function expandedEvtcFixture({
-  interruptedDamage = false,
-  zeroDurationInterrupt = false,
-  secondActivation = false,
-  skillName = 'Mind Stab'
-} = {}) {
+/** Encodes activation records and a recording end for parser and importer tests. */
+export function expandedEvtcFixture({ secondActivation = false, skillName = 'Mind Stab' } = {}) {
   const header = Buffer.alloc(16);
 
   header.write('EVTC20260815', 0, 'ascii');
@@ -115,36 +110,14 @@ export function expandedEvtcFixture({
   recordingEnd.writeUInt16LE(1, 40);
   recordingEnd[56] = 2;
 
-  if (!interruptedDamage) {
-    return Buffer.concat([
-      header,
-      agentCount,
-      agent,
-      skillCount,
-      skill,
-      activation,
-      ...(secondActivation ? [laterActivation] : []),
-      recordingEnd
-    ]);
-  }
-
-  const animationStop = Buffer.alloc(64);
-
-  animationStop.writeBigUInt64LE(zeroDurationInterrupt ? 1_000n : 1_040n, 0);
-  animationStop.writeBigUInt64LE(EVTC_FIXTURE_PLAYER, 8);
-  animationStop.writeInt32LE(zeroDurationInterrupt ? 0 : 40, 24);
-  animationStop.writeUInt32LE(1_000, 36);
-  animationStop.writeUInt16LE(1, 40);
-  animationStop[51] = 4;
-  animationStop[56] = 68;
-  const damage = Buffer.alloc(64);
-
-  damage.writeBigUInt64LE(1_350n, 0);
-  damage.writeBigUInt64LE(EVTC_FIXTURE_PLAYER, 8);
-  damage.writeBigUInt64LE(0x2000n, 16);
-  damage.writeInt32LE(100, 24);
-  damage.writeUInt32LE(1_000, 36);
-  damage.writeUInt16LE(1, 40);
-
-  return Buffer.concat([header, agentCount, agent, skillCount, skill, activation, animationStop, damage]);
+  return Buffer.concat([
+    header,
+    agentCount,
+    agent,
+    skillCount,
+    skill,
+    activation,
+    ...(secondActivation ? [laterActivation] : []),
+    recordingEnd
+  ]);
 }

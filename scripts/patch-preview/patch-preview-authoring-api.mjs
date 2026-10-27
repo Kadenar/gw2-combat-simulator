@@ -5,7 +5,7 @@
  *   import { createPatchPreviewAuthoringApi } from './patch-preview-authoring-api.mjs';
  *   const handlePatchPreviewAuthoring = createPatchPreviewAuthoringApi({ root, buildRoot });
  */
-import { writeFile as writeFileToDisk } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -107,8 +107,8 @@ export function validateAuthoringPreview(preview, runtime) {
   return validated;
 }
 
-// Creates a patch preview authoring API handler for the given root and buildRoot directories.
-export function createPatchPreviewAuthoringApi({ root, buildRoot, writeFile = writeFileToDisk }) {
+// Validate previews against the compiled runtime and serialize accepted saves to the source file.
+export function createPatchPreviewAuthoringApi({ root, buildRoot }) {
   const sourceFile = path.join(root, 'js', 'games', 'gw2', 'integrations', 'patches', 'active-preview.ts');
   let runtimePromise;
   let savedPreview;
