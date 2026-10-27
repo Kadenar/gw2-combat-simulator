@@ -1,3 +1,4 @@
+import { REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { WEAPON, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
@@ -215,7 +216,7 @@ export const activePatchPreview: PatchPreview = {
             }
           }
         },
-        'revenant.conduit.mistfire': {
+        [REVENANT_TRAIT_IDS.MISTFIRE]: {
           effects: [
             {
               type: 'condition',

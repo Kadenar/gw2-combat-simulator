@@ -17,14 +17,13 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 
-import { THIEF_CORE_BALANCE_PROFILE_IDS } from '#gw2/professions/thief/core/profiles.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { ANTIQUARY_ARTIFACT_WINDOWS } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-windows.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
 import { thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
@@ -601,10 +600,15 @@ test('Unload refunds initiative only when every bullet in its activation lands',
         // Completion cannot award the refund while the final projectile is still in flight.
         probes:
           command.impactDelayMs && !command.interruptAfterMs && casts === 1
-            ? [[1.5, (runtime) => assert.equal(runtime.resourceController.value('initiative'), 0)]]
+            ? [
+                [
+                  1.5,
+                  (runtime) => assert.ok(Math.abs(runtime.resourceController.value('initiative') - runtime.time) < 1e-9)
+                ]
+              ]
             : [],
         catalog: (catalog) =>
-          withSkill(withProfile(catalog, THIEF_CORE_BALANCE_PROFILE_IDS.resources, { resourceGain: 0 }), ID.UNLOAD, {
+          withSkill(catalog, ID.UNLOAD, {
             initiativeRefund: 4,
             castTimeMs: 1000,
             effects: [
@@ -635,9 +639,10 @@ test('Unload refunds initiative only when every bullet in its activation lands',
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(
-      observedRuntime(result).resourceController.value('initiative'),
-      refund,
+    const runtime = observedRuntime(result);
+    // Only landed bullets add a refund above the fixed regeneration accrued during the observation.
+    assert.ok(
+      Math.abs(runtime.resourceController.value('initiative') - runtime.time - refund) < 1e-9,
       JSON.stringify({ command, missed, casts })
     );
   }
@@ -1454,9 +1459,9 @@ test('initiative-funded casts retain readiness across intermediate observations'
 
 // Initiative follows shared admission priority: permanent costs win, but retryable costs allow state denials.
 test('initiative uses shared warning codes and cost-gate priority', () => {
-  for (const [rate, expected] of [
-    [0, 'gw2.insufficient-initiative'],
-    [1, 'thief.rifle-stance']
+  for (const [initiativeCost, expected] of [
+    [13, 'gw2.insufficient-initiative'],
+    [4, 'thief.rifle-stance']
   ]) {
     const codes = [];
     const result = runThief(
@@ -1468,7 +1473,7 @@ test('initiative uses shared warning codes and cost-gate priority', () => {
         initialInitiative: 0
       },
       {
-        catalog: (live) => withProfile(live, THIEF_CORE_BALANCE_PROFILE_IDS.resources, { resourceGain: rate }),
+        catalog: (live) => withSkill(live, ID.SNIPERS_COVER, { initiativeCost }),
         extend: (native) => ({
           availability(runtime, skill, command) {
             const result = native.availability(runtime, skill, command);
@@ -1485,20 +1490,13 @@ test('initiative uses shared warning codes and cost-gate priority', () => {
   }
 });
 
-// Known signet pulses remain affordability boundaries when ordinary recovery is disabled.
-test('initiative availability waits for a signet grant with zero regeneration', () => {
+// The signet grant must make the cast affordable before ordinary recovery alone would do so.
+test('initiative availability includes signet grants alongside ordinary recovery', () => {
   const result = runThief(
     ['Double Strike'],
     { ...baseConfig, initialInitiative: 0, selectedSkillIds: [13064] },
     {
-      catalog: (live) =>
-        withProfile(
-          withSkill(live, ID.DOUBLE_STRIKE, { initiativeCost: 1 }),
-          THIEF_CORE_BALANCE_PROFILE_IDS.resources,
-          {
-            resourceGain: 0
-          }
-        )
+      catalog: (live) => withSkill(live, ID.DOUBLE_STRIKE, { initiativeCost: 11 })
     }
   );
   assert.deepEqual(result.warnings, []);

@@ -7,8 +7,6 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { HERALD_ELEVATED_COMPASSION_PROFILE_ID as COMPASSION } from '#gw2/professions/revenant/specializations/herald/profiles.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -22,6 +20,49 @@ const conduitConfig = {
   startingLegend: LEGEND.DEMON,
   initialEnergy: 100
 };
+
+// Trait-owned tuning accepts only the canonical identity, and patching never mutates the base catalog.
+test('Herald and Conduit patches use canonical trait IDs and reject obsolete profile IDs', () => {
+  for (const [trait, obsolete, field] of [
+    [TRAIT.ELEVATED_COMPASSION, 'revenant.elevated-compassion', 'threshold'],
+    [TRAIT.SHARED_EMPOWERMENT, 'revenant.shared-empowerment', 'internalCooldown'],
+    [TRAIT.DRACONIC_ECHO, 'revenant.draconic-echo', 'duration'],
+    [TRAIT.LINGERING_DETERMINATION, 'revenant.conduit.lingering-determination', 'resourceGain'],
+    [TRAIT.ENHANCED_EMBODIMENT, 'revenant.conduit.enhanced-embodiment', 'rechargeMultiplier'],
+    [TRAIT.EXPANDED_CONSCIOUSNESS, 'revenant.conduit.expanded-consciousness', 'resourceGain'],
+    [TRAIT.SHARED_WISDOM, 'revenant.conduit.shared-wisdom', null],
+    [TRAIT.NUMINOUS_GIFT, 'revenant.conduit.numinous-gift', 'damageIncrease'],
+    [TRAIT.MISTFIRE, 'revenant.conduit.mistfire', 'internalCooldown']
+  ]) {
+    const original = revenantCatalog.balanceProfilesById.get(trait);
+    assert.equal(original.profileKind, 'trait');
+    assert.equal(revenantCatalog.balanceProfilesById.has(obsolete), false);
+    assert.throws(
+      () => applyBalanceProfilePatch(revenantCatalog, { balanceProfiles: { [obsolete]: { fields: {} } } }),
+      /unknown balance profile/
+    );
+
+    const patched = applyBalanceProfilePatch(revenantCatalog, {
+      balanceProfiles: {
+        [trait]: field
+          ? { fields: { [field]: original[field] * 2 } }
+          : { removeEffects: [{ type: 'boon', name: 'beguiling-haze' }] }
+      }
+    });
+    const selected = patched.balanceProfilesById.get(trait);
+
+    if (field) assert.equal(selected[field], original[field] * 2);
+    else {
+      assert.ok(original.effects.some((effect) => effect.name === 'beguiling-haze'));
+      assert.equal(
+        selected.effects.some((effect) => effect.name === 'beguiling-haze'),
+        false
+      );
+    }
+
+    assert.equal(revenantCatalog.balanceProfilesById.get(trait), original);
+  }
+});
 
 // Removed output must not schedule zero-time or backdated recurrence, even after leaving the upkeep threshold.
 test('removed Elevated Compassion ends its cadence at zero and positive times', () => {
@@ -48,7 +89,7 @@ test('removed Elevated Compassion ends its cadence at zero and positive times', 
       {
         catalog: (catalog) =>
           applyBalanceProfilePatch(catalog, {
-            balanceProfiles: { [COMPASSION]: { removeEffects: [{ type: 'boon', name: 'quickness' }] } }
+            balanceProfiles: { [TRAIT.ELEVATED_COMPASSION]: { removeEffects: [{ type: 'boon', name: 'quickness' }] } }
           })
       }
     );
@@ -168,7 +209,7 @@ test('legend swaps preserve extended Cosmic Wisdom and select Mesmer costs', () 
           }),
           {
             balanceProfiles: {
-              [CONDUIT.enhancedEmbodiment]: {
+              [TRAIT.ENHANCED_EMBODIMENT]: {
                 effects: [{ type: 'buff', name: 'cosmic-wisdom-extension', duration: 20 }]
               }
             }

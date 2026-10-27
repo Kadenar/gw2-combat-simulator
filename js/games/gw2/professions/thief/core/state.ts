@@ -11,10 +11,10 @@ import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
+  thiefInitiativeCapacity,
   thiefInitiativeRegenerationRate,
   thiefStartingInitiative
 } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { preparednessInitiativeCapacity } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
@@ -84,11 +84,11 @@ export function createThiefCoreState(
   // Standalone construction (attribute previews) shares the runtime policy's calculations, so the pool it builds
   // matches the one simulation initializes from the same selected tuning; nobody kneels before combat.
   const context = { ...preparation.balanceContext, config };
-  const maximumInitiative = preparednessInitiativeCapacity(context);
+  const maximumInitiative = thiefInitiativeCapacity(context);
   return {
     lastStealthBreakingStrike: null,
     initiative: {
-      ...createResourceClock(thiefStartingInitiative(config, context, maximumInitiative)),
+      ...createResourceClock(thiefStartingInitiative(config, maximumInitiative)),
       maximum: maximumInitiative,
       rate: thiefInitiativeRegenerationRate({ kneeling: false }, context)
     },

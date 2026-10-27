@@ -104,7 +104,6 @@ test('derived entries retain metadata labels and authored qualifications for eve
       {
         skills: [{ id: 1, name: 'Skill label' }],
         balanceProfiles: [{ id: 2, name: 'Profile label' }],
-        skillVariants: [],
         modifierRules: [{ id: 'damage', label: 'Modifier label' }]
       }
     ]

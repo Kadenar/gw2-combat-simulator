@@ -110,7 +110,7 @@ const catalog = createCanonicalCatalog({
     {
       id: 'test.variant',
       name: 'Selected Variant',
-      profileKind: 'skill-variant',
+      profileKind: 'trait',
       effects: [
         { type: 'custom', eventType: 'test.selected', event: {}, when: (runtime) => runtime.profession.selected },
         { type: 'custom', eventType: 'test.excluded', event: {}, when: () => false }
@@ -329,8 +329,8 @@ test('skill-field costs share their patched amount between admission and start p
   }
 });
 
-test('automatic payments share the declared profile amount with affordability and pay only once', () => {
-  // Both automatic payment phases use the profile cost shared with affordability instead of the inline amount.
+test('automatic payments share the declared skill amount with affordability and pay only once', () => {
+  // Both payment phases use the skill-owned cost checked by affordability instead of the default resource cost.
   for (const spendOn of ['castStart', 'castCommit']) {
     const observed = [];
     const result = runGw2Runtime({
@@ -342,10 +342,11 @@ test('automatic payments share the declared profile amount with affordability an
         }),
         catalog: withSkill(catalog, 991003, {
           resourceCost: 50,
+          initiativeCost: 3,
           cost: {
             resource: 'energy',
             spendOn,
-            profileAmount: { profileId: 'test.proc', field: 'resourceGain' }
+            skillAmount: 'initiativeCost'
           }
         })
       },

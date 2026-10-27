@@ -1,7 +1,7 @@
 import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { boonKey, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+// Trait IDs own balance lookup and emission so patches and runtime share the same trait definition.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
@@ -24,11 +24,6 @@ import {
   heraldUpkeepSettled
 } from '#gw2/professions/revenant/specializations/herald/mechanics/trigger-points.js';
 import { scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
-import {
-  HERALD_DRACONIC_ECHO_PROFILE_ID,
-  HERALD_ELEVATED_COMPASSION_PROFILE_ID,
-  HERALD_SHARED_EMPOWERMENT_PROFILE_ID
-} from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { draconicEchoActive } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
@@ -51,7 +46,7 @@ export const draconicEcho = defineTrait({
   attributes: (context) => ({
     traitDurations: {
       'Boon Duration': draconicEchoActive(context, ID.FACET_OF_NATURE)
-        ? balanceNumberFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'boonDurationBonus')
+        ? balanceNumberFromContext(context, TRAIT.DRACONIC_ECHO, 'boonDurationBonus')
         : 0
     }
   }),
@@ -66,7 +61,7 @@ export const draconicEcho = defineTrait({
       id: 'revenant.draconic-echo-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'damageIncrease'),
+      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.DRACONIC_ECHO, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_STRENGTH)
     },
@@ -74,8 +69,7 @@ export const draconicEcho = defineTrait({
       id: 'revenant.draconic-echo-elements',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        1 + balanceNumberFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'conditionDamageIncrease'),
+      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.DRACONIC_ECHO, 'conditionDamageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_ELEMENTS)
     },
@@ -83,7 +77,7 @@ export const draconicEcho = defineTrait({
       id: 'revenant.draconic-echo-darkness',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, HERALD_DRACONIC_ECHO_PROFILE_ID, 'criticalChanceBonus'),
+      amount: (context) => balanceNumberFromContext(context, TRAIT.DRACONIC_ECHO, 'criticalChanceBonus'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_DARKNESS)
     }
@@ -92,7 +86,6 @@ export const draconicEcho = defineTrait({
   id: TRAIT.DRACONIC_ECHO,
   name: 'Draconic Echo',
   balance: {
-    id: HERALD_DRACONIC_ECHO_PROFILE_ID,
     duration: 6,
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.1,
@@ -105,7 +98,7 @@ export const draconicEcho = defineTrait({
 /** Owns Elevated Compassion tuning and behavior at its established execution boundaries. */
 const elevatedCompassion = defineTrait({
   triggers: [onTriggerPoint(heraldUpkeepSettled, { run: syncCompassion })],
-  attributes: traitAttributeEffects(HERALD_ELEVATED_COMPASSION_PROFILE_ID, [
+  attributes: traitAttributeEffects(TRAIT.ELEVATED_COMPASSION, [
     {
       kind: 'conversion',
       from: 'Power',
@@ -119,7 +112,6 @@ const elevatedCompassion = defineTrait({
   id: TRAIT.ELEVATED_COMPASSION,
   name: 'Elevated Compassion',
   balance: {
-    id: HERALD_ELEVATED_COMPASSION_PROFILE_ID,
     attributeConversion: 0.13,
     description: 'Grants quickness while aggregate upkeep is at least six.',
     cooldown: 1,
@@ -205,7 +197,6 @@ const sharedEmpowerment = defineTrait({
   id: TRAIT.SHARED_EMPOWERMENT,
   name: 'Shared Empowerment',
   balance: {
-    id: HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
     description: 'Applying a boon to an ally grants nearby allies one stack of might.',
     internalCooldown: 1,
     effects: [
@@ -222,7 +213,7 @@ const sharedEmpowerment = defineTrait({
   },
   triggers: [
     {
-      emit: HERALD_SHARED_EMPOWERMENT_PROFILE_ID,
+      emit: TRAIT.SHARED_EMPOWERMENT,
       on: 'buff.applied',
       cooldown: 'profile',
       when: (runtime, event) =>
@@ -231,7 +222,7 @@ const sharedEmpowerment = defineTrait({
         Number(event.resolvedAudience?.recipientCount) > 0 &&
         Boolean(
           requireEffect(
-            requireBalanceProfileFromContext(runtime, HERALD_SHARED_EMPOWERMENT_PROFILE_ID),
+            requireBalanceProfileFromContext(runtime, TRAIT.SHARED_EMPOWERMENT),
             'boon',
             boonKey(BOON.MIGHT)
           )
@@ -263,9 +254,7 @@ function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkill, wasA
   if (!wasActive) return;
 
   const state = heraldState.from(runtime);
-  const expiresAt = canonicalTime(
-    runtime.time + balanceNumberFromContext(runtime, HERALD_DRACONIC_ECHO_PROFILE_ID, 'duration')
-  );
+  const expiresAt = canonicalTime(runtime.time + balanceNumberFromContext(runtime, TRAIT.DRACONIC_ECHO, 'duration'));
   // Retention preserves the pulse phase, but never keeps an Energy-draining upkeep alive.
   state.lingeringFacets[facet.id] = { startsAt: runtime.time, expiresAt, legendId: core.activeLegendId };
   const nextAt = state.facetPulseReadyAt[facet.id];
@@ -283,7 +272,7 @@ function echoExpiry(runtime: RevenantRuntime, data: unknown): void {
 }
 
 function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
-  const profile = requireBalanceProfileFromContext(runtime, HERALD_ELEVATED_COMPASSION_PROFILE_ID);
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ELEVATED_COMPASSION);
   const threshold = Math.max(0, balanceProfileNumber(profile, 'threshold'));
   const upkeep = runtime.profession.core.activeUpkeeps.reduce(
     (total, active) => total + Math.max(0, active.upkeepCost || 0),
@@ -299,13 +288,13 @@ function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
 
 /** Grants one Quickness pulse and reserves the next legal pulse so threshold re-entry cannot bypass the ICD. */
 function grantCompassion(runtime: RevenantRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, HERALD_ELEVATED_COMPASSION_PROFILE_ID);
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ELEVATED_COMPASSION);
   const effect = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
 
   // The cooldown gates only quickness, so a removed boon leaves the pulse ready.
   if (!effect) return;
 
-  emitTraitProfile(runtime, HERALD_ELEVATED_COMPASSION_PROFILE_ID, HERALD_ELEVATED_COMPASSION_PROFILE_ID, undefined, {
+  emitTraitProfile(runtime, TRAIT.ELEVATED_COMPASSION, TRAIT.ELEVATED_COMPASSION, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
     effect: { type: 'boon', name: boonKey(BOON.QUICKNESS) },

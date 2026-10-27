@@ -18,9 +18,17 @@ test('fixed costs validate nonnegative finite amounts and reject competing selec
   for (const amount of [-1, NaN, Infinity, '50']) assert.throws(() => load(amount), /invalid fixed cost/);
   assert.throws(() => load(50, { skillAmount: 'resourceCost' }), /invalid fixed cost/);
   assert.throws(
-    () => load(50, { profileAmount: { profileId: 'resource', field: 'resourceCost' } }),
-    /invalid fixed cost/
+    () => load(undefined, { profileAmount: { profileId: 'resource', field: 'resourceCost' } }),
+    /invalid cost declaration/
   );
+});
+
+// Reject obsolete owner kinds at catalog construction, before authoring or runtime can consume them.
+test('balance profiles accept only trait and shared mechanic owners', () => {
+  const load = (profileKind) =>
+    createCanonicalCatalog({ balanceProfiles: [{ id: 'owner', name: 'Owner', profileKind, effects: [] }] });
+  for (const kind of ['trait', 'mechanic']) assert.doesNotThrow(() => load(kind));
+  for (const kind of ['skill-variant', 'unknown', undefined]) assert.throws(() => load(kind), /invalid profileKind/);
 });
 
 test('shared autoattack helpers derive and index ID-based chains', () => {
@@ -223,7 +231,7 @@ test('skill costs validate authored field selectors and reject competing amount 
       load(4, {
         resource: 'initiative',
         skillAmount: 'initiativeCost',
-        profileAmount: { profileId: 'other', field: 'resourceCost' }
+        amount: 3
       }),
     TypeError
   );

@@ -1,3 +1,4 @@
+// Trait IDs own balance lookup and emission so patches and runtime share the same trait definition.
 import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -38,10 +39,6 @@ import {
   cosmicWisdomEntered,
   cosmicWisdomEntering
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
-import {
-  CONDUIT_BALANCE_PROFILE_IDS,
-  CONDUIT_BALANCE_PROFILE_IDS as PROFILE
-} from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import {
   BEGUILING_HAZE_SKILL_IDS,
   TWIN_MOON_SKILL_IDS
@@ -115,7 +112,6 @@ const enhancedEmbodiment = defineTrait({
   id: TRAIT.ENHANCED_EMBODIMENT,
   name: 'Enhanced Embodiment',
   balance: {
-    id: CONDUIT_BALANCE_PROFILE_IDS.enhancedEmbodiment,
     rechargeMultiplier: 0.6,
     effects: [
       {
@@ -139,7 +135,7 @@ const expandedConsciousness = defineTrait({
   ],
   id: TRAIT.EXPANDED_CONSCIOUSNESS,
   name: 'Expanded Consciousness',
-  balance: { id: CONDUIT_BALANCE_PROFILE_IDS.expandedConsciousness, resourceGain: 15, effects: [] }
+  balance: { resourceGain: 15, effects: [] }
 });
 
 /** Owns Found Purpose tuning and behavior at its established execution boundaries. */
@@ -171,7 +167,7 @@ const lingeringDetermination = defineTrait({
   ],
   id: TRAIT.LINGERING_DETERMINATION,
   name: 'Lingering Determination',
-  balance: { id: CONDUIT_BALANCE_PROFILE_IDS.lingeringDetermination, resourceGain: 2, effects: [] }
+  balance: { resourceGain: 2, effects: [] }
 });
 
 /** Owns Mistfire tuning and behavior at its established execution boundaries. */
@@ -179,7 +175,6 @@ const mistfire = defineTrait({
   id: TRAIT.MISTFIRE,
   name: 'Mistfire',
   balance: {
-    id: CONDUIT_BALANCE_PROFILE_IDS.mistfire,
     internalCooldown: 1,
     effects: [
       {
@@ -204,13 +199,13 @@ const mistfire = defineTrait({
       run: (runtime, input: TriggerPointInput<typeof cosmicWisdomEntering>) => emitCosmicMistfire(runtime, input.cast)
     }),
     {
-      emit: PROFILE.mistfire,
+      emit: TRAIT.MISTFIRE,
       on: 'control.resolved',
       cooldown: 'profile',
       when: (runtime, event) =>
         !(event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) &&
         Boolean(
-          requireEffect(requireBalanceProfileFromContext(runtime, PROFILE.mistfire), 'condition', CONDITION.BURNING)
+          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.MISTFIRE), 'condition', CONDITION.BURNING)
         ),
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BURNING,
       attribution: {
@@ -225,7 +220,7 @@ const mistfire = defineTrait({
 });
 
 // The duration values depend only on the patch; selection is checked by the live declaration.
-const numinousDurations = traitAttributeBonuses(CONDUIT_BALANCE_PROFILE_IDS.numinousGift, (profile) => ({
+const numinousDurations = traitAttributeBonuses(TRAIT.NUMINOUS_GIFT, (profile) => ({
   traitDurations: Object.fromEntries(
     [CONDITION.BLEEDING, CONDITION.BURNING, CONDITION.CONFUSION, 'Poison', CONDITION.TORMENT].map((condition) => [
       condition + ' Duration',
@@ -247,7 +242,6 @@ const numinousGiftTrait = defineTrait({
   id: TRAIT.NUMINOUS_GIFT,
   name: 'Numinous Gift',
   balance: {
-    id: CONDUIT_BALANCE_PROFILE_IDS.numinousGift,
     damageIncrease: 0.05,
     conditionDurationBonus: 0.05,
     effects: [
@@ -303,9 +297,7 @@ const numinousGiftTrait = defineTrait({
           1 +
           vulnerabilityStacks(context) *
             balanceNumberFromContext(context, TRAIT.TARGETED_DESTRUCTION, 'damageIncreasePerStack');
-        return (
-          (base + balanceNumberFromContext(context, CONDUIT_BALANCE_PROFILE_IDS.numinousGift, 'damageIncrease')) / base
-        );
+        return (base + balanceNumberFromContext(context, TRAIT.NUMINOUS_GIFT, 'damageIncrease')) / base;
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
     }
@@ -326,7 +318,6 @@ const sharedWisdom = defineTrait({
   id: TRAIT.SHARED_WISDOM,
   name: 'Shared Wisdom',
   balance: {
-    id: CONDUIT_BALANCE_PROFILE_IDS.sharedWisdom,
     // Shared Wisdom's base and skill-specific boons all affect the same five-person party.
     effects: [
       {
@@ -423,7 +414,7 @@ function extendEnhancedEmbodiment(runtime: RevenantRuntime, formActive: boolean)
   const state = conduitState.from(runtime);
 
   if (formActive) {
-    const enhanced = requireBalanceProfileFromContext(runtime, PROFILE.enhancedEmbodiment);
+    const enhanced = requireBalanceProfileFromContext(runtime, TRAIT.ENHANCED_EMBODIMENT);
     const extension = requireEffect(enhanced, 'buff', 'cosmic-wisdom-extension');
 
     if (extension) {
@@ -443,13 +434,13 @@ function grantLingeringDetermination(runtime: RevenantRuntime, combat: boolean):
   if (combat)
     gainAffinity(
       runtime,
-      Math.max(0, balanceNumberFromContext(runtime, PROFILE.lingeringDetermination, 'resourceGain'))
+      Math.max(0, balanceNumberFromContext(runtime, TRAIT.LINGERING_DETERMINATION, 'resourceGain'))
     );
 }
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 function emitCosmicMistfire(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  emitTraitProfile(runtime, TRAIT.MISTFIRE, PROFILE.mistfire, undefined, {
+  emitTraitProfile(runtime, TRAIT.MISTFIRE, TRAIT.MISTFIRE, undefined, {
     effects: (effect) => effect.type === 'strike' || effect.type === 'condition',
     attribution: {
       source: 'revenant',
@@ -473,13 +464,13 @@ function grantExpandedConsciousness(runtime: RevenantRuntime, previous: number, 
   if (previous < maximum && runtime.resourceController.value('affinity') === maximum)
     runtime.resourceController.grant(
       'energy',
-      balanceNumberFromContext(runtime, PROFILE.expandedConsciousness, 'resourceGain')
+      balanceNumberFromContext(runtime, TRAIT.EXPANDED_CONSCIOUSNESS, 'resourceGain')
     );
 }
 
 /** Conduit listeners grant Numinous Gift; Found Purpose shares its boons, including Cosmic Wisdom's, with the party. */
 function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  emitTraitProfile(runtime, TRAIT.NUMINOUS_GIFT, PROFILE.numinousGift, undefined, {
+  emitTraitProfile(runtime, TRAIT.NUMINOUS_GIFT, TRAIT.NUMINOUS_GIFT, undefined, {
     effects: (effect) =>
       effect.type === 'boon' && (!effect.metadata?.legendId || hasLegend(runtime, effect.metadata.legendId)),
     attribution: {
@@ -504,12 +495,12 @@ function hasLegend(runtime: RevenantRuntime, legendId: string): boolean {
 
 /** One entity-specific Shared Wisdom boon accompanies the cast's completion. */
 function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const profile = requireBalanceProfileFromContext(runtime, PROFILE.sharedWisdom);
+  const profile = requireBalanceProfileFromContext(runtime, TRAIT.SHARED_WISDOM);
   const shared = requireEffect(profile, 'boon', 'entity-skill');
 
   if (!shared) return;
 
-  emitTraitProfile(runtime, TRAIT.SHARED_WISDOM, PROFILE.sharedWisdom, undefined, {
+  emitTraitProfile(runtime, TRAIT.SHARED_WISDOM, TRAIT.SHARED_WISDOM, undefined, {
     effects: (effect) => effect === shared,
     at: cast.effectiveEnd,
     attribution: {
@@ -536,7 +527,7 @@ function grantEntitySkillBoon(runtime: RevenantRuntime, cast: RuntimeCast<Revena
         : hex
           ? 'hex-eater-vortex'
           : 'gladiators-defense';
-  emitTraitProfile(runtime, TRAIT.SHARED_WISDOM, PROFILE.sharedWisdom, undefined, {
+  emitTraitProfile(runtime, TRAIT.SHARED_WISDOM, TRAIT.SHARED_WISDOM, undefined, {
     skillId: cast.skill.id,
     skillName: cast.skill.name,
     activationId: cast.id,

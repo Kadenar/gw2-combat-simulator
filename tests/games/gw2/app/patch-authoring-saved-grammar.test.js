@@ -100,7 +100,6 @@ for (const section of ['skills', 'balanceProfiles']) {
                 modifierRules: [],
                 skills: [],
                 balanceProfiles: [],
-                skillVariants: [],
                 [section]: [entry]
               }
             ]
@@ -241,7 +240,6 @@ for (const impact of [false, true]) {
               traits: [],
               modifierRules: [],
               balanceProfiles: [],
-              skillVariants: [],
               skills: [{ id: 1, name: source.name, moduleId: 'Core', skill: source, patchableFields: {} }]
             }
           ]

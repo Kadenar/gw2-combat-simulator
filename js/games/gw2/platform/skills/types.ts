@@ -181,8 +181,8 @@ export interface Skill extends CatalogEntity {
 
 /**
  * Patchable balance data that is not itself a castable skill. Profiles keep
- * trait effects, mechanic limits, and skill-state variants out of the skill
- * catalog while retaining the same declarative effect vocabulary.
+ * trait effects and shared mechanic limits out of the skill catalog while
+ * retaining the same declarative effect vocabulary.
  */
 export interface BalanceProfile extends CatalogEntity {
   /** Lifetime in seconds of the state or charges owned by this profile, separate from its effects. */
@@ -193,15 +193,13 @@ export interface BalanceProfile extends CatalogEntity {
   readonly durationPerTier?: number;
   /** Flat seconds added to an existing duration. */
   readonly durationExtension?: number;
-  /** Seconds for which this profile's follow-up remains available. */
-  readonly flipDuration?: number;
   /** Proc claims use a fixed internalCooldown unless a captured companion owns summon recharge work. */
   readonly cooldownPolicy?: 'internal' | 'summonRecharge';
   /** Keep the selected source identifiable when a runtime passes only a profile lookup callback. */
   readonly balanceDataContext?: CanonicalCatalog['balanceDataContext'];
   /** Identity-only tombstones scoped to this profile; callbacks retain removal provenance. */
   readonly removedEffectKeys?: readonly string[];
-  readonly profileKind: 'trait' | 'mechanic' | 'skill-variant';
+  readonly profileKind: 'trait' | 'mechanic';
   /** Opts this profession-owned proc into shared build overrides without changing its trigger or effects. */
   readonly procRate?: {
     readonly id: string;
@@ -230,8 +228,6 @@ interface SkillCost {
   readonly resource: 'endurance' | ResourceKey;
   /** Fixed game-rule costs bypass balance authoring and cannot combine with another amount selector. */
   readonly amount?: number;
-  /** A balance-profile field that one patch retunes everywhere; mutually exclusive with other amount selectors. */
-  readonly profileAmount?: { readonly profileId: SkillId; readonly field: string };
   /** Read an authored numeric skill field live; without an amount selector, pay resourceCost. */
   readonly skillAmount?: string;
   readonly spendOn?: 'castStart' | 'castCommit';

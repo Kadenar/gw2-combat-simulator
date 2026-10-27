@@ -1,6 +1,5 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
-import { THIEF_CORE_BALANCE_PROFILES } from '#gw2/professions/thief/core/profiles.js';
 import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
@@ -23,7 +22,6 @@ import { THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/skill-field
 const data = createThiefModuleData('Core', {
   skillFields: THIEF_CORE_SKILL_FIELDS,
   skillMechanics: THIEF_CORE_SKILL_MECHANICS,
-  balanceProfiles: THIEF_CORE_BALANCE_PROFILES,
   extraSkills: THIEF_CORE_EXTRA_SKILLS
 });
 const descriptions: Record<string, string> = {

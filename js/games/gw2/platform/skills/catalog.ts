@@ -174,8 +174,9 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
       throw new TypeError(`Balance profile ${String(profile.id)} has no name.`);
     }
 
-    if (!profile.profileKind) {
-      throw new TypeError(`Balance profile ${String(profile.id)} has no profileKind.`);
+    // Only traits and shared mechanics own profiles; conditional skill payloads belong to skills.
+    if (!['trait', 'mechanic'].includes(profile.profileKind)) {
+      throw new TypeError(`Balance profile ${String(profile.id)} has an invalid profileKind.`);
     }
 
     // Proc declarations compose with Core/elite catalogs and must not silently share an override key.

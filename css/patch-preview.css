@@ -815,23 +815,6 @@ pre {
   margin-top: 15px;
 }
 
-/* Runtime skill variants are edited alongside their owning skill instead of in the profile list. */
-.patch-variant-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.patch-variant-list .patch-skill-option {
-  border-color: var(--border);
-  background: var(--panel-soft);
-}
-
-.patch-variant-back {
-  margin-bottom: 10px;
-}
-
 .patch-effect.is-removed {
   border-color: color-mix(in srgb, var(--danger) 55%, var(--border));
   opacity: 0.62;

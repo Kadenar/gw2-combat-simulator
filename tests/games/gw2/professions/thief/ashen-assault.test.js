@@ -2,9 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 
 // Synthetic packets isolate cancellation, hit ownership, and the all-strikes refund without calibrating native timing.
 for (const [skillId, specialization] of [
@@ -21,7 +20,7 @@ for (const [skillId, specialization] of [
             runtime.profession.core.stealthUntil = 10;
           },
           catalog: (catalog) =>
-            withSkill(withProfile(catalog, CORE.resources, { resourceGain: 0 }), skillId, {
+            withSkill(catalog, skillId, {
               initiativeRefund: 7,
               castTimeMs: 1000,
               effects: [
@@ -43,8 +42,14 @@ for (const [skillId, specialization] of [
     const missed = run({ missed: true });
     for (const result of [full, partial, missed]) assert.deepEqual(result.warnings, []);
     assert.ok(partial.strikeDamage > 0 && partial.strikeDamage < full.strikeDamage);
-    assert.equal(observedRuntime(partial).resourceController.value('initiative'), 0);
-    assert.equal(observedRuntime(missed).resourceController.value('initiative'), 0);
-    assert.equal(observedRuntime(full).resourceController.value('initiative'), 7);
+    // Subtract ordinary recovery to isolate the all-strikes refund without changing the resource rules.
+    for (const [result, refund] of [
+      [partial, 0],
+      [missed, 0],
+      [full, 7]
+    ]) {
+      const runtime = observedRuntime(result);
+      assert.ok(Math.abs(runtime.resourceController.value('initiative') - runtime.time - refund) < 1e-9);
+    }
   });
 }

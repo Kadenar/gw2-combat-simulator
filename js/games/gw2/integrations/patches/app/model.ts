@@ -196,13 +196,9 @@ const PROFILE_SECOND_FIELDS = new Set([
   'baseDuration',
   'durationExtension',
   'durationPerTier',
-  'enhancedDuration',
-  'highDuration',
   'immobilizeDurationExtension',
-  'packetInterval',
   'pulseInterval',
-  'recharge',
-  'summonInterval'
+  'recharge'
 ]);
 
 /**

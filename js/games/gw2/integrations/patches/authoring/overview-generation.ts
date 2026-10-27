@@ -195,7 +195,7 @@ function generatedBalanceProfileOverview(
 ): PatchOverviewEntry[] {
   const names = new Map<string, string>();
   for (const module of metadata?.modules || []) {
-    for (const entry of [...(module.balanceProfiles || []), ...(module.skillVariants || [])]) {
+    for (const entry of module.balanceProfiles) {
       names.set(String(entry.id), entry.name);
       names.set(entry.name, entry.name);
     }

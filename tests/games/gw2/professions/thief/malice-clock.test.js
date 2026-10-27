@@ -4,7 +4,6 @@ import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { deadeyeHooks } from '#gw2/professions/thief/specializations/deadeye/hooks.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
@@ -245,7 +244,7 @@ test('Maleficent Seven rewards once per cycle through capped grants and maliciou
     },
     {
       catalog: (catalog) =>
-        withProfile(withProfile(catalog, CORE.resources, { resourceGain: 0 }), TRAIT.MALEFICENT_SEVEN, {
+        withProfile(catalog, TRAIT.MALEFICENT_SEVEN, {
           maximumStacks: 3,
           resourceGain: 3
         }),
@@ -265,17 +264,23 @@ test('Maleficent Seven rewards once per cycle through capped grants and maliciou
         (runtime) =>
           readings.push([
             runtime.resourceController.value('malice'),
-            runtime.resourceController.value('initiative'),
+            runtime.resourceController.value('initiative') - runtime.time,
             runtime.profession.specialization.state.maleficentSevenTriggered
           ])
       ])
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(readings, [
+  const expected = [
     [3, 3, true],
     [3, 3, true],
     [2, 3, false],
     [3, 6, true]
-  ]);
+  ];
+  for (const [index, [malice, initiative, triggered]] of readings.entries()) {
+    // Ordinary recovery is excluded so only the once-per-cycle reward contributes to this assertion.
+    assert.equal(malice, expected[index][0]);
+    assert.ok(Math.abs(initiative - expected[index][1]) < 1e-9);
+    assert.equal(triggered, expected[index][2]);
+  }
 });

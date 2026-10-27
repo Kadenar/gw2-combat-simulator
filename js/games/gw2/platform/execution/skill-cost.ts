@@ -3,13 +3,12 @@
  * other priced skill waits for regeneration and pays its cost the same way everywhere.
  */
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
-/** Resolves the declared amount from the selected balance data at the moment it is read. */
-function skillCostAmount(runtime: Pick<MechanicQueryContext, 'helpers'>, skill: Skill): number {
+/** Resolve fixed game rules or skill-owned tuning so admission and payment use the same amount. */
+function skillCostAmount(skill: Skill): number {
   // Fixed costs share the same readiness and spending path without a patchable balance field.
   if (skill.cost!.amount != null) return skill.cost!.amount;
 
@@ -25,8 +24,7 @@ function skillCostAmount(runtime: Pick<MechanicQueryContext, 'helpers'>, skill: 
     return amount;
   }
 
-  const source = skill.cost!.profileAmount;
-  return source ? balanceNumberFromContext(runtime, source.profileId, source.field) : (skill.resourceCost ?? 0);
+  return skill.resourceCost ?? 0;
 }
 
 /** Affordable now, a retry when regeneration will cover the cost, or a rejection when it never can. */
@@ -37,7 +35,7 @@ export function skillCostAvailability<T extends object>(
   if (!skill.cost) return null;
 
   const { resource } = skill.cost;
-  const amount = skillCostAmount(runtime, skill);
+  const amount = skillCostAmount(skill);
 
   // Free skills need no pool readiness and remain valid when recovery is disabled.
   if (amount === 0) return null;
@@ -58,7 +56,7 @@ export function skillCostAvailability<T extends object>(
 
 /** Pays the declared cost from the live pool. */
 export function spendSkillCost<T extends object>(runtime: MechanicContext<T>, skill: Skill): void {
-  const amount = skillCostAmount(runtime, skill);
+  const amount = skillCostAmount(skill);
 
   if (skill.cost!.resource === 'endurance') runtime.endurance.spend(amount);
   else runtime.resourceController.spend(skill.cost!.resource, amount);

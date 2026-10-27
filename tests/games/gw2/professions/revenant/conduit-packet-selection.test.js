@@ -6,7 +6,6 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -40,7 +39,7 @@ test('Beguiling selects its final follow-up before consuming the charge, even wi
               }),
               {
                 balanceProfiles: {
-                  [PROFILE.sharedWisdom]: { effects: [{ type: 'boon', name: 'beguiling-haze', stacks: 2 }] }
+                  [TRAIT.SHARED_WISDOM]: { effects: [{ type: 'boon', name: 'beguiling-haze', stacks: 2 }] }
                 }
               }
             )

@@ -213,7 +213,7 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
     // Distinct facet values verify that each selected balance field controls only its own bonus.
     catalog: applyBalanceProfilePatch(revenantCatalog, {
       balanceProfiles: {
-        'revenant.draconic-echo': {
+        [TRAIT.DRACONIC_ECHO]: {
           fields: {
             damageIncrease: 0.2,
             conditionDamageIncrease: 0.3,

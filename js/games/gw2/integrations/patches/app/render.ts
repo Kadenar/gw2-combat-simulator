@@ -56,7 +56,6 @@ import {
   selectProfession,
   selectProfile,
   selectSkill,
-  selectSkillVariant,
   selectedModule,
   selectedProfession,
   setAddedEffect,
@@ -389,18 +388,8 @@ function addedEffectEditors(skill: NativePatchAuthoringSkill): string {
     .join('');
 }
 
-/** Renders a relocated runtime profile as a selectable skill-variant row. */
-function skillVariantOption(entry: NativePatchAuthoringBalanceProfile): string {
-  return `<button type="button" class="patch-skill-option${String(entry.id) === editorState.selectedSkillVariantId ? ' is-selected' : ''}${hasBalanceProfileEdit(String(entry.id)) ? ' is-changed' : ''}" data-select-skill-variant="${escapeHtml(entry.id)}">
-    <span><strong>${escapeHtml(entry.name)}</strong><small>variant &middot; ${escapeHtml(entry.id)}</small></span>
-  </button>`;
-}
-
-/** Renders a skill editor and links its cast-owned conditional profile variants. */
-function skillDetail(
-  skill: NativePatchAuthoringSkill | null,
-  variants: readonly NativePatchAuthoringBalanceProfile[] = []
-): string {
+/** Edit numeric tuning and conditional payloads directly on their canonical skill owner. */
+function skillDetail(skill: NativePatchAuthoringSkill | null): string {
   if (!skill) {
     return '<div class="patch-empty patch-empty-detail">Select a skill to inspect its metadata and author changes.</div>';
   }
@@ -448,76 +437,36 @@ function skillDetail(
       </div>
       <div class="patch-added-effect-list">${addedEffectEditors(skill)}</div>
     </section>
-    ${
-      variants.length
-        ? `<section class="patch-detail-section patch-skill-variants">
-            <div class="patch-section-heading compact"><h3>Skill variants</h3><span>${variants.length} related</span></div>
-            <p class="patch-section-description">Conditional forms and triggered packets owned by this skill.</p>
-            <div class="patch-variant-list">${variants.map(skillVariantOption).join('')}</div>
-          </section>`
-        : ''
-    }
     <details class="patch-reference" open><summary>Authorable skill metadata</summary><pre>${jsonHtml(rawMetadata)}</pre></details>
     ${edit ? `<details class="patch-reference"><summary>Authored skill patch</summary><pre>${jsonHtml(edit)}</pre></details>` : ''}
   </article>`;
 }
 
-/** Renders a skill navigation row with variant and edited-state context. */
-function skillOption(
-  skill: NativePatchAuthoringSkill,
-  variants: readonly NativePatchAuthoringBalanceProfile[] = []
-): string {
-  const changed =
-    hasSkillEdit(skill.id.toString()) || variants.some((entry) => hasBalanceProfileEdit(String(entry.id)));
+/** Mark each skill navigation row from edits owned by that skill. */
+function skillOption(skill: NativePatchAuthoringSkill): string {
+  const changed = hasSkillEdit(skill.id.toString());
   return `<button type="button" class="patch-skill-option${String(skill.id) === editorState.selectedSkillId ? ' is-selected' : ''}${changed ? ' is-changed' : ''}" data-select-skill="${escapeHtml(skill.id)}">
     ${skill.skill.icon ? `<img src="${escapeHtml(skill.skill.icon)}" alt="" />` : ''}
-    <span><strong>${escapeHtml(skill.name)}</strong><small>${escapeHtml(skill.skill.type || 'Skill')} &middot; ${escapeHtml(skill.id)}${variants.length ? ` &middot; ${variants.length} variant${variants.length === 1 ? '' : 's'}` : ''}</small></span>
+    <span><strong>${escapeHtml(skill.name)}</strong><small>${escapeHtml(skill.skill.type || 'Skill')} &middot; ${escapeHtml(skill.id)}</small></span>
   </button>`;
 }
 
-/** Renders skill authoring, nesting parented variants and listing shared variants separately. */
+/** Group canonical skills for navigation and show the selected skill's authoring controls. */
 function skillSection(module: NativePatchAuthoringModule): string {
   const query = editorState.search.trim().toLocaleLowerCase();
-  const skillVariants = module.skillVariants;
-  const skillIds = new Set(module.skills.map((skill) => String(skill.id)));
-  const variantsFor = (skill: NativePatchAuthoringSkill) =>
-    skillVariants.filter((entry) => String(entry.profile.parentId || '') === String(skill.id));
   const skills = [...module.skills]
     .filter((skill) => {
-      const variants = variantsFor(skill);
+      if (editorState.changedOnly && !hasSkillEdit(skill.id.toString())) return false;
 
-      if (
-        editorState.changedOnly &&
-        !hasSkillEdit(skill.id.toString()) &&
-        !variants.some((entry) => hasBalanceProfileEdit(String(entry.id)))
-      ) {
-        return false;
-      }
-
-      return (
-        !query ||
-        skillSearchText(skill).includes(query) ||
-        variants.some((entry) => patchSearchText(entry.id, entry.name).includes(query))
-      );
-    })
-    .sort((left, right) => left.name.localeCompare(right.name));
-  const unlinkedVariants = skillVariants
-    .filter((entry) => !entry.profile.parentId || !skillIds.has(String(entry.profile.parentId)))
-    .filter((entry) => {
-      if (editorState.changedOnly && !hasBalanceProfileEdit(String(entry.id))) return false;
-
-      return !query || patchSearchText(entry.id, entry.name).includes(query);
+      return !query || skillSearchText(skill).includes(query);
     })
     .sort((left, right) => left.name.localeCompare(right.name));
   const groups = groupPatchAuthoringSkills(skills);
   const selected = module.skills.find((skill) => String(skill.id) === editorState.selectedSkillId) || null;
-  const selectedVariant =
-    skillVariants.find((entry) => String(entry.id) === editorState.selectedSkillVariantId) || null;
-  const selectedVariants = selected ? variantsFor(selected) : [];
   return `<section class="patch-work-section patch-skills" aria-labelledby="skill-heading">
     <div class="patch-section-heading">
       <div><p class="patch-eyebrow">Skill authoring</p><h2 id="skill-heading">Skills</h2></div>
-      <span>${skills.length} of ${module.skills.length} skills &middot; ${skillVariants.length} variants</span>
+      <span>${skills.length} of ${module.skills.length} skills</span>
     </div>
     <div class="patch-skill-workspace">
       <nav class="patch-skill-list" aria-label="Skills">${
@@ -532,25 +481,18 @@ function skillSection(module: NativePatchAuthoringModule): string {
                           attunement
                         ) => `<section class="patch-skill-attunement-group" data-attunement="${escapeHtml(attunement.key)}">
                             <h4 class="patch-skill-attunement-heading"><span>${escapeHtml(attunement.label)}</span><small>${attunement.skills.length}</small></h4>
-                            ${attunement.skills.map((skill) => skillOption(skill, variantsFor(skill))).join('')}
+                            ${attunement.skills.map((skill) => skillOption(skill)).join('')}
                           </section>`
                       )
-                    : group.skills.map((skill) => skillOption(skill, variantsFor(skill)))
+                    : group.skills.map((skill) => skillOption(skill))
                   ).join('')}
                 </section>`
               )
               .join('')
           : '<p class="patch-empty-inline">No skills match these filters.</p>'
       }
-      ${
-        unlinkedVariants.length
-          ? `<section class="patch-skill-group patch-unlinked-variants">
-              <h3 class="patch-skill-group-heading"><span>Shared &amp; unlinked variants</span><small>${unlinkedVariants.length}</small></h3>
-              ${unlinkedVariants.map(skillVariantOption).join('')}
-            </section>`
-          : ''
-      }</nav>
-      <div class="patch-skill-editor">${selectedVariant ? skillVariantDetail(selectedVariant, selected) : skillDetail(selected, selectedVariants)}</div>
+      </nav>
+      <div class="patch-skill-editor">${skillDetail(selected)}</div>
     </div>
   </section>`;
 }
@@ -559,11 +501,6 @@ function skillSection(module: NativePatchAuthoringModule): string {
 function renderSelectedSkill(): void {
   const module = selectedModule();
   const selected = module?.skills.find((skill) => String(skill.id) === editorState.selectedSkillId) || null;
-  const variants = module?.skillVariants || [];
-  const selectedVariant = variants.find((entry) => String(entry.id) === editorState.selectedSkillVariantId) || null;
-  const selectedVariants = selected
-    ? variants.filter((entry) => String(entry.profile.parentId || '') === String(selected.id))
-    : [];
   for (const option of app.querySelectorAll<HTMLButtonElement>('[data-select-skill]')) {
     option.classList.toggle('is-selected', option.dataset.selectSkill === editorState.selectedSkillId);
   }
@@ -571,9 +508,7 @@ function renderSelectedSkill(): void {
   const editor = app.querySelector<HTMLElement>('.patch-skill-editor');
 
   if (editor) {
-    editor.innerHTML = selectedVariant
-      ? skillVariantDetail(selectedVariant, selected)
-      : skillDetail(selected, selectedVariants);
+    editor.innerHTML = skillDetail(selected);
   }
 }
 
@@ -669,7 +604,7 @@ function balanceProfileFieldRows(
     .join('');
 }
 
-/** Renders a trait, mechanic, or relocated variant with primary and advanced controls separated. */
+/** Render trait and shared mechanic tuning with primary and advanced controls separated. */
 function balanceProfileDetail(entry: NativePatchAuthoringBalanceProfile | null): string {
   if (!entry) {
     return '<div class="patch-empty patch-empty-detail">Select an effect or mechanic to inspect and author.</div>';
@@ -680,12 +615,7 @@ function balanceProfileDetail(entry: NativePatchAuthoringBalanceProfile | null):
   const effects = (entry.profile.effects || []) as readonly SkillEffect[];
   const primaryFields = balanceProfileFieldRows(entry, edit, 'primary');
   const advancedFields = balanceProfileFieldRows(entry, edit, 'advanced');
-  const profileLabel =
-    entry.profile.profileKind === 'trait'
-      ? 'Trait effect'
-      : entry.profile.profileKind === 'mechanic'
-        ? 'Profession mechanic'
-        : 'Skill variant';
+  const profileLabel = entry.profile.profileKind === 'trait' ? 'Trait effect' : 'Profession mechanic';
   const rawMetadata = Object.fromEntries(Object.entries(entry.profile).filter(([key]) => key !== 'effects'));
   const effectEditors = effects.flatMap((effect, effectIndex) => {
     const primaryRows = balanceProfileEffectRows(id, effectIndex, effect, edit, 'primary');
@@ -726,17 +656,6 @@ function balanceProfileDetail(entry: NativePatchAuthoringBalanceProfile | null):
     <details class="patch-reference" open><summary>Authorable profile metadata</summary><pre>${jsonHtml(rawMetadata)}</pre></details>
     ${edit ? `<details class="patch-reference"><summary>Authored balance profile patch</summary><pre>${jsonHtml(edit)}</pre></details>` : ''}
   </article>`;
-}
-
-/** Wraps a variant profile editor with navigation back to its owning skill. */
-function skillVariantDetail(
-  entry: NativePatchAuthoringBalanceProfile,
-  owner: NativePatchAuthoringSkill | null
-): string {
-  return `<div class="patch-variant-detail">
-    <button type="button" class="patch-link-button patch-variant-back" data-return-skill="${escapeHtml(owner?.id || '')}">&larr; ${owner ? `Back to ${escapeHtml(owner.name)}` : 'Back to skills'}</button>
-    ${balanceProfileDetail(entry)}
-  </div>`;
 }
 
 /** Renders a trait or profession-mechanic profile navigation row. */
@@ -944,14 +863,6 @@ export function bindPatchAuthoringView(root: HTMLElement, actions: PatchAuthorin
       editorState.selectedTraitView = button.dataset.selectTraitView as TraitAuthoringView;
     } else if (button.dataset.selectSkill) {
       selectSkill(button.dataset.selectSkill);
-      renderSelectedSkill();
-      return;
-    } else if (button.dataset.selectSkillVariant) {
-      selectSkillVariant(button.dataset.selectSkillVariant);
-      renderSelectedSkill();
-      return;
-    } else if (button.dataset.returnSkill != null) {
-      selectSkill(button.dataset.returnSkill);
       renderSelectedSkill();
       return;
     } else if (button.dataset.selectProfile) {

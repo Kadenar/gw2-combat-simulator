@@ -8,9 +8,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { effectiveConduitAffinity } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
-import { HERALD_SHARED_EMPOWERMENT_PROFILE_ID } from '#gw2/professions/revenant/specializations/herald/profiles.js';
 import { RENEGADE_PROFILE_IDS as RENEGADE } from '#gw2/professions/revenant/specializations/renegade/profiles.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -29,9 +27,9 @@ const RENEGADE_CONFIG = Object.freeze({
 
 // Migrated profiles expose one canonical ICD field and leave it unclaimed when their output is removed.
 for (const [specialization, trait, profile, type, name] of [
-  ['Herald', TRAIT.SHARED_EMPOWERMENT, HERALD_SHARED_EMPOWERMENT_PROFILE_ID, 'boon', 'might'],
+  ['Herald', TRAIT.SHARED_EMPOWERMENT, TRAIT.SHARED_EMPOWERMENT, 'boon', 'might'],
   ['Renegade', TRAIT.BRUTAL_MOMENTUM, RENEGADE.brutalMomentum, 'boon', 'vigor'],
-  ['Conduit', TRAIT.MISTFIRE, CONDUIT.mistfire, 'condition', 'Burning']
+  ['Conduit', TRAIT.MISTFIRE, TRAIT.MISTFIRE, 'condition', 'Burning']
 ]) {
   test(`${specialization} declared proc honors effect removal and the patched internal cooldown`, () => {
     for (const removed of [false, true]) {
@@ -142,13 +140,13 @@ test('Shared Wisdom boons stay bound to their triggering entity after a sibling 
   const native = buffs([]);
   assert.deepEqual(native, ['resistance', 'resolution']);
   assert.deepEqual(
-    buffs([TRAIT.SHARED_WISDOM], patched({ [CONDUIT.sharedWisdom]: remove('boon', 'beguiling-haze') })).filter(
+    buffs([TRAIT.SHARED_WISDOM], patched({ [TRAIT.SHARED_WISDOM]: remove('boon', 'beguiling-haze') })).filter(
       (kind) => !native.includes(kind)
     ),
     ['stability', 'swiftness']
   );
   assert.deepEqual(
-    buffs([TRAIT.SHARED_WISDOM], patched({ [CONDUIT.sharedWisdom]: remove('boon', 'gladiators-defense') })),
+    buffs([TRAIT.SHARED_WISDOM], patched({ [TRAIT.SHARED_WISDOM]: remove('boon', 'gladiators-defense') })),
     ['resistance', 'resolution', 'swiftness']
   );
 });
@@ -167,7 +165,7 @@ test("Gladiator's Defense uses live Stability tuning only for successful casts",
       },
       {
         catalog: patched({
-          [CONDUIT.sharedWisdom]: { effects: [{ type: 'boon', name: 'gladiators-defense', stacks: 2 }] }
+          [TRAIT.SHARED_WISDOM]: { effects: [{ type: 'boon', name: 'gladiators-defense', stacks: 2 }] }
         })
       }
     );
@@ -208,7 +206,7 @@ test('Twin Moon Sweep selects patchable Shared Wisdom Might independently of tar
           catalog: (catalog) =>
             withSkill(
               patched({
-                [CONDUIT.sharedWisdom]:
+                [TRAIT.SHARED_WISDOM]:
                   mode === 'removed'
                     ? remove('boon', 'twin-moon-sweep')
                     : {

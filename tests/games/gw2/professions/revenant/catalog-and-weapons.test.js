@@ -345,8 +345,7 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
   const renegade = authoringRevenantProfession.patchAuthoring.modules.find((module) => module.id === 'Renegade');
   const skill = (id) => renegade.skills.find((entry) => entry.id === id);
   const named = (name) => renegade.skills.find((entry) => entry.name === name);
-  const namedProfile = (name) =>
-    [...renegade.balanceProfiles, ...renegade.skillVariants].find((entry) => entry.name === name);
+  const namedProfile = (name) => renegade.balanceProfiles.find((entry) => entry.name === name);
   const enhancedIcerazor = skill(SKILL.ICERAZORS_IRE_ID_72359);
   const razorclaw = skill(SKILL.RAZORCLAWS_RAGE);
   const enhancedRazorclaw = skill(SKILL.RAZORCLAWS_RAGE_ID_72363);

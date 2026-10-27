@@ -2,10 +2,8 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
-import { thiefInitiativeRegenerationRate } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import {
@@ -327,25 +325,9 @@ test('Mistburn removal suppresses its charge grant while spending the artifact',
   assert.equal(result.planningState.profession.artifactUsesRemaining, 0);
 });
 
-test('required Thief tuning fails contextually and accepts a real zero', () => {
-  const catalog = {
-    ...thiefCatalog,
-    balanceProfilesById: new Map(thiefCatalog.balanceProfilesById),
-    balanceDataContext: { professionId: 'thief', patchId: 'invalid-thief' }
-  };
-  const context = { catalog, config: { selectedTraitIds: [TRAIT.MUG] } };
-  // Resolved profiles carry their own source, so diagnostics need no runtime context.
-  const { balanceDataContext } = catalog;
+test('invalid Mug tuning fails with the selected patch context', () => {
+  const balanceDataContext = { professionId: 'thief', patchId: 'invalid-thief' };
   for (const value of [undefined, null, '1', NaN, Infinity]) {
-    catalog.balanceProfilesById.set(CORE.resources, {
-      ...thiefCatalog.balanceProfilesById.get(CORE.resources),
-      resourceGain: value,
-      balanceDataContext
-    });
-    assert.throws(
-      () => thiefInitiativeRegenerationRate({ kneeling: false }, context),
-      /profession=thief patch=invalid-thief profile=thief.core.resources field=resourceGain/
-    );
     // Invalid Mug packets fail at the override boundary before a live steal can consume them.
     assert.throws(
       () =>
@@ -363,25 +345,13 @@ test('required Thief tuning fails contextually and accepts a real zero', () => {
       /profession=thief patch=invalid-thief balance-profile=.*effect=strike\/Mug/
     );
   }
-
-  catalog.balanceProfilesById.set(CORE.resources, {
-    ...thiefCatalog.balanceProfilesById.get(CORE.resources),
-    resourceGain: 0
-  });
-  assert.equal(thiefInitiativeRegenerationRate({ kneeling: false }, context), 0);
-  catalog.balanceProfilesById.delete(CORE.resources);
-  assert.throws(
-    () => thiefInitiativeRegenerationRate({ kneeling: false }, context),
-    /missing required profile\/catalog/
-  );
 });
 
-// Each selected trait owns its capacity; the mechanic profile supplies only the untraited maximum.
+// Each selected trait owns its capacity; untraited initiative uses the fixed base maximum.
 test('patched Preparedness and Maleficent Seven capacities initialize before resource use', () => {
   for (const selectedTraitIds of [[], [TRAIT.PREPAREDNESS, TRAIT.MALEFICENT_SEVEN]]) {
     const result = run(
       {
-        [CORE.resources]: { fields: { maximumStacks: 18 } },
         [TRAIT.PREPAREDNESS]: { fields: { maximumStacks: 21 } },
         [TRAIT.DEADEYES_GAZE]: { fields: { maximumStacks: 9 } },
         [TRAIT.MALEFICENT_SEVEN]: { fields: { maximumStacks: 11 } }
@@ -391,8 +361,8 @@ test('patched Preparedness and Maleficent Seven capacities initialize before res
       { selectedTraitIds, initialInitiative: 20 }
     );
     const runtime = observedRuntime(result);
-    assert.equal(runtime.profession.core.initiative.maximum, selectedTraitIds.length ? 21 : 18);
-    assert.equal(runtime.profession.core.initiative.value, selectedTraitIds.length ? 21 : 18);
+    assert.equal(runtime.profession.core.initiative.maximum, selectedTraitIds.length ? 21 : 12);
+    assert.equal(runtime.profession.core.initiative.value, selectedTraitIds.length ? 21 : 12);
     assert.equal(runtime.profession.specialization.state.malice.maximum, selectedTraitIds.length ? 11 : 9);
   }
 });
@@ -405,7 +375,6 @@ test('Preparedness owns patched initiative capacity in initial state, live resou
     professions: {
       thief: {
         balanceProfiles: {
-          [CORE.resources]: { fields: { maximumStacks: 18 } },
           [TRAIT.PREPAREDNESS]: { fields: { maximumStacks: 21 } }
         }
       }
@@ -413,7 +382,7 @@ test('Preparedness owns patched initiative capacity in initial state, live resou
   });
   for (const [patchId, untraited, traited] of [
     ['current', 12, 15],
-    ['preparedness-capacity', 18, 21]
+    ['preparedness-capacity', 12, 21]
   ]) {
     const balanceContext = family.resolvePatch({ id: patchId }).balanceContext;
     const { facts } = describeSimulationTrait(balanceContext, { id: TRAIT.PREPAREDNESS }, thiefTooltips);

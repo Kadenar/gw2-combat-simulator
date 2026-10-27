@@ -29,12 +29,11 @@ function runtimeOnlyAuthoringFields(fields: SkillFieldSpecs): ReadonlySet<string
 const PROFILE_RUNTIME_ONLY_NUMERIC_FIELDS = runtimeOnlyAuthoringFields(SHARED_SKILL_FIELDS);
 
 /**
- * Numeric fields that trait, mechanic, and variant profiles may patch. Skill fields are declared by the platform or
+ * Numeric fields that trait and shared mechanic profiles may patch. Skill fields are declared by the platform or
  * the owning profession and read from the selected catalog instead.
  */
 export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   // Recharge, ammo, resource costs, and regeneration.
-  'castTimeMs',
   'cooldown',
   'recharge',
   'rechargeMultiplier',
@@ -46,22 +45,16 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'resourceCostMultiplier',
   'resourceGain',
   'entryResourceGain',
-  'energyCost',
   'energyRegenerationPerSecond',
   'enduranceRegenerationMultiplier',
   'astralForceRetentionMultiplier',
   'vigorRegenerationMultiplier',
 
   // Strike, condition, and general damage scaling.
-  'basePower',
   'coefficientMultiplier',
   'damageMultiplier',
   'damageIncrease',
   'damageIncreasePerStack',
-  'damagePerCoefficient',
-  'highStrikeFactor',
-  'enhancedStrikeFactor',
-  'enhancedConditionBaseDurationFactor',
   'lifeSiphonDamagePerStack',
   'weaponStrength',
   'conditionDamageMultiplier',
@@ -108,7 +101,6 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'attributeMultiplier',
   'attributeConversion',
   'attributePerStack',
-  'conditionDamageBonus',
   'concentrationBonus',
   'expertiseBonus',
   'vitalityConversion',
@@ -140,21 +132,17 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'maximumStacks',
   'minimumStacks',
   'playerStacks',
-  'charges',
   'allyStacks',
   'threshold',
   'maximumDamageStacks',
   'maximumBoons',
   'maximumConditions',
   'duration',
-  'flipDuration',
   'durationPerTier',
   'durationMultiplier',
   'durationExtension',
   'immobilizeDurationExtension',
   'baseDuration',
-  'highDuration',
-  'enhancedDuration',
   'boonDurationBonus',
   'sharedDurationMultiplier',
   'conditionDurationMultiplier',
@@ -162,26 +150,14 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'maximumTargets',
   'procChance',
   'weaponProcChanceMultiplier',
-  // Specialization-specific Dhuumfire burning duration, shared by skill and shade profile overrides.
-  'dhuumfireDuration',
 
   // Recurring, spawned, and trait-specific pulse effects.
   'pulseInterval',
-  'packetInterval',
   'auraPulseInterval',
   'interval',
-  'dhuumfireInterval',
-  'basePacketCount',
-  'highPacketCount',
-  'packetCount',
-  'baseExtraBlades',
-  'highExtraBlades',
-  'enhancedExtraBlades',
   RECIPIENT.SUMMONS,
-  'minionCount',
 
   // Profession-specific resource grants and capacity.
-  'blightCost',
   'blightGain',
   'bladeswornResourceGain',
   'lifeForceDrain',
@@ -205,18 +181,8 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
 ]);
 
 const ADVANCED_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
-  'baseExtraBlades',
-  'basePacketCount',
-  'basePower',
-  'damagePerCoefficient',
-  'highExtraBlades',
-  'highPacketCount',
   'maximumTargets',
-  'minionCount',
-  'packetCount',
-  'packetInterval',
   'pulseInterval',
-  'summonInterval',
   RECIPIENT.SUMMONS,
   'weaponStrength'
 ]);
@@ -436,7 +402,6 @@ export function balanceProfileAuthoringReference(profile: Readonly<BalanceProfil
     id: profile.id,
     name: profile.name,
     profileKind: profile.profileKind,
-    ...(profile.parentId == null ? {} : { parentId: profile.parentId }),
     ...balanceProfilePatchableNumericFields(profile),
     effects: (profile.effects || []).map((effect) =>
       balanceProfileEffectAuthoringReference(effect as unknown as Readonly<Record<string, unknown>>)

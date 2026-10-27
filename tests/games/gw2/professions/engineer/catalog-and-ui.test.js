@@ -66,7 +66,7 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
     );
     assert.equal(
       authoringEngineerProfession.patchAuthoring.modules.some((module) =>
-        module.skillVariants.some((skill) => skill.id === id)
+        module.skills.some((skill) => skill.id === id)
       ),
       false
     );

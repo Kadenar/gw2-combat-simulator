@@ -3,10 +3,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 
 // Variant selection snapshots the chain before completion, but transforms the live, independently editable packets.
 test('Falling Spider empowers only the accepted predecessor and preserves effect and tick edits', () => {
@@ -297,7 +296,7 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
         runtime.profession.core.stealthUntil = 14;
       },
       catalog: (catalog) =>
-        withSkill(withProfile(catalog, PROFILE.resources, { resourceGain: 0 }), ID.HIDE_IN_SHADOWS, {
+        withSkill(catalog, ID.HIDE_IN_SHADOWS, {
           effects: [{ type: 'buff', kind: 'stealth', duration: 10 }]
         })
     }
@@ -307,7 +306,10 @@ test('selected stealth respects acceptance predicates, Revealed, extension and c
   assert.equal(runtime.profession.core.stealthUntil, buff.at + 15);
   // Packets retain their authored grant; the shared status owner projects the accumulated, capped window.
   assert.equal(buff.duration, 10);
-  assert.equal(runtime.resourceController.value('initiative'), 0, 'extension does not repeat entry traits');
+  assert.ok(
+    Math.abs(runtime.resourceController.value('initiative') - runtime.time) < 1e-9,
+    'extension adds no entry-trait reward beyond ordinary recovery'
+  );
   const cancelled = runThief([{ skillId: ID.HIDE_IN_SHADOWS, interruptMs: 0 }], {
     selectedSkillIds: [13027]
   });
@@ -342,7 +344,7 @@ test('Malicious Ashen declarations retain accepted malice and refund a fully lan
         ]
       ],
       catalog: (catalog) =>
-        withSkill(withProfile(catalog, PROFILE.resources, { resourceGain: 0 }), ID.MALICIOUS_ASHEN_ASSAULT, {
+        withSkill(catalog, ID.MALICIOUS_ASHEN_ASSAULT, {
           coefficientPerMalice: 0.3,
           initiativeRefund: 7,
           castTimeMs: 1000,
@@ -365,7 +367,8 @@ test('Malicious Ashen declarations retain accepted malice and refund a fully lan
     result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault — Final Strike').coefficient,
     5
   );
-  assert.equal(observedRuntime(result).resourceController.value('initiative'), 7);
+  const runtime = observedRuntime(result);
+  assert.ok(Math.abs(runtime.resourceController.value('initiative') - runtime.time - 7) < 1e-9);
   assert.equal(observedRuntime(result).profession.specialization.state.malice.value, 0);
 });
 

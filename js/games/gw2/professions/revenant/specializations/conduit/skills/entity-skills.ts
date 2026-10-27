@@ -16,7 +16,6 @@ import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import {
   BEGUILING_HAZE_SKILL_IDS,
   TWIN_MOON_SKILL_IDS
@@ -27,7 +26,7 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 /** Preserves Shared Wisdom's position among this skill's accepted actions. */
 const twinMoonSharedWisdom: NonNullable<Skill['effectVariants']>[number] = {
   when: (runtime) => hasTrait(runtime, TRAIT.SHARED_WISDOM),
-  profileId: PROFILE.sharedWisdom,
+  profileId: TRAIT.SHARED_WISDOM,
   transform: (_runtime, cast, effects) => {
     const first = cast.skill.effects?.find((effect) => !effect.metadata?.legendId);
     const impact = first ? effectFirstAt(cast.start, cast.fullEnd, first) : cast.fullEnd;

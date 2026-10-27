@@ -64,14 +64,10 @@ export function buildRelevantPatch(
   for (const module of metadata.modules) {
     if (!selectedModules.has(module.id)) continue;
 
-    for (const entry of [...module.balanceProfiles, ...module.skillVariants]) {
+    for (const entry of module.balanceProfiles) {
       const owner = profileOwners.get(entry.id);
 
       if (owner != null && !traits.has(owner)) continue;
-
-      const parentId = entry.profile.parentId;
-
-      if ((typeof parentId === 'string' || typeof parentId === 'number') && !relevantIds.has(parentId)) continue;
 
       if (entry.profile.profileKind === 'trait' && owner == null && !relevantIds.has(entry.id)) continue;
 

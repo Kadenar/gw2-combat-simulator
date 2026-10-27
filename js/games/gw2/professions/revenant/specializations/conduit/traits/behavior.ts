@@ -16,7 +16,6 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
@@ -85,7 +84,7 @@ const enhancedEmbodimentRecharge = compileRechargeRules<RevenantRuntimeState, Re
   {
     trait: TRAIT.ENHANCED_EMBODIMENT,
     when: (runtime, skill) => skill.id === ID.SWAP_LEGENDS && runtime.engagement.combatMechanicsAllowed(),
-    multiplier: { profile: PROFILE.enhancedEmbodiment, field: 'rechargeMultiplier' }
+    multiplier: { profile: TRAIT.ENHANCED_EMBODIMENT, field: 'rechargeMultiplier' }
   }
 ]);
 

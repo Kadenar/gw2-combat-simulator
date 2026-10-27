@@ -14,7 +14,6 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { variantEffects } from '#gw2/professions/revenant/app/tooltips/shared.js';
 
 const beguilingHazeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({
@@ -146,7 +145,7 @@ export const conduitTooltips = {
       ['attributeMultiplier', 'Cosmic Wisdom attribute increase', tooltipFactorChange]
     ]),
     [TRAIT.NUMINOUS_GIFT]: (balanceContext) => {
-      const effects = variantEffects(tooltipProfile(balanceContext, CONDUIT.numinousGift).effects);
+      const effects = variantEffects(tooltipProfile(balanceContext, TRAIT.NUMINOUS_GIFT).effects);
       return {
         ...effects,
         description:
@@ -157,7 +156,7 @@ export const conduitTooltips = {
           {
             ...profileFact(
               balanceContext,
-              CONDUIT.numinousGift,
+              TRAIT.NUMINOUS_GIFT,
               'damageIncrease',
               'Additional Targeted Destruction bonus',
               tooltipPercent
@@ -169,7 +168,7 @@ export const conduitTooltips = {
           {
             ...profileFact(
               balanceContext,
-              CONDUIT.numinousGift,
+              TRAIT.NUMINOUS_GIFT,
               'conditionDurationBonus',
               'Additional damaging-condition duration',
               tooltipPercent
@@ -184,10 +183,10 @@ export const conduitTooltips = {
     [TRAIT.CONDUCTIVE_ARMAMENTS]: traitTooltip('Casting weapon skills also generates affinity.'),
     [TRAIT.SHARED_WISDOM]: (balanceContext) => ({
       description: 'Entity skills grant swiftness. Specific Entity skills grant additional boons.',
-      ...variantEffects(tooltipProfile(balanceContext, CONDUIT.sharedWisdom).effects)
+      ...variantEffects(tooltipProfile(balanceContext, TRAIT.SHARED_WISDOM).effects)
     }),
     [TRAIT.LINGERING_DETERMINATION]: profileTooltip(
-      CONDUIT.lingeringDetermination,
+      TRAIT.LINGERING_DETERMINATION,
       'Swapping legends in combat grants affinity after the swap resets it.',
       [['resourceGain', 'Affinity gained']]
     ),
@@ -199,24 +198,22 @@ export const conduitTooltips = {
       ]
     ),
     [TRAIT.EXPANDED_CONSCIOUSNESS]: profileTooltip(
-      CONDUIT.expandedConsciousness,
+      TRAIT.EXPANDED_CONSCIOUSNESS,
       'Reaching maximum affinity grants energy.',
       [['resourceGain', 'Energy gained']]
     ),
     [TRAIT.ETHEREAL_PURIFICATION]: outsideScopeTooltip,
-    [TRAIT.MISTFIRE]: profileTooltip(
-      CONDUIT.mistfire,
-      'Control effects inflict burning. Twin Moon Sweep is excluded.',
-      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
-    ),
+    [TRAIT.MISTFIRE]: profileTooltip(TRAIT.MISTFIRE, 'Control effects inflict burning. Twin Moon Sweep is excluded.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
+    ]),
     [TRAIT.ENHANCED_EMBODIMENT]: profileTooltip(
-      CONDUIT.enhancedEmbodiment,
+      TRAIT.ENHANCED_EMBODIMENT,
       'Legend swaps in combat recharge faster and extend Cosmic Wisdom.',
       [['rechargeMultiplier', 'Legend-swap recharge duration', tooltipFactorChange]]
     ),
     [TRAIT.FOUND_PURPOSE]: (balanceContext) => ({
       description: 'Swapping legends in combat shares the Numinous Gift boon package with nearby allies.',
-      ...variantEffects(tooltipProfile(balanceContext, CONDUIT.numinousGift).effects)
+      ...variantEffects(tooltipProfile(balanceContext, TRAIT.NUMINOUS_GIFT).effects)
     })
   }
 } satisfies ProfessionTooltips;

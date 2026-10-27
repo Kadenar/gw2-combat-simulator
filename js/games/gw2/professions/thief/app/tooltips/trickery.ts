@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  profileFact,
   tooltipFactorChange,
   tooltipSeconds,
   outsideScopeTooltip,
@@ -8,16 +9,17 @@ import {
   tooltipPercent,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
+import { INITIATIVE } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Describe trickery tooltips from the selected balance data. */
 export const thiefTrickeryTooltips = {
   [TRAIT.KLEPTOMANIAC]: traitTooltip('Stealing restores initiative.', [['resourceGain', 'Initiative restored']]),
-  [TRAIT.PREPAREDNESS]: traitTooltip('Increase maximum initiative and gain expertise.', [
-    ['attributeBonus', 'Expertise'],
-    ['maximumStacks', 'Maximum initiative with Preparedness'],
-    fromProfile(CORE.resources, 'maximumStacks', 'Maximum initiative without Preparedness')
+  // Only the traited capacity varies with the patch; the baseline is the shared initiative rule.
+  [TRAIT.PREPAREDNESS]: traitTooltip('Increase maximum initiative and gain expertise.', (context, id) => [
+    profileFact(context, id, 'attributeBonus', 'Expertise'),
+    profileFact(context, id, 'maximumStacks', 'Maximum initiative with Preparedness'),
+    { name: 'Maximum initiative without Preparedness', detail: String(INITIATIVE.maximum) }
   ]),
   [TRAIT.LEAD_ATTACKS]: traitTooltip('Spending initiative grants temporary damage stacks. Steal recharges faster.', [
     ['damageIncreasePerStack', 'Strike and condition damage per stack', tooltipPercent],

@@ -6,7 +6,6 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/thief/core/profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -18,12 +17,6 @@ export function leadAttacksRechargeReduction(runtime: MechanicQueriesOf<ThiefRun
     Number(hasTrait(runtime, TRAIT.LEAD_ATTACKS)) *
     (1 - balanceNumberFromContext(runtime, TRAIT.LEAD_ATTACKS, 'rechargeMultiplier'))
   );
-}
-
-/** Selection chooses the capacity owner; construction and live queries read the same active patch. */
-export function preparednessInitiativeCapacity(context: unknown): number {
-  const profileId = hasTrait(context, TRAIT.PREPAREDNESS) ? TRAIT.PREPAREDNESS : PROFILE.resources;
-  return balanceNumberFromContext(context, profileId, 'maximumStacks');
 }
 
 /** Additive Steal recharge retains each trait's independent reduction. */

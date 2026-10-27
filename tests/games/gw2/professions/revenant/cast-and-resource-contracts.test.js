@@ -11,7 +11,6 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as CONDUIT } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import {
   effectiveConduitAffinity,
   affinity as modifierAffinity
@@ -76,7 +75,7 @@ test('Expanded Consciousness distinguishes cap crossings from virtual affinity, 
       catalog: (base) =>
         withProfile(
           withProfile(base, TRAIT.ENIGMATIC_CONNECTION, { maximumStacks: 2.5 }),
-          CONDUIT.expandedConsciousness,
+          TRAIT.EXPANDED_CONSCIOUSNESS,
           {
             resourceGain: 7
           }
@@ -139,12 +138,12 @@ test('legend swap clears affinity before trait gains and permits a fresh cap-cro
         withProfile(
           withProfile(
             withProfile(base, TRAIT.ENIGMATIC_CONNECTION, { maximumStacks: 2 }),
-            CONDUIT.lingeringDetermination,
+            TRAIT.LINGERING_DETERMINATION,
             {
               resourceGain: 1
             }
           ),
-          CONDUIT.expandedConsciousness,
+          TRAIT.EXPANDED_CONSCIOUSNESS,
           { resourceGain: 7 }
         ),
       initialize(runtime) {

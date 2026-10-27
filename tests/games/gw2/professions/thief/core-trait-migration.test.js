@@ -12,7 +12,6 @@ import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-se
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { reactThiefCoreDamage } from '#gw2/professions/thief/core/hooks.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
-import { THIEF_CORE_BALANCE_PROFILE_IDS as CORE } from '#gw2/professions/thief/core/profiles.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { thiefConditionApplied, thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -396,10 +395,10 @@ test('Lead Attacks replaces oldest stacks across and at the cap while preserving
     // An instant four-initiative attack with a pool large enough for every grant isolates the stack cap.
     const result = runThief(
       [...rotation, wait(14000)],
-      { selectedTraitIds: [TRAIT.LEAD_ATTACKS], initialInitiative: 30 },
+      { selectedTraitIds: [TRAIT.LEAD_ATTACKS, TRAIT.PREPAREDNESS], initialInitiative: 30 },
       {
         catalog: (live) =>
-          withProfile(withSkill(live, ID.HEARTSEEKER, { castTimeMs: 0, initiativeCost: 4 }), CORE.resources, {
+          withProfile(withSkill(live, ID.HEARTSEEKER, { castTimeMs: 0, initiativeCost: 4 }), TRAIT.PREPAREDNESS, {
             maximumStacks: 30
           })
       }

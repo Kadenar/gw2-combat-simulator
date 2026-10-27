@@ -83,14 +83,14 @@ export const heraldTooltips = {
     ]),
     [TRAIT.RISING_MOMENTUM]: outsideScopeTooltip,
     [TRAIT.SHARED_EMPOWERMENT]: profileTooltip(
-      'revenant.shared-empowerment',
+      TRAIT.SHARED_EMPOWERMENT,
       'Applying a boon to an ally grants might to the party.',
       [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
     ),
     [TRAIT.SHINING_ASPECTS]: outsideScopeTooltip,
     [TRAIT.HARDENING_PERSISTENCE]: outsideScopeTooltip,
     [TRAIT.ELEVATED_COMPASSION]: profileTooltip(
-      'revenant.elevated-compassion',
+      TRAIT.ELEVATED_COMPASSION,
       'Gain concentration from the common power attribute pool. Maintaining enough aggregate upkeep periodically grants party quickness.',
       [
         ['attributeConversion', 'Power converted to concentration', tooltipPercent],
@@ -99,7 +99,7 @@ export const heraldTooltips = {
       ]
     ),
     [TRAIT.DRACONIC_ECHO]: profileTooltip(
-      'revenant.draconic-echo',
+      TRAIT.DRACONIC_ECHO,
       'Consumed facets retain their passive effects temporarily. Strength grants strike damage, Elements grants condition damage, Darkness grants critical chance, and Nature grants boon duration.',
       [
         ['duration', 'Echo duration', tooltipSeconds],

@@ -38,11 +38,14 @@ test('minion compilation normalizes selected summon, actor, and command packets'
         [
           attackId,
           {
+            id: attackId,
             name: 'Test Minion',
             minionKey: 'test',
             pulseInterval: 3,
             // Supply required actor fields so this fixture reaches its packet-normalization assertions.
             openingAttackWindupMs: 0,
+            // Each canonical attack owns its weapon strength after the shared profile migration.
+            weaponStrength: 1048,
             basePower: 1000,
             damagePerCoefficient: 1000,
             criticalChance: 0.05,

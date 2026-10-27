@@ -111,16 +111,7 @@ function createPatchAuthoringMetadata(
               )
           ),
           balanceProfiles: Object.freeze(
-            authoringBalanceProfiles.filter(
-              (entry) =>
-                entry.profile.profileKind !== 'skill-variant' && balanceProfileHasAuthorableControls(entry.profile)
-            )
-          ),
-          skillVariants: Object.freeze(
-            authoringBalanceProfiles.filter(
-              (entry) =>
-                entry.profile.profileKind === 'skill-variant' && balanceProfileHasAuthorableControls(entry.profile)
-            )
+            authoringBalanceProfiles.filter((entry) => balanceProfileHasAuthorableControls(entry.profile))
           ),
           modifierRules: Object.freeze(
             (module.modifiers.modifierRules ?? []).map((rule) =>

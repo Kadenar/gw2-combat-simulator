@@ -42,7 +42,8 @@ test('direct migrations remove obsolete targets and expose their canonical owner
       necromancerProfession,
       ['necromancer.core.soul-shards', 'necromancer.core.death-shroud', 'necromancer.core.summon-attributes']
     ],
-    [mesmerProfession, ['mesmer.mirage.mechanics']]
+    [mesmerProfession, ['mesmer.mirage.mechanics']],
+    [thiefProfession, ['thief.core.resources']]
   ])
     for (const id of ids) {
       assert.equal(family.catalog.balanceProfilesById.has(id), false);
@@ -71,7 +72,7 @@ test('direct migrations remove obsolete targets and expose their canonical owner
       applyBalanceProfilePatch(thiefProfession.catalog, {
         balanceProfiles: { 'thief.core.resources': { fields: { kneelingInitiativeRegenerationBonus: 2 } } }
       }),
-    /unsupported patch field/
+    /unknown balance profile/
   );
 });
 
@@ -175,7 +176,6 @@ test('Kneel owns its patched recovery rate and tooltip', () => {
   for (const patchId of ['current', 'direct-ownership', 'current']) {
     const selected = context(family, patchId);
     const bonus = selected.catalog.skillsById.get(THIEF.KNEEL).kneelingInitiativeRegenerationBonus;
-    const base = selected.catalog.balanceProfilesById.get('thief.core.resources').resourceGain;
     const result = createProfessionSimulator(family)(
       [wait(2000)],
       {
@@ -190,7 +190,8 @@ test('Kneel owns its patched recovery rate and tooltip', () => {
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.ok(Math.abs(observedRuntime(result).profession.core.initiative.value - (2 * base + bonus)) < 1e-6);
+    // Two seconds of fixed recovery plus the selected Kneel bonus during the first second.
+    assert.ok(Math.abs(observedRuntime(result).profession.core.initiative.value - (2 + bonus)) < 1e-6);
   }
 
   assert.equal(

@@ -38,7 +38,6 @@ interface EditorState {
   selectedTraitView: TraitAuthoringView;
   selectedSkillId: string;
   selectedProfileId: string;
-  selectedSkillVariantId: string;
   search: string;
   changedOnly: boolean;
   dirty: boolean;
@@ -57,7 +56,6 @@ export const editorState: EditorState = {
   selectedTraitView: 'modifiers',
   selectedSkillId: '',
   selectedProfileId: '',
-  selectedSkillVariantId: '',
   search: '',
   changedOnly: false,
   dirty: false,
@@ -81,9 +79,7 @@ function editableDraft(preview: PatchPreview, professions: readonly NativePatchA
     if (!patch) continue;
 
     const skills = profession.modules.flatMap((module) => module.skills.map((entry) => entry.skill));
-    const profiles = profession.modules.flatMap((module) =>
-      [...module.balanceProfiles, ...module.skillVariants].map((entry) => entry.profile)
-    );
+    const profiles = profession.modules.flatMap((module) => module.balanceProfiles.map((entry) => entry.profile));
     for (const section of ['skills', 'balanceProfiles'] as const) {
       const edits = patch[section] as Record<string, SkillPatchEdit> | undefined;
       const sources = section === 'skills' ? skills : profiles;
@@ -111,7 +107,6 @@ export function loadEditorPayload(payload: AuthoringPayload): void {
   editorState.selectedModuleId = 'Core';
   editorState.selectedSkillId = '';
   editorState.selectedProfileId = '';
-  editorState.selectedSkillVariantId = '';
   editorState.dirty = false;
 }
 
@@ -284,7 +279,7 @@ export function hasSkillEdit(skillId: string): boolean {
   return Boolean(skillEdit(skillId));
 }
 
-/** Reports whether a balance profile or relocated skill variant has a draft edit. */
+/** Reports whether a trait or mechanic balance profile has a draft edit. */
 export function hasBalanceProfileEdit(profileId: string): boolean {
   return Boolean(balanceProfileEdit(profileId));
 }
@@ -300,7 +295,6 @@ export function selectProfession(professionId: string): void {
   editorState.selectedModuleId = 'Core';
   editorState.selectedSkillId = '';
   editorState.selectedProfileId = '';
-  editorState.selectedSkillVariantId = '';
 }
 
 /** Switches modules and clears entity selections owned by the previous module. */
@@ -308,20 +302,11 @@ export function selectModule(moduleId: string): void {
   editorState.selectedModuleId = moduleId;
   editorState.selectedSkillId = '';
   editorState.selectedProfileId = '';
-  editorState.selectedSkillVariantId = '';
 }
 
 /** Selects a skill while leaving the surrounding navigation unchanged. */
 export function selectSkill(skillId: string): void {
   editorState.selectedSkillId = skillId;
-  editorState.selectedSkillVariantId = '';
-}
-
-/** Selects a skill variant and restores its parent skill context when available. */
-export function selectSkillVariant(variantId: string): void {
-  editorState.selectedSkillVariantId = variantId;
-  const variant = selectedModule()?.skillVariants.find((entry) => String(entry.id) === variantId);
-  editorState.selectedSkillId = String(variant?.profile.parentId || '');
 }
 
 /** Selects one trait or mechanic balance profile. */

@@ -6,7 +6,6 @@ import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { CONDUIT_BALANCE_PROFILE_IDS as PROFILE } from '#gw2/professions/revenant/specializations/conduit/profiles.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -84,7 +83,7 @@ test('Hex-Eater zero-condition salvo and Shared Wisdom are independently gated',
           catalog: (catalog) =>
             applyBalanceProfilePatch(catalog, {
               balanceProfiles: {
-                [PROFILE.sharedWisdom]:
+                [TRAIT.SHARED_WISDOM]:
                   mode === 'removed'
                     ? { removeEffects: [{ type: 'boon', name: 'hex-eater-vortex' }] }
                     : { effects: [{ type: 'boon', name: 'hex-eater-vortex', stacks: 2 }] }

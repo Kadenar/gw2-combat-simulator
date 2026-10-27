@@ -26,7 +26,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { preparednessInitiativeCapacity } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
+import { thiefInitiativeCapacity } from '#gw2/professions/thief/core/mechanics/resources.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
@@ -285,7 +285,7 @@ export const thiefCoreUi = Object.freeze({
     const specialization = context.specialization || context.config?.specialization || 'Core';
     // Starting controls resolve saved traits against the active patch so Preparedness permits all 15 points.
     const initiativeCapacity = context.build
-      ? preparednessInitiativeCapacity({
+      ? thiefInitiativeCapacity({
           ...context,
           traits: new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
         })
