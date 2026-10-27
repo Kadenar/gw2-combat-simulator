@@ -3,7 +3,11 @@ import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { criticalChanceFractionFromPrecision, STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
+import {
+  criticalChanceFractionFromPrecision,
+  criticalDamageMultiplierFromFerocity,
+  STANDARD_TARGET_ARMOR
+} from '#gw2/platform/combat/formulas.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 
@@ -81,7 +85,8 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     entityName: rangerPetForState(professionCoreState(context)).name,
     // Pets crit like players: the level-80 base chance plus Precision above the baseline, matching the pet panel.
     summonCriticalChance: criticalChanceFractionFromPrecision(attributes.precision),
-    summonCriticalDamage: 1.5 + attributes.ferocity / 1500,
+    // Share the canonical Ferocity scaling so pet critical damage stays aligned with combat formulas.
+    summonCriticalDamage: criticalDamageMultiplierFromFerocity(attributes.ferocity),
     summonDamagePerCoefficient:
       ((weaponStrength * attributes.power) / STANDARD_TARGET_ARMOR) * beastlyWardenPetDamageMultiplier(context)
   };

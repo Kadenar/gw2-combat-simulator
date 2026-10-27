@@ -6,14 +6,15 @@ import {
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistAttunementRechargeDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { flowStateAttunementReduction } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -25,14 +26,18 @@ test('elemental training reduces only matching weapon recharge with ID-only trai
     ['Earth', TRAIT.GEOMANCERS_TRAINING],
     ['Water', TRAIT.AQUAMANCERS_TRAINING]
   ]) {
-    const context = { helpers: elementalistCatalog, traits: new Set([traitId]) };
     const skill = { id: 'fixture.weapon', type: 'Weapon', attunement };
-    assert.equal(elementalistRechargeWork(context, skill, 10), 8, attunement);
-    assert.equal(elementalistRechargeWork(context, { ...skill, attunement: 'None' }, 10), 10);
-    assert.equal(elementalistRechargeWork(context, { ...skill, type: 'Utility' }, 10), 10);
-    // An unselected build is its own fixture; selection never changes on a context already in use.
-    const unselected = { helpers: elementalistCatalog, traits: new Set() };
-    assert.equal(elementalistRechargeWork(unselected, skill, 10), 10);
+    // Compiled trait rules own training discounts; query each build through its assembled runtime.
+    for (const selected of [false, true]) {
+      const config = { specialization: 'Core', selectedTraitIds: selected ? [traitId] : [] };
+      const result = runElementalist([], config);
+      assert.deepEqual(result.warnings, []);
+      const context = observedRuntime(result);
+      const native = elementalistProfession.runtimeFor(config);
+      assert.equal(native.rechargeWork(context, skill, 10), selected ? 8 : 10, attunement);
+      assert.equal(native.rechargeWork(context, { ...skill, attunement: 'None' }, 10), 10);
+      assert.equal(native.rechargeWork(context, { ...skill, type: 'Utility' }, 10), 10);
+    }
   }
 });
 
