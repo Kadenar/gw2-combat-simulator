@@ -15,7 +15,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { engineerSpecializationState } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { holosmithModifierState } from '#gw2/professions/engineer/specializations/holosmith/mechanics/modifier-queries.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   holosmithEventMetadata,
@@ -151,7 +151,7 @@ const lasersEdge = defineTrait({
       operation: 'multiply',
 
       factor: (context) => {
-        const state = engineerSpecializationState(context, 'Holosmith');
+        const state = holosmithModifierState(context);
         const maximum = hasTrait(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
           ? balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'maximumDamageIncrease')
           : balanceNumberFromContext(context, TRAIT.LASERS_EDGE, 'maximumDamageIncrease');
@@ -164,7 +164,7 @@ const lasersEdge = defineTrait({
         );
       },
       when: (context) => {
-        const state = engineerSpecializationState(context, 'Holosmith');
+        const state = holosmithModifierState(context);
         return (
           isGw2PlayerModifierOwnedEvent(context.event) &&
           ((Boolean(state.photonForgeActive) && !state.overheated) ||

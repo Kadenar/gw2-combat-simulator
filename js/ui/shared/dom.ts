@@ -68,21 +68,3 @@ export function requiredSelect(id: string): HTMLSelectElement {
 
   return element;
 }
-
-/**
- * Returns the value-bearing control with the given id or throws when it is
- * missing or cannot expose a value.
- *
- * The matching control.
- * @throws {Error} When the element is missing.
- * @throws {TypeError} When the element is neither an `<input>` nor a `<select>`.
- */
-export function requiredValueControl(id: string): HTMLInputElement | HTMLSelectElement {
-  const element = requiredElement(id);
-
-  if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLSelectElement)) {
-    throw new TypeError(`Element #${id} must expose a value.`);
-  }
-
-  return element;
-}

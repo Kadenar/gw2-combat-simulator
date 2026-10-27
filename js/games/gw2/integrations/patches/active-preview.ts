@@ -1,4 +1,3 @@
-import { REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { WEAPON, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
@@ -15,6 +14,7 @@ const DUST_STORM_PREVIEW_TICKS = [1560, 3560, 5560, 7560].map((atMs, index) => (
  * Apply requested balance changes while preserving live data. Phoenix boon
  * replacements share with the party; Custodian retains its existing scaling.
  * Augury retains melee damage doubling; healing is outside simulation scope.
+ * Use literal catalog IDs so standalone benchmarks can load this data without profession modules.
  */
 export const activePatchPreview: PatchPreview = {
   id: 'nov-10-balance-preview',
@@ -208,7 +208,7 @@ export const activePatchPreview: PatchPreview = {
             'TBD: 10% strike damage below full endurance is assumed, multiplying the shared outgoing-damage bucket like the removed Leviathan Strength. Final percentage and stacking are unconfirmed. Outgoing healing is outside simulation scope.',
           fields: { damageIncrease: { from: 0, to: 0.1 } }
         },
-        [REVENANT_TRAIT_IDS.LASTING_LEGACY]: {
+        '2100': {
           fields: {
             damageIncreasePerStack: {
               from: 0.05,
@@ -216,7 +216,7 @@ export const activePatchPreview: PatchPreview = {
             }
           }
         },
-        [REVENANT_TRAIT_IDS.MISTFIRE]: {
+        '2429': {
           effects: [
             {
               type: 'condition',

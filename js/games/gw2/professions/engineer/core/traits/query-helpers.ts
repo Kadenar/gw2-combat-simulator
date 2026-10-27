@@ -5,10 +5,7 @@ import {
   targetConditionCount,
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
-import {
-  readProfessionCoreState,
-  readProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { EngineerSimulationEvent, EngineerState } from '#gw2/professions/engineer/types.js';
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */
@@ -21,13 +18,6 @@ export function engineerRuntimeState(context: Gw2ModifierContext): Partial<Engin
   return readProfessionCoreState<EngineerState>(
     context.runtime?.profession ?? (context.state as { readonly profession?: unknown } | undefined)?.profession
   );
-}
-
-/** Reads the active specialization in simulation or attribute preview. */
-export function engineerSpecializationState(context: Gw2ModifierContext, expectedKind: string): Partial<EngineerState> {
-  const state =
-    context.runtime?.profession ?? (context.state as { readonly profession?: unknown } | undefined)?.profession;
-  return readProfessionSpecializationState<EngineerState>(state, expectedKind) || {};
 }
 
 /** Re-exports shared boon, health, and target-condition queries for Engineer modifier rules. */

@@ -8,13 +8,13 @@ import {
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
-import { requiredElement, requiredInput, requiredValueControl } from '#ui/shared/dom.js';
+import { requiredElement, requiredInput, requiredSelect } from '#ui/shared/dom.js';
 
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Coordinates build transfers, reset, and rotation history for the active application session. */
 export function bindSessionControls(app: ProfessionAppState): void {
-  const attributeWeaponSet = requiredValueControl('attribute-weapon-set');
+  const attributeWeaponSet = requiredSelect('attribute-weapon-set');
   attributeWeaponSet.addEventListener('change', () => {
     app.attributeWeaponSet = Number(attributeWeaponSet.value) === 2 ? 2 : 1;
     app.attributeData = app.adapter

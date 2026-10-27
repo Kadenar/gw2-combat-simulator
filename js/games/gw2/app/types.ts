@@ -14,7 +14,7 @@ import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simu
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import type { CanonicalCatalog, CatalogLookup, SkillId, Skill, CatalogEntity } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type {
   PatchComparison,
@@ -176,8 +176,6 @@ export interface Gw2AppAdapter extends ProfessionRuntimeApi {
   readonly filenames: ProfessionAppFilenames;
   readonly resetPrompt: string;
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
-  /** Resolve imported names for the active build without applying saved-build migration to explicit commands. */
-  readonly rotationImportLookup: (app: ProfessionAppState) => CatalogLookup;
   readonly isSkillAvailable: ProfessionIsSkillAvailable;
   readonly defaultOffhand: ProfessionDefaultOffhand;
   readonly weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>;
@@ -195,7 +193,6 @@ export interface DefineProfessionAppOptions {
   readonly profession: ProfessionAppContract;
   readonly createBuildContext: BuildContextFactory;
   readonly toApplicationBuild: (build: unknown) => Gw2CanonicalBuild;
-  readonly rotationImportLookup?: Gw2AppAdapter['rotationImportLookup'];
   readonly storageVersion?: number;
   readonly resetPrompt?: string;
   readonly isSkillAvailable?: ProfessionIsSkillAvailable;

@@ -20,7 +20,7 @@ import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.j
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
-import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
+import { createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 
@@ -44,7 +44,6 @@ export function defineProfessionApp({
   tooltips,
   createBuildContext,
   toApplicationBuild,
-  rotationImportLookup = (app) => app.activeCatalog,
   storageVersion = 3,
   resetPrompt = `Reset the ${profession.name} build, skills, and rotation?`,
   isSkillAvailable,
@@ -124,12 +123,9 @@ export function defineProfessionApp({
     globalName,
     filenames,
     resetPrompt,
-    weaponData: createProfessionWeaponData(profession.catalog, {
-      weaponData: WEAPON_DATA
-    }),
+    weaponData: createProfessionWeaponData(profession.catalog),
     relicNames: RELIC_NAMES,
     toApplicationBuild,
-    rotationImportLookup,
     ...runtimeApi,
     renderRotationBuilder,
     buildEditor: gw2BuildEditor,

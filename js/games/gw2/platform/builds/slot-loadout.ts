@@ -100,7 +100,6 @@ interface CreateFixedSlotLoadoutOptions<TBuild extends object = Record<string, u
   entryLabel?: string;
   selectionKey?: Extract<keyof TBuild, string>;
   startingKey?: Extract<keyof TBuild, string>;
-  selectionCount?: number;
   selectionControl?: string;
   includeStartingSelector?: boolean;
   entries?: readonly SlotLoadoutEntryInput[];
@@ -163,14 +162,16 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
   entryLabel = 'Bar',
   selectionKey: selectionKeyOption,
   startingKey: startingKeyOption,
-  selectionCount = 2,
   selectionControl = 'select',
   includeStartingSelector = true,
   entries: rawEntries,
   defaults
 }: CreateFixedSlotLoadoutOptions<TBuild> = {}): FixedSlotLoadout<TBuild> {
-  if (!selectionKeyOption || !startingKeyOption || selectionCount < 1) {
-    throw new TypeError('Fixed slot loadouts require selectionKey, startingKey, and selectionCount.');
+  // Fixed loadouts select two distinct bars; starting selection chooses which one is initially active.
+  const selectionCount = 2;
+
+  if (!selectionKeyOption || !startingKeyOption) {
+    throw new TypeError('Fixed slot loadouts require selectionKey and startingKey.');
   }
 
   // Capture the validated keys as `const` so their narrowed `string` type

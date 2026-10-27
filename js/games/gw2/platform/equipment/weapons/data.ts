@@ -67,19 +67,14 @@ function derivedProfessionWielding(catalog: CanonicalCatalog, weapon: string, fa
  * Combines shared weapon-family strength with profession-owned availability.
  */
 export function createProfessionWeaponData(
-  catalog: CanonicalCatalog,
-  {
-    weaponData = WEAPON_DATA
-  }: {
-    readonly weaponData?: Readonly<Record<string, Gw2WeaponDataEntry>>;
-  } = {}
+  catalog: CanonicalCatalog
 ): Readonly<Record<string, Readonly<Gw2WeaponDataEntry>>> {
   return Object.freeze(
     Object.fromEntries(
       [...catalog.weapons]
-        .filter((name) => weaponData[name])
+        .filter((name) => WEAPON_DATA[name])
         .map((name) => {
-          const shared = weaponData[name];
+          const shared = WEAPON_DATA[name];
           return [
             name,
             Object.freeze({

@@ -150,7 +150,6 @@ const baseRevenantLegendLoadout = createFixedSlotLoadout<RevenantCanonicalBuild>
   entryLabel: 'Legend',
   selectionKey: 'selectedLegends',
   startingKey: 'startingLegend',
-  selectionCount: 2,
   selectionControl: 'icons',
   includeStartingSelector: false,
   entries: REVENANT_LEGENDS,

@@ -35,7 +35,7 @@ const METRICS: Record<string, string> = {
   'average-stacks': 'Average stacks',
   'recorded-activations': 'Procs',
   'entry-delay': 'Delay before first damage',
-  'unresolved-output': 'Interruptions without recorded output'
+  'unresolved-output': 'Interrupted casts with no recorded effect'
 };
 
 /** Keep the outline focused on deficits and their useful metrics, never internal component IDs or event packets. */

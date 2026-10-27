@@ -533,8 +533,9 @@ export class ProfessionApp implements ProfessionAppState {
     if (typeof document !== 'undefined') this.adapter.renderRotationBuilder(this);
   }
 
+  /** Refresh the attribute preview through its owning editor section. */
   renderAttributes(): void {
-    this.renderBuildSection('attributes');
+    this.adapter.buildEditor.sections.find(({ id }) => id === 'attributes')?.render(this);
   }
 
   runRandomDistribution(): void {
@@ -563,9 +564,5 @@ export class ProfessionApp implements ProfessionAppState {
     for (const section of this.adapter.buildEditor.sections) {
       if (includeGear || section.id !== 'gear') section.render(this);
     }
-  }
-
-  private renderBuildSection(sectionId: string): void {
-    this.adapter.buildEditor.sections.find(({ id }) => id === sectionId)?.render(this);
   }
 }

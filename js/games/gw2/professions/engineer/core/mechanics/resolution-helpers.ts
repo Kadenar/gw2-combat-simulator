@@ -40,7 +40,6 @@ interface ApplyConditionOptions {
   readonly condition: string;
   readonly stacks: number;
   readonly duration: number;
-  readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationActorType;
   readonly ownerActorType?: SimulationActorType;
   /** Derived conditions retain fixed-duration behavior and nested companion ownership metadata. */
@@ -133,7 +132,6 @@ export function buildEngineerCondition(
     condition,
     stacks,
     duration,
-    sourceId = event.skillId,
     actorType = ACTOR.PLAYER,
     ownerActorType,
     metadata = {},
@@ -148,7 +146,8 @@ export function buildEngineerCondition(
     stacks,
     duration,
     source: actorType === ACTOR.EFFECT ? 'Trait' : 'engineer',
-    sourceId: sourceId ?? event.skillId ?? event.sourceId,
+    // Derived conditions keep the triggering skill identity, including packets that only name a source.
+    sourceId: event.skillId ?? event.sourceId,
     actorType,
     offTarget: event.offTarget,
     // Derived summon conditions retain the triggering companion's concrete identity.

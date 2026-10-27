@@ -59,7 +59,7 @@ import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
 import { PREFIXES, PREFIX_GROUPS } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
 import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
-import { WEAPON_DATA, createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
+import { createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -1224,9 +1224,7 @@ test('Mesmer and Guardian palettes show only equipped weapon-set rows', () => {
       eliteSpecialization: () => '',
       isSkillAvailable: () => true
     },
-    weaponData: createProfessionWeaponData(profession.catalog, {
-      weaponData: WEAPON_DATA
-    })
+    weaponData: createProfessionWeaponData(profession.catalog)
   });
 
   for (const app of [
@@ -1489,9 +1487,7 @@ test('Mesmer weapon palette displays only the current autoattack chain step', ()
       eliteSpecialization: () => 'Mirage',
       isSkillAvailable: () => true
     },
-    weaponData: createProfessionWeaponData(mesmerProfession.catalog, {
-      weaponData: WEAPON_DATA
-    })
+    weaponData: createProfessionWeaponData(mesmerProfession.catalog)
   };
 
   assert.deepEqual(
