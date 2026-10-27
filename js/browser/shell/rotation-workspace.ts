@@ -34,8 +34,8 @@ export function resetRotationWorkspace(root: Document = document): void {
 }
 
 /** Enters the existing full-screen rotation workspace without coupling callers to its button markup. */
-export function enterRotationFocus(root: Document = document): void {
-  const controller = controllers.get(root);
+export function enterRotationFocus(): void {
+  const controller = controllers.get(document);
 
   if (!controller || controller.state.focus) return;
 

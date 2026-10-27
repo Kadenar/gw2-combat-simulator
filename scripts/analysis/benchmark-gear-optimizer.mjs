@@ -52,7 +52,7 @@ for (const profession of professions.length
       profession: adapter.profession,
       rotation: build.rotation,
       config,
-      observationPolicy: request.observationPolicy,
+      observationPolicy: { kind: 'rotation' },
       onPhase(phase, duration) {
         phases[phase] += duration;
 
@@ -81,7 +81,7 @@ for (const profession of professions.length
       profession: adapter.profession,
       rotation: build.rotation,
       config,
-      observationPolicy: request.observationPolicy,
+      observationPolicy: { kind: 'rotation' },
       output: 'score'
     });
 

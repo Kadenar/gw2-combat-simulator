@@ -194,22 +194,22 @@ function setupResizeReporter(root: Document): void {
 }
 
 /**
- * Initializes embed behavior for a document.
+ * Initializes embed behavior for the current page.
  *
  * The resize reporter runs whenever the page is framed (independent of the
  * embed flag) so a host can always size the frame. Chrome hiding requires the
  * embed flag; internal links preserve both embed and standalone flags.
  */
-function initEmbed(root: Document = document): void {
-  if (isFramed()) setupResizeReporter(root);
+function initEmbed(): void {
+  if (isFramed()) setupResizeReporter(document);
 
-  if (isEmbedded()) root.documentElement.classList.add('embed');
+  if (isEmbedded()) document.documentElement.classList.add('embed');
 
-  if (isEmbedded() && isFramed()) trackVisibleTop(root);
+  if (isEmbedded() && isFramed()) trackVisibleTop(document);
 
-  decorateStaticLinks(root);
+  decorateStaticLinks(document);
 }
 
 if (typeof document !== 'undefined') {
-  initEmbed(document);
+  initEmbed();
 }

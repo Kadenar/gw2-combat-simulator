@@ -98,9 +98,7 @@ function emitHorrorEffects(runtime: NecromancerRuntime, key: string, terminal: b
       parentSkillName: skill.name,
       activationId: cursor.activationId,
       summonKind: 'minion',
-      summonCount: 1,
-      summonOwner: companion(key, 0),
-      summonOwnerBase: `minion:${key}`
+      summonOwner: companion(key, 0)
     };
     // The terminal explosion survives at expiry; later authored ticks are outside this creature's lifetime.
     runtime.effects.emit({
@@ -157,9 +155,7 @@ function emitAttack(
     activationId: work.activationId,
     offTarget: work.offTarget,
     summonKind: 'minion',
-    summonCount: 1,
-    summonOwner: companion(work.key, work.index),
-    summonOwnerBase: `minion:${work.key}`
+    summonOwner: companion(work.key, work.index)
   };
   const reactionGroup = attack.effect && runtime.effectReactions.register(skill, attack.effect);
 
@@ -293,9 +289,7 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
     activationId: work.activationId,
     offTarget: work.offTarget,
     summonKind: 'minion',
-    summonCount: 1,
-    summonOwner: companion(work.key, work.index),
-    summonOwnerBase: `minion:${work.key}`
+    summonOwner: companion(work.key, work.index)
   };
   for (const condition of command.conditions ?? [])
     runtime.effects.emit({

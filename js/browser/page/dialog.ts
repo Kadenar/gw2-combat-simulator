@@ -3,15 +3,15 @@ import { trackEmbeddedViewport } from '#browser/page/embed.js';
 const pendingDialogs = new WeakMap<HTMLDialogElement, () => void>();
 
 /** Shares dismissal without treating clicks on the dialog's own padding as backdrop clicks. */
-export function bindDialog(dialog: HTMLDialogElement, dismiss = (): void => dialog.close()): void {
+export function bindDialog(dialog: HTMLDialogElement): void {
   dialog.classList.add('app-dialog');
   dialog.addEventListener('cancel', (event) => {
     event.preventDefault();
-    dismiss();
+    dialog.close();
   });
   dialog.addEventListener('click', (event) => {
     if ((event.target as Element).closest('[data-dialog-close]')) {
-      dismiss();
+      dialog.close();
     } else if (event.target === dialog) {
       const bounds = dialog.getBoundingClientRect();
 
@@ -21,7 +21,7 @@ export function bindDialog(dialog: HTMLDialogElement, dismiss = (): void => dial
         event.clientY < bounds.top ||
         event.clientY > bounds.bottom
       )
-        dismiss();
+        dialog.close();
     }
   });
 }

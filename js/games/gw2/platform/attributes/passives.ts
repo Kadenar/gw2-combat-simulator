@@ -10,11 +10,11 @@ type FlatAttributeEffect = Extract<Gw2AttributeEffect, { readonly kind: 'flat' }
  * Turns a skill's own `attributeBonuses` into flat final-attribute grants. The caller owns eligibility (a held
  * conjure, a ready signet), while the amounts come from the selected skill so patches edit a single owner.
  */
-export function skillAttributeEffects(skill: Skill, multiplier = 1): FlatAttributeEffect[] {
+export function skillAttributeEffects(skill: Skill): FlatAttributeEffect[] {
   return Object.entries(skill.attributeBonuses ?? {}).map(([attribute, amount]) => ({
     kind: 'flat',
     to: ATTRIBUTE_NAMES[attribute as SkillAttributeKey],
-    amount: amount * multiplier,
+    amount,
     feedsConversions: 'none'
   }));
 }

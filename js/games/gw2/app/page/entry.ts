@@ -212,19 +212,19 @@ async function renderLoaderArtwork(root: Document): Promise<void> {
 }
 
 /**
- * Binds profession navigation within a document-like root.
+ * Binds profession navigation within the current page.
  *
  * Mounts the shared simulator chrome and renders the profession card grid when
  * present. A missing card grid is allowed so the same entry point can run on
  * landing and simulator pages.
  */
-function bindProfessionSelector(root: Document = document): void {
+function bindProfessionSelector(): void {
   // Shared primary navigation carries hosting modes between the picker and standalone benchmarks.
-  for (const link of root.querySelectorAll<HTMLAnchorElement>('.site-navigation a')) {
-    link.href = navigationRoute(link.getAttribute('href')!, root.defaultView?.location.search);
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('.site-navigation a')) {
+    link.href = navigationRoute(link.getAttribute('href')!, document.defaultView?.location.search);
   }
 
-  const benchmarkHost = root.querySelector<HTMLElement>('.benchmark-page #benchmarks-view');
+  const benchmarkHost = document.querySelector<HTMLElement>('.benchmark-page #benchmarks-view');
 
   if (benchmarkHost) {
     void import('#gw2/app/page/benchmark-dashboard.js')
@@ -234,17 +234,17 @@ function bindProfessionSelector(root: Document = document): void {
       });
   }
 
-  void renderLoaderArtwork(root);
-  mountGw2IconFallback(root);
-  mountRotationWorkspace(root);
-  mountRotationTimelineSize(root);
-  mountCommunityActions(root);
-  mountSimulatorTutorial(root);
-  mountSimulatorNavigation(root);
-  mountStickyHeader(root);
-  renderProfessionCards(root);
+  void renderLoaderArtwork(document);
+  mountGw2IconFallback(document);
+  mountRotationWorkspace(document);
+  mountRotationTimelineSize(document);
+  mountCommunityActions(document);
+  mountSimulatorTutorial(document);
+  mountSimulatorNavigation(document);
+  mountStickyHeader(document);
+  renderProfessionCards(document);
 }
 
 if (typeof document !== 'undefined') {
-  bindProfessionSelector(document);
+  bindProfessionSelector();
 }

@@ -74,9 +74,7 @@ export interface NecromancerSkill
 
 export type NecromancerResolverEvent = Gw2ResolverEvent & {
   readonly application?: NecromancerResolverEvent;
-  readonly summonCount?: number;
   readonly summonOwner?: string;
-  readonly summonOwnerBase?: string;
   readonly summonCriticalChance?: number;
   readonly summonCriticalDamage?: number;
   readonly mode?: string;

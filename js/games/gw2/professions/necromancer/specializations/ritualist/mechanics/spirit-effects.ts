@@ -15,18 +15,12 @@ import { ritualistState } from '#gw2/professions/necromancer/specializations/rit
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
-// Weapon-spell stacks follow the creature that owns an attack before its stat
+// Each packet names its individual creature; weapon-spell stacks follow that owner before its stat
 // attribution, so player-scaled spirit packets cannot spend the player's stacks.
 function recipientKeys(event: NecromancerResolverEvent): string[] {
-  if (event.summonOwnerBase && (event.summonCount || 0) > 1) {
-    return Array.from({ length: Number(event.summonCount) }, (_, index) => `${event.summonOwnerBase}:${index}`);
-  }
-
   if (event.summonOwner) return [event.summonOwner];
 
   if (event.actorType === ACTOR.PLAYER) return [ACTOR.PLAYER];
-
-  if (event.actorType !== ACTOR.SUMMON) return [];
 
   return [];
 }

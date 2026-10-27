@@ -68,8 +68,7 @@ export async function readDpsReportRotationUrl(
 /** Fetches a public gw2wingman log link and reconstructs its validated report through the same dps.report rules. */
 export async function readWingmanRotationUrl(
   input: string,
-  app: ProfessionAppState,
-  fetchImplementation: typeof fetch = fetch
+  app: ProfessionAppState
 ): Promise<ImportedDpsReportRotation> {
-  return reconstructParsedReport(await fetchWingmanReport(input, fetchImplementation), app);
+  return reconstructParsedReport(await fetchWingmanReport(input), app);
 }

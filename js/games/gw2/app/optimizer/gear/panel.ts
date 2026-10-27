@@ -150,7 +150,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     const form = panel.querySelector('form')!;
     const estimate = (): void => {
       try {
-        captureGearOptimizerRequest(app, readSelections(form), { kind: 'rotation' }, 'fast');
+        captureGearOptimizerRequest(app, readSelections(form), 'fast');
         panel!.querySelector('[data-role="optimizer-estimate"]')!.textContent = '';
       } catch (error) {
         panel!.querySelector('[data-role="optimizer-estimate"]')!.textContent = String(
@@ -197,7 +197,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         if (app.simulationStatus !== 'idle' || app.resultRevision !== app.buildRevision)
           throw new Error('Wait for the current build simulation to finish.');
 
-        const request = captureGearOptimizerRequest(app, readSelections(form), { kind: 'rotation' }, 'fast');
+        const request = captureGearOptimizerRequest(app, readSelections(form), 'fast');
         app.randomDistributionRunner.cancel?.();
         app.modifierContributionRunner.cancel?.();
         runner.run(request, Number(new FormData(form).get('workers')));
@@ -360,7 +360,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
 
     // An invalid current build can disable optimization without interrupting the normal editor's change flow.
     try {
-      captureGearOptimizerRequest(app, readSelections(panel.querySelector('form')!), { kind: 'rotation' }, 'fast');
+      captureGearOptimizerRequest(app, readSelections(panel.querySelector('form')!), 'fast');
       panel.querySelector('[data-role="optimizer-estimate"]')!.textContent = '';
     } catch (error) {
       panel.querySelector('[data-role="optimizer-estimate"]')!.textContent = String(

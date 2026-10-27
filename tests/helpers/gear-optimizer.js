@@ -28,7 +28,7 @@ export function runOrdinaryOptimizer(request, adapter) {
             profession: adapter.profession,
             rotation: request.build.rotation,
             config,
-            observationPolicy: request.observationPolicy
+            observationPolicy: { kind: 'rotation' }
           })
         ),
         represented: '1'

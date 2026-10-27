@@ -372,7 +372,7 @@ export function renderRotationComparison(app: ProfessionAppState): void {
   if (!currentTimeline) return;
 
   document.body?.setAttribute('data-rotation-comparison', '');
-  enterRotationFocus(document);
+  enterRotationFocus();
 
   let summary = document.getElementById('rotation-comparison-summary');
   let referenceSection = document.getElementById('rotation-comparison-reference');

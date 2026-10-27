@@ -13,7 +13,6 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -58,7 +57,6 @@ export interface GearOptimizerRequest {
   readonly build: Gw2CanonicalBuild;
   readonly simulationSettings?: SimulationSettings;
   readonly patch: PatchSelection;
-  readonly observationPolicy: ObservationPolicy;
   readonly selections: GearOptimizerSelections;
   readonly limit: number;
   readonly search?: 'exact' | 'fast';
@@ -113,10 +111,10 @@ function freezeSnapshot<T>(value: T): T {
   return value;
 }
 
+/** Capture equipment choices and search mode; every candidate is scored through the rotation boundary. */
 export function captureGearOptimizerRequest(
   app: ProfessionAppState,
   selections: GearOptimizerSelections,
-  observationPolicy: ObservationPolicy = { kind: 'rotation' },
   search: 'exact' | 'fast' = 'exact'
 ): GearOptimizerRequest {
   const request: GearOptimizerRequest = structuredClone({
@@ -127,7 +125,6 @@ export function captureGearOptimizerRequest(
     // Candidate workers reconstruct application input, so carry browser settings outside the build snapshot.
     simulationSettings: { transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays) },
     patch: { id: app.patch.id, values: app.patch.values },
-    observationPolicy,
     selections,
     limit: 20,
     search
@@ -206,12 +203,6 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
 
   if (request.patch.id !== 'current' && request.patch.id !== adapter.profession.preview?.id)
     throw new TypeError('Unknown patch.');
-
-  const policy = request.observationPolicy;
-  const boundary = policy?.kind === 'tail' ? policy.durationMs : policy?.kind === 'absolute' ? policy.endTimeMs : 0;
-
-  if (!policy || !['rotation', 'tail', 'absolute'].includes(policy.kind) || !Number.isFinite(boundary) || boundary < 0)
-    throw new TypeError('Invalid observation policy.');
 
   const validation = adapter.profession.validateBuild(request.build);
 
@@ -508,7 +499,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
       profession: adapter.profession,
       rotation: request.build.rotation,
       config: prepare(equipment),
-      observationPolicy: request.observationPolicy
+      observationPolicy: { kind: 'rotation' }
     });
   const score = (equipment: OptimizerEquipment): OptimizerScore | null => {
     const config = prepare(equipment, true);
@@ -519,7 +510,7 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
       profession: adapter.profession,
       rotation: request.build.rotation,
       config,
-      observationPolicy: request.observationPolicy,
+      observationPolicy: { kind: 'rotation' },
       output: 'score'
     });
   };
