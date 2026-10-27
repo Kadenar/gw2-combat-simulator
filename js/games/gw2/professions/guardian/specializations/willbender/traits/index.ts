@@ -36,37 +36,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Intrinsic virtue grants share an inclusive stack lifetime and the outgoing additive damage bucket. */
 export const lethalTempo = defineTrait({
-  id: TRAIT.LETHAL_TEMPO,
   name: 'Lethal Tempo',
-  // Both virtue boundaries grant and report the same inclusive stack window; the minor is intrinsic to Willbender.
-  triggers: [
-    onTriggerPoint(willbenderVirtueOpened, {
-      requiresSelection: false,
-      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
-    }),
-    onTriggerPoint(willbenderVirtueTriggered, {
-      requiresSelection: false,
-      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
-    })
-  ],
-  hooks: {
-    /** Imported stacks are absolute counts, while retaining the selected cap and refresh behavior. */
-    initialize(runtime) {
-      const parameters = lethalTempoParameters(runtime);
-
-      if (!parameters) return;
-
-      for (const buff of runtime.config.initialBuffs ?? []) {
-        if (buff.kind !== 'lethal-tempo') continue;
-
-        gainLethalTempo(willbenderState.from(runtime), runtime.time, {
-          ...parameters,
-          stacks: buff.stacks,
-          duration: buff.duration
-        });
-      }
-    }
-  },
+  id: TRAIT.LETHAL_TEMPO,
   balance: {
     damageIncreasePerStack: 0.02,
     conditionDamageIncreasePerStack: 0.02,
@@ -104,13 +75,42 @@ export const lethalTempo = defineTrait({
           : balanceNumberFromContext(context, TRAIT.LETHAL_TEMPO, 'conditionDamageIncreasePerStack')),
       order: 100
     }
-  ]
+  ],
+  // Both virtue boundaries grant and report the same inclusive stack window; the minor is intrinsic to Willbender.
+  triggers: [
+    onTriggerPoint(willbenderVirtueOpened, {
+      requiresSelection: false,
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
+    }),
+    onTriggerPoint(willbenderVirtueTriggered, {
+      requiresSelection: false,
+      run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) => tempo(runtime, cause)
+    })
+  ],
+  hooks: {
+    /** Imported stacks are absolute counts, while retaining the selected cap and refresh behavior. */
+    initialize(runtime) {
+      const parameters = lethalTempoParameters(runtime);
+
+      if (!parameters) return;
+
+      for (const buff of runtime.config.initialBuffs ?? []) {
+        if (buff.kind !== 'lethal-tempo') continue;
+
+        gainLethalTempo(willbenderState.from(runtime), runtime.time, {
+          ...parameters,
+          stacks: buff.stacks,
+          duration: buff.duration
+        });
+      }
+    }
+  }
 });
 
 /** Selects longer Justice and shorter Tempo windows while the shared stack rules retain live tuning. */
 const tyrantsMomentum = defineTrait({
-  id: TRAIT.TYRANTS_MOMENTUM,
   name: "Tyrant's Momentum",
+  id: TRAIT.TYRANTS_MOMENTUM,
   balance: {
     damageIncreasePerStack: 0.05,
     conditionDamageIncreasePerStack: 0.03,
@@ -123,8 +123,8 @@ const tyrantsMomentum = defineTrait({
 
 /** Tracks reserved weapon work so earned reductions survive to commitment without moving their origin. */
 const restorativeVirtues = defineTrait({
-  id: TRAIT.RESTORATIVE_VIRTUES,
   name: 'Restorative Virtues',
+  id: TRAIT.RESTORATIVE_VIRTUES,
   balance: {
     // Each virtue trigger advances active weapon recharge by 280ms before recharge-speed conversion.
     rechargeReduction: 0.28,
@@ -166,8 +166,8 @@ const restorativeVirtues = defineTrait({
 
 /** Virtue activation grants Fury and accepted hit cycles grant party Might. */
 const holyReckoning = defineTrait({
-  id: TRAIT.HOLY_RECKONING,
   name: 'Holy Reckoning',
+  id: TRAIT.HOLY_RECKONING,
   balance: {
     effects: [
       {
@@ -207,8 +207,8 @@ const holyReckoning = defineTrait({
 
 /** Resolve grants distinct Alacrity packets whose authored recipients can be widened by Battle Presence. */
 const phoenixProtocol = defineTrait({
-  id: TRAIT.PHOENIX_PROTOCOL,
   name: 'Phoenix Protocol',
+  id: TRAIT.PHOENIX_PROTOCOL,
   balance: {
     effects: [
       {
@@ -247,12 +247,15 @@ const phoenixProtocol = defineTrait({
 
 /** Only tagged flame strikes receive the multiplier; the panel bonus remains eligible for conversions. */
 const powerForPower = defineTrait({
-  id: TRAIT.POWER_FOR_POWER,
   name: 'Power for Power',
+  id: TRAIT.POWER_FOR_POWER,
   balance: {
     damageMultiplier: 3,
     attributeBonus: 120
   },
+  attributes: traitAttributeEffects(TRAIT.POWER_FOR_POWER, [
+    { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'all' }
+  ]),
   modifierRules: [
     {
       id: 'guardian.willbender.power-for-power',
@@ -264,16 +267,13 @@ const powerForPower = defineTrait({
       // so this 3× multiplier never applies to normal weapon hits.
       when: (context) => Boolean(context.event?.willbenderFlames)
     }
-  ],
-  attributes: traitAttributeEffects(TRAIT.POWER_FOR_POWER, [
-    { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  ]
 });
 
 /** Supplies the panel Vitality bonus before eligible conversions. */
 const conceitedCurate = defineTrait({
-  id: TRAIT.CONCEITED_CURATE,
   name: 'Conceited Curate',
+  id: TRAIT.CONCEITED_CURATE,
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.CONCEITED_CURATE, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
@@ -282,12 +282,15 @@ const conceitedCurate = defineTrait({
 
 /** Accepted flame strikes emit the surviving Burning packet independently of virtue counters. */
 const searingPact = defineTrait({
-  id: TRAIT.SEARING_PACT,
   name: 'Searing Pact',
+  id: TRAIT.SEARING_PACT,
   balance: {
     attributeBonus: 120,
     effects: [{ type: 'condition', name: CONDITION.BURNING, condition: CONDITION.BURNING, stacks: 1, duration: 1 }]
   },
+  attributes: traitAttributeEffects(TRAIT.SEARING_PACT, [
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'all' }
+  ]),
   triggers: [
     {
       emit: TRAIT.SEARING_PACT,
@@ -307,16 +310,13 @@ const searingPact = defineTrait({
         triggeredBy: 'Willbender Flames'
       }
     }
-  ],
-  attributes: traitAttributeEffects(TRAIT.SEARING_PACT, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  ]
 });
 
 /** Training owns the common trigger threshold; each virtue retains its independent live counter. */
 export const willbenderTraining = defineTrait({
-  id: TRAIT.WILLBENDER_TRAINING,
   name: 'Willbender Training',
+  id: TRAIT.WILLBENDER_TRAINING,
   balance: { threshold: 5 }
 });
 

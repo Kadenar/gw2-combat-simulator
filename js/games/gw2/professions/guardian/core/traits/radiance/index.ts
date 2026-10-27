@@ -38,8 +38,8 @@ const JUSTICE_AURA = 'guardian.justice-is-blind-aura';
 
 /** Owns Healer's Resolution's live tuning and trait behavior. */
 export const healersResolution = defineTrait({
-  id: TRAIT.HEALERS_RESOLUTION,
   name: "Healer's Resolution",
+  id: TRAIT.HEALERS_RESOLUTION,
   balance: {
     internalCooldown: 20,
     effects: [{ type: 'boon', name: boonKey(BOON.RESOLUTION), boon: BOON.RESOLUTION, duration: 8, stacks: 1 }]
@@ -54,8 +54,8 @@ export const healersResolution = defineTrait({
 
 /** Owns Righteous Instincts's live tuning and trait behavior. */
 export const righteousInstincts = defineTrait({
-  id: TRAIT.RIGHTEOUS_INSTINCTS,
   name: 'Righteous Instincts',
+  id: TRAIT.RIGHTEOUS_INSTINCTS,
   balance: {
     criticalChance: 0.25,
     pulseInterval: 1,
@@ -84,8 +84,8 @@ export const righteousInstincts = defineTrait({
 
 /** Owns Right-Hand Strength's live tuning and trait behavior. */
 export const rightHandStrength = defineTrait({
-  id: TRAIT.RIGHT_HAND_STRENGTH,
   name: 'Right-Hand Strength',
+  id: TRAIT.RIGHT_HAND_STRENGTH,
   balance: { attributeBonus: 80 },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const rightHandStrengthProfile = requireBalanceProfileFromContext(profileContext, TRAIT.RIGHT_HAND_STRENGTH);
@@ -119,12 +119,15 @@ export const rightHandStrength = defineTrait({
 
 /** Owns Radiant Power's live tuning and trait behavior. */
 export const radiantPower = defineTrait({
-  id: TRAIT.RADIANT_POWER,
   name: 'Radiant Power',
+  id: TRAIT.RADIANT_POWER,
   balance: {
     criticalChance: 0.1,
     attributeBonus: 150
   },
+  attributes: traitAttributeEffects(TRAIT.RADIANT_POWER, [
+    { kind: 'flat', to: 'Ferocity', field: 'attributeBonus', feedsConversions: 'none' }
+  ]),
   modifierRules: [
     {
       order: -9,
@@ -134,14 +137,24 @@ export const radiantPower = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_POWER, 'criticalChance'),
       when: (context) => targetConditionActive(context, CONDITION.BURNING)
     }
-  ],
-  attributes: traitAttributeEffects(TRAIT.RADIANT_POWER, [
-    { kind: 'flat', to: 'Ferocity', field: 'attributeBonus', feedsConversions: 'none' }
-  ])
+  ]
 });
 
 /** Owns Radiant Fire's live tuning and trait behavior. */
 export const radiantFire = defineTrait({
+  name: 'Radiant Fire',
+  id: TRAIT.RADIANT_FIRE,
+  balance: {
+    conditionDurationBonus: 0.2,
+    rechargeMultiplier: 0.8,
+    durationMultiplier: 1.5,
+    maximumStacks: 2
+  },
+  attributes: ({ balanceContext }) => ({
+    traitDurations: {
+      'Burning Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.RADIANT_FIRE, 'conditionDurationBonus')
+    }
+  }),
   // Extend only Zealot's Flame's base Burning before ordinary duration bonuses.
   modifierRules: [
     {
@@ -160,28 +173,13 @@ export const radiantFire = defineTrait({
       multiplier: { profile: TRAIT.RADIANT_FIRE, field: 'rechargeMultiplier' }
     }
   ],
-
-  hooks: { maximumAmmo: radiantFireMaximumAmmo },
-
-  id: TRAIT.RADIANT_FIRE,
-  name: 'Radiant Fire',
-  balance: {
-    conditionDurationBonus: 0.2,
-    rechargeMultiplier: 0.8,
-    durationMultiplier: 1.5,
-    maximumStacks: 2
-  },
-  attributes: ({ balanceContext }) => ({
-    traitDurations: {
-      'Burning Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.RADIANT_FIRE, 'conditionDurationBonus')
-    }
-  })
+  hooks: { maximumAmmo: radiantFireMaximumAmmo }
 });
 
 /** Owns Amplified Wrath's live tuning and trait behavior. */
 export const amplifiedWrath = defineTrait({
-  id: TRAIT.AMPLIFIED_WRATH,
   name: 'Amplified Wrath',
+  id: TRAIT.AMPLIFIED_WRATH,
   balance: {
     conditionDamageMultiplier: 1.1,
     durationMultiplier: 1.2
@@ -210,8 +208,8 @@ export const amplifiedWrath = defineTrait({
 
 /** Owns Perfect Inscriptions's live tuning and trait behavior. */
 export const perfectInscriptions = defineTrait({
-  id: TRAIT.PERFECT_INSCRIPTIONS,
   name: 'Perfect Inscriptions',
+  id: TRAIT.PERFECT_INSCRIPTIONS,
   balance: {
     attributeMultiplier: 1.2
   }
@@ -219,8 +217,8 @@ export const perfectInscriptions = defineTrait({
 
 /** Owns Justice is Blind's live tuning and trait behavior. */
 export const justiceIsBlind = defineTrait({
-  id: TRAIT.JUSTICE_IS_BLIND,
   name: 'Justice is Blind',
+  id: TRAIT.JUSTICE_IS_BLIND,
   balance: {
     effects: [
       {
@@ -246,8 +244,8 @@ export const justiceIsBlind = defineTrait({
 
 /** Owns Retribution's live tuning and trait behavior. */
 export const retribution = defineTrait({
-  id: TRAIT.RETRIBUTION,
   name: 'Retribution',
+  id: TRAIT.RETRIBUTION,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.1 },
   modifierRules: [
@@ -264,8 +262,8 @@ export const retribution = defineTrait({
 
 /** Player strikes grant Fury only while the target has enough live or assumed Burning stacks. */
 export const innerFire = defineTrait({
-  id: TRAIT.INNER_FIRE,
   name: 'Inner Fire',
+  id: TRAIT.INNER_FIRE,
   balance: {
     threshold: 3,
     internalCooldown: 10,

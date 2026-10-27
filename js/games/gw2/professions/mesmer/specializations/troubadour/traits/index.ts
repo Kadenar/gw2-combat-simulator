@@ -56,15 +56,15 @@ export const SYNCOPATE_DELAY_SECONDS = 3;
 
 /** Wandering Minstrel owns baseline note capacity and instrument playing durations. */
 const wanderingMinstrel = defineTrait<MesmerSkill>({
-  id: TRAIT.WANDERING_MINSTREL,
   name: 'Wandering Minstrel',
+  id: TRAIT.WANDERING_MINSTREL,
   balance: { maximumStacks: 3, baseDuration: 5, durationPerTier: 5 }
 });
 
 /** Harmonize owns its existing profile and ordered performance consequences. */
 export const harmonize = defineTrait<MesmerSkill>({
-  id: TRAIT.HARMONIZE,
   name: 'Harmonize',
+  id: TRAIT.HARMONIZE,
   balance: {
     resourceGain: 1
   },
@@ -74,6 +74,12 @@ export const harmonize = defineTrait<MesmerSkill>({
 
 /** Mayhem owns its existing profile and ordered performance consequences. */
 const mayhem = defineTrait<MesmerSkill>({
+  name: 'Mayhem',
+  id: TRAIT.MAYHEM,
+  balance: {
+    rechargeReduction: 1.5,
+    effects: [{ name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 5, stacks: 4 }]
+  },
   triggers: [
     onTriggerPoint(troubadourDodgeCompleted, {
       run(runtime, { cast }: TriggerPointInput<typeof troubadourDodgeCompleted>) {
@@ -98,39 +104,28 @@ const mayhem = defineTrait<MesmerSkill>({
       run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentConditions>) =>
         applyMayhemInstrument(runtime, input.skill, input.data, input.damageAt, input.delivery)
     })
-  ],
-  id: TRAIT.MAYHEM,
-  name: 'Mayhem',
-  balance: {
-    rechargeReduction: 1.5,
-    effects: [{ name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 5, stacks: 4 }]
-  }
+  ]
 });
 
 /** Raconteur owns its existing profile and ordered performance consequences. */
 const raconteur = defineTrait<MesmerSkill>({
+  name: 'Raconteur',
+  id: TRAIT.RACONTEUR,
+  balance: {
+    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1 }]
+  },
   triggers: [
     onTriggerPoint(troubadourTaleResolved, {
       run: (runtime, input: TriggerPointInput<typeof troubadourTaleResolved>) =>
         triggerRaconteur(runtime, input.skill, input.at)
     })
-  ],
-  id: TRAIT.RACONTEUR,
-  name: 'Raconteur',
-  balance: {
-    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1 }]
-  }
+  ]
 });
 
 /** Shredding owns its existing profile and ordered performance consequences. */
 const shredding = defineTrait<MesmerSkill>({
-  triggers: [
-    onTriggerPoint(troubadourInstrumentStrike, {
-      run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentStrike>) => emitShredding(runtime, input)
-    })
-  ],
-  id: TRAIT.SHREDDING,
   name: 'Shredding',
+  id: TRAIT.SHREDDING,
   balance: {
     damageIncrease: 0.15,
     conditionDamageIncrease: 0.15,
@@ -147,23 +142,18 @@ const shredding = defineTrait<MesmerSkill>({
           : balanceNumberFromContext(context, TRAIT.SHREDDING, 'damageIncrease'),
       when: (context) => hasLute(context) && !illusionSource(context)
     }
+  ],
+  triggers: [
+    onTriggerPoint(troubadourInstrumentStrike, {
+      run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentStrike>) => emitShredding(runtime, input)
+    })
   ]
 });
 
 /** Life of the Party owns its existing profile and ordered performance consequences. */
 const lifeOfTheParty = defineTrait<MesmerSkill>({
-  triggers: [
-    onTriggerPoint(troubadourCrescendoResolved, {
-      run: (runtime, input: TriggerPointInput<typeof troubadourCrescendoResolved>) =>
-        grantCrescendoPartyBoons(runtime, input)
-    }),
-    onTriggerPoint(troubadourInstrumentControl, {
-      run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentControl>) =>
-        applyLuteLifeOfTheParty(runtime, input.skill, input.data, input.damageAt, input.delivery)
-    })
-  ],
-  id: TRAIT.LIFE_OF_THE_PARTY,
   name: 'Life of the Party',
+  id: TRAIT.LIFE_OF_THE_PARTY,
   balance: {
     effects: [
       {
@@ -202,11 +192,29 @@ const lifeOfTheParty = defineTrait<MesmerSkill>({
         stacks: 1
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(troubadourCrescendoResolved, {
+      run: (runtime, input: TriggerPointInput<typeof troubadourCrescendoResolved>) =>
+        grantCrescendoPartyBoons(runtime, input)
+    }),
+    onTriggerPoint(troubadourInstrumentControl, {
+      run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentControl>) =>
+        applyLuteLifeOfTheParty(runtime, input.skill, input.data, input.damageAt, input.delivery)
+    })
+  ]
 });
 
 /** Fortissimo owns its existing profile and ordered performance consequences. */
 export const fortissimo = defineTrait<MesmerSkill>({
+  name: 'Fortissimo',
+  id: TRAIT.FORTISSIMO,
+  balance: {
+    attributeConversion: 0.04,
+    maximumStacks: 5,
+    pulseInterval: 1,
+    resourceGain: 1
+  },
   // Convert eligible attributes once, excluding Might, signet passives, and other conversion results.
   attributes: (context) => {
     const multiplier =
@@ -227,53 +235,35 @@ export const fortissimo = defineTrait<MesmerSkill>({
       run: (runtime, input: TriggerPointInput<typeof troubadourCrescendoResolved>) =>
         queueFortissimoNotes(runtime, input)
     })
-  ],
-  id: TRAIT.FORTISSIMO,
-  name: 'Fortissimo',
-  balance: {
-    attributeConversion: 0.04,
-    maximumStacks: 5,
-    pulseInterval: 1,
-    resourceGain: 1
-  }
+  ]
 });
 
 /** Call and Response owns its existing profile and ordered performance consequences. */
 const callAndResponse = defineTrait<MesmerSkill>({
+  name: 'Call and Response',
+  id: TRAIT.CALL_AND_RESPONSE,
+  balance: {
+    threshold: 3
+  },
   triggers: [
     onTriggerPoint(troubadourInstrumentCommitted, {
       run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentCommitted>) =>
         applyCallAndResponse(runtime, input.skill, input.data, input.at, input.spent, input.delivery)
     })
-  ],
-  id: TRAIT.CALL_AND_RESPONSE,
-  name: 'Call and Response',
-  balance: {
-    threshold: 3
-  }
+  ]
 });
 
 /** Symphonic Resonance owns its existing profile and ordered performance consequences. */
 const symphonicResonance = defineTrait<MesmerSkill>({
-  id: TRAIT.SYMPHONIC_RESONANCE,
   name: 'Symphonic Resonance',
+  id: TRAIT.SYMPHONIC_RESONANCE,
   balance: { enduranceRegenerationMultiplier: 1.25 }
 });
 
 /** Altered Chord owns its existing profile and ordered performance consequences. */
 const alteredChord = defineTrait<MesmerSkill>({
-  triggers: [
-    onTriggerPoint(troubadourCrescendoResolved, {
-      run: (runtime, input: TriggerPointInput<typeof troubadourCrescendoResolved>) =>
-        resolveAlteredChord(runtime, input)
-    }),
-    onTriggerPoint(troubadourInstrumentAnnounced, {
-      run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentAnnounced>) =>
-        reduceAlteredChordRecharge(runtime, input.spent, input.at)
-    })
-  ],
-  id: TRAIT.ALTERED_CHORD,
   name: 'Altered Chord',
+  id: TRAIT.ALTERED_CHORD,
   balance: {
     damageIncrease: 0.25,
     rechargeReduction: 2,
@@ -289,20 +279,23 @@ const alteredChord = defineTrait<MesmerSkill>({
       amount: (context) => balanceNumberFromContext(context, TRAIT.ALTERED_CHORD, 'damageIncrease'),
       when: (context) => buffActive(context, 'altered-chord') && !illusionSource(context)
     }
+  ],
+  triggers: [
+    onTriggerPoint(troubadourCrescendoResolved, {
+      run: (runtime, input: TriggerPointInput<typeof troubadourCrescendoResolved>) =>
+        resolveAlteredChord(runtime, input)
+    }),
+    onTriggerPoint(troubadourInstrumentAnnounced, {
+      run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentAnnounced>) =>
+        reduceAlteredChordRecharge(runtime, input.spent, input.at)
+    })
   ]
 });
 
 /** Register the control reaction and queued heal wave without changing their separate eligibility. */
 export const syncopate = defineTrait<MesmerSkill>({
-  triggers: [
-    { on: 'control.resolved', run: observeSyncopateEvent },
-    onTriggerPoint(troubadourInstrumentControl, {
-      run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentControl>) =>
-        scheduleSyncopateDrumWave(runtime, input.skill, input.data, input.damageAt, input.delivery)
-    })
-  ],
-  id: TRAIT.SYNCOPATE,
   name: 'Syncopate',
+  id: TRAIT.SYNCOPATE,
   balance: {
     effects: [
       { type: 'strike', name: 'Immediate wave', coefficient: 0.75, hits: 1 },
@@ -310,6 +303,13 @@ export const syncopate = defineTrait<MesmerSkill>({
       { type: 'control', name: 'Delayed daze', controlKind: CONTROL.DAZE }
     ]
   },
+  triggers: [
+    { on: 'control.resolved', run: observeSyncopateEvent },
+    onTriggerPoint(troubadourInstrumentControl, {
+      run: (runtime, input: TriggerPointInput<typeof troubadourInstrumentControl>) =>
+        scheduleSyncopateDrumWave(runtime, input.skill, input.data, input.damageAt, input.delivery)
+    })
+  ],
   lifetime: {
     tasks: { 'mesmer.syncopate': triggerMethodOfMadnessSyncopate }
   }

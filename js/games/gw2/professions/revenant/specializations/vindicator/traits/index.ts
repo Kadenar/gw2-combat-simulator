@@ -28,14 +28,17 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns Angsiyan's Trust tuning and behavior at its established execution boundaries. */
 const angsiyansTrust = defineTrait({
-  triggers: [onTriggerPoint(energyMeldCompleted, { run: grantAngsiyansTrustEnergy })],
-  id: TRAIT.ANGSIYANS_TRUST,
   name: "Angsiyan's Trust",
-  balance: { resourceGain: 25, effects: [] }
+  id: TRAIT.ANGSIYANS_TRUST,
+  balance: { resourceGain: 25, effects: [] },
+  triggers: [onTriggerPoint(energyMeldCompleted, { run: grantAngsiyansTrustEnergy })]
 });
 
 /** Owns Empire Divided tuning and behavior at its established execution boundaries. */
 const empireDivided = defineTrait({
+  name: 'Empire Divided',
+  id: TRAIT.EMPIRE_DIVIDED,
+  balance: { attributeBonus: 240, threshold: 0.5 },
   attributes: (context) => {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EMPIRE_DIVIDED);
     return {
@@ -50,22 +53,13 @@ const empireDivided = defineTrait({
         }
       ]
     };
-  },
-  id: TRAIT.EMPIRE_DIVIDED,
-  name: 'Empire Divided',
-  balance: { attributeBonus: 240, threshold: 0.5 }
+  }
 });
 
 /** Owns Forerunner of Death tuning and behavior at its established execution boundaries. */
 const forerunnerOfDeath = defineTrait({
-  triggers: [
-    onTriggerPoint(vindicatorLanded, {
-      run: (runtime, input: TriggerPointInput<typeof vindicatorLanded>) =>
-        renewForerunnerOfDeath(runtime, input.profile, input.activationId)
-    })
-  ],
-  id: TRAIT.FORERUNNER_OF_DEATH,
   name: 'Forerunner of Death',
+  id: TRAIT.FORERUNNER_OF_DEATH,
   balance: {
     damageIncrease: 0.25,
     effects: [
@@ -94,13 +88,19 @@ const forerunnerOfDeath = defineTrait({
           ? Boolean(context.event.forerunnerOfDeathActive)
           : buffActive(context, 'forerunner-of-death'))
     }
+  ],
+  triggers: [
+    onTriggerPoint(vindicatorLanded, {
+      run: (runtime, input: TriggerPointInput<typeof vindicatorLanded>) =>
+        renewForerunnerOfDeath(runtime, input.profile, input.activationId)
+    })
   ]
 });
 
 /** Owns Leviathan Strength tuning and behavior at its established execution boundaries. */
 const leviathanStrength = defineTrait({
-  id: TRAIT.LEVIATHAN_STRENGTH,
   name: 'Leviathan Strength',
+  id: TRAIT.LEVIATHAN_STRENGTH,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
   modifierRules: [
@@ -118,9 +118,8 @@ const leviathanStrength = defineTrait({
 
 /** Owns Reaver's Curse tuning and behavior at its established execution boundaries. */
 const reaversCurse = defineTrait({
-  triggers: [onTriggerPoint(energyMeldCompleted, { run: armReaversCurse })],
-  id: TRAIT.REAVERS_CURSE,
   name: "Reaver's Curse",
+  id: TRAIT.REAVERS_CURSE,
   balance: {
     rechargeMultiplier: 0.5,
     damageMultiplier: 2,
@@ -140,18 +139,19 @@ const reaversCurse = defineTrait({
       when: (_runtime, skill) => ENERGY_MELD_IDS.has(skill.id),
       multiplier: { profile: TRAIT.REAVERS_CURSE, field: 'rechargeMultiplier' }
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(energyMeldCompleted, { run: armReaversCurse })]
 });
 
 const ENERGY_MELD_IDS = new Set<SkillId>([ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058]);
 
 /** Owns Saint of zu Heltzer tuning and behavior at its established execution boundaries. */
-const saintOfZuHeltzer = defineTrait({ id: TRAIT.SAINT_OF_ZU_HELTZER, name: 'Saint of zu Heltzer' });
+const saintOfZuHeltzer = defineTrait({ name: 'Saint of zu Heltzer', id: TRAIT.SAINT_OF_ZU_HELTZER });
 
 /** Owns Song of Arboreum tuning and behavior at its established execution boundaries. */
 const songOfArboreum = defineTrait({
-  id: TRAIT.SONG_OF_ARBOREUM,
   name: 'Song of Arboreum',
+  id: TRAIT.SONG_OF_ARBOREUM,
   balance: {
     resourceGain: 40,
     effects: [
@@ -187,7 +187,7 @@ const songOfArboreum = defineTrait({
 });
 
 /** Owns Vassals of the Empire tuning and behavior at its established execution boundaries. */
-const vassalsOfTheEmpire = defineTrait({ id: TRAIT.VASSALS_OF_THE_EMPIRE, name: 'Vassals of the Empire' });
+const vassalsOfTheEmpire = defineTrait({ name: 'Vassals of the Empire', id: TRAIT.VASSALS_OF_THE_EMPIRE });
 
 export const traitDefinitions = [
   songOfArboreum,

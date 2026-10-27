@@ -1,4 +1,4 @@
-import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { WEAPON, ACTOR, BOON, CONDITION, type BoonName } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { isPetStrike, petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
@@ -39,27 +39,13 @@ import {
 import { activeBuff, qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { shortbowConditionDuration } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Owns Light on Your Feet's live tuning and trait behavior. */
 export const lightOnYourFeet = defineTrait({
-  triggers: [
-    onTriggerPoint(bloodThirstApplied, {
-      run: (runtime, input: TriggerPointInput<typeof bloodThirstApplied>) =>
-        triggerLightOnYourFeet(runtime, input.event)
-    }),
-    onTriggerPoint(dodged, {
-      run: (runtime, input: TriggerPointInput<typeof dodged>) => applyRangerDodgeTraits(runtime, input.at)
-    }),
-    {
-      // Bumble still grants this buff after its evade was removed; keep the exception trait-local.
-      on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.id === ID.BUMBLE,
-      run: (runtime) => applyRangerDodgeTraits(runtime)
-    }
-  ],
-  id: TRAIT.LIGHT_ON_YOUR_FEET,
   name: 'Light on Your Feet',
+  id: TRAIT.LIGHT_ON_YOUR_FEET,
   balance: {
     damageMultiplier: 1.1,
     conditionDurationBonus: 0.1,
@@ -130,33 +116,44 @@ export const lightOnYourFeet = defineTrait({
       when: (_runtime, skill) => skill.weapon === WEAPON.SHORTBOW,
       multiplier: { profile: TRAIT.LIGHT_ON_YOUR_FEET, field: 'rechargeMultiplier' }
     }
+  ],
+  triggers: [
+    onTriggerPoint(bloodThirstApplied, {
+      run: (runtime, input: TriggerPointInput<typeof bloodThirstApplied>) =>
+        triggerLightOnYourFeet(runtime, input.event)
+    }),
+    onTriggerPoint(dodged, {
+      run: (runtime, input: TriggerPointInput<typeof dodged>) => applyRangerDodgeTraits(runtime, input.at)
+    }),
+    {
+      // Bumble still grants this buff after its evade was removed; keep the exception trait-local.
+      on: 'castCommit',
+      when: (_runtime, cast) => cast.skill.id === ID.BUMBLE,
+      run: (runtime) => applyRangerDodgeTraits(runtime)
+    }
   ]
 });
 
 /** Owns Tail Wind's live tuning and trait behavior. */
 export const tailWind = defineTrait({
-  triggers: [
-    onTriggerPoint(weaponSwapped, {
-      run: (runtime, input: TriggerPointInput<typeof weaponSwapped>) => tailWindSwap(runtime, input.skill, input.at)
-    })
-  ],
-  id: TRAIT.TAIL_WIND,
   name: 'Tail Wind',
+  id: TRAIT.TAIL_WIND,
   balance: {
     internalCooldown: 9,
     effects: [{ name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, duration: 9, stacks: 1 }]
-  }
+  },
+  triggers: [
+    onTriggerPoint(weaponSwapped, {
+      run: (runtime, input: TriggerPointInput<typeof weaponSwapped>) =>
+        weaponSwapBoon(runtime, input, TRAIT.TAIL_WIND, BOON.SWIFTNESS, 'ranger.core.tailWind', 'Tail Wind')
+    })
+  ]
 });
 
 /** Owns Quick Draw's live tuning and trait behavior. */
 export const quickDraw = defineTrait({
-  triggers: [
-    onTriggerPoint(weaponSwapped, {
-      run: (runtime, input: TriggerPointInput<typeof weaponSwapped>) => quickDrawSwap(runtime, input.skill, input.at)
-    })
-  ],
-  id: TRAIT.QUICK_DRAW,
   name: 'Quick Draw',
+  id: TRAIT.QUICK_DRAW,
   balance: {
     internalCooldown: 9,
     duration: 5,
@@ -173,6 +170,11 @@ export const quickDraw = defineTrait({
       multiplier: { profile: TRAIT.QUICK_DRAW, field: 'rechargeMultiplier' }
     }
   ],
+  triggers: [
+    onTriggerPoint(weaponSwapped, {
+      run: (runtime, input: TriggerPointInput<typeof weaponSwapped>) => quickDrawSwap(runtime, input.skill, input.at)
+    })
+  ],
   lifetime: {
     reserveRecharge(runtime: RangerRuntime, skill, work) {
       // Quick Draw is reserved at acceptance so concurrent casts cannot consume the same grant twice.
@@ -186,29 +188,24 @@ export const quickDraw = defineTrait({
 
 /** Owns Furious Grip's live tuning and trait behavior. */
 export const furiousGrip = defineTrait({
-  triggers: [
-    onTriggerPoint(weaponSwapped, {
-      run: (runtime, input: TriggerPointInput<typeof weaponSwapped>) => furiousGripSwap(runtime, input.skill, input.at)
-    })
-  ],
-  id: TRAIT.FURIOUS_GRIP,
   name: 'Furious Grip',
+  id: TRAIT.FURIOUS_GRIP,
   balance: {
     internalCooldown: 9,
     effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 5, stacks: 1 }]
-  }
+  },
+  triggers: [
+    onTriggerPoint(weaponSwapped, {
+      run: (runtime, input: TriggerPointInput<typeof weaponSwapped>) =>
+        weaponSwapBoon(runtime, input, TRAIT.FURIOUS_GRIP, BOON.FURY, 'ranger.core.furiousGrip', 'Furious Grip')
+    })
+  ]
 });
 
 /** Owns Sharpened Edges's live tuning and trait behavior. */
 export const sharpenedEdges = defineTrait({
-  triggers: [
-    onTriggerPoint(criticalResolved, {
-      run: (runtime, input: TriggerPointInput<typeof criticalResolved>) =>
-        sharpenedEdgesCritical(runtime, input.event, input.details)
-    })
-  ],
-  id: TRAIT.SHARPENED_EDGES,
   name: 'Sharpened Edges',
+  id: TRAIT.SHARPENED_EDGES,
   balance: {
     // One saved override tunes player and pet proc rolls without changing their critical-hit eligibility.
     procRate: {
@@ -219,11 +216,32 @@ export const sharpenedEdges = defineTrait({
     },
     criticalChance: 0.33,
     effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 3, stacks: 1 }]
-  }
+  },
+  triggers: [
+    onTriggerPoint(criticalResolved, {
+      run: (runtime, input: TriggerPointInput<typeof criticalResolved>) =>
+        sharpenedEdgesCritical(runtime, input.event, input.details)
+    })
+  ]
 });
 
 /** Owns Trapper's Expertise's live tuning and trait behavior. */
 export const trappersExpertise = defineTrait({
+  name: "Trapper's Expertise",
+  id: TRAIT.TRAPPERS_EXPERTISE,
+  balance: {
+    durationMultiplier: 1.6,
+    coefficientMultiplier: 1.66,
+    effects: [
+      {
+        name: CONDITION.CRIPPLED,
+        type: 'condition',
+        condition: CONDITION.CRIPPLED,
+        duration: 3,
+        stacks: 1
+      }
+    ]
+  },
   // Traps extend their base conditions, with Flame Trap retaining its separate balance field.
   modifierRules: [
     {
@@ -249,28 +267,13 @@ export const trappersExpertise = defineTrait({
       run: (runtime, input: TriggerPointInput<typeof packStrikeApplied>) =>
         triggerTrappersExpertise(runtime, input.event)
     })
-  ],
-  id: TRAIT.TRAPPERS_EXPERTISE,
-  name: "Trapper's Expertise",
-  balance: {
-    durationMultiplier: 1.6,
-    coefficientMultiplier: 1.66,
-    effects: [
-      {
-        name: CONDITION.CRIPPLED,
-        type: 'condition',
-        condition: CONDITION.CRIPPLED,
-        duration: 3,
-        stacks: 1
-      }
-    ]
-  }
+  ]
 });
 
 /** Owns Fang and Claw's live tuning and trait behavior. */
 export const fangAndClaw = defineTrait({
-  id: TRAIT.FANG_AND_CLAW,
   name: 'Fang and Claw',
+  id: TRAIT.FANG_AND_CLAW,
   balance: {
     attributeBonus: 420,
     weaponAttributeBonus: 450
@@ -279,8 +282,8 @@ export const fangAndClaw = defineTrait({
 
 /** Owns Strider's Strength's live tuning and trait behavior. */
 export const stridersStrength = defineTrait({
-  id: TRAIT.STRIDERS_STRENGTH,
   name: "Strider's Strength",
+  id: TRAIT.STRIDERS_STRENGTH,
   balance: {
     weaponAttributeBonus: 240,
     attributeBonus: 120
@@ -307,23 +310,12 @@ export const stridersStrength = defineTrait({
 
 /** Owns Vicious Quarry's live tuning and trait behavior. */
 export const viciousQuarry = defineTrait({
-  id: TRAIT.VICIOUS_QUARRY,
   name: 'Vicious Quarry',
+  id: TRAIT.VICIOUS_QUARRY,
   balance: {
     criticalChance: 0.15,
     attributeBonus: 250
   },
-  modifierRules: [
-    {
-      order: 5,
-      id: 'ranger.vicious-quarry-critical-chance',
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.VICIOUS_QUARRY, 'criticalChance'),
-      // Vicious Quarry improves the ranger's Fury; the pet retains its own independent critical chance.
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.FURY))
-    }
-  ],
   attributes: ({ balanceContext: profileContext, loadout }) => {
     return {
       attributeEffects: [
@@ -336,13 +328,24 @@ export const viciousQuarry = defineTrait({
         }
       ]
     };
-  }
+  },
+  modifierRules: [
+    {
+      order: 5,
+      id: 'ranger.vicious-quarry-critical-chance',
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: 'add',
+      amount: (context) => balanceNumberFromContext(context, TRAIT.VICIOUS_QUARRY, 'criticalChance'),
+      // Vicious Quarry improves the ranger's Fury; the pet retains its own independent critical chance.
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.FURY))
+    }
+  ]
 });
 
 /** Owns Hunter's Tactics's live tuning and trait behavior. */
 export const huntersTactics = defineTrait({
-  id: TRAIT.HUNTERS_TACTICS,
   name: "Hunter's Tactics",
+  id: TRAIT.HUNTERS_TACTICS,
   balance: {
     damageMultiplier: 1.1,
     criticalChance: 0.1
@@ -369,8 +372,8 @@ export const huntersTactics = defineTrait({
 
 /** Owns Hidden Barbs's live tuning and trait behavior. */
 export const hiddenBarbs = defineTrait({
-  id: TRAIT.HIDDEN_BARBS,
   name: 'Hidden Barbs',
+  id: TRAIT.HIDDEN_BARBS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { conditionDamageMultiplier: 1.2 },
   modifierRules: [
@@ -460,33 +463,28 @@ function applyRangerDodgeTraits(context: RangerRuntime, at = context.time): void
   });
 }
 
-// Apply combat-only weapon-swap traits on independent ICDs and arm Quick Draw's
-// one-use window for the next qualifying weapon skill.
-/** Own the selected reward at the committed weapon-swap boundary. */
-function tailWindSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
-  const inCombat = context.engagement.startTime != null && at >= context.engagement.startTime;
+/** Boon-only swap rewards claim their independent cooldown only when an authored payload survives. */
+function weaponSwapBoon(
+  context: RangerRuntime,
+  { skill, at }: TriggerPointInput<typeof weaponSwapped>,
+  trait: SkillId,
+  boon: BoonName,
+  cooldownKey: string,
+  name: string
+): void {
+  if (context.engagement.startTime == null || at < context.engagement.startTime) return;
 
-  if (inCombat) {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.TAIL_WIND);
-    const effect = requireEffect(profile, 'boon', boonKey(BOON.SWIFTNESS));
+  const effectName = boonKey(boon);
+  const profile = requireBalanceProfileFromContext(context, trait);
 
-    // The cooldown gates only swiftness, so a removed boon leaves it ready.
-    if (effect && context.procs.claim(TRAIT.TAIL_WIND, 'ranger.core.tailWind', at)) {
-      emitTraitProfile(context, TRAIT.TAIL_WIND, TRAIT.TAIL_WIND, undefined, {
-        at: at,
-        fullEnd: at,
-        effect: { type: 'boon', name: boonKey(BOON.SWIFTNESS) },
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.TAIL_WIND,
-          actorType: ACTOR.EFFECT,
-          skillId: skill.id,
-          skillName: 'Tail Wind',
-          name: 'Tail Wind'
-        }
-      });
-    }
-  }
+  if (!requireEffect(profile, 'boon', effectName) || !context.procs.claim(trait, cooldownKey, at)) return;
+
+  emitTraitProfile(context, trait, trait, undefined, {
+    at,
+    fullEnd: at,
+    effect: { type: 'boon', name: effectName },
+    attribution: { skillId: skill.id, skillName: name, name }
+  });
 }
 
 /** Own the selected reward at the committed weapon-swap boundary. */
@@ -514,33 +512,6 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
           name: 'Quick Draw'
         }
       });
-  }
-}
-
-/** Own the selected reward at the committed weapon-swap boundary. */
-function furiousGripSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
-  const inCombat = context.engagement.startTime != null && at >= context.engagement.startTime;
-
-  if (inCombat) {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.FURIOUS_GRIP);
-    const effect = requireEffect(profile, 'boon', boonKey(BOON.FURY));
-
-    // The cooldown gates only fury, so a removed boon leaves it ready.
-    if (effect && context.procs.claim(TRAIT.FURIOUS_GRIP, 'ranger.core.furiousGrip', at)) {
-      emitTraitProfile(context, TRAIT.FURIOUS_GRIP, TRAIT.FURIOUS_GRIP, undefined, {
-        at: at,
-        fullEnd: at,
-        effect: { type: 'boon', name: boonKey(BOON.FURY) },
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.FURIOUS_GRIP,
-          actorType: ACTOR.EFFECT,
-          skillId: skill.id,
-          skillName: 'Furious Grip',
-          name: 'Furious Grip'
-        }
-      });
-    }
   }
 }
 

@@ -33,22 +33,22 @@ function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
 
 /** Owns Unstoppable Union's live tuning and trait behavior. */
 const unstoppableUnion = defineTrait({
+  name: 'Unstoppable Union',
+  id: TRAIT.UNSTOPPABLE_UNION,
+  balance: {
+    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 2.5, stacks: 1 }]
+  },
   triggers: [
     onTriggerPoint(beastmodeChanged, {
       run: (runtime, input: TriggerPointInput<typeof beastmodeChanged>) => applyUnstoppableUnion(runtime, input.skill)
     })
-  ],
-  id: TRAIT.UNSTOPPABLE_UNION,
-  name: 'Unstoppable Union',
-  balance: {
-    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 2.5, stacks: 1 }]
-  }
+  ]
 });
 
 /** Owns Leader of the Pack's live tuning and trait behavior. */
 const leaderOfThePack = defineTrait({
-  id: TRAIT.LEADER_OF_THE_PACK,
   name: 'Leader of the Pack',
+  id: TRAIT.LEADER_OF_THE_PACK,
   balance: {
     durationMultiplier: 1.2,
     sharedDurationMultiplier: 0.5
@@ -57,25 +57,25 @@ const leaderOfThePack = defineTrait({
 
 /** Owns Live Fast's live tuning and trait behavior. */
 const liveFast = defineTrait({
-  triggers: [
-    onTriggerPoint(mergedBeastHit, {
-      run: (runtime, input: TriggerPointInput<typeof mergedBeastHit>) => triggerMergedLiveFast(runtime, input.event)
-    })
-  ],
-  id: TRAIT.LIVE_FAST,
   name: 'Live Fast',
+  id: TRAIT.LIVE_FAST,
   balance: {
     effects: [
       { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 6, stacks: 1 },
       { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 3, stacks: 1 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(mergedBeastHit, {
+      run: (runtime, input: TriggerPointInput<typeof mergedBeastHit>) => triggerMergedLiveFast(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Twice as Vicious's live tuning and trait behavior. */
 const twiceAsVicious = defineTrait({
-  id: TRAIT.TWICE_AS_VICIOUS,
   name: 'Twice as Vicious',
+  id: TRAIT.TWICE_AS_VICIOUS,
   balance: {
     damageIncrease: 0.07,
     conditionDamageIncrease: 0.1,
@@ -144,8 +144,8 @@ const twiceAsVicious = defineTrait({
 
 /** Owns Predator's Cunning's live tuning and trait behavior. */
 const predatorsCunning = defineTrait({
-  id: TRAIT.PREDATORS_CUNNING,
   name: "Predator's Cunning",
+  id: TRAIT.PREDATORS_CUNNING,
   balance: {
     // Resolve and display the siphon separately, using base damage plus Power without weapon or armor scaling.
     effects: [
@@ -181,8 +181,8 @@ const predatorsCunning = defineTrait({
 
 /** Owns Oppressive Superiority's live tuning and trait behavior. */
 const oppressiveSuperiority = defineTrait({
-  id: TRAIT.OPPRESSIVE_SUPERIORITY,
   name: 'Oppressive Superiority',
+  id: TRAIT.OPPRESSIVE_SUPERIORITY,
   balance: {
     damageMultiplier: 1.1,
     conditionDurationBonus: 0.1
@@ -209,8 +209,8 @@ const oppressiveSuperiority = defineTrait({
 
 /** Owns Essence of Speed's live tuning and trait behavior. */
 const essenceOfSpeed = defineTrait({
-  id: TRAIT.ESSENCE_OF_SPEED,
   name: 'Essence of Speed',
+  id: TRAIT.ESSENCE_OF_SPEED,
   balance: {
     internalCooldown: 5,
     duration: 2
@@ -219,8 +219,8 @@ const essenceOfSpeed = defineTrait({
 
 /** Owns Furious Strength's live tuning and trait behavior. */
 const furiousStrength = defineTrait({
-  id: TRAIT.FURIOUS_STRENGTH,
   name: 'Furious Strength',
+  id: TRAIT.FURIOUS_STRENGTH,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.15 },
   modifierRules: [

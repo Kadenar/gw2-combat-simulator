@@ -24,32 +24,15 @@ import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/t
 
 /** Owns Permeating Wrath tuning and behavior at its existing mechanic boundaries. */
 export const permeatingWrath = defineTrait({
-  id: GUARDIAN_TRAIT_IDS.PERMEATING_WRATH,
   name: 'Permeating Wrath',
+  id: GUARDIAN_TRAIT_IDS.PERMEATING_WRATH,
   balance: { threshold: 3 }
 });
 
 /** Owns Inspired Virtue tuning and behavior at its existing mechanic boundaries. */
 export const inspiredVirtue = defineTrait({
-  id: GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
-  // Each virtue grants its own party boon.
-  triggers: [
-    onTriggerPoint(virtueActivated, {
-      run: (runtime: GuardianRuntime, { cast, virtue }: VirtueActivation) =>
-        virtueBuff(
-          runtime,
-          cast,
-          GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
-          virtue === 'justice'
-            ? boonKey(BOON.MIGHT)
-            : virtue === 'resolve'
-              ? boonKey(BOON.REGENERATION)
-              : boonKey(BOON.PROTECTION),
-          true
-        )
-    })
-  ],
   name: 'Inspired Virtue',
+  id: GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
   balance: {
     damagePerBoon: 0.005,
     maximumBoons: GW2_STANDARD_BOONS.length,
@@ -76,11 +59,40 @@ export const inspiredVirtue = defineTrait({
         ) *
           balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'damagePerBoon')
     }
+  ],
+  // Each virtue grants its own party boon.
+  triggers: [
+    onTriggerPoint(virtueActivated, {
+      run: (runtime: GuardianRuntime, { cast, virtue }: VirtueActivation) =>
+        virtueBuff(
+          runtime,
+          cast,
+          GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
+          virtue === 'justice'
+            ? boonKey(BOON.MIGHT)
+            : virtue === 'resolve'
+              ? boonKey(BOON.REGENERATION)
+              : boonKey(BOON.PROTECTION),
+          true
+        )
+    })
   ]
 });
 
 /** Owns Virtue of Resolution tuning and behavior at its existing mechanic boundaries. */
 export const virtueOfResolution = defineTrait({
+  name: 'Virtue of Resolution',
+  id: GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
+  balance: {
+    durationMultiplier: 1.25,
+    effects: [{ type: 'boon', name: boonKey(BOON.RESOLUTION), boon: BOON.RESOLUTION, stacks: 1, duration: 3 }]
+  },
+  triggers: [
+    onTriggerPoint(virtueActivated, {
+      run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
+        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, boonKey(BOON.RESOLUTION))
+    })
+  ],
   hooks: {
     /** Resolution samples this multiplier once when the shared service applies a boon. */
     boonDuration(runtime, event, _baseDuration, scaledDuration) {
@@ -88,32 +100,13 @@ export const virtueOfResolution = defineTrait({
         ? scaledDuration * guardianResolutionMultiplier(runtime)
         : scaledDuration;
     }
-  },
-
-  id: GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
-  triggers: [
-    onTriggerPoint(virtueActivated, {
-      run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
-        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION, boonKey(BOON.RESOLUTION))
-    })
-  ],
-  name: 'Virtue of Resolution',
-  balance: {
-    durationMultiplier: 1.25,
-    effects: [{ type: 'boon', name: boonKey(BOON.RESOLUTION), boon: BOON.RESOLUTION, stacks: 1, duration: 3 }]
   }
 });
 
 /** Owns Inspiring Virtue tuning and behavior at its existing mechanic boundaries. */
 export const inspiringVirtue = defineTrait({
-  id: GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
-  triggers: [
-    onTriggerPoint(virtueActivated, {
-      run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
-        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'guardian-inspiring-virtue')
-    })
-  ],
   name: 'Inspiring Virtue',
+  id: GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
   balance: {
     damageIncrease: 0.1,
     effects: [
@@ -135,30 +128,36 @@ export const inspiringVirtue = defineTrait({
       amount: (context) => balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'damageIncrease'),
       when: (context) => buffActive(context, 'guardian-inspiring-virtue')
     }
+  ],
+  triggers: [
+    onTriggerPoint(virtueActivated, {
+      run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
+        virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'guardian-inspiring-virtue')
+    })
   ]
 });
 
 /** Owns Indomitable Courage tuning and behavior at its existing mechanic boundaries. */
 export const indomitableCourage = defineTrait({
+  name: 'Indomitable Courage',
   id: GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
+  balance: {
+    pulseInterval: 30,
+    effects: [{ type: 'boon', name: boonKey(BOON.STABILITY), boon: BOON.STABILITY, stacks: 3, duration: 4 }]
+  },
   triggers: [
     onTriggerPoint(virtueActivated, {
       when: (_runtime, { virtue }: VirtueActivation) => virtue === 'courage',
       run: (runtime: GuardianRuntime, { cast }: VirtueActivation) =>
         virtueBuff(runtime, cast, GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE, boonKey(BOON.STABILITY), true)
     })
-  ],
-  name: 'Indomitable Courage',
-  balance: {
-    pulseInterval: 30,
-    effects: [{ type: 'boon', name: boonKey(BOON.STABILITY), boon: BOON.STABILITY, stacks: 3, duration: 4 }]
-  }
+  ]
 });
 
 /** Consecrations last longer; their repeated pulses continue through the added lifetime on their own interval. */
 export const masterOfConsecrations = defineTrait({
-  id: GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
   name: 'Master of Consecrations',
+  id: GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
   balance: { durationMultiplier: 1.4 },
   // Field duration is multiplied by Core after its weapon-field selection; see guardian core hooks.
   hooks: {
@@ -169,16 +168,8 @@ export const masterOfConsecrations = defineTrait({
 
 /** Owns Power of the Virtuous tuning and behavior at its existing mechanic boundaries. */
 export const powerOfTheVirtuous = defineTrait({
-  rechargeRules: [
-    {
-      when: (_runtime, skill) =>
-        Boolean(skill.categories?.includes('Virtue')) && /^Profession_[1-3]$/.test(String(skill.slot || '')),
-      multiplier: { profile: GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, field: 'rechargeMultiplier' }
-    }
-  ],
-
-  id: GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS,
   name: 'Power of the Virtuous',
+  id: GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS,
   balance: {
     attributeConversion: 0.07,
     rechargeMultiplier: 0.85
@@ -192,13 +183,20 @@ export const powerOfTheVirtuous = defineTrait({
       rounding: 'round',
       input: 'eligible'
     }
-  ])
+  ]),
+  rechargeRules: [
+    {
+      when: (_runtime, skill) =>
+        Boolean(skill.categories?.includes('Virtue')) && /^Profession_[1-3]$/.test(String(skill.slot || '')),
+      multiplier: { profile: GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, field: 'rechargeMultiplier' }
+    }
+  ]
 });
 
 /** Owns Unscathed Contender tuning and behavior at its existing mechanic boundaries. */
 export const unscathedContender = defineTrait({
-  id: GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER,
   name: 'Unscathed Contender',
+  id: GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05, damageIncrease: 0.05 },
   modifierRules: [
@@ -223,15 +221,15 @@ export const unscathedContender = defineTrait({
 
 /** Owns Glacial Heart tuning and behavior at its existing mechanic boundaries. */
 export const glacialHeart = defineTrait({
+  name: 'Glacial Heart',
+  id: GUARDIAN_TRAIT_IDS.GLACIAL_HEART,
   // Hammer 2 resolves to the selected variant, so saved rotations survive trait edits.
   hooks: {
     modifySkillId: traitSkillReplacement(GUARDIAN_TRAIT_IDS.GLACIAL_HEART, [[ID.MIGHTY_BLOW, ID.GLACIAL_BLOW]])
-  },
-  id: GUARDIAN_TRAIT_IDS.GLACIAL_HEART,
-  name: 'Glacial Heart'
+  }
 });
 
-export const battlePresence = defineTrait({ id: GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE, name: 'Battle Presence' });
+export const battlePresence = defineTrait({ name: 'Battle Presence', id: GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE });
 
 /** Committed activation boons sample live attributes and retain their selected component and party ownership. */
 function virtueBuff(

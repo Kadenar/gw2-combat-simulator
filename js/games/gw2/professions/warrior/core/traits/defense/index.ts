@@ -17,9 +17,8 @@ import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const mercilessHammer = defineTrait({
-  triggers: [onTriggerPoint(controlAccepted, { run: (runtime) => mercilessHammerControl(runtime) })],
-  id: TRAIT.MERCILESS_HAMMER,
   name: 'Merciless Hammer',
+  id: TRAIT.MERCILESS_HAMMER,
   balance: {
     damageMultiplier: 1.25,
     resourceGain: 7
@@ -43,13 +42,14 @@ export const mercilessHammer = defineTrait({
             )
         ) && Boolean(context.config?.target?.defiant)
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(controlAccepted, { run: (runtime) => mercilessHammerControl(runtime) })]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const stalwartStrength = defineTrait({
-  id: TRAIT.STALWART_STRENGTH,
   name: 'Stalwart Strength',
+  id: TRAIT.STALWART_STRENGTH,
   balance: {
     damageMultiplier: 1.1,
     internalCooldown: 0.32,
@@ -80,13 +80,8 @@ export const stalwartStrength = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const cullTheWeak = defineTrait({
-  triggers: [
-    onTriggerPoint(burstFirstHit, {
-      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) => cullTheWeakBurst(runtime, input.event)
-    })
-  ],
-  id: TRAIT.CULL_THE_WEAK,
   name: 'Cull the Weak',
+  id: TRAIT.CULL_THE_WEAK,
   balance: {
     damageMultiplier: 1.1,
     internalCooldown: 5,
@@ -101,13 +96,18 @@ export const cullTheWeak = defineTrait({
       order: 93,
       when: (context) => targetConditionActive(context, CONDITION.WEAKNESS)
     }
+  ],
+  triggers: [
+    onTriggerPoint(burstFirstHit, {
+      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) => cullTheWeakBurst(runtime, input.event)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const thickSkin = defineTrait({
-  id: TRAIT.THICK_SKIN,
   name: 'Thick Skin',
+  id: TRAIT.THICK_SKIN,
   balance: {
     effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
   },

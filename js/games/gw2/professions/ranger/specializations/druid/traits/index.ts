@@ -56,8 +56,8 @@ export const naturalMenderPassive = definePeriodicTask<RangerRuntime>({
 
 /** Owns Natural Mender's live tuning and trait behavior. */
 const naturalMender = defineTrait({
-  id: TRAIT.NATURAL_MENDER,
   name: 'Natural Mender',
+  id: TRAIT.NATURAL_MENDER,
   balance: {
     pulseInterval: 3,
     resourceGain: 8
@@ -79,9 +79,8 @@ const naturalMender = defineTrait({
 
 /** Owns Natural Balance's live tuning and trait behavior. */
 const naturalBalance = defineTrait({
-  triggers: [onTriggerPoint(avatarExited, { run: (runtime) => applyNaturalBalance(runtime) })],
-  id: TRAIT.NATURAL_BALANCE,
   name: 'Natural Balance',
+  id: TRAIT.NATURAL_BALANCE,
   balance: {
     conditionDamageIncrease: 0.05,
     conditionDurationBonus: 0.1,
@@ -104,13 +103,14 @@ const naturalBalance = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.NATURAL_BALANCE, 'conditionDurationBonus'),
       when: naturalBalanceActive
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(avatarExited, { run: (runtime) => applyNaturalBalance(runtime) })]
 });
 
 /** Owns Grace of the Land's live tuning and trait behavior. */
 const graceOfTheLand = defineTrait({
-  id: TRAIT.GRACE_OF_THE_LAND,
   name: 'Grace of the Land',
+  id: TRAIT.GRACE_OF_THE_LAND,
   balance: {
     effects: [{ name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, duration: 1, stacks: 1 }]
   }
@@ -118,8 +118,8 @@ const graceOfTheLand = defineTrait({
 
 /** Owns Eclipse's live tuning and trait behavior. */
 const eclipse = defineTrait({
-  id: TRAIT.ECLIPSE,
   name: 'Eclipse',
+  id: TRAIT.ECLIPSE,
   balance: {
     coefficientMultiplier: 2,
     effects: [
@@ -153,8 +153,8 @@ const eclipse = defineTrait({
 
 /** Owns Blood Moon's live tuning and trait behavior. */
 const bloodMoon = defineTrait({
-  id: TRAIT.BLOOD_MOON,
   name: 'Blood Moon',
+  id: TRAIT.BLOOD_MOON,
   balance: {
     effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 4, stacks: 2 }]
   },
@@ -194,8 +194,8 @@ const bloodMoon = defineTrait({
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 /** The unlocking minor owns baseline specialization policy even when omitted from explicit selections. */
 const intrinsicPolicy = defineTrait({
-  id: TRAIT.CELESTIAL_BEING,
   name: 'Celestial Being',
+  id: TRAIT.CELESTIAL_BEING,
   balance: { maximumStacks: 100, astralForceRetentionMultiplier: 0.5, resourceGain: 0.75 }
 });
 

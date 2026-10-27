@@ -26,9 +26,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Furious Focus's live tuning and trait behavior. */
 export const furiousFocus = defineTrait({
-  id: TRAIT.FURIOUS_FOCUS,
   name: 'Furious Focus',
-  triggers: [onTriggerPoint(justiceActivated, { run: placeFuriousFocusSymbol })],
+  id: TRAIT.FURIOUS_FOCUS,
   balance: { damageIncrease: 0.1 },
   modifierRules: [
     {
@@ -39,13 +38,14 @@ export const furiousFocus = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.FURIOUS_FOCUS, 'damageIncrease'),
       when: (context) => Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(justiceActivated, { run: placeFuriousFocusSymbol })]
 });
 
 /** Owns Symbolic Exposure's live tuning and trait behavior. */
 export const symbolicExposure = defineTrait({
-  id: TRAIT.SYMBOLIC_EXPOSURE,
   name: 'Symbolic Exposure',
+  id: TRAIT.SYMBOLIC_EXPOSURE,
   balance: {
     damageMultiplier: 1.05,
     effects: [
@@ -93,14 +93,8 @@ export const symbolicExposure = defineTrait({
 
 /** Owns Symbolic Avenger's live tuning and trait behavior. */
 export const symbolicAvenger = defineTrait({
-  id: TRAIT.SYMBOLIC_AVENGER,
   name: 'Symbolic Avenger',
-  triggers: [
-    onTriggerPoint(guardianStruck, {
-      when: (_runtime, { cause }: GuardianStrike) => cause.metadata?.guardianSymbol === true,
-      run: stackSymbolicAvenger
-    })
-  ],
+  id: TRAIT.SYMBOLIC_AVENGER,
   balance: {
     maximumDamageStacks: 5,
     damageIncreasePerStack: 0.01,
@@ -120,34 +114,33 @@ export const symbolicAvenger = defineTrait({
           activeSymbolicAvengerExpirations(guardianRuntimeState(context), context.time).length
         ) * balanceNumberFromContext(context, TRAIT.SYMBOLIC_AVENGER, 'damageIncreasePerStack')
     }
+  ],
+  triggers: [
+    onTriggerPoint(guardianStruck, {
+      when: (_runtime, { cause }: GuardianStrike) => cause.metadata?.guardianSymbol === true,
+      run: stackSymbolicAvenger
+    })
   ]
 });
 
 /** Owns Zealot's Resolution's live tuning and trait behavior. */
 export const zealotsResolution = defineTrait({
-  id: TRAIT.ZEALOTS_RESOLUTION,
   name: "Zealot's Resolution",
+  id: TRAIT.ZEALOTS_RESOLUTION,
+  balance: { threshold: 0.25 },
   // The threshold-crossing symbol hit cannot trigger its own reward.
   triggers: [
     onTriggerPoint(guardianStruck, {
       when: (_runtime, { cause }: GuardianStrike) => cause.skillId !== ID.LESSER_SYMBOL_OF_RESOLUTION,
       run: placeZealotsResolutionSymbol
     })
-  ],
-  balance: { threshold: 0.25 }
+  ]
 });
 
 /** Owns Zealous Blade's live tuning and trait behavior. */
 export const zealousBlade = defineTrait({
-  rechargeRules: [
-    {
-      when: (_runtime, skill) => skill.weapon === WEAPON.GREATSWORD,
-      multiplier: { profile: TRAIT.ZEALOUS_BLADE, field: 'rechargeMultiplier' }
-    }
-  ],
-
-  id: TRAIT.ZEALOUS_BLADE,
   name: 'Zealous Blade',
+  id: TRAIT.ZEALOUS_BLADE,
   balance: {
     weaponAttributeBonus: 240,
     attributeBonus: 120,
@@ -177,13 +170,19 @@ export const zealousBlade = defineTrait({
         }
       ]
     };
-  }
+  },
+  rechargeRules: [
+    {
+      when: (_runtime, skill) => skill.weapon === WEAPON.GREATSWORD,
+      multiplier: { profile: TRAIT.ZEALOUS_BLADE, field: 'rechargeMultiplier' }
+    }
+  ]
 });
 
 /** Owns Kindled Zeal's live tuning and trait behavior. */
 export const kindledZeal = defineTrait({
-  id: TRAIT.KINDLED_ZEAL,
   name: 'Kindled Zeal',
+  id: TRAIT.KINDLED_ZEAL,
   balance: { attributeConversion: 0.1 },
   attributes: traitAttributeEffects(TRAIT.KINDLED_ZEAL, [
     {
@@ -199,19 +198,18 @@ export const kindledZeal = defineTrait({
 
 /** Owns Eternal Armory's live tuning and trait behavior. */
 export const eternalArmory = defineTrait({
-  hooks: { maximumAmmo: eternalArmoryMaximumAmmo },
-
-  id: TRAIT.ETERNAL_ARMORY,
   name: 'Eternal Armory',
+  id: TRAIT.ETERNAL_ARMORY,
   balance: {
     resourceGain: 1
-  }
+  },
+  hooks: { maximumAmmo: eternalArmoryMaximumAmmo }
 });
 
 /** Owns Fiery Wrath's live tuning and trait behavior. */
 export const fieryWrath = defineTrait({
-  id: TRAIT.FIERY_WRATH,
   name: 'Fiery Wrath',
+  id: TRAIT.FIERY_WRATH,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05 },
   modifierRules: [

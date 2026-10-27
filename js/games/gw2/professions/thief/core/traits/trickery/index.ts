@@ -31,8 +31,8 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 
 /** Landed player attacks against defiant foes trigger Lesser Haste's self boons on one shared skill recharge. */
 export const burstOfAgility = defineTrait({
-  id: TRAIT.BURST_OF_AGILITY,
   name: 'Burst of Agility',
+  id: TRAIT.BURST_OF_AGILITY,
   triggers: [
     {
       on: 'damage.resolved',
@@ -47,22 +47,25 @@ export const burstOfAgility = defineTrait({
 
 /** Owns Bountiful Theft tuning and behavior at the existing execution boundaries. */
 export const bountifulTheft = defineTrait({
-  id: TRAIT.BOUNTIFUL_THEFT,
   name: 'Bountiful Theft',
-  triggers: [onTriggerPoint(stealAccepted, { run: applyBountifulTheft })],
+  id: TRAIT.BOUNTIFUL_THEFT,
   balance: {
     effects: [
       { type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 10 },
       { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 5, duration: 10 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(stealAccepted, { run: applyBountifulTheft })]
 });
 
 /** Owns Deadly Ambush tuning and behavior at the existing execution boundaries. */
 export const deadlyAmbush = defineTrait({
-  id: TRAIT.DEADLY_AMBUSH,
   name: 'Deadly Ambush',
-  triggers: [onTriggerPoint(stealAccepted, { run: applyDeadlyAmbush })],
+  id: TRAIT.DEADLY_AMBUSH,
+  balance: {
+    conditionDamageMultiplier: 1.25,
+    effects: [{ type: 'condition', name: CONDITION.BLEEDING, condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }]
+  },
   modifierRules: [
     {
       order: 11,
@@ -73,27 +76,29 @@ export const deadlyAmbush = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.BLEEDING
     }
   ],
-  balance: {
-    conditionDamageMultiplier: 1.25,
-    effects: [{ type: 'condition', name: CONDITION.BLEEDING, condition: CONDITION.BLEEDING, stacks: 3, duration: 10 }]
-  }
+  triggers: [onTriggerPoint(stealAccepted, { run: applyDeadlyAmbush })]
 });
 
 /** Owns Kleptomaniac tuning and behavior at the existing execution boundaries. */
 export const kleptomaniac = defineTrait({
-  id: TRAIT.KLEPTOMANIAC,
   name: 'Kleptomaniac',
-  triggers: [onTriggerPoint(stealCompleted, { run: applyKleptomaniac })],
+  id: TRAIT.KLEPTOMANIAC,
   balance: {
     resourceGain: 2
-  }
+  },
+  triggers: [onTriggerPoint(stealCompleted, { run: applyKleptomaniac })]
 });
 
 /** Owns Lead Attacks tuning and behavior at the existing execution boundaries. */
 export const leadAttacks = defineTrait({
-  id: TRAIT.LEAD_ATTACKS,
   name: 'Lead Attacks',
-  triggers: [onTriggerPoint(thiefCastCompleted, { run: grantLeadAttacks })],
+  id: TRAIT.LEAD_ATTACKS,
+  balance: {
+    maximumStacks: 15,
+    duration: 10,
+    damageIncreasePerStack: 0.01,
+    rechargeMultiplier: 0.85
+  },
   modifierRules: [
     {
       order: 7,
@@ -113,24 +118,19 @@ export const leadAttacks = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
-  balance: {
-    maximumStacks: 15,
-    duration: 10,
-    damageIncreasePerStack: 0.01,
-    rechargeMultiplier: 0.85
-  },
   rechargeRules: [
     {
       when: (_runtime, skill) => Boolean(skill.stealTraitSkill) && skill.stealRechargeMode !== 'additive',
       multiplier: { profile: TRAIT.LEAD_ATTACKS, field: 'rechargeMultiplier' }
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(thiefCastCompleted, { run: grantLeadAttacks })]
 });
 
 /** Owns Preparedness tuning and behavior at the existing execution boundaries. */
 export const preparedness = defineTrait({
-  id: TRAIT.PREPAREDNESS,
   name: 'Preparedness',
+  id: TRAIT.PREPAREDNESS,
   balance: { attributeBonus: 150, maximumStacks: 15 },
   attributes({ balanceContext }) {
     return {
@@ -148,25 +148,24 @@ export const preparedness = defineTrait({
 
 /** Owns Quick Pockets tuning and behavior at the existing execution boundaries. */
 export const quickPockets = defineTrait({
-  id: TRAIT.QUICK_POCKETS,
   name: 'Quick Pockets',
+  id: TRAIT.QUICK_POCKETS,
+  balance: {
+    internalCooldown: 8,
+    resourceGain: 3
+  },
   triggers: [
     onTriggerPoint(thiefWeaponSwapped, {
       when: (runtime) => runtime.engagement.combatMechanicsAllowed(),
       run: grantQuickPockets
     })
-  ],
-  balance: {
-    internalCooldown: 8,
-    resourceGain: 3
-  }
+  ]
 });
 
 /** Owns Sleight of Hand tuning and behavior at the existing execution boundaries. */
 export const sleightOfHand = defineTrait({
-  id: TRAIT.SLEIGHT_OF_HAND,
   name: 'Sleight of Hand',
-  triggers: [onTriggerPoint(stealAccepted, { run: applySleightOfHand })],
+  id: TRAIT.SLEIGHT_OF_HAND,
   balance: {
     rechargeMultiplier: 0.8,
     effects: [{ type: 'control', name: CONTROL.DAZE, kind: CONTROL.DAZE }]
@@ -176,27 +175,28 @@ export const sleightOfHand = defineTrait({
       when: (_runtime, skill) => Boolean(skill.stealTraitSkill) && skill.stealRechargeMode !== 'additive',
       multiplier: { profile: TRAIT.SLEIGHT_OF_HAND, field: 'rechargeMultiplier' }
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(stealAccepted, { run: applySleightOfHand })]
 });
 
 /** Owns Thrill of the Crime tuning and behavior at the existing execution boundaries. */
 export const thrillOfTheCrime = defineTrait({
-  id: TRAIT.THRILL_OF_THE_CRIME,
   name: 'Thrill of the Crime',
-  triggers: [onTriggerPoint(stealAccepted, { run: applyThrillOfTheCrime })],
+  id: TRAIT.THRILL_OF_THE_CRIME,
   balance: {
     effects: [
       { type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 10 },
       { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 5, duration: 10 },
       { type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 10 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(stealAccepted, { run: applyThrillOfTheCrime })]
 });
 
 /** Owns Uncatchable tuning and behavior at the existing execution boundaries. */
 export const uncatchable = defineTrait({
-  id: TRAIT.UNCATCHABLE,
   name: 'Uncatchable',
+  id: TRAIT.UNCATCHABLE,
   triggers: [onTriggerPoint(thiefDodgeStarted, { run: startUncatchable })]
 });
 /** Selected steal boons retain skill lineage while shared profile delivery owns their packets. */

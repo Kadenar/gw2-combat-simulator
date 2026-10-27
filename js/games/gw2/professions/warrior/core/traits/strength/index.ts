@@ -34,8 +34,8 @@ import type { WarriorResolverContext, WarriorSkill, WarriorRuntime } from '#gw2/
 
 /** Using a healing skill grants self boons even when the player is already at full health. */
 export const restorativeStrength = defineTrait({
-  id: TRAIT.RESTORATIVE_STRENGTH,
   name: 'Restorative Strength',
+  id: TRAIT.RESTORATIVE_STRENGTH,
   balance: {
     effects: [
       { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 6 },
@@ -54,18 +54,8 @@ export const restorativeStrength = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const berserkersPower = defineTrait({
-  triggers: [
-    onTriggerPoint(dragonSlashCompleted, {
-      run: (runtime, input: TriggerPointInput<typeof dragonSlashCompleted>) =>
-        berserkersPowerDragonSlash(runtime, input.cast, input.adrenalineSpent)
-    }),
-    onTriggerPoint(burstFirstHit, {
-      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) =>
-        berserkersPowerBurst(runtime, input.event, input.skill)
-    })
-  ],
-  id: TRAIT.BERSERKERS_POWER,
   name: "Berserker's Power",
+  id: TRAIT.BERSERKERS_POWER,
   balance: {
     // Damage, presentation, and tooltip consumers share this trait's balance values.
     maximumStacks: 4,
@@ -88,13 +78,23 @@ export const berserkersPower = defineTrait({
         );
       }
     }
+  ],
+  triggers: [
+    onTriggerPoint(dragonSlashCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof dragonSlashCompleted>) =>
+        berserkersPowerDragonSlash(runtime, input.cast, input.adrenalineSpent)
+    }),
+    onTriggerPoint(burstFirstHit, {
+      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) =>
+        berserkersPowerBurst(runtime, input.event, input.skill)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const recklessDodge = defineTrait({
-  id: TRAIT.RECKLESS_DODGE,
   name: 'Reckless Dodge',
+  id: TRAIT.RECKLESS_DODGE,
   balance: {
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1 },
@@ -125,29 +125,23 @@ export const recklessDodge = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const braveStride = defineTrait({
+  name: 'Brave Stride',
+  id: TRAIT.BRAVE_STRIDE,
+  balance: {
+    resourceGain: 5,
+    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }]
+  },
   triggers: [
     onTriggerPoint(burstCompleted, {
       run: (runtime, input: TriggerPointInput<typeof burstCompleted>) => braveStrideCommit(runtime, input.cast)
     })
-  ],
-  id: TRAIT.BRAVE_STRIDE,
-  name: 'Brave Stride',
-  balance: {
-    resourceGain: 5,
-    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }]
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const peakPerformance = defineTrait({
-  triggers: [
-    { on: 'buff.applied', requiresSelection: false, run: peakPerformanceBuff },
-    onTriggerPoint(castStarting, {
-      run: (runtime, input: TriggerPointInput<typeof castStarting>) => peakPerformanceStart(runtime, input.cast)
-    })
-  ],
-  id: TRAIT.PEAK_PERFORMANCE,
   name: 'Peak Performance',
+  id: TRAIT.PEAK_PERFORMANCE,
   balance: {
     baseBonus: 0.05,
     activeBonus: 0.1,
@@ -166,13 +160,19 @@ export const peakPerformance = defineTrait({
           ? balanceNumberFromContext(context, TRAIT.PEAK_PERFORMANCE, 'activeBonus')
           : 0)
     }
+  ],
+  triggers: [
+    { on: 'buff.applied', requiresSelection: false, run: peakPerformanceBuff },
+    onTriggerPoint(castStarting, {
+      run: (runtime, input: TriggerPointInput<typeof castStarting>) => peakPerformanceStart(runtime, input.cast)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const bodyBlow = defineTrait({
-  id: TRAIT.BODY_BLOW,
   name: 'Body Blow',
+  id: TRAIT.BODY_BLOW,
   balance: {
     effects: [
       { name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 },
@@ -197,8 +197,8 @@ export const bodyBlow = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const aggressiveOnslaught = defineTrait({
-  id: TRAIT.AGGRESSIVE_ONSLAUGHT,
   name: 'Aggressive Onslaught',
+  id: TRAIT.AGGRESSIVE_ONSLAUGHT,
   balance: {
     internalCooldown: 0.32,
     effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 }]
@@ -218,16 +218,22 @@ export const aggressiveOnslaught = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const buildingMomentum = defineTrait({
-  triggers: [onTriggerPoint(burstFirstHit, { run: (runtime) => buildingMomentumBurst(runtime) })],
-  id: TRAIT.BUILDING_MOMENTUM,
   name: 'Building Momentum',
+  id: TRAIT.BUILDING_MOMENTUM,
   balance: {
     resourceGain: 15
-  }
+  },
+  triggers: [onTriggerPoint(burstFirstHit, { run: (runtime) => buildingMomentumBurst(runtime) })]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const pinnacleOfStrength = defineTrait({
+  name: 'Pinnacle of Strength',
+  id: TRAIT.PINNACLE_OF_STRENGTH,
+  balance: {
+    criticalChance: 0.05,
+    attributeBonus: 10
+  },
   // Might adds temporary Power without entering ordinary conversions or Blood Reaction.
   attributes(context) {
     const might =
@@ -246,13 +252,6 @@ export const pinnacleOfStrength = defineTrait({
       ]
     };
   },
-
-  id: TRAIT.PINNACLE_OF_STRENGTH,
-  name: 'Pinnacle of Strength',
-  balance: {
-    criticalChance: 0.05,
-    attributeBonus: 10
-  },
   modifierRules: [
     {
       order: 0,
@@ -266,14 +265,8 @@ export const pinnacleOfStrength = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const forcefulGreatsword = defineTrait({
-  triggers: [
-    onTriggerPoint(critical, {
-      run: (runtime, input: TriggerPointInput<typeof critical>) =>
-        forcefulGreatswordCritical(runtime, input.event, input.opportunity)
-    })
-  ],
-  id: TRAIT.FORCEFUL_GREATSWORD,
   name: 'Forceful Greatsword',
+  id: TRAIT.FORCEFUL_GREATSWORD,
   balance: {
     rechargeMultiplier: 0.8,
     attributeBonus: 120,
@@ -310,13 +303,19 @@ export const forcefulGreatsword = defineTrait({
       when: (_runtime, skill) => skill.weapon === WEAPON.GREATSWORD,
       multiplier: { profile: TRAIT.FORCEFUL_GREATSWORD, field: 'rechargeMultiplier' }
     }
+  ],
+  triggers: [
+    onTriggerPoint(critical, {
+      run: (runtime, input: TriggerPointInput<typeof critical>) =>
+        forcefulGreatswordCritical(runtime, input.event, input.opportunity)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const greatFortitude = defineTrait({
-  id: TRAIT.GREAT_FORTITUDE,
   name: 'Great Fortitude',
+  id: TRAIT.GREAT_FORTITUDE,
   balance: {
     attributeConversion: 0.1
   },

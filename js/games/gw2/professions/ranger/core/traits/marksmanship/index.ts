@@ -59,13 +59,8 @@ function targetVulnerable(context: Gw2ModifierContext): boolean {
 
 /** Owns Wolfsong's live tuning and trait behavior. */
 export const wolfsong = defineTrait({
-  triggers: [
-    onTriggerPoint(beastSkillUsed, {
-      run: (runtime, input: TriggerPointInput<typeof beastSkillUsed>) => applyWolfsong(runtime, input.skill)
-    })
-  ],
-  id: TRAIT.WOLFSONG,
   name: 'Wolfsong',
+  id: TRAIT.WOLFSONG,
   balance: {
     damageMultiplier: 1.1,
     effects: [
@@ -87,30 +82,30 @@ export const wolfsong = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.WOLFSONG, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetVulnerable(context)
     }
+  ],
+  triggers: [
+    onTriggerPoint(beastSkillUsed, {
+      run: (runtime, input: TriggerPointInput<typeof beastSkillUsed>) => applyWolfsong(runtime, input.skill)
+    })
   ]
 });
 
 /** Owns Clarion Bond's live tuning and trait behavior. */
 export const clarionBond = defineTrait({
+  name: 'Clarion Bond',
+  id: TRAIT.CLARION_BOND,
   triggers: [
     onTriggerPoint(petSwapped, {
       run: (runtime, input: TriggerPointInput<typeof petSwapped>) =>
         invokeLesserRangerSkill(runtime, input.skill, TRAIT.CLARION_BOND, ID.LESSER_CALL_OF_THE_WILD)
     })
-  ],
-  id: TRAIT.CLARION_BOND,
-  name: 'Clarion Bond'
+  ]
 });
 
 /** Owns Opening Strike's live tuning and trait behavior. */
 export const openingStrike = defineTrait({
-  triggers: [
-    onTriggerPoint(strike, {
-      run: (runtime, input: TriggerPointInput<typeof strike>) => consumeOpeningStrike(runtime, input.event)
-    })
-  ],
-  id: TRAIT.OPENING_STRIKE,
   name: 'Opening Strike',
+  id: TRAIT.OPENING_STRIKE,
   balance: {
     effects: [
       {
@@ -121,32 +116,32 @@ export const openingStrike = defineTrait({
         stacks: 5
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(strike, {
+      run: (runtime, input: TriggerPointInput<typeof strike>) => consumeOpeningStrike(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Alpha Focus's live tuning and trait behavior. */
 export const alphaFocus = defineTrait({
+  name: 'Alpha Focus',
+  id: TRAIT.ALPHA_FOCUS,
+  balance: {
+    effects: [{ name: CONDITION.CRIPPLED, type: 'condition', condition: CONDITION.CRIPPLED, duration: 2, stacks: 1 }]
+  },
   triggers: [
     onTriggerPoint(openingStrikeConsumed, {
       run: (runtime, input: TriggerPointInput<typeof openingStrikeConsumed>) => applyAlphaFocus(runtime, input.event)
     })
-  ],
-  id: TRAIT.ALPHA_FOCUS,
-  name: 'Alpha Focus',
-  balance: {
-    effects: [{ name: CONDITION.CRIPPLED, type: 'condition', condition: CONDITION.CRIPPLED, duration: 2, stacks: 1 }]
-  }
+  ]
 });
 
 /** Owns Hunter's Gaze's live tuning and trait behavior. */
 export const huntersGaze = defineTrait({
-  triggers: [
-    onTriggerPoint(strike, {
-      run: (runtime, input: TriggerPointInput<typeof strike>) => triggerHuntersGaze(runtime, input.event)
-    })
-  ],
-  id: TRAIT.HUNTERS_GAZE,
   name: "Hunter's Gaze",
+  id: TRAIT.HUNTERS_GAZE,
   balance: {
     lowerThreshold: 0.25,
     threshold: 0.5,
@@ -154,13 +149,18 @@ export const huntersGaze = defineTrait({
     internalCooldown: 1,
     maximumStacks: 3,
     effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 5, stacks: 1 }]
-  }
+  },
+  triggers: [
+    onTriggerPoint(strike, {
+      run: (runtime, input: TriggerPointInput<typeof strike>) => triggerHuntersGaze(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Lead the Wind's live tuning and trait behavior. */
 export const leadTheWind = defineTrait({
-  id: TRAIT.LEAD_THE_WIND,
   name: 'Lead the Wind',
+  id: TRAIT.LEAD_THE_WIND,
   balance: {
     rechargeMultiplier: 0.8,
     effects: [
@@ -168,6 +168,13 @@ export const leadTheWind = defineTrait({
       { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 }
     ]
   },
+  rechargeRules: [
+    {
+      order: 3,
+      when: (_runtime, skill) => skill.weapon === WEAPON.LONGBOW,
+      multiplier: { profile: TRAIT.LEAD_THE_WIND, field: 'rechargeMultiplier' }
+    }
+  ],
   triggers: [
     {
       order: 3,
@@ -197,20 +204,13 @@ export const leadTheWind = defineTrait({
         triggeredBy: cast.skill.name
       })
     }
-  ],
-  rechargeRules: [
-    {
-      order: 3,
-      when: (_runtime, skill) => skill.weapon === WEAPON.LONGBOW,
-      multiplier: { profile: TRAIT.LEAD_THE_WIND, field: 'rechargeMultiplier' }
-    }
   ]
 });
 
 /** Owns Precise Strike's live tuning and trait behavior. */
 export const preciseStrike = defineTrait({
-  id: TRAIT.PRECISE_STRIKE,
   name: 'Precise Strike',
+  id: TRAIT.PRECISE_STRIKE,
   balance: {
     criticalChance: 1
   },
@@ -228,8 +228,8 @@ export const preciseStrike = defineTrait({
 
 /** Owns Farsighted's live tuning and trait behavior. */
 export const farsighted = defineTrait({
-  id: TRAIT.FARSIGHTED,
   name: 'Farsighted',
+  id: TRAIT.FARSIGHTED,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
   modifierRules: [
@@ -248,13 +248,8 @@ export const farsighted = defineTrait({
 
 /** Owns Remorseless's live tuning and trait behavior. */
 export const remorseless = defineTrait({
-  triggers: [
-    onTriggerPoint(buffApplied, {
-      run: (runtime, input: TriggerPointInput<typeof buffApplied>) => reactToRangerCoreBuff(runtime, input.event)
-    })
-  ],
-  id: TRAIT.REMORSELESS,
   name: 'Remorseless',
+  id: TRAIT.REMORSELESS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.25 },
   modifierRules: [
@@ -266,13 +261,18 @@ export const remorseless = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.REMORSELESS, 'damageMultiplier'),
       when: (context) => openingStrikeReady(context)
     }
+  ],
+  triggers: [
+    onTriggerPoint(buffApplied, {
+      run: (runtime, input: TriggerPointInput<typeof buffApplied>) => reactToRangerCoreBuff(runtime, input.event)
+    })
   ]
 });
 
 /** Owns Predator's Onslaught's live tuning and trait behavior. */
 export const predatorsOnslaught = defineTrait({
-  id: TRAIT.PREDATORS_ONSLAUGHT,
   name: "Predator's Onslaught",
+  id: TRAIT.PREDATORS_ONSLAUGHT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
   modifierRules: [

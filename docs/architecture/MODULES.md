@@ -79,6 +79,11 @@ beside the definitions when their callers can load them without a dependency cyc
 that need a separate dependency boundary live in supporting files within the same trait-line folder. Calling a helper
 externally does not by itself justify another file. Generated `data.traits` continues to own selection metadata.
 
+Author trait fields in this order, omitting unused fields: `name`, `id`, `balance`, `attributes`, `grantedAttributes`,
+`modifierRules`, `rechargeRules`, `triggers`, `hooks`, `lifetime`. Keep balance scalars before `effects` so identity and
+tuning are visible before behavior. Preserve rule-array order, registration order, and spread override precedence; field
+layout does not define execution order.
+
 Do not move profession-specific mechanics into shared platform code just because several files need them. Likewise, do
 not duplicate shared GW2 behavior inside individual professions.
 

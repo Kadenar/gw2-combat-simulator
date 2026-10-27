@@ -34,6 +34,12 @@ import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Owns Be Quick or Be Killed tuning and behavior at the existing execution boundaries. */
 const beQuickOrBeKilled = defineTrait({
+  name: 'Be Quick or Be Killed',
+  id: TRAIT.BE_QUICK_OR_BE_KILLED,
+  balance: {
+    attributeBonus: 200,
+    effects: [{ type: 'boon', name: BOON.QUICKNESS, boon: BOON.QUICKNESS, stacks: 1, duration: 4 }]
+  },
   // Quickness controls both flat attributes in build and live evaluation.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.BE_QUICK_OR_BE_KILLED);
@@ -57,33 +63,26 @@ const beQuickOrBeKilled = defineTrait({
       ]
     };
   },
-
-  triggers: [onTriggerPoint(markCompleted, { run: grantBeQuickOrBeKilled })],
-  id: TRAIT.BE_QUICK_OR_BE_KILLED,
-  name: 'Be Quick or Be Killed',
-  balance: {
-    attributeBonus: 200,
-    effects: [{ type: 'boon', name: BOON.QUICKNESS, boon: BOON.QUICKNESS, stacks: 1, duration: 4 }]
-  }
+  triggers: [onTriggerPoint(markCompleted, { run: grantBeQuickOrBeKilled })]
 });
 
 /** Owns Fire for Effect tuning and behavior at the existing execution boundaries. */
 const fireForEffect = defineTrait({
-  triggers: [onTriggerPoint(deadeyeCastCompleted, { run: grantFireForEffect })],
-  id: TRAIT.FIRE_FOR_EFFECT,
   name: 'Fire for Effect',
+  id: TRAIT.FIRE_FOR_EFFECT,
   balance: {
     effects: [
       { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 8, duration: 12 },
       { type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 12 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(deadeyeCastCompleted, { run: grantFireForEffect })]
 });
 
 /** Owns this trait's modifier eligibility. */
 const ironSight = defineTrait({
-  id: TRAIT.IRON_SIGHT,
   name: 'Iron Sight',
+  id: TRAIT.IRON_SIGHT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
   modifierRules: [
@@ -100,9 +99,8 @@ const ironSight = defineTrait({
 
 /** Owns Maleficent Seven tuning and behavior at the existing execution boundaries. */
 const maleficentSeven = defineTrait({
-  triggers: [onTriggerPoint(maliceGained, { run: applyMaleficentSeven })],
-  id: TRAIT.MALEFICENT_SEVEN,
   name: 'Maleficent Seven',
+  id: TRAIT.MALEFICENT_SEVEN,
   balance: {
     maximumStacks: 7,
     resourceGain: 7,
@@ -114,29 +112,24 @@ const maleficentSeven = defineTrait({
       { type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 10 },
       { type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 10 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(maliceGained, { run: applyMaleficentSeven })]
 });
 
 /** Owns Malicious Intent tuning and behavior at the existing execution boundaries. */
 const maliciousIntent = defineTrait({
-  triggers: [onTriggerPoint(maliceSpent, { run: restoreMaliciousIntent })],
-  id: TRAIT.MALICIOUS_INTENT,
   name: 'Malicious Intent',
+  id: TRAIT.MALICIOUS_INTENT,
   balance: {
     resourceGain: 2
-  }
+  },
+  triggers: [onTriggerPoint(maliceSpent, { run: restoreMaliciousIntent })]
 });
 
 /** Owns this trait's modifier eligibility. */
 const oneInTheChamber = defineTrait({
-  triggers: [
-    onTriggerPoint(deadeyeCastCompleted, {
-      when: (_runtime, { cast }: DeadeyeCast) => Boolean(cast.skill.categories?.includes('Cantrip')),
-      run: grantOneInTheChamber
-    })
-  ],
-  id: TRAIT.ONE_IN_THE_CHAMBER,
   name: 'One in the Chamber',
+  id: TRAIT.ONE_IN_THE_CHAMBER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.25 },
   modifierRules: [
@@ -154,28 +147,19 @@ const oneInTheChamber = defineTrait({
           )
         )
     }
+  ],
+  triggers: [
+    onTriggerPoint(deadeyeCastCompleted, {
+      when: (_runtime, { cast }: DeadeyeCast) => Boolean(cast.skill.categories?.includes('Cantrip')),
+      run: grantOneInTheChamber
+    })
   ]
 });
 
 /** Owns Premeditation tuning and behavior at the existing execution boundaries. */
 const premeditation = defineTrait({
-  id: TRAIT.PREMEDITATION,
   name: 'Premeditation',
-  modifierRules: [
-    {
-      order: 204,
-      id: 'thief.premeditation',
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'multiply',
-      // Count unique boons only up to the selected balance cap.
-
-      factor: (context) =>
-        1 +
-        Math.min(balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'maximumBoons'), activeBoonCount(context)) *
-          balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'damagePerBoon'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
-    }
-  ],
+  id: TRAIT.PREMEDITATION,
   balance: {
     damagePerBoon: 0.01,
     maximumBoons: GW2_STANDARD_BOONS.length,
@@ -192,14 +176,28 @@ const premeditation = defineTrait({
         }
       ]
     };
-  }
+  },
+  modifierRules: [
+    {
+      order: 204,
+      id: 'thief.premeditation',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      // Count unique boons only up to the selected balance cap.
+
+      factor: (context) =>
+        1 +
+        Math.min(balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'maximumBoons'), activeBoonCount(context)) *
+          balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'damagePerBoon'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
+    }
+  ]
 });
 
 /** Owns Silent Scope tuning and behavior at the existing execution boundaries. */
 const silentScope = defineTrait({
-  triggers: [onTriggerPoint(deadeyeCastCompleted, { run: grantSilentScope })],
-  id: TRAIT.SILENT_SCOPE,
   name: 'Silent Scope',
+  id: TRAIT.SILENT_SCOPE,
   balance: {
     threshold: 3,
     duration: 3,
@@ -216,14 +214,15 @@ const silentScope = defineTrait({
         }
       ]
     };
-  }
+  },
+  triggers: [onTriggerPoint(deadeyeCastCompleted, { run: grantSilentScope })]
 });
 
 /** Native trait owners, in stable authoring order. */
 // Intrinsic specialization policy is available without explicit minor selection.
 const deadeyesGaze = defineTrait({
-  id: TRAIT.DEADEYES_GAZE,
   name: "Deadeye's Gaze",
+  id: TRAIT.DEADEYES_GAZE,
   balance: { maximumStacks: 5, resourceGain: 1, playerStacks: 1 }
 });
 

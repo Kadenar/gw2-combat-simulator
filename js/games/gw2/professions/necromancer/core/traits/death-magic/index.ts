@@ -26,8 +26,8 @@ import type {
 
 /** Owns Necromantic Corruption tuning and behavior at its existing execution boundaries. */
 export const necromanticCorruption = defineTrait({
-  id: TRAIT.NECROMANTIC_CORRUPTION,
   name: 'Necromantic Corruption',
+  id: TRAIT.NECROMANTIC_CORRUPTION,
   balance: { damageMultiplier: 1.25 },
   modifierRules: [
     {
@@ -43,8 +43,8 @@ export const necromanticCorruption = defineTrait({
 
 /** Owns Flesh of the Master tuning and behavior at its existing execution boundaries. */
 export const fleshOfTheMaster = defineTrait({
-  id: TRAIT.FLESH_OF_THE_MASTER,
   name: 'Flesh of the Master',
+  id: TRAIT.FLESH_OF_THE_MASTER,
   balance: {
     resourceGain: 2,
     maximumStacks: 30
@@ -53,6 +53,9 @@ export const fleshOfTheMaster = defineTrait({
 
 /** Owns Deadly Strength tuning and behavior at its existing execution boundaries. */
 export const deadlyStrength = defineTrait({
+  name: 'Deadly Strength',
+  id: TRAIT.DEADLY_STRENGTH,
+  balance: { attributePerStack: 10 },
   // Carapace contributes temporary flat attributes while ordinary conversion pools remain unchanged.
   attributes(context) {
     const bonus =
@@ -64,30 +67,26 @@ export const deadlyStrength = defineTrait({
         { kind: 'flat', to: 'Condition Damage', amount: bonus, feedsConversions: 'none', enabled: true }
       ]
     };
-  },
-
-  id: TRAIT.DEADLY_STRENGTH,
-  name: 'Deadly Strength',
-  balance: { attributePerStack: 10 }
+  }
 });
 
 /** Owns Corrupter's Fervor tuning and behavior at its existing execution boundaries. */
 export const corruptersFervor = defineTrait({
+  name: "Corrupter's Fervor",
+  id: TRAIT.CORRUPTERS_FERVOR,
+  balance: { resourceGain: 1, duration: 10 },
   triggers: [
     onTriggerPoint(necromancerConditionApplied, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
         applyCorruptorsFervor(runtime, input.event)
     })
-  ],
-  id: TRAIT.CORRUPTERS_FERVOR,
-  name: "Corrupter's Fervor",
-  balance: { resourceGain: 1, duration: 10 }
+  ]
 });
 
 /** Owns Dark Defense tuning and behavior at its existing execution boundaries. */
 export const darkDefense = defineTrait({
-  id: TRAIT.DARK_DEFENSE,
   name: 'Dark Defense',
+  id: TRAIT.DARK_DEFENSE,
   balance: {
     resourceGain: 10,
     duration: 10,
@@ -99,36 +98,50 @@ export const darkDefense = defineTrait({
 
 /** Owns Shrouded Removal tuning and behavior at its existing execution boundaries. */
 export const shroudedRemoval = defineTrait({
-  triggers: [onTriggerPoint(shroudEntering, { run: prepareShroudedRemoval })],
-  id: TRAIT.SHROUDED_REMOVAL,
   name: 'Shrouded Removal',
-  balance: { maximumConditions: 1, resourceGain: 3, duration: 10 }
+  id: TRAIT.SHROUDED_REMOVAL,
+  balance: { maximumConditions: 1, resourceGain: 3, duration: 10 },
+  triggers: [onTriggerPoint(shroudEntering, { run: prepareShroudedRemoval })]
 });
 
 /** Grants Carapace-based life force on ordinary shroud entry and Scourge's committed shroud activation. */
 export const soulComprehension = defineTrait({
+  name: 'Soul Comprehension',
+  id: TRAIT.SOUL_COMPREHENSION,
+  balance: { lifeForcePerStack: 0.5, maximumStacks: 30 },
   triggers: [
     onTriggerPoint(shroudEntering, { run: applySoulComprehension }),
     onTriggerPoint(shroudInvoked, { run: applySoulComprehension })
-  ],
-  id: TRAIT.SOUL_COMPREHENSION,
-  name: 'Soul Comprehension',
-  balance: { lifeForcePerStack: 0.5, maximumStacks: 30 }
+  ]
 });
 
 /** Both shroud forms and Scourge activations grant Carapace before Soul Comprehension samples the live stacks. */
 export const armoredShroud = defineTrait({
+  name: 'Armored Shroud',
+  id: TRAIT.ARMORED_SHROUD,
+  balance: { resourceGain: 5, duration: 10 },
   triggers: [
     onTriggerPoint(shroudEntering, { run: applyArmoredShroud }),
     onTriggerPoint(shroudInvoked, { run: applyArmoredShroud })
-  ],
-  id: TRAIT.ARMORED_SHROUD,
-  name: 'Armored Shroud',
-  balance: { resourceGain: 5, duration: 10 }
+  ]
 });
 
 /** Owns Putrid Defense tuning and behavior at its existing execution boundaries. */
 export const putridDefense = defineTrait({
+  name: 'Putrid Defense',
+  id: TRAIT.PUTRID_DEFENSE,
+  // Trait balance is the single tuning source for modifiers and presentation.
+  balance: { conditionDamageMultiplier: 1.15, resourceGain: 1, duration: 10 },
+  modifierRules: [
+    {
+      order: 110,
+      id: 'necromancer.putrid-defense',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'multiply',
+      factor: (context) => balanceNumberFromContext(context, TRAIT.PUTRID_DEFENSE, 'conditionDamageMultiplier'),
+      when: (context) => context.condition === CONDITION.POISONED
+    }
+  ],
   // Accepted conditions arrive one stack at a time, so each poison stack earns its own Carapace.
   triggers: [
     onTriggerPoint(necromancerConditionApplied, {
@@ -141,20 +154,6 @@ export const putridDefense = defineTrait({
           balanceNumberFromContext(runtime, TRAIT.PUTRID_DEFENSE, 'duration')
         )
     })
-  ],
-  id: TRAIT.PUTRID_DEFENSE,
-  name: 'Putrid Defense',
-  // Trait balance is the single tuning source for modifiers and presentation.
-  balance: { conditionDamageMultiplier: 1.15, resourceGain: 1, duration: 10 },
-  modifierRules: [
-    {
-      order: 110,
-      id: 'necromancer.putrid-defense',
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.PUTRID_DEFENSE, 'conditionDamageMultiplier'),
-      when: (context) => context.condition === CONDITION.POISONED
-    }
   ]
 });
 

@@ -19,8 +19,8 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
 
 /** Owns Dwarven Battle Training tuning and behavior at its established execution boundaries. */
 export const dwarvenBattleTraining = defineTrait({
-  id: TRAIT.DWARVEN_BATTLE_TRAINING,
   name: 'Dwarven Battle Training',
+  id: TRAIT.DWARVEN_BATTLE_TRAINING,
   balance: {
     damageMultiplier: 1.1,
     effects: [
@@ -65,8 +65,8 @@ export const dwarvenBattleTraining = defineTrait({
 
 /** Owns Enduring Recovery tuning and behavior at its established execution boundaries. */
 export const enduringRecovery = defineTrait({
-  id: TRAIT.ENDURING_RECOVERY,
   name: 'Enduring Recovery',
+  id: TRAIT.ENDURING_RECOVERY,
   balance: {
     enduranceRegenerationMultiplier: 1.25,
     effects: []
@@ -75,6 +75,9 @@ export const enduringRecovery = defineTrait({
 
 /** Owns Versed in Stone tuning and behavior at its established execution boundaries. */
 export const versedInStone = defineTrait({
+  name: 'Versed in Stone',
+  id: TRAIT.VERSED_IN_STONE,
+  balance: { attributeConversion: 0.13 },
   attributes: traitAttributeEffects(TRAIT.VERSED_IN_STONE, [
     {
       kind: 'conversion',
@@ -84,17 +87,13 @@ export const versedInStone = defineTrait({
       rounding: 'round',
       input: 'common'
     }
-  ]),
-  id: TRAIT.VERSED_IN_STONE,
-  name: 'Versed in Stone',
-  balance: { attributeConversion: 0.13 }
+  ])
 });
 
 /** Owns Vicious Reprisal tuning and behavior at its established execution boundaries. */
 export const viciousReprisalTrait = defineTrait({
-  triggers: [onTriggerPoint(battleScarConsumed, { run: viciousReprisal })],
-  id: TRAIT.VICIOUS_REPRISAL,
   name: 'Vicious Reprisal',
+  id: TRAIT.VICIOUS_REPRISAL,
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.1,
@@ -122,7 +121,8 @@ export const viciousReprisalTrait = defineTrait({
           : balanceNumberFromContext(context, TRAIT.VICIOUS_REPRISAL, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.RESOLUTION))
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(battleScarConsumed, { run: viciousReprisal })]
 });
 
 /** Vicious Reprisal grants Might from landed strikes while Resolution is active, once per its cooldown. */

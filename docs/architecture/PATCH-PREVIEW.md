@@ -32,7 +32,7 @@ export const activePatchPreview: PatchPreview | null = null;
 | Skill cooldown, resource cost, published activation duration           | Skills: numeric field (`castTimeMs` for duration)   |
 | Added or removed effect                                                | Skills: add/remove effect                           |
 | Existing cast/effect resource grant                                    | Its stable resource-grant ID                        |
-| Shared mechanic tuning                                                 | Balance profiles                                    |
+| Shared intrinsic tuning                                                | Its canonical skill owner                           |
 | Static trait modifier                                                  | Traits & modifiers: stable modifier-rule ID         |
 | Runtime modifier scaling                                               | Modifier parameter                                  |
 | Internal packet offsets, interrupt commitment, summon cast calibration | Owning runtime source                               |
@@ -101,7 +101,12 @@ removeEffects: [{ effectIndex: 1, type: 'condition', condition: 'Poisoned' }];
 `balanceProfiles` uses profile IDs with the same `fields` and `effects` grammar as skills. Catalog assembly derives
 these profiles from `traitDefinitions`; module data does not accept authored profiles. Preview reconstruction consumes
 the assembled catalog without registering trait behavior again. Callbacks, build calculations, and tooltips use the
-selected balance context.
+selected balance context. Only trait profiles are supported; the editor exposes them under Trait effects.
+
+Helper payloads such as Justice burns and Band Together belong to named `sideEffects` actions, not cast effects. Patch
+them through `sideEffects.justice` and `sideEffects.band-together`, respectively. Amalgam Rapacious and Titanic strain
+tuning is shared by every protocol slot through the canonical Thorns and Obliterate skills. Patch authoring includes
+these shared owners when filtering build-scoped notes, even when the owners are neither selected nor observed.
 
 A trait may contribute several rules. Target the stable modifier-rule ID, not the trait ID:
 

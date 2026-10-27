@@ -58,10 +58,8 @@ const assassinsPresencePassive = definePeriodicTask<RevenantRuntime>({
 
 /** Owns Assassin's Presence tuning and behavior at its established execution boundaries. */
 export const assassinsPresence = defineTrait({
-  triggers: [onTriggerPoint(revenantLifecycleAnchored, { run: startRevenantAssassinsPresence })],
-  lifetime: assassinsPresencePassive.hooks,
-  id: TRAIT.ASSASSINS_PRESENCE,
   name: "Assassin's Presence",
+  id: TRAIT.ASSASSINS_PRESENCE,
   balance: {
     cooldown: 10,
     effects: [
@@ -74,14 +72,15 @@ export const assassinsPresence = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(revenantLifecycleAnchored, { run: startRevenantAssassinsPresence })],
+  lifetime: assassinsPresencePassive.hooks
 });
 
 /** Owns Battle Scarred tuning and behavior at its established execution boundaries. */
 export const battleScarred = defineTrait({
-  triggers: [onTriggerPoint(revenantCastCompleted, { run: completeBattleScarred })],
-  id: TRAIT.BATTLE_SCARRED,
   name: 'Battle Scarred',
+  id: TRAIT.BATTLE_SCARRED,
   balance: {
     effects: [
       {
@@ -93,14 +92,14 @@ export const battleScarred = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(revenantCastCompleted, { run: completeBattleScarred })]
 });
 
 /** Owns Brutality tuning and behavior at its established execution boundaries. */
 export const brutality = defineTrait({
-  triggers: [onTriggerPoint(revenantWeaponSwapped, { run: completeRevenantBrutality })],
-  id: TRAIT.BRUTALITY,
   name: 'Brutality',
+  id: TRAIT.BRUTALITY,
   balance: {
     cooldown: 9,
     effects: [
@@ -113,26 +112,27 @@ export const brutality = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(revenantWeaponSwapped, { run: completeRevenantBrutality })]
 });
 
 /** Owns Dance of Death tuning and behavior at its established execution boundaries. */
 export const danceOfDeath = defineTrait({
-  triggers: [onTriggerPoint(revenantConditionApplied, { run: reactDanceOfDeath })],
-  id: TRAIT.DANCE_OF_DEATH,
   name: 'Dance of Death',
+  id: TRAIT.DANCE_OF_DEATH,
   // Each accepted Vulnerability stack grants this trait's independently patchable scar payload.
   balance: {
     effects: [
       { name: 'battle-scars', type: 'buff', kind: 'battle-scars', duration: 10, stacks: 1, actorType: ACTOR.PLAYER }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(revenantConditionApplied, { run: reactDanceOfDeath })]
 });
 
 /** Owns Destructive Impulses tuning and behavior at its established execution boundaries. */
 export const destructiveImpulses = defineTrait({
-  id: TRAIT.DESTRUCTIVE_IMPULSES,
   name: 'Destructive Impulses',
+  id: TRAIT.DESTRUCTIVE_IMPULSES,
   balance: {
     damageIncrease: 0.05,
     offhandDamageIncrease: 0.075,
@@ -166,9 +166,8 @@ export const destructiveImpulses = defineTrait({
 
 /** Owns Expose Defenses tuning and behavior at its established execution boundaries. */
 export const exposeDefensesTrait = defineTrait({
-  triggers: [onTriggerPoint(battleScarConsumed, { run: exposeDefenses })],
-  id: TRAIT.EXPOSE_DEFENSES,
   name: 'Expose Defenses',
+  id: TRAIT.EXPOSE_DEFENSES,
   balance: {
     effects: [
       {
@@ -180,19 +179,14 @@ export const exposeDefensesTrait = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(battleScarConsumed, { run: exposeDefenses })]
 });
 
 /** Owns Notoriety tuning and behavior at its established execution boundaries. */
 export const notoriety = defineTrait({
-  // Adjust baseline Might atomically so an unbuffed build never receives a negative standalone grant.
-  attributes(context) {
-    const bonus = balanceNumberFromContext(context, TRAIT.NOTORIETY, 'attributePerStack');
-    return { mightPerStack: { power: bonus, conditionDamage: -bonus } };
-  },
-  triggers: [onTriggerPoint(revenantCastCompleted, { run: completeNotoriety })],
-  id: TRAIT.NOTORIETY,
   name: 'Notoriety',
+  id: TRAIT.NOTORIETY,
   balance: {
     attributePerStack: 10,
     effects: [
@@ -205,13 +199,19 @@ export const notoriety = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  // Adjust baseline Might atomically so an unbuffed build never receives a negative standalone grant.
+  attributes(context) {
+    const bonus = balanceNumberFromContext(context, TRAIT.NOTORIETY, 'attributePerStack');
+    return { mightPerStack: { power: bonus, conditionDamage: -bonus } };
+  },
+  triggers: [onTriggerPoint(revenantCastCompleted, { run: completeNotoriety })]
 });
 
 /** Owns Swift Termination tuning and behavior at its established execution boundaries. */
 export const swiftTermination = defineTrait({
-  id: TRAIT.SWIFT_TERMINATION,
   name: 'Swift Termination',
+  id: TRAIT.SWIFT_TERMINATION,
   // Trait balance owns both the bonus and its supported target-health threshold.
   balance: { damageMultiplier: 1.2, threshold: 0.5 },
   modifierRules: [
@@ -230,8 +230,8 @@ export const swiftTermination = defineTrait({
 
 /** Owns Targeted Destruction tuning and behavior at its established execution boundaries. */
 export const targetedDestruction = defineTrait({
-  id: TRAIT.TARGETED_DESTRUCTION,
   name: 'Targeted Destruction',
+  id: TRAIT.TARGETED_DESTRUCTION,
   balance: { damageIncreasePerStack: 0.005 },
   modifierRules: [
     {
@@ -250,9 +250,8 @@ export const targetedDestruction = defineTrait({
 
 /** Owns Thrill of Combat tuning and behavior at its established execution boundaries. */
 export const thrillOfCombatTrait = defineTrait({
-  triggers: [onTriggerPoint(revenantStruck, { run: thrillOfCombat })],
-  id: TRAIT.THRILL_OF_COMBAT,
   name: 'Thrill of Combat',
+  id: TRAIT.THRILL_OF_COMBAT,
   balance: {
     cooldown: 1,
     effects: [
@@ -265,13 +264,14 @@ export const thrillOfCombatTrait = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(revenantStruck, { run: thrillOfCombat })]
 });
 
 /** Owns Unsuspecting Strikes tuning and behavior at its established execution boundaries. */
 export const unsuspectingStrikes = defineTrait({
-  id: TRAIT.UNSUSPECTING_STRIKES,
   name: 'Unsuspecting Strikes',
+  id: TRAIT.UNSUSPECTING_STRIKES,
   // Trait balance owns both the bonus and its supported target-health threshold.
   balance: { damageMultiplier: 1.2, threshold: 0.8 },
   modifierRules: [

@@ -37,26 +37,23 @@ import { daredevilState } from '#gw2/professions/thief/specializations/daredevil
 
 /** Owns Brawler's Tenacity tuning and behavior at the existing execution boundaries. */
 const brawlersTenacity = defineTrait({
-  id: TRAIT.BRAWLERS_TENACITY,
   name: "Brawler's Tenacity",
-  triggers: [onTriggerPoint(physicalSkillStarted, { run: grantBrawlersTenacity })],
+  id: TRAIT.BRAWLERS_TENACITY,
   balance: {
     resourceGain: 15
-  }
+  },
+  triggers: [onTriggerPoint(physicalSkillStarted, { run: grantBrawlersTenacity })]
 });
 
 /** Owns Bounding Dodger tuning and behavior at the existing execution boundaries. */
 const boundingDodger = defineTrait({
-  id: TRAIT.BOUNDING_DODGER,
   name: 'Bounding Dodger',
-  // The configured dodge choice owns eligibility; new damage-window rewards still obey isolation.
-  triggers: [
-    onTriggerPoint(daredevilDodged, {
-      requiresSelection: false,
-      when: (runtime) => daredevilState.from(runtime).selectedDodge === 'Bounding Dodger',
-      run: (runtime) => openDodgeWindow(runtime)
-    })
-  ],
+  id: TRAIT.BOUNDING_DODGER,
+  balance: {
+    damageIncrease: 0.15,
+    duration: 6,
+    effects: [{ type: 'strike', name: 'Bounding Dodger', coefficient: 3.5, hits: 1 }]
+  },
   modifierRules: [
     {
       order: 102,
@@ -67,35 +64,20 @@ const boundingDodger = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'bounding-dodger')
     }
   ],
-  balance: {
-    damageIncrease: 0.15,
-    duration: 6,
-    effects: [{ type: 'strike', name: 'Bounding Dodger', coefficient: 3.5, hits: 1 }]
-  }
-});
-
-/** Owns Lotus Training tuning and behavior at the existing execution boundaries. */
-const lotusTraining = defineTrait({
-  id: TRAIT.LOTUS_TRAINING,
-  name: 'Lotus Training',
   // The configured dodge choice owns eligibility; new damage-window rewards still obey isolation.
   triggers: [
     onTriggerPoint(daredevilDodged, {
       requiresSelection: false,
-      when: (runtime) => daredevilState.from(runtime).selectedDodge === 'Lotus Training',
+      when: (runtime) => daredevilState.from(runtime).selectedDodge === 'Bounding Dodger',
       run: (runtime) => openDodgeWindow(runtime)
     })
-  ],
-  modifierRules: [
-    {
-      order: 103,
-      id: 'thief.lotus-training',
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.LOTUS_TRAINING, 'conditionDamageIncrease'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'lotus-training')
-    }
-  ],
+  ]
+});
+
+/** Owns Lotus Training tuning and behavior at the existing execution boundaries. */
+const lotusTraining = defineTrait({
+  name: 'Lotus Training',
+  id: TRAIT.LOTUS_TRAINING,
   balance: {
     conditionDamageIncrease: 0.15,
     duration: 6,
@@ -114,13 +96,31 @@ const lotusTraining = defineTrait({
       { type: 'condition', name: CONDITION.TORMENT, atMs: 360, condition: CONDITION.TORMENT, stacks: 2, duration: 4 },
       { type: 'condition', name: CONDITION.CRIPPLED, atMs: 520, condition: CONDITION.CRIPPLED, stacks: 1, duration: 3 }
     ]
-  }
+  },
+  modifierRules: [
+    {
+      order: 103,
+      id: 'thief.lotus-training',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'damage-additive',
+      amount: (context) => balanceNumberFromContext(context, TRAIT.LOTUS_TRAINING, 'conditionDamageIncrease'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'lotus-training')
+    }
+  ],
+  // The configured dodge choice owns eligibility; new damage-window rewards still obey isolation.
+  triggers: [
+    onTriggerPoint(daredevilDodged, {
+      requiresSelection: false,
+      when: (runtime) => daredevilState.from(runtime).selectedDodge === 'Lotus Training',
+      run: (runtime) => openDodgeWindow(runtime)
+    })
+  ]
 });
 
 /** Owns Unhindered Combatant tuning and behavior at the existing execution boundaries. */
 const unhinderedCombatant = defineTrait({
-  id: TRAIT.UNHINDERED_COMBATANT,
   name: 'Unhindered Combatant',
+  id: TRAIT.UNHINDERED_COMBATANT,
   balance: {
     effects: [{ type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 8 }]
   }
@@ -128,23 +128,23 @@ const unhinderedCombatant = defineTrait({
 
 /** Owns Endurance Thief tuning and behavior at the existing execution boundaries. */
 const enduranceThief = defineTrait({
-  id: TRAIT.ENDURANCE_THIEF,
   name: 'Endurance Thief',
+  id: TRAIT.ENDURANCE_THIEF,
+  balance: {
+    resourceGain: 50
+  },
   triggers: [
     onTriggerPoint(daredevilCastCompleted, {
       when: (_runtime, { cast }: DaredevilCast) => cast.skill.id === ID.STEAL,
       run: grantEnduranceThief
     })
-  ],
-  balance: {
-    resourceGain: 50
-  }
+  ]
 });
 
 /** Owns this trait's modifier eligibility. */
 const havocSpecialist = defineTrait({
-  id: TRAIT.HAVOC_SPECIALIST,
   name: 'Havoc Specialist',
+  id: TRAIT.HAVOC_SPECIALIST,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.15 },
   modifierRules: [
@@ -165,8 +165,8 @@ const havocSpecialist = defineTrait({
 
 /** Owns Marauder's Resilience tuning and behavior at the existing execution boundaries. */
 const maraudersResilience = defineTrait({
-  id: TRAIT.MARAUDERS_RESILIENCE,
   name: "Marauder's Resilience",
+  id: TRAIT.MARAUDERS_RESILIENCE,
   balance: { attributeConversion: 0.07 },
   attributes({ balanceContext }) {
     return {
@@ -186,12 +186,8 @@ const maraudersResilience = defineTrait({
 
 /** Owns Staff Master tuning and behavior at the existing execution boundaries. */
 const staffMaster = defineTrait({
-  id: TRAIT.STAFF_MASTER,
   name: 'Staff Master',
-  triggers: [
-    // Staff Master refunds endurance per initiative spent on staff skills.
-    onTriggerPoint(daredevilCastStarted, { run: refundStaffMaster })
-  ],
+  id: TRAIT.STAFF_MASTER,
   balance: {
     attributeBonus: 120,
     weaponAttributeBonus: 240,
@@ -213,17 +209,22 @@ const staffMaster = defineTrait({
         }
       ]
     };
-  }
+  },
+  triggers: [
+    // Staff Master refunds endurance per initiative spent on staff skills.
+    onTriggerPoint(daredevilCastStarted, { run: refundStaffMaster })
+  ]
 });
 
 /** Owns Weakening Strikes tuning and behavior at the existing execution boundaries. */
 const weakeningStrikes = defineTrait({
-  id: TRAIT.WEAKENING_STRIKES,
   name: 'Weakening Strikes',
-  triggers: [
-    onTriggerPoint(daredevilDodged, { run: armWeakeningStrikes }),
-    onTriggerPoint(daredevilStruck, { run: weakeningStrike })
-  ],
+  id: TRAIT.WEAKENING_STRIKES,
+  balance: {
+    damageMultiplier: 1.1,
+    duration: 4,
+    effects: [{ type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }]
+  },
   modifierRules: [
     {
       order: 100,
@@ -235,18 +236,17 @@ const weakeningStrikes = defineTrait({
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.WEAKNESS)
     }
   ],
-  balance: {
-    damageMultiplier: 1.1,
-    duration: 4,
-    effects: [{ type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }]
-  }
+  triggers: [
+    onTriggerPoint(daredevilDodged, { run: armWeakeningStrikes }),
+    onTriggerPoint(daredevilStruck, { run: weakeningStrike })
+  ]
 });
 
 /** Native trait owners, in stable authoring order. */
 // Intrinsic specialization policy is available without explicit minor selection.
 const physicalSupremacy = defineTrait({
-  id: TRAIT.PHYSICAL_SUPREMACY,
   name: 'Physical Supremacy',
+  id: TRAIT.PHYSICAL_SUPREMACY,
   balance: { maximumStacks: 150 }
 });
 

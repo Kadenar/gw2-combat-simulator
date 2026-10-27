@@ -33,8 +33,8 @@ import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializa
 
 /** Danger Time retains its active profile, selection, and original execution boundary. */
 const dangerTime = defineTrait<MesmerSkill>({
-  id: TRAIT.DANGER_TIME,
   name: 'Danger Time',
+  id: TRAIT.DANGER_TIME,
   balance: {
     criticalDamage: 0.05,
     duration: 10
@@ -54,12 +54,12 @@ const dangerTime = defineTrait<MesmerSkill>({
 });
 
 /** Delayed Reactions retains its active profile, selection, and original execution boundary. */
-const delayedReactions = defineTrait<MesmerSkill>({ id: TRAIT.DELAYED_REACTIONS, name: 'Delayed Reactions' });
+const delayedReactions = defineTrait<MesmerSkill>({ name: 'Delayed Reactions', id: TRAIT.DELAYED_REACTIONS });
 
 /** Flow of Time retains its active profile, selection, and original execution boundary. */
 const flowOfTime = defineTrait<MesmerSkill>({
-  id: TRAIT.FLOW_OF_TIME,
   name: 'Flow of Time',
+  id: TRAIT.FLOW_OF_TIME,
   balance: {
     criticalChance: 0.15
   },
@@ -74,8 +74,11 @@ const flowOfTime = defineTrait<MesmerSkill>({
 
 /** Chronophantasma retains its active profile, selection, and original execution boundary. */
 const chronophantasma = defineTrait<MesmerSkill>({
-  id: TRAIT.CHRONOPHANTASMA,
   name: 'Chronophantasma',
+  id: TRAIT.CHRONOPHANTASMA,
+  balance: {
+    damageMultiplier: 1.05
+  },
   // Admit repeat work once for this batch; the illusion owner retains its conversion and delivery lifetime.
   triggers: [
     onTriggerPoint(mesmerPhantasmPreparing, {
@@ -88,16 +91,13 @@ const chronophantasma = defineTrait<MesmerSkill>({
         };
       }
     })
-  ],
-  balance: {
-    damageMultiplier: 1.05
-  }
+  ]
 });
 
 /** Time Catches Up retains its active profile, selection, and original execution boundary. */
 const timeCatchesUp = defineTrait<MesmerSkill>({
-  id: TRAIT.TIME_CATCHES_UP,
   name: 'Time Catches Up',
+  id: TRAIT.TIME_CATCHES_UP,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
   modifierRules: [
@@ -119,30 +119,24 @@ const timeCatchesUp = defineTrait<MesmerSkill>({
 
 /** Illusionary Reversion retains its active profile, selection, and original execution boundary. */
 const illusionaryReversion = defineTrait<MesmerSkill>({
+  name: 'Illusionary Reversion',
+  id: TRAIT.ILLUSIONARY_REVERSION,
+  balance: {
+    threshold: 3,
+    resourceGain: 1
+  },
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
         resolveIllusionaryReversion(runtime, input.resolution)
     })
-  ],
-  id: TRAIT.ILLUSIONARY_REVERSION,
-  name: 'Illusionary Reversion',
-  balance: {
-    threshold: 3,
-    resourceGain: 1
-  }
+  ]
 });
 
 /** Stretched Time retains its active profile, selection, and original execution boundary. */
 const stretchedTime = defineTrait<MesmerSkill>({
-  triggers: [
-    onTriggerPoint(mesmerShatterCompleted, {
-      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
-        triggerShatterBoon(runtime, input.resolution, TRAIT.STRETCHED_TIME, boonKey(BOON.ALACRITY))
-    })
-  ],
-  id: TRAIT.STRETCHED_TIME,
   name: 'Stretched Time',
+  id: TRAIT.STRETCHED_TIME,
   balance: {
     durationPerTier: 1,
     effects: [
@@ -155,19 +149,19 @@ const stretchedTime = defineTrait<MesmerSkill>({
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(mesmerShatterCompleted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
+        triggerShatterBoon(runtime, input.resolution, TRAIT.STRETCHED_TIME, boonKey(BOON.ALACRITY))
+    })
+  ]
 });
 
 /** Seize the Moment retains its active profile, selection, and original execution boundary. */
 const seizeTheMoment = defineTrait<MesmerSkill>({
-  triggers: [
-    onTriggerPoint(mesmerShatterCompleted, {
-      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
-        triggerShatterBoon(runtime, input.resolution, TRAIT.SEIZE_THE_MOMENT, boonKey(BOON.QUICKNESS))
-    })
-  ],
-  id: TRAIT.SEIZE_THE_MOMENT,
   name: 'Seize the Moment',
+  id: TRAIT.SEIZE_THE_MOMENT,
   balance: {
     durationPerTier: 1,
     effects: [
@@ -180,13 +174,19 @@ const seizeTheMoment = defineTrait<MesmerSkill>({
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(mesmerShatterCompleted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
+        triggerShatterBoon(runtime, input.resolution, TRAIT.SEIZE_THE_MOMENT, boonKey(BOON.QUICKNESS))
+    })
+  ]
 });
 
 /** Time Bomb retains its active profile, selection, and original execution boundary. */
 const timeBomb = defineTrait<MesmerSkill>({
-  id: TRAIT.TIME_BOMB,
   name: 'Time Bomb',
+  id: TRAIT.TIME_BOMB,
   balance: {
     damageMultiplier: 1.1,
     duration: 5,

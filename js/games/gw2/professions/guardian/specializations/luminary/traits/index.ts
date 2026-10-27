@@ -43,8 +43,8 @@ const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.R
 
 /** Completed stance casts emit the surviving party boon and hostile Blind components. */
 const shimmeringStances = defineTrait({
-  id: TRAIT.SHIMMERING_STANCES,
   name: 'Shimmering Stances',
+  id: TRAIT.SHIMMERING_STANCES,
   balance: {
     effects: [
       {
@@ -80,8 +80,8 @@ const shimmeringStances = defineTrait({
 
 /** Consumes only a live aura with a surviving strike, preserving detonation priority and already-scheduled work. */
 const sovereignOfLight = defineTrait({
-  id: TRAIT.SOVEREIGN_OF_LIGHT,
   name: 'Sovereign of Light',
+  id: TRAIT.SOVEREIGN_OF_LIGHT,
   balance: {
     // Forge entry grants this trait's aura; detonation selects only its independent strike.
     effects: [
@@ -123,13 +123,12 @@ const sovereignOfLight = defineTrait({
 
 /** Accepted equips install the weapon-tagged window; only its latest live hammer grants damage. */
 const radiantArmaments = defineTrait({
-  id: TRAIT.RADIANT_ARMAMENTS,
   name: 'Radiant Armaments',
+  id: TRAIT.RADIANT_ARMAMENTS,
   balance: {
     damageIncrease: 0.07,
     effects: [{ type: 'buff', name: 'radiant-armaments', kind: 'guardian-radiant-armaments', duration: 10 }]
   },
-  triggers: [onTriggerPoint(radiantWeaponDrawn, { run: startRadiantArmaments })],
   modifierRules: [
     {
       requiresSelection: false,
@@ -150,19 +149,19 @@ const radiantArmaments = defineTrait({
         );
       }
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(radiantWeaponDrawn, { run: startRadiantArmaments })]
 });
 
 /** Successful equips extend the capped damage window without revoking already-applied buffs. */
 const empoweredArmaments = defineTrait({
-  id: TRAIT.EMPOWERED_ARMAMENTS,
   name: 'Empowered Armaments',
+  id: TRAIT.EMPOWERED_ARMAMENTS,
   balance: {
     damageIncrease: 0.1,
     maximumStacks: 20,
     resourceGain: 6
   },
-  triggers: [onTriggerPoint(radiantWeaponEquipped, { run: extendEmpoweredArmaments })],
   modifierRules: [
     {
       requiresSelection: false,
@@ -173,13 +172,14 @@ const empoweredArmaments = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.EMPOWERED_ARMAMENTS, 'damageIncrease'),
       when: (context) => buffActive(context, 'guardian-empowered-armaments')
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(radiantWeaponEquipped, { run: extendEmpoweredArmaments })]
 });
 
 /** Successful equips grant the authored party boon package at the equip timestamp. */
 const resplendentWeaponry = defineTrait({
-  id: TRAIT.RESPLENDENT_WEAPONRY,
   name: 'Resplendent Weaponry',
+  id: TRAIT.RESPLENDENT_WEAPONRY,
   balance: {
     effects: [
       { type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, duration: 4 },
@@ -192,16 +192,16 @@ const resplendentWeaponry = defineTrait({
 
 /** Completed equips reduce real virtue recharge and refresh the shared readiness projection. */
 const illuminatingInspiration = defineTrait({
-  id: TRAIT.ILLUMINATING_INSPIRATION,
   name: 'Illuminating Inspiration',
+  id: TRAIT.ILLUMINATING_INSPIRATION,
   balance: { rechargeReduction: 4 },
   triggers: [onTriggerPoint(radiantWeaponEquipped, { run: reduceVirtueRecharge })]
 });
 
 /** Supplies eligible Vitality before build conversions. */
 const lightsGift = defineTrait({
-  id: TRAIT.LIGHTS_GIFT,
   name: "Light's Gift",
+  id: TRAIT.LIGHTS_GIFT,
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.LIGHTS_GIFT, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
@@ -210,8 +210,8 @@ const lightsGift = defineTrait({
 
 /** Virtue reset targets and reporting share this behavior-only trait owner. */
 const masterAtArms = defineTrait({
-  id: TRAIT.MASTER_AT_ARMS,
   name: 'Master-at-Arms',
+  id: TRAIT.MASTER_AT_ARMS,
   triggers: [
     onTriggerPoint(radiantVirtueArmed, { run: rechargeRadiantWeapons }),
     onTriggerPoint(luminaryVirtueCompleted, { run: reportMasterAtArms })

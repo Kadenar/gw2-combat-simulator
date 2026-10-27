@@ -93,27 +93,27 @@ const LIFETIME_STAGES = [
   'damage.resolved'
 ] as const satisfies readonly (keyof NonNullable<TraitLifetimeHooks['reactions']>)[];
 
-/** One authoring owner; value hooks such as boon duration retain eligibility while lifetime handlers retain ownership. */
+/** Author identity and tuning before behavior so every profession's traits share one readable layout. */
 export interface TraitDefinition<TSkill extends Skill = Skill> {
-  readonly id: SkillId;
   readonly name: string;
+  readonly id: SkillId;
   /** Omit for behavior-only traits; id overrides preserve existing non-trait profile identities. */
   readonly balance?: Readonly<Record<string, unknown>> & {
     readonly id?: SkillId;
     readonly cooldownPolicy?: BalanceProfile['cooldownPolicy'];
     readonly effects?: BalanceProfile['effects'];
   };
+  readonly attributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
+  /** Accepted grants belong to the recipient until expiry, independently of the recipient's selected traits. */
+  readonly grantedAttributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
   readonly modifierRules?: readonly (Gw2ModifierRule & {
     /** Applied effects may outlive selection; their predicate owns eligibility instead. */
     readonly requiresSelection?: boolean;
   })[];
-  readonly triggers?: readonly OwnedTrigger<TraitTrigger<never, TSkill>>[];
   readonly rechargeRules?: readonly Omit<RechargeRule<never, TSkill>, 'trait'>[];
+  readonly triggers?: readonly OwnedTrigger<TraitTrigger<never, TSkill>>[];
   readonly hooks?: TraitHooks<TSkill>;
   readonly lifetime?: TraitLifetimeHooks<TSkill>;
-  readonly attributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
-  /** Accepted grants belong to the recipient until expiry, independently of the recipient's selected traits. */
-  readonly grantedAttributes?: (context: Gw2AttributeContext) => Gw2AttributeContributions;
 }
 
 /** Catalog assembly and trigger validation derive the same trait-owned tuning without module profile inputs. */
@@ -225,16 +225,16 @@ export function defineTrait<TSkill extends Skill>(
   for (const key of Object.keys(definition))
     if (
       ![
-        'id',
         'name',
+        'id',
         'balance',
-        'modifierRules',
-        'triggers',
-        'rechargeRules',
-        'hooks',
-        'lifetime',
         'attributes',
-        'grantedAttributes'
+        'grantedAttributes',
+        'modifierRules',
+        'rechargeRules',
+        'triggers',
+        'hooks',
+        'lifetime'
       ].includes(key)
     )
       throw new TypeError(`Unsupported trait definition field: ${key}.`);

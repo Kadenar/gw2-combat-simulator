@@ -28,15 +28,8 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Successful F2 actions grant party Protection from the captured spend, excluding afterimage replays. */
 export const illusionaryDefense = defineTrait<MesmerSkill>({
-  id: TRAIT.ILLUSIONARY_DEFENSE,
   name: 'Illusionary Defense',
-  triggers: [
-    onTriggerPoint(mesmerProfessionActionCommitted, {
-      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerProfessionActionCommitted>) => {
-        if (input.slot === 2) grantIllusionaryDefense(runtime, input.skill, input.at, input.spent, input.delivery);
-      }
-    })
-  ],
+  id: TRAIT.ILLUSIONARY_DEFENSE,
   balance: {
     durationPerTier: 2,
     maximumStacks: 3,
@@ -50,7 +43,14 @@ export const illusionaryDefense = defineTrait<MesmerSkill>({
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(mesmerProfessionActionCommitted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerProfessionActionCommitted>) => {
+        if (input.slot === 2) grantIllusionaryDefense(runtime, input.skill, input.at, input.spent, input.delivery);
+      }
+    })
+  ]
 });
 
 /** Scale the authored boon before duration bonuses; Virtuoso shares the live game's three-resource duration cap. */
@@ -81,25 +81,8 @@ function grantIllusionaryDefense(
 
 /** Each committed shatter or instrument grants personal Stability and its slot's party boon once, regardless of hits. */
 export const bountifulDisillusionment = defineTrait<MesmerSkill>({
-  id: TRAIT.BOUNTIFUL_DISILLUSIONMENT,
   name: 'Bountiful Disillusionment',
-  triggers: [
-    {
-      on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.shatter || cast.skill.instrument),
-      run(runtime, cast) {
-        const slot = cast.skill.shatter?.slot ?? cast.skill.instrument?.slot;
-        const boon = [BOON.MIGHT, BOON.VIGOR, BOON.FURY, BOON.REGENERATION][(slot ?? 0) - 1];
-        emitTraitProfile(runtime, TRAIT.BOUNTIFUL_DISILLUSIONMENT, TRAIT.BOUNTIFUL_DISILLUSIONMENT, undefined, {
-          skillId: cast.skill.id,
-          skillName: cast.skill.name,
-          activationId: cast.id,
-          attribution: { actorType: ACTOR.PLAYER },
-          effects: (effect) => effect.type === 'boon' && (effect.boon === BOON.STABILITY || effect.boon === boon)
-        });
-      }
-    }
-  ],
+  id: TRAIT.BOUNTIFUL_DISILLUSIONMENT,
   balance: {
     effects: [
       {
@@ -143,13 +126,30 @@ export const bountifulDisillusionment = defineTrait<MesmerSkill>({
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
-  }
+  },
+  triggers: [
+    {
+      on: 'castCommit',
+      when: (_runtime, cast) => Boolean(cast.skill.shatter || cast.skill.instrument),
+      run(runtime, cast) {
+        const slot = cast.skill.shatter?.slot ?? cast.skill.instrument?.slot;
+        const boon = [BOON.MIGHT, BOON.VIGOR, BOON.FURY, BOON.REGENERATION][(slot ?? 0) - 1];
+        emitTraitProfile(runtime, TRAIT.BOUNTIFUL_DISILLUSIONMENT, TRAIT.BOUNTIFUL_DISILLUSIONMENT, undefined, {
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id,
+          attribution: { actorType: ACTOR.PLAYER },
+          effects: (effect) => effect.type === 'boon' && (effect.boon === BOON.STABILITY || effect.boon === boon)
+        });
+      }
+    }
+  ]
 });
 
 /** Own Chaotic Persistence tuning alongside its runtime behavior. */
 export const chaoticPersistence = defineTrait<MesmerSkill>({
-  id: TRAIT.CHAOTIC_PERSISTENCE,
   name: 'Chaotic Persistence',
+  id: TRAIT.CHAOTIC_PERSISTENCE,
   balance: {
     expertiseBonus: 100,
     concentrationBonus: 250
@@ -180,19 +180,8 @@ export const chaoticPersistence = defineTrait<MesmerSkill>({
 
 /** Each self Chaos Aura gain grants party Regeneration; other auras and summon-owned gains do not trigger it. */
 export const chaoticTransference = defineTrait<MesmerSkill>({
-  id: TRAIT.CHAOTIC_TRANSFERENCE,
   name: 'Chaotic Transference',
-  triggers: [
-    {
-      on: 'aura.applied',
-      when: (_runtime, event) =>
-        event.aura === AURA.CHAOS &&
-        event.actorType === ACTOR.PLAYER &&
-        (event.recipient == null || event.recipient === RECIPIENT.SELF),
-      emit: TRAIT.CHAOTIC_TRANSFERENCE,
-      attribution: { actorType: ACTOR.PLAYER }
-    }
-  ],
+  id: TRAIT.CHAOTIC_TRANSFERENCE,
   balance: {
     effects: [
       {
@@ -204,11 +193,44 @@ export const chaoticTransference = defineTrait<MesmerSkill>({
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       }
     ]
-  }
+  },
+  triggers: [
+    {
+      on: 'aura.applied',
+      when: (_runtime, event) =>
+        event.aura === AURA.CHAOS &&
+        event.actorType === ACTOR.PLAYER &&
+        (event.recipient == null || event.recipient === RECIPIENT.SELF),
+      emit: TRAIT.CHAOTIC_TRANSFERENCE,
+      attribution: { actorType: ACTOR.PLAYER }
+    }
+  ]
 });
 
 /** Own Illusionary Membrane tuning alongside its runtime behavior. */
 export const illusionaryMembrane = defineTrait<MesmerSkill>({
+  name: 'Illusionary Membrane',
+  id: TRAIT.ILLUSIONARY_MEMBRANE,
+  balance: {
+    conditionDamageIncrease: 0.07,
+    maximumDuration: 15,
+    effects: [
+      { name: AURA.CHAOS, type: 'aura', aura: AURA.CHAOS, duration: 4 },
+      { name: 'illusionary-membrane', type: 'buff', kind: 'illusionary-membrane', duration: 5, stacks: 1 }
+    ]
+  },
+  modifierRules: [
+    {
+      id: 'mesmer.illusionary-membrane',
+      requiresSelection: false,
+      order: -1,
+      conditionSampleInvariant: true,
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'damage-additive',
+      amount: (context) => balanceNumberFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE, 'conditionDamageIncrease'),
+      when: (context) => buffActive(context, 'illusionary-membrane')
+    }
+  ],
   triggers: [
     onTriggerPoint(mesmerShatterResolved, {
       run: (runtime: MesmerRuntime, { shatter, resolution }: TriggerPointInput<typeof mesmerShatterResolved>) =>
@@ -230,57 +252,35 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
         (event.recipient == null || event.recipient === RECIPIENT.SELF),
       run: applyIllusionaryMembrane
     }
-  ],
-  id: TRAIT.ILLUSIONARY_MEMBRANE,
-  name: 'Illusionary Membrane',
-  balance: {
-    conditionDamageIncrease: 0.07,
-    maximumDuration: 15,
-    effects: [
-      { name: AURA.CHAOS, type: 'aura', aura: AURA.CHAOS, duration: 4 },
-      { name: 'illusionary-membrane', type: 'buff', kind: 'illusionary-membrane', duration: 5, stacks: 1 }
-    ]
-  },
-  modifierRules: [
-    {
-      id: 'mesmer.illusionary-membrane',
-      requiresSelection: false,
-      order: -1,
-      conditionSampleInvariant: true,
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE, 'conditionDamageIncrease'),
-      when: (context) => buffActive(context, 'illusionary-membrane')
-    }
   ]
 });
 
 /** Own Chaotic Interruption tuning alongside its runtime behavior. */
 export const chaoticInterruption = defineTrait<MesmerSkill>({
+  name: 'Chaotic Interruption',
+  id: TRAIT.CHAOTIC_INTERRUPTION,
+  balance: {
+    recharge: 5,
+    internalCooldown: 1
+  },
   triggers: [
     onTriggerPoint(mesmerControlAccepted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerControlAccepted>) =>
         triggerChaoticInterruption(runtime, input.event, input.event.skillName ?? input.event.name ?? 'Control effect')
     })
-  ],
-  id: TRAIT.CHAOTIC_INTERRUPTION,
-  name: 'Chaotic Interruption',
-  balance: {
-    recharge: 5,
-    internalCooldown: 1
-  }
+  ]
 });
 
 /** A completed heal invokes the storm; the skill owns its payload and Alacrity-adjusted recharge. */
 export const methodOfMadness = defineTrait<MesmerSkill>({
+  name: 'Method of Madness',
+  id: TRAIT.METHOD_OF_MADNESS,
   triggers: [
     onTriggerPoint(mesmerHealCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerHealCompleted>) =>
         triggerMethodOfMadness(runtime, input.skill, input.at, input.delivery)
     })
-  ],
-  id: TRAIT.METHOD_OF_MADNESS,
-  name: 'Method of Madness'
+  ]
 });
 
 /**

@@ -39,14 +39,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */
 const unseenSword = defineTrait({
-  triggers: [
-    onTriggerPoint(gunsaberEntered, {
-      run: (runtime, input: TriggerPointInput<typeof gunsaberEntered>) =>
-        gunsaberEntryReward(runtime, input.cast, TRAIT.UNSEEN_SWORD)
-    })
-  ],
-  id: TRAIT.UNSEEN_SWORD,
   name: 'Unseen Sword',
+  id: TRAIT.UNSEEN_SWORD,
   balance: {
     internalCooldown: 4,
     // Entry traits declare their own flow window so patches can remove it independently.
@@ -55,19 +49,19 @@ const unseenSword = defineTrait({
       { name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, atMs: 720 },
       { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(gunsaberEntered, {
+      run: (runtime, input: TriggerPointInput<typeof gunsaberEntered>) =>
+        gunsaberEntryReward(runtime, input.cast, TRAIT.UNSEEN_SWORD)
+    })
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const sharpAsTheWind = defineTrait({
-  triggers: [
-    onTriggerPoint(gunsaberEntered, {
-      run: (runtime, input: TriggerPointInput<typeof gunsaberEntered>) =>
-        gunsaberEntryReward(runtime, input.cast, TRAIT.SHARP_AS_THE_WIND)
-    })
-  ],
-  id: TRAIT.SHARP_AS_THE_WIND,
   name: 'Sharp as the Wind',
+  id: TRAIT.SHARP_AS_THE_WIND,
   balance: {
     internalCooldown: 4,
     effects: [
@@ -75,32 +69,38 @@ const sharpAsTheWind = defineTrait({
       { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
   },
+  triggers: [
+    onTriggerPoint(gunsaberEntered, {
+      run: (runtime, input: TriggerPointInput<typeof gunsaberEntered>) =>
+        gunsaberEntryReward(runtime, input.cast, TRAIT.SHARP_AS_THE_WIND)
+    })
+  ],
   hooks: { modifySkillId: resolveSharpAsTheWindSkillId }
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const riversFlow = defineTrait({
-  triggers: [
-    onTriggerPoint(gunsaberEntered, {
-      run: (runtime, input: TriggerPointInput<typeof gunsaberEntered>) =>
-        gunsaberEntryReward(runtime, input.cast, TRAIT.RIVERS_FLOW)
-    })
-  ],
-  id: TRAIT.RIVERS_FLOW,
   name: "River's Flow",
+  id: TRAIT.RIVERS_FLOW,
   balance: {
     internalCooldown: 4,
     effects: [
       { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 8 },
       { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(gunsaberEntered, {
+      run: (runtime, input: TriggerPointInput<typeof gunsaberEntered>) =>
+        gunsaberEntryReward(runtime, input.cast, TRAIT.RIVERS_FLOW)
+    })
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const dragonscaleDefense = defineTrait({
-  id: TRAIT.DRAGONSCALE_DEFENSE,
   name: 'Dragonscale Defense',
+  id: TRAIT.DRAGONSCALE_DEFENSE,
   balance: {
     effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
   },
@@ -119,14 +119,8 @@ const dragonscaleDefense = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const fierceAsFire = defineTrait({
-  triggers: [
-    onTriggerPoint(ammunitionCommitted, {
-      run: (runtime, input: TriggerPointInput<typeof ammunitionCommitted>) =>
-        fierceAsFireAmmo(runtime, input.cast, input.spent)
-    })
-  ],
-  id: TRAIT.FIERCE_AS_FIRE,
   name: 'Fierce as Fire',
+  id: TRAIT.FIERCE_AS_FIRE,
   balance: {
     // Damage, presentation, and tooltip consumers share this trait's balance values.
     maximumStacks: 10,
@@ -148,28 +142,34 @@ export const fierceAsFire = defineTrait({
         );
       }
     }
+  ],
+  triggers: [
+    onTriggerPoint(ammunitionCommitted, {
+      run: (runtime, input: TriggerPointInput<typeof ammunitionCommitted>) =>
+        fierceAsFireAmmo(runtime, input.cast, input.spent)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const lushForest = defineTrait({
+  name: 'Lush Forest',
+  id: TRAIT.LUSH_FOREST,
+  balance: {
+    rechargeReduction: 0.75
+  },
   triggers: [
     onTriggerPoint(ammunitionCommitted, {
       run: (runtime, input: TriggerPointInput<typeof ammunitionCommitted>) =>
         lushForestAmmo(runtime, input.cast, input.spent)
     })
-  ],
-  id: TRAIT.LUSH_FOREST,
-  name: 'Lush Forest',
-  balance: {
-    rechargeReduction: 0.75
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const daringDragon = defineTrait({
-  id: TRAIT.DARING_DRAGON,
   name: 'Daring Dragon',
+  id: TRAIT.DARING_DRAGON,
   balance: {
     // Daring Dragon owns its reduced capacity alongside its increased charge cost.
     maximumStacks: 5,
@@ -203,6 +203,13 @@ const daringDragon = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const gunsAndGlory = defineTrait({
+  name: 'Guns and Glory',
+  id: TRAIT.GUNS_AND_GLORY,
+  balance: {
+    attributeBonus: 250,
+    maximumStacks: 12,
+    resourceGain: 3
+  },
   // Only live self applications enable Guns and Glory.
   attributes(context) {
     return {
@@ -218,32 +225,24 @@ const gunsAndGlory = defineTrait({
       ]
     };
   },
-
   triggers: [
     onTriggerPoint(explosionAccepted, {
       run: (runtime, input: TriggerPointInput<typeof explosionAccepted>) => gunsAndGloryExplosion(runtime, input.event)
     })
-  ],
-  id: TRAIT.GUNS_AND_GLORY,
-  name: 'Guns and Glory',
-  balance: {
-    attributeBonus: 250,
-    maximumStacks: 12,
-    resourceGain: 3
-  }
+  ]
 });
 
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
 const gunXSword = defineTrait({
-  id: TRAIT.GUN_X_SWORD,
   name: 'Gun X Sword',
+  id: TRAIT.GUN_X_SWORD,
   balance: { maximumStacks: 100, energyRegenerationPerSecond: 2, attributePerStack: 2 }
 });
 
 /** Add the selected stun to the authored Dragon Slash release. */
 const unyieldingDragon = defineTrait({
-  id: TRAIT.UNYIELDING_DRAGON,
   name: 'Unyielding Dragon',
+  id: TRAIT.UNYIELDING_DRAGON,
   hooks: {
     modifyEffects(runtime, cast, effects) {
       if (!cast.skill.dragonSlash || !hasTrait(runtime, TRAIT.UNYIELDING_DRAGON)) return effects;

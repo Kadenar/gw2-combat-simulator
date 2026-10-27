@@ -41,6 +41,11 @@ import type {
 
 /** Owns Resounding Timbre's live tuning and trait behavior. */
 export const resoundingTimbre = defineTrait({
+  name: 'Resounding Timbre',
+  id: TRAIT.RESOUNDING_TIMBRE,
+  balance: {
+    duration: 2
+  },
   triggers: [
     onTriggerPoint(mergedCommandApplied, {
       run: (runtime, input: TriggerPointInput<typeof mergedCommandApplied>) =>
@@ -56,28 +61,13 @@ export const resoundingTimbre = defineTrait({
       run: (runtime, input: TriggerPointInput<typeof castCompleted>) =>
         applyRangerCommandTraits(runtime, input.skill, input.at)
     })
-  ],
-  id: TRAIT.RESOUNDING_TIMBRE,
-  name: 'Resounding Timbre',
-  balance: {
-    duration: 2
-  }
+  ]
 });
 
 /** Owns Go for the Throat's live tuning and trait behavior. */
 export const goForTheThroat = defineTrait({
-  triggers: [
-    onTriggerPoint(mergedBeastHit, {
-      run: (runtime, input: TriggerPointInput<typeof mergedBeastHit>) =>
-        triggerMergedGoForTheThroat(runtime, input.event)
-    }),
-    onTriggerPoint(strike, {
-      run: (runtime, input: TriggerPointInput<typeof strike>) => triggerGoForTheThroat(runtime, input.event)
-    })
-  ],
-  id: TRAIT.GO_FOR_THE_THROAT,
   name: 'Go for the Throat',
-
+  id: TRAIT.GO_FOR_THE_THROAT,
   modifierRules: [
     {
       order: 31,
@@ -111,25 +101,27 @@ export const goForTheThroat = defineTrait({
           ? readProfessionSpecializationState(context.runtime.profession, 'Soulbeast') != null
           : context.config?.specialization === 'Soulbeast') && activeBuff(context, 'lesser-sic-em')
     }
+  ],
+  triggers: [
+    onTriggerPoint(mergedBeastHit, {
+      run: (runtime, input: TriggerPointInput<typeof mergedBeastHit>) =>
+        triggerMergedGoForTheThroat(runtime, input.event)
+    }),
+    onTriggerPoint(strike, {
+      run: (runtime, input: TriggerPointInput<typeof strike>) => triggerGoForTheThroat(runtime, input.event)
+    })
   ]
 });
 
 /** Owns Honed Axes's live tuning and trait behavior. */
 export const honedAxes = defineTrait({
-  id: TRAIT.HONED_AXES,
   name: 'Honed Axes',
+  id: TRAIT.HONED_AXES,
   balance: {
     weaponAttributeBonus: 240,
     attributeBonus: 120,
     rechargeMultiplier: 0.8
   },
-  rechargeRules: [
-    {
-      order: 1,
-      when: (_runtime, skill) => skill.weapon === WEAPON.AXE,
-      multiplier: { profile: TRAIT.HONED_AXES, field: 'rechargeMultiplier' }
-    }
-  ],
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
@@ -146,25 +138,25 @@ export const honedAxes = defineTrait({
         }
       ]
     };
-  }
+  },
+  rechargeRules: [
+    {
+      order: 1,
+      when: (_runtime, skill) => skill.weapon === WEAPON.AXE,
+      multiplier: { profile: TRAIT.HONED_AXES, field: 'rechargeMultiplier' }
+    }
+  ]
 });
 
 /** Owns Pack Alpha's live tuning and trait behavior. */
 export const packAlpha = defineTrait({
-  id: TRAIT.PACK_ALPHA,
   name: 'Pack Alpha',
+  id: TRAIT.PACK_ALPHA,
   balance: {
     attributeBonus: 150,
     weaponAttributeBonus: 300,
     rechargeMultiplier: 0.8
   },
-  rechargeRules: [
-    {
-      order: 5,
-      when: (_runtime, skill) => Boolean(skill.petSkill),
-      multiplier: { profile: TRAIT.PACK_ALPHA, field: 'rechargeMultiplier' }
-    }
-  ],
   attributes: ({ balanceContext, loadout, runtime }) => ({
     attributeEffects: ['Power', 'Condition Damage', 'Precision', 'Toughness', 'Vitality'].map((to) => ({
       kind: 'flat' as const,
@@ -173,13 +165,20 @@ export const packAlpha = defineTrait({
       feedsConversions: 'none',
       enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
     }))
-  })
+  }),
+  rechargeRules: [
+    {
+      order: 5,
+      when: (_runtime, skill) => Boolean(skill.petSkill),
+      multiplier: { profile: TRAIT.PACK_ALPHA, field: 'rechargeMultiplier' }
+    }
+  ]
 });
 
 /** Owns Pet's Prowess's live tuning and trait behavior. */
 export const petsProwess = defineTrait({
-  id: TRAIT.PETS_PROWESS,
   name: "Pet's Prowess",
+  id: TRAIT.PETS_PROWESS,
   balance: {
     attributeBonus: 300
   },
@@ -200,28 +199,23 @@ export const petsProwess = defineTrait({
 
 /** Owns Wilting Strike's live tuning and trait behavior. */
 export const wiltingStrike = defineTrait({
+  name: 'Wilting Strike',
+  id: TRAIT.WILTING_STRIKE,
+  balance: {
+    effects: [{ name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, duration: 4, stacks: 1 }]
+  },
   triggers: [
     onTriggerPoint(mergedBeastHit, {
       run: (runtime, input: TriggerPointInput<typeof mergedBeastHit>) =>
         triggerMergedWiltingStrike(runtime, input.event)
     })
-  ],
-  id: TRAIT.WILTING_STRIKE,
-  name: 'Wilting Strike',
-  balance: {
-    effects: [{ name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, duration: 4, stacks: 1 }]
-  }
+  ]
 });
 
 /** Owns Go for the Eyes's live tuning and trait behavior. */
 export const goForTheEyes = defineTrait({
-  triggers: [
-    onTriggerPoint(mergedBeastHit, {
-      run: (runtime, input: TriggerPointInput<typeof mergedBeastHit>) => triggerMergedGoForTheEyes(runtime, input.event)
-    })
-  ],
-  id: TRAIT.GO_FOR_THE_EYES,
   name: 'Go for the Eyes',
+  id: TRAIT.GO_FOR_THE_EYES,
   balance: {
     internalCooldown: 12,
     effects: [
@@ -233,13 +227,18 @@ export const goForTheEyes = defineTrait({
         duration: 5
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(mergedBeastHit, {
+      run: (runtime, input: TriggerPointInput<typeof mergedBeastHit>) => triggerMergedGoForTheEyes(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Bestial Rage's live tuning and trait behavior. */
 export const bestialRage = defineTrait({
-  id: TRAIT.BESTIAL_RAGE,
   name: 'Bestial Rage',
+  id: TRAIT.BESTIAL_RAGE,
   balance: {
     internalCooldown: 0.25,
     effects: [
@@ -251,16 +250,16 @@ export const bestialRage = defineTrait({
 
 /** Owns the ursine and porcine pet strike bonus. */
 export const beastlyWarden = defineTrait({
-  id: TRAIT.BEASTLY_WARDEN,
   name: 'Beastly Warden',
+  id: TRAIT.BEASTLY_WARDEN,
   // Eligible pets snapshot this strike multiplier with their independent combat attributes.
   balance: { damageMultiplier: 1.67 }
 });
 
 /** Owns Loud Whistle's live tuning and trait behavior. */
 export const loudWhistle = defineTrait({
-  id: TRAIT.LOUD_WHISTLE,
   name: 'Loud Whistle',
+  id: TRAIT.LOUD_WHISTLE,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.15, playerDamageMultiplier: 1.1 },
   modifierRules: [

@@ -1,9 +1,7 @@
 import { AURA, ACTOR, CONDITION, BOON } from '#gw2/platform/constants.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -13,7 +11,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import {
@@ -25,29 +22,36 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 
 /** Water definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const soothingIce = defineTrait({
-  id: TRAIT.SOOTHING_ICE,
-  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applySoothingIce })],
   name: 'Soothing Ice',
+  id: TRAIT.SOOTHING_ICE,
   balance: {
     internalCooldown: 15,
     effects: [
       { type: 'aura', name: AURA.FROST, aura: AURA.FROST, duration: 4 },
       { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 4 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applySoothingIce })]
 });
 
 export const aquamancersTraining = defineTrait({
-  id: TRAIT.AQUAMANCERS_TRAINING,
   name: "Aquamancer's Training",
+  id: TRAIT.AQUAMANCERS_TRAINING,
   balance: {
     rechargeMultiplier: 0.8
-  }
+  },
+  // Only this element's weapon skills receive the selected profile's persistent recharge multiplier.
+  rechargeRules: [
+    {
+      when: (_runtime, skill) => skill.type === 'Weapon' && skill.attunement === 'Water',
+      multiplier: { profile: TRAIT.AQUAMANCERS_TRAINING, field: 'rechargeMultiplier' }
+    }
+  ]
 });
 
 export const soothingPower = defineTrait({
-  id: TRAIT.SOOTHING_POWER,
   name: 'Soothing Power',
+  id: TRAIT.SOOTHING_POWER,
   balance: { attributeBonus: 300 },
   attributes: traitAttributeEffects(TRAIT.SOOTHING_POWER, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
@@ -55,8 +59,8 @@ export const soothingPower = defineTrait({
 });
 
 export const flowLikeWater = defineTrait({
-  id: TRAIT.FLOW_LIKE_WATER,
   name: 'Flow like Water',
+  id: TRAIT.FLOW_LIKE_WATER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
   modifierRules: [
@@ -72,8 +76,8 @@ export const flowLikeWater = defineTrait({
 });
 
 export const piercingShards = defineTrait({
-  id: TRAIT.PIERCING_SHARDS,
   name: 'Piercing Shards',
+  id: TRAIT.PIERCING_SHARDS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { waterFactor: 1.14, otherFactor: 1.07 },
   modifierRules: [
@@ -136,15 +140,4 @@ function applySoothingIce(context: ElementalistRuntime, { cast }: ElementalistCa
       priority: 0
     }
   });
-}
-
-/** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
-export function aquamancersTrainingRecharge(
-  context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill,
-  duration: number
-): number {
-  return skill.attunement === 'Water' && hasTrait(context, TRAIT.AQUAMANCERS_TRAINING)
-    ? duration * balanceNumberFromContext(context, TRAIT.AQUAMANCERS_TRAINING, 'rechargeMultiplier')
-    : duration;
 }

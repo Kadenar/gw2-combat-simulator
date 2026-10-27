@@ -35,20 +35,14 @@ import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Owns Jade Cannons command selection and existing trait behavior. */
 const jadeCannons = defineTrait({
-  id: TRAIT.MECH_ARMS_JADE_CANNONS,
   name: 'Jade Cannons',
+  id: TRAIT.MECH_ARMS_JADE_CANNONS,
   balance: {
     criticalChance: 0.2,
     effects: [
       { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 6 }
     ]
   },
-  triggers: [
-    onTriggerPoint(mechStruck, {
-      when: (_runtime, { cause }: MechStrike) => cause.mechBasicAttack === true,
-      run: applyJadeCannonsVulnerability
-    })
-  ],
   modifierRules: [
     {
       id: 'engineer.jade-cannons-critical-chance',
@@ -58,13 +52,19 @@ const jadeCannons = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS, 'criticalChance'),
       when: (context) => isEngineerMechEvent(context.event)
     }
+  ],
+  triggers: [
+    onTriggerPoint(mechStruck, {
+      when: (_runtime, { cause }: MechStrike) => cause.mechBasicAttack === true,
+      run: applyJadeCannonsVulnerability
+    })
   ]
 });
 
 /** Owns Rocket Punch command selection and existing trait behavior. */
 const mechFighter = defineTrait({
-  id: TRAIT.MECH_FIGHTER,
   name: 'Rocket Punch',
+  id: TRAIT.MECH_FIGHTER,
   balance: {
     // The mech uses this skill, so only Alacrity received by that companion accelerates its recharge.
     cooldownPolicy: 'summonRecharge',
@@ -77,8 +77,8 @@ const mechFighter = defineTrait({
 
 /** Owns Mech Arms: High-Impact Drivers command selection and existing trait behavior. */
 const highImpactDrivers = defineTrait({
-  id: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
   name: 'Mech Arms: High-Impact Drivers',
+  id: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
   balance: {
     internalCooldown: 1,
     effects: [
@@ -97,8 +97,8 @@ const highImpactDrivers = defineTrait({
 
 /** Owns Mech Arms: Single-Edge Cutters command selection and existing trait behavior. */
 const singleEdgeCutters = defineTrait({
-  id: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
   name: 'Mech Arms: Single-Edge Cutters',
+  id: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
   balance: {
     internalCooldown: 1,
     effects: [
@@ -117,12 +117,18 @@ const singleEdgeCutters = defineTrait({
 
 /** Owns Jade Dynamo command selection and existing trait behavior. */
 const jadeDynamo = defineTrait({
-  id: TRAIT.MECH_CORE_JADE_DYNAMO,
   name: 'Jade Dynamo',
+  id: TRAIT.MECH_CORE_JADE_DYNAMO,
   balance: {
     rechargeMultiplier: 0.8,
     effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 2.5 }]
   },
+  rechargeRules: [
+    {
+      when: (_context, skill) => isEngineerMechCommand(skill),
+      multiplier: { profile: TRAIT.MECH_CORE_JADE_DYNAMO, field: 'rechargeMultiplier' }
+    }
+  ],
   triggers: [
     {
       on: 'castCommit',
@@ -131,19 +137,13 @@ const jadeDynamo = defineTrait({
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
       attribution: { actorType: ACTOR.PLAYER, name: 'Jade Dynamo — quickness' }
     }
-  ],
-  rechargeRules: [
-    {
-      when: (_context, skill) => isEngineerMechCommand(skill),
-      multiplier: { profile: TRAIT.MECH_CORE_JADE_DYNAMO, field: 'rechargeMultiplier' }
-    }
   ]
 });
 
 /** Owns Mech Core: J-Drive command selection and existing trait behavior. */
 const jDrive = defineTrait({
-  id: TRAIT.MECH_CORE_J_DRIVE,
   name: 'Mech Core: J-Drive',
+  id: TRAIT.MECH_CORE_J_DRIVE,
   balance: { rechargeMultiplier: 0.76, damageIncrease: 0.18, conditionDamageIncrease: 0.12, effects: [] },
   rechargeRules: [
     {
@@ -165,8 +165,8 @@ export const barrierEnginePassive = definePeriodicTask<EngineerRuntime>({
 
 /** Barrier Engine supplies its command and a combat-only passive barrier independent of mech attacks. */
 const barrierEngine = defineTrait({
-  id: TRAIT.MECH_CORE_BARRIER_ENGINE,
   name: 'Mech Core: Barrier Engine',
+  id: TRAIT.MECH_CORE_BARRIER_ENGINE,
   balance: {
     interval: 3,
     effects: [
@@ -187,16 +187,16 @@ const barrierEngine = defineTrait({
 
 /** Owns Mech Frame: Conductive Alloys command selection and existing trait behavior. */
 const conductiveAlloys = defineTrait({
-  id: TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
   name: 'Mech Frame: Conductive Alloys',
+  id: TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
   // Each selected frame owns its improved inheritance rather than sharing another frame's tuning.
   balance: { inheritanceRatio: 1, secondaryAttributeCap: 1500 }
 });
 
 /** Accepted player and mech barriers grant alacrity with one shared cooldown per recipient. */
 const channelingConduits = defineTrait({
-  id: TRAIT.MECH_FRAME_CHANNELING_CONDUITS,
   name: 'Mech Frame: Channeling Conduits',
+  id: TRAIT.MECH_FRAME_CHANNELING_CONDUITS,
   balance: {
     inheritanceRatio: 1,
     secondaryAttributeCap: 1500,
@@ -209,8 +209,8 @@ const channelingConduits = defineTrait({
 
 /** Owns Mech Frame: Variable Mass Distributor command selection and existing trait behavior. */
 const variableMassDistributor = defineTrait({
-  id: TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
   name: 'Mech Frame: Variable Mass Distributor',
+  id: TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
   balance: { precisionCap: 2500 },
   modifierRules: [
     {
@@ -229,8 +229,8 @@ const variableMassDistributor = defineTrait({
 export const mechanistTraits = [
   // Baseline inheritance is intrinsic to the trait that grants the mech, even without explicit minor selection.
   defineTrait({
-    id: TRAIT.MECHANICAL_GENIUS,
     name: 'Mechanical Genius',
+    id: TRAIT.MECHANICAL_GENIUS,
     balance: { inheritanceRatio: 0.5, secondaryAttributeCap: 750, powerCap: 2250 }
   }),
   variableMassDistributor,

@@ -52,28 +52,22 @@ import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/prof
 
 /** Arcane definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const arcaneProwess = defineTrait({
+  name: 'Arcane Prowess',
+  id: TRAIT.ARCANE_PROWESS,
+  balance: {
+    effects: [{ type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 1, duration: 8 }]
+  },
   triggers: [
     onTriggerPoint(attunementChanged, {
       run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
         applyArcaneProwess(runtime, input.at, input.skill.id, input.emissionCast)
     })
-  ],
-  id: TRAIT.ARCANE_PROWESS,
-  name: 'Arcane Prowess',
-  balance: {
-    effects: [{ type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 1, duration: 8 }]
-  }
+  ]
 });
 
 export const arcanePrecision = defineTrait({
-  id: TRAIT.ARCANE_PRECISION,
-  triggers: [
-    onTriggerPoint(elementalistDamageResolved, {
-      run: (runtime: ElementalistResolverContext, { cause, details }: ElementalistDamageResolved) =>
-        arcanePrecisionCritical(runtime, cause, details)
-    })
-  ],
   name: 'Arcane Precision',
+  id: TRAIT.ARCANE_PRECISION,
   balance: {
     procChance: 0.33,
     internalCooldown: 3,
@@ -83,35 +77,33 @@ export const arcanePrecision = defineTrait({
       { type: 'condition', name: 'Air', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 },
       { type: 'condition', name: 'Earth', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(elementalistDamageResolved, {
+      run: (runtime: ElementalistResolverContext, { cause, details }: ElementalistDamageResolved) =>
+        arcanePrecisionCritical(runtime, cause, details)
+    })
+  ]
 });
 
 export const renewingStamina = defineTrait({
+  name: 'Renewing Stamina',
   id: TRAIT.RENEWING_STAMINA,
+  balance: {
+    internalCooldown: 10,
+    effects: [{ type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 5 }]
+  },
   triggers: [
     onTriggerPoint(elementalistDamageResolved, {
       run: (runtime: ElementalistResolverContext, { cause, details }: ElementalistDamageResolved) =>
         renewingStaminaCritical(runtime, cause, details)
     })
-  ],
-  name: 'Renewing Stamina',
-  balance: {
-    internalCooldown: 10,
-    effects: [{ type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 5 }]
-  }
+  ]
 });
 
 export const elementalAttunement = defineTrait({
-  triggers: [
-    onTriggerPoint(attunementChanged, {
-      when: (_runtime: unknown, input: ElementalistAttunementChanged) =>
-        !input.dualAttunement || input.target !== input.previous,
-      run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
-        grantElementalAttunementBoon(runtime, input.at, input.target, input.skill.id, input.emissionCast)
-    })
-  ],
-  id: TRAIT.ELEMENTAL_ATTUNEMENT,
   name: 'Elemental Attunement',
+  id: TRAIT.ELEMENTAL_ATTUNEMENT,
   balance: {
     effects: [
       {
@@ -151,17 +143,20 @@ export const elementalAttunement = defineTrait({
         duration: 5
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(attunementChanged, {
+      when: (_runtime: unknown, input: ElementalistAttunementChanged) =>
+        !input.dualAttunement || input.target !== input.previous,
+      run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
+        grantElementalAttunementBoon(runtime, input.at, input.target, input.skill.id, input.emissionCast)
+    })
+  ]
 });
 
 export const elementalLockdown = defineTrait({
-  triggers: [
-    onTriggerPoint(controlAccepted, {
-      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => applyElementalLockdown(runtime, cause)
-    })
-  ],
-  id: TRAIT.ELEMENTAL_LOCKDOWN,
   name: 'Elemental Lockdown',
+  id: TRAIT.ELEMENTAL_LOCKDOWN,
   balance: {
     internalCooldown: 1,
     effects: [
@@ -170,53 +165,42 @@ export const elementalLockdown = defineTrait({
       { type: 'boon', name: 'Air', boon: BOON.FURY, stacks: 1, duration: 5 },
       { type: 'boon', name: 'Earth', boon: BOON.PROTECTION, stacks: 1, duration: 4 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(controlAccepted, {
+      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => applyElementalLockdown(runtime, cause)
+    })
+  ]
 });
 
 export const elementalEnchantment = defineTrait({
-  id: TRAIT.ELEMENTAL_ENCHANTMENT,
   name: 'Elemental Enchantment',
-  rechargeRules: [
-    {
-      when: (_runtime, skill) => Boolean(skill.overload) || skill.skillFamily === 'Jade Sphere',
-      multiplier: { profile: TRAIT.ELEMENTAL_ENCHANTMENT, field: 'rechargeMultiplier' }
-    }
-  ],
+  id: TRAIT.ELEMENTAL_ENCHANTMENT,
   balance: {
     attributeBonus: 180,
     rechargeMultiplier: 0.85
   },
   attributes: traitAttributeEffects(TRAIT.ELEMENTAL_ENCHANTMENT, [
     { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
-  ])
+  ]),
+  rechargeRules: [
+    {
+      when: (_runtime, skill) => Boolean(skill.overload) || skill.skillFamily === 'Jade Sphere',
+      multiplier: { profile: TRAIT.ELEMENTAL_ENCHANTMENT, field: 'rechargeMultiplier' }
+    }
+  ]
 });
 
 export const evasiveArcana = defineTrait({
+  name: 'Evasive Arcana',
   id: TRAIT.EVASIVE_ARCANA,
   triggers: [onTriggerPoint(elementalistDodgeCompleted, { run: triggerEvasiveArcana })],
-  name: 'Evasive Arcana',
   lifetime: { eventHandlers: { 'elementalist.evasive-arcana': OBSERVABLE_EVENT_HANDLER } }
 });
 
 export const arcaneLightning = defineTrait({
-  // Active Arcane Lightning supplies conversion-eligible Ferocity for the duration of its application.
-  attributes(context) {
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Ferocity',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.ARCANE_LIGHTNING, 'attributeBonus'),
-          feedsConversions: 'all',
-          enabled: activeBuffStacks(context, 'arcane-lightning', 1) > 0
-        }
-      ]
-    };
-  },
-
-  id: TRAIT.ARCANE_LIGHTNING,
-  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applyArcaneLightning })],
   name: 'Arcane Lightning',
+  id: TRAIT.ARCANE_LIGHTNING,
   balance: {
     attributeBonus: 150,
     effects: [
@@ -232,23 +216,27 @@ export const arcaneLightning = defineTrait({
       { type: 'boon', name: 'Arcane Echo', boon: BOON.QUICKNESS, stacks: 1, duration: 4 },
       { type: 'condition', name: 'Arcane Blast', condition: CONDITION.BLINDNESS, stacks: 1, duration: 5 }
     ]
-  }
+  },
+  // Active Arcane Lightning supplies conversion-eligible Ferocity for the duration of its application.
+  attributes(context) {
+    return {
+      attributeEffects: [
+        {
+          kind: 'flat',
+          to: 'Ferocity',
+          amount: balanceNumberFromContext(context.balanceContext, TRAIT.ARCANE_LIGHTNING, 'attributeBonus'),
+          feedsConversions: 'all',
+          enabled: activeBuffStacks(context, 'arcane-lightning', 1) > 0
+        }
+      ]
+    };
+  },
+  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applyArcaneLightning })]
 });
 
 export const bountifulPower = defineTrait({
-  triggers: [
-    onTriggerPoint(attunementChanged, {
-      when: (_runtime: unknown, input: ElementalistAttunementChanged) => !input.dualAttunement,
-      run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
-        triggerBountifulPower(runtime, input.at, 1, input.skill.id, input.emissionCast)
-    }),
-    onTriggerPoint(attunementsCounted, {
-      run: (runtime: ElementalistRuntime, input: ElementalistAttunementCount) =>
-        triggerBountifulPower(runtime, input.at, input.stacks, input.sourceId, input.emissionCast)
-    })
-  ],
-  id: TRAIT.BOUNTIFUL_POWER,
   name: 'Bountiful Power',
+  id: TRAIT.BOUNTIFUL_POWER,
   balance: {
     damageIncrease: 0.2,
     threshold: 5,
@@ -273,6 +261,17 @@ export const bountifulPower = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.BOUNTIFUL_POWER, 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'bountiful-power-active', 1) > 0
     }
+  ],
+  triggers: [
+    onTriggerPoint(attunementChanged, {
+      when: (_runtime: unknown, input: ElementalistAttunementChanged) => !input.dualAttunement,
+      run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
+        triggerBountifulPower(runtime, input.at, 1, input.skill.id, input.emissionCast)
+    }),
+    onTriggerPoint(attunementsCounted, {
+      run: (runtime: ElementalistRuntime, input: ElementalistAttunementCount) =>
+        triggerBountifulPower(runtime, input.at, input.stacks, input.sourceId, input.emissionCast)
+    })
   ]
 });
 

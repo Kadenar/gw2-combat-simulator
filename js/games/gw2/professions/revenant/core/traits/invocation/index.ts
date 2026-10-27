@@ -25,8 +25,8 @@ import { REVENANT_ELITE_INVOCATIONS } from '#gw2/professions/revenant/data/legen
 
 /** Owns Charged Mists tuning and behavior at its established execution boundaries. */
 export const chargedMists = defineTrait({
-  id: TRAIT.CHARGED_MISTS,
   name: 'Charged Mists',
+  id: TRAIT.CHARGED_MISTS,
   balance: {
     resourceGain: 75,
     threshold: 10,
@@ -36,8 +36,8 @@ export const chargedMists = defineTrait({
 
 /** Owns Ferocious Aggression tuning and behavior at its established execution boundaries. */
 export const ferociousAggression = defineTrait({
-  id: TRAIT.FEROCIOUS_AGGRESSION,
   name: 'Ferocious Aggression',
+  id: TRAIT.FEROCIOUS_AGGRESSION,
   balance: { damageIncrease: 0.1 },
   modifierRules: [
     {
@@ -54,8 +54,8 @@ export const ferociousAggression = defineTrait({
 
 /** Owns Incensed Response tuning and behavior at its established execution boundaries. */
 export const incensedResponse = defineTrait({
-  id: TRAIT.INCENSED_RESPONSE,
   name: 'Incensed Response',
+  id: TRAIT.INCENSED_RESPONSE,
   balance: {
     effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 5 }]
   },
@@ -83,18 +83,18 @@ export const incensedResponse = defineTrait({
 
 /** Owns Invoker's Rage tuning and behavior at its established execution boundaries. */
 export const invokersRage = defineTrait({
-  triggers: [onTriggerPoint(legendInvoked, { run: invokeInvokersRage })],
-  id: TRAIT.INVOKERS_RAGE,
   name: "Invoker's Rage",
+  id: TRAIT.INVOKERS_RAGE,
   balance: {
     effects: [{ type: 'boon', boon: BOON.FURY, duration: 5, stacks: 1 }]
-  }
+  },
+  triggers: [onTriggerPoint(legendInvoked, { run: invokeInvokersRage })]
 });
 
 /** Owns Rising Tide tuning and behavior at its established execution boundaries. */
 export const risingTide = defineTrait({
-  id: TRAIT.RISING_TIDE,
   name: 'Rising Tide',
+  id: TRAIT.RISING_TIDE,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1, threshold: 0.75 },
   modifierRules: [
@@ -113,8 +113,8 @@ export const risingTide = defineTrait({
 
 /** Owns Roiling Mists tuning and behavior at its established execution boundaries. */
 export const roilingMists = defineTrait({
-  id: TRAIT.ROILING_MISTS,
   name: 'Roiling Mists',
+  id: TRAIT.ROILING_MISTS,
   balance: { criticalChance: 0.25 },
   // Fury supplies the additional chance only while this trait is selected.
   modifierRules: [
@@ -130,6 +130,9 @@ export const roilingMists = defineTrait({
 
 /** Owns Song of the Mists tuning and behavior at its established execution boundaries. */
 export const songOfTheMists = defineTrait({
+  name: 'Song of the Mists',
+  id: TRAIT.SONG_OF_THE_MISTS,
+  balance: { resourceGain: 2 },
   triggers: [
     onTriggerPoint(eliteLegendInvoked, {
       run(runtime) {
@@ -138,17 +141,13 @@ export const songOfTheMists = defineTrait({
       }
     }),
     onTriggerPoint(legendInvoked, { run: invokeSongOfTheMists })
-  ],
-  id: TRAIT.SONG_OF_THE_MISTS,
-  name: 'Song of the Mists',
-  balance: { resourceGain: 2 }
+  ]
 });
 
 /** Owns Spirit Boon tuning and behavior at its established execution boundaries. */
 export const spiritBoon = defineTrait({
-  triggers: [onTriggerPoint(legendInvoked, { run: invokeSpiritBoon })],
-  id: TRAIT.SPIRIT_BOON,
   name: 'Spirit Boon',
+  id: TRAIT.SPIRIT_BOON,
   balance: {
     effects: [
       {
@@ -215,7 +214,8 @@ export const spiritBoon = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(legendInvoked, { run: invokeSpiritBoon })]
 });
 
 /** Runs the trait at its original ordered mechanic boundary. */

@@ -32,21 +32,10 @@ import {
 
 /** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({
-  id: TRAIT.GRENADIER,
   name: 'Grenadier',
+  id: TRAIT.GRENADIER,
   // Store the bonus as a fraction so preview controls and tooltips share the same percentage convention.
   balance: { damageIncrease: 0 },
-  // Completed heals request the skill-owned barrage, which shares its recharge with direct casts. The barrage follows
-  // Core elixir rewards and precedes the remaining imperative commit hooks.
-  triggers: [
-    {
-      on: 'castCommit',
-      order: 1,
-      when: (_runtime, cast) => cast.skill.type === 'Heal' || cast.skill.slot === 'Heal',
-      invoke: ID.LESSER_GRENADE_BARRAGE,
-      cooldown: 'skill'
-    }
-  ],
   modifierRules: [
     {
       id: 'engineer.grenadier-explosion-damage',
@@ -62,13 +51,24 @@ export const grenadier = defineTrait({
           skillForEvent(context.profession?.catalog, context.event, context.event?.sourceId ?? context.skillId)
         )
     }
+  ],
+  // Completed heals request the skill-owned barrage, which shares its recharge with direct casts. The barrage follows
+  // Core elixir rewards and precedes the remaining imperative commit hooks.
+  triggers: [
+    {
+      on: 'castCommit',
+      order: 1,
+      when: (_runtime, cast) => cast.skill.type === 'Heal' || cast.skill.slot === 'Heal',
+      invoke: ID.LESSER_GRENADE_BARRAGE,
+      cooldown: 'skill'
+    }
   ]
 });
 
 /** Arms the next player strike after a dodge; the triggered skill owns its damage and recharge. */
 export const explosiveEntrance = defineTrait({
-  id: TRAIT.EXPLOSIVE_ENTRANCE,
   name: 'Explosive Entrance',
+  id: TRAIT.EXPLOSIVE_ENTRANCE,
   triggers: [
     {
       on: 'damage.resolved',
@@ -82,29 +82,36 @@ export const explosiveEntrance = defineTrait({
 
 /** Owns Steel-Packed Powder tuning and behavior at its established runtime and build boundaries. */
 export const steelPackedPowder = defineTrait({
-  triggers: [{ on: 'damage.resolved', run: applySteelPackedPowder }],
-  id: TRAIT.STEEL_PACKED_POWDER,
   name: 'Steel-Packed Powder',
+  id: TRAIT.STEEL_PACKED_POWDER,
   balance: {
     effects: [
       { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 1, duration: 5 }
     ]
-  }
+  },
+  triggers: [{ on: 'damage.resolved', run: applySteelPackedPowder }]
 });
 
 /** Owns Short Fuse tuning and behavior at its established runtime and build boundaries. */
 export const shortFuse = defineTrait({
-  triggers: [{ on: 'damage.resolved', run: applyShortFuse }],
-  id: TRAIT.SHORT_FUSE,
   name: 'Short Fuse',
+  id: TRAIT.SHORT_FUSE,
   balance: {
     internalCooldown: 3,
     effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 }]
-  }
+  },
+  triggers: [{ on: 'damage.resolved', run: applyShortFuse }]
 });
 
 /** Owns Explosive Temper tuning and behavior at its established runtime and build boundaries. */
 export const explosiveTemper = defineTrait({
+  name: 'Explosive Temper',
+  id: TRAIT.EXPLOSIVE_TEMPER,
+  balance: {
+    maximumStacks: 10,
+    attributePerStack: 20,
+    effects: [{ name: 'explosive-temper', type: 'buff', kind: 'explosive-temper', stacks: 1, duration: 10 }]
+  },
   // Count live stacks at each query; their Ferocity does not feed ordinary conversions.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EXPLOSIVE_TEMPER);
@@ -123,22 +130,13 @@ export const explosiveTemper = defineTrait({
       ]
     };
   },
-
-  triggers: [{ on: 'damage.resolved', run: applyExplosiveTemper }],
-  id: TRAIT.EXPLOSIVE_TEMPER,
-  name: 'Explosive Temper',
-  balance: {
-    maximumStacks: 10,
-    attributePerStack: 20,
-    effects: [{ name: 'explosive-temper', type: 'buff', kind: 'explosive-temper', stacks: 1, duration: 10 }]
-  }
+  triggers: [{ on: 'damage.resolved', run: applyExplosiveTemper }]
 });
 
 /** Owns Shrapnel tuning and behavior at its established runtime and build boundaries. */
 export const shrapnel = defineTrait({
-  triggers: [{ on: 'damage.resolved', run: applyShrapnel }],
-  id: TRAIT.SHRAPNEL,
   name: 'Shrapnel',
+  id: TRAIT.SHRAPNEL,
   balance: {
     procRate: {
       id: 'engineer.shrapnel',
@@ -151,11 +149,18 @@ export const shrapnel = defineTrait({
       { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 6 },
       { name: CONDITION.CRIPPLED, type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 1 }
     ]
-  }
+  },
+  triggers: [{ on: 'damage.resolved', run: applyShrapnel }]
 });
 
 /** Owns Aim-Assisted Rocket tuning and behavior at its established runtime and build boundaries. */
 export const aimAssistedRocket = defineTrait({
+  name: 'Aim-Assisted Rocket',
+  id: TRAIT.AIM_ASSISTED_ROCKET,
+  balance: {
+    internalCooldown: 3,
+    maximumStacks: 5
+  },
   // Damage reactions require a strike; Air Blast separately supplies its accepted projectile opportunity. Accepted
   // projectile procs consume recharge and advance the cycle even if their payload is removed.
   triggers: [
@@ -170,20 +175,13 @@ export const aimAssistedRocket = defineTrait({
       cooldown: 'profile',
       run: (runtime, { cause }: AirBlastImpact) => fireAimAssistedRocket(runtime, cause)
     })
-  ],
-  id: TRAIT.AIM_ASSISTED_ROCKET,
-  name: 'Aim-Assisted Rocket',
-  balance: {
-    internalCooldown: 3,
-    maximumStacks: 5
-  }
+  ]
 });
 
 /** Owns Grand Entrance tuning and behavior at its established runtime and build boundaries. */
 export const grandEntrance = defineTrait({
-  triggers: [{ on: 'damage.resolved', run: applyGrandEntrance }],
-  id: TRAIT.GRAND_ENTRANCE,
   name: 'Grand Entrance',
+  id: TRAIT.GRAND_ENTRANCE,
   balance: {
     criticalChance: 0.1,
     // Each ordinary window is independently editable and removable through its profile.
@@ -202,13 +200,14 @@ export const grandEntrance = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && activeBuffStacks(context, 'grand-entrance', 1) > 0
     }
-  ]
+  ],
+  triggers: [{ on: 'damage.resolved', run: applyGrandEntrance }]
 });
 
 /** Owns Blast Shield tuning and behavior at its established runtime and build boundaries. */
 export const blastShield = defineTrait({
-  id: TRAIT.BLAST_SHIELD,
   name: 'Blast Shield',
+  id: TRAIT.BLAST_SHIELD,
   balance: { attributeConversion: 0.1 },
   attributes: traitAttributeEffects(TRAIT.BLAST_SHIELD, [
     {
@@ -224,8 +223,8 @@ export const blastShield = defineTrait({
 
 /** Owns Glass Cannon tuning and behavior at its established runtime and build boundaries. */
 export const glassCannon = defineTrait({
-  id: TRAIT.GLASS_CANNON,
   name: 'Glass Cannon',
+  id: TRAIT.GLASS_CANNON,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageMultiplier: 1.07, threshold: 0.75 },
   modifierRules: [
@@ -244,8 +243,8 @@ export const glassCannon = defineTrait({
 
 /** Owns Big Boomer tuning and behavior at its established runtime and build boundaries. */
 export const bigBoomer = defineTrait({
-  id: TRAIT.BIG_BOOMER,
   name: 'Big Boomer',
+  id: TRAIT.BIG_BOOMER,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageMultiplier: 1.15 },
   modifierRules: [
@@ -263,8 +262,8 @@ export const bigBoomer = defineTrait({
 
 /** Owns Shaped Charge tuning and behavior at its established runtime and build boundaries. */
 export const shapedCharge = defineTrait({
-  id: TRAIT.SHAPED_CHARGE,
   name: 'Shaped Charge',
+  id: TRAIT.SHAPED_CHARGE,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { maximumStacks: 25, damageIncreasePerStack: 0.005 },
   modifierRules: [

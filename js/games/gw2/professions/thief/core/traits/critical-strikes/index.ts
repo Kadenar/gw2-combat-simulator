@@ -1,3 +1,4 @@
+import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
 import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import {
   boonKey,
@@ -15,7 +16,6 @@ import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
   balanceNumberFromContext,
@@ -27,7 +27,6 @@ import {
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 
-import type { StealthAttackCompletion } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import {
   signetCompleted,
   stealthAttackCompleted,
@@ -40,8 +39,8 @@ import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/
 
 /** Owns Assassin's Fury tuning and behavior at the existing execution boundaries. */
 export const assassinsFury = defineTrait({
-  id: TRAIT.ASSASSINS_FURY,
   name: "Assassin's Fury",
+  id: TRAIT.ASSASSINS_FURY,
   balance: {
     internalCooldown: 2,
     effects: [{ type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 8 }]
@@ -68,23 +67,23 @@ export const assassinsFury = defineTrait({
 
 /** Own the Fury payload and ICD; the critical-boon handler retains the dispatcher's precise reaction boundary. */
 export const unrelentingStrikes = defineTrait({
-  id: TRAIT.UNRELENTING_STRIKES,
   name: 'Unrelenting Strikes',
+  id: TRAIT.UNRELENTING_STRIKES,
+  balance: {
+    internalCooldown: 8,
+    effects: [{ type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 4 }]
+  },
   triggers: [
     onTriggerPoint(thiefStruck, {
       run: (runtime: ThiefRuntime, { cause, details }: ThiefStrike) => applyUnrelentingStrikes(runtime, cause, details)
     })
-  ],
-  balance: {
-    internalCooldown: 8,
-    effects: [{ type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 4 }]
-  }
+  ]
 });
 
 /** Owns this trait's modifier eligibility. */
 export const deadlyAim = defineTrait({
-  id: TRAIT.DEADLY_AIM,
   name: 'Deadly Aim',
+  id: TRAIT.DEADLY_AIM,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
   modifierRules: [
@@ -103,8 +102,12 @@ export const deadlyAim = defineTrait({
 
 /** Owns Ferocious Strikes tuning and behavior at the existing execution boundaries. */
 export const ferociousStrikes = defineTrait({
-  id: TRAIT.FEROCIOUS_STRIKES,
   name: 'Ferocious Strikes',
+  id: TRAIT.FEROCIOUS_STRIKES,
+  balance: {
+    threshold: 0.5,
+    criticalDamage: 1.1
+  },
   modifierRules: [
     {
       order: 3,
@@ -116,17 +119,17 @@ export const ferociousStrikes = defineTrait({
         isGw2PlayerModifierOwnedEvent(context.event) &&
         targetHealthFraction(context) > balanceNumberFromContext(context, TRAIT.FEROCIOUS_STRIKES, 'threshold')
     }
-  ],
-  balance: {
-    threshold: 0.5,
-    criticalDamage: 1.1
-  }
+  ]
 });
 
 /** Owns Hidden Killer tuning and behavior at the existing execution boundaries. */
 export const hiddenKiller = defineTrait({
-  id: TRAIT.HIDDEN_KILLER,
   name: 'Hidden Killer',
+  id: TRAIT.HIDDEN_KILLER,
+  balance: {
+    criticalChance: 1,
+    duration: 4
+  },
   modifierRules: [
     {
       order: 14,
@@ -144,17 +147,18 @@ export const hiddenKiller = defineTrait({
         );
       }
     }
-  ],
-  balance: {
-    criticalChance: 1,
-    duration: 4
-  }
+  ]
 });
 
 /** Owns Keen Observer tuning and behavior at the existing execution boundaries. */
 export const keenObserver = defineTrait({
-  id: TRAIT.KEEN_OBSERVER,
   name: 'Keen Observer',
+  id: TRAIT.KEEN_OBSERVER,
+  balance: {
+    threshold: 0.5,
+    lowHealthCriticalChance: 0.1,
+    criticalChance: 0.15
+  },
   modifierRules: [
     {
       order: 13,
@@ -170,23 +174,13 @@ export const keenObserver = defineTrait({
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
-  ],
-  balance: {
-    threshold: 0.5,
-    lowHealthCriticalChance: 0.1,
-    criticalChance: 0.15
-  }
+  ]
 });
 
 /** Owns No Quarter tuning and behavior at the existing execution boundaries. */
 export const noQuarter = defineTrait({
-  id: TRAIT.NO_QUARTER,
   name: 'No Quarter',
-  triggers: [
-    onTriggerPoint(thiefStruck, {
-      run: (runtime: ThiefRuntime, { cause, details }: ThiefStrike) => applyNoQuarter(runtime, cause, details)
-    })
-  ],
+  id: TRAIT.NO_QUARTER,
   balance: {
     internalCooldown: 2,
     attributeBonus: 250,
@@ -205,13 +199,18 @@ export const noQuarter = defineTrait({
         }
       ]
     };
-  }
+  },
+  triggers: [
+    onTriggerPoint(thiefStruck, {
+      run: (runtime: ThiefRuntime, { cause, details }: ThiefStrike) => applyNoQuarter(runtime, cause, details)
+    })
+  ]
 });
 
 /** Owns Practiced Tolerance tuning and behavior at the existing execution boundaries. */
 export const practicedTolerance = defineTrait({
-  id: TRAIT.PRACTICED_TOLERANCE,
   name: 'Practiced Tolerance',
+  id: TRAIT.PRACTICED_TOLERANCE,
   balance: { attributeConversion: 0.1 },
   attributes({ balanceContext }) {
     return {
@@ -231,6 +230,11 @@ export const practicedTolerance = defineTrait({
 
 /** Owns Signets of Power tuning and behavior at the existing execution boundaries. */
 export const signetsOfPower = defineTrait({
+  name: 'Signets of Power',
+  id: TRAIT.SIGNETS_OF_POWER,
+  balance: {
+    resourceGain: 3
+  },
   // The grant follows a completed signet cast at cast end; an interrupted activation restores no initiative.
   triggers: [
     onTriggerPoint(signetCompleted, {
@@ -240,19 +244,13 @@ export const signetsOfPower = defineTrait({
           balanceNumberFromContext(runtime, TRAIT.SIGNETS_OF_POWER, 'resourceGain')
         )
     })
-  ],
-  id: TRAIT.SIGNETS_OF_POWER,
-  name: 'Signets of Power',
-  balance: {
-    resourceGain: 3
-  }
+  ]
 });
 
 /** Owns Sundering Shade tuning and behavior at the existing execution boundaries. */
 export const sunderingShade = defineTrait({
-  id: TRAIT.SUNDERING_SHADE,
   name: 'Sundering Shade',
-  triggers: [onTriggerPoint(stealthAttackCompleted, { run: completeThiefStealthAttack })],
+  id: TRAIT.SUNDERING_SHADE,
   balance: {
     effects: [
       {
@@ -263,13 +261,24 @@ export const sunderingShade = defineTrait({
         duration: 5
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(stealthAttackCompleted, {
+      run: thiefCastCondition(TRAIT.SUNDERING_SHADE, CONDITION.VULNERABILITY, 'Sundering Shade — Vulnerability')
+    })
+  ]
 });
 
 /** Owns Twin Fangs tuning and behavior at the existing execution boundaries. */
 export const twinFangs = defineTrait({
-  id: TRAIT.TWIN_FANGS,
   name: 'Twin Fangs',
+  id: TRAIT.TWIN_FANGS,
+  balance: {
+    threshold: 0.5,
+    criticalDamage: 1.07,
+    lowHealthCriticalDamage: 1.05,
+    criticalChance: 0.07
+  },
   modifierRules: [
     {
       order: 4,
@@ -295,42 +304,12 @@ export const twinFangs = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.TWIN_FANGS, 'criticalChance'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && Boolean(context.config?.target?.defiant)
     }
-  ],
-  balance: {
-    threshold: 0.5,
-    criticalDamage: 1.07,
-    lowHealthCriticalDamage: 1.05,
-    criticalChance: 0.07
-  }
+  ]
 });
 
 /** Natural expiry and forced exit share the selected patch's linger duration. */
 export function hiddenKillerLinger(runtime: ThiefRuntime): number {
   return balanceNumberFromContext(runtime, TRAIT.HIDDEN_KILLER, 'duration');
-}
-
-/** Sundering Shade's Vulnerability follows the completed stealth attack. */
-function completeThiefStealthAttack(runtime: ThiefRuntime, { cast }: StealthAttackCompletion): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.SUNDERING_SHADE);
-  const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
-
-  // Explicit removal suppresses this packet without restoring baseline tuning.
-  if (!vulnerability) return;
-
-  emitTraitProfile(runtime, TRAIT.SUNDERING_SHADE, TRAIT.SUNDERING_SHADE, undefined, {
-    at: runtime.time,
-    fullEnd: runtime.time,
-    effect: { type: 'condition', name: CONDITION.VULNERABILITY },
-    attribution: {
-      source: 'Trait',
-      sourceId: TRAIT.SUNDERING_SHADE,
-      activationId: cast.id,
-      name: 'Sundering Shade — Vulnerability',
-      actorType: ACTOR.PLAYER,
-      skillId: cast.skill.id,
-      skillName: cast.skill.name
-    }
-  });
 }
 
 /** Removed boons are omitted; surviving tuning is read from the selected profile. */

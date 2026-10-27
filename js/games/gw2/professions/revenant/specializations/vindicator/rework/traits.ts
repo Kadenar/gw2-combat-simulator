@@ -10,8 +10,8 @@ import { traitDefinitions } from '#gw2/professions/revenant/specializations/vind
 
 /** Accepted legend swaps restore capped endurance, including outside combat; Alliance Tactics remains deferred. */
 const balanceInDiscord = defineTrait({
-  id: TRAIT.BALANCE_IN_DISCORD,
   name: 'Balance in Discord',
+  id: TRAIT.BALANCE_IN_DISCORD,
   balance: { resourceGain: 0 },
   triggers: [
     {
@@ -26,8 +26,8 @@ const balanceInDiscord = defineTrait({
 
 /** Replace the old Power grant with an endurance-gated multiplier; the manifest supplies the provisional percentage. */
 const riseToTheOccasion = defineTrait({
-  id: REWORK.RISE_TO_THE_OCCASION,
   name: 'Rise to the Occasion',
+  id: REWORK.RISE_TO_THE_OCCASION,
   balance: { damageIncrease: 0 },
   modifierRules: [
     {
@@ -46,7 +46,7 @@ export const vindicatorReworkTraits = [
   ...traitDefinitions.filter((trait) => trait.id !== TRAIT.EMPIRE_DIVIDED && trait.id !== TRAIT.LEVIATHAN_STRENGTH),
   balanceInDiscord,
   riseToTheOccasion,
-  defineTrait({ id: REWORK.FRIEND_OF_THE_LUXONS, name: 'Friend of the Luxons' }),
-  defineTrait({ id: REWORK.HEATED_RIVALRY, name: 'Heated Rivalry' }),
-  defineTrait({ id: REWORK.FRIEND_OF_THE_KURZICKS, name: 'Friend of the Kurzicks' })
+  defineTrait({ name: 'Friend of the Luxons', id: REWORK.FRIEND_OF_THE_LUXONS }),
+  defineTrait({ name: 'Heated Rivalry', id: REWORK.HEATED_RIVALRY }),
+  defineTrait({ name: 'Friend of the Kurzicks', id: REWORK.FRIEND_OF_THE_KURZICKS })
 ];

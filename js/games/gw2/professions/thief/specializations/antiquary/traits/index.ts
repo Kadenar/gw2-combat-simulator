@@ -46,8 +46,8 @@ import type { ThiefResolverContext } from '#gw2/professions/thief/types.js';
  * removal on reshuffles and artifact use is outside the damage model and is intentionally not simulated.
  */
 const cardSwap = defineTrait({
-  id: TRAIT.CARD_SWAP,
   name: 'Card Swap',
+  id: TRAIT.CARD_SWAP,
   hooks: {
     availability: (runtime, skill) =>
       skill.id === ID.RESHUFFLE && !hasTrait(runtime, TRAIT.CARD_SWAP)
@@ -58,14 +58,15 @@ const cardSwap = defineTrait({
 
 /** Owns Combat High tuning and behavior at the existing execution boundaries. */
 const combatHigh = defineTrait({
-  id: TRAIT.COMBAT_HIGH,
   name: 'Combat High',
-  triggers: [
-    onTriggerPoint(artifactsPilfered, {
-      when: (_runtime, { source }: ArtifactPilfer) => source === 'swipe',
-      run: grantCombatHigh
-    })
-  ],
+  id: TRAIT.COMBAT_HIGH,
+  balance: {
+    damageIncreasePerStack: 0.03,
+    conditionDamageIncreasePerStack: 0.02,
+    maximumStacks: 10,
+    pulseInterval: 2,
+    duration: 20
+  },
   modifierRules: [
     {
       order: 401,
@@ -94,28 +95,31 @@ const combatHigh = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
-  balance: {
-    damageIncreasePerStack: 0.03,
-    conditionDamageIncreasePerStack: 0.02,
-    maximumStacks: 10,
-    pulseInterval: 2,
-    duration: 20
-  }
+  triggers: [
+    onTriggerPoint(artifactsPilfered, {
+      when: (_runtime, { source }: ArtifactPilfer) => source === 'swipe',
+      run: grantCombatHigh
+    })
+  ]
 });
 
 /** Owns Enterprising Aristocrat tuning and behavior at the existing execution boundaries. */
 const enterprisingAristocrat = defineTrait({
-  id: TRAIT.ENTERPRISING_ARISTOCRAT,
   name: 'Enterprising Aristocrat',
-  triggers: [onTriggerPoint(artifactActivated, { run: applyEnterprisingAristocrat })],
-  balance: { resourceGain: 2 }
+  id: TRAIT.ENTERPRISING_ARISTOCRAT,
+  balance: { resourceGain: 2 },
+  triggers: [onTriggerPoint(artifactActivated, { run: applyEnterprisingAristocrat })]
 });
 
 /** Owns Exhilarating Ephemera tuning and behavior at the existing execution boundaries. */
 const exhilaratingEphemera = defineTrait({
-  id: TRAIT.EXHILARATING_EPHEMERA,
   name: 'Exhilarating Ephemera',
-  triggers: [onTriggerPoint(artifactActivated, { run: applyExhilaratingEphemera })],
+  id: TRAIT.EXHILARATING_EPHEMERA,
+  balance: {
+    damageIncrease: 0.1,
+    durationExtension: 10,
+    maximumStacks: 20
+  },
   modifierRules: [
     {
       order: 400,
@@ -129,48 +133,28 @@ const exhilaratingEphemera = defineTrait({
         (thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').antiquaryDamageUntil || 0) > context.time
     }
   ],
-  balance: {
-    damageIncrease: 0.1,
-    durationExtension: 10,
-    maximumStacks: 20
-  }
+  triggers: [onTriggerPoint(artifactActivated, { run: applyExhilaratingEphemera })]
 });
 
 /** Owns Meticulous Custodian tuning and behavior at the existing execution boundaries. */
 const meticulousCustodian = defineTrait({
-  id: TRAIT.METICULOUS_CUSTODIAN,
   name: 'Meticulous Custodian',
-  triggers: [
-    onTriggerPoint(artifactActivated, { run: applyMeticulousChakShield }),
-    onTriggerPoint(antiquaryStruck, { run: applyMeticulousSunCrystal })
-  ],
-  hooks: {
-    modifyEffects(runtime, cast, effects) {
-      if (cast.skill.id !== ID.SUMMON_KRYPTIS_TURRET || !hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)) return effects;
-
-      // Enhance the base Torment duration before expertise and its cap; this is not a duration-stat bonus.
-      const multiplier = balanceNumberFromContext(
-        runtime,
-        TRAIT.METICULOUS_CUSTODIAN,
-        'kryptisTormentDurationMultiplier'
-      );
-      return effects.map((effect) =>
-        effect.type !== 'condition'
-          ? effect
-          : effect.ticks?.length
-            ? {
-                ...effect,
-                ticks: effect.ticks.map((tick) =>
-                  tick.condition === CONDITION.TORMENT ? { ...tick, duration: tick.duration * multiplier } : tick
-                )
-              }
-            : effect.condition === CONDITION.TORMENT
-              ? { ...effect, duration: Number(effect.duration) * multiplier }
-              : effect
-      );
-    }
+  id: TRAIT.METICULOUS_CUSTODIAN,
+  balance: {
+    duration: 12,
+    kryptisDuration: 10,
+    mortarBurningDurationMultiplier: 2 / 1.5,
+    sunCrystalBurningDurationMultiplier: 5 / 4,
+    guitarFinalFactor: 3 / 2.5,
+    guitarFactor: 1.2 / 0.8,
+    mortarFactor: 0.6 / 0.5,
+    chakFactor: 1,
+    kryptisFactor: 3.36 / 2.8,
+    holoFactor: 2.4 / 2,
+    // Enhanced artifact packets remain part of the artifact's measured cast.
+    kryptisTormentDurationMultiplier: 5 / 4,
+    effects: [{ type: 'strike', name: 'Meticulous Custodian', coefficient: 0.3, hits: 1 }]
   },
-
   modifierRules: [
     {
       order: 404,
@@ -208,41 +192,56 @@ const meticulousCustodian = defineTrait({
         context.event.triggeredBy == null // only the base skill packet needs enhancement
     }
   ],
-  balance: {
-    duration: 12,
-    kryptisDuration: 10,
-    mortarBurningDurationMultiplier: 2 / 1.5,
-    sunCrystalBurningDurationMultiplier: 5 / 4,
-    guitarFinalFactor: 3 / 2.5,
-    guitarFactor: 1.2 / 0.8,
-    mortarFactor: 0.6 / 0.5,
-    chakFactor: 1,
-    kryptisFactor: 3.36 / 2.8,
-    holoFactor: 2.4 / 2,
-    // Enhanced artifact packets remain part of the artifact's measured cast.
-    kryptisTormentDurationMultiplier: 5 / 4,
-    effects: [{ type: 'strike', name: 'Meticulous Custodian', coefficient: 0.3, hits: 1 }]
+  triggers: [
+    onTriggerPoint(artifactActivated, { run: applyMeticulousChakShield }),
+    onTriggerPoint(antiquaryStruck, { run: applyMeticulousSunCrystal })
+  ],
+  hooks: {
+    modifyEffects(runtime, cast, effects) {
+      if (cast.skill.id !== ID.SUMMON_KRYPTIS_TURRET || !hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)) return effects;
+
+      // Enhance the base Torment duration before expertise and its cap; this is not a duration-stat bonus.
+      const multiplier = balanceNumberFromContext(
+        runtime,
+        TRAIT.METICULOUS_CUSTODIAN,
+        'kryptisTormentDurationMultiplier'
+      );
+      return effects.map((effect) =>
+        effect.type !== 'condition'
+          ? effect
+          : effect.ticks?.length
+            ? {
+                ...effect,
+                ticks: effect.ticks.map((tick) =>
+                  tick.condition === CONDITION.TORMENT ? { ...tick, duration: tick.duration * multiplier } : tick
+                )
+              }
+            : effect.condition === CONDITION.TORMENT
+              ? { ...effect, duration: Number(effect.duration) * multiplier }
+              : effect
+      );
+    }
   }
 });
 
 /** Owns Possessive Hoarder tuning and behavior at the existing execution boundaries. */
 const possessiveHoarder = defineTrait({
-  id: TRAIT.POSSESSIVE_HOARDER,
   name: 'Possessive Hoarder',
-  triggers: [onTriggerPoint(artifactActivated, { run: applyPossessiveHoarder })],
+  id: TRAIT.POSSESSIVE_HOARDER,
   balance: {
     effects: [
       { type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, stacks: 10, duration: 12 },
       { type: 'boon', name: boonKey(BOON.PROTECTION), boon: BOON.PROTECTION, stacks: 1, duration: 5 },
       { type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, stacks: 1, duration: 5 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(artifactActivated, { run: applyPossessiveHoarder })]
 });
 
 /** Owns Prodigious Pincher tuning and behavior at the existing execution boundaries. */
 const prodigiousPincher = defineTrait({
-  id: TRAIT.PRODIGIOUS_PINCHER,
   name: 'Prodigious Pincher',
+  id: TRAIT.PRODIGIOUS_PINCHER,
   balance: {
     threshold: 15
   }
@@ -250,42 +249,42 @@ const prodigiousPincher = defineTrait({
 
 /** Owns Prolific Plunderer tuning and behavior at the existing execution boundaries. */
 const prolificPlunderer = defineTrait({
-  id: TRAIT.PROLIFIC_PLUNDERER,
   name: 'Prolific Plunderer',
+  id: TRAIT.PROLIFIC_PLUNDERER,
   balance: { resourceGain: 1 }
 });
 
 /** Owns Repeat Ransacker tuning and behavior at the existing execution boundaries. */
 const repeatRansacker = defineTrait({
-  id: TRAIT.REPEAT_RANSACKER,
   name: 'Repeat Ransacker',
-  triggers: [onTriggerPoint(artifactCompleted, { run: applyRepeatRansacker })],
+  id: TRAIT.REPEAT_RANSACKER,
   balance: {
     rechargeReduction: 2
-  }
+  },
+  triggers: [onTriggerPoint(artifactCompleted, { run: applyRepeatRansacker })]
 });
 
 /** Owns Scoundrel's Luck tuning and behavior at the existing execution boundaries. */
 const scoundrelsLuck = defineTrait({
-  id: TRAIT.SCOUNDRELS_LUCK,
   name: "Scoundrel's Luck",
+  id: TRAIT.SCOUNDRELS_LUCK,
+  balance: {
+    maximumStacks: 1,
+    internalCooldown: 20
+  },
   triggers: [
     onTriggerPoint(artifactsPilfered, {
       when: (_runtime, { source }: ArtifactPilfer) => source === 'swipe',
       run: grantScoundrelsLuck
     })
-  ],
-  balance: {
-    maximumStacks: 1,
-    internalCooldown: 20
-  }
+  ]
 });
 
 /** Native trait owners, in stable authoring order. */
 // Intrinsic specialization policy is available without explicit minor selection.
 const trinketCollector = defineTrait({
-  id: TRAIT.TRINKET_COLLECTOR,
   name: 'Trinket Collector',
+  id: TRAIT.TRINKET_COLLECTOR,
   balance: { maximumStacks: 1 }
 });
 

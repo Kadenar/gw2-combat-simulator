@@ -33,14 +33,8 @@ import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/
 
 /** Own Compounding Power tuning alongside its runtime behavior. */
 export const compoundingPower = defineTrait<MesmerSkill>({
-  triggers: [
-    onTriggerPoint(mesmerIllusionsGained, {
-      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerIllusionsGained>) =>
-        triggerCompoundingPower(runtime, input.at, input.count, input.sourceSkill, input.detail, input.delivery)
-    })
-  ],
-  id: TRAIT.COMPOUNDING_POWER,
   name: 'Compounding Power',
+  id: TRAIT.COMPOUNDING_POWER,
   balance: {
     damageIncreasePerStack: 0.01,
     conditionDamageIncreasePerStack: 0.01,
@@ -73,13 +67,19 @@ export const compoundingPower = defineTrait<MesmerSkill>({
         );
       }
     }
+  ],
+  triggers: [
+    onTriggerPoint(mesmerIllusionsGained, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerIllusionsGained>) =>
+        triggerCompoundingPower(runtime, input.at, input.count, input.sourceSkill, input.detail, input.delivery)
+    })
   ]
 });
 
 /** Own Cry of Pain tuning alongside its runtime behavior. */
 export const cryOfPain = defineTrait<MesmerSkill>({
-  id: TRAIT.CRY_OF_PAIN,
   name: 'Cry of Pain',
+  id: TRAIT.CRY_OF_PAIN,
   balance: {
     // Bonuses augment each native F2 application, preserving the owning skill's base tuning.
     additionalStacks: 1,
@@ -89,23 +89,23 @@ export const cryOfPain = defineTrait<MesmerSkill>({
 
 /** Own Maim the Disillusioned tuning alongside its runtime behavior. */
 export const maimTheDisillusioned = defineTrait<MesmerSkill>({
+  name: 'Maim the Disillusioned',
+  id: TRAIT.MAIM_THE_DISILLUSIONED,
+  balance: {
+    effects: [{ name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 6, stacks: 1 }]
+  },
   triggers: [
     onTriggerPoint(mesmerShatterResolved, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterResolved>) =>
         triggerMaimTheDisillusioned(runtime, { ...input.resolution, shatterTraitEligible: true })
     })
-  ],
-  id: TRAIT.MAIM_THE_DISILLUSIONED,
-  name: 'Maim the Disillusioned',
-  balance: {
-    effects: [{ name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 6, stacks: 1 }]
-  }
+  ]
 });
 
 /** Own Malicious Sorcery tuning alongside its runtime behavior. */
 export const maliciousSorcery = defineTrait<MesmerSkill>({
-  id: TRAIT.MALICIOUS_SORCERY,
   name: 'Malicious Sorcery',
+  id: TRAIT.MALICIOUS_SORCERY,
   balance: { durationMultiplier: 0.25 },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
@@ -117,15 +117,15 @@ export const maliciousSorcery = defineTrait<MesmerSkill>({
 
 /** Own Master of Misdirection tuning alongside its runtime behavior. */
 export const masterOfMisdirection = defineTrait<MesmerSkill>({
-  id: TRAIT.MASTER_OF_MISDIRECTION,
   name: 'Master of Misdirection',
+  id: TRAIT.MASTER_OF_MISDIRECTION,
   balance: { rechargeMultiplier: 0.85 }
 });
 
 /** Own Master of Fragmentation tuning alongside its runtime behavior. */
 export const masterOfFragmentation = defineTrait<MesmerSkill>({
-  id: TRAIT.MASTER_OF_FRAGMENTATION,
   name: 'Master of Fragmentation',
+  id: TRAIT.MASTER_OF_FRAGMENTATION,
   balance: {
     criticalChance: 0.25,
     durationExtension: 1,
@@ -180,14 +180,14 @@ export const masterOfFragmentation = defineTrait<MesmerSkill>({
 
 /** Phantasmal Haste selects the shared Quickness behavior without a separate tuning profile. */
 export const phantasmalHaste = defineTrait<MesmerSkill>({
-  id: TRAIT.PHANTASMAL_HASTE,
-  name: 'Phantasmal Haste'
+  name: 'Phantasmal Haste',
+  id: TRAIT.PHANTASMAL_HASTE
 });
 
 /** Own Shatter Storm tuning alongside its runtime behavior. */
 export const shatterStorm = defineTrait<MesmerSkill>({
-  id: TRAIT.SHATTER_STORM,
   name: 'Shatter Storm',
+  id: TRAIT.SHATTER_STORM,
   balance: {
     maximumStacks: 2
   }
@@ -195,23 +195,23 @@ export const shatterStorm = defineTrait<MesmerSkill>({
 
 /** Own The Pledge tuning alongside its runtime behavior. */
 export const thePledge = defineTrait<MesmerSkill>({
+  name: 'The Pledge',
+  id: TRAIT.THE_PLEDGE,
+  balance: {
+    effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, duration: 3, stacks: 2 }]
+  },
   triggers: [
     onTriggerPoint(mesmerConditionApplied, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerConditionApplied>) =>
         triggerThePledge(runtime, input.event)
     })
-  ],
-  id: TRAIT.THE_PLEDGE,
-  name: 'The Pledge',
-  balance: {
-    effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, duration: 3, stacks: 2 }]
-  }
+  ]
 });
 
 /** Own Phantasmal Force tuning alongside its runtime behavior. */
 export const phantasmalForce = defineTrait<MesmerSkill>({
-  id: TRAIT.PHANTASMAL_FORCE,
   name: 'Phantasmal Force',
+  id: TRAIT.PHANTASMAL_FORCE,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1, damageIncreasePerStack: 0.01 },
   modifierRules: [

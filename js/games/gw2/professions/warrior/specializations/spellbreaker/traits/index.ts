@@ -30,6 +30,13 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const attackersInsight = defineTrait({
+  name: "Attacker's Insight",
+  id: TRAIT.ATTACKERS_INSIGHT,
+  balance: {
+    maximumStacks: 5,
+    attributePerStack: 50,
+    effects: [{ name: 'attackers-insight', type: 'buff', kind: 'attackers-insight', stacks: 1, duration: 15 }]
+  },
   // Accepted Insight belongs to the effect lifetime rather than the current selection.
   grantedAttributes(context) {
     const amount =
@@ -48,26 +55,13 @@ export const attackersInsight = defineTrait({
       run: (runtime, input: TriggerPointInput<typeof spellbreakerControlAccepted>) =>
         reactToSpellbreakerControl(runtime, input.event)
     })
-  ],
-  id: TRAIT.ATTACKERS_INSIGHT,
-  name: "Attacker's Insight",
-  balance: {
-    maximumStacks: 5,
-    attributePerStack: 50,
-    effects: [{ name: 'attackers-insight', type: 'buff', kind: 'attackers-insight', stacks: 1, duration: 15 }]
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const magebaneTether = defineTrait({
-  triggers: [
-    onTriggerPoint(spellbreakerStrike, {
-      run: (runtime, input: TriggerPointInput<typeof spellbreakerStrike>) =>
-        reactToSpellbreakerDamage(runtime, input.event)
-    })
-  ],
-  id: TRAIT.MAGEBANE_TETHER,
   name: 'Magebane Tether',
+  id: TRAIT.MAGEBANE_TETHER,
   modifierRules: [
     {
       id: 'warrior.magebane-tether',
@@ -82,13 +76,19 @@ const magebaneTether = defineTrait({
       order: 110,
       when: (context) => (spellbreakerStateAt(context).magebaneTetherUntil || 0) > context.time
     }
+  ],
+  triggers: [
+    onTriggerPoint(spellbreakerStrike, {
+      run: (runtime, input: TriggerPointInput<typeof spellbreakerStrike>) =>
+        reactToSpellbreakerDamage(runtime, input.event)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const noEscape = defineTrait({
-  id: TRAIT.NO_ESCAPE,
   name: 'No Escape',
+  id: TRAIT.NO_ESCAPE,
   balance: {
     effects: [
       { name: CONDITION.IMMOBILIZED, type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 1 }
@@ -116,8 +116,8 @@ const noEscape = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const pureStrike = defineTrait({
-  id: TRAIT.PURE_STRIKE,
   name: 'Pure Strike',
+  id: TRAIT.PURE_STRIKE,
   balance: {
     // Targets have no boons, so the supported bonus is a single critical-damage multiplier.
     criticalDamage: 1.1
@@ -136,8 +136,8 @@ const pureStrike = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const sunAndMoonStyle = defineTrait({
-  id: TRAIT.SUN_AND_MOON_STYLE,
   name: 'Sun and Moon Style',
+  id: TRAIT.SUN_AND_MOON_STYLE,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
   modifierRules: [
@@ -155,8 +155,8 @@ const sunAndMoonStyle = defineTrait({
 
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
 const spellbreakersConviction = defineTrait({
-  id: TRAIT.SPELLBREAKERS_CONVICTION,
   name: "Spellbreaker's Conviction",
+  id: TRAIT.SPELLBREAKERS_CONVICTION,
   balance: { maximumStacks: 20 }
 });
 

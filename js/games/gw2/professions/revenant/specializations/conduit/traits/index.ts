@@ -49,6 +49,16 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns Bolstered Bonds tuning and behavior at its established execution boundaries. */
 const bolsteredBonds = defineTrait({
+  name: 'Bolstered Bonds',
+  id: TRAIT.BOLSTERED_BONDS,
+  balance: {
+    assassinAttributeBonus: 75,
+    centaurAttributeBonus: 150,
+    demonAttributeBonus: 75,
+    dwarfAttributeBonus: 150,
+    entityAttributeBonus: 75,
+    attributeMultiplier: 2
+  },
   attributes: (context) => ({
     attributeEffects: Object.entries(
       bolsteredBondsBonuses(
@@ -64,17 +74,7 @@ const bolsteredBonds = defineTrait({
       amount,
       feedsConversions: 'none'
     }))
-  }),
-  id: TRAIT.BOLSTERED_BONDS,
-  name: 'Bolstered Bonds',
-  balance: {
-    assassinAttributeBonus: 75,
-    centaurAttributeBonus: 150,
-    demonAttributeBonus: 75,
-    dwarfAttributeBonus: 150,
-    entityAttributeBonus: 75,
-    attributeMultiplier: 2
-  }
+  })
 });
 
 const BUILD_ATTRIBUTE_NAMES = Object.freeze({
@@ -91,26 +91,20 @@ const BUILD_ATTRIBUTE_NAMES = Object.freeze({
 
 /** Owns Conductive Armaments tuning and behavior at its established execution boundaries. */
 const conductiveArmaments = defineTrait({
+  name: 'Conductive Armaments',
+  id: TRAIT.CONDUCTIVE_ARMAMENTS,
   triggers: [
     onTriggerPoint(energyCostAccepted, {
       run: (runtime, input: TriggerPointInput<typeof energyCostAccepted>) =>
         grantConductiveArmaments(runtime, input.cast.skill)
     })
-  ],
-  id: TRAIT.CONDUCTIVE_ARMAMENTS,
-  name: 'Conductive Armaments'
+  ]
 });
 
 /** Owns Enhanced Embodiment tuning and behavior at its established execution boundaries. */
 const enhancedEmbodiment = defineTrait({
-  triggers: [
-    onTriggerPoint(conduitLegendReset, {
-      run: (runtime, input: TriggerPointInput<typeof conduitLegendReset>) =>
-        extendEnhancedEmbodiment(runtime, input.formActive)
-    })
-  ],
-  id: TRAIT.ENHANCED_EMBODIMENT,
   name: 'Enhanced Embodiment',
+  id: TRAIT.ENHANCED_EMBODIMENT,
   balance: {
     rechargeMultiplier: 0.6,
     effects: [
@@ -122,58 +116,64 @@ const enhancedEmbodiment = defineTrait({
         stacks: 1
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(conduitLegendReset, {
+      run: (runtime, input: TriggerPointInput<typeof conduitLegendReset>) =>
+        extendEnhancedEmbodiment(runtime, input.formActive)
+    })
+  ]
 });
 
 /** Owns Expanded Consciousness tuning and behavior at its established execution boundaries. */
 const expandedConsciousness = defineTrait({
+  name: 'Expanded Consciousness',
+  id: TRAIT.EXPANDED_CONSCIOUSNESS,
+  balance: { resourceGain: 15, effects: [] },
   triggers: [
     onTriggerPoint(affinityGranted, {
       run: (runtime, input: TriggerPointInput<typeof affinityGranted>) =>
         grantExpandedConsciousness(runtime, input.previous, input.maximum)
     })
-  ],
-  id: TRAIT.EXPANDED_CONSCIOUSNESS,
-  name: 'Expanded Consciousness',
-  balance: { resourceGain: 15, effects: [] }
+  ]
 });
 
 /** Owns Found Purpose tuning and behavior at its established execution boundaries. */
 const foundPurpose = defineTrait({
+  name: 'Found Purpose',
+  id: TRAIT.FOUND_PURPOSE,
   triggers: [
     onTriggerPoint(conduitLegendSettled, {
       run: (runtime, input: TriggerPointInput<typeof conduitLegendSettled>) =>
         grantFoundPurpose(runtime, input.cast, input.combat)
     })
-  ],
-  id: TRAIT.FOUND_PURPOSE,
-  name: 'Found Purpose'
+  ]
 });
 
 /** Owns Kinetic Insight tuning and behavior at its established execution boundaries. */
 const kineticInsight = defineTrait({
-  id: TRAIT.KINETIC_INSIGHT,
   name: 'Kinetic Insight',
+  id: TRAIT.KINETIC_INSIGHT,
   balance: { rechargeMultiplier: 0.8, resourceGain: 2, effects: [] }
 });
 
 /** Owns Lingering Determination tuning and behavior at its established execution boundaries. */
 const lingeringDetermination = defineTrait({
+  name: 'Lingering Determination',
+  id: TRAIT.LINGERING_DETERMINATION,
+  balance: { resourceGain: 2, effects: [] },
   triggers: [
     onTriggerPoint(conduitLegendReset, {
       run: (runtime, input: TriggerPointInput<typeof conduitLegendReset>) =>
         grantLingeringDetermination(runtime, input.combat)
     })
-  ],
-  id: TRAIT.LINGERING_DETERMINATION,
-  name: 'Lingering Determination',
-  balance: { resourceGain: 2, effects: [] }
+  ]
 });
 
 /** Owns Mistfire tuning and behavior at its established execution boundaries. */
 const mistfire = defineTrait({
-  id: TRAIT.MISTFIRE,
   name: 'Mistfire',
+  id: TRAIT.MISTFIRE,
   balance: {
     internalCooldown: 1,
     effects: [
@@ -231,16 +231,8 @@ const numinousDurations = traitAttributeBonuses(TRAIT.NUMINOUS_GIFT, (profile) =
 
 /** Owns Numinous Gift tuning and behavior at its established execution boundaries. */
 const numinousGiftTrait = defineTrait({
-  triggers: [
-    onTriggerPoint(cosmicWisdomEntered, {
-      // Numinous Gift is Conduit's intrinsic minor: Cosmic Wisdom grants its boons whether or not the trait is listed.
-      requiresSelection: false,
-      run: (runtime, input: TriggerPointInput<typeof cosmicWisdomEntered>) => numinousGift(runtime, input.cast)
-    })
-  ],
-  attributes: (context) => (hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) ? numinousDurations(context) : {}),
-  id: TRAIT.NUMINOUS_GIFT,
   name: 'Numinous Gift',
+  id: TRAIT.NUMINOUS_GIFT,
   balance: {
     damageIncrease: 0.05,
     conditionDurationBonus: 0.05,
@@ -283,6 +275,7 @@ const numinousGiftTrait = defineTrait({
       }
     ]
   },
+  attributes: (context) => (hasTrait(context, TRAIT.YEARNING_EMPOWERMENT) ? numinousDurations(context) : {}),
   modifierRules: [
     {
       id: 'revenant.targeted-destruction-numinous-gift',
@@ -301,22 +294,20 @@ const numinousGiftTrait = defineTrait({
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
     }
+  ],
+  triggers: [
+    onTriggerPoint(cosmicWisdomEntered, {
+      // Numinous Gift is Conduit's intrinsic minor: Cosmic Wisdom grants its boons whether or not the trait is listed.
+      requiresSelection: false,
+      run: (runtime, input: TriggerPointInput<typeof cosmicWisdomEntered>) => numinousGift(runtime, input.cast)
+    })
   ]
 });
 
 /** Owns Shared Wisdom tuning and behavior at its established execution boundaries. */
 const sharedWisdom = defineTrait({
-  triggers: [
-    onTriggerPoint(entityBoonCompleted, {
-      run: (runtime, input: TriggerPointInput<typeof entityBoonCompleted>) => grantEntitySkillBoon(runtime, input.cast)
-    }),
-    onTriggerPoint(entityCastCompleted, {
-      run: (runtime, input: TriggerPointInput<typeof entityCastCompleted>) =>
-        completionSharedWisdom(runtime, input.cast)
-    })
-  ],
-  id: TRAIT.SHARED_WISDOM,
   name: 'Shared Wisdom',
+  id: TRAIT.SHARED_WISDOM,
   balance: {
     // Shared Wisdom's base and skill-specific boons all affect the same five-person party.
     effects: [
@@ -380,13 +371,22 @@ const sharedWisdom = defineTrait({
         metadata: { trigger: 'twin-moon-sweep' }
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(entityBoonCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof entityBoonCompleted>) => grantEntitySkillBoon(runtime, input.cast)
+    }),
+    onTriggerPoint(entityCastCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof entityCastCompleted>) =>
+        completionSharedWisdom(runtime, input.cast)
+    })
+  ]
 });
 
 /** Enigmatic Connection owns the intrinsic Affinity capacity of every Conduit build. */
 const enigmaticConnection = defineTrait({
-  id: TRAIT.ENIGMATIC_CONNECTION,
   name: 'Enigmatic Connection',
+  id: TRAIT.ENIGMATIC_CONNECTION,
   balance: { maximumStacks: 5 }
 });
 

@@ -43,21 +43,15 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Dark Disciple owns intrinsic Blight growth, capacity, and shroud life-force drain. */
 const darkDisciple = defineTrait({
-  id: TRAIT.DARK_DISCIPLE,
   name: 'Dark Disciple',
+  id: TRAIT.DARK_DISCIPLE,
   balance: { maximumStacks: 25, lifeForceDrain: 5, blightGain: 2, pulseInterval: 1, effects: [] }
 });
 
 /** Owns Cascading Corruption tuning and behavior at its existing execution boundaries. */
 const cascadingCorruption = defineTrait({
-  triggers: [
-    onTriggerPoint(harbingerBlightConsumed, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerBlightConsumed>) =>
-        applyCascadingCorruption(runtime, input.cast, input.consumed)
-    })
-  ],
-  id: TRAIT.CASCADING_CORRUPTION,
   name: 'Cascading Corruption',
+  id: TRAIT.CASCADING_CORRUPTION,
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.1,
@@ -104,19 +98,19 @@ const cascadingCorruption = defineTrait({
       // Read the emitted buff through the shared timeline, including explicitly supplied initial buffs.
       when: (context) => buffActive(context, 'meltdown')
     }
+  ],
+  triggers: [
+    onTriggerPoint(harbingerBlightConsumed, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerBlightConsumed>) =>
+        applyCascadingCorruption(runtime, input.cast, input.consumed)
+    })
   ]
 });
 
 /** Owns Septic Corruption tuning and behavior at its existing execution boundaries. */
 const septicCorruption = defineTrait({
-  triggers: [
-    onTriggerPoint(harbingerStrike, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerStrike>) =>
-        applySepticCorruptionStrike(runtime, input.event)
-    })
-  ],
-  id: TRAIT.SEPTIC_CORRUPTION,
   name: 'Septic Corruption',
+  id: TRAIT.SEPTIC_CORRUPTION,
   balance: {
     conditionDamageIncreasePerStack: 0.0025,
     effects: [
@@ -141,19 +135,19 @@ const septicCorruption = defineTrait({
         activeBlight(context) *
         balanceNumberFromContext(context, TRAIT.SEPTIC_CORRUPTION, 'conditionDamageIncreasePerStack')
     }
+  ],
+  triggers: [
+    onTriggerPoint(harbingerStrike, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerStrike>) =>
+        applySepticCorruptionStrike(runtime, input.event)
+    })
   ]
 });
 
 /** Owns Doom Approaches tuning and behavior at its existing execution boundaries. */
 const doomApproaches = defineTrait({
-  triggers: [
-    onTriggerPoint(harbingerStrike, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerStrike>) =>
-        applyDoomApproachesStrike(runtime, input.event)
-    })
-  ],
-  id: TRAIT.DOOM_APPROACHES,
   name: 'Doom Approaches',
+  id: TRAIT.DOOM_APPROACHES,
   balance: {
     blightGain: 4,
     effects: [
@@ -166,26 +160,19 @@ const doomApproaches = defineTrait({
         actorType: ACTOR.EFFECT
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(harbingerStrike, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerStrike>) =>
+        applyDoomApproachesStrike(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Deathly Haste tuning and behavior at its existing execution boundaries. */
 const deathlyHaste = defineTrait({
-  triggers: [
-    // Only compiled cast admission may start the shroud finisher's party reward.
-    {
-      on: 'castCommit',
-      run(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>) {
-        if (cast.skill.id === ID.DARK_BARRAGE) applyDeathlyHaste(runtime, cast.skill);
-      }
-    },
-    onTriggerPoint(harbingerShroudEntered, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerShroudEntered>) =>
-        applyDeathlyHaste(runtime, input.skill)
-    })
-  ],
-  id: TRAIT.DEATHLY_HASTE,
   name: 'Deathly Haste',
+  id: TRAIT.DEATHLY_HASTE,
   balance: {
     effects: [
       {
@@ -207,29 +194,36 @@ const deathlyHaste = defineTrait({
         audience: { recipients: RECIPIENT.PARTY }
       }
     ]
-  }
+  },
+  triggers: [
+    // Only compiled cast admission may start the shroud finisher's party reward.
+    {
+      on: 'castCommit',
+      run(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>) {
+        if (cast.skill.id === ID.DARK_BARRAGE) applyDeathlyHaste(runtime, cast.skill);
+      }
+    },
+    onTriggerPoint(harbingerShroudEntered, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerShroudEntered>) =>
+        applyDeathlyHaste(runtime, input.skill)
+    })
+  ]
 });
 
 /** Owns Corrupted Talent tuning and behavior at its existing execution boundaries. */
 const corruptedTalent = defineTrait({
-  triggers: [onTriggerPoint(harbingerShroudEntered, { run: grantCorruptedTalent })],
-  id: TRAIT.CORRUPTED_TALENT,
   name: 'Corrupted Talent',
+  id: TRAIT.CORRUPTED_TALENT,
   balance: {
     lifeForceGain: 15
-  }
+  },
+  triggers: [onTriggerPoint(harbingerShroudEntered, { run: grantCorruptedTalent })]
 });
 
 /** Owns Implacable Foe tuning and behavior at its existing execution boundaries. */
 const implacableFoe = defineTrait({
-  triggers: [
-    onTriggerPoint(harbingerShroudEntered, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerShroudEntered>) =>
-        grantImplacableFoe(runtime, input.skill)
-    })
-  ],
-  id: TRAIT.IMPLACABLE_FOE,
   name: 'Implacable Foe',
+  id: TRAIT.IMPLACABLE_FOE,
   balance: {
     attributeConversion: 0.13,
     effects: [
@@ -260,19 +254,19 @@ const implacableFoe = defineTrait({
       rounding: 'none',
       input: 'eligible'
     }
-  ])
+  ]),
+  triggers: [
+    onTriggerPoint(harbingerShroudEntered, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerShroudEntered>) =>
+        grantImplacableFoe(runtime, input.skill)
+    })
+  ]
 });
 
 /** Owns Bolstering Brew tuning and behavior at its existing execution boundaries. */
 const bolsteringBrew = defineTrait({
-  triggers: [
-    onTriggerPoint(harbingerElixirLaunched, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerElixirLaunched>) =>
-        applyBolsteringBrew(runtime, input.cast)
-    })
-  ],
-  id: TRAIT.BOLSTERING_BREW,
   name: 'Bolstering Brew',
+  id: TRAIT.BOLSTERING_BREW,
   balance: {
     effects: [
       {
@@ -284,13 +278,19 @@ const bolsteringBrew = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(harbingerElixirLaunched, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof harbingerElixirLaunched>) =>
+        applyBolsteringBrew(runtime, input.cast)
+    })
+  ]
 });
 
 /** Owns Alchemic Vigor tuning and behavior at its existing execution boundaries. */
 const alchemicVigor = defineTrait({
-  id: TRAIT.ALCHEMIC_VIGOR,
   name: 'Alchemic Vigor',
+  id: TRAIT.ALCHEMIC_VIGOR,
   balance: {
     attributeBonus: 240
   },
@@ -301,8 +301,8 @@ const alchemicVigor = defineTrait({
 
 /** Owns Twisted Medicine tuning and behavior at its existing execution boundaries. */
 const twistedMedicine = defineTrait({
-  id: TRAIT.TWISTED_MEDICINE,
   name: 'Twisted Medicine',
+  id: TRAIT.TWISTED_MEDICINE,
   balance: {
     attributeConversion: 0.13
   },
@@ -320,8 +320,8 @@ const twistedMedicine = defineTrait({
 
 /** Owns Wicked Corruption tuning and behavior at its existing execution boundaries. */
 const wickedCorruption = defineTrait({
-  id: TRAIT.WICKED_CORRUPTION,
   name: 'Wicked Corruption',
+  id: TRAIT.WICKED_CORRUPTION,
   balance: {
     damageIncreasePerStack: 0.01,
     criticalDamage: 1.1
@@ -349,8 +349,8 @@ const wickedCorruption = defineTrait({
 
 /** Owns Dark Gunslinger tuning and behavior at its existing execution boundaries. */
 const darkGunslinger = defineTrait({
-  id: TRAIT.DARK_GUNSLINGER,
   name: 'Dark Gunslinger',
+  id: TRAIT.DARK_GUNSLINGER,
   balance: {
     attributeConversion: 0.1,
     rechargeMultiplier: 0.8

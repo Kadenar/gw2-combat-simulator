@@ -62,13 +62,8 @@ function activePetIsFeathered(context: RangerModifierContext): boolean {
 
 /** Owns Shrike's live tuning and trait behavior. */
 const shrike = defineTrait({
-  triggers: [
-    onTriggerPoint(missileResolved, {
-      run: (runtime, input: TriggerPointInput<typeof missileResolved>) => applyShrike(runtime, input.event)
-    })
-  ],
-  id: TRAIT.SHRIKE,
   name: 'Shrike',
+  id: TRAIT.SHRIKE,
   balance: {
     threshold: 12,
     resourceGain: 1,
@@ -81,11 +76,21 @@ const shrike = defineTrait({
         atMs: 0
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(missileResolved, {
+      run: (runtime, input: TriggerPointInput<typeof missileResolved>) => applyShrike(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Wuthering Wind's live tuning and trait behavior. */
 const wutheringWind = defineTrait({
+  name: 'Wuthering Wind',
+  id: TRAIT.WUTHERING_WIND,
+  balance: {
+    effects: [{ name: 'Strike', type: 'strike', coefficient: 2, hits: 1 }]
+  },
   triggers: [
     onTriggerPoint(cycloneBowCompleted, {
       when: (_runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => input.skill.id === ID.BLUSTER,
@@ -94,40 +99,29 @@ const wutheringWind = defineTrait({
     onTriggerPoint(galeshotPetStrike, {
       run: (runtime, input: TriggerPointInput<typeof galeshotPetStrike>) => reactToGaleshotPet(runtime, input.event)
     })
-  ],
-  id: TRAIT.WUTHERING_WIND,
-  name: 'Wuthering Wind',
-  balance: {
-    effects: [{ name: 'Strike', type: 'strike', coefficient: 2, hits: 1 }]
-  }
+  ]
 });
 
 /** Owns Thrill of the Catch's live tuning and trait behavior. */
 const thrillOfTheCatch = defineTrait({
+  name: 'Thrill of the Catch',
+  id: TRAIT.THRILL_OF_THE_CATCH,
+  balance: {
+    internalCooldown: 0.25,
+    resourceGain: 1
+  },
   triggers: [
     onTriggerPoint(galeshotControlAccepted, {
       run: (runtime, input: TriggerPointInput<typeof galeshotControlAccepted>) =>
         reactToGaleshotControl(runtime, input.event)
     })
-  ],
-  id: TRAIT.THRILL_OF_THE_CATCH,
-  name: 'Thrill of the Catch',
-  balance: {
-    internalCooldown: 0.25,
-    resourceGain: 1
-  }
+  ]
 });
 
 /** Owns Flock Together's live tuning and trait behavior. */
 const flockTogether = defineTrait({
-  triggers: [
-    onTriggerPoint(galeshotCastCompleted, {
-      run: (runtime, input: TriggerPointInput<typeof galeshotCastCompleted>) =>
-        completeGaleshotSkill(runtime, input.skill)
-    })
-  ],
-  id: TRAIT.FLOCK_TOGETHER,
   name: 'Flock Together',
+  id: TRAIT.FLOCK_TOGETHER,
   balance: {
     damageMultiplier: 1.25,
     internalCooldown: 20,
@@ -142,20 +136,19 @@ const flockTogether = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.FLOCK_TOGETHER, 'damageMultiplier'),
       when: (context) => isPetActorEvent(context.event) && activePetIsFeathered(context)
     }
+  ],
+  triggers: [
+    onTriggerPoint(galeshotCastCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof galeshotCastCompleted>) =>
+        completeGaleshotSkill(runtime, input.skill)
+    })
   ]
 });
 
 /** Owns Cloudburst's live tuning and trait behavior. */
 const cloudburst = defineTrait({
-  triggers: [
-    onTriggerPoint(cycloneBowCompleted, {
-      when: (_runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) =>
-        input.skill.id === ID.HAWKEYE || input.skill.id === ID.BLUSTER,
-      run: (runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => emitCloudburstBoons(runtime, input.skill)
-    })
-  ],
-  id: TRAIT.CLOUDBURST,
   name: 'Cloudburst',
+  id: TRAIT.CLOUDBURST,
   balance: {
     effects: [
       { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 4, stacks: 1 },
@@ -163,19 +156,20 @@ const cloudburst = defineTrait({
       { name: 'Hawkeye quickness', type: 'boon', boon: BOON.QUICKNESS, duration: 8, stacks: 1 },
       { name: 'Hawkeye might', type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 8 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(cycloneBowCompleted, {
+      when: (_runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) =>
+        input.skill.id === ID.HAWKEYE || input.skill.id === ID.BLUSTER,
+      run: (runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => emitCloudburstBoons(runtime, input.skill)
+    })
+  ]
 });
 
 /** Owns Gale Force's live tuning and trait behavior. */
 const galeForce = defineTrait({
-  triggers: [
-    onTriggerPoint(cycloneBowCompleted, {
-      when: (_runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => input.skill.id === ID.HAWKEYE,
-      run: (runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => applyGaleForce(runtime, input.skill)
-    })
-  ],
-  id: TRAIT.GALE_FORCE,
   name: 'Gale Force',
+  id: TRAIT.GALE_FORCE,
   balance: {
     damageIncrease: 0.25,
     damageIncreasePerStack: 0.03,
@@ -193,13 +187,19 @@ const galeForce = defineTrait({
         isGw2PlayerModifierOwnedEvent(context.event) &&
         ((galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time || windForce(context) > 0)
     }
+  ],
+  triggers: [
+    onTriggerPoint(cycloneBowCompleted, {
+      when: (_runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => input.skill.id === ID.HAWKEYE,
+      run: (runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => applyGaleForce(runtime, input.skill)
+    })
   ]
 });
 
 /** Owns Bird of Prey's live tuning and trait behavior. */
 const birdOfPrey = defineTrait({
-  id: TRAIT.BIRD_OF_PREY,
   name: 'Bird of Prey',
+  id: TRAIT.BIRD_OF_PREY,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.05 },
   modifierRules: [
@@ -219,8 +219,8 @@ const birdOfPrey = defineTrait({
 
 /** Owns Perilous Skies's live tuning and trait behavior. */
 const perilousSkies = defineTrait({
-  id: TRAIT.PERILOUS_SKIES,
   name: 'Perilous Skies',
+  id: TRAIT.PERILOUS_SKIES,
   // Saved Cyclone Bow casts follow the selected replacement without rewriting the rotation on trait edits.
   hooks: { modifySkillId: traitSkillReplacement(TRAIT.PERILOUS_SKIES, [[ID.QUARRYS_PERIL, ID.PELT]]) }
 });
@@ -228,8 +228,8 @@ const perilousSkies = defineTrait({
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 /** The unlocking minor owns baseline specialization policy even when omitted from explicit selections. */
 const intrinsicPolicy = defineTrait({
-  id: TRAIT.TEACHINGS_OF_THE_TENGU,
   name: 'Teachings of the Tengu',
+  id: TRAIT.TEACHINGS_OF_THE_TENGU,
   balance: { maximumStacks: 8, minimumStacks: 5, pulseInterval: 5 }
 });
 

@@ -58,6 +58,14 @@ function superiorityComplexFactor(context: Gw2ModifierContext): number {
 
 /** Fencer's Finesse shares active tuning with its ordered imperative reactions. */
 export const fencersFinesse = defineTrait<MesmerSkill>({
+  name: "Fencer's Finesse",
+  id: TRAIT.FENCERS_FINESSE,
+  balance: {
+    attributePerStack: 15,
+    maximumStacks: 10,
+    duration: 6,
+    rechargeMultiplier: 0.8
+  },
   // Accepted self grants retain their expiry independently of current trait selection.
   grantedAttributes: (context) =>
     !context.runtime && !context.timeline && !context.events
@@ -77,19 +85,17 @@ export const fencersFinesse = defineTrait<MesmerSkill>({
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerStrikeResolved>) =>
         applyFencersFinesse(runtime, input.event)
     })
-  ],
-  id: TRAIT.FENCERS_FINESSE,
-  name: "Fencer's Finesse",
-  balance: {
-    attributePerStack: 15,
-    maximumStacks: 10,
-    duration: 6,
-    rechargeMultiplier: 0.8
-  }
+  ]
 });
 
 /** Ineptitude shares active tuning with its ordered imperative reactions. */
 export const ineptitude = defineTrait<MesmerSkill>({
+  name: 'Ineptitude',
+  id: TRAIT.INEPTITUDE,
+  balance: {
+    internalCooldown: 3,
+    effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 5, stacks: 2 }]
+  },
   triggers: [
     onTriggerPoint(mesmerConditionApplied, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof mesmerConditionApplied>) =>
@@ -101,25 +107,13 @@ export const ineptitude = defineTrait<MesmerSkill>({
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerControlAccepted>) =>
         triggerIneptitudeFromInterrupt(runtime, input.event)
     })
-  ],
-  id: TRAIT.INEPTITUDE,
-  name: 'Ineptitude',
-  balance: {
-    internalCooldown: 3,
-    effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 5, stacks: 2 }]
-  }
+  ]
 });
 
 /** Master Fencer shares active tuning with its ordered imperative reactions. */
 export const masterFencer = defineTrait<MesmerSkill>({
-  triggers: [
-    onTriggerPoint(mesmerCritical, {
-      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerCritical>) =>
-        triggerMasterFencer(runtime, input.event, input.chance)
-    })
-  ],
-  id: TRAIT.MASTER_FENCER,
   name: 'Master Fencer',
+  id: TRAIT.MASTER_FENCER,
   balance: {
     internalCooldown: 8,
     effects: [
@@ -141,28 +135,34 @@ export const masterFencer = defineTrait<MesmerSkill>({
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 4, affectsSelf: false }
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(mesmerCritical, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerCritical>) =>
+        triggerMasterFencer(runtime, input.event, input.chance)
+    })
+  ]
 });
 
 /** Sharper Images shares active tuning with its ordered imperative reactions. */
 export const sharperImages = defineTrait<MesmerSkill>({
+  name: 'Sharper Images',
+  id: TRAIT.SHARPER_IMAGES,
+  balance: {
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 5, stacks: 1 }]
+  },
   triggers: [
     onTriggerPoint(mesmerCritical, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerCritical>) =>
         triggerSharperImages(runtime, input.event, input.chance)
     })
-  ],
-  id: TRAIT.SHARPER_IMAGES,
-  name: 'Sharper Images',
-  balance: {
-    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 5, stacks: 1 }]
-  }
+  ]
 });
 
 /** Phantasmal Fury shares active tuning with its ordered imperative reactions. */
 export const phantasmalFury = defineTrait<MesmerSkill>({
-  id: TRAIT.PHANTASMAL_FURY,
   name: 'Phantasmal Fury',
+  id: TRAIT.PHANTASMAL_FURY,
   balance: {
     criticalChance: 0.25
   },
@@ -180,8 +180,8 @@ export const phantasmalFury = defineTrait<MesmerSkill>({
 
 /** Superiority Complex shares active tuning with its ordered imperative reactions. */
 export const superiorityComplex = defineTrait<MesmerSkill>({
-  id: TRAIT.SUPERIORITY_COMPLEX,
   name: 'Superiority Complex',
+  id: TRAIT.SUPERIORITY_COMPLEX,
   balance: {
     highHealthFactor: 1.15,
     lowHealthOrDisabledFactor: 1.25,
@@ -201,35 +201,35 @@ export const superiorityComplex = defineTrait<MesmerSkill>({
 
 /** Blindness follows the native confusion shatter packets at their existing emission boundary. */
 export const blindingDissipation = defineTrait<MesmerSkill>({
+  name: 'Blinding Dissipation',
+  id: TRAIT.BLINDING_DISSIPATION,
+  balance: {
+    effects: [{ name: CONDITION.BLINDNESS, type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 3 }]
+  },
   triggers: [
     onTriggerPoint(cloneShatterMaterialized, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof cloneShatterMaterialized>) =>
         triggerBlindingDissipation(runtime, input.skillName, input.at, input.count, input.delivery)
     })
-  ],
-  id: TRAIT.BLINDING_DISSIPATION,
-  name: 'Blinding Dissipation',
-  balance: {
-    effects: [{ name: CONDITION.BLINDNESS, type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 3 }]
-  }
+  ]
 });
 
 /** Mirage invokes this reward only after its dodge has granted cloak. */
 export const deceptiveEvasion = defineTrait<MesmerSkill>({
+  name: 'Deceptive Evasion',
+  id: TRAIT.DECEPTIVE_EVASION,
   triggers: [
     onTriggerPoint(mesmerEvaded, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerEvaded>) =>
         triggerDeceptiveEvasion(runtime, input.at)
     })
-  ],
-  id: TRAIT.DECEPTIVE_EVASION,
-  name: 'Deceptive Evasion'
+  ]
 });
 
 /** Only the player's resolved critical hits grant Vigor; illusion critical hits never claim the cooldown. */
 export const criticalInfusion = defineTrait<MesmerSkill>({
-  id: TRAIT.CRITICAL_INFUSION,
   name: 'Critical Infusion',
+  id: TRAIT.CRITICAL_INFUSION,
   balance: {
     internalCooldown: 10,
     effects: [{ type: 'boon', name: boonKey(BOON.VIGOR), boon: BOON.VIGOR, duration: 5, stacks: 1 }]

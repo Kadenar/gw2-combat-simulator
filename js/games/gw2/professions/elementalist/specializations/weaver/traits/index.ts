@@ -38,8 +38,8 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import { elementsOfRageAvailability } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
 
 const elementalRefreshment = defineTrait({
-  id: TRAIT.ELEMENTAL_REFRESHMENT,
   name: 'Elemental Refreshment',
+  id: TRAIT.ELEMENTAL_REFRESHMENT,
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.ELEMENTAL_REFRESHMENT, [
     // Intrinsic Vitality feeds both consumables and Reinforced Armor before converted bonuses are applied.
@@ -48,6 +48,11 @@ const elementalRefreshment = defineTrait({
 });
 
 const elementalPolyphony = defineTrait({
+  name: 'Elemental Polyphony',
+  id: TRAIT.ELEMENTAL_POLYPHONY,
+  balance: {
+    attributeBonus: 200
+  },
   // Each distinct active attunement contributes once, including configured hands before runtime exists.
   attributes(context) {
     const config: ElementalistConfig | undefined = context.config;
@@ -91,19 +96,12 @@ const elementalPolyphony = defineTrait({
         }
       ]
     };
-  },
-
-  id: TRAIT.ELEMENTAL_POLYPHONY,
-  name: 'Elemental Polyphony',
-  balance: {
-    attributeBonus: 200
   }
 });
 
 const superiorElements = defineTrait({
-  triggers: [onTriggerPoint(weaverCastCompleted, { run: applySuperiorElements })],
-  id: TRAIT.SUPERIOR_ELEMENTS,
   name: 'Superior Elements',
+  id: TRAIT.SUPERIOR_ELEMENTS,
   balance: {
     criticalChance: 0.2,
     internalCooldown: 4,
@@ -126,12 +124,13 @@ const superiorElements = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.WEAKNESS)
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(weaverCastCompleted, { run: applySuperiorElements })]
 });
 
 const elementalPursuit = defineTrait({
-  id: TRAIT.ELEMENTAL_PURSUIT,
   name: 'Elemental Pursuit',
+  id: TRAIT.ELEMENTAL_PURSUIT,
   balance: {
     effects: [{ type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 3 }]
   },
@@ -155,55 +154,43 @@ const elementalPursuit = defineTrait({
 });
 
 const weaversProwess = defineTrait({
+  name: "Weaver's Prowess",
+  id: TRAIT.WEAVERS_PROWESS,
+  balance: {
+    effects: [{ type: 'boon', name: BOON.RESISTANCE, boon: BOON.RESISTANCE, stacks: 1, duration: 3 }]
+  },
   triggers: [
     onTriggerPoint(weaverAttunementCompleted, {
       run: (runtime: ElementalistRuntime, { event }: WeaverTransition) => applyWeaversProwess(runtime, event)
     })
-  ],
-  id: TRAIT.WEAVERS_PROWESS,
-  name: "Weaver's Prowess",
-  balance: {
-    effects: [{ type: 'boon', name: BOON.RESISTANCE, boon: BOON.RESISTANCE, stacks: 1, duration: 3 }]
-  }
+  ]
 });
 
 const swiftRevenge = defineTrait({
-  triggers: [onTriggerPoint(weaverCastCompleted, { run: applySwiftRevenge })],
-  id: TRAIT.SWIFT_REVENGE,
   name: 'Swift Revenge',
+  id: TRAIT.SWIFT_REVENGE,
   balance: {
     resourceGain: 25,
     effects: [
       { type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 3, duration: 5 },
       { type: 'boon', name: 'Air', boon: BOON.SWIFTNESS, stacks: 1, duration: 5 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(weaverCastCompleted, { run: applySwiftRevenge })]
 });
 
 const bolsteredElements = defineTrait({
-  triggers: [onTriggerPoint(weaverCastCompleted, { run: applyBolsteredElements })],
-  id: TRAIT.BOLSTERED_ELEMENTS,
   name: 'Bolstered Elements',
+  id: TRAIT.BOLSTERED_ELEMENTS,
   balance: {
     effects: [{ type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
-  }
+  },
+  triggers: [onTriggerPoint(weaverCastCompleted, { run: applyBolsteredElements })]
 });
 
 const elementsOfRage = defineTrait({
-  triggers: [
-    onTriggerPoint(weaverHandsInitialized, {
-      run: (runtime: ElementalistRuntime) => initializeElementsOfRage(runtime)
-    }),
-    onTriggerPoint(weaverHandsChanged, {
-      run: (runtime: ElementalistRuntime, { event }: WeaverTransition) => applyElementsOfRageAttunement(runtime, event)
-    }),
-    onTriggerPoint(weaverUnraveled, {
-      run: (runtime: ElementalistRuntime, { cast, previousPrimary, previousSecondary }: WeaverUnraveled) =>
-        applyUnravelElementsOfRage(runtime, cast, previousPrimary, previousSecondary)
-    })
-  ],
-  id: TRAIT.ELEMENTS_OF_RAGE,
   name: 'Elements of Rage',
+  id: TRAIT.ELEMENTS_OF_RAGE,
   balance: {
     damageIncrease: 0.15,
     conditionDamageIncrease: 0.1,
@@ -225,12 +212,24 @@ const elementsOfRage = defineTrait({
       when: (context) => activeBuffStacks(context, 'elements of rage', 1) > 0
     }
   ],
+  triggers: [
+    onTriggerPoint(weaverHandsInitialized, {
+      run: (runtime: ElementalistRuntime) => initializeElementsOfRage(runtime)
+    }),
+    onTriggerPoint(weaverHandsChanged, {
+      run: (runtime: ElementalistRuntime, { event }: WeaverTransition) => applyElementsOfRageAttunement(runtime, event)
+    }),
+    onTriggerPoint(weaverUnraveled, {
+      run: (runtime: ElementalistRuntime, { cast, previousPrimary, previousSecondary }: WeaverUnraveled) =>
+        applyUnravelElementsOfRage(runtime, cast, previousPrimary, previousSecondary)
+    })
+  ],
   hooks: { availability: elementsOfRageAvailability }
 });
 
 const flowState = defineTrait({
-  id: TRAIT.FLOW_STATE,
   name: 'Flow State',
+  id: TRAIT.FLOW_STATE,
   balance: {
     rechargeReduction: 1, // flat seconds removed from attunement recharge
     rechargeMultiplier: 0.8 // fraction of dual-skill recharge retained

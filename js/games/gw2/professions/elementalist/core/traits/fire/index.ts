@@ -1,7 +1,6 @@
 import { AURA, ACTOR, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -60,6 +59,9 @@ import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/prof
 
 /** Fire definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const empoweringFlame = defineTrait({
+  name: 'Empowering Flame',
+  id: TRAIT.EMPOWERING_FLAME,
+  balance: { attributeBonus: 150 },
   // Evaluate the current attunement without feeding its temporary Power into conversions.
   attributes(context) {
     return {
@@ -73,36 +75,26 @@ export const empoweringFlame = defineTrait({
         }
       ]
     };
-  },
-
-  id: TRAIT.EMPOWERING_FLAME,
-  name: 'Empowering Flame',
-  balance: { attributeBonus: 150 }
+  }
 });
 
 export const inferno = defineTrait({
+  name: 'Inferno',
+  id: TRAIT.INFERNO,
+  // Convert the intended Power rate through the canonical Burning scaling used by combat.
+  balance: { coefficientMultiplier: 0.0825 / CONDITION_FORMULAS.Burning.scaling },
   // Inferno replaces condition scaling only after final owner Power is known.
   attributes: (context) => ({
     finalCondition: {
       condition: CONDITION.BURNING,
       powerMultiplier: balanceNumberFromContext(context, TRAIT.INFERNO, 'coefficientMultiplier')
     }
-  }),
-  id: TRAIT.INFERNO,
-  name: 'Inferno',
-  // Convert the intended Power rate through the canonical Burning scaling used by combat.
-  balance: { coefficientMultiplier: 0.0825 / CONDITION_FORMULAS.Burning.scaling }
+  })
 });
 
 export const burningPrecision = defineTrait({
-  id: TRAIT.BURNING_PRECISION,
-  triggers: [
-    onTriggerPoint(elementalistDamageResolved, {
-      run: (runtime: ElementalistResolverContext, { cause, details }: ElementalistDamageResolved) =>
-        burningPrecisionCritical(runtime, cause, details)
-    })
-  ],
   name: 'Burning Precision',
+  id: TRAIT.BURNING_PRECISION,
   balance: {
     procRate: {
       id: 'elementalist.burning-precision',
@@ -119,19 +111,33 @@ export const burningPrecision = defineTrait({
     traitDurations: {
       'Burning Duration': balanceNumberFromContext(balanceContext, TRAIT.BURNING_PRECISION, 'durationMultiplier')
     }
-  })
+  }),
+  triggers: [
+    onTriggerPoint(elementalistDamageResolved, {
+      run: (runtime: ElementalistResolverContext, { cause, details }: ElementalistDamageResolved) =>
+        burningPrecisionCritical(runtime, cause, details)
+    })
+  ]
 });
 
 export const conjurer = defineTrait({
-  id: TRAIT.CONJURER,
-  triggers: [onTriggerPoint(conjureEquipped, { run: applyConjurerAura })],
   name: 'Conjurer',
+  id: TRAIT.CONJURER,
   balance: {
     effects: [{ type: 'aura', name: 'Conjurer', aura: AURA.FIRE, duration: 4 }]
-  }
+  },
+  triggers: [onTriggerPoint(conjureEquipped, { run: applyConjurerAura })]
 });
 
 export const sunspot = defineTrait({
+  name: 'Sunspot',
+  id: TRAIT.SUNSPOT,
+  balance: {
+    effects: [
+      { type: 'aura', name: 'Sunspot Aura', aura: AURA.FIRE, duration: 3 },
+      { type: 'strike', name: 'Sunspot', coefficient: 0.6, hits: 1, canCrit: false }
+    ]
+  },
   // Alternate mechanic boundaries share one entry handler; only one boundary fires for each entry.
   triggers: [attunementChanged, attunementInvoked, attunementReentered].map((on) =>
     onTriggerPoint(on, {
@@ -142,20 +148,12 @@ export const sunspot = defineTrait({
         triggerSunspot(runtime, input.at, input.skill.id, applyElementalistAura, input.emissionCast);
       }
     })
-  ),
-  id: TRAIT.SUNSPOT,
-  name: 'Sunspot',
-  balance: {
-    effects: [
-      { type: 'aura', name: 'Sunspot Aura', aura: AURA.FIRE, duration: 3 },
-      { type: 'strike', name: 'Sunspot', coefficient: 0.6, hits: 1, canCrit: false }
-    ]
-  }
+  )
 });
 
 export const burningRage = defineTrait({
-  id: TRAIT.BURNING_RAGE,
   name: 'Burning Rage',
+  id: TRAIT.BURNING_RAGE,
   balance: {
     // The replacement burning belongs to Sunspot's shared trigger.
     attributeBonus: 180,
@@ -167,12 +165,19 @@ export const burningRage = defineTrait({
 });
 
 export const smotheringAuras = defineTrait({
-  id: TRAIT.SMOTHERING_AURAS,
   name: 'Smothering Auras',
+  id: TRAIT.SMOTHERING_AURAS,
   balance: { durationMultiplier: 1.33 }
 });
 
 export const powerOverwhelming = defineTrait({
+  name: 'Power Overwhelming',
+  id: TRAIT.POWER_OVERWHELMING,
+  balance: {
+    minimumStacks: 10,
+    attributeBonus: 150,
+    weaponAttributeBonus: 300
+  },
   // Might and the active attunement select one live Power bonus.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.POWER_OVERWHELMING);
@@ -191,20 +196,12 @@ export const powerOverwhelming = defineTrait({
         }
       ]
     };
-  },
-
-  id: TRAIT.POWER_OVERWHELMING,
-  name: 'Power Overwhelming',
-  balance: {
-    minimumStacks: 10,
-    attributeBonus: 150,
-    weaponAttributeBonus: 300
   }
 });
 
 export const pyromancersTraining = defineTrait({
-  id: TRAIT.PYROMANCERS_TRAINING,
   name: "Pyromancer's Training",
+  id: TRAIT.PYROMANCERS_TRAINING,
   balance: {
     damageMultiplier: 1.07,
     rechargeMultiplier: 0.8
@@ -219,11 +216,30 @@ export const pyromancersTraining = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.BURNING)
     }
+  ],
+  // Only this element's weapon skills receive the selected profile's persistent recharge multiplier.
+  rechargeRules: [
+    {
+      when: (_runtime, skill) => skill.type === 'Weapon' && skill.attunement === 'Fire',
+      multiplier: { profile: TRAIT.PYROMANCERS_TRAINING, field: 'rechargeMultiplier' }
+    }
   ]
 });
 
 export const pyromancersPuissance = defineTrait({
+  name: "Pyromancer's Puissance",
   id: TRAIT.PYROMANCERS_PUISSANCE,
+  balance: {
+    maximumStacks: 10,
+    damageIncreasePerStack: 0.1,
+    durationPerTier: 0.5,
+    effects: [
+      { type: 'boon', name: 'Attunement Might', boon: BOON.MIGHT, stacks: 1, duration: 15 },
+      { type: 'boon', name: 'Flame Expulsion Might', boon: BOON.MIGHT, stacks: 1, duration: 15 },
+      { type: 'strike', name: 'Flame Expulsion', coefficient: 1, hits: 1 },
+      { type: 'condition', name: 'Flame Expulsion', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
+    ]
+  },
   triggers: [
     onTriggerPoint(attunementChanged, {
       when: (_runtime: unknown, input: ElementalistAttunementChanged) =>
@@ -239,35 +255,13 @@ export const pyromancersPuissance = defineTrait({
         triggerFlameExpulsion(runtime, input.at, input.sourceId, input.emissionCast)
     }),
     onTriggerPoint(elementalistCastCompleted, { run: applyPyromancersPuissance })
-  ],
-  name: "Pyromancer's Puissance",
-  balance: {
-    maximumStacks: 10,
-    damageIncreasePerStack: 0.1,
-    durationPerTier: 0.5,
-    effects: [
-      { type: 'boon', name: 'Attunement Might', boon: BOON.MIGHT, stacks: 1, duration: 15 },
-      { type: 'boon', name: 'Flame Expulsion Might', boon: BOON.MIGHT, stacks: 1, duration: 15 },
-      { type: 'strike', name: 'Flame Expulsion', coefficient: 1, hits: 1 },
-      { type: 'condition', name: 'Flame Expulsion', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
-    ]
-  }
+  ]
 });
 
 /** Own field extensions, stack lifetime, and damage tuning while keeping ordered resolver calls explicit. */
 export const persistingFlames = defineTrait({
-  id: TRAIT.PERSISTING_FLAMES,
-  triggers: [
-    onTriggerPoint(elementalistDamageResolved, {
-      run: (runtime: ElementalistRuntime, { cause }: ElementalistDamageResolved) =>
-        applyPersistingFlamesDamage(runtime, cause)
-    }),
-    onTriggerPoint(elementalistConditionApplied, {
-      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) =>
-        applyPersistingFlamesCondition(runtime, cause)
-    })
-  ],
   name: 'Persisting Flames',
+  id: TRAIT.PERSISTING_FLAMES,
   balance: {
     damageIncreasePerStack: 0.02,
     duration: 15,
@@ -288,6 +282,16 @@ export const persistingFlames = defineTrait({
           balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'maximumStacks')
         ) * balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'damageIncreasePerStack')
     }
+  ],
+  triggers: [
+    onTriggerPoint(elementalistDamageResolved, {
+      run: (runtime: ElementalistRuntime, { cause }: ElementalistDamageResolved) =>
+        applyPersistingFlamesDamage(runtime, cause)
+    }),
+    onTriggerPoint(elementalistConditionApplied, {
+      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) =>
+        applyPersistingFlamesCondition(runtime, cause)
+    })
   ],
   hooks: {
     modifyEffects: (runtime: MechanicQueriesOf<ElementalistRuntime>, cast, effects) =>
@@ -339,17 +343,6 @@ function applyConjurerAura(context: ElementalistRuntime, { cast }: ElementalistC
       });
     }
   }
-}
-
-/** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
-export function pyromancersTrainingRecharge(
-  context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill,
-  duration: number
-): number {
-  return skill.attunement === 'Fire' && hasTrait(context, TRAIT.PYROMANCERS_TRAINING)
-    ? duration * balanceNumberFromContext(context, TRAIT.PYROMANCERS_TRAINING, 'rechargeMultiplier')
-    : duration;
 }
 
 /** Materializes Burning Precision after its registered critical-hit reaction succeeds. */

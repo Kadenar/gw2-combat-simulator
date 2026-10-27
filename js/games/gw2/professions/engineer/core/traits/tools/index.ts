@@ -38,8 +38,8 @@ import {
 
 /** Lock On reacts to resolved player disables; Controlled Analysis owns its payload and recharge. */
 export const lockOn = defineTrait({
-  id: TRAIT.LOCK_ON,
   name: 'Lock On',
+  id: TRAIT.LOCK_ON,
   triggers: [
     {
       on: 'control.resolved',
@@ -52,28 +52,28 @@ export const lockOn = defineTrait({
 
 /** Owns Streamlined Kits tuning and behavior at its established runtime and build boundaries. */
 export const streamlinedKits = defineTrait({
-  // Kit entry admits this reward independently of the intrinsic kit transition.
-  triggers: [
-    {
-      on: 'castCommit',
-      run: (runtime, cast) => applyStreamlinedKits(runtime, cast.skill, runtime.time)
-    }
-  ],
-  id: TRAIT.STREAMLINED_KITS,
   name: 'Streamlined Kits',
+  id: TRAIT.STREAMLINED_KITS,
   balance: {
     internalCooldown: 20,
     effects: [
       { name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 20 },
       { name: 'Streamlined Kits', type: 'strike', coefficient: 1.75, hits: 1 }
     ]
-  }
+  },
+  // Kit entry admits this reward independently of the intrinsic kit transition.
+  triggers: [
+    {
+      on: 'castCommit',
+      run: (runtime, cast) => applyStreamlinedKits(runtime, cast.skill, runtime.time)
+    }
+  ]
 });
 
 /** Owns Optimized Activation tuning and behavior at its established runtime and build boundaries. */
 export const optimizedActivation = defineTrait({
-  id: TRAIT.OPTIMIZED_ACTIVATION,
   name: 'Optimized Activation',
+  id: TRAIT.OPTIMIZED_ACTIVATION,
   balance: {
     effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 4 }]
   },
@@ -88,6 +88,8 @@ export const optimizedActivation = defineTrait({
 
 /** Owns Static Discharge tuning and behavior at its established runtime and build boundaries. */
 export const staticDischarge = defineTrait({
+  name: 'Static Discharge',
+  id: TRAIT.STATIC_DISCHARGE,
   // The skill owns damage; the toolbelt action is retained only as its causal trigger.
   triggers: [
     onTriggerPoint(toolbeltActivated, { invoke: ID.STATIC_DISCHARGE_TRAIT_SKILL }),
@@ -97,15 +99,13 @@ export const staticDischarge = defineTrait({
       when: (_runtime, event) => Number(event.coefficient) > 0 && event.skillId === ID.STATIC_DISCHARGE_TRAIT_SKILL,
       run: recordStaticDischargeProc
     }
-  ],
-  id: TRAIT.STATIC_DISCHARGE,
-  name: 'Static Discharge'
+  ]
 });
 
 /** Owns Kinetic Battery tuning and behavior at its established runtime and build boundaries. */
 export const kineticBattery = defineTrait({
-  id: TRAIT.KINETIC_BATTERY,
   name: 'Kinetic Battery',
+  id: TRAIT.KINETIC_BATTERY,
   balance: {
     damageIncrease: 0.15,
     maximumStacks: 5,
@@ -133,24 +133,24 @@ export const kineticBattery = defineTrait({
 
 /** Owns Adrenal Implant tuning and behavior at its established runtime and build boundaries. */
 export const adrenalImplant = defineTrait({
-  triggers: [onTriggerPoint(dodgeAccepted, { run: reduceToolbeltRecharge })],
-  id: TRAIT.ADRENAL_IMPLANT,
   name: 'Adrenal Implant',
-  balance: { rechargeReduction: 1, enduranceRegenerationBonus: 0.25 }
+  id: TRAIT.ADRENAL_IMPLANT,
+  balance: { rechargeReduction: 1, enduranceRegenerationBonus: 0.25 },
+  triggers: [onTriggerPoint(dodgeAccepted, { run: reduceToolbeltRecharge })]
 });
 
 /** Owns Power Wrench tuning and behavior at its established runtime and build boundaries. */
 export const powerWrench = defineTrait({
-  triggers: [onTriggerPoint(dodgeAccepted, { run: reduceEliteRecharge })],
-  id: TRAIT.POWER_WRENCH,
   name: 'Power Wrench',
-  balance: { rechargeReduction: 3 }
+  id: TRAIT.POWER_WRENCH,
+  balance: { rechargeReduction: 3 },
+  triggers: [onTriggerPoint(dodgeAccepted, { run: reduceEliteRecharge })]
 });
 
 /** Owns Gadgeteer tuning and behavior at its established runtime and build boundaries. */
 export const gadgeteer = defineTrait({
-  id: TRAIT.GADGETEER,
   name: 'Gadgeteer',
+  id: TRAIT.GADGETEER,
   balance: { rechargeMultiplier: 0.8 },
   rechargeRules: [
     {
@@ -164,8 +164,8 @@ export const gadgeteer = defineTrait({
 
 /** Owns Mechanized Deployment tuning and behavior at its established runtime and build boundaries. */
 export const mechanizedDeployment = defineTrait({
-  id: TRAIT.MECHANIZED_DEPLOYMENT,
   name: 'Mechanized Deployment',
+  id: TRAIT.MECHANIZED_DEPLOYMENT,
   balance: { rechargeMultiplier: 0.85 },
   rechargeRules: [
     {
@@ -177,8 +177,8 @@ export const mechanizedDeployment = defineTrait({
 
 /** Owns Excessive Energy tuning and behavior at its established runtime and build boundaries. */
 export const excessiveEnergy = defineTrait({
-  id: TRAIT.EXCESSIVE_ENERGY,
   name: 'Excessive Energy',
+  id: TRAIT.EXCESSIVE_ENERGY,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageIncrease: 0.1 },
   modifierRules: [
@@ -196,8 +196,8 @@ export const excessiveEnergy = defineTrait({
 
 /** Owns Takedown Round tuning and behavior at its established runtime and build boundaries. */
 export const takedownRound = defineTrait({
-  id: TRAIT.TAKEDOWN_ROUND,
   name: 'Takedown Round',
+  id: TRAIT.TAKEDOWN_ROUND,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageIncrease: 0.1 },
   modifierRules: [

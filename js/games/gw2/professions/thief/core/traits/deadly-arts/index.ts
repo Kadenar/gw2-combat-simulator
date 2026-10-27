@@ -1,3 +1,4 @@
+import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
 import { WEAPON, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -46,8 +47,8 @@ import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/
 
 /** Owns Dagger Training tuning and behavior at the existing execution boundaries. */
 export const daggerTraining = defineTrait({
-  id: TRAIT.DAGGER_TRAINING,
   name: 'Dagger Training',
+  id: TRAIT.DAGGER_TRAINING,
   balance: { attributeBonus: 80, weaponAttributeBonus: 160 },
   attributes({ loadout, weaponSet, balanceContext }) {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
@@ -70,9 +71,8 @@ export const daggerTraining = defineTrait({
 
 /** Owns Deadly Ambition tuning and behavior at the existing execution boundaries. */
 export const deadlyAmbition = defineTrait({
-  id: TRAIT.DEADLY_AMBITION,
   name: 'Deadly Ambition',
-  triggers: [onTriggerPoint(thiefStruck, { run: applyDeadlyAmbition })],
+  id: TRAIT.DEADLY_AMBITION,
   balance: {
     attributeBonus: 180,
     playerStacks: 2,
@@ -89,14 +89,14 @@ export const deadlyAmbition = defineTrait({
         }
       ]
     };
-  }
+  },
+  triggers: [onTriggerPoint(thiefStruck, { run: applyDeadlyAmbition })]
 });
 
 /** Owns Even the Odds tuning and behavior at the existing execution boundaries. */
 export const evenTheOdds = defineTrait({
-  id: TRAIT.EVEN_THE_ODDS,
   name: 'Even the Odds',
-  triggers: [onTriggerPoint(stealAccepted, { run: applyEvenTheOdds })],
+  id: TRAIT.EVEN_THE_ODDS,
   balance: {
     effects: [
       {
@@ -107,13 +107,18 @@ export const evenTheOdds = defineTrait({
         duration: 10
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(stealAccepted, {
+      run: thiefCastCondition(TRAIT.EVEN_THE_ODDS, CONDITION.VULNERABILITY, 'Even the Odds — Vulnerability')
+    })
+  ]
 });
 
 /** Owns this trait's modifier eligibility. */
 export const executioner = defineTrait({
-  id: TRAIT.EXECUTIONER,
   name: 'Executioner',
+  id: TRAIT.EXECUTIONER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.2, threshold: 0.5 },
   modifierRules: [
@@ -132,8 +137,8 @@ export const executioner = defineTrait({
 
 /** Owns this trait's modifier eligibility. */
 export const exposedWeakness = defineTrait({
-  id: TRAIT.EXPOSED_WEAKNESS,
   name: 'Exposed Weakness',
+  id: TRAIT.EXPOSED_WEAKNESS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damagePerCondition: 0.02, maximumConditions: CANONICAL_TARGET_CONDITIONS.length },
   modifierRules: [
@@ -158,29 +163,28 @@ export const exposedWeakness = defineTrait({
 
 /** Owns Improvisation tuning and behavior at the existing execution boundaries. */
 export const improvisation = defineTrait({
-  id: TRAIT.IMPROVISATION,
   name: 'Improvisation',
-  triggers: [
-    // Antiquary Swipe pilfers shorten recharging utilities before Kleptomaniac.
-    onTriggerPoint(stealCompleted, {
-      when: (_runtime, { swipe }: StealCompletion) => swipe === true,
-      run: reduceUtilityRecharges
-    })
-  ],
+  id: TRAIT.IMPROVISATION,
   balance: {
     maximumStacks: 2,
     internalCooldown: 15,
     rechargeMultiplier: 0.75,
     resourceGain: 1,
     lifeForceGain: 1
-  }
+  },
+  triggers: [
+    // Antiquary Swipe pilfers shorten recharging utilities before Kleptomaniac.
+    onTriggerPoint(stealCompleted, {
+      when: (_runtime, { swipe }: StealCompletion) => swipe === true,
+      run: reduceUtilityRecharges
+    })
+  ]
 });
 
 /** Owns Lotus Poison tuning and behavior at the existing execution boundaries. */
 export const lotusPoison = defineTrait({
-  id: TRAIT.LOTUS_POISON,
   name: 'Lotus Poison',
-  triggers: [onTriggerPoint(thiefConditionApplied, { run: applyLotusPoison })],
+  id: TRAIT.LOTUS_POISON,
   balance: {
     internalCooldown: 10,
     effects: [
@@ -194,27 +198,24 @@ export const lotusPoison = defineTrait({
       },
       { type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(thiefConditionApplied, { run: applyLotusPoison })]
 });
 
 /** Owns Mug tuning and behavior at the existing execution boundaries. */
 export const mug = defineTrait({
-  id: TRAIT.MUG,
   name: 'Mug',
-  triggers: [onTriggerPoint(stealAccepted, { run: applyMug })],
+  id: TRAIT.MUG,
   balance: {
     effects: [{ type: 'strike', name: 'Mug', canCrit: false, coefficient: 1.5, hits: 1 }]
-  }
+  },
+  triggers: [onTriggerPoint(stealAccepted, { run: applyMug })]
 });
 
 /** Owns Panic Strike tuning and behavior at the existing execution boundaries. */
 export const panicStrike = defineTrait({
-  id: TRAIT.PANIC_STRIKE,
   name: 'Panic Strike',
-  triggers: [
-    onTriggerPoint(venomsConsumed, { run: applyPanicStrike }),
-    onTriggerPoint(thiefConditionApplied, { run: applyPanicStrikePoison })
-  ],
+  id: TRAIT.PANIC_STRIKE,
   balance: {
     threshold: 3,
     internalCooldown: 20,
@@ -229,23 +230,17 @@ export const panicStrike = defineTrait({
       },
       { type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 1, duration: 4 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(venomsConsumed, { run: applyPanicStrike }),
+    onTriggerPoint(thiefConditionApplied, { run: applyPanicStrikePoison })
+  ]
 });
 
 /** Owns Potent Poison tuning and behavior at the existing execution boundaries. */
 export const potentPoison = defineTrait({
-  id: TRAIT.POTENT_POISON,
   name: 'Potent Poison',
-  modifierRules: [
-    {
-      order: 10,
-      id: 'thief.potent-poison-damage',
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.POTENT_POISON, 'conditionDamageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.POISONED
-    }
-  ],
+  id: TRAIT.POTENT_POISON,
   balance: {
     conditionDamageMultiplier: 1.33,
     conditionDurationBonus: 0.33
@@ -256,30 +251,23 @@ export const potentPoison = defineTrait({
         'Poison Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.POTENT_POISON, 'conditionDurationBonus')
       }
     };
-  }
+  },
+  modifierRules: [
+    {
+      order: 10,
+      id: 'thief.potent-poison-damage',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'multiply',
+      factor: (context) => balanceNumberFromContext(context, TRAIT.POTENT_POISON, 'conditionDamageMultiplier'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.POISONED
+    }
+  ]
 });
 
 /** Owns Revealed Training tuning and behavior at the existing execution boundaries. */
 export const revealedTraining = defineTrait({
-  id: TRAIT.REVEALED_TRAINING,
   name: 'Revealed Training',
-  triggers: [
-    onTriggerPoint(thiefStruck, {
-      run(runtime: ThiefRuntime, { cause }: ThiefStrike) {
-        // Record successful player hits after their damage resolves so only later hits can use the bonus.
-        if (
-          cause.actorType !== ACTOR.PLAYER ||
-          cause.offTarget ||
-          !cause.activationId ||
-          !(Number(cause.coefficient) > 0)
-        )
-          return;
-
-        if (skillForEvent(runtime.helpers, cause)?.stealthAttack)
-          runtime.profession.core.revealedTrainingHitActivations[cause.activationId] = true;
-      }
-    })
-  ],
+  id: TRAIT.REVEALED_TRAINING,
   balance: {
     attributeBonus: 80,
     attributePerStack: 120
@@ -317,41 +305,36 @@ export const revealedTraining = defineTrait({
         }
       ]
     };
-  }
+  },
+  triggers: [
+    onTriggerPoint(thiefStruck, {
+      run(runtime: ThiefRuntime, { cause }: ThiefStrike) {
+        // Record successful player hits after their damage resolves so only later hits can use the bonus.
+        if (
+          cause.actorType !== ACTOR.PLAYER ||
+          cause.offTarget ||
+          !cause.activationId ||
+          !(Number(cause.coefficient) > 0)
+        )
+          return;
+
+        if (skillForEvent(runtime.helpers, cause)?.stealthAttack)
+          runtime.profession.core.revealedTrainingHitActivations[cause.activationId] = true;
+      }
+    })
+  ]
 });
 
 /** Owns Serpent's Touch tuning and behavior at the existing execution boundaries. */
 export const serpentsTouch = defineTrait({
-  id: TRAIT.SERPENTS_TOUCH,
   name: "Serpent's Touch",
-  triggers: [onTriggerPoint(stealAccepted, { run: applySerpentsTouch })],
+  id: TRAIT.SERPENTS_TOUCH,
   balance: {
     playerStacks: 3,
     effects: [{ type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 2, duration: 10 }]
-  }
+  },
+  triggers: [onTriggerPoint(stealAccepted, { run: applySerpentsTouch })]
 });
-
-function applyEvenTheOdds(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EVEN_THE_ODDS);
-  const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
-
-  if (!vulnerability) return;
-
-  emitTraitProfile(runtime, TRAIT.EVEN_THE_ODDS, TRAIT.EVEN_THE_ODDS, undefined, {
-    at: runtime.time,
-    fullEnd: runtime.time,
-    effect: { type: 'condition', name: CONDITION.VULNERABILITY },
-    attribution: {
-      source: 'Trait',
-      sourceId: TRAIT.EVEN_THE_ODDS,
-      activationId: cast.id,
-      name: 'Even the Odds — Vulnerability',
-      actorType: ACTOR.PLAYER,
-      skillId: cast.skill.id,
-      skillName: cast.skill.name
-    }
-  });
-}
 
 /** Improvisation shortens every selected, still-recharging utility once per internal cooldown. */
 function reduceUtilityRecharges(runtime: ThiefRuntime): void {

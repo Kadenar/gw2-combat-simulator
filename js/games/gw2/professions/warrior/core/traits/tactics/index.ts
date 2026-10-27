@@ -29,8 +29,8 @@ import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Convert Power to Healing Power once, preserving the build's existing conversion pool. */
 export const vigorousShouts = defineTrait({
-  id: TRAIT.VIGOROUS_SHOUTS,
   name: 'Vigorous Shouts',
+  id: TRAIT.VIGOROUS_SHOUTS,
   balance: { attributeConversion: 0.13 },
   attributes: traitAttributeEffects(TRAIT.VIGOROUS_SHOUTS, [
     {
@@ -46,8 +46,8 @@ export const vigorousShouts = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const legSpecialist = defineTrait({
-  id: TRAIT.LEG_SPECIALIST,
   name: 'Leg Specialist',
+  id: TRAIT.LEG_SPECIALIST,
   balance: {
     damageMultiplier: 1.05,
     effects: [
@@ -81,36 +81,41 @@ export const legSpecialist = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const marchingOrders = defineTrait({
+  name: 'Marching Orders',
+  id: TRAIT.MARCHING_ORDERS,
+  balance: {
+    internalCooldown: 10,
+    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 15 }]
+  },
   triggers: [
     onTriggerPoint(burstFirstHit, {
       run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) => soldierFocusBurst(runtime, input.event)
     })
-  ],
-  id: TRAIT.MARCHING_ORDERS,
-  name: 'Marching Orders',
-  balance: {
-    internalCooldown: 10,
-    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 15 }]
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const soldiersComfort = defineTrait({
+  name: "Soldier's Comfort",
+  id: TRAIT.SOLDIERS_COMFORT,
+  balance: {
+    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 4 }]
+  },
   triggers: [
     onTriggerPoint(soldierFocusApplied, {
       run: (runtime, input: TriggerPointInput<typeof soldierFocusApplied>) =>
         emitSoldierFocusReward(runtime, input.event, TRAIT.SOLDIERS_COMFORT)
     })
-  ],
-  id: TRAIT.SOLDIERS_COMFORT,
-  name: "Soldier's Comfort",
-  balance: {
-    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 4 }]
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const martialCadence = defineTrait({
+  name: 'Martial Cadence',
+  id: TRAIT.MARTIAL_CADENCE,
+  balance: {
+    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
+  },
   triggers: [
     onTriggerPoint(soldierFocusApplied, {
       run: (runtime, input: TriggerPointInput<typeof soldierFocusApplied>) =>
@@ -118,12 +123,7 @@ export const martialCadence = defineTrait({
     }),
     onTriggerPoint(focusReset, { run: (runtime) => resetSoldierFocus(runtime) }),
     onTriggerPoint(weaponSwapped, { run: (runtime) => resetSoldierFocus(runtime) })
-  ],
-  id: TRAIT.MARTIAL_CADENCE,
-  name: 'Martial Cadence',
-  balance: {
-    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
-  }
+  ]
 });
 
 /** Missing Might or disabled cadence ends the loop; an admitted pulse keeps its original priority. */
@@ -138,20 +138,20 @@ const empowerAlliesPassive = definePeriodicTask<WarriorRuntime>({
 
 /** Owns this trait's tuning and selected contributions. */
 export const empowerAllies = defineTrait({
-  triggers: [onTriggerPoint(coreInitialized, { run: (runtime) => initializeEmpowerAllies(runtime) })],
-  id: TRAIT.EMPOWER_ALLIES,
   name: 'Empower Allies',
+  id: TRAIT.EMPOWER_ALLIES,
   balance: {
     pulseInterval: 10,
     effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10 }]
   },
+  triggers: [onTriggerPoint(coreInitialized, { run: (runtime) => initializeEmpowerAllies(runtime) })],
   lifetime: empowerAlliesPassive.hooks
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const roaringReveille = defineTrait({
-  id: TRAIT.ROARING_REVEILLE,
   name: 'Roaring Reveille',
+  id: TRAIT.ROARING_REVEILLE,
   balance: {
     attributeBonus: 120
   },
@@ -172,8 +172,8 @@ export const roaringReveille = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const empowered = defineTrait({
-  id: TRAIT.EMPOWERED,
   name: 'Empowered',
+  id: TRAIT.EMPOWERED,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
   modifierRules: [
@@ -194,8 +194,8 @@ export const empowered = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const warriorsCunning = defineTrait({
-  id: TRAIT.WARRIORS_CUNNING,
   name: "Warrior's Cunning",
+  id: TRAIT.WARRIORS_CUNNING,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.25, threshold: 0.8 },
   modifierRules: [

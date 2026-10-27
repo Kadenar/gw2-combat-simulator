@@ -28,8 +28,8 @@ import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/
 
 /** Owns Cloaked in Shadow tuning and behavior at the existing execution boundaries. */
 export const cloakedInShadow = defineTrait({
-  id: TRAIT.CLOAKED_IN_SHADOW,
   name: 'Cloaked in Shadow',
+  id: TRAIT.CLOAKED_IN_SHADOW,
   balance: {
     effects: [
       // Entry Blind and the on-Blind siphon are separate authored components.
@@ -66,35 +66,22 @@ export const cloakedInShadow = defineTrait({
 
 /** Owns Hidden Thief tuning and behavior at the existing execution boundaries. */
 export const hiddenThief = defineTrait({
-  id: TRAIT.HIDDEN_THIEF,
   name: 'Hidden Thief',
-  triggers: [onTriggerPoint(stealAccepted, { run: applyHiddenThief })],
+  id: TRAIT.HIDDEN_THIEF,
   balance: {
     internalCooldown: 2,
     effects: [
       { type: 'condition', name: CONDITION.BLINDNESS, condition: CONDITION.BLINDNESS, stacks: 1, duration: 3 },
       { type: 'condition', name: CONDITION.WEAKNESS, condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(stealAccepted, { run: applyHiddenThief })]
 });
 
 /** Owns Leeching Venoms tuning and behavior at the existing execution boundaries. */
 export const leechingVenoms = defineTrait({
-  id: TRAIT.LEECHING_VENOMS,
   name: 'Leeching Venoms',
-  triggers: [
-    // Spider charges follow both stealth transitions; siphons follow consumed venoms and allied venom procs.
-    onTriggerPoint(stealthEntered, { run: grantLeechingVenomCharges }),
-    onTriggerPoint(stealthExited, { run: grantLeechingVenomCharges }),
-    onTriggerPoint(venomsConsumed, {
-      when: (_runtime, { consumed }: VenomConsumption) => consumed > 0,
-      run: applyLeechingVenoms
-    }),
-    onTriggerPoint(thiefConditionApplied, {
-      when: (_runtime, { cause }: ThiefConditionApplication) => alliedVenomProc(cause),
-      run: applyLeechingVenoms
-    })
-  ],
+  id: TRAIT.LEECHING_VENOMS,
   balance: {
     maximumStacks: 6,
     resourceGain: 3,
@@ -111,13 +98,26 @@ export const leechingVenoms = defineTrait({
         damageKind: 'life-steal'
       }
     ]
-  }
+  },
+  triggers: [
+    // Spider charges follow both stealth transitions; siphons follow consumed venoms and allied venom procs.
+    onTriggerPoint(stealthEntered, { run: grantLeechingVenomCharges }),
+    onTriggerPoint(stealthExited, { run: grantLeechingVenomCharges }),
+    onTriggerPoint(venomsConsumed, {
+      when: (_runtime, { consumed }: VenomConsumption) => consumed > 0,
+      run: applyLeechingVenoms
+    }),
+    onTriggerPoint(thiefConditionApplied, {
+      when: (_runtime, { cause }: ThiefConditionApplication) => alliedVenomProc(cause),
+      run: applyLeechingVenoms
+    })
+  ]
 });
 
 /** Owns Shadow Siphoning tuning and behavior at the existing execution boundaries. */
 export const shadowSiphoning = defineTrait({
-  id: TRAIT.SHADOW_SIPHONING,
   name: 'Shadow Siphoning',
+  id: TRAIT.SHADOW_SIPHONING,
   balance: {
     internalCooldown: 1,
     effects: [
@@ -159,13 +159,13 @@ export const shadowSiphoning = defineTrait({
 
 /** Owns Shadow's Rejuvenation tuning and behavior at the existing execution boundaries. */
 export const shadowsRejuvenation = defineTrait({
-  id: TRAIT.SHADOWS_REJUVENATION,
   name: "Shadow's Rejuvenation",
+  id: TRAIT.SHADOWS_REJUVENATION,
+  balance: { resourceGain: 1, entryResourceGain: 2 },
   triggers: [
     onTriggerPoint(stealthEntered, { run: enterShadowsRejuvenation }),
     onTriggerPoint(stealthExited, { run: exitShadowsRejuvenation })
-  ],
-  balance: { resourceGain: 1, entryResourceGain: 2 }
+  ]
 });
 
 /** Applies Cloaked in Shadow at its established mechanical boundary. */

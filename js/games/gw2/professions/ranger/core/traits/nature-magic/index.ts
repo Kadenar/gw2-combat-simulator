@@ -63,8 +63,8 @@ function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: numbe
 
 /** Share received player boons with the active pet using the trait's durations and the ranger's concentration. */
 export const fortifyingBond = defineTrait({
-  id: TRAIT.FORTIFYING_BOND,
   name: 'Fortifying Bond',
+  id: TRAIT.FORTIFYING_BOND,
   balance: {
     pulseInterval: 3,
     effects: Object.entries({
@@ -160,8 +160,8 @@ const admittedSpiritRepeats = new WeakSet<RuntimeCast<RangerSkill>>();
 
 /** Repeat only slam payloads after the last shake, without another cast, summon reward, or boon sequence. */
 export const naturesVengeance = defineTrait({
-  id: TRAIT.NATURES_VENGEANCE,
   name: "Nature's Vengeance",
+  id: TRAIT.NATURES_VENGEANCE,
   // The trait owns the delay between the final spirit shake and its repeated slam.
   balance: { baseDuration: 1 },
   triggers: [
@@ -244,8 +244,8 @@ const wellspringPlayerAttributes = traitAttributeEffects(TRAIT.WELLSPRING, [
 
 /** Owns Wellspring's live tuning and trait behavior. */
 export const wellspring = defineTrait({
-  id: TRAIT.WELLSPRING,
   name: 'Wellspring',
+  id: TRAIT.WELLSPRING,
   balance: {
     attributeConversion: 0.07,
     effects: [
@@ -259,6 +259,8 @@ export const wellspring = defineTrait({
       }
     ]
   },
+  attributes: (context) =>
+    rangerPetEvent(context) ? wellspringPetAttributes(context) : wellspringPlayerAttributes(context),
   triggers: [
     {
       order: 1,
@@ -273,15 +275,13 @@ export const wellspring = defineTrait({
         triggeredBy: cast.skill.name
       })
     }
-  ],
-  attributes: (context) =>
-    rangerPetEvent(context) ? wellspringPetAttributes(context) : wellspringPlayerAttributes(context)
+  ]
 });
 
 /** Owns Windborne Notes's live tuning and trait behavior. */
 export const windborneNotes = defineTrait({
-  id: TRAIT.WINDBORNE_NOTES,
   name: 'Windborne Notes',
+  id: TRAIT.WINDBORNE_NOTES,
   balance: {
     effects: [
       {
@@ -314,40 +314,40 @@ export const windborneNotes = defineTrait({
 
 /** Owns Rejuvenation's live tuning and trait behavior. */
 export const rejuvenation = defineTrait({
+  name: 'Rejuvenation',
+  id: TRAIT.REJUVENATION,
+  balance: {
+    internalCooldown: 20,
+    effects: [{ name: boonKey(BOON.REGENERATION), type: 'boon', boon: BOON.REGENERATION, duration: 10, stacks: 1 }]
+  },
   triggers: [
     onTriggerPoint(beastSkillUsed, {
       run: (runtime, input: TriggerPointInput<typeof beastSkillUsed>) => applyRejuvenation(runtime, input.skill)
     })
-  ],
-  id: TRAIT.REJUVENATION,
-  name: 'Rejuvenation',
-  balance: {
-    internalCooldown: 20,
-    effects: [{ name: boonKey(BOON.REGENERATION), type: 'boon', boon: BOON.REGENERATION, duration: 10, stacks: 1 }]
-  }
+  ]
 });
 
 /** Owns Spirited Arrival's live tuning and trait behavior. */
 export const spiritedArrival = defineTrait({
-  triggers: [
-    onTriggerPoint(petSwapped, {
-      run: (runtime, input: TriggerPointInput<typeof petSwapped>) => applySpiritedArrival(runtime, input.skill)
-    })
-  ],
-  id: TRAIT.SPIRITED_ARRIVAL,
   name: 'Spirited Arrival',
+  id: TRAIT.SPIRITED_ARRIVAL,
   balance: {
     effects: [
       { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 12, stacks: 6 },
       { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 8, stacks: 1 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(petSwapped, {
+      run: (runtime, input: TriggerPointInput<typeof petSwapped>) => applySpiritedArrival(runtime, input.skill)
+    })
+  ]
 });
 
 /** Owns Lingering Magic's live tuning and trait behavior. */
 export const lingeringMagic = defineTrait({
-  id: TRAIT.LINGERING_MAGIC,
   name: 'Lingering Magic',
+  id: TRAIT.LINGERING_MAGIC,
   balance: {
     attributeBonus: 240
   },
@@ -358,8 +358,8 @@ export const lingeringMagic = defineTrait({
 
 /** Owns Bountiful Hunter's live tuning and trait behavior. */
 export const bountifulHunter = defineTrait({
-  id: TRAIT.BOUNTIFUL_HUNTER,
   name: 'Bountiful Hunter',
+  id: TRAIT.BOUNTIFUL_HUNTER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1, damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
   modifierRules: [

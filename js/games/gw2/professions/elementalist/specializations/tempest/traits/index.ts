@@ -47,20 +47,14 @@ import type {
 
 // Singularity is intrinsic to Tempest; overload readiness reads its selected dwell even without an explicit minor ID.
 const singularity = defineTrait({
-  id: TRAIT.SINGULARITY,
   name: 'Singularity',
+  id: TRAIT.SINGULARITY,
   balance: { duration: 6, effects: [] }
 });
 
 const galeSong = defineTrait({
-  triggers: [
-    onTriggerPoint(tempestCastCompleting, {
-      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
-        applyGaleSong(runtime, cast, cast.skill)
-    })
-  ],
-  id: TRAIT.GALE_SONG,
   name: 'Gale Song',
+  id: TRAIT.GALE_SONG,
   balance: {
     effects: [
       {
@@ -73,18 +67,18 @@ const galeSong = defineTrait({
         duration: 3
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(tempestCastCompleting, {
+      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
+        applyGaleSong(runtime, cast, cast.skill)
+    })
+  ]
 });
 
 const latentStamina = defineTrait({
-  triggers: [
-    onTriggerPoint(tempestTransitionObserved, {
-      run: (runtime: ElementalistRuntime, { event, emissionCast }: TempestTransition) =>
-        applyLatentStamina(runtime, event, emissionCast)
-    })
-  ],
-  id: TRAIT.LATENT_STAMINA,
   name: 'Latent Stamina',
+  id: TRAIT.LATENT_STAMINA,
   balance: {
     internalCooldown: 10,
     effects: [
@@ -98,20 +92,18 @@ const latentStamina = defineTrait({
         duration: 3
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(tempestTransitionObserved, {
+      run: (runtime: ElementalistRuntime, { event, emissionCast }: TempestTransition) =>
+        applyLatentStamina(runtime, event, emissionCast)
+    })
+  ]
 });
 
 const tempestuousAria = defineTrait({
-  triggers: [
-    onTriggerPoint(tempestCastCompleted, {
-      when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => cast.skill.skillFamily === 'Shout',
-      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
-        applyTempestShoutTraits(runtime, cast, cast.skill)
-    }),
-    onTriggerPoint(auraAccepted, { run: applyTempestuousAria })
-  ],
-  id: TRAIT.TEMPESTUOUS_ARIA,
   name: 'Tempestuous Aria',
+  id: TRAIT.TEMPESTUOUS_ARIA,
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.05,
@@ -136,50 +128,51 @@ const tempestuousAria = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.TEMPESTUOUS_ARIA, 'conditionDamageIncrease'),
       when: (context) => activeBuffStacks(context, 'tempestuous aria', 1) > 0
     }
+  ],
+  triggers: [
+    onTriggerPoint(tempestCastCompleted, {
+      when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => cast.skill.skillFamily === 'Shout',
+      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
+        applyTempestShoutTraits(runtime, cast, cast.skill)
+    }),
+    onTriggerPoint(auraAccepted, { run: applyTempestuousAria })
   ]
 });
 
 const invigoratingTorrents = defineTrait({
-  triggers: [
-    onTriggerPoint(auraAccepted, {
-      run: (runtime: ElementalistResolverContext, { cause }: ElementalistReaction) =>
-        applyTempestAuraBoons(runtime, cause, TRAIT.INVIGORATING_TORRENTS, 'Invigorating Torrents')
-    })
-  ],
-  id: TRAIT.INVIGORATING_TORRENTS,
   name: 'Invigorating Torrents',
+  id: TRAIT.INVIGORATING_TORRENTS,
   balance: {
     effects: [
       { type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 5 },
       { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 5 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(auraAccepted, {
+      run: (runtime: ElementalistResolverContext, { cause }: ElementalistReaction) =>
+        applyTempestAuraBoons(runtime, cause, TRAIT.INVIGORATING_TORRENTS, 'Invigorating Torrents')
+    })
+  ]
 });
 
 const elementalBastion = defineTrait({
+  name: 'Elemental Bastion',
+  id: TRAIT.ELEMENTAL_BASTION,
+  balance: {
+    effects: [{ type: 'boon', name: BOON.ALACRITY, boon: BOON.ALACRITY, stacks: 1, duration: 4 }]
+  },
   triggers: [
     onTriggerPoint(auraAccepted, {
       run: (runtime: ElementalistResolverContext, { cause }: ElementalistReaction) =>
         applyTempestAuraBoons(runtime, cause, TRAIT.ELEMENTAL_BASTION, 'Elemental Bastion')
     })
-  ],
-  id: TRAIT.ELEMENTAL_BASTION,
-  name: 'Elemental Bastion',
-  balance: {
-    effects: [{ type: 'boon', name: BOON.ALACRITY, boon: BOON.ALACRITY, stacks: 1, duration: 4 }]
-  }
+  ]
 });
 
 const unstableConduit = defineTrait({
-  triggers: [
-    onTriggerPoint(tempestCastCompleting, {
-      when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => Boolean(cast.skill.overload),
-      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
-        applyUnstableConduit(runtime, cast, cast.skill)
-    })
-  ],
-  id: TRAIT.UNSTABLE_CONDUIT,
   name: 'Unstable Conduit',
+  id: TRAIT.UNSTABLE_CONDUIT,
   balance: {
     // One entry per attunement: the completing overload looks its aura duration up by
     // attunement name, so the effect `name` is the lookup key rather than the aura's name.
@@ -209,12 +202,19 @@ const unstableConduit = defineTrait({
         duration: 4
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(tempestCastCompleting, {
+      when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => Boolean(cast.skill.overload),
+      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
+        applyUnstableConduit(runtime, cast, cast.skill)
+    })
+  ]
 });
 
 const gatheredFocus = defineTrait({
-  id: TRAIT.GATHERED_FOCUS,
   name: 'Gathered Focus',
+  id: TRAIT.GATHERED_FOCUS,
   balance: {
     attributeBonus: 240
   },
@@ -224,8 +224,8 @@ const gatheredFocus = defineTrait({
 });
 
 const hardyConduit = defineTrait({
-  id: TRAIT.HARDY_CONDUIT,
   name: 'Hardy Conduit',
+  id: TRAIT.HARDY_CONDUIT,
   balance: {
     effects: [
       {
@@ -258,8 +258,8 @@ const hardyConduit = defineTrait({
 });
 
 const harmoniousConduit = defineTrait({
-  id: TRAIT.HARMONIOUS_CONDUIT,
   name: 'Harmonious Conduit',
+  id: TRAIT.HARMONIOUS_CONDUIT,
   balance: {
     effects: [
       { type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 8 },
@@ -286,8 +286,8 @@ const harmoniousConduit = defineTrait({
 });
 
 const transcendentTempest = defineTrait({
-  id: TRAIT.TRANSCENDENT_TEMPEST,
   name: 'Transcendent Tempest',
+  id: TRAIT.TRANSCENDENT_TEMPEST,
   balance: {
     // Shortened singularity dwell, separate from the damage buff's seven-second lifetime.
     duration: 4,
@@ -332,14 +332,8 @@ const transcendentTempest = defineTrait({
 });
 
 const lucidSingularity = defineTrait({
-  triggers: [
-    onTriggerPoint(tempestCastStarted, {
-      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
-        applyLucidSingularity(runtime, cast, cast.skill)
-    })
-  ],
-  id: TRAIT.LUCID_SINGULARITY,
   name: 'Lucid Singularity',
+  id: TRAIT.LUCID_SINGULARITY,
   balance: {
     // At most `maximumStacks` overload hits pulse alacrity; the last of them uses `Final Alacrity`.
     maximumStacks: 5,
@@ -363,7 +357,13 @@ const lucidSingularity = defineTrait({
         duration: 4.5
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(tempestCastStarted, {
+      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
+        applyLucidSingularity(runtime, cast, cast.skill)
+    })
+  ]
 });
 
 /** Register tempest traits in their existing execution order. */

@@ -37,6 +37,8 @@ import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/pro
 
 /** Owns Child of Earth's live tuning and trait behavior. */
 export const childOfEarth = defineTrait({
+  name: 'Child of Earth',
+  id: TRAIT.CHILD_OF_EARTH,
   triggers: [
     // An eligible heal invokes Lesser Muddy Terrain's field delivery, including its separately scheduled pulses.
     onTriggerPoint(castCompleted, {
@@ -44,14 +46,28 @@ export const childOfEarth = defineTrait({
       run: (runtime, input: TriggerPointInput<typeof castCompleted>) =>
         invokeLesserRangerSkill(runtime, input.skill, TRAIT.CHILD_OF_EARTH, ID.LESSER_MUDDY_TERRAIN)
     })
-  ],
-  id: TRAIT.CHILD_OF_EARTH,
-  name: 'Child of Earth'
+  ]
 });
 
 /** Owns Poison Master's live tuning and trait behavior. */
 export const poisonMaster = defineTrait({
-  lifetime: { eventHandlers: { 'ranger.poison-master-armed': handlePoisonMasterGrant } },
+  name: 'Poison Master',
+  id: TRAIT.POISON_MASTER,
+  balance: {
+    conditionDamageMultiplier: 1.25,
+    effects: [{ name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, duration: 8, stacks: 2 }]
+  },
+  modifierRules: [
+    {
+      order: 13,
+      id: 'ranger.poison-master',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'multiply',
+      factor: (context) => balanceNumberFromContext(context, TRAIT.POISON_MASTER, 'conditionDamageMultiplier'),
+      // The damage bonus is Ranger-owned; the separately triggered pet attack also resolves from Ranger stats.
+      when: (context) => context.condition === CONDITION.POISONED && isGw2PlayerModifierOwnedEvent(context.event)
+    }
+  ],
   triggers: [
     {
       // Command activation arms the receiving pet before its first hit, including pulses from an ongoing attack.
@@ -73,35 +89,13 @@ export const poisonMaster = defineTrait({
       run: (runtime, cast) => applyPoisonMasterBeastSkill(runtime, cast.skill)
     }
   ],
-  id: TRAIT.POISON_MASTER,
-  name: 'Poison Master',
-  balance: {
-    conditionDamageMultiplier: 1.25,
-    effects: [{ name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, duration: 8, stacks: 2 }]
-  },
-  modifierRules: [
-    {
-      order: 13,
-      id: 'ranger.poison-master',
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.POISON_MASTER, 'conditionDamageMultiplier'),
-      // The damage bonus is Ranger-owned; the separately triggered pet attack also resolves from Ranger stats.
-      when: (context) => context.condition === CONDITION.POISONED && isGw2PlayerModifierOwnedEvent(context.event)
-    }
-  ]
+  lifetime: { eventHandlers: { 'ranger.poison-master-armed': handlePoisonMasterGrant } }
 });
 
 /** Owns Arachnophobia's live tuning and trait behavior. */
 export const arachnophobia = defineTrait({
-  triggers: [
-    onTriggerPoint(strikeEffectsApplied, {
-      run: (runtime, input: TriggerPointInput<typeof strikeEffectsApplied>) =>
-        triggerArachnophobia(runtime, input.event)
-    })
-  ],
-  id: TRAIT.ARACHNOPHOBIA,
   name: 'Arachnophobia',
+  id: TRAIT.ARACHNOPHOBIA,
   balance: {
     // Torment belongs to the triggering spider/devourer pet; pet damage is excluded from this preview.
     attributeBonus: 150,
@@ -125,13 +119,19 @@ export const arachnophobia = defineTrait({
         }
       ]
     };
-  }
+  },
+  triggers: [
+    onTriggerPoint(strikeEffectsApplied, {
+      run: (runtime, input: TriggerPointInput<typeof strikeEffectsApplied>) =>
+        triggerArachnophobia(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Carnivore's live tuning and trait behavior. */
 export const carnivore = defineTrait({
-  id: TRAIT.CARNIVORE,
   name: 'Carnivore',
+  id: TRAIT.CARNIVORE,
   balance: {
     internalCooldown: 0.25,
     // Resolve and display the siphon separately, using base damage plus Power without weapon or armor scaling.
@@ -172,8 +172,8 @@ export const carnivore = defineTrait({
 
 /** Owns Natural Vigor's live tuning and trait behavior. */
 export const naturalVigor = defineTrait({
-  id: TRAIT.NATURAL_VIGOR,
   name: 'Natural Vigor',
+  id: TRAIT.NATURAL_VIGOR,
   balance: {
     vigorRegenerationMultiplier: 0.25
   }
@@ -181,20 +181,13 @@ export const naturalVigor = defineTrait({
 
 /** Owns Ambidexterity's live tuning and trait behavior. */
 export const ambidexterity = defineTrait({
-  id: TRAIT.AMBIDEXTERITY,
   name: 'Ambidexterity',
+  id: TRAIT.AMBIDEXTERITY,
   balance: {
     weaponAttributeBonus: 240,
     attributeBonus: 120,
     rechargeMultiplier: 0.8
   },
-  rechargeRules: [
-    {
-      order: 4,
-      when: (_runtime, skill) => [WEAPON.DAGGER, WEAPON.TORCH].some((member) => member === String(skill.weapon)),
-      multiplier: { profile: TRAIT.AMBIDEXTERITY, field: 'rechargeMultiplier' }
-    }
-  ],
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
@@ -213,13 +206,20 @@ export const ambidexterity = defineTrait({
         }
       ]
     };
-  }
+  },
+  rechargeRules: [
+    {
+      order: 4,
+      when: (_runtime, skill) => [WEAPON.DAGGER, WEAPON.TORCH].some((member) => member === String(skill.weapon)),
+      multiplier: { profile: TRAIT.AMBIDEXTERITY, field: 'rechargeMultiplier' }
+    }
+  ]
 });
 
 /** Owns Survival Instincts's live tuning and trait behavior. */
 export const survivalInstincts = defineTrait({
-  id: TRAIT.SURVIVAL_INSTINCTS,
   name: 'Survival Instincts',
+  id: TRAIT.SURVIVAL_INSTINCTS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.15 },
   modifierRules: [

@@ -29,15 +29,15 @@ import { necromancerRuntimeSpecializationState } from '#gw2/professions/necroman
 
 /** Spawning Power owns baseline shroud drain and the shared spirit pulse interval. */
 const spawningPower = defineTrait({
-  id: TRAIT.SPAWNING_POWER,
   name: 'Spawning Power',
+  id: TRAIT.SPAWNING_POWER,
   balance: { lifeForceDrain: 3, pulseInterval: 4, effects: [] }
 });
 
 /** Owns Spirits' Strength tuning and behavior at its existing execution boundaries. */
 const spiritsStrength = defineTrait({
-  id: TRAIT.SPIRITS_STRENGTH,
   name: "Spirits' Strength",
+  id: TRAIT.SPIRITS_STRENGTH,
   balance: { damageMultiplier: 1.5 },
   modifierRules: [
     {
@@ -56,40 +56,34 @@ const spiritsStrength = defineTrait({
 
 /** Owns Explosive Growth tuning and behavior at its existing execution boundaries. */
 const explosiveGrowth = defineTrait({
-  triggers: [onTriggerPoint(creatureSummoned, { run: summonExplosiveGrowth })],
-  id: TRAIT.EXPLOSIVE_GROWTH,
   name: 'Explosive Growth',
+  id: TRAIT.EXPLOSIVE_GROWTH,
   balance: {
     effects: [{ name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, actorType: ACTOR.EFFECT }]
-  }
+  },
+  triggers: [onTriggerPoint(creatureSummoned, { run: summonExplosiveGrowth })]
 });
 
 /** Owns Boon of Creation tuning and behavior at its existing execution boundaries. */
 const boonOfCreation = defineTrait({
+  name: 'Boon of Creation',
+  id: TRAIT.BOON_OF_CREATION,
+  balance: { attributeBonus: 180, lifeForceGain: 10, effects: [] },
+  attributes: traitAttributeEffects(TRAIT.BOON_OF_CREATION, [
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
+  ]),
   triggers: [
     onTriggerPoint(creatureSummoned, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof creatureSummoned>) =>
         summonBoonOfCreation(runtime, input.count)
     })
-  ],
-  id: TRAIT.BOON_OF_CREATION,
-  name: 'Boon of Creation',
-  balance: { attributeBonus: 180, lifeForceGain: 10, effects: [] },
-  attributes: traitAttributeEffects(TRAIT.BOON_OF_CREATION, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
-  ])
+  ]
 });
 
 /** Owns Empowering Spirits tuning and behavior at its existing execution boundaries. */
 const empoweringSpirits = defineTrait({
-  triggers: [
-    onTriggerPoint(ritualistSpiritSummoned, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof ritualistSpiritSummoned>) =>
-        applyEmpoweringSpirits(runtime, input.cast, input.key)
-    })
-  ],
-  id: TRAIT.EMPOWERING_SPIRITS,
   name: 'Empowering Spirits',
+  id: TRAIT.EMPOWERING_SPIRITS,
   balance: {
     effects: [
       {
@@ -129,13 +123,19 @@ const empoweringSpirits = defineTrait({
         audience: { recipients: RECIPIENT.PARTY }
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(ritualistSpiritSummoned, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof ritualistSpiritSummoned>) =>
+        applyEmpoweringSpirits(runtime, input.cast, input.key)
+    })
+  ]
 });
 
 /** Owns Lingering Spirits tuning and behavior at its existing execution boundaries. */
 const lingeringSpirits = defineTrait({
-  id: TRAIT.LINGERING_SPIRITS,
   name: 'Lingering Spirits',
+  id: TRAIT.LINGERING_SPIRITS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.05 },
   modifierRules: [
@@ -152,19 +152,19 @@ const lingeringSpirits = defineTrait({
 
 /** Owns Soul Twisting's ordered mechanic integration. */
 const soulTwisting = defineTrait({
+  name: 'Soul Twisting',
+  id: TRAIT.SOUL_TWISTING,
   triggers: [
     onTriggerPoint(ritualistShroudEntered, { run: armSoulTwisting }),
     onTriggerPoint(ritualistSpiritCommitted, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof ritualistSpiritCommitted>) =>
         consumeSoulTwisting(runtime, input.cast)
     })
-  ],
-  id: TRAIT.SOUL_TWISTING,
-  name: 'Soul Twisting'
+  ]
 });
 
 /** Owns Wielder's Boon's ordered mechanic integration. */
-const wieldersBoon = defineTrait({ id: TRAIT.WIELDERS_BOON, name: "Wielder's Boon" });
+const wieldersBoon = defineTrait({ name: "Wielder's Boon", id: TRAIT.WIELDERS_BOON });
 
 /** Registers each native trait owner once in its existing execution order. */
 export const necromancerRitualistTraits = [

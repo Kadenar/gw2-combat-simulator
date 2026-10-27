@@ -41,8 +41,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Grant Last Rites' full-health Healing Power once in either build or raw runtime attributes. */
 export const lastRites = defineTrait({
-  id: TRAIT.LAST_RITES,
   name: 'Last Rites',
+  id: TRAIT.LAST_RITES,
   balance: { attributeBonus: 150 },
   attributes: traitAttributeEffects(TRAIT.LAST_RITES, [
     { kind: 'flat', to: 'Healing Power', field: 'attributeBonus', feedsConversions: 'all' }
@@ -51,16 +51,8 @@ export const lastRites = defineTrait({
 
 /** Owns Vampiric tuning and behavior at its existing execution boundaries. */
 export const vampiric = defineTrait({
-  triggers: [
-    onTriggerPoint(necromancerStrike, {
-      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
-        applyVampiric(runtime, input.event)
-    })
-  ],
-  id: TRAIT.VAMPIRIC,
   name: 'Vampiric',
+  id: TRAIT.VAMPIRIC,
   balance: {
     effects: [
       {
@@ -88,22 +80,21 @@ export const vampiric = defineTrait({
         damageKind: 'life-steal'
       }
     ]
-  }
-});
-
-/** Owns Vampiric Presence tuning and behavior at its existing execution boundaries. */
-export const vampiricPresence = defineTrait({
+  },
   triggers: [
-    onTriggerPoint(necromancerPassivesInitialized, { run: startNecromancerAlliedOpportunities }),
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
         input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
-        applyVampiricPresence(runtime, input.event)
+        applyVampiric(runtime, input.event)
     })
-  ],
-  id: TRAIT.VAMPIRIC_PRESENCE,
+  ]
+});
+
+/** Owns Vampiric Presence tuning and behavior at its existing execution boundaries. */
+export const vampiricPresence = defineTrait({
   name: 'Vampiric Presence',
+  id: TRAIT.VAMPIRIC_PRESENCE,
   balance: {
     cooldown: 0.5,
     // Vampiric Aura pulses on a free-running 3 s clock; the first in-combat pulse lands at its expected phase.
@@ -134,26 +125,22 @@ export const vampiricPresence = defineTrait({
         damageKind: 'life-steal'
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(necromancerPassivesInitialized, { run: startNecromancerAlliedOpportunities }),
+    onTriggerPoint(necromancerStrike, {
+      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
+        applyVampiricPresence(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Overflowing Thirst tuning and behavior at its existing execution boundaries. */
 export const overflowingThirst = defineTrait({
-  // Cast admission starts charges; accepted applications and their consumption remain lifetime work.
-  triggers: [{ on: 'castStart', run: applyOverflowingThirstCast }],
-  lifetime: {
-    reactions: {
-      'buff.applied'(runtime, event) {
-        if (event.kind === 'taste-for-blood') reactToTasteForBloodGrant(runtime, event);
-      },
-      'damage.resolved'(runtime, event) {
-        if (event.actorType !== ACTOR.EFFECT && Number(event.coefficient) > 0)
-          applyOverflowingThirstDamage(runtime, event);
-      }
-    }
-  },
-  id: TRAIT.OVERFLOWING_THIRST,
   name: 'Overflowing Thirst',
+  id: TRAIT.OVERFLOWING_THIRST,
   balance: {
     minimumStacks: 1,
     effects: [
@@ -177,14 +164,26 @@ export const overflowingThirst = defineTrait({
         damageKind: 'life-steal'
       }
     ]
+  },
+  // Cast admission starts charges; accepted applications and their consumption remain lifetime work.
+  triggers: [{ on: 'castStart', run: applyOverflowingThirstCast }],
+  lifetime: {
+    reactions: {
+      'buff.applied'(runtime, event) {
+        if (event.kind === 'taste-for-blood') reactToTasteForBloodGrant(runtime, event);
+      },
+      'damage.resolved'(runtime, event) {
+        if (event.actorType !== ACTOR.EFFECT && Number(event.coefficient) > 0)
+          applyOverflowingThirstDamage(runtime, event);
+      }
+    }
   }
 });
 
 /** Owns Transfusion tuning and behavior at its existing execution boundaries. */
 export const transfusion = defineTrait({
-  id: TRAIT.TRANSFUSION,
   name: 'Transfusion',
-
+  id: TRAIT.TRANSFUSION,
   triggers: [
     { order: 2, on: 'castCommit', when: (_runtime, cast) => cast.skill.shroudSlot === 4, invoke: ID.LESSER_CHILBLAINS }
   ]
@@ -192,9 +191,8 @@ export const transfusion = defineTrait({
 
 /** A completed combat dodge triggers its mark at the landing position, without an internal cooldown. */
 export const markOfEvasion = defineTrait({
-  id: TRAIT.MARK_OF_EVASION,
   name: 'Mark of Evasion',
-
+  id: TRAIT.MARK_OF_EVASION,
   triggers: [
     {
       on: 'castCommit',
@@ -206,8 +204,8 @@ export const markOfEvasion = defineTrait({
 
 /** Extend the swarm and its swiftness while increasing siphon base damage, leaving Power scaling unchanged. */
 export const bansheesWail = defineTrait({
-  id: TRAIT.BANSHEES_WAIL,
   name: "Banshee's Wail",
+  id: TRAIT.BANSHEES_WAIL,
   balance: { pulseInterval: 0.5, durationMultiplier: 1.5 },
   hooks: {
     modifyEffects(runtime, cast, effects) {

@@ -1,13 +1,12 @@
 import { RECIPIENT, AURA, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
-import type { MechanicCombatContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -40,22 +39,27 @@ import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/prof
 
 /** Earth definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const earthsEmbrace = defineTrait({
-  id: TRAIT.EARTHS_EMBRACE,
-  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applyEarthsEmbrace })],
   name: "Earth's Embrace",
+  id: TRAIT.EARTHS_EMBRACE,
   balance: {
     internalCooldown: 15,
     effects: [{ type: 'boon', name: BOON.RESISTANCE, boon: BOON.RESISTANCE, stacks: 1, duration: 4 }]
-  }
+  },
+  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applyEarthsEmbrace })]
 });
 
 export const serratedStones = defineTrait({
-  id: TRAIT.SERRATED_STONES,
   name: 'Serrated Stones',
+  id: TRAIT.SERRATED_STONES,
   balance: {
     damageMultiplier: 1.05,
     durationMultiplier: 20
   },
+  attributes: ({ balanceContext }) => ({
+    traitDurations: {
+      'Bleeding Duration': balanceNumberFromContext(balanceContext, TRAIT.SERRATED_STONES, 'durationMultiplier')
+    }
+  }),
   modifierRules: [
     {
       order: -9,
@@ -66,29 +70,29 @@ export const serratedStones = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.BLEEDING)
     }
-  ],
-  attributes: ({ balanceContext }) => ({
-    traitDurations: {
-      'Bleeding Duration': balanceNumberFromContext(balanceContext, TRAIT.SERRATED_STONES, 'durationMultiplier')
-    }
-  })
+  ]
 });
 
 export const elementalShielding = defineTrait({
+  name: 'Elemental Shielding',
+  id: TRAIT.ELEMENTAL_SHIELDING,
+  balance: {
+    effects: [{ type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
+  },
   triggers: [
     onTriggerPoint(auraAccepted, {
       run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) =>
         applyResolverElementalShielding(runtime, cause)
     })
-  ],
-  id: TRAIT.ELEMENTAL_SHIELDING,
-  name: 'Elemental Shielding',
-  balance: {
-    effects: [{ type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
-  }
+  ]
 });
 
 export const earthenBlast = defineTrait({
+  name: 'Earthen Blast',
+  id: TRAIT.EARTHEN_BLAST,
+  balance: {
+    effects: [{ name: 'Earthen Blast', type: 'strike', coefficient: 0.36, hits: 1, canCrit: false }]
+  },
   // Alternate mechanic boundaries share one entry handler; only one boundary fires for each entry.
   triggers: [attunementChanged, attunementInvoked, attunementReentered].map((on) =>
     onTriggerPoint(on, {
@@ -99,28 +103,12 @@ export const earthenBlast = defineTrait({
         triggerEarthenBlast(runtime, input.at, input.skill.id, input.emissionCast);
       }
     })
-  ),
-  id: TRAIT.EARTHEN_BLAST,
-  name: 'Earthen Blast',
-  balance: {
-    effects: [{ name: 'Earthen Blast', type: 'strike', coefficient: 0.36, hits: 1, canCrit: false }]
-  }
+  )
 });
 
 export const strengthOfStone = defineTrait({
-  id: TRAIT.STRENGTH_OF_STONE,
-  triggers: [
-    onTriggerPoint(elementalistConditionApplied, {
-      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => {
-        if (
-          cause.condition === CONDITION.IMMOBILIZED &&
-          (runtime.engagement.startTime == null || cause.at >= runtime.engagement.startTime)
-        )
-          applyStrengthOfStone(runtime, cause);
-      }
-    })
-  ],
   name: 'Strength of Stone',
+  id: TRAIT.STRENGTH_OF_STONE,
   balance: {
     attributeConversion: 0.1,
     internalCooldown: 3,
@@ -135,23 +123,23 @@ export const strengthOfStone = defineTrait({
       rounding: 'round',
       input: 'common'
     }
-  ])
+  ]),
+  triggers: [
+    onTriggerPoint(elementalistConditionApplied, {
+      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => {
+        if (
+          cause.condition === CONDITION.IMMOBILIZED &&
+          (runtime.engagement.startTime == null || cause.at >= runtime.engagement.startTime)
+        )
+          applyStrengthOfStone(runtime, cause);
+      }
+    })
+  ]
 });
 
 export const rockSolid = defineTrait({
-  // Alternate mechanic boundaries share one entry handler; only one boundary fires for each entry.
-  triggers: [attunementChanged, attunementReentered].map((on) =>
-    onTriggerPoint(on, {
-      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Earth',
-      run: (runtime: ElementalistRuntime, input: ElementalistEntry) => {
-        if (!input.claimTrait('Earth', TRAIT.ROCK_SOLID)) return;
-
-        grantElementalistRockSolid(runtime, input.at, input.skill.id, input.emissionCast);
-      }
-    })
-  ),
-  id: TRAIT.ROCK_SOLID,
   name: 'Rock Solid',
+  id: TRAIT.ROCK_SOLID,
   balance: {
     effects: [
       {
@@ -164,26 +152,44 @@ export const rockSolid = defineTrait({
         duration: 3
       }
     ]
-  }
+  },
+  // Alternate mechanic boundaries share one entry handler; only one boundary fires for each entry.
+  triggers: [attunementChanged, attunementReentered].map((on) =>
+    onTriggerPoint(on, {
+      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Earth',
+      run: (runtime: ElementalistRuntime, input: ElementalistEntry) => {
+        if (!input.claimTrait('Earth', TRAIT.ROCK_SOLID)) return;
+
+        grantElementalistRockSolid(runtime, input.at, input.skill.id, input.emissionCast);
+      }
+    })
+  )
 });
 
+/** Casts and held Rock Barrier release share the same Earth-weapon eligibility and live multiplier. */
+export const geomancersTrainingRechargeRule = {
+  when: (_runtime: object, skill: Skill) => skill.type === 'Weapon' && skill.attunement === 'Earth',
+  multiplier: { profile: TRAIT.GEOMANCERS_TRAINING, field: 'rechargeMultiplier' }
+};
+
 export const geomancersTraining = defineTrait({
-  id: TRAIT.GEOMANCERS_TRAINING,
   name: "Geomancer's Training",
-  balance: { rechargeMultiplier: 0.8 }
+  id: TRAIT.GEOMANCERS_TRAINING,
+  balance: { rechargeMultiplier: 0.8 },
+  rechargeRules: [geomancersTrainingRechargeRule]
 });
 
 export const writtenInStone = defineTrait({
-  id: TRAIT.WRITTEN_IN_STONE,
-  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applyWrittenInStone })],
   name: 'Written in Stone',
+  id: TRAIT.WRITTEN_IN_STONE,
   balance: {
     effects: [
       { type: 'aura', name: 'Restoration', aura: AURA.FROST, duration: 4 },
       { type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 },
       { type: 'aura', name: 'Earth', aura: AURA.MAGNETIC, duration: 3 }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(elementalistCastCompleted, { run: applyWrittenInStone })]
 });
 
 /** Grants Earth's Embrace Resistance from an eligible healing skill. */
@@ -309,17 +315,6 @@ function applyResolverElementalShielding(context: MechanicCombatContext, event: 
       name: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SHIELDING).name
     })
   });
-}
-
-/** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
-export function geomancersTrainingRecharge(
-  context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill,
-  duration: number
-): number {
-  return skill.attunement === 'Earth' && hasTrait(context, TRAIT.GEOMANCERS_TRAINING)
-    ? duration * balanceNumberFromContext(context, TRAIT.GEOMANCERS_TRAINING, 'rechargeMultiplier')
-    : duration;
 }
 
 /** Emits Earthen Blast's uncritable strike after entering Earth in combat. */

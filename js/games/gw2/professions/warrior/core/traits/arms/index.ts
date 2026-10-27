@@ -36,6 +36,14 @@ import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const signetMastery = defineTrait({
+  name: 'Signet Mastery',
+  id: TRAIT.SIGNET_MASTERY,
+  balance: {
+    threshold: 0.5,
+    maximumStacks: 5,
+    attributeBonus: 100,
+    effects: [{ name: 'signet-mastery', type: 'buff', kind: 'signet-mastery', stacks: 1, duration: 60 }]
+  },
   // Active Signet Mastery Ferocity feeds conversions; its contribution expires with the live stacks.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.SIGNET_MASTERY);
@@ -53,15 +61,6 @@ export const signetMastery = defineTrait({
         }
       ]
     };
-  },
-
-  id: TRAIT.SIGNET_MASTERY,
-  name: 'Signet Mastery',
-  balance: {
-    threshold: 0.5,
-    maximumStacks: 5,
-    attributeBonus: 100,
-    effects: [{ name: 'signet-mastery', type: 'buff', kind: 'signet-mastery', stacks: 1, duration: 60 }]
   },
   triggers: [
     onTriggerPoint(strikeResourcesGranted, {
@@ -82,6 +81,15 @@ export const signetMastery = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const burstPrecision = defineTrait({
+  name: 'Burst Precision',
+  id: TRAIT.BURST_PRECISION,
+  balance: {
+    threshold: 30,
+    criticalChance: 1,
+    minimumStacks: 2,
+    maximumStacks: 4,
+    attributeBonus: 250
+  },
   // The accepted Burst Precision window supplies conversion-eligible Ferocity until it expires.
   attributes(context) {
     return {
@@ -96,21 +104,6 @@ export const burstPrecision = defineTrait({
       ]
     };
   },
-
-  triggers: [
-    onTriggerPoint(burstFirstHit, {
-      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) => burstPrecisionHit(runtime, input.event)
-    })
-  ],
-  id: TRAIT.BURST_PRECISION,
-  name: 'Burst Precision',
-  balance: {
-    threshold: 30,
-    criticalChance: 1,
-    minimumStacks: 2,
-    maximumStacks: 4,
-    attributeBonus: 250
-  },
   modifierRules: [
     {
       order: 6,
@@ -122,19 +115,18 @@ export const burstPrecision = defineTrait({
         Boolean(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.burst) ||
         warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
     }
+  ],
+  triggers: [
+    onTriggerPoint(burstFirstHit, {
+      run: (runtime, input: TriggerPointInput<typeof burstFirstHit>) => burstPrecisionHit(runtime, input.event)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const bloodlust = defineTrait({
-  triggers: [
-    onTriggerPoint(critical, {
-      run: (runtime, input: TriggerPointInput<typeof critical>) =>
-        bloodlustCritical(runtime, input.event, input.opportunity)
-    })
-  ],
-  id: TRAIT.BLOODLUST,
   name: 'Bloodlust',
+  id: TRAIT.BLOODLUST,
   balance: {
     conditionDurationBonus: 0.33,
     procRate: {
@@ -153,11 +145,25 @@ export const bloodlust = defineTrait({
           100 * balanceNumberFromContext(context.balanceContext, TRAIT.BLOODLUST, 'conditionDurationBonus')
       }
     };
-  }
+  },
+  triggers: [
+    onTriggerPoint(critical, {
+      run: (runtime, input: TriggerPointInput<typeof critical>) =>
+        bloodlustCritical(runtime, input.event, input.opportunity)
+    })
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const furious = defineTrait({
+  name: 'Furious',
+  id: TRAIT.FURIOUS,
+  balance: {
+    resourceGain: 1,
+    maximumStacks: 25,
+    attributeBonus: 15,
+    effects: [{ name: 'furious-surge', type: 'buff', kind: 'furious-surge', stacks: 1, duration: 10 }]
+  },
   // Count only accepted self stacks; deselection stops future grants, not existing ones.
   grantedAttributes(context) {
     if (!context.runtime && !context.timeline) return {};
@@ -181,38 +187,37 @@ export const furious = defineTrait({
       run: (runtime, input: TriggerPointInput<typeof critical>) =>
         furiousCritical(runtime, input.event, input.opportunity)
     })
-  ],
-  id: TRAIT.FURIOUS,
-  name: 'Furious',
-  balance: {
-    resourceGain: 1,
-    maximumStacks: 25,
-    attributeBonus: 15,
-    effects: [{ name: 'furious-surge', type: 'buff', kind: 'furious-surge', stacks: 1, duration: 10 }]
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const sunderingBurst = defineTrait({
-  triggers: [
-    onTriggerPoint(critical, {
-      run: (runtime, input: TriggerPointInput<typeof critical>) =>
-        sunderingBurstCritical(runtime, input.event, input.opportunity, input.firstBurst)
-    })
-  ],
-  id: TRAIT.SUNDERING_BURST,
   name: 'Sundering Burst',
+  id: TRAIT.SUNDERING_BURST,
   balance: {
     internalCooldown: 5,
     effects: [
       { name: 'Burst', type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 5, duration: 8 },
       { name: 'Critical burst', type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 10, duration: 8 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(critical, {
+      run: (runtime, input: TriggerPointInput<typeof critical>) =>
+        sunderingBurstCritical(runtime, input.event, input.opportunity, input.firstBurst)
+    })
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const opportunist = defineTrait({
+  name: 'Opportunist',
+  id: TRAIT.OPPORTUNIST,
+  balance: {
+    internalCooldown: 1,
+    resourceGain: 5,
+    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 3 }]
+  },
   triggers: [
     onTriggerPoint(immobilized, {
       run: (runtime, input: TriggerPointInput<typeof immobilized>) => triggerOpportunist(runtime, input.event)
@@ -220,20 +225,13 @@ export const opportunist = defineTrait({
     onTriggerPoint(controlAccepted, {
       run: (runtime, input: TriggerPointInput<typeof controlAccepted>) => triggerOpportunist(runtime, input.event)
     })
-  ],
-  id: TRAIT.OPPORTUNIST,
-  name: 'Opportunist',
-  balance: {
-    internalCooldown: 1,
-    resourceGain: 5,
-    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 3 }]
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const furiousBurst = defineTrait({
-  id: TRAIT.FURIOUS_BURST,
   name: 'Furious Burst',
+  id: TRAIT.FURIOUS_BURST,
   balance: {
     criticalChance: 0.05,
     internalCooldown: 4,
@@ -265,22 +263,12 @@ export const furiousBurst = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const deepStrikes = defineTrait({
-  id: TRAIT.DEEP_STRIKES,
   name: 'Deep Strikes',
+  id: TRAIT.DEEP_STRIKES,
   balance: {
     criticalChance: 0.05,
     attributeBonus: 180
   },
-  modifierRules: [
-    {
-      order: 4,
-      id: 'warrior.deep-strikes',
-      target: MODIFIER_TARGET.CRITICAL_CHANCE,
-      operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.DEEP_STRIKES, 'criticalChance'),
-      when: (context) => targetConditionActive(context, CONDITION.BLEEDING)
-    }
-  ],
   attributes(context) {
     return {
       attributeEffects: [
@@ -293,13 +281,23 @@ export const deepStrikes = defineTrait({
         }
       ]
     };
-  }
+  },
+  modifierRules: [
+    {
+      order: 4,
+      id: 'warrior.deep-strikes',
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: 'add',
+      amount: (context) => balanceNumberFromContext(context, TRAIT.DEEP_STRIKES, 'criticalChance'),
+      when: (context) => targetConditionActive(context, CONDITION.BLEEDING)
+    }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const unsuspectingFoe = defineTrait({
-  id: TRAIT.UNSUSPECTING_FOE,
   name: 'Unsuspecting Foe',
+  id: TRAIT.UNSUSPECTING_FOE,
   balance: {
     criticalChance: 0.25
   },
@@ -317,8 +315,8 @@ export const unsuspectingFoe = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const woundingPrecision = defineTrait({
-  id: TRAIT.WOUNDING_PRECISION,
   name: 'Wounding Precision',
+  id: TRAIT.WOUNDING_PRECISION,
   balance: { attributeConversion: 0.07 },
   attributes(context) {
     return {
@@ -339,8 +337,8 @@ export const woundingPrecision = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const blademaster = defineTrait({
-  id: TRAIT.BLADEMASTER,
   name: 'Blademaster',
+  id: TRAIT.BLADEMASTER,
   balance: {
     rechargeMultiplier: 0.8,
     attributeBonus: 120
@@ -380,8 +378,8 @@ export const blademaster = defineTrait({
 
 /** Select measured dual wield durations for the active offhand. */
 export const dualWielding = defineTrait({
-  id: TRAIT.DUAL_WIELDING,
   name: 'Dual Wielding',
+  id: TRAIT.DUAL_WIELDING,
   hooks: {
     castDurationMs(runtime, skill, durationMs) {
       const measured = Number(skill.dualWieldCastTimeMs);

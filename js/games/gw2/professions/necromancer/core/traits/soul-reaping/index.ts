@@ -38,16 +38,8 @@ import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Owns Dhuumfire tuning and behavior at its existing execution boundaries. */
 export const dhuumfire = defineTrait({
-  triggers: [
-    onTriggerPoint(necromancerStrike, {
-      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
-        applyDhuumfire(runtime, input.event, input.dhuumfireDuration, input.shroudSkillOne)
-    })
-  ],
-  id: TRAIT.DHUUMFIRE,
   name: 'Dhuumfire',
+  id: TRAIT.DHUUMFIRE,
   balance: {
     effects: [
       {
@@ -59,21 +51,21 @@ export const dhuumfire = defineTrait({
         actorType: ACTOR.EFFECT
       }
     ]
-  }
-});
-
-/** Owns Unyielding Blast tuning and behavior at its existing execution boundaries. */
-export const unyieldingBlast = defineTrait({
+  },
   triggers: [
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
         input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
-        applyUnyieldingBlast(runtime, input.event, input.firstHit, input.shroudSkillOne)
+        applyDhuumfire(runtime, input.event, input.dhuumfireDuration, input.shroudSkillOne)
     })
-  ],
-  id: TRAIT.UNYIELDING_BLAST,
+  ]
+});
+
+/** Owns Unyielding Blast tuning and behavior at its existing execution boundaries. */
+export const unyieldingBlast = defineTrait({
   name: 'Unyielding Blast',
+  id: TRAIT.UNYIELDING_BLAST,
   balance: {
     effects: [
       {
@@ -85,13 +77,21 @@ export const unyieldingBlast = defineTrait({
         actorType: ACTOR.EFFECT
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(necromancerStrike, {
+      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
+        applyUnyieldingBlast(runtime, input.event, input.firstHit, input.shroudSkillOne)
+    })
+  ]
 });
 
 /** Owns Vital Persistence tuning and behavior at its existing execution boundaries. */
 export const vitalPersistence = defineTrait({
-  id: TRAIT.VITAL_PERSISTENCE,
   name: 'Vital Persistence',
+  id: TRAIT.VITAL_PERSISTENCE,
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.VITAL_PERSISTENCE, [
     // Native Necromancer conversions include this bonus, but utility consumables exclude it.
@@ -101,8 +101,8 @@ export const vitalPersistence = defineTrait({
 
 /** Owns Sinister Shroud tuning and behavior at its existing execution boundaries. */
 export const sinisterShroud = defineTrait({
-  id: TRAIT.SINISTER_SHROUD,
   name: 'Sinister Shroud',
+  id: TRAIT.SINISTER_SHROUD,
   balance: { rechargeMultiplier: 0.85 },
   rechargeRules: [
     {
@@ -122,12 +122,15 @@ export const sinisterShroud = defineTrait({
 
 /** Owns Death Perception tuning and behavior at its existing execution boundaries. */
 export const deathPerception = defineTrait({
-  id: TRAIT.DEATH_PERCEPTION,
   name: 'Death Perception',
+  id: TRAIT.DEATH_PERCEPTION,
   balance: {
     criticalDamage: 1.1,
     criticalChance: 0.15
   },
+  attributes: ({ balanceContext: profileContext }) => ({
+    traitCriticalChance: balanceNumberFromContext(profileContext, TRAIT.DEATH_PERCEPTION, 'criticalChance') * 100
+  }),
   modifierRules: [
     {
       order: 105,
@@ -137,30 +140,13 @@ export const deathPerception = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.DEATH_PERCEPTION, 'criticalDamage'),
       when: (context) => Boolean(necromancerActiveShroud(context))
     }
-  ],
-  attributes: ({ balanceContext: profileContext }) => ({
-    traitCriticalChance: balanceNumberFromContext(profileContext, TRAIT.DEATH_PERCEPTION, 'criticalChance') * 100
-  })
+  ]
 });
 
 /** Owns Soul Barbs tuning and behavior at its existing execution boundaries. */
 export const soulBarbs = defineTrait({
-  triggers: [
-    onTriggerPoint(shroudInvoked, {
-      run: (runtime: NecromancerRuntime, { cast }: TriggerPointInput<typeof shroudInvoked>) =>
-        applySoulBarbs(runtime, {
-          source: 'necromancer',
-          sourceId: cast.skill.id,
-          skillId: cast.skill.id,
-          skillName: cast.skill.name,
-          activationId: cast.id
-        })
-    }),
-    onTriggerPoint(shroudExited, { run: (runtime: NecromancerRuntime) => applySoulBarbs(runtime) }),
-    onTriggerPoint(shroudEntered, { run: (runtime: NecromancerRuntime) => applySoulBarbs(runtime) })
-  ],
-  id: TRAIT.SOUL_BARBS,
   name: 'Soul Barbs',
+  id: TRAIT.SOUL_BARBS,
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.1,
@@ -178,6 +164,20 @@ export const soulBarbs = defineTrait({
           : balanceNumberFromContext(context, TRAIT.SOUL_BARBS, 'damageIncrease'),
       when: (context) => buffActive(context, 'necromancer-soul-barbs')
     }
+  ],
+  triggers: [
+    onTriggerPoint(shroudInvoked, {
+      run: (runtime: NecromancerRuntime, { cast }: TriggerPointInput<typeof shroudInvoked>) =>
+        applySoulBarbs(runtime, {
+          source: 'necromancer',
+          sourceId: cast.skill.id,
+          skillId: cast.skill.id,
+          skillName: cast.skill.name,
+          activationId: cast.id
+        })
+    }),
+    onTriggerPoint(shroudExited, { run: (runtime: NecromancerRuntime) => applySoulBarbs(runtime) }),
+    onTriggerPoint(shroudEntered, { run: (runtime: NecromancerRuntime) => applySoulBarbs(runtime) })
   ]
 });
 
@@ -200,16 +200,8 @@ export const eternalLifePassive = definePeriodicTask<NecromancerRuntime>({
 
 /** Owns Eternal Life tuning and behavior at its existing execution boundaries. */
 export const eternalLife = defineTrait({
-  triggers: [
-    onTriggerPoint(necromancerPassivesStarting, { run: startEternalLife }),
-    onTriggerPoint(shroudEntered, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        emitShroudEntryTrait(runtime, input.cast, TRAIT.ETERNAL_LIFE)
-    })
-  ],
-  lifetime: eternalLifePassive.hooks,
-  id: TRAIT.ETERNAL_LIFE,
   name: 'Eternal Life',
+  id: TRAIT.ETERNAL_LIFE,
   balance: {
     lifeForceGain: 3,
     threshold: 0.66,
@@ -224,32 +216,34 @@ export const eternalLife = defineTrait({
         packetLabel: 'on shroud entry'
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(necromancerPassivesStarting, { run: startEternalLife }),
+    onTriggerPoint(shroudEntered, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.ETERNAL_LIFE)
+    })
+  ],
+  lifetime: eternalLifePassive.hooks
 });
 
 /** Owns Fear of Death tuning and behavior at its existing execution boundaries. */
 export const fearOfDeath = defineTrait({
+  name: 'Fear of Death',
+  id: TRAIT.FEAR_OF_DEATH,
+  balance: { lifeForceGain: 15, internalCooldown: 4 },
   triggers: [
     onTriggerPoint(necromancerConditionApplied, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
         applyFearOfDeath(runtime, input.event)
     })
-  ],
-  id: TRAIT.FEAR_OF_DEATH,
-  name: 'Fear of Death',
-  balance: { lifeForceGain: 15, internalCooldown: 4 }
+  ]
 });
 
 /** Owns Speed of Shadows tuning and behavior at its existing execution boundaries. */
 export const speedOfShadows = defineTrait({
-  triggers: [
-    onTriggerPoint(shroudEntered, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        emitShroudEntryTrait(runtime, input.cast, TRAIT.SPEED_OF_SHADOWS)
-    })
-  ],
-  id: TRAIT.SPEED_OF_SHADOWS,
   name: 'Speed of Shadows',
+  id: TRAIT.SPEED_OF_SHADOWS,
   balance: {
     effects: [
       {
@@ -261,13 +255,19 @@ export const speedOfShadows = defineTrait({
         packetLabel: 'on shroud entry'
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(shroudEntered, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.SPEED_OF_SHADOWS)
+    })
+  ]
 });
 
 /** Owns Soul Marks tuning and behavior at its existing execution boundaries. */
 export const soulMarks = defineTrait({
-  id: TRAIT.SOUL_MARKS,
   name: 'Soul Marks',
+  id: TRAIT.SOUL_MARKS,
   balance: { lifeForceGain: 3 },
   // Only the first accepted mark hit contributes to the combined life-force grant.
   triggers: [
@@ -283,15 +283,15 @@ export const soulMarks = defineTrait({
 
 /** Owns Soul Battery tuning and behavior at its existing execution boundaries. */
 export const soulBattery = defineTrait({
-  id: TRAIT.SOUL_BATTERY,
   name: 'Soul Battery',
+  id: TRAIT.SOUL_BATTERY,
   balance: { lifeForceCapacityMultiplier: 1.2 }
 });
 
 /** Owns Gluttony tuning and behavior at its existing execution boundaries. */
 export const gluttony = defineTrait({
-  id: TRAIT.GLUTTONY,
   name: 'Gluttony',
+  id: TRAIT.GLUTTONY,
   balance: { lifeForceGainMultiplier: 1.1 }
 });
 

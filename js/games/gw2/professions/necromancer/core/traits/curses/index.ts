@@ -41,16 +41,8 @@ import type {
 
 /** Owns Barbed Precision tuning and behavior at its existing execution boundaries. */
 export const barbedPrecision = defineTrait({
-  triggers: [
-    onTriggerPoint(necromancerStrike, {
-      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
-        necromancerBarbedPrecisionReaction(runtime, input.event, input.details)
-    })
-  ],
-  id: TRAIT.BARBED_PRECISION,
   name: 'Barbed Precision',
+  id: TRAIT.BARBED_PRECISION,
   balance: {
     conditionDurationMultiplier: 1.2,
     procRate: {
@@ -76,21 +68,21 @@ export const barbedPrecision = defineTrait({
       'Bleeding Duration':
         balanceNumberFromContext(profileContext, TRAIT.BARBED_PRECISION, 'conditionDurationMultiplier') * 100 - 100
     }
-  })
+  }),
+  triggers: [
+    onTriggerPoint(necromancerStrike, {
+      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
+        necromancerBarbedPrecisionReaction(runtime, input.event, input.details)
+    })
+  ]
 });
 
 /** Owns Chilling Darkness tuning and behavior at its existing execution boundaries. */
 export const chillingDarkness = defineTrait({
-  triggers: [
-    onTriggerPoint(necromancerConditionApplied, {
-      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
-        input.event.condition === CONDITION.BLINDNESS,
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
-        applyChillingDarkness(runtime, input.event)
-    })
-  ],
-  id: TRAIT.CHILLING_DARKNESS,
   name: 'Chilling Darkness',
+  id: TRAIT.CHILLING_DARKNESS,
   balance: {
     cooldown: 3,
     effects: [
@@ -103,25 +95,21 @@ export const chillingDarkness = defineTrait({
         actorType: ACTOR.EFFECT
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(necromancerConditionApplied, {
+      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
+        input.event.condition === CONDITION.BLINDNESS,
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
+        applyChillingDarkness(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Insidious Disruption tuning and behavior at its existing execution boundaries. */
 export const insidiousDisruption = defineTrait({
-  triggers: [
-    onTriggerPoint(necromancerControlAccepted, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerControlAccepted>) =>
-        applyInsidiousDisruption(runtime, input.event)
-    }),
-    onTriggerPoint(necromancerConditionApplied, {
-      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
-        input.event.condition === CONDITION.FEAR,
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
-        applyInsidiousDisruption(runtime, input.event)
-    })
-  ],
-  id: TRAIT.INSIDIOUS_DISRUPTION,
   name: 'Insidious Disruption',
+  id: TRAIT.INSIDIOUS_DISRUPTION,
   balance: {
     effects: [
       {
@@ -133,20 +121,27 @@ export const insidiousDisruption = defineTrait({
         actorType: ACTOR.EFFECT
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(necromancerControlAccepted, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerControlAccepted>) =>
+        applyInsidiousDisruption(runtime, input.event)
+    }),
+    onTriggerPoint(necromancerConditionApplied, {
+      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
+        input.event.condition === CONDITION.FEAR,
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
+        applyInsidiousDisruption(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Furious Demise tuning and behavior at its existing execution boundaries. */
 export const furiousDemise = defineTrait({
-  triggers: [
-    onTriggerPoint(shroudEntered, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        emitShroudEntryTrait(runtime, input.cast, TRAIT.FURIOUS_DEMISE)
-    })
-  ],
-  id: TRAIT.FURIOUS_DEMISE,
   name: 'Furious Demise',
+  id: TRAIT.FURIOUS_DEMISE,
   balance: {
+    attributeBonus: 180,
     effects: [
       {
         name: boonKey(BOON.FURY),
@@ -156,24 +151,39 @@ export const furiousDemise = defineTrait({
         duration: 8,
         packetLabel: 'on shroud entry'
       }
-    ],
-    attributeBonus: 180
+    ]
   },
   attributes: traitAttributeEffects(TRAIT.FURIOUS_DEMISE, [
     // Target the Weak explicitly converts this Precision; utility consumables do not.
     { kind: 'flat', to: 'Precision', field: 'attributeBonus', feedsConversions: 'profession-only' }
-  ])
+  ]),
+  triggers: [
+    onTriggerPoint(shroudEntered, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.FURIOUS_DEMISE)
+    })
+  ]
 });
 
 /** Owns Target the Weak tuning and behavior at its existing execution boundaries. */
 export const targetTheWeak = defineTrait({
-  id: TRAIT.TARGET_THE_WEAK,
   name: 'Target the Weak',
+  id: TRAIT.TARGET_THE_WEAK,
   balance: {
     criticalChancePerCondition: 0.02,
     maximumConditions: CANONICAL_TARGET_CONDITIONS.length,
     attributeConversion: 0.13
   },
+  attributes: traitAttributeEffects(TRAIT.TARGET_THE_WEAK, [
+    {
+      kind: 'conversion',
+      from: 'Precision',
+      to: 'Condition Damage',
+      field: 'attributeConversion',
+      rounding: 'floor',
+      input: 'eligible'
+    }
+  ]),
   modifierRules: [
     {
       order: -19,
@@ -190,31 +200,20 @@ export const targetTheWeak = defineTrait({
         );
       }
     }
-  ],
-  attributes: traitAttributeEffects(TRAIT.TARGET_THE_WEAK, [
-    {
-      kind: 'conversion',
-      from: 'Precision',
-      to: 'Condition Damage',
-      field: 'attributeConversion',
-      rounding: 'floor',
-      input: 'eligible'
-    }
-  ])
+  ]
 });
 
 /** Owns Lingering Curse tuning and behavior at its existing execution boundaries. */
 export const lingeringCurse = defineTrait({
-  id: TRAIT.LINGERING_CURSE,
   name: 'Lingering Curse',
-  // Scepter 3 resolves to the selected variant, so saved rotations survive trait edits.
-  hooks: {
-    modifySkillId: traitSkillReplacement(TRAIT.LINGERING_CURSE, [[ID.FEAST_OF_CORRUPTION, ID.DEVOURING_DARKNESS]])
-  },
+  id: TRAIT.LINGERING_CURSE,
   balance: {
     attributeBonus: 200,
     durationMultiplier: 1.5
   },
+  attributes: traitAttributeEffects(TRAIT.LINGERING_CURSE, [
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
+  ]),
   // Scale eligible Scepter base durations before ordinary duration bonuses and their cap.
   modifierRules: [
     {
@@ -227,34 +226,35 @@ export const lingeringCurse = defineTrait({
         context.event?.skillId !== ID.DEVOURING_DARKNESS
     }
   ],
-  attributes: traitAttributeEffects(TRAIT.LINGERING_CURSE, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
-  ])
+  // Scepter 3 resolves to the selected variant, so saved rotations survive trait edits.
+  hooks: {
+    modifySkillId: traitSkillReplacement(TRAIT.LINGERING_CURSE, [[ID.FEAST_OF_CORRUPTION, ID.DEVOURING_DARKNESS]])
+  }
 });
 
 /** Owns Weakening Shroud tuning and behavior at its existing execution boundaries. */
 export const weakeningShroud = defineTrait({
-  triggers: [
-    onTriggerPoint(shroudEntered, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        emitShroudEntryTrait(runtime, input.cast, TRAIT.WEAKENING_SHROUD)
-    })
-  ],
-  id: TRAIT.WEAKENING_SHROUD,
   name: 'Weakening Shroud',
+  id: TRAIT.WEAKENING_SHROUD,
   balance: {
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1 },
       { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 10 },
       { name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 6 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(shroudEntered, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.WEAKENING_SHROUD)
+    })
+  ]
 });
 
 /** Owns Master of Corruption tuning and behavior at its existing execution boundaries. */
 export const masterOfCorruption = defineTrait({
-  id: TRAIT.MASTER_OF_CORRUPTION,
   name: 'Master of Corruption',
+  id: TRAIT.MASTER_OF_CORRUPTION,
   balance: {
     rechargeMultiplier: 0.67,
     effects: [
@@ -312,6 +312,9 @@ export const masterOfCorruption = defineTrait({
 
 /** Owns Plague Sending tuning and behavior at its existing execution boundaries. */
 export const plagueSending = defineTrait({
+  name: 'Plague Sending',
+  id: TRAIT.PLAGUE_SENDING,
+  balance: { maximumConditions: 2 },
   triggers: [
     onTriggerPoint(shroudInvoked, { run: armScourgePlagueSending }),
     onTriggerPoint(shroudEntering, {
@@ -321,16 +324,13 @@ export const plagueSending = defineTrait({
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikePreparing>) =>
         reactToNecromancerConditions(runtime, input.event)
     })
-  ],
-  id: TRAIT.PLAGUE_SENDING,
-  name: 'Plague Sending',
-  balance: { maximumConditions: 2 }
+  ]
 });
 
 /** Terror adds damage to the skill's Fear application without creating another condition or control reaction. */
 export const terror = defineTrait({
-  id: TRAIT.TERROR,
   name: 'Terror',
+  id: TRAIT.TERROR,
   // The owning trait supplies tuning to its runtime consumers.
   balance: { conditionBaseDamage: 444, conditionDamageScaling: 0.4 },
   hooks: {

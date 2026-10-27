@@ -32,16 +32,8 @@ import type {
 
 /** Owns Reaper's Might tuning and behavior at its existing execution boundaries. */
 export const reapersMight = defineTrait({
-  triggers: [
-    onTriggerPoint(necromancerStrike, {
-      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
-        applyReapersMight(runtime, input.event, input.firstHit, input.shroudSkillOne)
-    })
-  ],
-  id: TRAIT.REAPERS_MIGHT,
   name: "Reaper's Might",
+  id: TRAIT.REAPERS_MIGHT,
   balance: {
     effects: [
       {
@@ -53,21 +45,21 @@ export const reapersMight = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
-});
-
-/** Owns Siphoned Power tuning and behavior at its existing execution boundaries. */
-export const siphonedPower = defineTrait({
+  },
   triggers: [
     onTriggerPoint(necromancerStrike, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
         input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
-        applySiphonedPower(runtime, input.event)
+        applyReapersMight(runtime, input.event, input.firstHit, input.shroudSkillOne)
     })
-  ],
-  id: TRAIT.SIPHONED_POWER,
+  ]
+});
+
+/** Owns Siphoned Power tuning and behavior at its existing execution boundaries. */
+export const siphonedPower = defineTrait({
   name: 'Siphoned Power',
+  id: TRAIT.SIPHONED_POWER,
   balance: {
     threshold: 0.5,
     cooldown: 1,
@@ -81,11 +73,22 @@ export const siphonedPower = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(necromancerStrike, {
+      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
+        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
+        applySiphonedPower(runtime, input.event)
+    })
+  ]
 });
 
 /** Owns Chill of Death tuning and behavior at its existing execution boundaries. */
 export const chillOfDeath = defineTrait({
+  name: 'Chill of Death',
+  id: TRAIT.CHILL_OF_DEATH,
+  balance: { threshold: 0.5 },
   triggers: [
     onTriggerPoint(necromancerStrikePreparing, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikePreparing>) =>
@@ -97,14 +100,26 @@ export const chillOfDeath = defineTrait({
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         applyChillOfDeath(runtime, input.event)
     })
-  ],
-  id: TRAIT.CHILL_OF_DEATH,
-  name: 'Chill of Death',
-  balance: { threshold: 0.5 }
+  ]
 });
 
 /** Owns Awaken the Pain tuning and behavior at its existing execution boundaries. */
 export const awakenThePain = defineTrait({
+  name: 'Awaken the Pain',
+  id: TRAIT.AWAKEN_THE_PAIN,
+  balance: {
+    attributePerStack: 10,
+    effects: [
+      {
+        name: boonKey(BOON.MIGHT),
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks: 5,
+        duration: 5,
+        packetLabel: 'on shroud entry'
+      }
+    ]
+  },
   // The trait portion of Might follows the queried actor, with build assumptions before runtime exists.
   attributes(context) {
     const might =
@@ -122,45 +137,18 @@ export const awakenThePain = defineTrait({
       ]
     };
   },
-
   triggers: [
     onTriggerPoint(shroudEntered, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
         emitShroudEntryTrait(runtime, input.cast, TRAIT.AWAKEN_THE_PAIN)
     })
-  ],
-  id: TRAIT.AWAKEN_THE_PAIN,
-  name: 'Awaken the Pain',
-  balance: {
-    effects: [
-      {
-        name: boonKey(BOON.MIGHT),
-        type: 'boon',
-        boon: BOON.MIGHT,
-        stacks: 5,
-        duration: 5,
-        packetLabel: 'on shroud entry'
-      }
-    ],
-    attributePerStack: 10
-  }
+  ]
 });
 
 /** Owns Spiteful Fortitude tuning and behavior at its existing execution boundaries. */
 export const spitefulFortitude = defineTrait({
-  // The post-hit target threshold gates the reward independently of the passive vitality conversion.
-  triggers: [
-    onTriggerPoint(necromancerStrikeLifeForce, {
-      run(runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) {
-        if (!runtime.combat.targetHealthBelow(balanceNumberFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE, 'threshold')))
-          return;
-
-        input.percent += balanceNumberFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE, 'lifeForceGain');
-      }
-    })
-  ],
-  id: TRAIT.SPITEFUL_FORTITUDE,
   name: 'Spiteful Fortitude',
+  id: TRAIT.SPITEFUL_FORTITUDE,
   balance: { threshold: 0.5, attributeConversion: 0.1, lifeForceGain: 1 },
   attributes: traitAttributeEffects(TRAIT.SPITEFUL_FORTITUDE, [
     {
@@ -171,13 +159,24 @@ export const spitefulFortitude = defineTrait({
       rounding: 'none',
       input: 'common'
     }
-  ])
+  ]),
+  // The post-hit target threshold gates the reward independently of the passive vitality conversion.
+  triggers: [
+    onTriggerPoint(necromancerStrikeLifeForce, {
+      run(runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) {
+        if (!runtime.combat.targetHealthBelow(balanceNumberFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE, 'threshold')))
+          return;
+
+        input.percent += balanceNumberFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE, 'lifeForceGain');
+      }
+    })
+  ]
 });
 
 /** Owns Signets of Suffering tuning and behavior at its existing execution boundaries. */
 export const signetsOfSuffering = defineTrait({
-  id: TRAIT.SIGNETS_OF_SUFFERING,
   name: 'Signets of Suffering',
+  id: TRAIT.SIGNETS_OF_SUFFERING,
   balance: {
     effects: [
       {
@@ -213,26 +212,25 @@ export const signetsOfSuffering = defineTrait({
 
 /** Owns Bitter Chill tuning and behavior at its existing execution boundaries. */
 export const bitterChill = defineTrait({
+  name: 'Bitter Chill',
+  id: TRAIT.BITTER_CHILL,
+  balance: {
+    effects: [
+      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 3, duration: 8 }
+    ]
+  },
   triggers: [
     onTriggerPoint(necromancerConditionApplied, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
         applyBitterChill(runtime, input.event)
     })
-  ],
-  id: TRAIT.BITTER_CHILL,
-  name: 'Bitter Chill',
-  balance: {
-    effects: [
-      { name: CONDITION.VULNERABILITY, type: 'condition', condition: CONDITION.VULNERABILITY, stacks: 3, duration: 8 }
-    ]
-  }
+  ]
 });
 
 /** Owns Malicious Swarm tuning and behavior at its existing execution boundaries. */
 export const maliciousSwarm = defineTrait({
-  id: TRAIT.MALICIOUS_SWARM,
   name: 'Malicious Swarm',
-
+  id: TRAIT.MALICIOUS_SWARM,
   triggers: [
     {
       order: 0,
@@ -246,14 +244,8 @@ export const maliciousSwarm = defineTrait({
 
 /** Owns Spiteful Spirit tuning and behavior at its existing execution boundaries. */
 export const spitefulSpirit = defineTrait({
-  triggers: [
-    onTriggerPoint(shroudEntered, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
-        emitShroudEntryTrait(runtime, input.cast, TRAIT.SPITEFUL_SPIRIT)
-    })
-  ],
-  id: TRAIT.SPITEFUL_SPIRIT,
   name: 'Spiteful Spirit',
+  id: TRAIT.SPITEFUL_SPIRIT,
   balance: {
     effects: [
       {
@@ -264,21 +256,19 @@ export const spitefulSpirit = defineTrait({
         actorType: ACTOR.EFFECT
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(shroudEntered, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof shroudEntered>) =>
+        emitShroudEntryTrait(runtime, input.cast, TRAIT.SPITEFUL_SPIRIT)
+    })
+  ]
 });
 
 /** Owns Dread tuning and behavior at its existing execution boundaries. */
 export const dread = defineTrait({
-  triggers: [
-    onTriggerPoint(necromancerConditionApplied, {
-      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
-        input.event.condition === CONDITION.FEAR,
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
-        applyDreadWindow(runtime, input.event)
-    })
-  ],
-  id: TRAIT.DREAD,
   name: 'Dread',
+  id: TRAIT.DREAD,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: {
     duration: 3,
@@ -293,13 +283,21 @@ export const dread = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.DREAD, 'damageIncrease'),
       when: (context) => buffActive(context, 'necromancer-dread')
     }
+  ],
+  triggers: [
+    onTriggerPoint(necromancerConditionApplied, {
+      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
+        input.event.condition === CONDITION.FEAR,
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerConditionApplied>) =>
+        applyDreadWindow(runtime, input.event)
+    })
   ]
 });
 
 /** Owns Spiteful Talisman tuning and behavior at its existing execution boundaries. */
 export const spitefulTalisman = defineTrait({
-  id: TRAIT.SPITEFUL_TALISMAN,
   name: 'Spiteful Talisman',
+  id: TRAIT.SPITEFUL_TALISMAN,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05 },
   modifierRules: [
@@ -315,8 +313,8 @@ export const spitefulTalisman = defineTrait({
 
 /** Owns Close to Death tuning and behavior at its existing execution boundaries. */
 export const closeToDeath = defineTrait({
-  id: TRAIT.CLOSE_TO_DEATH,
   name: 'Close to Death',
+  id: TRAIT.CLOSE_TO_DEATH,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { threshold: 0.5, damageMultiplier: 1.2 },
   modifierRules: [

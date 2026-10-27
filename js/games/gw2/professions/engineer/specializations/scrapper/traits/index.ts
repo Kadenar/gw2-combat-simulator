@@ -37,8 +37,8 @@ function scrapperMaximumAmmo(context: MaximumAmmoContext<object>, skill: Enginee
 
 /** Owns Ex Machina tuning and its existing gameplay boundaries. */
 const exMachina = defineTrait<EngineerSkill>({
-  id: TRAIT.EX_MACHINA,
   name: 'Ex Machina',
+  id: TRAIT.EX_MACHINA,
   balance: { maximumAmmo: 2 },
   hooks: { maximumAmmo: scrapperMaximumAmmo }
 });
@@ -48,8 +48,8 @@ const healingSkill = (skill: Skill | undefined) => skill?.type === 'Heal' || ski
 
 /** Owns Speed of Synergy tuning and its existing gameplay boundaries. */
 const speedOfSynergy = defineTrait<EngineerSkill>({
-  id: TRAIT.SPEED_OF_SYNERGY,
   name: 'Speed of Synergy',
+  id: TRAIT.SPEED_OF_SYNERGY,
   balance: {
     // Separate authored grants retain the Med Kit toolbelt exception and the per-application cap.
     effects: [
@@ -105,8 +105,8 @@ const speedOfSynergy = defineTrait<EngineerSkill>({
 
 /** Owns Gyroscopic Acceleration tuning and its existing gameplay boundaries. */
 const gyroscopicAcceleration = defineTrait<EngineerSkill>({
-  id: TRAIT.GYROSCOPIC_ACCELERATION,
   name: 'Gyroscopic Acceleration',
+  id: TRAIT.GYROSCOPIC_ACCELERATION,
   balance: {
     effects: [
       { name: STATUS.SUPERSPEED, type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 5, maximumDuration: 10 }
@@ -127,8 +127,8 @@ const gyroscopicAcceleration = defineTrait<EngineerSkill>({
 
 /** Owns System Shocker tuning and its existing gameplay boundaries. */
 const systemShocker = defineTrait<EngineerSkill>({
-  id: TRAIT.SYSTEM_SHOCKER,
   name: 'System Shocker',
+  id: TRAIT.SYSTEM_SHOCKER,
   balance: {
     effects: [{ name: 'System Shocker', type: 'control', controlKind: CONTROL.DAZE }]
   },
@@ -145,8 +145,8 @@ const systemShocker = defineTrait<EngineerSkill>({
 
 /** Owns Kinetic Accelerators tuning and its existing gameplay boundaries. */
 export const kineticAccelerators = defineTrait<EngineerSkill>({
-  id: TRAIT.KINETIC_ACCELERATORS,
   name: 'Kinetic Accelerators',
+  id: TRAIT.KINETIC_ACCELERATORS,
   balance: {
     attributeConversion: 0.13,
     internalCooldown: 3,
@@ -155,15 +155,6 @@ export const kineticAccelerators = defineTrait<EngineerSkill>({
       { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 10 }
     ]
   },
-  // Both the selected Function Gyro finisher and accepted-combo rewards obey producer isolation.
-  triggers: [
-    {
-      on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
-      run: applyKineticAcceleratorsCast
-    },
-    { on: 'combo.resolved', run: reactToScrapperCombo }
-  ],
   attributes: traitAttributeEffects(TRAIT.KINETIC_ACCELERATORS, [
     {
       kind: 'conversion',
@@ -173,13 +164,22 @@ export const kineticAccelerators = defineTrait<EngineerSkill>({
       rounding: 'round',
       input: 'eligible'
     }
-  ])
+  ]),
+  // Both the selected Function Gyro finisher and accepted-combo rewards obey producer isolation.
+  triggers: [
+    {
+      on: 'castCommit',
+      when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
+      run: applyKineticAcceleratorsCast
+    },
+    { on: 'combo.resolved', run: reactToScrapperCombo }
+  ]
 });
 
 /** Owns Mass Momentum tuning and its existing gameplay boundaries. */
 const massMomentum = defineTrait<EngineerSkill>({
-  id: TRAIT.MASS_MOMENTUM,
   name: 'Mass Momentum',
+  id: TRAIT.MASS_MOMENTUM,
   balance: {
     pulseInterval: 1,
     effects: [
@@ -231,6 +231,15 @@ const massMomentum = defineTrait<EngineerSkill>({
 
 /** Owns Applied Force tuning and its existing gameplay boundaries. */
 export const appliedForce = defineTrait<EngineerSkill>({
+  name: 'Applied Force',
+  id: TRAIT.APPLIED_FORCE,
+  balance: {
+    maximumStacks: 25,
+    threshold: 10,
+    internalCooldown: 10,
+    attributePerStack: 30,
+    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
+  },
   // Apply the trait portion of Might once for both build assumptions and live boons.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.APPLIED_FORCE);
@@ -249,23 +258,14 @@ export const appliedForce = defineTrait<EngineerSkill>({
       ]
     };
   },
-  id: TRAIT.APPLIED_FORCE,
-  name: 'Applied Force',
-  balance: {
-    maximumStacks: 25,
-    threshold: 10,
-    internalCooldown: 10,
-    attributePerStack: 30,
-    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
-  },
   // Threshold admission is selected before inspecting Might or claiming its cooldown.
   triggers: [{ on: 'buff.applied', run: reactToAppliedForceBuff }]
 });
 
 /** Movement boons multiply Object in Motion's player-owned strike bonus. */
 const objectInMotion = defineTrait<EngineerSkill>({
-  id: TRAIT.OBJECT_IN_MOTION,
   name: 'Object in Motion',
+  id: TRAIT.OBJECT_IN_MOTION,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageMultiplier: 1.05 },
   modifierRules: [

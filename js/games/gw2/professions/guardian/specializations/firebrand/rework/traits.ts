@@ -31,8 +31,8 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 /** Unknown bonuses start neutral; the selected patch supplies explicitly labeled experimental values. */
 const unrelentingCriticism = defineTrait({
-  id: TRAIT.UNRELENTING_CRITICISM,
   name: 'Unrelenting Criticism',
+  id: TRAIT.UNRELENTING_CRITICISM,
   balance: { conditionDamageIncrease: 0, conditionDurationBonus: 0 },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
@@ -54,8 +54,8 @@ const unrelentingCriticism = defineTrait({
 
 /** Quickness gates outgoing damage without contributing attributes or feeding attribute conversions. */
 const imbuedHaste = defineTrait({
-  id: TRAIT.IMBUED_HASTE,
   name: 'Imbued Haste',
+  id: TRAIT.IMBUED_HASTE,
   balance: { conditionDamageIncrease: 0 },
   modifierRules: [
     {
@@ -70,8 +70,8 @@ const imbuedHaste = defineTrait({
 
 /** Revelation keeps the final-mantra page refund, with no hostile Slow packet. */
 const revelation = defineTrait({
-  id: REWORK.REVELATION,
   name: 'Revelation',
+  id: REWORK.REVELATION,
   balance: { resourceGain: 2 },
   triggers: [
     onTriggerPoint(finalMantraChargeUsed, {
@@ -134,8 +134,8 @@ function grantFervidAshes(runtime: GuardianRuntime, { cast }: { readonly cast: R
 }
 
 const fervidConviction = defineTrait({
-  id: REWORK.FERVID_CONVICTION,
   name: 'Fervid Conviction',
+  id: REWORK.FERVID_CONVICTION,
   balance: {
     internalCooldown: 0,
     maximumTargets: 5,
@@ -146,8 +146,8 @@ const fervidConviction = defineTrait({
 
 /** Swift Scholar completion replaces Aegis/Stability as the only producer of Stalwart Speed Quickness. */
 const stalwartSpeed = defineTrait({
-  id: TRAIT.STALWART_SPEED,
   name: 'Stalwart Speed',
+  id: TRAIT.STALWART_SPEED,
   balance: {
     internalCooldown: 0,
     effects: [
@@ -177,8 +177,8 @@ const stalwartSpeed = defineTrait({
 
 /** Only accepted player disables or Immobilized reduce Unbroken Lines; Slow no longer qualifies. */
 const stoicDemeanor = defineTrait({
-  id: TRAIT.STOIC_DEMEANOR,
   name: 'Stoic Demeanor',
+  id: TRAIT.STOIC_DEMEANOR,
   balance: { rechargeReduction: 0, internalCooldown: 0 },
   triggers: [
     onTriggerPoint(firebrandControlAccepted, {
@@ -205,8 +205,8 @@ const stoicDemeanor = defineTrait({
 
 /** Tune each consumed Ashes charge before duration bonuses, preserving ownership for self and allied burns. */
 const righteousFlames = defineTrait({
-  id: REWORK.RIGHTEOUS_FLAMES,
   name: 'Righteous Flames',
+  id: REWORK.RIGHTEOUS_FLAMES,
   balance: {
     effects: [{ type: 'condition', name: CONDITION.BURNING, condition: CONDITION.BURNING, duration: 2, stacks: 1 }]
   }
@@ -215,7 +215,7 @@ const righteousFlames = defineTrait({
 // Support-only traits own no damage effects; replacing their old definitions removes page-capacity and cadence bonuses.
 export const firebrandReworkTraits = [
   // The rework removes the capacity/cadence selectors together with their replaced traits.
-  defineTrait({ id: TRAIT.PURITY_OF_WORD, name: 'Purity of Word', balance: { maximumStacks: 5, pulseInterval: 8 } }),
+  defineTrait({ name: 'Purity of Word', id: TRAIT.PURITY_OF_WORD, balance: { maximumStacks: 5, pulseInterval: 8 } }),
   swiftScholar,
   ...firebrandTraits.filter((trait) => trait.id === TRAIT.LEGENDARY_LORE),
   unrelentingCriticism,
@@ -225,6 +225,6 @@ export const firebrandReworkTraits = [
   stalwartSpeed,
   stoicDemeanor,
   righteousFlames,
-  defineTrait({ id: REWORK.BASTION, name: 'Bastion' }),
-  defineTrait({ id: REWORK.DELIVERANCE, name: 'Deliverance' })
+  defineTrait({ name: 'Bastion', id: REWORK.BASTION }),
+  defineTrait({ name: 'Deliverance', id: REWORK.DELIVERANCE })
 ];

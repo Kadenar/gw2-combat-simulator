@@ -37,33 +37,15 @@ import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Psychic Blades owns the specialization's baseline blade capacity. */
 const psychicBlades = defineTrait<MesmerSkill>({
-  id: TRAIT.PSYCHIC_BLADES,
   name: 'Psychic Blades',
+  id: TRAIT.PSYCHIC_BLADES,
   balance: { maximumStacks: 5 }
 });
 
 /** Deadly Blades shares patched tuning with its existing packet and resource boundaries. */
 const deadlyBlades = defineTrait<MesmerSkill>({
-  triggers: [
-    onTriggerPoint(virtuosoBladeCritical, {
-      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof virtuosoBladeCritical>) =>
-        applyBladeCritical(
-          runtime,
-          input.event,
-          input.details,
-          TRAIT.DEADLY_BLADES,
-          'Deadly Blades',
-          CONDITION.VULNERABILITY,
-          'mesmer.virtuoso.deadly-blades'
-        )
-    }),
-    onTriggerPoint(mesmerShatterCompleted, {
-      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
-        resolveDeadlyBlades(runtime, input.resolution)
-    })
-  ],
-  id: TRAIT.DEADLY_BLADES,
   name: 'Deadly Blades',
+  id: TRAIT.DEADLY_BLADES,
   balance: {
     damageIncrease: 0.05,
     conditionDamageIncrease: 0.1,
@@ -85,11 +67,34 @@ const deadlyBlades = defineTrait<MesmerSkill>({
           : balanceNumberFromContext(context, TRAIT.DEADLY_BLADES, 'damageIncrease'),
       when: (context) => !illusionSource(context) && buffActive(context, 'deadly-blades')
     }
+  ],
+  triggers: [
+    onTriggerPoint(virtuosoBladeCritical, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof virtuosoBladeCritical>) =>
+        applyBladeCritical(
+          runtime,
+          input.event,
+          input.details,
+          TRAIT.DEADLY_BLADES,
+          'Deadly Blades',
+          CONDITION.VULNERABILITY,
+          'mesmer.virtuoso.deadly-blades'
+        )
+    }),
+    onTriggerPoint(mesmerShatterCompleted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
+        resolveDeadlyBlades(runtime, input.resolution)
+    })
   ]
 });
 
 /** Jagged Mind shares patched tuning with its existing packet and resource boundaries. */
 const jaggedMind = defineTrait<MesmerSkill>({
+  name: 'Jagged Mind',
+  id: TRAIT.JAGGED_MIND,
+  balance: {
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 4, stacks: 1 }]
+  },
   triggers: [
     onTriggerPoint(virtuosoBladeCritical, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof virtuosoBladeCritical>) =>
@@ -103,18 +108,13 @@ const jaggedMind = defineTrait<MesmerSkill>({
           'mesmer.virtuoso.jagged-mind'
         )
     })
-  ],
-  id: TRAIT.JAGGED_MIND,
-  name: 'Jagged Mind',
-  balance: {
-    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 4, stacks: 1 }]
-  }
+  ]
 });
 
 /** Bloodsong shares patched tuning with its existing packet and resource boundaries. */
 export const bloodsong = defineTrait<MesmerSkill>({
-  id: TRAIT.BLOODSONG,
   name: 'Bloodsong',
+  id: TRAIT.BLOODSONG,
   balance: {
     conditionDamageMultiplier: 1.25,
     threshold: 5,
@@ -159,8 +159,9 @@ export const bloodsong = defineTrait<MesmerSkill>({
 
 /** The proc owns its baseline attack; the shared phantasm lifecycle supplies the conversion boundary. */
 const phantasmalBlades = defineTrait<MesmerSkill>({
-  id: TRAIT.PHANTASMAL_BLADES,
   name: 'Phantasmal Blades',
+  id: TRAIT.PHANTASMAL_BLADES,
+  balance: { weaponStrength: 2553.5, effects: [{ name: 'Strike', type: 'strike', coefficient: 0.7, hits: 1 }] },
   // Capture the surviving bonus payload per summon batch without changing intrinsic blade conversion.
   triggers: [
     onTriggerPoint(mesmerPhantasmPreparing, {
@@ -177,14 +178,13 @@ const phantasmalBlades = defineTrait<MesmerSkill>({
           };
       }
     })
-  ],
-  balance: { weaponStrength: 2553.5, effects: [{ name: 'Strike', type: 'strike', coefficient: 0.7, hits: 1 }] }
+  ]
 });
 
 /** Keep the rounded build conversion separate from live Fury and direct-simulation attribute adjustments. */
 const quietIntensity = defineTrait<MesmerSkill>({
-  id: TRAIT.QUIET_INTENSITY,
   name: 'Quiet Intensity',
+  id: TRAIT.QUIET_INTENSITY,
   balance: { phantasmCriticalChance: 0.15, criticalChance: 0.15, vitalityConversion: 0.1 },
   attributes: (context) => {
     const { balanceContext, loadout } = context;
@@ -210,8 +210,8 @@ const quietIntensity = defineTrait<MesmerSkill>({
 
 /** Targets are always nearby in this simulation; only player strikes receive this multiplier. */
 const mentalFocus = defineTrait<MesmerSkill>({
-  id: TRAIT.MENTAL_FOCUS,
   name: 'Mental Focus',
+  id: TRAIT.MENTAL_FOCUS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05 },
   modifierRules: [
@@ -229,8 +229,8 @@ const mentalFocus = defineTrait<MesmerSkill>({
 
 /** Sharpening Sorrow shares patched tuning with its existing packet and resource boundaries. */
 const sharpeningSorrow = defineTrait<MesmerSkill>({
-  id: TRAIT.SHARPENING_SORROW,
   name: 'Sharpening Sorrow',
+  id: TRAIT.SHARPENING_SORROW,
   balance: {
     expertiseBonus: 150
   },
@@ -270,15 +270,8 @@ export const infiniteForgePassive = definePeriodicTask<MesmerRuntime>({
 
 /** Infinite Forge shares patched tuning with its existing packet and resource boundaries. */
 const infiniteForge = defineTrait<MesmerSkill>({
-  triggers: [
-    onTriggerPoint(virtuosoInitialized, { run: startInfiniteForge }),
-    onTriggerPoint(mesmerShatterCompleted, {
-      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
-        resolveInfiniteForgeRefund(runtime, input.resolution)
-    })
-  ],
-  id: TRAIT.INFINITE_FORGE,
   name: 'Infinite Forge',
+  id: TRAIT.INFINITE_FORGE,
   balance: {
     damageMultiplier: 1.07,
     pulseInterval: 3,
@@ -295,6 +288,13 @@ const infiniteForge = defineTrait<MesmerSkill>({
       order: 100,
       when: (context) => Boolean(context.event?.metadata?.blade)
     }
+  ],
+  triggers: [
+    onTriggerPoint(virtuosoInitialized, { run: startInfiniteForge }),
+    onTriggerPoint(mesmerShatterCompleted, {
+      run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
+        resolveInfiniteForgeRefund(runtime, input.resolution)
+    })
   ],
   lifetime: infiniteForgePassive.hooks
 });

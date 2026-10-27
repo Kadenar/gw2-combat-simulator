@@ -17,8 +17,8 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Every accepted dodge grants self Might immediately, including selected dodge variants. */
 export const pumpingUp = defineTrait({
-  id: TRAIT.PUMPING_UP,
   name: 'Pumping Up',
+  id: TRAIT.PUMPING_UP,
   balance: {
     effects: [
       {
@@ -47,14 +47,12 @@ export const pumpingUp = defineTrait({
 
 /** Owns Fluid Strikes tuning and behavior at the existing execution boundaries. */
 export const fluidStrikes = defineTrait({
-  id: TRAIT.FLUID_STRIKES,
   name: 'Fluid Strikes',
-  triggers: [
-    onTriggerPoint(thiefCastCompleted, {
-      when: (_runtime, { cast }: ThiefCastCompletion) => Boolean(cast.skill.movementSkill),
-      run: applyFluidStrikes
-    })
-  ],
+  id: TRAIT.FLUID_STRIKES,
+  balance: {
+    damageIncrease: 0.1,
+    duration: 5
+  },
   modifierRules: [
     {
       order: 8,
@@ -65,31 +63,33 @@ export const fluidStrikes = defineTrait({
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'fluid-strikes')
     }
   ],
-  balance: {
-    damageIncrease: 0.1,
-    duration: 5
-  }
+  triggers: [
+    onTriggerPoint(thiefCastCompleted, {
+      when: (_runtime, { cast }: ThiefCastCompletion) => Boolean(cast.skill.movementSkill),
+      run: applyFluidStrikes
+    })
+  ]
 });
 
 /** Owns Hard to Catch tuning and behavior at the existing execution boundaries. */
 export const hardToCatch = defineTrait({
-  id: TRAIT.HARD_TO_CATCH,
   name: 'Hard to Catch',
+  id: TRAIT.HARD_TO_CATCH,
+  balance: {
+    resourceGain: 8
+  },
   triggers: [
     onTriggerPoint(thiefCastCompleted, {
       when: (_runtime, { cast }: ThiefCastCompletion) => Boolean(cast.skill.movementSkill),
       run: applyHardToCatch
     })
-  ],
-  balance: {
-    resourceGain: 8
-  }
+  ]
 });
 
 /** Owns Swindler's Equilibrium tuning and behavior at the existing execution boundaries. */
 export const swindlersEquilibrium = defineTrait({
-  id: TRAIT.SWINDLERS_EQUILIBRIUM,
   name: "Swindler's Equilibrium",
+  id: TRAIT.SWINDLERS_EQUILIBRIUM,
   balance: { attributeBonus: 120, weaponAttributeBonus: 240 },
   attributes({ loadout, weaponSet, balanceContext }) {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
@@ -112,18 +112,18 @@ export const swindlersEquilibrium = defineTrait({
 
 /** Owns Upper Hand tuning and behavior at the existing execution boundaries. */
 export const upperHand = defineTrait({
-  id: TRAIT.UPPER_HAND,
   name: 'Upper Hand',
+  id: TRAIT.UPPER_HAND,
+  balance: {
+    internalCooldown: 2,
+    resourceGain: 1
+  },
   triggers: [
     onTriggerPoint(thiefCastCompleted, {
       when: (_runtime, { cast }: ThiefCastCompletion) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
       run: applyUpperHand
     })
-  ],
-  balance: {
-    internalCooldown: 2,
-    resourceGain: 1
-  }
+  ]
 });
 
 /** Applies Fluid Strikes at its established mechanical boundary. */

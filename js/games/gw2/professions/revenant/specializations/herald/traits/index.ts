@@ -35,13 +35,23 @@ const ECHO_EXPIRY = 'revenant.herald-echo-expiry';
 
 /** Owns Core Value tuning and behavior at its established execution boundaries. */
 const coreValue = defineTrait({
-  id: TRAIT.CORE_VALUE,
   name: 'Core Value',
+  id: TRAIT.CORE_VALUE,
   balance: { duration: 1 }
 });
 
 /** Retain consumed facets while allowing each facet's bonus to be tuned independently. */
 export const draconicEcho = defineTrait({
+  name: 'Draconic Echo',
+  id: TRAIT.DRACONIC_ECHO,
+  balance: {
+    duration: 6,
+    damageIncrease: 0.1,
+    conditionDamageIncrease: 0.1,
+    criticalChanceBonus: 0.1,
+    boonDurationBonus: 10,
+    effects: []
+  },
   // Echo's Nature bonus uses the normal cap, including retained facet windows.
   attributes: (context) => ({
     traitDurations: {
@@ -50,12 +60,6 @@ export const draconicEcho = defineTrait({
         : 0
     }
   }),
-  triggers: [
-    onTriggerPoint(facetConsumed, {
-      run: (runtime, input: TriggerPointInput<typeof facetConsumed>) =>
-        retainDraconicEcho(runtime, input.facet, input.wasActive)
-    })
-  ],
   modifierRules: [
     {
       id: 'revenant.draconic-echo-strength',
@@ -82,35 +86,19 @@ export const draconicEcho = defineTrait({
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_DARKNESS)
     }
   ],
-  lifetime: { tasks: { [ECHO_EXPIRY]: echoExpiry } },
-  id: TRAIT.DRACONIC_ECHO,
-  name: 'Draconic Echo',
-  balance: {
-    duration: 6,
-    damageIncrease: 0.1,
-    conditionDamageIncrease: 0.1,
-    criticalChanceBonus: 0.1,
-    boonDurationBonus: 10,
-    effects: []
-  }
+  triggers: [
+    onTriggerPoint(facetConsumed, {
+      run: (runtime, input: TriggerPointInput<typeof facetConsumed>) =>
+        retainDraconicEcho(runtime, input.facet, input.wasActive)
+    })
+  ],
+  lifetime: { tasks: { [ECHO_EXPIRY]: echoExpiry } }
 });
 
 /** Owns Elevated Compassion tuning and behavior at its established execution boundaries. */
 const elevatedCompassion = defineTrait({
-  triggers: [onTriggerPoint(heraldUpkeepSettled, { run: syncCompassion })],
-  attributes: traitAttributeEffects(TRAIT.ELEVATED_COMPASSION, [
-    {
-      kind: 'conversion',
-      from: 'Power',
-      to: 'Concentration',
-      field: 'attributeConversion',
-      rounding: 'round',
-      input: 'common'
-    }
-  ]),
-  lifetime: { tasks: { [COMPASSION]: compassionPulse } },
-  id: TRAIT.ELEVATED_COMPASSION,
   name: 'Elevated Compassion',
+  id: TRAIT.ELEVATED_COMPASSION,
   balance: {
     attributeConversion: 0.13,
     description: 'Grants quickness while aggregate upkeep is at least six.',
@@ -127,13 +115,25 @@ const elevatedCompassion = defineTrait({
         audience: { recipients: RECIPIENT.PARTY }
       }
     ]
-  }
+  },
+  attributes: traitAttributeEffects(TRAIT.ELEVATED_COMPASSION, [
+    {
+      kind: 'conversion',
+      from: 'Power',
+      to: 'Concentration',
+      field: 'attributeConversion',
+      rounding: 'round',
+      input: 'common'
+    }
+  ]),
+  triggers: [onTriggerPoint(heraldUpkeepSettled, { run: syncCompassion })],
+  lifetime: { tasks: { [COMPASSION]: compassionPulse } }
 });
 
 /** Owns Forceful Persistence tuning and behavior at its established execution boundaries. */
 const forcefulPersistence = defineTrait({
-  id: TRAIT.FORCEFUL_PERSISTENCE,
   name: 'Forceful Persistence',
+  id: TRAIT.FORCEFUL_PERSISTENCE,
   balance: { damageIncreasePerStack: 0.1, upkeepDamageIncrease: 0.25 },
   modifierRules: [
     {
@@ -162,17 +162,17 @@ const forcefulPersistence = defineTrait({
 
 /** Owns Reinforced Potency tuning and behavior at its established execution boundaries. */
 const reinforcedPotency = defineTrait({
-  attributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
-    // This intrinsic Concentration is conversion-eligible, unlike the separate boon-dependent damage bonus.
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'all' }
-  ]),
-  id: TRAIT.REINFORCED_POTENCY,
   name: 'Reinforced Potency',
+  id: TRAIT.REINFORCED_POTENCY,
   balance: {
     damagePerBoon: 0.01,
     maximumBoons: GW2_STANDARD_BOONS.length,
     attributeBonus: 240
   },
+  attributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
+    // This intrinsic Concentration is conversion-eligible, unlike the separate boon-dependent damage bonus.
+    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'all' }
+  ]),
   modifierRules: [
     {
       id: 'revenant.reinforced-potency',
@@ -194,8 +194,8 @@ const reinforcedPotency = defineTrait({
 
 /** Owns Shared Empowerment tuning and behavior at its established execution boundaries. */
 const sharedEmpowerment = defineTrait({
-  id: TRAIT.SHARED_EMPOWERMENT,
   name: 'Shared Empowerment',
+  id: TRAIT.SHARED_EMPOWERMENT,
   balance: {
     description: 'Applying a boon to an ally grants nearby allies one stack of might.',
     internalCooldown: 1,

@@ -32,33 +32,27 @@ import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/type
 
 /** Owns this trait's tuning and selected contributions. */
 const burstOfAggression = defineTrait({
+  name: 'Burst of Aggression',
+  id: TRAIT.BURST_OF_AGGRESSION,
+  balance: {
+    effects: [
+      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 },
+      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 8 }
+    ]
+  },
   triggers: [
     onTriggerPoint(berserkEntered, {
       requiresSelection: false,
       run: (runtime, input: TriggerPointInput<typeof berserkEntered>) =>
         emitBerserkEntryBoons(runtime, input.cast, TRAIT.BURST_OF_AGGRESSION)
     })
-  ],
-  id: TRAIT.BURST_OF_AGGRESSION,
-  name: 'Burst of Aggression',
-  balance: {
-    effects: [
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 },
-      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 8 }
-    ]
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const bloodyRoar = defineTrait({
-  triggers: [
-    onTriggerPoint(berserkEntered, {
-      run: (runtime, input: TriggerPointInput<typeof berserkEntered>) =>
-        emitBerserkEntryBoons(runtime, input.cast, TRAIT.BLOODY_ROAR)
-    })
-  ],
-  id: TRAIT.BLOODY_ROAR,
   name: 'Bloody Roar',
+  id: TRAIT.BLOODY_ROAR,
   balance: {
     damageMultiplier: 1.1,
     effects: [{ name: boonKey(BOON.RESISTANCE), type: 'boon', boon: BOON.RESISTANCE, stacks: 1, duration: 3.5 }]
@@ -72,13 +66,19 @@ const bloodyRoar = defineTrait({
       order: 100,
       when: (context) => active(context)
     }
+  ],
+  triggers: [
+    onTriggerPoint(berserkEntered, {
+      run: (runtime, input: TriggerPointInput<typeof berserkEntered>) =>
+        emitBerserkEntryBoons(runtime, input.cast, TRAIT.BLOODY_ROAR)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const lastBlaze = defineTrait({
-  id: TRAIT.LAST_BLAZE,
   name: 'Last Blaze',
+  id: TRAIT.LAST_BLAZE,
   balance: {
     durationExtension: 1,
     effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 4 }]
@@ -104,8 +104,8 @@ const lastBlaze = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const smashBrawler = defineTrait({
-  id: TRAIT.SMASH_BRAWLER,
   name: 'Smash Brawler',
+  id: TRAIT.SMASH_BRAWLER,
   balance: {
     criticalChance: 0.15,
     resourceGain: 2,
@@ -125,14 +125,8 @@ const smashBrawler = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const heatTheSoul = defineTrait({
-  triggers: [
-    onTriggerPoint(berserkerCastCompleted, {
-      run: (runtime, input: TriggerPointInput<typeof berserkerCastCompleted>) =>
-        heatTheSoulCompletion(runtime, input.cast)
-    })
-  ],
-  id: TRAIT.HEAT_THE_SOUL,
   name: 'Heat the Soul',
+  id: TRAIT.HEAT_THE_SOUL,
   balance: {
     effects: [
       { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
@@ -140,11 +134,36 @@ const heatTheSoul = defineTrait({
       { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 5 },
       { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 5 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(berserkerCastCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof berserkerCastCompleted>) =>
+        heatTheSoulCompletion(runtime, input.cast)
+    })
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const kingOfFires = defineTrait({
+  name: 'King of Fires',
+  id: TRAIT.KING_OF_FIRES,
+  balance: {
+    durationMultiplier: 0.33,
+    internalCooldown: 15,
+    effects: [
+      { name: AURA.FIRE, type: 'aura', aura: AURA.FIRE, duration: 5 },
+      { name: 'Strike', type: 'strike', coefficient: 0.7, hits: 1 },
+      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 3, duration: 3 }
+    ]
+  },
+  attributes(context) {
+    return {
+      traitDurations: {
+        'Burning Duration':
+          balanceNumberFromContext(context.balanceContext, TRAIT.KING_OF_FIRES, 'durationMultiplier') * 100
+      }
+    };
+  },
   triggers: [
     {
       on: 'damage.resolved',
@@ -208,25 +227,6 @@ const kingOfFires = defineTrait({
         kingOfFiresCompletion(runtime, input.cast)
     })
   ],
-  id: TRAIT.KING_OF_FIRES,
-  name: 'King of Fires',
-  balance: {
-    durationMultiplier: 0.33,
-    internalCooldown: 15,
-    effects: [
-      { name: AURA.FIRE, type: 'aura', aura: AURA.FIRE, duration: 5 },
-      { name: 'Strike', type: 'strike', coefficient: 0.7, hits: 1 },
-      { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 3, duration: 3 }
-    ]
-  },
-  attributes(context) {
-    return {
-      traitDurations: {
-        'Burning Duration':
-          balanceNumberFromContext(context.balanceContext, TRAIT.KING_OF_FIRES, 'durationMultiplier') * 100
-      }
-    };
-  },
   lifetime: {
     reactions: {
       'aura.applied'(runtime, event) {
@@ -243,6 +243,12 @@ const kingOfFires = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const bloodReaction = defineTrait({
+  name: 'Blood Reaction',
+  id: TRAIT.BLOOD_REACTION,
+  balance: {
+    attributeConversion: 0.12,
+    coefficientMultiplier: 0.24
+  },
   // Ordinary eligible conversions exclude signets, utility conversions, Might, and Berserk's flat grants.
   attributes(context) {
     const factor = balanceNumberFromContext(
@@ -270,22 +276,16 @@ export const bloodReaction = defineTrait({
         }
       ]
     };
-  },
-  id: TRAIT.BLOOD_REACTION,
-  name: 'Blood Reaction',
-  balance: {
-    attributeConversion: 0.12,
-    coefficientMultiplier: 0.24
   }
 });
 
 /** Primal Rage owns the reduced adrenaline capacity while the mode lifecycle controls entry and expiry. */
-const primalRage = defineTrait({ id: TRAIT.PRIMAL_RAGE, name: 'Primal Rage', balance: { maximumStacks: 10 } });
+const primalRage = defineTrait({ name: 'Primal Rage', id: TRAIT.PRIMAL_RAGE, balance: { maximumStacks: 10 } });
 
 /** Fatal Frenzy owns the final attributes granted while Berserk is active. */
 const fatalFrenzy = defineTrait({
-  id: TRAIT.FATAL_FRENZY,
   name: 'Fatal Frenzy',
+  id: TRAIT.FATAL_FRENZY,
   balance: { attributeBonus: 300, attributePerStack: 150 }
 });
 

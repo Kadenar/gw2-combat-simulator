@@ -46,11 +46,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Empowering Auras tuning and its existing execution behavior. */
 const empoweringAuras = defineTrait({
-  id: TRAIT.EMPOWERING_AURAS,
   name: 'Empowering Auras',
-  // New aura rewards obey activation isolation; accepted stacks still retain their lifetime.
-  triggers: [{ on: 'aura.applied', run: applyEmpoweringAura }],
-  lifetime: { reactions: { 'buff.applied': applyEmpoweringAurasBuff } },
+  id: TRAIT.EMPOWERING_AURAS,
   balance: {
     maximumStacks: 5,
     duration: 10,
@@ -83,17 +80,15 @@ const empoweringAuras = defineTrait({
         );
       }
     }
-  ]
+  ],
+  // New aura rewards obey activation isolation; accepted stacks still retain their lifetime.
+  triggers: [{ on: 'aura.applied', run: applyEmpoweringAura }],
+  lifetime: { reactions: { 'buff.applied': applyEmpoweringAurasBuff } }
 });
 /** Owns Elemental Epitome tuning and its existing execution behavior. */
 const elementalEpitome = defineTrait({
-  id: TRAIT.ELEMENTAL_EPITOME,
   name: 'Elemental Epitome',
-  // Aura and combo admission share selection without sharing their independent eligibility rules.
-  triggers: [
-    { on: 'aura.applied', run: applyEpitomeAura },
-    { on: 'combo.resolved', run: applyEpitomeCombo }
-  ],
+  id: TRAIT.ELEMENTAL_EPITOME,
   balance: {
     internalCooldown: 10,
     effects: [
@@ -109,22 +104,27 @@ const elementalEpitome = defineTrait({
         duration: 15
       }
     ]
-  }
+  },
+  // Aura and combo admission share selection without sharing their independent eligibility rules.
+  triggers: [
+    { on: 'aura.applied', run: applyEpitomeAura },
+    { on: 'combo.resolved', run: applyEpitomeCombo }
+  ]
 });
 /** Owns Elemental Synergy tuning and its existing execution behavior. */
 const elementalSynergy = defineTrait({
-  id: TRAIT.ELEMENTAL_SYNERGY,
   name: 'Elemental Synergy',
-  // Per-element combo rewards are admitted only while trait producers are enabled.
-  triggers: [{ on: 'combo.resolved', run: applySynergyCombo }],
+  id: TRAIT.ELEMENTAL_SYNERGY,
   balance: {
     internalCooldown: 10,
     resourceGain: 50,
     effects: [boon('Fire', boonKey(BOON.MIGHT), 6, 10), boon('Earth', boonKey(BOON.STABILITY), 2, 6)]
-  }
+  },
+  // Per-element combo rewards are admitted only while trait producers are enabled.
+  triggers: [{ on: 'combo.resolved', run: applySynergyCombo }]
 });
 /** Shares the existing Elemental Empowerment profile's scaling fields without duplicating patch targets. */
-const empoweredEmpowerment = defineTrait({ id: TRAIT.EMPOWERED_EMPOWERMENT, name: 'Empowered Empowerment' });
+const empoweredEmpowerment = defineTrait({ name: 'Empowered Empowerment', id: TRAIT.EMPOWERED_EMPOWERMENT });
 
 /** Validate each renewal before granting; baseline stacks remain ambient and start immediately at combat entry. */
 export const baseEmpowermentPassive = definePeriodicTask<ElementalistRuntime>({
@@ -147,9 +147,8 @@ function nextBaseEmpowermentAt(runtime: ElementalistRuntime): number {
 
 /** Owns Elemental Empowerment tuning and its existing execution behavior. */
 const elementalEmpowerment = defineTrait({
-  attributes: elementalEmpowermentAttributes,
-  id: TRAIT.ELEMENTAL_EMPOWERMENT,
   name: 'Elemental Empowerment',
+  id: TRAIT.ELEMENTAL_EMPOWERMENT,
   balance: {
     maximumStacks: 10,
     playerStacks: 3,
@@ -158,6 +157,7 @@ const elementalEmpowerment = defineTrait({
     coefficientMultiplier: 0.015,
     attributeConversion: 0.2
   },
+  attributes: elementalEmpowermentAttributes,
   // Admit one renewal loop at combat entry; scheduled renewals belong to the admitted lifetime.
   triggers: [
     onTriggerPoint(catalystCombatStarted, {
@@ -180,13 +180,8 @@ const elementalEmpowerment = defineTrait({
 
 /** Owns Vicious Empowerment tuning and its existing execution behavior. */
 export const viciousEmpowerment = defineTrait({
-  id: TRAIT.VICIOUS_EMPOWERMENT,
   name: 'Vicious Empowerment',
-  // Both qualifying inputs use the same selected producer and cooldown claim.
-  triggers: [
-    { on: 'control.resolved', run: applyViciousEmpowerment },
-    { on: 'condition.applied', run: applyViciousEmpowerment }
-  ],
+  id: TRAIT.VICIOUS_EMPOWERMENT,
   balance: {
     internalCooldown: 0.25,
     effects: [
@@ -199,40 +194,39 @@ export const viciousEmpowerment = defineTrait({
       },
       boon(BOON.MIGHT, boonKey(BOON.MIGHT), 2, 10)
     ]
-  }
+  },
+  // Both qualifying inputs use the same selected producer and cooldown claim.
+  triggers: [
+    { on: 'control.resolved', run: applyViciousEmpowerment },
+    { on: 'condition.applied', run: applyViciousEmpowerment }
+  ]
 });
 /** Unlocks spheres and owns their shared energy capacity, cost, and accepted-hit generation. */
 const depthOfElements = defineTrait({
-  id: TRAIT.DEPTH_OF_ELEMENTS,
   name: 'Depth of Elements',
+  id: TRAIT.DEPTH_OF_ELEMENTS,
   balance: { maximumStacks: 30, resourceCost: 10, resourceGain: 1 }
 });
 /** Owns Energized Elements tuning and its existing execution behavior. */
 const energizedElements = defineTrait({
+  name: 'Energized Elements',
+  id: TRAIT.ENERGIZED_ELEMENTS,
+  balance: {
+    resourceGain: 2,
+    effects: [boon(BOON.FURY, boonKey(BOON.FURY), 1, 2)]
+  },
   triggers: [
     onTriggerPoint(catalystTransitionObserved, {
       run: (runtime: ElementalistRuntime, { event }: { readonly event: SimulationEvent }) => {
         applyEnergizedElements(runtime, event);
       }
     })
-  ],
-  id: TRAIT.ENERGIZED_ELEMENTS,
-  name: 'Energized Elements',
-  balance: {
-    resourceGain: 2,
-    effects: [boon(BOON.FURY, boonKey(BOON.FURY), 1, 2)]
-  }
+  ]
 });
 /** Owns Spectacular Sphere tuning and its existing execution behavior. */
 const spectacularSphere = defineTrait({
-  triggers: [
-    onTriggerPoint(sphereDeployed, {
-      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
-        applySphereStartTraits(runtime, cast, cast.skill)
-    })
-  ],
-  id: TRAIT.SPECTACULAR_SPHERE,
   name: 'Spectacular Sphere',
+  id: TRAIT.SPECTACULAR_SPHERE,
   balance: {
     effects: [
       boon(BOON.QUICKNESS, boonKey(BOON.QUICKNESS), 1, 2),
@@ -241,12 +235,18 @@ const spectacularSphere = defineTrait({
       boon('Air', boonKey(BOON.FURY), 1, 5),
       boon('Earth', boonKey(BOON.AEGIS), 1, 3)
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(sphereDeployed, {
+      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
+        applySphereStartTraits(runtime, cast, cast.skill)
+    })
+  ]
 });
 /** Owns Sphere Specialist tuning and its existing execution behavior. */
 const sphereSpecialist = defineTrait({
-  id: TRAIT.SPHERE_SPECIALIST,
   name: 'Sphere Specialist',
+  id: TRAIT.SPHERE_SPECIALIST,
   balance: {
     durationMultiplier: 1.5
   }

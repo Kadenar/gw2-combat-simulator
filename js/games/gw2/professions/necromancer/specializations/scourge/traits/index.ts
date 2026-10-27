@@ -39,14 +39,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Demonic Lore tuning and behavior at its existing execution boundaries. */
 const demonicLore = defineTrait({
-  triggers: [
-    onTriggerPoint(scourgeConditionApplied, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeConditionApplied>) =>
-        reactToCondition(runtime, input.event)
-    })
-  ],
-  id: TRAIT.DEMONIC_LORE,
   name: 'Demonic Lore',
+  id: TRAIT.DEMONIC_LORE,
   balance: {
     conditionDamageMultiplier: 1.33,
     cooldown: 3,
@@ -70,13 +64,19 @@ const demonicLore = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.DEMONIC_LORE, 'conditionDamageMultiplier'),
       when: (context) => context.condition === CONDITION.TORMENT
     }
+  ],
+  triggers: [
+    onTriggerPoint(scourgeConditionApplied, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeConditionApplied>) =>
+        reactToCondition(runtime, input.event)
+    })
   ]
 });
 
 /** Owns Sand Savant tuning and behavior at its existing execution boundaries. */
 const sandSavant = defineTrait({
-  id: TRAIT.SAND_SAVANT,
   name: 'Sand Savant',
+  id: TRAIT.SAND_SAVANT,
   balance: {
     maximumStacks: 1,
     rechargePenalty: 1.25,
@@ -110,15 +110,8 @@ const sandSavant = defineTrait({
 
 /** Owns Abrasive Grit tuning and behavior at its existing execution boundaries. */
 const abrasiveGrit = defineTrait({
-  triggers: [
-    {
-      on: 'buff.applied',
-      order: 0,
-      run: (runtime, event) => grantBarrierBoon(runtime, event, TRAIT.ABRASIVE_GRIT, boonKey(BOON.MIGHT))
-    }
-  ],
-  id: TRAIT.ABRASIVE_GRIT,
   name: 'Abrasive Grit',
+  id: TRAIT.ABRASIVE_GRIT,
   balance: {
     effects: [
       {
@@ -131,11 +124,42 @@ const abrasiveGrit = defineTrait({
         audience: { recipients: RECIPIENT.PARTY }
       }
     ]
-  }
+  },
+  triggers: [
+    {
+      on: 'buff.applied',
+      order: 0,
+      run: (runtime, event) => grantBarrierBoon(runtime, event, TRAIT.ABRASIVE_GRIT, boonKey(BOON.MIGHT))
+    }
+  ]
 });
 
 /** Owns Desert Empowerment tuning and behavior at its existing execution boundaries. */
 const desertEmpowerment = defineTrait({
+  name: 'Desert Empowerment',
+  id: TRAIT.DESERT_EMPOWERMENT,
+  balance: {
+    effects: [
+      {
+        name: 'barrier',
+        type: 'buff',
+        kind: 'barrier',
+        stacks: 1,
+        duration: 5,
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
+      },
+      {
+        name: boonKey(BOON.ALACRITY),
+        type: 'boon',
+        boon: BOON.ALACRITY,
+        stacks: 1,
+        duration: 1.5,
+        actorType: ACTOR.PLAYER,
+        audience: { recipients: RECIPIENT.PARTY }
+      }
+    ]
+  },
   triggers: [
     onTriggerPoint(scourgeShadeManifested, {
       run(runtime: NecromancerRuntime, { cast }: TriggerPointInput<typeof scourgeShadeManifested>) {
@@ -159,43 +183,13 @@ const desertEmpowerment = defineTrait({
       order: 1,
       run: (runtime, event) => grantBarrierBoon(runtime, event, TRAIT.DESERT_EMPOWERMENT, boonKey(BOON.ALACRITY))
     }
-  ],
-  id: TRAIT.DESERT_EMPOWERMENT,
-  name: 'Desert Empowerment',
-  balance: {
-    effects: [
-      {
-        name: 'barrier',
-        type: 'buff',
-        kind: 'barrier',
-        stacks: 1,
-        duration: 5,
-        actorType: ACTOR.PLAYER,
-        audience: { recipients: RECIPIENT.PARTY }
-      },
-      {
-        name: boonKey(BOON.ALACRITY),
-        type: 'boon',
-        boon: BOON.ALACRITY,
-        stacks: 1,
-        duration: 1.5,
-        actorType: ACTOR.PLAYER,
-        audience: { recipients: RECIPIENT.PARTY }
-      }
-    ]
-  }
+  ]
 });
 
 /** Owns Sadistic Searing tuning and behavior at its existing execution boundaries. */
 const sadisticSearing = defineTrait({
-  triggers: [
-    onTriggerPoint(scourgeShadeCommitted, {
-      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeShadeCommitted>) =>
-        applySadisticSearing(runtime, input.cast)
-    })
-  ],
-  id: TRAIT.SADISTIC_SEARING,
   name: 'Sadistic Searing',
+  id: TRAIT.SADISTIC_SEARING,
   balance: {
     effects: [
       {
@@ -207,27 +201,23 @@ const sadisticSearing = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(scourgeShadeCommitted, {
+      run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeShadeCommitted>) =>
+        applySadisticSearing(runtime, input.cast)
+    })
+  ]
 });
 
 /** Owns Fell Beacon tuning and behavior at its existing execution boundaries. */
 const fellBeacon = defineTrait({
-  id: TRAIT.FELL_BEACON,
   name: 'Fell Beacon',
+  id: TRAIT.FELL_BEACON,
   balance: {
     conditionDamageMultiplier: 1.1,
     attributeConversion: 0.07
   },
-  modifierRules: [
-    {
-      order: 120,
-      id: 'necromancer.fell-beacon',
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.FELL_BEACON, 'conditionDamageMultiplier'),
-      when: (context) => context.condition === CONDITION.BURNING
-    }
-  ],
   attributes: traitAttributeEffects(TRAIT.FELL_BEACON, [
     {
       kind: 'conversion',
@@ -237,11 +227,26 @@ const fellBeacon = defineTrait({
       rounding: 'none',
       input: 'eligible'
     }
-  ])
+  ]),
+  modifierRules: [
+    {
+      order: 120,
+      id: 'necromancer.fell-beacon',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'multiply',
+      factor: (context) => balanceNumberFromContext(context, TRAIT.FELL_BEACON, 'conditionDamageMultiplier'),
+      when: (context) => context.condition === CONDITION.BURNING
+    }
+  ]
 });
 
 /** Owns Sand Sage tuning and behavior at its existing execution boundaries. */
 const sandSage = defineTrait({
+  name: 'Sand Sage',
+  id: TRAIT.SAND_SAGE,
+  balance: {
+    attributeBonus: 225
+  },
   // A living shade grants conversion-eligible duration attributes; expiry also removes their utility contribution.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.SAND_SAGE);
@@ -266,35 +271,29 @@ const sandSage = defineTrait({
         }
       ]
     };
-  },
-
-  id: TRAIT.SAND_SAGE,
-  name: 'Sand Sage',
-  balance: {
-    attributeBonus: 225
   }
 });
 
 /** Owns Nourishing Ashes tuning and behavior at its existing execution boundaries. */
 const nourishingAshes = defineTrait({
+  name: 'Nourishing Ashes',
+  id: TRAIT.NOURISHING_ASHES,
+  balance: {
+    lifeForceGain: 5,
+    cooldown: 3
+  },
   triggers: [
     onTriggerPoint(scourgeConditionApplied, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof scourgeConditionApplied>) =>
         applyNourishingAshes(runtime, input.event)
     })
-  ],
-  id: TRAIT.NOURISHING_ASHES,
-  name: 'Nourishing Ashes',
-  balance: {
-    lifeForceGain: 5,
-    cooldown: 3
-  }
+  ]
 });
 
 /** Owns Herald of Sorrow's ordered mechanic integration. */
 const heraldOfSorrow = defineTrait({
-  id: TRAIT.HERALD_OF_SORROW,
   name: 'Herald of Sorrow',
+  id: TRAIT.HERALD_OF_SORROW,
   // F5 resolves to the selected shroud, so saved rotations survive trait edits.
   hooks: { modifySkillId: traitSkillReplacement(TRAIT.HERALD_OF_SORROW, [[ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD]]) }
 });

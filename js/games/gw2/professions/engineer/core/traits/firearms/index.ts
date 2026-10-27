@@ -30,6 +30,24 @@ import { mechStruck, type MechStrike } from '#gw2/professions/engineer/core/mech
 
 /** Owns Serrated Steel tuning and behavior at its established runtime and build boundaries. */
 export const serratedSteel = defineTrait({
+  name: 'Serrated Steel',
+  id: TRAIT.SERRATED_STEEL,
+  balance: {
+    procRate: {
+      id: 'engineer.serrated-steel',
+      traitId: TRAIT.SERRATED_STEEL,
+      field: 'procChance',
+      opportunity: 'eligible critical hit'
+    },
+    procChance: 0.33,
+    durationMultiplier: 0.33,
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3 }]
+  },
+  attributes: ({ balanceContext }) => ({
+    traitDurations: {
+      'Bleeding Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.SERRATED_STEEL, 'durationMultiplier')
+    }
+  }),
   // Core critical procs open the strike package, ahead of the explosion rewards.
   triggers: [
     {
@@ -51,50 +69,13 @@ export const serratedSteel = defineTrait({
     onTriggerPoint(mechStruck, {
       run: (runtime, { cause, details }: MechStrike) => mechSerratedSteel(runtime, cause, details)
     })
-  ],
-  id: TRAIT.SERRATED_STEEL,
-  name: 'Serrated Steel',
-  balance: {
-    procRate: {
-      id: 'engineer.serrated-steel',
-      traitId: TRAIT.SERRATED_STEEL,
-      field: 'procChance',
-      opportunity: 'eligible critical hit'
-    },
-    procChance: 0.33,
-    durationMultiplier: 0.33,
-    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 3 }]
-  },
-  attributes: ({ balanceContext }) => ({
-    traitDurations: {
-      'Bleeding Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.SERRATED_STEEL, 'durationMultiplier')
-    }
-  })
+  ]
 });
 
 /** Owns No Scope tuning and behavior at its established runtime and build boundaries. */
 export const noScope = defineTrait({
-  // Core critical procs open the strike package, ahead of the explosion rewards.
-  triggers: [
-    {
-      on: 'damage.resolved',
-      run: criticalProcHandler({
-        id: 'engineer.core.no-scope',
-        actorTypes: [ACTOR.PLAYER],
-        when: (_context, event) => Number(event.coefficient) > 0,
-        internalCooldown: {
-          duration: (context) => balanceNumberFromContext(context, TRAIT.NO_SCOPE, 'internalCooldown'),
-          readyAt: (context) => context.procs.deadline('noScope') || 0,
-          setReadyAt: (context, readyAt) => {
-            context.procs.setDeadline('noScope', readyAt);
-          }
-        },
-        handler: grantNoScope
-      })
-    }
-  ],
-  id: TRAIT.NO_SCOPE,
   name: 'No Scope',
+  id: TRAIT.NO_SCOPE,
   balance: {
     internalCooldown: 8,
     attributeBonus: 150,
@@ -113,11 +94,42 @@ export const noScope = defineTrait({
         }
       ]
     };
-  }
+  },
+  // Core critical procs open the strike package, ahead of the explosion rewards.
+  triggers: [
+    {
+      on: 'damage.resolved',
+      run: criticalProcHandler({
+        id: 'engineer.core.no-scope',
+        actorTypes: [ACTOR.PLAYER],
+        when: (_context, event) => Number(event.coefficient) > 0,
+        internalCooldown: {
+          duration: (context) => balanceNumberFromContext(context, TRAIT.NO_SCOPE, 'internalCooldown'),
+          readyAt: (context) => context.procs.deadline('noScope') || 0,
+          setReadyAt: (context, readyAt) => {
+            context.procs.setDeadline('noScope', readyAt);
+          }
+        },
+        handler: grantNoScope
+      })
+    }
+  ]
 });
 
 /** Owns Incendiary Powder tuning and behavior at its established runtime and build boundaries. */
 export const incendiaryPowder = defineTrait({
+  name: 'Incendiary Powder',
+  id: TRAIT.INCENDIARY_POWDER,
+  balance: {
+    internalCooldown: 10,
+    durationMultiplier: 0.33,
+    effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 }]
+  },
+  attributes: ({ balanceContext }) => ({
+    traitDurations: {
+      'Burning Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.INCENDIARY_POWDER, 'durationMultiplier')
+    }
+  }),
   // Core critical procs open the strike package, ahead of the explosion rewards.
   triggers: [
     {
@@ -141,32 +153,21 @@ export const incendiaryPowder = defineTrait({
     onTriggerPoint(mechStruck, {
       run: (runtime, { cause, details }: MechStrike) => mechIncendiaryPowder(runtime, cause, details)
     })
-  ],
-  id: TRAIT.INCENDIARY_POWDER,
-  name: 'Incendiary Powder',
-  balance: {
-    internalCooldown: 10,
-    durationMultiplier: 0.33,
-    effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 8 }]
-  },
-  attributes: ({ balanceContext }) => ({
-    traitDurations: {
-      'Burning Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.INCENDIARY_POWDER, 'durationMultiplier')
-    }
-  })
+  ]
 });
 
 /** Owns Thermal Vision tuning and behavior at its established runtime and build boundaries. */
 export const thermalVision = defineTrait({
-  // Selection and isolation gate the accepted-condition reward before any proc claim.
-  triggers: [{ on: 'condition.applied', run: applyThermalVision }],
-  id: TRAIT.THERMAL_VISION,
   name: 'Thermal Vision',
+  id: TRAIT.THERMAL_VISION,
   balance: {
     conditionDamageIncrease: 0.05,
     attributeBonus: 150,
     effects: [{ name: 'thermal-vision', type: 'buff', kind: 'thermal-vision', stacks: 1, duration: 4 }]
   },
+  attributes: traitAttributeEffects(TRAIT.THERMAL_VISION, [
+    { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: 'all' }
+  ]),
   modifierRules: [
     {
       order: -8,
@@ -179,28 +180,25 @@ export const thermalVision = defineTrait({
       when: (context) => buffActive(context, 'thermal-vision')
     }
   ],
-  attributes: traitAttributeEffects(TRAIT.THERMAL_VISION, [
-    { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  // Selection and isolation gate the accepted-condition reward before any proc claim.
+  triggers: [{ on: 'condition.applied', run: applyThermalVision }]
 });
 
 /** Owns Sanguine Array tuning and behavior at its established runtime and build boundaries. */
 export const sanguineArray = defineTrait({
-  // Selection and isolation gate the accepted-condition reward before any proc claim.
-  triggers: [{ on: 'condition.applied', run: applySanguineArray }],
-  id: TRAIT.SANGUINE_ARRAY,
   name: 'Sanguine Array',
+  id: TRAIT.SANGUINE_ARRAY,
   balance: {
     effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 4 }]
-  }
+  },
+  // Selection and isolation gate the accepted-condition reward before any proc claim.
+  triggers: [{ on: 'condition.applied', run: applySanguineArray }]
 });
 
 /** Owns Hematic Focus tuning and behavior at its established runtime and build boundaries. */
 export const hematicFocus = defineTrait({
-  // Selection and isolation gate the accepted-condition reward before any proc claim.
-  triggers: [{ on: 'condition.applied', run: applyHematicFocus }],
-  id: TRAIT.HEMATIC_FOCUS,
   name: 'Hematic Focus',
+  id: TRAIT.HEMATIC_FOCUS,
   balance: {
     criticalChance: 0.15,
     internalCooldown: 8,
@@ -216,11 +214,22 @@ export const hematicFocus = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, boonKey(BOON.FURY), 1) > 0
     }
-  ]
+  ],
+  // Selection and isolation gate the accepted-condition reward before any proc claim.
+  triggers: [{ on: 'condition.applied', run: applyHematicFocus }]
 });
 
 /** Owns Chemical Rounds tuning and behavior at its established runtime and build boundaries. */
 export const chemicalRounds = defineTrait({
+  name: 'Chemical Rounds',
+  id: TRAIT.CHEMICAL_ROUNDS,
+  balance: {
+    conditionDurationMultiplier: 4 / 3,
+    attributeBonus: 120
+  },
+  attributes: traitAttributeEffects(TRAIT.CHEMICAL_ROUNDS, [
+    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'all' }
+  ]),
   // Keep the pistol multiplier outside the capped duration stage.
   modifierRules: [
     {
@@ -230,22 +239,13 @@ export const chemicalRounds = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.CHEMICAL_ROUNDS, 'conditionDurationMultiplier'),
       when: chemicalRoundsEligible
     }
-  ],
-  id: TRAIT.CHEMICAL_ROUNDS,
-  name: 'Chemical Rounds',
-  balance: {
-    conditionDurationMultiplier: 4 / 3,
-    attributeBonus: 120
-  },
-  attributes: traitAttributeEffects(TRAIT.CHEMICAL_ROUNDS, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  ]
 });
 
 /** Owns High Caliber tuning and behavior at its established runtime and build boundaries. */
 export const highCaliber = defineTrait({
-  id: TRAIT.HIGH_CALIBER,
   name: 'High Caliber',
+  id: TRAIT.HIGH_CALIBER,
   balance: {
     criticalChance: 0.15
   },
@@ -263,8 +263,8 @@ export const highCaliber = defineTrait({
 
 /** Owns Heavy Metal tuning and behavior at its established runtime and build boundaries. */
 export const heavyMetal = defineTrait({
-  id: TRAIT.HEAVY_METAL,
   name: 'Heavy Metal',
+  id: TRAIT.HEAVY_METAL,
   balance: {
     lowerThreshold: 0.25,
     middleThreshold: 0.5,
@@ -297,24 +297,24 @@ export const heavyMetal = defineTrait({
 
 /** Owns Sharpshooter tuning and behavior at its established runtime and build boundaries. */
 export const sharpshooter = defineTrait({
+  name: 'Sharpshooter',
+  id: TRAIT.SHARPSHOOTER,
+  balance: {
+    coefficientMultiplier: 2 / 3
+  },
   // Sample final Power after specialization, relics, and actor projection.
   attributes: (context) => ({
     finalCondition: {
       condition: CONDITION.BLEEDING,
       powerMultiplier: balanceNumberFromContext(context, TRAIT.SHARPSHOOTER, 'coefficientMultiplier')
     }
-  }),
-  id: TRAIT.SHARPSHOOTER,
-  name: 'Sharpshooter',
-  balance: {
-    coefficientMultiplier: 2 / 3
-  }
+  })
 });
 
 /** Owns Modified Ammunition tuning and behavior at its established runtime and build boundaries. */
 export const modifiedAmmunition = defineTrait({
-  id: TRAIT.MODIFIED_AMMUNITION,
   name: 'Modified Ammunition',
+  id: TRAIT.MODIFIED_AMMUNITION,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damagePerCondition: 0.01, maximumConditions: CANONICAL_TARGET_CONDITIONS.length },
   modifierRules: [

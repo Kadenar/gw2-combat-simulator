@@ -38,8 +38,8 @@ import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/t
 
 /** Owns Thermal Release Valve at its established heat and impact boundaries. */
 const thermalReleaseValve = defineTrait({
-  id: TRAIT.THERMAL_RELEASE_VALVE,
   name: 'Thermal Release Valve',
+  id: TRAIT.THERMAL_RELEASE_VALVE,
   balance: {
     // The trait owns the dodge boon; the invoked Vent Exhaust skill owns its damage and heat loss.
     effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 3 }]
@@ -56,8 +56,8 @@ const thermalReleaseValve = defineTrait({
 
 /** Owns the selected Forge autoattack family; each chain stage keeps its position in the melee or Storm chain. */
 const crystalConfigurationStorm = defineTrait({
-  id: TRAIT.CRYSTAL_CONFIGURATION_STORM,
   name: 'Crystal Configuration: Storm',
+  id: TRAIT.CRYSTAL_CONFIGURATION_STORM,
   hooks: {
     modifySkillId: traitSkillReplacement(TRAIT.CRYSTAL_CONFIGURATION_STORM, [
       [ID.LIGHT_STRIKE, ID.LIGHT_STRIKE_STORM],
@@ -69,8 +69,8 @@ const crystalConfigurationStorm = defineTrait({
 
 /** Owns Enhanced Capacity Storage Unit at its established heat and impact boundaries. */
 const enhancedCapacityStorageUnit = defineTrait({
-  id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
   name: 'Enhanced Capacity Storage Unit',
+  id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
   balance: {
     maximumDamageIncrease: 0.225,
     maximumStacks: 150,
@@ -114,8 +114,8 @@ const enhancedCapacityStorageUnit = defineTrait({
 
 /** Owns Photonic Blasting Module at its established heat and impact boundaries. */
 const photonicBlastingModule = defineTrait({
-  id: TRAIT.PHOTONIC_BLASTING_MODULE,
   name: 'Photonic Blasting Module',
+  id: TRAIT.PHOTONIC_BLASTING_MODULE,
   balance: {
     cooldown: 5,
     effects: [
@@ -133,15 +133,15 @@ const photonicBlastingModule = defineTrait({
 
 /** Registers the passive heat adjustment consumed by Forge's cadence. */
 const lightDensityAmplifier = defineTrait({
-  id: TRAIT.LIGHT_DENSITY_AMPLIFIER,
   name: 'Light Density Amplifier',
+  id: TRAIT.LIGHT_DENSITY_AMPLIFIER,
   balance: { resourceGain: 1 }
 });
 
 /** Laser's Edge samples live heat after trait-adjusted capacity and overheat state. */
 const lasersEdge = defineTrait({
-  id: TRAIT.LASERS_EDGE,
   name: "Laser's Edge",
+  id: TRAIT.LASERS_EDGE,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { maximumDamageIncrease: 0.15, bonusPerHeat: 0.0015 },
   modifierRules: [
@@ -179,8 +179,8 @@ const lasersEdge = defineTrait({
 
 /** Owns Solar Focusing Lens at its established heat and impact boundaries. */
 export const solarFocusingLens = defineTrait({
-  id: TRAIT.SOLAR_FOCUSING_LENS,
   name: 'Solar Focusing Lens',
+  id: TRAIT.SOLAR_FOCUSING_LENS,
   balance: {
     damageIncrease: 0.1,
     minimumStacks: 2,
@@ -209,8 +209,8 @@ export const solarFocusingLens = defineTrait({
 export const holosmithTraits = [
   // Unlocking Photon Forge supplies its baseline heat generation and overheat recharge.
   defineTrait({
-    id: TRAIT.PHOTON_PROJECTOR,
     name: 'Photon Projector',
+    id: TRAIT.PHOTON_PROJECTOR,
     balance: { energyRegenerationPerSecond: 2, cooldown: 15 }
   }),
   lasersEdge,

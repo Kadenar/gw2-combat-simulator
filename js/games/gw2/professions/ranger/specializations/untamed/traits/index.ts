@@ -56,8 +56,8 @@ function rangerUnleashed(context: Gw2ModifierContext): boolean {
 
 /** Owns Natural Fortitude's live tuning and trait behavior. */
 const naturalFortitude = defineTrait({
-  id: TRAIT.NATURAL_FORTITUDE,
   name: 'Natural Fortitude',
+  id: TRAIT.NATURAL_FORTITUDE,
   balance: {
     attributeBonus: 240,
     // The unconditional ambush siphon keeps trait attribution and reads the active patch's damage payload.
@@ -76,6 +76,9 @@ const naturalFortitude = defineTrait({
       }
     ]
   },
+  attributes: traitAttributeEffects(TRAIT.NATURAL_FORTITUDE, [
+    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
+  ]),
   lifetime: {
     eventHandlers: {
       'ranger.natural-fortitude'(runtime, event) {
@@ -86,14 +89,20 @@ const naturalFortitude = defineTrait({
         });
       }
     }
-  },
-  attributes: traitAttributeEffects(TRAIT.NATURAL_FORTITUDE, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
-  ])
+  }
 });
 
 /** Owns Let Loose's live tuning and trait behavior. */
 const letLoose = defineTrait({
+  name: 'Let Loose',
+  id: TRAIT.LET_LOOSE,
+  balance: {
+    internalCooldown: 9,
+    effects: [
+      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 },
+      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 5 }
+    ]
+  },
   triggers: [
     {
       on: 'castCommit',
@@ -121,22 +130,13 @@ const letLoose = defineTrait({
       when: (_runtime, input: TriggerPointInput<typeof untamedStrike>) => input.event.actorType === ACTOR.PLAYER,
       run: (runtime, input: TriggerPointInput<typeof untamedStrike>) => triggerLetLoose(runtime, input.event)
     })
-  ],
-  id: TRAIT.LET_LOOSE,
-  name: 'Let Loose',
-  balance: {
-    internalCooldown: 9,
-    effects: [
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 },
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 5 }
-    ]
-  }
+  ]
 });
 
 /** Owns Blinding Outburst's live tuning and trait behavior. */
 const blindingOutburst = defineTrait({
-  id: TRAIT.BLINDING_OUTBURST,
   name: 'Blinding Outburst',
+  id: TRAIT.BLINDING_OUTBURST,
   balance: {
     damageIncrease: 0.25,
     effects: [{ name: CONDITION.BLINDNESS, type: 'condition', condition: CONDITION.BLINDNESS, duration: 2, stacks: 1 }]
@@ -176,13 +176,8 @@ const blindingOutburst = defineTrait({
 
 /** Owns Ferocious Symbiosis's live tuning and trait behavior. */
 const ferociousSymbiosis = defineTrait({
-  triggers: [
-    onTriggerPoint(untamedStrike, {
-      run: (runtime, input: TriggerPointInput<typeof untamedStrike>) => triggerFerociousSymbiosis(runtime, input.event)
-    })
-  ],
-  id: TRAIT.FEROCIOUS_SYMBIOSIS,
   name: 'Ferocious Symbiosis',
+  id: TRAIT.FEROCIOUS_SYMBIOSIS,
   balance: {
     damageIncreasePerStack: 0.05,
     maximumStacks: 5,
@@ -214,13 +209,18 @@ const ferociousSymbiosis = defineTrait({
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) || isPetStrike(context.event)
     }
+  ],
+  triggers: [
+    onTriggerPoint(untamedStrike, {
+      run: (runtime, input: TriggerPointInput<typeof untamedStrike>) => triggerFerociousSymbiosis(runtime, input.event)
+    })
   ]
 });
 
 /** Owns Debilitating Blows's live tuning and trait behavior. */
 const debilitatingBlows = defineTrait({
-  id: TRAIT.DEBILITATING_BLOWS,
   name: 'Debilitating Blows',
+  id: TRAIT.DEBILITATING_BLOWS,
   balance: {
     internalCooldown: 1,
     effects: [
@@ -280,8 +280,8 @@ const debilitatingBlows = defineTrait({
 
 /** Owns Enhancing Impact's live tuning and trait behavior. */
 const enhancingImpact = defineTrait({
-  id: TRAIT.ENHANCING_IMPACT,
   name: 'Enhancing Impact',
+  id: TRAIT.ENHANCING_IMPACT,
   balance: {
     internalCooldown: 1,
     effects: [
@@ -344,8 +344,8 @@ const enhancingImpact = defineTrait({
  * new series of independently expiring stacks. Reaching the threshold arms the next unleash even after stacks decay.
  */
 const biorhythm = defineTrait({
-  id: TRAIT.BIORHYTHM,
   name: 'Biorhythm',
+  id: TRAIT.BIORHYTHM,
   balance: {
     stackThreshold: 5,
     effects: [
@@ -413,8 +413,8 @@ function emitBiorhythmEffect(
 
 /** Owns Vow of the Untamed's live tuning and trait behavior. */
 const vowOfTheUntamed = defineTrait({
-  id: TRAIT.VOW_OF_THE_UNTAMED,
   name: 'Vow of the Untamed',
+  id: TRAIT.VOW_OF_THE_UNTAMED,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.25 },
   modifierRules: [
@@ -445,8 +445,8 @@ const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ...UN
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 /** The unlocking minor owns baseline specialization policy even when omitted from explicit selections. */
 const intrinsicPolicy = defineTrait({
-  id: TRAIT.UNLEASHED_POWER,
   name: 'Unleashed Power',
+  id: TRAIT.UNLEASHED_POWER,
   balance: { duration: 4, internalCooldown: 9 }
 });
 

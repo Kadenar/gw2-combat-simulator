@@ -26,8 +26,8 @@ import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Owns Soaring Devastation's tuning and behavior at the existing Dragonhunter boundaries. */
 const soaringDevastation = defineTrait({
-  id: TRAIT.SOARING_DEVASTATION,
   name: 'Soaring Devastation',
+  id: TRAIT.SOARING_DEVASTATION,
   balance: {
     effects: [
       { type: 'strike', name: 'Strike', coefficient: 1.5, hits: 1 },
@@ -44,8 +44,8 @@ const soaringDevastation = defineTrait({
 
 /** Owns Big Game Hunter's tuning and behavior at the existing Dragonhunter boundaries. */
 const bigGameHunter = defineTrait({
-  id: TRAIT.BIG_GAME_HUNTER,
   name: 'Big Game Hunter',
+  id: TRAIT.BIG_GAME_HUNTER,
   balance: {
     damageMultiplier: 1.25,
     pulseInterval: 12,
@@ -97,8 +97,8 @@ const bigGameHunter = defineTrait({
 
 /** Owns Hunter's Determination's tuning and behavior at the existing Dragonhunter boundaries. */
 const huntersDetermination = defineTrait({
-  id: TRAIT.HUNTERS_DETERMINATION,
   name: "Hunter's Determination",
+  id: TRAIT.HUNTERS_DETERMINATION,
   balance: { resourceGain: 100 },
   triggers: [
     onTriggerPoint(dragonhunterCastCompleted, {
@@ -110,8 +110,8 @@ const huntersDetermination = defineTrait({
 
 /** Owns Hunter's Premonition's tuning and behavior at the existing Dragonhunter boundaries. */
 const huntersPremonition = defineTrait({
-  id: TRAIT.HUNTERS_PREMONITION,
   name: "Hunter's Premonition",
+  id: TRAIT.HUNTERS_PREMONITION,
   balance: {
     effects: [{ type: 'boon', name: boonKey(BOON.AEGIS), boon: BOON.AEGIS, stacks: 1, duration: 3 }]
   },
@@ -134,8 +134,8 @@ const huntersPremonition = defineTrait({
 
 /** Owns Dulled Senses's tuning and behavior at the existing Dragonhunter boundaries. */
 const dulledSenses = defineTrait({
-  id: TRAIT.DULLED_SENSES,
   name: 'Dulled Senses',
+  id: TRAIT.DULLED_SENSES,
   balance: {
     effects: [
       {
@@ -152,8 +152,8 @@ const dulledSenses = defineTrait({
 
 /** Owns Defender's Dogma's tuning and behavior at the existing Dragonhunter boundaries. */
 const defendersDogma = defineTrait({
-  id: TRAIT.DEFENDERS_DOGMA,
   name: "Defender's Dogma",
+  id: TRAIT.DEFENDERS_DOGMA,
   balance: { attributeBonus: 180 },
   attributes: traitAttributeEffects(TRAIT.DEFENDERS_DOGMA, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
@@ -162,14 +162,13 @@ const defendersDogma = defineTrait({
 
 /** Owns Heavy Light's tuning and behavior at the existing Dragonhunter boundaries. */
 const heavyLight = defineTrait({
-  id: TRAIT.HEAVY_LIGHT,
   name: 'Heavy Light',
+  id: TRAIT.HEAVY_LIGHT,
   balance: {
     damageMultiplier: 1.15,
     internalCooldown: 1,
     effects: [{ type: 'boon', name: boonKey(BOON.STABILITY), boon: BOON.STABILITY, stacks: 1, duration: 6 }]
   },
-  triggers: [onTriggerPoint(dragonhunterControlAccepted, { run: grantHeavyLight })],
   modifierRules: [
     {
       id: 'guardian.dragonhunter.heavy-light',
@@ -179,13 +178,14 @@ const heavyLight = defineTrait({
       order: 100,
       when: (context) => Boolean(context.config?.target?.defiant)
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(dragonhunterControlAccepted, { run: grantHeavyLight })]
 });
 
 /** Owns Pure of Sight's tuning and behavior at the existing Dragonhunter boundaries. */
 const pureOfSight = defineTrait({
-  id: TRAIT.PURE_OF_SIGHT,
   name: 'Pure of Sight',
+  id: TRAIT.PURE_OF_SIGHT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.07 },
   modifierRules: [
@@ -201,8 +201,8 @@ const pureOfSight = defineTrait({
 
 /** Owns Zealot's Aggression's tuning and behavior at the existing Dragonhunter boundaries. */
 const zealotsAggression = defineTrait({
-  id: TRAIT.ZEALOTS_AGGRESSION,
   name: "Zealot's Aggression",
+  id: TRAIT.ZEALOTS_AGGRESSION,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
   modifierRules: [

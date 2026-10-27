@@ -2,7 +2,6 @@ import { STATUS, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constan
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, boonActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -11,7 +10,7 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
-import type { MechanicCombatContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -55,8 +54,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Air definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const zephyrsSpeed = defineTrait({
-  id: TRAIT.ZEPHYRS_SPEED,
   name: "Zephyr's Speed",
+  id: TRAIT.ZEPHYRS_SPEED,
   balance: { criticalChance: 0.05 },
   attributes: (context) => ({
     traitCriticalChance:
@@ -66,6 +65,12 @@ export const zephyrsSpeed = defineTrait({
 });
 
 export const freshAir = defineTrait({
+  name: 'Fresh Air',
+  id: TRAIT.FRESH_AIR,
+  balance: {
+    attributeBonus: 250,
+    effects: [{ name: 'fresh-air', type: 'buff', kind: 'fresh-air', stacks: 1, duration: 5 }]
+  },
   // Read the accepted Fresh Air window without changing its lifetime.
   attributes(context) {
     return {
@@ -80,8 +85,6 @@ export const freshAir = defineTrait({
       ]
     };
   },
-
-  id: TRAIT.FRESH_AIR,
   triggers: [
     onTriggerPoint(attunementChanged, {
       when: (_runtime: unknown, input: ElementalistAttunementChanged) => input.target === 'Air',
@@ -102,32 +105,32 @@ export const freshAir = defineTrait({
         observeFreshAirCandidate(runtime, event)
     })
   ],
-  name: 'Fresh Air',
   // Record the accepted proc once before the active elite observes its transition.
-  lifetime: { eventHandlers: { 'elementalist.fresh-air': observeElementalistTransition } },
-  balance: {
-    attributeBonus: 250,
-    effects: [{ name: 'fresh-air', type: 'buff', kind: 'fresh-air', stacks: 1, duration: 5 }]
-  }
+  lifetime: { eventHandlers: { 'elementalist.fresh-air': observeElementalistTransition } }
 });
 
 export const zephyrsBoon = defineTrait({
-  triggers: [
-    onTriggerPoint(auraAccepted, {
-      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => applyResolverZephyrsBoon(runtime, cause)
-    })
-  ],
-  id: TRAIT.ZEPHYRS_BOON,
   name: "Zephyr's Boon",
+  id: TRAIT.ZEPHYRS_BOON,
   balance: {
     effects: [
       { type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 5 },
       { type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 5 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(auraAccepted, {
+      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => applyResolverZephyrsBoon(runtime, cause)
+    })
+  ]
 });
 
 export const oneWithAir = defineTrait({
+  name: 'One with Air',
+  id: TRAIT.ONE_WITH_AIR,
+  balance: {
+    effects: [{ type: 'buff', name: 'Superspeed', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 }]
+  },
   triggers: [
     onTriggerPoint(attunementChanged, {
       when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
@@ -139,17 +142,12 @@ export const oneWithAir = defineTrait({
       run: (runtime: ElementalistRuntime, input: ElementalistEntry) =>
         applyOneWithAir(runtime, input.at, input.skill, input.emissionCast)
     })
-  ],
-  id: TRAIT.ONE_WITH_AIR,
-  name: 'One with Air',
-  balance: {
-    effects: [{ type: 'buff', name: 'Superspeed', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 }]
-  }
+  ]
 });
 
 export const ferociousWinds = defineTrait({
-  id: TRAIT.FEROCIOUS_WINDS,
   name: 'Ferocious Winds',
+  id: TRAIT.FEROCIOUS_WINDS,
   balance: { attributeConversion: 0.07 },
   attributes: traitAttributeEffects(TRAIT.FEROCIOUS_WINDS, [
     {
@@ -164,17 +162,8 @@ export const ferociousWinds = defineTrait({
 });
 
 export const electricDischarge = defineTrait({
-  // Alternate mechanic boundaries share one entry handler; only one boundary fires for each entry.
-  triggers: [attunementChanged, attunementInvoked, attunementReentered].map((on) =>
-    onTriggerPoint(on, {
-      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
-      run: (runtime: ElementalistRuntime, input: ElementalistEntry) => {
-        triggerElectricDischarge(runtime, input.at, input.skill.id, input.emissionCast);
-      }
-    })
-  ),
-  id: TRAIT.ELECTRIC_DISCHARGE,
   name: 'Electric Discharge',
+  id: TRAIT.ELECTRIC_DISCHARGE,
   balance: {
     criticalDamage: 2,
     effects: [
@@ -197,11 +186,30 @@ export const electricDischarge = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.ELECTRIC_DISCHARGE, 'criticalDamage'),
       when: (context) => (context.event?.skillName || context.event?.name || '') === 'Electric Discharge'
     }
-  ]
+  ],
+  // Alternate mechanic boundaries share one entry handler; only one boundary fires for each entry.
+  triggers: [attunementChanged, attunementInvoked, attunementReentered].map((on) =>
+    onTriggerPoint(on, {
+      when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
+      run: (runtime: ElementalistRuntime, input: ElementalistEntry) => {
+        triggerElectricDischarge(runtime, input.at, input.skill.id, input.emissionCast);
+      }
+    })
+  )
 });
 
 export const inscription = defineTrait({
+  name: 'Inscription',
   id: TRAIT.INSCRIPTION,
+  balance: {
+    effects: [
+      { type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Water', boon: BOON.REGENERATION, stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Air', boon: BOON.SWIFTNESS, stacks: 1, duration: 10 },
+      { type: 'boon', name: 'Earth', boon: BOON.PROTECTION, stacks: 1, duration: 3 },
+      { type: 'boon', name: 'Air Entry', boon: BOON.RESISTANCE, stacks: 1, duration: 3 }
+    ]
+  },
   triggers: [
     onTriggerPoint(attunementChanged, {
       when: (_runtime: unknown, input: ElementalistEntry) => input.target === 'Air',
@@ -214,20 +222,27 @@ export const inscription = defineTrait({
         applyInscriptionAirEntry(runtime, input.at, input.skill, input.emissionCast)
     }),
     onTriggerPoint(elementalistCastCompleted, { run: applyInscriptionPostCast })
-  ],
-  name: 'Inscription',
-  balance: {
-    effects: [
-      { type: 'boon', name: 'Fire', boon: BOON.MIGHT, stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Water', boon: BOON.REGENERATION, stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Air', boon: BOON.SWIFTNESS, stacks: 1, duration: 10 },
-      { type: 'boon', name: 'Earth', boon: BOON.PROTECTION, stacks: 1, duration: 3 },
-      { type: 'boon', name: 'Air Entry', boon: BOON.RESISTANCE, stacks: 1, duration: 3 }
-    ]
-  }
+  ]
 });
 
 export const ragingStorm = defineTrait({
+  name: 'Raging Storm',
+  id: TRAIT.RAGING_STORM,
+  balance: {
+    internalCooldown: 8,
+    attributeBonus: 180,
+    effects: [
+      {
+        type: 'boon',
+        name: BOON.FURY,
+        boon: BOON.FURY,
+        // Share this support boon with affected allies within its recipient cap.
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        stacks: 1,
+        duration: 4
+      }
+    ]
+  },
   // Use actor-aware Fury in combat and configured Fury in the build panel.
   attributes(context) {
     return {
@@ -244,35 +259,17 @@ export const ragingStorm = defineTrait({
       ]
     };
   },
-
-  id: TRAIT.RAGING_STORM,
   triggers: [
     onTriggerPoint(elementalistDamageResolved, {
       run: (runtime: ElementalistResolverContext, { cause, details }: ElementalistDamageResolved) =>
         ragingStormCritical(runtime, cause, details)
     })
-  ],
-  name: 'Raging Storm',
-  balance: {
-    internalCooldown: 8,
-    attributeBonus: 180,
-    effects: [
-      {
-        type: 'boon',
-        name: BOON.FURY,
-        boon: BOON.FURY,
-        // Share this support boon with affected allies within its recipient cap.
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        stacks: 1,
-        duration: 4
-      }
-    ]
-  }
+  ]
 });
 
 export const aeromancersTraining = defineTrait({
-  id: TRAIT.AEROMANCERS_TRAINING,
   name: "Aeromancer's Training",
+  id: TRAIT.AEROMANCERS_TRAINING,
   balance: {
     attributeBonus: 150,
     rechargeMultiplier: 0.8
@@ -300,28 +297,35 @@ export const aeromancersTraining = defineTrait({
         }
       ]
     };
-  }
+  },
+  // Only this element's weapon skills receive the selected profile's persistent recharge multiplier.
+  rechargeRules: [
+    {
+      when: (_runtime, skill) => skill.type === 'Weapon' && skill.attunement === 'Air',
+      multiplier: { profile: TRAIT.AEROMANCERS_TRAINING, field: 'rechargeMultiplier' }
+    }
+  ]
 });
 
 export const lightningRod = defineTrait({
-  triggers: [
-    onTriggerPoint(controlAccepted, {
-      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => applyLightningRod(runtime, cause)
-    })
-  ],
-  id: TRAIT.LIGHTNING_ROD,
   name: 'Lightning Rod',
+  id: TRAIT.LIGHTNING_ROD,
   balance: {
     effects: [
       { name: 'Lightning Rod', type: 'strike', coefficient: 1.5, hits: 1 },
       { type: 'condition', name: 'Lightning Rod', condition: CONDITION.WEAKNESS, stacks: 1, duration: 4 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(controlAccepted, {
+      run: (runtime: ElementalistRuntime, { cause }: ElementalistReaction) => applyLightningRod(runtime, cause)
+    })
+  ]
 });
 
 export const stormsoul = defineTrait({
-  id: TRAIT.STORMSOUL,
   name: 'Stormsoul',
+  id: TRAIT.STORMSOUL,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.07 },
   modifierRules: [
@@ -337,8 +341,8 @@ export const stormsoul = defineTrait({
 });
 
 export const boltToTheHeart = defineTrait({
-  id: TRAIT.BOLT_TO_THE_HEART,
   name: 'Bolt to the Heart',
+  id: TRAIT.BOLT_TO_THE_HEART,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.2, threshold: 0.5 },
   modifierRules: [
@@ -445,17 +449,6 @@ function applyResolverZephyrsBoon(context: MechanicCombatContext, event: Gw2Reso
     },
     transform: (packet) => ({ ...packet, name: requireBalanceProfileFromContext(context, TRAIT.ZEPHYRS_BOON).name })
   });
-}
-
-/** Scale this element's weapon recharge after the mechanic has handled held and non-weapon cooldowns. */
-export function aeromancersTrainingRecharge(
-  context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill,
-  duration: number
-): number {
-  return skill.attunement === 'Air' && hasTrait(context, TRAIT.AEROMANCERS_TRAINING)
-    ? duration * balanceNumberFromContext(context, TRAIT.AEROMANCERS_TRAINING, 'rechargeMultiplier')
-    : duration;
 }
 
 /** Materializes Raging Storm after its registered critical-hit reaction succeeds. */

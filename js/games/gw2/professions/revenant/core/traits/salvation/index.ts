@@ -13,6 +13,9 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/prof
 
 /** Owns Life Attunement tuning and behavior at its established execution boundaries. */
 export const lifeAttunement = defineTrait({
+  name: 'Life Attunement',
+  id: TRAIT.LIFE_ATTUNEMENT,
+  balance: { attributeConversion: 0.07, attributeBonus: 120 },
   attributes: traitAttributeEffects(TRAIT.LIFE_ATTUNEMENT, [
     { kind: 'flat', to: 'Healing Power', field: 'attributeBonus', feedsConversions: 'all' },
     {
@@ -23,17 +26,13 @@ export const lifeAttunement = defineTrait({
       rounding: 'round',
       input: 'eligible'
     }
-  ]),
-  id: TRAIT.LIFE_ATTUNEMENT,
-  name: 'Life Attunement',
-  balance: { attributeConversion: 0.07, attributeBonus: 120 }
+  ])
 });
 
 /** Owns Serene Rejuvenation tuning and behavior at its established execution boundaries. */
 export const sereneRejuvenation = defineTrait({
-  triggers: [onTriggerPoint(revenantCastCompleted, { run: completeSereneRejuvenation })],
-  id: TRAIT.SERENE_REJUVENATION,
   name: 'Serene Rejuvenation',
+  id: TRAIT.SERENE_REJUVENATION,
   balance: {
     effects: [
       {
@@ -69,7 +68,8 @@ export const sereneRejuvenation = defineTrait({
         metadata: { trigger: String(ID.ENERGY_EXPULSION) }
       }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(revenantCastCompleted, { run: completeSereneRejuvenation })]
 });
 
 /** Runs the trait at its original ordered mechanic boundary. */

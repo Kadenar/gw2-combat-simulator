@@ -3,6 +3,52 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
+
+// Boon-only swap rewards keep independent ICDs and never reserve one for an absent payload or precombat swap.
+for (const [trait, boon, key, name] of [
+  [TRAIT.TAIL_WIND, 'swiftness', 'ranger.core.tailWind', 'Tail Wind'],
+  [TRAIT.FURIOUS_GRIP, 'fury', 'ranger.core.furiousGrip', 'Furious Grip']
+]) {
+  test(`${name} admits only selected, in-combat, surviving swap rewards`, () => {
+    for (const scenario of ['active', 'unselected', 'precombat', 'removed']) {
+      const result = runRanger(
+        [...(scenario === 'precombat' ? [] : [{ type: 'combat-start' }]), { type: 'wait', durationMs: 2100 }],
+        { selectedTraitIds: scenario === 'unselected' ? [] : [trait] },
+        {
+          catalog: (catalog) =>
+            scenario === 'removed'
+              ? applyBalanceProfilePatch(catalog, {
+                  balanceProfiles: { [trait]: { removeEffects: [{ type: 'boon', name: boon }] } }
+                })
+              : catalog,
+          timeline: [1, 2].map((at) => ({
+            at,
+            run(runtime) {
+              runtime.fireTrigger(weaponSwapped, {
+                skill: runtime.helpers.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS),
+                at
+              });
+              assert.equal(runtime.procs.deadline(key), scenario === 'active' ? 10 : 0);
+            }
+          }))
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const rewards = result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === trait);
+      assert.equal(rewards.length, scenario === 'active' ? 1 : 0);
+
+      if (rewards.length) {
+        assert.equal(rewards[0].kind, boon);
+        assert.equal(rewards[0].skillId, SHARED_SKILL_IDS.SWAP_WEAPONS);
+        assert.equal(rewards[0].skillName, name);
+        assert.equal(rewards[0].actorType, 'effect');
+      }
+    }
+  });
+}
 
 // Companion-created boons use companion concentration; player grants and fixed copies keep their own duration policy.
 test('shared emission chooses boon duration from the granting Ranger actor', () => {

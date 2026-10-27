@@ -3,6 +3,54 @@ import test from 'node:test';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { stealAccepted, stealthAttackCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
+
+// Both trait boundaries retain the triggering cast's identity and suppress explicitly removed conditions.
+for (const [trait, point, skillId, name] of [
+  [TRAIT.EVEN_THE_ODDS, stealAccepted, ID.STEAL, 'Even the Odds'],
+  [TRAIT.SUNDERING_SHADE, stealthAttackCompleted, ID.BACKSTAB, 'Sundering Shade']
+]) {
+  test(`${name} preserves cast ownership and selected profile removal`, () => {
+    for (const scenario of ['active', 'unselected', 'removed']) {
+      const result = runThief(
+        [{ type: 'wait', durationMs: 1100 }],
+        {
+          selectedTraitIds: scenario === 'unselected' ? [] : [trait]
+        },
+        {
+          catalog: (catalog) =>
+            scenario === 'removed'
+              ? applyBalanceProfilePatch(catalog, {
+                  balanceProfiles: { [trait]: { removeEffects: [{ type: 'condition', name: 'Vulnerability' }] } }
+                })
+              : catalog,
+          timeline: [
+            {
+              at: 1,
+              run(runtime) {
+                runtime.fireTrigger(point, {
+                  cast: { id: 'reward-cast', skill: runtime.helpers.skillsById.get(skillId) }
+                });
+              }
+            }
+          ]
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const reward = result.resolvedEvents.find((event) => event.type === 'condition' && event.sourceId === trait);
+      assert.equal(Boolean(reward), scenario === 'active');
+
+      if (reward) {
+        assert.equal(reward.activationId, 'reward-cast');
+        assert.equal(reward.skillId, skillId);
+        assert.equal(reward.actorType, 'player');
+        assert.equal(reward.traitId, trait);
+        assert.equal(reward.name, `${name} — Vulnerability`);
+      }
+    }
+  });
+}
 
 // Immediate poison participates in the enclosing hit, while queued Lotus Poison Weakness waits for that hit to finish.
 test('shared emission preserves Thief nested condition visibility before Panic Strike', () => {

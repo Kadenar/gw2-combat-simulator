@@ -28,9 +28,8 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
 
 /** Owns Abyssal Chill tuning and behavior at its established execution boundaries. */
 export const abyssalChill = defineTrait({
-  triggers: [onTriggerPoint(revenantConditionApplied, { run: reactAbyssalChill })],
-  id: TRAIT.ABYSSAL_CHILL,
   name: 'Abyssal Chill',
+  id: TRAIT.ABYSSAL_CHILL,
   balance: {
     effects: [
       {
@@ -42,13 +41,14 @@ export const abyssalChill = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ]
-  }
+  },
+  triggers: [onTriggerPoint(revenantConditionApplied, { run: reactAbyssalChill })]
 });
 
 /** Owns Acolyte of Torment tuning and behavior at its established execution boundaries. */
 export const acolyteOfTorment = defineTrait({
-  id: TRAIT.ACOLYTE_OF_TORMENT,
   name: 'Acolyte of Torment',
+  id: TRAIT.ACOLYTE_OF_TORMENT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { conditionDamageMultiplier: 1.1 },
   modifierRules: [
@@ -65,8 +65,8 @@ export const acolyteOfTorment = defineTrait({
 
 /** Owns Diabolic Inferno tuning and behavior at its established execution boundaries. */
 export const diabolicInferno = defineTrait({
-  id: TRAIT.DIABOLIC_INFERNO,
   name: 'Diabolic Inferno',
+  id: TRAIT.DIABOLIC_INFERNO,
   balance: {
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -95,9 +95,8 @@ export const diabolicInferno = defineTrait({
 
 /** Owns invocation strike and condition tuning. */
 export const invokingTorment = defineTrait({
-  triggers: [onTriggerPoint(legendInvoked, { run: invokeTorment })],
-  id: TRAIT.INVOKING_TORMENT,
   name: 'Invoking Torment',
+  id: TRAIT.INVOKING_TORMENT,
   balance: {
     id: TRAIT.INVOKING_TORMENT,
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -118,31 +117,35 @@ export const invokingTorment = defineTrait({
         actorType: ACTOR.PLAYER
       }
     ])
-  }
+  },
+  triggers: [onTriggerPoint(legendInvoked, { run: invokeTorment })]
 });
 
 /** Owns Pact of Pain tuning and behavior at its established execution boundaries. */
 export const pactOfPain = defineTrait({
+  name: 'Pact of Pain',
+  id: TRAIT.PACT_OF_PAIN,
+  balance: { conditionDurationBonus: 0.15 },
   attributes: traitAttributeBonuses(TRAIT.PACT_OF_PAIN, (profile) => ({
     traitDurations: { 'Condition Duration': 100 * balanceProfileNumber(profile, 'conditionDurationBonus') }
-  })),
-  id: TRAIT.PACT_OF_PAIN,
-  name: 'Pact of Pain',
-  balance: { conditionDurationBonus: 0.15 }
+  }))
 });
 
 /** Owns Seething Malice tuning and behavior at its established execution boundaries. */
 export const seethingMalice = defineTrait({
+  name: 'Seething Malice',
+  id: TRAIT.SEETHING_MALICE,
+  balance: { attributeBonus: 120 },
   attributes: traitAttributeEffects(TRAIT.SEETHING_MALICE, [
     { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
-  ]),
-  id: TRAIT.SEETHING_MALICE,
-  name: 'Seething Malice',
-  balance: { attributeBonus: 120 }
+  ])
 });
 
 /** Owns Yearning Empowerment tuning and behavior at its established execution boundaries. */
 export const yearningEmpowerment = defineTrait({
+  name: 'Yearning Empowerment',
+  id: TRAIT.YEARNING_EMPOWERMENT,
+  balance: { conditionDurationBonus: 0.1 },
   attributes: traitAttributeBonuses(TRAIT.YEARNING_EMPOWERMENT, (profile) => ({
     traitDurations: Object.fromEntries(
       [CONDITION.BLEEDING, CONDITION.BURNING, CONDITION.CONFUSION, 'Poison', CONDITION.TORMENT].map((condition) => [
@@ -150,10 +153,7 @@ export const yearningEmpowerment = defineTrait({
         100 * balanceProfileNumber(profile, 'conditionDurationBonus')
       ])
     )
-  })),
-  id: TRAIT.YEARNING_EMPOWERMENT,
-  name: 'Yearning Empowerment',
-  balance: { conditionDurationBonus: 0.1 }
+  }))
 });
 
 /** Runs the trait at its original ordered mechanic boundary. */

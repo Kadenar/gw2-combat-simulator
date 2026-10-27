@@ -57,30 +57,30 @@ function morphStrike(context: EngineerModifierContext): boolean {
 
 /** Owns Carbolic Composition tuning and its existing Morph/Evolve contribution. */
 const carbolicComposition = defineTrait({
-  id: TRAIT.CARBOLIC_COMPOSITION,
   name: 'Carbolic Composition',
+  id: TRAIT.CARBOLIC_COMPOSITION,
   balance: {
     conditionDurationBonus: 0.33,
     effects: [{ name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, stacks: 1, duration: 3 }]
   },
-  triggers: [
-    onTriggerPoint(amalgamStruck, {
-      when: (runtime, { cause }: AmalgamStrike) => isAmalgamSkillHit(runtime, cause),
-      run: applyCarbolicPoison
-    })
-  ],
   attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Poison Duration':
         100 * balanceNumberFromContext(balanceContext, TRAIT.CARBOLIC_COMPOSITION, 'conditionDurationBonus')
     }
-  })
+  }),
+  triggers: [
+    onTriggerPoint(amalgamStruck, {
+      when: (runtime, { cause }: AmalgamStrike) => isAmalgamSkillHit(runtime, cause),
+      run: applyCarbolicPoison
+    })
+  ]
 });
 
 /** Owns Double Helix tuning and its existing Morph/Evolve contribution. */
 const doubleHelix = defineTrait({
-  id: TRAIT.DOUBLE_HELIX,
   name: 'Double Helix',
+  id: TRAIT.DOUBLE_HELIX,
   // Trait-owned scaling keeps patch notes scoped to builds selecting the stronger Evolve bonus.
   balance: { coefficientMultiplier: 1.2 },
   hooks: {
@@ -90,8 +90,8 @@ const doubleHelix = defineTrait({
 
 /** Owns Mercurial Tendencies tuning and its existing Morph/Evolve contribution. */
 const mercurialTendencies = defineTrait({
-  id: TRAIT.MERCURIAL_TENDENCIES,
   name: 'Mercurial Tendencies',
+  id: TRAIT.MERCURIAL_TENDENCIES,
   balance: {
     internalCooldown: 0.24,
     rechargeReduction: 2.5
@@ -102,8 +102,8 @@ const mercurialTendencies = defineTrait({
 
 /** Owns Hybrid Vigor tuning and its existing Morph/Evolve contribution. */
 const hybridVigor = defineTrait({
-  id: TRAIT.HYBRID_VIGOR,
   name: 'Hybrid Vigor',
+  id: TRAIT.HYBRID_VIGOR,
   balance: { attributeBonus: 240 },
   attributes: traitAttributeEffects(TRAIT.HYBRID_VIGOR, [
     { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
@@ -112,14 +112,13 @@ const hybridVigor = defineTrait({
 
 /** Owns Willing Host tuning and its existing Morph/Evolve contribution. */
 const willingHost = defineTrait({
-  id: TRAIT.WILLING_HOST,
   name: 'Willing Host',
+  id: TRAIT.WILLING_HOST,
   balance: {
     damageIncrease: 0.05,
     conditionDamageIncrease: 0.05,
     duration: 10
   },
-  triggers: [onTriggerPoint(amalgamMorphed, { run: extendWillingHost })],
   modifierRules: [
     {
       id: 'engineer.willing-host',
@@ -134,16 +133,16 @@ const willingHost = defineTrait({
         ),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeAmalgamState(context, 'willingHostUntil')
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(amalgamMorphed, { run: extendWillingHost })]
 });
 
 /** Owns Symbiotic Synergy tuning and its existing Morph/Evolve contribution. */
 const symbioticSynergy = defineTrait({
-  id: TRAIT.SYMBIOTIC_SYNERGY,
   name: 'Symbiotic Synergy',
+  id: TRAIT.SYMBIOTIC_SYNERGY,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageIncrease: 0.33 },
-  triggers: [onTriggerPoint(amalgamEvolved, { run: resetMorphRecharge })],
   modifierRules: [
     {
       id: 'engineer.symbiotic-synergy',
@@ -152,13 +151,14 @@ const symbioticSynergy = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.SYMBIOTIC_SYNERGY, 'damageIncrease'),
       when: (context) => morphStrike(context)
     }
-  ]
+  ],
+  triggers: [onTriggerPoint(amalgamEvolved, { run: resetMorphRecharge })]
 });
 
 /** Owns Silver Lining tuning and its existing Morph/Evolve contribution. */
 const silverLining = defineTrait({
-  id: TRAIT.SILVER_LINING,
   name: 'Silver Lining',
+  id: TRAIT.SILVER_LINING,
   // Morph grants its protocol strain; Evolve then skips the strains it would otherwise grant.
   triggers: [
     onTriggerPoint(amalgamMorphed, {
@@ -170,8 +170,8 @@ const silverLining = defineTrait({
 
 /** Owns New Genes tuning and its existing Morph/Evolve contribution. */
 const newGenes = defineTrait({
-  id: TRAIT.NEW_GENES,
   name: 'New Genes',
+  id: TRAIT.NEW_GENES,
   balance: {
     effects: [
       { name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, stacks: 1, duration: 5 },
@@ -211,8 +211,8 @@ const newGenes = defineTrait({
 
 /** Owns Hardened Chrome tuning and its existing Morph/Evolve contribution. */
 const hardenedChrome = defineTrait({
-  id: TRAIT.HARDENED_CHROME,
   name: 'Hardened Chrome',
+  id: TRAIT.HARDENED_CHROME,
   balance: {
     minimumStacks: 2.5,
     maximumStacks: 4

@@ -29,8 +29,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Enhance the ranged autoattacks, applying Burning separately for each Dual Shot arrow that hits. */
 export const crackShot = defineTrait({
-  id: TRAIT.CRACK_SHOT,
   name: 'Crack Shot',
+  id: TRAIT.CRACK_SHOT,
   balance: {
     damageMultiplier: 1.1,
     effects: [{ name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1 }]
@@ -57,18 +57,8 @@ export const crackShot = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const burstMastery = defineTrait({
-  triggers: [
-    onTriggerPoint(dragonSlashReleased, {
-      run: (runtime, input: TriggerPointInput<typeof dragonSlashReleased>) =>
-        burstMasteryDragonSlash(runtime, input.cast, { flowSpent: input.flowSpent })
-    }),
-    onTriggerPoint(burstCompleted, {
-      run: (runtime, input: TriggerPointInput<typeof burstCompleted>) =>
-        burstMasteryCommit(runtime, input.cast, input.spent)
-    })
-  ],
-  id: TRAIT.BURST_MASTERY,
   name: 'Burst Mastery',
+  id: TRAIT.BURST_MASTERY,
   balance: {
     damageMultiplier: 1.15,
     resourceGain: 0.33,
@@ -84,19 +74,23 @@ export const burstMastery = defineTrait({
       order: 100,
       when: (context) => Boolean(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.burst)
     }
+  ],
+  triggers: [
+    onTriggerPoint(dragonSlashReleased, {
+      run: (runtime, input: TriggerPointInput<typeof dragonSlashReleased>) =>
+        burstMasteryDragonSlash(runtime, input.cast, { flowSpent: input.flowSpent })
+    }),
+    onTriggerPoint(burstCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof burstCompleted>) =>
+        burstMasteryCommit(runtime, input.cast, input.spent)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const axeMastery = defineTrait({
-  triggers: [
-    onTriggerPoint(critical, {
-      run: (runtime, input: TriggerPointInput<typeof critical>) =>
-        axeMasteryCritical(runtime, input.event, input.opportunity.sampledCriticals)
-    })
-  ],
-  id: TRAIT.AXE_MASTERY,
   name: 'Axe Mastery',
+  id: TRAIT.AXE_MASTERY,
   balance: {
     attributeBonus: 120,
     weaponAttributeBonus: 240,
@@ -127,21 +121,27 @@ export const axeMastery = defineTrait({
       when: (_runtime, skill) => skill.weapon === WEAPON.AXE,
       multiplier: { profile: TRAIT.AXE_MASTERY, field: 'rechargeMultiplier' }
     }
+  ],
+  triggers: [
+    onTriggerPoint(critical, {
+      run: (runtime, input: TriggerPointInput<typeof critical>) =>
+        axeMasteryCritical(runtime, input.event, input.opportunity.sampledCriticals)
+    })
   ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 export const versatileRage = defineTrait({
-  triggers: [onTriggerPoint(weaponSwapped, { run: (runtime) => versatileRageSwap(runtime) })],
-  id: TRAIT.VERSATILE_RAGE,
   name: 'Versatile Rage',
-  balance: { resourceGain: 5 }
+  id: TRAIT.VERSATILE_RAGE,
+  balance: { resourceGain: 5 },
+  triggers: [onTriggerPoint(weaponSwapped, { run: (runtime) => versatileRageSwap(runtime) })]
 });
 
 /** Reduce burst recharge, including Dragon Trigger, which owns the recharge for Dragon Slash. */
 export const versatilePower = defineTrait({
-  id: TRAIT.VERSATILE_POWER,
   name: 'Versatile Power',
+  id: TRAIT.VERSATILE_POWER,
   balance: { rechargeMultiplier: 0.85 },
   rechargeRules: [
     {
@@ -154,8 +154,8 @@ export const versatilePower = defineTrait({
 
 /** Owns Heightened Focus's execute-range Quickness and Burst recharge; its healing stacks are out of scope. */
 export const heightenedFocus = defineTrait({
-  id: TRAIT.HEIGHTENED_FOCUS,
   name: 'Heightened Focus',
+  id: TRAIT.HEIGHTENED_FOCUS,
   balance: {
     threshold: 0.5,
     internalCooldown: 12,
@@ -169,8 +169,8 @@ export const heightenedFocus = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const warriorsSprint = defineTrait({
-  id: TRAIT.WARRIORS_SPRINT,
   name: "Warrior's Sprint",
+  id: TRAIT.WARRIORS_SPRINT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.1 },
   modifierRules: [

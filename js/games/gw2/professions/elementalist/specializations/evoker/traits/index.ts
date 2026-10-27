@@ -76,14 +76,8 @@ const boon = (name: string, boonName: string, stacks: number, duration: number):
 
 /** Owns Evocation tuning at its existing execution boundaries. */
 const evocation = defineTrait({
-  triggers: [
-    onTriggerPoint(evokerEventAccepted, {
-      requiresSelection: false,
-      run: (runtime: ElementalistRuntime, { event }: EvokerEvent) => applyEvocationBurning(runtime, event)
-    })
-  ],
-  id: TRAIT.EVOCATION,
   name: 'Evocation',
+  id: TRAIT.EVOCATION,
   balance: {
     // Evocation unlocks both charge pools, weapon gains, and the shared attunement lockout.
     maximumStacks: 6,
@@ -95,42 +89,56 @@ const evocation = defineTrait({
     // Fire-familiar Might has its own interval, separate from the entry cooldown.
     pulseInterval: 1,
     effects: [boon('Fire Familiar', boonKey(BOON.MIGHT), 1, 6)]
-  }
+  },
+  triggers: [
+    onTriggerPoint(evokerEventAccepted, {
+      requiresSelection: false,
+      run: (runtime: ElementalistRuntime, { event }: EvokerEvent) => applyEvocationBurning(runtime, event)
+    })
+  ]
 });
 
 /** Owns Elemental Balance tuning at its existing execution boundaries. */
 const elementalBalance = defineTrait({
-  triggers: [
-    onTriggerPoint(evokerEntryObserved, {
-      run: (runtime: ElementalistRuntime, { event }: EvokerEvent) => applyElementalBalanceEntry(runtime, event)
-    })
-  ],
-  id: TRAIT.ELEMENTAL_BALANCE,
   name: 'Elemental Balance',
+  id: TRAIT.ELEMENTAL_BALANCE,
   balance: {
     threshold: 2,
     duration: 5,
     rechargeMultiplier: 0.34
   },
+  triggers: [
+    onTriggerPoint(evokerEntryObserved, {
+      run: (runtime: ElementalistRuntime, { event }: EvokerEvent) => applyElementalBalanceEntry(runtime, event)
+    })
+  ],
   lifetime: { reserveRecharge: commitRechargeDuration }
 });
 
 /** Owns Elemental Dynamo tuning at its existing execution boundaries. */
 const elementalDynamo = defineTrait({
+  name: 'Elemental Dynamo',
+  id: TRAIT.ELEMENTAL_DYNAMO,
+  balance: {
+    resourceGain: 1
+  },
   triggers: [
     onTriggerPoint(evokerEntryObserved, {
       run: (runtime: ElementalistRuntime, { event }: EvokerEvent) => applyElementalDynamoEntry(runtime, event)
     })
-  ],
-  id: TRAIT.ELEMENTAL_DYNAMO,
-  name: 'Elemental Dynamo',
-  balance: {
-    resourceGain: 1
-  }
+  ]
 });
 
 /** Owns Specialized Elements tuning at its existing execution boundaries. */
 const specializedElements = defineTrait({
+  name: 'Specialized Elements',
+  id: TRAIT.SPECIALIZED_ELEMENTS,
+  balance: {
+    rechargeMultiplier: 0.9,
+    empoweredRechargeMultiplier: 0.67,
+    maximumStacks: 6,
+    playerStacks: 3
+  },
   triggers: [
     onTriggerPoint(evokerInitialized, {
       run: (runtime: ElementalistRuntime) => initializeSpecializedElements(runtime)
@@ -140,14 +148,6 @@ const specializedElements = defineTrait({
         applySpecializedElementsTrait(runtime, cast, cast.skill)
     })
   ],
-  id: TRAIT.SPECIALIZED_ELEMENTS,
-  name: 'Specialized Elements',
-  balance: {
-    rechargeMultiplier: 0.9,
-    empoweredRechargeMultiplier: 0.67,
-    maximumStacks: 6,
-    playerStacks: 3
-  },
   hooks: { availability: specializedElementsAvailability }
 });
 
@@ -171,14 +171,8 @@ function applyGalvanicEnchantment(
 
 /** Owns Galvanic Enchantment tuning at its existing execution boundaries. */
 const galvanicEnchantment = defineTrait({
-  triggers: [
-    onTriggerPoint(evokerCastCompleted, {
-      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
-        applyGalvanicEnchantment(runtime, cast, cast.skill)
-    })
-  ],
-  id: TRAIT.GALVANIC_ENCHANTMENT,
   name: 'Galvanic Enchantment',
+  id: TRAIT.GALVANIC_ENCHANTMENT,
   balance: {
     // Trait and familiar grants consume the same Electric Enchantment pool.
     playerStacks: 2,
@@ -187,11 +181,24 @@ const galvanicEnchantment = defineTrait({
       { name: 'Galvanic Enchantment', type: 'strike', coefficient: 0.4, hits: 1 },
       { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1.5 }
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(evokerCastCompleted, {
+      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
+        applyGalvanicEnchantment(runtime, cast, cast.skill)
+    })
+  ]
 });
 
 /** Owns Enhanced Potency tuning at its existing execution boundaries. */
 const enhancedPotency = defineTrait({
+  name: 'Enhanced Potency',
+  id: TRAIT.ENHANCED_POTENCY,
+  balance: {
+    criticalChance: 0.15,
+    attributeBonus: 75,
+    attributePerStack: 5
+  },
   // Selection gates both elemental bonuses; live boons never become ordinary conversion inputs.
   attributes(context) {
     const config: ElementalistConfig | undefined = context.config;
@@ -219,14 +226,6 @@ const enhancedPotency = defineTrait({
       ]
     };
   },
-
-  id: TRAIT.ENHANCED_POTENCY,
-  name: 'Enhanced Potency',
-  balance: {
-    criticalChance: 0.15,
-    attributeBonus: 75,
-    attributePerStack: 5
-  },
   modifierRules: [
     {
       id: 'elementalist.enhanced-potency-air',
@@ -242,15 +241,8 @@ const enhancedPotency = defineTrait({
 
 /** Owns Familiar's Prowess tuning at its existing execution boundaries. */
 const familiarsProwess = defineTrait({
-  triggers: [
-    onTriggerPoint(evokerCastCompleted, {
-      when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => FAMILIAR_ELEMENTS.has(cast.skill.id),
-      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
-        grantFamiliarProwess(runtime, cast, cast.skill)
-    })
-  ],
-  id: TRAIT.FAMILIARS_PROWESS,
   name: "Familiar's Prowess",
+  id: TRAIT.FAMILIARS_PROWESS,
   balance: {
     baseDuration: 5,
     maximumStacks: 15,
@@ -288,19 +280,20 @@ const familiarsProwess = defineTrait({
       when: (context: ElementalistModifierContext) =>
         context.config?.evokerElement === 'Fire' && activeBuffStacks(context, 'familiars-prowess', 1) > 0
     }
+  ],
+  triggers: [
+    onTriggerPoint(evokerCastCompleted, {
+      when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => FAMILIAR_ELEMENTS.has(cast.skill.id),
+      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
+        grantFamiliarProwess(runtime, cast, cast.skill)
+    })
   ]
 });
 
 /** Owns Altruistic Aspect tuning at its existing execution boundaries. */
 const altruisticAspect = defineTrait({
-  triggers: [
-    onTriggerPoint(evokerCastSettled, {
-      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
-        applyAltruisticAspect(runtime, cast, cast.skill)
-    })
-  ],
-  id: TRAIT.ALTRUISTIC_ASPECT,
   name: 'Altruistic Aspect',
+  id: TRAIT.ALTRUISTIC_ASPECT,
   balance: {
     effects: [
       boon("Fox's Fury", boonKey(BOON.MIGHT), 3, 10),
@@ -308,13 +301,19 @@ const altruisticAspect = defineTrait({
       boon("Toad's Fortitude", boonKey(BOON.STABILITY), 1, 5),
       boon('Elemental Procession', boonKey(BOON.RESISTANCE), 1, 5)
     ]
-  }
+  },
+  triggers: [
+    onTriggerPoint(evokerCastSettled, {
+      run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
+        applyAltruisticAspect(runtime, cast, cast.skill)
+    })
+  ]
 });
 
 /** Focus owns its replacement bonuses; Prowess modifiers consume them during the applied window. */
 const familiarsFocus = defineTrait({
-  id: TRAIT.FAMILIARS_FOCUS,
   name: "Familiar's Focus",
+  id: TRAIT.FAMILIARS_FOCUS,
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.1
@@ -323,23 +322,23 @@ const familiarsFocus = defineTrait({
 
 /** Owns Familiar's Blessing tuning at its existing execution boundaries. */
 const familiarsBlessing = defineTrait({
+  name: "Familiar's Blessing",
+  id: TRAIT.FAMILIARS_BLESSING,
+  balance: {
+    effects: [boon(BOON.QUICKNESS, boonKey(BOON.QUICKNESS), 1, 1.75), boon(BOON.ALACRITY, boonKey(BOON.ALACRITY), 1, 4)]
+  },
   triggers: [
     onTriggerPoint(evokerCastCompleted, {
       run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
         grantFamiliarBlessing(runtime, cast, cast.skill)
     })
-  ],
-  id: TRAIT.FAMILIARS_BLESSING,
-  name: "Familiar's Blessing",
-  balance: {
-    effects: [boon(BOON.QUICKNESS, boonKey(BOON.QUICKNESS), 1, 1.75), boon(BOON.ALACRITY, boonKey(BOON.ALACRITY), 1, 4)]
-  }
+  ]
 });
 
 /** Fiery Might multiplies strikes against burning targets when selected. */
 const fieryMight = defineTrait({
-  id: TRAIT.FIERY_MIGHT,
   name: 'Fiery Might',
+  id: TRAIT.FIERY_MIGHT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05 },
   modifierRules: [

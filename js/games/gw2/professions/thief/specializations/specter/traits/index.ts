@@ -27,15 +27,15 @@ const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D502
 
 /** Owns Amplified Siphoning tuning and behavior at the existing execution boundaries. */
 const amplifiedSiphoning = defineTrait({
-  id: TRAIT.AMPLIFIED_SIPHONING,
   name: 'Amplified Siphoning',
+  id: TRAIT.AMPLIFIED_SIPHONING,
   balance: { resourceGain: 10 }
 });
 
 /** Owns Dark Sentry tuning and behavior at the existing execution boundaries. */
 const darkSentry = defineTrait({
-  id: TRAIT.DARK_SENTRY,
   name: 'Dark Sentry',
+  id: TRAIT.DARK_SENTRY,
   balance: {
     internalCooldown: 1,
     effects: [
@@ -72,8 +72,8 @@ const darkSentry = defineTrait({
 
 /** Owns Larcenous Torment tuning and behavior at the existing execution boundaries. */
 const larcenousTorment = defineTrait({
-  id: TRAIT.LARCENOUS_TORMENT,
   name: 'Larcenous Torment',
+  id: TRAIT.LARCENOUS_TORMENT,
   balance: {
     resourceGain: 0.5,
     effects: [
@@ -93,8 +93,8 @@ const larcenousTorment = defineTrait({
 
 /** Owns Second Opinion tuning and behavior at the existing execution boundaries. */
 const secondOpinion = defineTrait({
-  id: TRAIT.SECOND_OPINION,
   name: 'Second Opinion',
+  id: TRAIT.SECOND_OPINION,
   balance: {
     attributeBonus: 90,
     attributePerStack: 90,
@@ -128,8 +128,8 @@ const secondOpinion = defineTrait({
 
 /** Assume a tethered ally is present among nearby allies; share each committed shroud reward with the party. */
 const shadestep = defineTrait({
-  id: TRAIT.SHADESTEP,
   name: 'Shadestep',
+  id: TRAIT.SHADESTEP,
   balance: {
     effects: [
       { type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, stacks: 1, duration: 5 },
@@ -179,19 +179,8 @@ const shadestep = defineTrait({
 
 /** Owns Strength of Shadows tuning and behavior at the existing execution boundaries. */
 const strengthOfShadows = defineTrait({
-  id: TRAIT.STRENGTH_OF_SHADOWS,
   name: 'Strength of Shadows',
-  modifierRules: [
-    {
-      order: 300,
-      id: 'thief.strength-of-shadows',
-      target: MODIFIER_TARGET.CONDITION_DAMAGE,
-      // The Torment-specific bonus multiplies the additive Lead Attacks and Distracting Throw pool.
-      operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.STRENGTH_OF_SHADOWS, 'conditionDamageIncrease'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.TORMENT
-    }
-  ],
+  id: TRAIT.STRENGTH_OF_SHADOWS,
   balance: {
     conditionDamageIncrease: 0.2,
     attributeConversion: 0.13
@@ -209,14 +198,25 @@ const strengthOfShadows = defineTrait({
         }
       ]
     };
-  }
+  },
+  modifierRules: [
+    {
+      order: 300,
+      id: 'thief.strength-of-shadows',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      // The Torment-specific bonus multiplies the additive Lead Attacks and Distracting Throw pool.
+      operation: 'multiply',
+      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.STRENGTH_OF_SHADOWS, 'conditionDamageIncrease'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.TORMENT
+    }
+  ]
 });
 
 /** Native trait owners, in stable authoring order. */
 // Intrinsic specialization policy is available without explicit minor selection.
 const specter = defineTrait({
-  id: TRAIT.SPECTER,
   name: 'Specter',
+  id: TRAIT.SPECTER,
   balance: { maximumStacks: 100, resourceGain: 1, lifeForceDrain: 0.02 }
 });
 

@@ -26,14 +26,8 @@ import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/type
 
 /** Owns this trait's tuning and selected contributions. */
 const inspiringImplements = defineTrait({
-  triggers: [
-    onTriggerPoint(paragonCastCompleted, {
-      run: (runtime, input: TriggerPointInput<typeof paragonCastCompleted>) =>
-        applyInspiringImplements(runtime, input.cast)
-    })
-  ],
-  id: TRAIT.INSPIRING_IMPLEMENTS,
   name: 'Inspiring Implements',
+  id: TRAIT.INSPIRING_IMPLEMENTS,
   balance: {
     attributeBonus: 180,
     internalCooldown: 4,
@@ -52,27 +46,33 @@ const inspiringImplements = defineTrait({
         }
       ]
     };
-  }
+  },
+  triggers: [
+    onTriggerPoint(paragonCastCompleted, {
+      run: (runtime, input: TriggerPointInput<typeof paragonCastCompleted>) =>
+        applyInspiringImplements(runtime, input.cast)
+    })
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const invigoratingTempo = defineTrait({
+  name: 'Invigorating Tempo',
+  id: TRAIT.INVIGORATING_TEMPO,
+  balance: {
+    resourceGain: 1
+  },
   triggers: [
     onTriggerPoint(motivationSpent, {
       run: (runtime, input: TriggerPointInput<typeof motivationSpent>) => applyInvigoratingTempo(runtime, input.spent)
     })
-  ],
-  id: TRAIT.INVIGORATING_TEMPO,
-  name: 'Invigorating Tempo',
-  balance: {
-    resourceGain: 1
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const enduringRefrain = defineTrait({
-  id: TRAIT.ENDURING_REFRAIN,
   name: 'Enduring Refrain',
+  id: TRAIT.ENDURING_REFRAIN,
   balance: {
     stackMultiplier: 2,
     resourceGain: 1
@@ -81,8 +81,8 @@ const enduringRefrain = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const feverishPulse = defineTrait({
-  id: TRAIT.FEVERISH_PULSE,
   name: 'Feverish Pulse',
+  id: TRAIT.FEVERISH_PULSE,
   balance: {
     rechargeReduction: 2,
     effects: [{ name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, stacks: 1, duration: 6 }]
@@ -111,8 +111,11 @@ const feverishPulse = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const callToAction = defineTrait({
-  id: TRAIT.CALL_TO_ACTION,
   name: 'Call to Action',
+  id: TRAIT.CALL_TO_ACTION,
+  balance: {
+    resourceGain: 4
+  },
   triggers: [
     onTriggerPoint(paragonCombatStarted, {
       run(runtime) {
@@ -132,16 +135,15 @@ const callToAction = defineTrait({
         }
       }
     })
-  ],
-  balance: {
-    resourceGain: 4
-  }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const rallyTheValiant = defineTrait({
-  id: TRAIT.RALLY_THE_VALIANT,
   name: 'Rally the Valiant',
+  id: TRAIT.RALLY_THE_VALIANT,
+  // The intrinsic trait owns Motivation capacity, tier thresholds, and refrain cadence.
+  balance: { resourceGain: 4, maximumStacks: 10, minimumStacks: 4, threshold: 7, pulseInterval: 3 },
   triggers: [
     {
       on: 'castStart',
@@ -160,15 +162,13 @@ const rallyTheValiant = defineTrait({
           );
       }
     }
-  ],
-  // The intrinsic trait owns Motivation capacity, tier thresholds, and refrain cadence.
-  balance: { resourceGain: 4, maximumStacks: 10, minimumStacks: 4, threshold: 7, pulseInterval: 3 }
+  ]
 });
 
 /** Owns this trait's tuning and selected contributions. */
 const reverberation = defineTrait({
-  id: TRAIT.REVERBERATION,
   name: 'Reverberation',
+  id: TRAIT.REVERBERATION,
   balance: {
     maximumStacks: 2
   }
@@ -176,8 +176,8 @@ const reverberation = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const strengtheningStanzas = defineTrait({
-  id: TRAIT.STRENGTHENING_STANZAS,
   name: 'Strengthening Stanzas',
+  id: TRAIT.STRENGTHENING_STANZAS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { strikeBonus: 0.15, conditionBonus: 0.1 },
   modifierRules: [
@@ -198,8 +198,8 @@ const strengtheningStanzas = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const briskPacing = defineTrait({
-  id: TRAIT.BRISK_PACING,
   name: 'Brisk Pacing',
+  id: TRAIT.BRISK_PACING,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: {
     middleThreshold: 4,
