@@ -2,7 +2,7 @@ import { DEADEYE_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializati
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { ashenAssaultLifecycle } from '#gw2/professions/thief/core/mechanics/spear.js';
+import { landedChannelRefundLifecycle } from '#gw2/professions/thief/core/mechanics/channel-refund.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 import { deadeyeHooks } from '#gw2/professions/thief/specializations/deadeye/hooks.js';
@@ -31,6 +31,6 @@ export const deadeyeModule = defineNativeModule({
   // Skill owners declare the rules; the module registers them alongside selected traits.
   modifiers: [...deadeyeSlotModifiers, ...maliciousAttackModifiers],
   // The malicious variant uses the shared all-strikes refund contract with its own live tuning.
-  hooks: composeRuntimeHooks([deadeyeHooks, ashenAssaultLifecycle(ID.MALICIOUS_ASHEN_ASSAULT)]),
+  hooks: composeRuntimeHooks([deadeyeHooks, landedChannelRefundLifecycle(ID.MALICIOUS_ASHEN_ASSAULT)]),
   presentation: deadeyeUi
 });

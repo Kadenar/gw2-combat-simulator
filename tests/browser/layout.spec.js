@@ -583,10 +583,10 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   await referenceSection.getByRole('button', { name: 'Load comparison' }).click();
   const loadDialog = page.getByRole('dialog', { name: 'Load reference rotation' });
   await expect(loadDialog).toBeVisible();
-  const existingRotations = loadDialog.getByLabel('Existing rotation');
+  await loadDialog.getByRole('tab', { name: 'Saved rotation', exact: true }).click();
+  const existingRotations = loadDialog.getByLabel('Compatible rotation');
   await expect.poll(() => existingRotations.locator('option').count()).toBeGreaterThan(1);
   await existingRotations.selectOption({ index: 1 });
-  await loadDialog.getByRole('button', { name: 'Load selected' }).click();
   await expect(loadDialog.getByRole('button', { name: 'Use as reference' })).toBeEnabled();
   await loadDialog.getByRole('button', { name: 'Use as reference' }).click();
   await expect(page.locator('[data-comparison-swap]')).toBeEnabled();

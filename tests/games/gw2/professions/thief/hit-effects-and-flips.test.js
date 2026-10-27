@@ -4,11 +4,85 @@ import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
+import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 
 const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Staff',
   selectedSkillIds: [13028, 30868],
   target: { armor: 2597, conditions: {} }
+});
+
+// Tooltips must read the selected charge grant, including edited balance data.
+test('Shadow Strike tooltip describes the selected Repeater grant', () => {
+  const current = { catalog: thiefCatalog };
+  for (const [uses, durationSec] of [
+    [3, 10],
+    [2, 7]
+  ]) {
+    const catalog = withSkill(current.catalog, ID.SHADOW_STRIKE, {
+      sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPEATER_ID_59526, uses, durationSec } }]
+    });
+    const tooltip = describeSimulationSkill(
+      { ...current, catalog },
+      catalog.skillsById.get(ID.SHADOW_STRIKE),
+      thiefTooltips
+    );
+    const facts = new Map(tooltip.facts.map(({ name, detail }) => [name, detail]));
+    assert.equal(facts.get('Repeater charges'), String(uses));
+    assert.equal(facts.get('Repeater duration'), `${durationSec}s`);
+    assert.equal(facts.has('Repeater initiative cost'), false);
+    assert.match(tooltip.description, /unused charges expire together/);
+  }
+});
+
+// Exercise live weapon availability and its projected state rather than duplicating the authored charge grant.
+test('Shadow Strike grants three Repeater activations before restoring the opener', () => {
+  const config = { primaryWeapon: 'Pistol', secondaryWeapon: 'Dagger' };
+  const repeater = { type: 'cast', skillId: ID.REPEATER_ID_59526 };
+  const rotation = ['Shadow Strike'];
+  for (const remaining of [3, 2, 1, 0]) {
+    const result = simulate('Core', rotation, config);
+    assert.deepEqual(result.warnings, []);
+    const window = result.planningState.profession.availableFlips[ID.REPEATER_ID_59526];
+    assert.equal(window?.remainingUses ?? 0, remaining);
+
+    if (window) assert.equal(window.expiresAt - window.availableAt, 10);
+
+    if (remaining) {
+      const blockedParent = simulate('Core', [...rotation, 'Shadow Strike'], config);
+      assert.ok(blockedParent.warnings.some(({ message }) => /active follow-up/.test(message)));
+    }
+
+    rotation.push(repeater);
+  }
+
+  const exhausted = simulate('Core', rotation, config);
+  assert.ok(exhausted.warnings.some(({ message }) => /opening dual-wield skill/.test(message)));
+  const refreshed = simulate('Core', [...rotation.slice(0, -1), 'Shadow Strike'], config);
+  assert.deepEqual(refreshed.warnings, []);
+  assert.equal(refreshed.planningState.profession.availableFlips[ID.REPEATER_ID_59526].remainingUses, 3);
+});
+
+test('Repeater charges expire together and activation spends a charge even when interrupted', () => {
+  const config = { primaryWeapon: 'Pistol', secondaryWeapon: 'Dagger' };
+  const repeater = { type: 'cast', skillId: ID.REPEATER_ID_59526 };
+  const wait = (durationMs) => ({ type: 'wait', durationMs });
+  const late = simulate('Core', ['Shadow Strike', wait(8000), repeater], config);
+  assert.deepEqual(late.warnings, []);
+  assert.equal(late.planningState.profession.availableFlips[ID.REPEATER_ID_59526].remainingUses, 2);
+  const lateWindow = late.planningState.profession.availableFlips[ID.REPEATER_ID_59526];
+  assert.equal(lateWindow.expiresAt - lateWindow.availableAt, 10);
+  for (const spent of [[], [repeater]]) {
+    const expired = simulate('Core', ['Shadow Strike', ...spent, wait(10000), repeater], config);
+    assert.equal(expired.planningState.profession.availableFlips[ID.REPEATER_ID_59526], undefined);
+    assert.ok(expired.warnings.some(({ message }) => /opening dual-wield skill/.test(message)));
+  }
+
+  const interrupted = simulate('Core', ['Shadow Strike', { ...repeater, interruptAfterMs: 100 }], config);
+  assert.deepEqual(interrupted.warnings, []);
+  assert.equal(interrupted.planningState.profession.availableFlips[ID.REPEATER_ID_59526].remainingUses, 2);
 });
 
 test('Weakening Whirl schedules weakness with each retained strike', () => {

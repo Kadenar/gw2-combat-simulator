@@ -76,7 +76,8 @@ test('modifiers run on demand in Analysis and update only their own section', as
   });
   await page.goto('/mesmer.html#workspace');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
+  // Explicit skill identity keeps worker requests valid even when multiple variants share a display name.
+  await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   // Observe beyond the existing debounce to catch any hidden Workspace scheduling.
   await page.waitForTimeout(850);
@@ -155,7 +156,7 @@ test('modifiers run on demand in Analysis and update only their own section', as
   expect(await page.evaluate(() => window.baselineSchedulesAfterCharts)).toBe(0);
 
   await page.getByRole('link', { name: 'Workspace', exact: true }).click();
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
+  await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   expect(await page.evaluate(() => window.professionApp.results.modifierContributionsStale)).toBe(true);
   expect(await page.evaluate(() => window.professionApp.results.effectReport)).toBeNull();

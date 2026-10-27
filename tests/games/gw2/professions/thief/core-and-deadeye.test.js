@@ -570,7 +570,8 @@ test('Unload refunds 2 initiative on completion but not cancellation', () => {
   const interrupted = simulate('Core', [{ name: 'Unload', interruptMs: 1 }], config);
 
   assert.deepEqual(interrupted.warnings, []);
-  assert.equal(interrupted.events.find((event) => event.type === 'action').cancelled, true);
+  // An interrupted per-packet channel still spends initiative without earning the volley refund.
+  assert.equal(interrupted.steps[0].interrupted, true);
   assert.equal(
     interrupted.events.some((event) => event.type === 'damage' && event.skillName === 'Unload'),
     false
@@ -578,40 +579,66 @@ test('Unload refunds 2 initiative on completion but not cancellation', () => {
   assert.ok(Math.abs(initiative(interrupted) - (3 - cost + interrupted.rotationEndTime)) < 1e-9);
 });
 
-// Commitment alone cannot refund Unload: the authored final bullet must have fired, even on shortened channels.
-test('Unload refunds initiative only after its final packet on a committed channel', () => {
-  for (const [interruptAfterMs, refund] of [
-    [400, 0],
-    [800, 2],
-    [undefined, 2]
+// Synthetic volleys isolate landed-hit and resource ownership without asserting the native bullet schedule.
+test('Unload refunds initiative only when every bullet in its activation lands', () => {
+  for (const { command = {}, missed = false, casts = 1, refund } of [
+    { command: { interruptAfterMs: 400 }, refund: 0 },
+    { command: { interruptAfterMs: 800 }, refund: 4 },
+    { refund: 4 },
+    { missed: true, refund: 0 },
+    { command: { offTarget: true }, refund: 0 },
+    { command: { impactDelayMs: 1200 }, refund: 4 },
+    { command: { interruptAfterMs: 800, impactDelayMs: 1200 }, refund: 4 },
+    { command: { interruptAfterMs: 400, impactDelayMs: 1200 }, refund: 0 },
+    { command: { impactDelayMs: 1200 }, casts: 2, missed: true, refund: 0 },
+    { command: { impactDelayMs: 1200 }, casts: 2, refund: 8 }
   ]) {
     const result = runThief(
-      [{ type: 'cast', skillId: ID.UNLOAD, interruptAfterMs }],
-      { initialInitiative: 3, primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' },
+      Array.from({ length: casts }, () => ({ type: 'cast', skillId: ID.UNLOAD, ...command })),
+      { initialInitiative: 3 * casts, primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' },
       {
+        observation: { kind: 'tail', durationMs: 1200 },
+        // Completion cannot award the refund while the final projectile is still in flight.
+        probes:
+          command.impactDelayMs && !command.interruptAfterMs && casts === 1
+            ? [[1.5, (runtime) => assert.equal(runtime.resourceController.value('initiative'), 0)]]
+            : [],
         catalog: (catalog) =>
-          withSkill(catalog, ID.UNLOAD, {
+          withSkill(withProfile(catalog, THIEF_CORE_BALANCE_PROFILE_IDS.resources, { resourceGain: 0 }), ID.UNLOAD, {
+            initiativeRefund: 4,
             castTimeMs: 1000,
-            interruptMode: 'per-packet',
             effects: [
               {
                 type: 'strike',
-                name: 'Unload',
+                name: 'First bullet',
                 timingAnchor: 'castStart',
                 timingScale: 'fixed',
-                ticks: [
-                  { atMs: 200, coefficient: 1 },
-                  { atMs: 800, coefficient: 1 }
-                ]
+                atMs: 200,
+                coefficient: 1
+              },
+              {
+                type: 'strike',
+                name: 'Final bullet',
+                timingAnchor: 'castStart',
+                timingScale: 'fixed',
+                atMs: 800,
+                coefficient: 1
               }
             ]
-          })
+          }),
+        extend: (native) => ({
+          prepareEvent(runtime, event) {
+            const prepared = native.prepareEvent?.(runtime, event) ?? event;
+            return missed && prepared.name === 'First bullet' ? { ...prepared, offTarget: true } : prepared;
+          }
+        })
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.events.find((event) => event.type === 'action').cancelled, false);
-    assert.ok(
-      Math.abs(observedRuntime(result).resourceController.value('initiative') - result.rotationEndTime - refund) < 1e-9
+    assert.equal(
+      observedRuntime(result).resourceController.value('initiative'),
+      refund,
+      JSON.stringify({ command, missed, casts })
     );
   }
 });

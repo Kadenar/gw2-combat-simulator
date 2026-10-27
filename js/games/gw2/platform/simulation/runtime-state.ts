@@ -42,7 +42,7 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
    * occurrence: a later rearm of the same skill survives the older deadline.
    */
   armFlip(skillId: SkillId, window?: FlipWindowOptions): SkillFlipWindow;
-  /** Retires a follow-up once; an absent window is already consumed. */
+  /** Spends one follow-up use; depletion retires the window and absence is already consumed. */
   consumeFlip(skillId: SkillId): SkillFlipWindow | undefined;
   /** Queues private work; cancellation uses its owner and generation rather than a packet identity. */
   schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): void;

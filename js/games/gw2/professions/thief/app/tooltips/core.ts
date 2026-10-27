@@ -53,6 +53,18 @@ const stolenSkillTooltip: DescribeSimulationTooltip = skillTooltip(
   'Use the held stolen skill and consume a use. When Improvisation permits another use, it must be the same chosen skill.'
 );
 
+// Read the same grant as the simulation so charge counts and expiry cannot drift from the selected skill.
+const shadowStrikeTooltip: DescribeSimulationTooltip = skillTooltip(
+  'Stab your foe, then shadowstep away and shoot them. Grants Repeater charges. Each Repeater activation consumes one charge; unused charges expire together. Shadow Strike returns when all charges are consumed or expire.',
+  (_context, skill) => {
+    const grant = skill.sideEffects?.map(({ do: action }) => action).find((action) => action.type === 'flipArm');
+    return [
+      { name: 'Repeater charges', detail: tooltipDecimal(tooltipNumber(grant, 'uses')) },
+      { name: 'Repeater duration', detail: tooltipSeconds(tooltipNumber(grant, 'durationSec')) }
+    ];
+  }
+);
+
 const prepareTrapTooltip: DescribeSimulationTooltip = skillTooltip(
   'Place a preparation. After its recharge-scaled arming delay, its trigger remains available until used. Placement starts the parent recharge independently.',
   (_c, selected) => [{ name: 'Base arming delay', detail: tooltipSeconds(tooltipNumber(selected, 'duration')) }]
@@ -176,6 +188,10 @@ export const thiefCoreTooltips = {
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: weaponSwapTooltip,
     [SHARED_SKILL_IDS.DODGE]: dodgeTooltip,
     [ID.STEAL]: stealTooltip,
+    [ID.SHADOW_STRIKE]: shadowStrikeTooltip,
+    [ID.REPEATER_ID_59526]: skillTooltip(
+      'Fire a volley using one Repeater charge granted by Shadow Strike. The charge is consumed on activation, even if the volley is interrupted. Remaining charges retain their original expiry.'
+    ),
     ...Object.fromEntries(
       [ID.SOUL_STONE_VENOM, ID.DETONATE_PLASMA, ID.THROW_MAGNETIC_BOMB].map((id) => [id, stolenSkillTooltip])
     ),

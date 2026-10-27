@@ -11,6 +11,7 @@ import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/cor
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { thiefAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
+import { landedChannelRefundLifecycle } from '#gw2/professions/thief/core/mechanics/channel-refund.js';
 import {
   grantThiefGroundAxe,
   landThiefAxe,
@@ -42,7 +43,6 @@ import {
 } from '#gw2/professions/thief/core/mechanics/scepter.js';
 import { activateAssassinsSignet } from '#gw2/professions/thief/core/mechanics/signets.js';
 import {
-  ashenAssaultLifecycle,
   grantDistractingThrowWindow,
   unsuspectingStrikeBonus,
   updateSpearChain
@@ -234,7 +234,8 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
 export const thiefCoreHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
   thiefStealthLifecycle,
   infiltratorsSignetLifecycle,
-  ashenAssaultLifecycle(ID.ASHEN_ASSAULT),
+  landedChannelRefundLifecycle(ID.ASHEN_ASSAULT),
+  landedChannelRefundLifecycle(ID.UNLOAD),
   coreLifecycle
 ]);
 

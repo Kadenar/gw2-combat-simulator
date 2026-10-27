@@ -46,9 +46,9 @@ test('build switches discard optimizer results and active searches', async ({ pa
   await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText(currentFood);
   await expect(preview).toContainText('Click a result row to preview its gear and stats.');
   expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.request)).toBeNull();
-  // Adding a rotation enables optimization; switching to a blank build disables it again.
+  // Use the canonical skill ID to enable optimization with a valid rotation; a blank build disables it again.
   await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeDisabled();
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
+  await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
   await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeEnabled();
   await addChoice(panel, 'food', '');
@@ -71,7 +71,7 @@ test('build switches discard optimizer results and active searches', async ({ pa
   expect(await page.evaluate(() => window.professionApp.gearOptimizerRunner.request)).toBeNull();
 
   await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeDisabled();
-  await page.evaluate(() => window.professionApp.addRotation('Bladecall'));
+  await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
 
   // Start and switch in one task so cancellation does not depend on worker speed.

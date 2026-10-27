@@ -12,8 +12,8 @@ const COMPOSITE_SIGNAL_WINDOW_MS = 75;
 const SHADOW_SHROUD_TRANSITION_IDS: ReadonlySet<number> = new Set([ID.ENTER_SHADOW_SHROUD, ID.EXIT_SHADOW_SHROUD]);
 const DUPLICATE_SWAP_WINDOW_MS = 5;
 
-/** Combines represented Guitar and Twilight Combo animation segments into their single player input. */
-function mergeMetalLegionGuitar(actions: readonly RecordedLogAction[]): RecordedLogAction[] {
+/** Composite animations belong to one input, so their second segment cannot spend resources or rearm a follow-up. */
+function mergeThiefCompositeActions(actions: readonly RecordedLogAction[]): RecordedLogAction[] {
   return mergeCompositeActions(
     actions,
     [
@@ -22,7 +22,8 @@ function mergeMetalLegionGuitar(actions: readonly RecordedLogAction[]): Recorded
         finishId: METAL_LEGION_GUITAR_FINISH_ID,
         maximumGapMs: COMPOSITE_SIGNAL_WINDOW_MS
       },
-      { startId: 63254, finishId: 63181, maximumGapMs: COMPOSITE_SIGNAL_WINDOW_MS }
+      { startId: 63254, finishId: 63181, maximumGapMs: COMPOSITE_SIGNAL_WINDOW_MS },
+      { startId: ID.SHADOW_STRIKE, finishId: 13051, maximumGapMs: COMPOSITE_SIGNAL_WINDOW_MS }
     ],
     (action, finish) => ({
       ...action,
@@ -33,7 +34,12 @@ function mergeMetalLegionGuitar(actions: readonly RecordedLogAction[]): Recorded
         Number(action.expectedDurationMs || action.end - action.start) +
         Number(finish.expectedDurationMs || finish.end - finish.start),
       canonicalSkillId: action.rawSkillId,
-      canonicalName: action.rawSkillId === 63254 ? 'Twilight Combo' : 'Metal Legion Guitar'
+      canonicalName:
+        action.rawSkillId === ID.SHADOW_STRIKE
+          ? 'Shadow Strike'
+          : action.rawSkillId === 63254
+            ? 'Twilight Combo'
+            : 'Metal Legion Guitar'
     })
   );
 }
@@ -43,7 +49,7 @@ export function reconstructThiefDpsReportActions(context: LogActionNormalization
   const shroudTransitions = context.recordedActions.filter((action) =>
     SHADOW_SHROUD_TRANSITION_IDS.has(action.rawSkillId)
   );
-  return mergeMetalLegionGuitar(
+  return mergeThiefCompositeActions(
     context.recordedActions.filter(
       (action) =>
         !action.isSwap ||

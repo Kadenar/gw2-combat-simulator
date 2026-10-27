@@ -1,10 +1,45 @@
 import { ACTOR, COMBO_FINISHER, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+
+// Both Repeater variants fire the same volley; their weapon access, initiative cost, and charge gate are separate.
+const REPEATER_ATTACK = {
+  castTimeMs: 1000,
+  interruptMode: 'per-packet',
+  effects: [
+    {
+      type: 'strike',
+      // Three EVTC volleys agree on these rounded impact offsets, including bullets arriving after the channel.
+      ticks: [600, 760, 960, 1120, 1280].map((atMs) => ({ atMs, coefficient: 7.5 / 5 })),
+      name: 'Repeater',
+      actorType: ACTOR.PLAYER,
+      timingAnchor: 'castStart',
+      timingScale: 'cast',
+      comboFinishers: [
+        {
+          ownerId: 'thief',
+          finisherType: COMBO_FINISHER.PROJECTILE,
+          chance: 0.2
+        }
+      ]
+    },
+    {
+      type: 'condition',
+      // Bleeding belongs to each landed projectile rather than a batch granted when the channel ends.
+      ticks: [600, 760, 960, 1120, 1280].map((atMs) => ({
+        atMs,
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 3
+      })),
+      actorType: ACTOR.PLAYER,
+      timingAnchor: 'castStart',
+      timingScale: 'cast'
+    }
+  ]
+} satisfies Pick<Skill, 'castTimeMs' | 'interruptMode' | 'effects'>;
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
@@ -109,17 +144,18 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     initiativeCost: 4,
     requiredMainHand: WEAPON.PISTOL,
     requiredOffHand: WEAPON.DAGGER,
-    castTimeMs: 0,
+    // EVTC records a 160 ms melee segment followed by a 440 ms shot animation: 600 ms on the action grid.
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
-        ticks: [{ atMs: 0, coefficient: 0.315 }],
+        ticks: [{ atMs: 160, coefficient: 0.315 }],
         name: 'Shadow Strike — Packet 1',
         actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+      ...impactEffects({ atMs: 240, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
         {
           type: 'strike',
           coefficient: 1.3125,
@@ -132,54 +168,36 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
               finisherType: COMBO_FINISHER.PROJECTILE
             }
           ]
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.TORMENT,
-          stacks: 4,
-          duration: 6,
-          actorType: ACTOR.PLAYER
         }
-      ])
+      ]),
+      {
+        // The supplied EVTC applies torment with the melee hit, before the retreating shot arrives.
+        type: 'condition',
+        condition: CONDITION.TORMENT,
+        stacks: 4,
+        duration: 6,
+        actorType: ACTOR.PLAYER,
+        atMs: 160,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
     ],
-    // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPEATER_ID_59526, durationSec: 4 } }]
+    // PvE grants three Repeater uses sharing a ten-second window; spending a use does not refresh it.
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPEATER_ID_59526, durationSec: 10, uses: 3 } }
+    ]
   },
   [ID.REPEATER_ID_59526]: {
     cooldown: 0,
     initiativeCost: 2,
     requiredMainHand: WEAPON.PISTOL,
     requiredOffHand: WEAPON.DAGGER,
-    castTimeMs: 840,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, coefficient: 7.5 / 5 })),
-        name: 'Repeater',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        comboFinishers: [
-          {
-            ownerId: 'thief',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2
-          }
-        ]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 5, duration: 3 }],
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
-    // A committed follow-up consumes its window and restores the parent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.REPEATER_ID_59526 } }]
+    ...REPEATER_ATTACK,
+    // Activation spends one charge even if interrupted; only depletion or expiry restores Shadow Strike.
+    sideEffects: [{ on: 'castStart', do: { type: 'flipConsume', skillId: ID.REPEATER_ID_59526 } }]
   },
   [ID.UNLOAD]: {
-    // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
+    // The channel refund mechanic grants this only after every bullet in the activation lands.
     initiativeRefund: 2,
 
     cooldown: 0,
@@ -187,11 +205,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     requiredMainHand: WEAPON.PISTOL,
     requiredOffHand: WEAPON.PISTOL,
     castTimeMs: 1320,
+    // Interrupting the volley preserves bullets already fired and cancels the remaining packets.
+    interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
-        ticks: [80, 200, 280, 400, 480, 600, 680, 760].map((atMs) => ({
-          // TODO: Validate these packet offsets against a combat log.
+        // EVTC hit offsets rounded independently to 40 ms keep the observed alternating shot spacing.
+        ticks: [240, 400, 480, 640, 720, 880, 960, 1120].map((atMs) => ({
           atMs,
           coefficient: 3.36 / 8
         })),
@@ -213,29 +233,6 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
         duration: 8,
         stacks: 8
       }
-    ],
-    // The refund requires the final authored bullet, even when the remaining channel tail is cut short.
-    sideEffects: [
-      {
-        on: 'castCommit',
-        when: (_runtime, cast) => {
-          const bullets = cast.skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Unload');
-
-          if (bullets?.type !== 'strike') return false;
-
-          const offset = Number(bullets.ticks?.at(-1)?.atMs);
-          const scale =
-            bullets.timingScale === 'cast'
-              ? castRelativeEffectTimingScale(cast.skill, (cast.fullEnd - cast.start) * 1000)
-              : 1;
-          return Number.isFinite(offset) && cast.effectiveEnd >= canonicalTime(cast.start + (offset * scale) / 1000);
-        },
-        do: {
-          type: 'resourceGrant',
-          resource: 'initiative',
-          amount: { skillField: 'initiativeRefund' }
-        }
-      }
     ]
   },
   [ID.REPEATER]: {
@@ -243,31 +240,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Parti
     initiativeCost: 3,
     requiredMainHand: WEAPON.PISTOL,
     requiredOffHand: false,
-    castTimeMs: 840,
-    effects: [
-      {
-        type: 'strike',
-        ticks: [160, 320, 520, 680, 840].map((atMs) => ({ atMs, coefficient: 1.5 / 5 })),
-        name: 'Repeater (offhand empty)',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        comboFinishers: [
-          {
-            ownerId: 'thief',
-            finisherType: COMBO_FINISHER.PROJECTILE,
-            chance: 0.2
-          }
-        ]
-      },
-      {
-        type: 'condition',
-        ticks: [{ atMs: 0, condition: CONDITION.BLEEDING, stacks: 5, duration: 3 }],
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
+    ...REPEATER_ATTACK
   },
   [ID.HEAD_SHOT]: {
     cooldown: 0,

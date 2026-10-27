@@ -92,6 +92,10 @@ export function validateSideEffectAction(
 
       break;
     case 'flipArm':
+      // Reject invalid charge grants before a cast can mutate the active follow-up.
+      if (action.uses !== undefined && (!Number.isSafeInteger(action.uses) || action.uses < 1))
+        throw new TypeError(`${label} uses must be a positive safe integer.`);
+
       if (action.expiryPriority !== undefined) validateFinitePriority(action.expiryPriority, label);
 
       if (!catalog.skillsById.has(action.skillId))

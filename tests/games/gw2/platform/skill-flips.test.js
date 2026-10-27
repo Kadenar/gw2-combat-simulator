@@ -9,6 +9,31 @@ import {
   skillFlipVisible
 } from '#gw2/platform/execution/skill-flips.js';
 
+// Uses share their grant identity and expiry, so consuming a charge cannot extend access or defeat cleanup.
+test('charged flips deplete one use at a time and expire all unspent uses', () => {
+  const flips = {};
+  const grant = armSkillFlip(flips, 1, 0, 10, 0, undefined, 3);
+  assert.equal(grant.remainingUses, 3);
+  consumeSkillFlip(flips, 1);
+  assert.deepEqual(flips[1], { ...grant, remainingUses: 2 });
+  const detached = JSON.parse(JSON.stringify(flips));
+  consumeSkillFlip(detached, 1);
+  assert.deepEqual(detached[1], { ...grant, remainingUses: 1 });
+  consumeSkillFlip(detached, 1);
+  assert.equal(detached[1], undefined);
+  expireSkillFlip(flips, 1, 10, grant.identity);
+  assert.equal(flips[1], undefined);
+
+  const old = armSkillFlip(flips, 1, 0, 10, 0, undefined, 3);
+  consumeSkillFlip(flips, 1);
+  const replacement = armSkillFlip(flips, 1, 5, 15, 5, undefined, 3);
+  assert.equal(expireSkillFlip(flips, 1, 10, old.identity), undefined);
+  assert.equal(flips[1], replacement);
+  assert.equal(replacement.remainingUses, 3);
+  for (const uses of [0, -1, 1.5, Infinity, NaN, '3'])
+    assert.throws(() => armSkillFlip({}, 1, 0, 10, 0, undefined, uses), RangeError);
+});
+
 // One serialized window must retain visibility, readiness, and exact expiry without a second flag or deadline.
 test('flip visibility and readiness use separate half-open windows', () => {
   const flips = {};

@@ -11,6 +11,7 @@ import { elementalistCatalog, elementalistProfession } from '#gw2/professions/el
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { EVTC_FIXTURE_PLAYER as PLAYER, event as evtcEvent, log } from '#tests/helpers/evtc-fixture.js';
 
@@ -24,6 +25,52 @@ const fixtureSkill = {
   effects: []
 };
 const catalog = rotationCatalog([fixtureSkill]);
+
+// Split animation records must replay one accepted opener and leave its charges available to the follow-up.
+test('Shadow Strike composite import does not spend initiative or grant charges twice', () => {
+  const source = log({
+    agents: [{ ...log().agents[0], profession: 5, elite: 7 }],
+    skills: [
+      { id: 13010, name: 'Shadow Strike' },
+      { id: 13051, name: 'Shadow Strike' }
+    ],
+    events: [
+      evtcEvent({ time: 1000, stateChange: 67, skillId: 13010 }),
+      evtcEvent({ time: 1160, stateChange: 68, skillId: 13010, value: 160, activation: 3 }),
+      evtcEvent({ time: 1160, stateChange: 67, skillId: 13051 }),
+      evtcEvent({ time: 1600, stateChange: 68, skillId: 13051, value: 440, activation: 3 })
+    ]
+  });
+  // dps.report groups the melee and shot under separate IDs even though both display as Shadow Strike.
+  const report = {
+    players: [
+      {
+        name: 'Fixture',
+        profession: 'Daredevil',
+        rotation: [
+          { id: 13010, skills: [{ castTime: 1000, duration: 160 }] },
+          { id: 13051, skills: [{ castTime: 1160, duration: 440 }] }
+        ]
+      }
+    ],
+    phases: [{ start: 1000, end: 3000, name: 'Full Fight' }],
+    skillMap: { s13010: { name: 'Shadow Strike' }, s13051: { name: 'Shadow Strike' } }
+  };
+  for (const imported of [
+    reconstructEvtcRotation(source, thiefCatalog),
+    reconstructDpsReportRotation(report, thiefCatalog)
+  ]) {
+    const replay = runThief(imported.rotation, { primaryWeapon: 'Pistol', secondaryWeapon: 'Dagger' });
+    assert.deepEqual(replay.warnings, []);
+    assert.equal(replay.planningState.profession.availableFlips[59526].remainingUses, 3);
+    const followed = runThief([...imported.rotation, { type: 'cast', skillId: 59526 }], {
+      primaryWeapon: 'Pistol',
+      secondaryWeapon: 'Dagger'
+    });
+    assert.deepEqual(followed.warnings, []);
+    assert.equal(followed.planningState.profession.availableFlips[59526].remainingUses, 2);
+  }
+});
 
 test('the shared timeline keeps tied shroud attacks between entry and exit for every shroud', () => {
   // Reverse source ordering and nearby timestamps distinguish a true tie from a separate transition.

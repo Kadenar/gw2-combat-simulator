@@ -282,10 +282,19 @@ export function runRuntime<T extends object>(
         expiresAt = Infinity,
         visibleAt,
         identity,
+        uses,
         expiryPriority = -20
       }: FlipWindowOptions = {}
     ) {
-      const window = armSkillFlip(flipWindows(), skillId, availableAt, expiresAt, visibleAt ?? availableAt, identity);
+      const window = armSkillFlip(
+        flipWindows(),
+        skillId,
+        availableAt,
+        expiresAt,
+        visibleAt ?? availableAt,
+        identity,
+        uses
+      );
 
       // The expiry only retires stale state: readiness already closes at the exclusive deadline.
       if (window.expiresAt != null)

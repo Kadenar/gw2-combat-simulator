@@ -363,7 +363,7 @@ test('the weapon follow-up rule hides a parent behind its open window and gates 
   const followUp = { id: 2, name: 'Follow-Up', type: 'Weapon', flipParentId: 1 };
   const chained = { id: 3, name: 'Chain', type: 'Weapon', flipSkillId: 4, nextChainId: 4 };
   const skillsById = new Map([parent, followUp, chained].map((skill) => [skill.id, skill]));
-  const open = { 2: { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 5 } };
+  const open = { 2: { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 5, remainingUses: 1 } };
 
   assert.deepEqual(weaponFlipBlock({}, skillsById, followUp, 1), { kind: 'closed', parent });
   assert.equal(weaponFlipBlock(open, skillsById, followUp, 1), null);

@@ -7,6 +7,7 @@ export interface SkillFlipWindow {
   readonly visibleAt: number;
   readonly availableAt: number;
   readonly expiresAt: number | null;
+  readonly remainingUses: number;
 }
 
 export type SkillFlipWindows = Record<string, SkillFlipWindow>;
@@ -21,8 +22,12 @@ export function armSkillFlip(
   availableAt: number,
   expiresAt = Infinity,
   visibleAt = availableAt,
-  identity?: number | string
+  identity?: number | string,
+  uses = 1
 ): SkillFlipWindow {
+  // Charged follow-ups share one deadline and must always grant a whole, positive number of uses.
+  if (!Number.isSafeInteger(uses) || uses < 1) throw new RangeError('Flip uses must be a positive safe integer.');
+
   const sequence =
     Math.max(
       sequences.get(flips) ?? 0,
@@ -33,7 +38,8 @@ export function armSkillFlip(
     identity: identity ?? sequence,
     visibleAt: canonicalTime(visibleAt),
     availableAt: canonicalTime(availableAt),
-    expiresAt: expiresAt === Infinity ? null : canonicalTime(expiresAt)
+    expiresAt: expiresAt === Infinity ? null : canonicalTime(expiresAt),
+    remainingUses: uses
   };
 
   if (window.visibleAt > window.availableAt || window.availableAt > (window.expiresAt ?? Infinity)) {
@@ -44,10 +50,13 @@ export function armSkillFlip(
   return window;
 }
 
-/** Removes one choice and returns its captured window for profession-owned transition effects. */
+/** Spend one use without refreshing the deadline; the final use restores the parent choice. */
 export function consumeSkillFlip(flips: SkillFlipWindows, skillId: string | number): SkillFlipWindow | undefined {
   const window = flips[skillId];
-  delete flips[skillId];
+
+  if (window && window.remainingUses > 1) flips[skillId] = { ...window, remainingUses: window.remainingUses - 1 };
+  else delete flips[skillId];
+
   return window;
 }
 
@@ -72,7 +81,8 @@ export function expireSkillFlip(
   if (!window || window.identity !== identity || window.expiresAt === null || window.expiresAt > canonicalTime(at))
     return undefined;
 
-  consumeSkillFlip(flips, skillId);
+  // Expiry retires the whole grant, including every unused charge.
+  delete flips[skillId];
   return window as SkillFlipWindow & { readonly expiresAt: number };
 }
 
@@ -120,6 +130,8 @@ export function weaponFollowUpOpen(
 
 /** One follow-up window; omitted bounds open it now and leave it open until consumed. */
 export interface FlipWindowOptions {
+  /** Uses granted by this occurrence; ordinary follow-ups grant one. */
+  readonly uses?: number;
   readonly availableAt?: number;
   readonly expiresAt?: number;
   /** A window can appear on the bar before it becomes castable. */

@@ -46,6 +46,8 @@ export type SideEffectAction =
   | {
       readonly type: 'flipArm';
       readonly skillId: SkillId;
+      /** Charged follow-ups spend these uses against a single shared expiry. */
+      readonly uses?: number;
       /** Null keeps the flip exposed until its owner consumes it; omission uses the skill's flipDuration. */
       readonly durationSec?: ProfileAmount | null;
       readonly expiryPriority?: number;

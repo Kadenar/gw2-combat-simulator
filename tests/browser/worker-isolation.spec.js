@@ -14,7 +14,8 @@ test('simulation workers load current and preview patches without UI dependencie
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.evaluate((patchId) => {
     window.professionApp.patch = window.professionApp.profession.resolvePatch({ id: patchId });
-    window.professionApp.addRotation('Bladecall');
+    // Worker requests carry the canonical skill ID independently of the palette label.
+    window.professionApp.addRotation('Bladecall', { skillId: 69311 });
   }, patchId);
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
 

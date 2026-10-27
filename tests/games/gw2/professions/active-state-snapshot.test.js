@@ -98,8 +98,8 @@ test('public expiry projections use exclusive deadlines without mutating the liv
 test('filtered public windows remain deeply detached from their live owners', () => {
   // Filtering must preserve nested detachment even when a visible window survives the observation.
   const guardian = guardianProfession.runtimeFor({ specialization: 'Core' }).createState({ specialization: 'Core' });
-  const expiredFlip = { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 5 };
-  const visibleFlip = { identity: 2, visibleAt: 0, availableAt: 0, expiresAt: 7 };
+  const expiredFlip = { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 5, remainingUses: 1 };
+  const visibleFlip = { identity: 2, visibleAt: 0, availableAt: 0, expiresAt: 7, remainingUses: 1 };
   guardian.core.availableFlips = { expired: expiredFlip, visible: visibleFlip };
   const guardianProjection = projectObservedState(guardianProfession, { profession: guardian, time: 5 });
   assert.deepEqual(guardianProjection.availableFlips, { visible: visibleFlip });
@@ -133,7 +133,7 @@ test('Mesmer public projectors do not traverse private cast history', () => {
         return assert.fail('Projection traversed private cast details');
       }
     });
-    const flip = { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 7 };
+    const flip = { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 7, remainingUses: 1 };
     profession.core.availableFlips = { visible: flip, expired: { ...flip, identity: 2, expiresAt: 5 } };
     const projected = projectObservedState(mesmerProfession, { profession, config, time: 5 });
     assert.equal(Object.hasOwn(projected, 'castDetails'), false);

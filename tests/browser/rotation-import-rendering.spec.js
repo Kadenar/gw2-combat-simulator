@@ -16,11 +16,13 @@ test('named rotations import through the Current file dialog and Reference manif
   await page.route('**/bug-002-rotation.json*', (route) => route.fulfill({ json: ['Bladesong Harmony'] }));
   await page.locator('#btn-import-rotation').click();
   const current = page.locator('.rotation-import-dialog[data-rotation-import-destination="current"]');
+  await current.getByRole('tab', { name: 'Upload file', exact: true }).click();
   await page.locator('#rotation-file-input').setInputFiles({
     name: 'rotation.json',
     mimeType: 'application/json',
     buffer: Buffer.from(JSON.stringify(['Bladesong Harmony']))
   });
+  await current.getByRole('button', { name: 'Review import', exact: true }).click();
   await expect(current.getByRole('button', { name: 'Apply rotation', exact: true })).toBeEnabled();
   await current.getByRole('button', { name: 'Apply rotation', exact: true }).click();
   await expect(current).toBeHidden();
@@ -29,10 +31,10 @@ test('named rotations import through the Current file dialog and Reference manif
   await page.getByRole('button', { name: 'Compare', exact: true }).click();
   await page.locator('[data-comparison-empty-load]').click();
   const reference = page.locator('.rotation-import-dialog[data-rotation-import-destination="reference"]');
-  const presets = reference.getByRole('combobox', { name: 'Existing rotation', exact: true });
+  await reference.getByRole('tab', { name: 'Saved rotation', exact: true }).click();
+  const presets = reference.getByRole('combobox', { name: 'Compatible rotation', exact: true });
   await expect(presets).toBeEnabled();
   await presets.selectOption({ label: 'Named rotation' });
-  await reference.getByRole('button', { name: 'Load selected', exact: true }).click();
   await expect(reference.getByRole('button', { name: 'Use as reference', exact: true })).toBeEnabled();
   await reference.getByRole('button', { name: 'Use as reference', exact: true }).click();
   await expect(reference).toBeHidden();

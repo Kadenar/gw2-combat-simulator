@@ -96,6 +96,7 @@ export function applySideEffect<TContext extends SideEffectServices>(
       if (context.kind !== 'cast') throw new TypeError('flipArm requires a cast trigger.');
 
       runtime.armFlip(action.skillId, {
+        uses: action.uses,
         expiresAt:
           action.durationSec === null
             ? Infinity

@@ -53,6 +53,7 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
         armMesmerSkillFlip(context, parentCast());
         assert.deepEqual(context.profession.core.availableFlips[ID.COUNTERSPELL], {
           identity: 'parent',
+          remainingUses: 1,
           visibleAt: 0.35,
           availableAt: 0.4,
           expiresAt: 0.5
@@ -110,6 +111,7 @@ test('Mesmer flip endpoints canonicalize arithmetic residue without snapping to 
       armMesmerSkillFlip(context, parentCast('parent', 0.1, { delay: 0.2, duration: 0.333333 }));
       assert.deepEqual(context.profession.core.availableFlips[ID.COUNTERSPELL], {
         identity: 'parent',
+        remainingUses: 1,
         visibleAt: 0.15,
         availableAt: 0.3,
         expiresAt: 0.433333
