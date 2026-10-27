@@ -535,6 +535,8 @@ test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ p
 
 test('rotation comparison keeps editable and read-only timelines stacked without page overflow', async ({ page }) => {
   await openSimulator(page);
+  // Wider font metrics exercise wrapped mobile controls and timelines constrained to their minimum height.
+  await page.addStyleTag({ content: 'body { font-family: Verdana, sans-serif; }' });
   // Start from a manifest build so the reference picker has one compatible skill loadout.
   await openTemplates(page);
   const templateButton = page.locator('.template-load-btn').first();
@@ -693,7 +695,7 @@ test('rotation comparison keeps editable and read-only timelines stacked without
       expect(Math.abs(summaryBox.y + summaryBox.height / 2 - actionsBox.y - actionsBox.height / 2)).toBeLessThan(2);
     }
 
-    // Collapsing the palette gives both views more room and survives normal editor refreshes.
+    // Collapsing reclaims vertical space; mobile timelines may retain their minimum height when controls wrap.
     const palette = page.locator('#rotation-palette');
     const skills = page.locator('#rotation-comparison-skills');
     const toggle = skills.locator('summary');
@@ -702,6 +704,7 @@ test('rotation comparison keeps editable and read-only timelines stacked without
     const expandedHeights = await Promise.all(
       [currentTimeline, referenceTimeline].map((view) => view.evaluate((el) => el.clientHeight))
     );
+    const expandedCurrentBox = await currentTimeline.boundingBox();
     await toggle.click();
     await expect(skills).not.toHaveAttribute('open');
     await expect(palette).toBeHidden();
@@ -709,7 +712,11 @@ test('rotation comparison keeps editable and read-only timelines stacked without
       [currentTimeline, referenceTimeline].map((view) => view.evaluate((el) => el.clientHeight))
     );
     collapsedHeights.forEach((height, index) => expect(height).toBeGreaterThanOrEqual(expandedHeights[index]));
-    expect(collapsedHeights[0] + collapsedHeights[1]).toBeGreaterThan(expandedHeights[0] + expandedHeights[1]);
+    expect((await currentTimeline.boundingBox()).y).toBeLessThan(expandedCurrentBox.y);
+
+    if (viewport.width > 900)
+      expect(collapsedHeights[0] + collapsedHeights[1]).toBeGreaterThan(expandedHeights[0] + expandedHeights[1]);
+
     const referenceBox = await referenceTimeline.boundingBox();
     expect(referenceBox.y + referenceBox.height).toBeLessThanOrEqual(viewport.height);
 
