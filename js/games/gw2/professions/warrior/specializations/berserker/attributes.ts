@@ -1,5 +1,5 @@
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { attributeBonusNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { active } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
 
@@ -8,7 +8,7 @@ export const berserkerAttributes: Gw2AttributeContributionCalculator = (context)
   if (!active(context)) return [];
 
   const profile = requireBalanceProfileFromContext(context, TRAIT.FATAL_FRENZY);
-  const power = balanceProfileNumber(profile, 'attributeBonus');
+  const power = attributeBonusNumber(profile, 'power');
   return [
     {
       attributeEffects: [
@@ -16,7 +16,7 @@ export const berserkerAttributes: Gw2AttributeContributionCalculator = (context)
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: balanceProfileNumber(profile, 'attributePerStack'),
+          amount: attributeBonusNumber(profile, 'conditionDamage'),
           feedsConversions: 'none'
         }
       ]

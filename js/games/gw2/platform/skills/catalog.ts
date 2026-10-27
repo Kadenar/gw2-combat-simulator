@@ -1,3 +1,4 @@
+import { professionProfileFields } from '#gw2/platform/skills/profile-fields.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { prepareCatalogActionRequirements } from '#gw2/platform/effects/action-declarations.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/skills/autoattack-chain-index.js';
@@ -10,7 +11,7 @@ import type {
   SkillId
 } from '#gw2/platform/skills/types.js';
 import { normalizeSkill, validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
-import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { professionSkillFields } from '#gw2/platform/skills/shared-fields.js';
 
 /**
@@ -38,7 +39,8 @@ interface CanonicalCatalogOptions<TSkill extends Skill> {
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
   readonly skillNormalizer?: (skill: Partial<TSkill>) => Partial<TSkill>;
   /** Fields only this profession's code reads; the shared vocabulary is always included. */
-  readonly skillFields?: SkillFieldSpecs;
+  readonly skillFields?: FieldSpecs;
+  readonly profileFields?: FieldSpecs;
 }
 
 interface NormalizedAutoattackChains {
@@ -111,10 +113,12 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
   weapons = [],
   weaponHands = {},
   skillNormalizer,
-  skillFields: professionFields
+  skillFields: professionFields,
+  profileFields: professionProfileDeclarations
 }: CanonicalCatalogOptions<TSkill> = {}): Readonly<CanonicalCatalog<TSkill>> {
   // Every merged skill, including patched replacements, is checked against this one profession-wide table.
   const skillFields = professionSkillFields(professionFields);
+  const profileFields = professionProfileFields(professionProfileDeclarations);
   const declared = [...generated, ...extraSkills];
   const declaredIds = new Set();
   for (const skill of declared) {
@@ -201,6 +205,7 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
     skills: Object.freeze(skills),
     skillsById: new Map(skills.map((skill) => [skill.id, skill])),
     skillFields,
+    profileFields,
     balanceProfiles: Object.freeze(profiles),
     balanceProfilesById: new Map(profiles.map((profile) => [profile.id, profile])),
     autoattackChains: normalizedAutoattacks.chains,

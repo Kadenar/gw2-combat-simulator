@@ -45,7 +45,7 @@ export const dragonhunterTooltips = {
     [TRAIT.VIRTUOUS_ACTION]: traitTooltip(
       'Replace the core virtues with Spear of Justice, Wings of Resolve, and Shield of Courage.'
     ),
-    [TRAIT.DEFENDERS_DOGMA]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
+    [TRAIT.DEFENDERS_DOGMA]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']]),
     [TRAIT.PURE_OF_SIGHT]: traitTooltip(
       "Deal increased strike damage within the simulator's fixed positioning assumptions.",
       [fromProfile(TRAIT.PURE_OF_SIGHT, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]

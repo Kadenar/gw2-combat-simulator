@@ -52,11 +52,21 @@ const bolsteredBonds = defineTrait({
   name: 'Bolstered Bonds',
   id: TRAIT.BOLSTERED_BONDS,
   balance: {
-    assassinAttributeBonus: 75,
-    centaurAttributeBonus: 150,
-    demonAttributeBonus: 75,
-    dwarfAttributeBonus: 150,
-    entityAttributeBonus: 75,
+    assassinAttributeBonuses: { power: 75, ferocity: 75 },
+    centaurAttributeBonuses: { healingPower: 150, concentration: 150 },
+    demonAttributeBonuses: { conditionDamage: 75, expertise: 75 },
+    dwarfAttributeBonuses: { toughness: 150, vitality: 150 },
+    entityAttributeBonuses: {
+      power: 75,
+      precision: 75,
+      toughness: 75,
+      vitality: 75,
+      ferocity: 75,
+      conditionDamage: 75,
+      expertise: 75,
+      concentration: 75,
+      healingPower: 75
+    },
     attributeMultiplier: 2
   },
   attributes: (context) => ({

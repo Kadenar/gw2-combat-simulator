@@ -8,6 +8,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
@@ -38,7 +39,7 @@ const angsiyansTrust = defineTrait({
 const empireDivided = defineTrait({
   name: 'Empire Divided',
   id: TRAIT.EMPIRE_DIVIDED,
-  balance: { attributeBonus: 240, threshold: 0.5 },
+  balance: { attributeBonuses: { power: 240 }, threshold: 0.5 },
   attributes: (context) => {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EMPIRE_DIVIDED);
     return {
@@ -46,7 +47,7 @@ const empireDivided = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'power'),
           // The full-health Power grant participates in utility and profession conversions.
           feedsConversions: 'all',
           enabled: playerHealthFraction(context) > balanceProfileNumber(profile, 'threshold')

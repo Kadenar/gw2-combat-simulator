@@ -167,11 +167,11 @@ const reinforcedPotency = defineTrait({
   balance: {
     damagePerBoon: 0.01,
     maximumBoons: GW2_STANDARD_BOONS.length,
-    attributeBonus: 240
+    attributeBonuses: { concentration: 240 }
   },
   attributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [
     // This intrinsic Concentration is conversion-eligible, unlike the separate boon-dependent damage bonus.
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'all' }
+    { kind: 'flat', to: 'Concentration', feedsConversions: 'all' }
   ]),
   modifierRules: [
     {

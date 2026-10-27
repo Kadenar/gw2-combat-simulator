@@ -35,6 +35,6 @@ export const elementalistWaterTooltips = {
   [TRAIT.CLEANSING_WATER]: outsideScopeTooltip,
   [TRAIT.POWERFUL_AURA]: outsideScopeTooltip,
   [TRAIT.SOOTHING_POWER]: traitTooltip('Gain vitality. Healing is outside combat simulation scope.', [
-    ['attributeBonus', 'Vitality']
+    ['attributeBonuses.vitality', 'Vitality']
   ])
 } satisfies NonNullable<ProfessionTooltips['traits']>;

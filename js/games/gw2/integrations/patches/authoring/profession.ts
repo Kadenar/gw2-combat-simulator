@@ -1,3 +1,4 @@
+import { traitAttributeFieldLabels } from '#gw2/platform/profession-definition/traits.js';
 import { selectionFromConfig, type PatchSelection, type ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import {
@@ -41,7 +42,7 @@ import { defineNativeProfession as defineStableNativeProfession } from '#gw2/pla
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types.js';
-import { patchableSkillFields, type SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { patchableNumericFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 
 function assertObject(value: object | null | undefined, label: string): void {
@@ -68,7 +69,8 @@ function createPatchAuthoringMetadata(
   professionName: string,
   modules: readonly AnyNativeModule[],
   fragments: ReadonlyMap<string, Readonly<ProfessionModuleCatalogFragment>>,
-  skillFields: SkillFieldSpecs
+  skillFields: FieldSpecs,
+  profileFields: FieldSpecs
 ): NativePatchAuthoringMetadata {
   return Object.freeze({
     professionId,
@@ -76,7 +78,7 @@ function createPatchAuthoringMetadata(
     // The editor labels skill controls from the same declarations that decide their patchability.
     skillFields: Object.freeze(
       Object.fromEntries(
-        patchableSkillFields(skillFields).map(([field, { label, unit }]) => [
+        patchableNumericFields(skillFields).map(([field, { label, unit }]) => [
           field,
           Object.freeze({ ...(label ? { label } : {}), ...(unit ? { unit } : {}) })
         ])
@@ -85,15 +87,37 @@ function createPatchAuthoringMetadata(
     modules: Object.freeze(
       modules.map((module) => {
         const fragment = fragments.get(module.id)!;
-        const authoringBalanceProfiles = (fragment.balanceProfiles || []).map((profile) =>
-          Object.freeze({
+        const authoringBalanceProfiles = (fragment.balanceProfiles || []).map((profile) => {
+          const trait = module.traitDefinitions?.find((trait) => (trait.balance?.id ?? trait.id) === profile.id);
+          const labels = trait ? traitAttributeFieldLabels(trait) : {};
+          const patchableFields = balanceProfilePatchableNumericFields(profile, profileFields);
+          return Object.freeze({
             id: profile.id,
             name: profile.name,
             moduleId: module.id,
-            profile: balanceProfileAuthoringReference(profile),
-            patchableFields: balanceProfilePatchableNumericFields(profile)
-          })
-        );
+            // Static declarations specialize generic amount labels; dynamic attribute choices retain generic labels.
+            fieldSpecs: Object.freeze(
+              Object.fromEntries(
+                patchableNumericFields(profileFields)
+                  .filter(([field]) => Object.hasOwn(patchableFields, field))
+                  .map(([field, spec]) => {
+                    const label = labels[field];
+                    return [
+                      field,
+                      Object.freeze({
+                        kind: 'number',
+                        patch: spec.patch,
+                        ...(spec.unit ? { unit: spec.unit } : {}),
+                        ...(label || spec.label ? { label: label || spec.label } : {})
+                      })
+                    ];
+                  })
+              )
+            ),
+            profile: balanceProfileAuthoringReference(profile, profileFields),
+            patchableFields
+          });
+        });
         return Object.freeze({
           id: module.id,
           traits: Object.freeze([...(fragment.traits || [])]),
@@ -111,7 +135,9 @@ function createPatchAuthoringMetadata(
               )
           ),
           balanceProfiles: Object.freeze(
-            authoringBalanceProfiles.filter((entry) => balanceProfileHasAuthorableControls(entry.profile))
+            authoringBalanceProfiles.filter((entry) =>
+              balanceProfileHasAuthorableControls(entry.profile, profileFields)
+            )
           ),
           modifierRules: Object.freeze(
             (module.modifiers.modifierRules ?? []).map((rule) =>
@@ -337,7 +363,8 @@ export function withPatchPreview<
     definition.name,
     modules,
     assembly.fragments,
-    catalogSkillFields(assembly.catalog)
+    catalogSkillFields(assembly.catalog),
+    assembly.catalog.profileFields
   );
   const previewModifierRules = preparePreviewModifierRules(modules, professionPatch?.modifierRules);
   let previewFamily: NativeProfessionContract<TModules, TPresentation, TBuild> | null = null;

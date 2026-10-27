@@ -1,3 +1,4 @@
+import { ELEMENTALIST_EVOKER_PROFILE_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
 import {
   EVOKER_FAMILIAR_SKILL_MECHANICS,
   zapModifiers
@@ -23,6 +24,7 @@ export const evokerModule = defineNativeModule({
   id: 'Evoker',
   traitDefinitions: evokerTraits,
   data: createElementalistModuleData('Evoker', {
+    profileFields: ELEMENTALIST_EVOKER_PROFILE_FIELDS,
     skillFields: EVOKER_SKILL_FIELDS,
     // Assemble both skill families at the module boundary in familiar-first order.
     skillMechanics: {
@@ -38,4 +40,4 @@ export const evokerModule = defineNativeModule({
 });
 
 import { evokerTraits } from '#gw2/professions/elementalist/specializations/evoker/traits/index.js';
-import { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/skill-fields.js';
+import { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';

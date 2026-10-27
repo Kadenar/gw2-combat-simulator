@@ -3,7 +3,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NativePatchAuthoringSkill } from '#gw2/integrations/patches/authoring/module-types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import { numericFieldSpec, patchFieldLabel } from '#gw2/integrations/patches/authoring/overview-generation.js';
-import type { NumericSkillFieldSpec } from '#gw2/platform/skills/field-specs.js';
+import type { NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
 import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 
 export interface PatchAuthoringSkillGroup {
@@ -191,32 +191,28 @@ export function effectDetail(effect: Readonly<SkillEffect>): string {
   return [...new Set(details)].join(' · ');
 }
 
-// Profile fields measured in seconds; skill fields declare their unit with the field itself.
-const PROFILE_SECOND_FIELDS = new Set([
-  'baseDuration',
-  'durationExtension',
-  'durationPerTier',
-  'immobilizeDurationExtension',
-  'pulseInterval',
-  'recharge'
-]);
-
 /**
  * Produces author-facing labels and units without changing stable runtime field names. A profession-owned skill field
  * passes its declaration; shared skill fields and profile fields resolve without one.
  */
-export function authoringNumericFieldLabel(
-  field: string,
-  spec?: Pick<NumericSkillFieldSpec, 'label' | 'unit'>
-): string {
+export function authoringNumericFieldLabel(field: string, spec?: Pick<NumericFieldSpec, 'label' | 'unit'>): string {
   const label = patchFieldLabel(field, spec);
   const unit = numericFieldSpec(field, spec)?.unit;
 
   if (unit === 'milliseconds' || (!unit && field.endsWith('Ms'))) return `${label.replace(/ ms$/i, '')} (ms)`;
 
-  if (unit === 'seconds' || (!unit && PROFILE_SECOND_FIELDS.has(field))) return `${label} (s)`;
+  if (unit === 'seconds') return `${label} (s)`;
 
-  if (unit === 'probability' || field === 'procChance' || field === 'criticalChance') return `${label} (0-1)`;
+  if (unit === 'probability') return `${label} (0-1)`;
+
+  // Display the descriptor's storage unit without rescaling patch values.
+  if (unit === 'fraction') return `${label} (fraction)`;
+
+  if (unit === 'factor') return `${label} (factor)`;
+
+  if (unit === 'attribute') return `${label} (points)`;
+
+  if (unit === 'percent') return `${label} (%)`;
 
   return label;
 }

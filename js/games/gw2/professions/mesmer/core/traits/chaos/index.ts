@@ -1,3 +1,4 @@
+import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
 import { WEAPON, ACTOR, AURA, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -151,29 +152,17 @@ export const chaoticPersistence = defineTrait<MesmerSkill>({
   name: 'Chaotic Persistence',
   id: TRAIT.CHAOTIC_PERSISTENCE,
   balance: {
-    expertiseBonus: 100,
-    concentrationBonus: 250
+    attributeBonuses: { expertise: 100, concentration: 250 }
   },
   attributes: ({ balanceContext, loadout }) => {
     const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.CHAOTIC_PERSISTENCE);
     // Regeneration enables both flat grants and their participation in utility and trait conversions.
     return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Expertise',
-          amount: balanceProfileNumber(profile, 'expertiseBonus'),
-          feedsConversions: 'all',
-          enabled: loadout.assumptions.regeneration !== false
-        },
-        {
-          kind: 'flat',
-          to: 'Concentration',
-          amount: balanceProfileNumber(profile, 'concentrationBonus'),
-          feedsConversions: 'all',
-          enabled: loadout.assumptions.regeneration !== false
-        }
-      ]
+      attributeEffects: ownerAttributeEffects(profile).map((effect) => ({
+        ...effect,
+        feedsConversions: 'all' as const,
+        enabled: loadout.assumptions.regeneration !== false
+      }))
     };
   }
 });

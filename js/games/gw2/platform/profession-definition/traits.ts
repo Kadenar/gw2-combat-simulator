@@ -1,3 +1,4 @@
+import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
 import type {
   Gw2AttributeContext,
   Gw2AttributeContributions,
@@ -14,7 +15,11 @@ import {
   type RechargeRule,
   type TraitTrigger
 } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  attributeBonusNumber,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 // Keep the existing discriminated trigger signatures while supplying selection ownership once.
@@ -140,8 +145,34 @@ type FlatAttributeEffect = Extract<Gw2AttributeEffect, { kind: 'flat' }>;
 type ConversionAttributeEffect = Extract<Gw2AttributeEffect, { kind: 'conversion' }>;
 
 type TraitAttributeDeclaration =
-  | (Omit<FlatAttributeEffect, 'amount' | 'enabled'> & { readonly field: string })
+  | (Omit<FlatAttributeEffect, 'amount' | 'enabled'> & { readonly group?: string })
   | (Omit<ConversionAttributeEffect, 'multiplier' | 'enabled'> & { readonly field: string });
+
+const attributeDeclarations = new WeakMap<
+  NonNullable<TraitDefinition['attributes']>,
+  readonly TraitAttributeDeclaration[]
+>();
+
+/** Static trait declarations can name a generic amount's attribute without executing runtime predicates. */
+export function traitAttributeFieldLabels(trait: TraitDefinition): Readonly<Record<string, string>> {
+  const targets = new Map<string, Set<string>>();
+  for (const declaration of trait.attributes ? (attributeDeclarations.get(trait.attributes) ?? []) : []) {
+    if (declaration.kind === 'flat') continue;
+
+    const names = targets.get(declaration.field) ?? new Set<string>();
+    names.add(declaration.to);
+    targets.set(declaration.field, names);
+  }
+
+  return Object.fromEntries(
+    [...targets].flatMap(([field, names]) => {
+      if (names.size !== 1) return [];
+
+      const suffix = field === 'attributeConversion' ? 'conversion' : null;
+      return suffix ? [[field, `${[...names][0]} ${suffix}`]] : [];
+    })
+  );
+}
 
 const profileOnlyAttributes = new WeakSet<NonNullable<TraitDefinition['attributes']>>();
 
@@ -160,12 +191,22 @@ export function traitAttributeEffects(
   profileId: SkillId,
   declarations: readonly TraitAttributeDeclaration[]
 ): NonNullable<TraitDefinition['attributes']> {
-  return traitAttributeBonuses(profileId, (profile) => ({
-    attributeEffects: declarations.map(({ field, ...effect }) => {
-      const value = balanceProfileNumber(profile, field);
-      return effect.kind === 'flat' ? { ...effect, amount: value } : { ...effect, multiplier: value };
+  const contribute = traitAttributeBonuses(profileId, (profile) => ({
+    attributeEffects: declarations.map((declaration) => {
+      if (declaration.kind === 'flat') {
+        const attribute = (Object.keys(ATTRIBUTE_NAMES) as (keyof typeof ATTRIBUTE_NAMES)[]).find(
+          (key) => ATTRIBUTE_NAMES[key] === declaration.to
+        )!;
+        const { group, ...effect } = declaration;
+        return { ...effect, amount: attributeBonusNumber(profile, attribute, group) };
+      }
+
+      const { field, ...effect } = declaration;
+      return { ...effect, multiplier: balanceProfileNumber(profile, field) };
     })
   }));
+  attributeDeclarations.set(contribute, declarations);
+  return contribute;
 }
 
 /** Share immutable profile-only bonuses; live selection and combat conditions stay in the caller. */

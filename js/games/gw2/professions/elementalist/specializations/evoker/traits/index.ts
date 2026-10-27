@@ -15,6 +15,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -196,7 +197,7 @@ const enhancedPotency = defineTrait({
   id: TRAIT.ENHANCED_POTENCY,
   balance: {
     criticalChance: 0.15,
-    attributeBonus: 75,
+    attributeBonuses: { ferocity: 75 },
     attributePerStack: 5
   },
   // Selection gates both elemental bonuses; live boons never become ordinary conversion inputs.
@@ -209,7 +210,7 @@ const enhancedPotency = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'ferocity'),
           feedsConversions: 'none',
           enabled:
             config?.evokerElement === 'Air' &&

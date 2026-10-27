@@ -1,5 +1,5 @@
-import type { PARAGON_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/paragon/skill-fields.js';
-import type { BERSERKER_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/berserker/skill-fields.js';
+import type { PARAGON_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/paragon/catalog-fields.js';
+import type { BERSERKER_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/berserker/catalog-fields.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -13,8 +13,8 @@ import type { SpellbreakerState } from '#gw2/professions/warrior/specializations
 import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { WARRIOR_CORE_SKILL_FIELDS } from '#gw2/professions/warrior/core/skill-fields.js';
-import type { BLADESWORN_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/bladesworn/skill-fields.js';
+import type { WARRIOR_CORE_SKILL_FIELDS } from '#gw2/professions/warrior/core/catalog-fields.js';
+import type { BLADESWORN_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/bladesworn/catalog-fields.js';
 
 interface WarriorBuild extends Gw2Build {
   specializations?: Gw2BuildSpecialization[];

@@ -1,3 +1,4 @@
+import { NECROMANCER_REAPER_PROFILE_FIELDS } from '#gw2/professions/necromancer/specializations/reaper/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
@@ -11,6 +12,7 @@ export const reaperModule = defineNativeModule({
   traitDefinitions: necromancerReaperTraits,
   id: 'Reaper',
   data: createNecromancerModuleData('Reaper', {
+    profileFields: NECROMANCER_REAPER_PROFILE_FIELDS,
     skillMechanics: REAPER_BASE_SKILL_MECHANICS,
     // Shroud autoattack chain runs separately from the out-of-shroud chain; both must be registered.
     autoattackChains: {

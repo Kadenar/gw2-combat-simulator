@@ -8,7 +8,7 @@ import {
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { mirageState, projectMiragePlanningState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { mirageTraits } from '#gw2/professions/mesmer/specializations/mirage/traits/index.js';
-import { MIRAGE_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/mirage/skill-fields.js';
+import { MIRAGE_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/mirage/catalog-fields.js';
 
 export const mirageModule = defineNativeModule({
   id: 'Mirage',

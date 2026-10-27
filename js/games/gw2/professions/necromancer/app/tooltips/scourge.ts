@@ -107,7 +107,8 @@ export const scourgeTooltips = {
   traits: {
     [TRAIT.MANTLE_OF_SAND]: traitTooltip('This specialization replaces shroud with sand shade skills.'),
     [TRAIT.SAND_SAGE]: traitTooltip('Gain expertise and concentration while a sand shade is active.', [
-      ['attributeBonus', 'Expertise and concentration']
+      ['attributeBonuses.concentration', 'Concentration'],
+      ['attributeBonuses.expertise', 'Expertise']
     ]),
     [TRAIT.BLOOD_AS_SAND]: outsideScopeTooltip,
     [TRAIT.ABRASIVE_GRIT]: traitTooltip(

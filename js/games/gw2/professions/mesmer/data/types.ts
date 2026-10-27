@@ -1,6 +1,6 @@
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/skill-fields.js';
-import type { MESMER_CORE_SKILL_FIELDS } from '#gw2/professions/mesmer/core/skill-fields.js';
+import type { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/catalog-fields.js';
+import type { MESMER_CORE_SKILL_FIELDS } from '#gw2/professions/mesmer/core/catalog-fields.js';
 import type { SimulationActorType } from '#gw2/platform/constants.js';
 /** Declarative Mesmer skill records shared by generated data and runtime consumers. */
 import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';

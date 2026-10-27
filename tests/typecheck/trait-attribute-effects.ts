@@ -5,9 +5,9 @@ import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 export const attributeTrait = defineTrait<ElementalistSkill>({
   id: 1,
   name: 'Typed attributes',
-  balance: { bonus: 20, conversion: 0.1 },
+  balance: { attributeBonuses: { power: 20 }, conversion: 0.1 },
   attributes: traitAttributeEffects(1, [
-    { kind: 'flat', to: 'Power', field: 'bonus', feedsConversions: 'all' },
+    { kind: 'flat', to: 'Power', feedsConversions: 'all' },
     {
       kind: 'conversion',
       from: 'Power',
@@ -22,7 +22,7 @@ export const attributeTrait = defineTrait<ElementalistSkill>({
 if (false) {
   traitAttributeEffects(1, [
     // @ts-expect-error Flat bonuses must declare whether they feed conversions.
-    { kind: 'flat', to: 'Power', field: 'bonus' }
+    { kind: 'flat', to: 'Power' }
   ]);
   traitAttributeEffects(1, [
     // @ts-expect-error Conversions must declare their input pool.
@@ -36,7 +36,6 @@ if (false) {
     {
       kind: 'flat',
       to: 'Power',
-      field: 'bonus',
       feedsConversions: 'all',
       // @ts-expect-error Conditional contributions belong in explicit callbacks.
       enabled: false
@@ -46,7 +45,6 @@ if (false) {
     {
       kind: 'flat',
       to: 'Power',
-      field: 'bonus',
       feedsConversions: 'all',
       // @ts-expect-error Values come from the selected balance profile.
       amount: 20

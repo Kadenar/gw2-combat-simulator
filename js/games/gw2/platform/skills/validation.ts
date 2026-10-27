@@ -10,9 +10,9 @@ import {
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
-import { validateSkillFieldValues, type SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { catalogSkillFields, SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
-import type { CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
+import type { BalanceProfile, CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 /** Validate skill declarations and cross-catalog references before runtime selection. */
 
@@ -88,24 +88,43 @@ export function validateDurationFields(owner: Readonly<Record<string, unknown>>,
   }
 }
 
+const attributeGroupsByFields = new WeakMap<FieldSpecs, readonly string[]>();
+
+/** Compile grant groups once per schema so catalog validation does not rescan every field for every owner. */
+function attributeGroups(fields: FieldSpecs): readonly string[] {
+  let groups = attributeGroupsByFields.get(fields);
+
+  if (!groups) {
+    groups = Object.entries(fields).flatMap(([group, spec]) =>
+      spec.kind === 'data' && spec.attributes ? [group] : []
+    );
+    attributeGroupsByFields.set(fields, groups);
+  }
+
+  return groups;
+}
+
 /**
  * Patched catalogs skip normalization, so declared numeric fields are checked with the other declarations against the
  * catalog's own field table. Attribute grants are closed to canonical attributes, so a misspelled grant fails instead
  * of silently granting nothing; each attribute amount is then bounded by its own numeric declaration.
  */
-function validateSkillTuning(skill: Skill, fields: SkillFieldSpecs, label: string): void {
-  if (skill.attributeBonuses !== undefined) {
-    const bonuses: unknown = skill.attributeBonuses;
+function validateSkillTuning(skill: Skill | BalanceProfile, fields: FieldSpecs, label: string): void {
+  // Each declared grant group uses the same closed attribute vocabulary.
+  for (const group of attributeGroups(fields)) {
+    if (skill[group] === undefined) continue;
+
+    const bonuses: unknown = skill[group];
 
     if (!bonuses || typeof bonuses !== 'object' || Array.isArray(bonuses))
-      throw new TypeError(`${label} field=attributeBonuses must be an object.`);
+      throw new TypeError(`${label} field=${group} must be an object.`);
 
     for (const attribute of Object.keys(bonuses))
       if (!Object.hasOwn(ATTRIBUTE_NAMES, attribute))
-        throw new TypeError(`${label} field=attributeBonuses unsupported attribute: ${attribute}.`);
+        throw new TypeError(`${label} field=${group} unsupported attribute: ${attribute}.`);
   }
 
-  validateSkillFieldValues(skill, fields, label);
+  validateFieldValues(skill, fields, label);
 }
 
 /**
@@ -124,7 +143,11 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
   }
 
   for (const profile of catalog.balanceProfiles) {
-    validateDurationFields(profile, `profile=${profile.id}`);
+    // Profiles obey their selected profession's declarations on authored and patched catalogs alike.
+    for (const field of Object.keys(profile))
+      if (!Object.hasOwn(catalog.profileFields, field))
+        throw new TypeError(`Profile ${profile.id} has unsupported field: ${field}.`);
+    validateSkillTuning(profile, catalog.profileFields, `profile=${profile.id}`);
     for (const effect of profile.effects ?? []) validateEffectReactions(catalog, profile, effect);
   }
 
@@ -196,7 +219,7 @@ export function normalizeSkill<TSkill extends Skill>(
   id: SkillId,
   mergedSource: Partial<TSkill>,
   skillNormalizer?: (skill: Partial<TSkill>) => Partial<TSkill>,
-  fields: SkillFieldSpecs = SHARED_SKILL_FIELDS
+  fields: FieldSpecs = SHARED_SKILL_FIELDS
 ): TSkill {
   for (const field of Object.keys(mergedSource)) {
     if (!Object.hasOwn(fields, field)) throw new TypeError(`Skill ${id} has unsupported field: ${field}.`);

@@ -45,7 +45,10 @@ for (const section of ['skills', 'balanceProfiles']) {
           ]
         };
         const catalog = createCanonicalCatalog({ [section === 'skills' ? 'generated' : section]: [source] });
-        const reference = referenceFor(catalog[section][0], catalog.skillFields);
+        const reference = referenceFor(
+          catalog[section][0],
+          section === 'skills' ? catalog.skillFields : catalog.profileFields
+        );
         const flatEffect = reference.effects[0];
         const target = shape === 'aggregate' ? flatEffect : flatEffect.ticks[0];
         assert.equal(target.coefficient, undefined);
@@ -79,7 +82,7 @@ for (const section of ['skills', 'balanceProfiles']) {
     const fields =
       section === 'skills'
         ? skillPatchableNumericFields(source, createCanonicalCatalog().skillFields)
-        : balanceProfilePatchableNumericFields(source);
+        : balanceProfilePatchableNumericFields(source, createCanonicalCatalog().profileFields);
     const catalog = createCanonicalCatalog({
       [section === 'skills' ? 'generated' : section]: [
         {

@@ -1,3 +1,4 @@
+import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -73,7 +74,7 @@ test('Luminary definitions preserve eligible build grants and applied armament w
   // Imported buffs retain their lifetime without current trait selection; live patches still own their amounts.
   const family = patched(guardianProfession, {
     balanceProfiles: {
-      [GUARDIAN.LIGHTS_GIFT]: { fields: { attributeBonus: 240 } },
+      [GUARDIAN.LIGHTS_GIFT]: { fields: { 'attributeBonuses.vitality': 240 } },
       [GUARDIAN.EMPOWERED_ARMAMENTS]: { fields: { damageIncrease: 0.2 } },
       [GUARDIAN.RADIANT_ARMAMENTS]: { fields: { damageIncrease: 0.1 } }
     }
@@ -127,9 +128,9 @@ test('Willbender build definitions read active tuning and honor disabled trait p
   // Each mutually exclusive adept owns its panel grant, including the Vitality input to later conversions.
   const family = patched(guardianProfession, {
     balanceProfiles: {
-      [GUARDIAN.SEARING_PACT]: { fields: { attributeBonus: 150 } },
-      [GUARDIAN.POWER_FOR_POWER]: { fields: { attributeBonus: 200 } },
-      [GUARDIAN.CONCEITED_CURATE]: { fields: { attributeBonus: 240 } }
+      [GUARDIAN.SEARING_PACT]: { fields: { 'attributeBonuses.conditionDamage': 150 } },
+      [GUARDIAN.POWER_FOR_POWER]: { fields: { 'attributeBonuses.power': 200 } },
+      [GUARDIAN.CONCEITED_CURATE]: { fields: { 'attributeBonuses.vitality': 240 } }
     }
   });
   const calculate = createCalculateAttributes(
@@ -156,7 +157,15 @@ test('Willbender build definitions read active tuning and honor disabled trait p
 test('Imbued Haste shares patched attributes between build preview and current runtime selection', () => {
   // The registered owner grants three attributes once and honors disabled-trait and boon previews.
   const family = patched(guardianProfession, {
-    balanceProfiles: { [GUARDIAN.IMBUED_HASTE]: { fields: { attributeBonus: 175 } } }
+    balanceProfiles: {
+      [GUARDIAN.IMBUED_HASTE]: {
+        fields: {
+          'attributeBonuses.conditionDamage': 175,
+          'attributeBonuses.healingPower': 175,
+          'attributeBonuses.vitality': 175
+        }
+      }
+    }
   });
   const calculate = createCalculateAttributes(
     createProfessionBuildAttributeRules(guardianCatalog),
@@ -247,8 +256,8 @@ test('Guardian weapon definitions preserve patched build bonuses and live weapon
   // A delayed Greatsword packet uses the equipped weapon's bonus, subtracting the panel's previous weapon grant.
   const family = patched(guardianProfession, {
     balanceProfiles: {
-      [GUARDIAN.ZEALOUS_BLADE]: { fields: { attributeBonus: 100, weaponAttributeBonus: 300 } },
-      [GUARDIAN.RIGHT_HAND_STRENGTH]: { fields: { attributeBonus: 40 } }
+      [GUARDIAN.ZEALOUS_BLADE]: { fields: { 'attributeBonuses.power': 100, 'conditionalAttributeBonuses.power': 300 } },
+      [GUARDIAN.RIGHT_HAND_STRENGTH]: { fields: { 'attributeBonuses.precision': 40, 'attributeBonuses.power': 40 } }
     }
   });
   const balance = family.resolvePatch({ id: 's4-preview' }).balanceContext;
@@ -289,7 +298,7 @@ test('Guardian weapon definitions preserve patched build bonuses and live weapon
 test('Engineer Core definitions share patched build grants and preserve static attribute provenance', () => {
   // The build panel and live resolver consume the same registered owner without adding its grant twice.
   const family = patched(engineerProfession, {
-    balanceProfiles: { [ENGINEER.CHEMICAL_ROUNDS]: { fields: { attributeBonus: 180 } } }
+    balanceProfiles: { [ENGINEER.CHEMICAL_ROUNDS]: { fields: { 'attributeBonuses.conditionDamage': 180 } } }
   });
   const calculate = createCalculateAttributes(
     createProfessionBuildAttributeRules(engineerCatalog),
@@ -351,7 +360,7 @@ test('Mechanist registered recharge owners read preview values and preserve Over
 test('Elementalist Core definitions preserve patched build grants and disabled-trait preview selection', () => {
   const family = patched(elementalistProfession, {
     balanceProfiles: {
-      [ELEMENTALIST.BURNING_RAGE]: { fields: { attributeBonus: 240 } },
+      [ELEMENTALIST.BURNING_RAGE]: { fields: { 'attributeBonuses.conditionDamage': 240 } },
       [ELEMENTALIST.BURNING_PRECISION]: { fields: { durationMultiplier: 30 } },
       [ELEMENTALIST.ZEPHYRS_SPEED]: { fields: { criticalChance: 0.1 } }
     }
@@ -639,7 +648,9 @@ test('Mesmer Core and elite build owners consume patched values with independent
   // Native composition applies each selected contribution once and keeps preview overrides local to that calculation.
   const family = patched(mesmerProfession, {
     balanceProfiles: {
-      [MESMER.CHAOTIC_PERSISTENCE]: { fields: { expertiseBonus: 180, concentrationBonus: 320 } },
+      [MESMER.CHAOTIC_PERSISTENCE]: {
+        fields: { 'attributeBonuses.expertise': 180, 'attributeBonuses.concentration': 320 }
+      },
       [MESMER.FLOW_OF_TIME]: { fields: { criticalChance: 0.2 } }
     }
   });
@@ -679,5 +690,45 @@ test('Mesmer Core and elite build owners consume patched values with independent
     ).attributes;
     assert.equal(withoutRegeneration.Expertise.traits, 0);
     assert.equal(withoutRegeneration.Concentration.traits, 0);
+  }
+});
+
+// A formerly shared scalar now permits one attribute to change without altering its sibling or its boon gate.
+test('Energy Amplifier independently patches named grants while retaining Regeneration eligibility', () => {
+  const family = patched(engineerProfession, {
+    balanceProfiles: {
+      [ENGINEER.ENERGY_AMPLIFIER]: { fields: { 'attributeBonuses.power': 73, 'attributeBonuses.healingPower': 0 } }
+    }
+  });
+  for (const [patchId, power, healingPower] of [
+    ['current', 250, 250],
+    ['s4-preview', 73, 0],
+    ['current', 250, 250]
+  ]) {
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
+    const tooltip = describeSimulationTrait(
+      balance,
+      { id: ENGINEER.ENERGY_AMPLIFIER, name: 'Energy Amplifier' },
+      engineerTooltips
+    );
+    assert.equal(tooltip.facts.find((fact) => fact.name === 'Power with regeneration').detail, String(power));
+    assert.equal(
+      tooltip.facts.find((fact) => fact.name === 'Healing Power with regeneration').detail,
+      String(healingPower)
+    );
+    const runtime = family.runtimeFor({ patchId });
+    for (const enabled of [true, false]) {
+      const context = {
+        catalog: runtime.catalog,
+        time: 0,
+        config: {
+          selectedTraitIds: [ENGINEER.ENERGY_AMPLIFIER],
+          boons: { regeneration: enabled }
+        }
+      };
+      const stats = runtime.modifyAttributes(context, { power: 1000, healingPower: 0 });
+      assert.equal(stats.power, 1000 + (enabled ? power : 0));
+      assert.equal(stats.healingPower, enabled ? healingPower : 0);
+    }
   }
 });

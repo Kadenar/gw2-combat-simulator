@@ -6,7 +6,12 @@ import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  attributeBonusNumber,
+  requireBalanceProfileFromContext,
+  balanceNumberFromContext,
+  skillNumberFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 
 export interface SimulationTooltip {
   readonly description: string;
@@ -304,7 +309,17 @@ export function profileFact(
   name: string,
   format: (value: number) => string = tooltipDecimal
 ): TooltipFact {
-  return { name, detail: format(balanceNumberFromContext(context, id, field)) };
+  // Dotted paths are presentation metadata; combat readers receive the attribute key directly.
+  const dot = field.indexOf('.');
+  const value =
+    dot < 0
+      ? balanceNumberFromContext(context, id, field)
+      : attributeBonusNumber(
+          requireBalanceProfileFromContext(context, id),
+          field.slice(dot + 1) as import('#gw2/platform/skills/types.js').SkillAttributeKey,
+          field.slice(0, dot)
+        );
+  return { name, detail: format(value) };
 }
 
 /** Resolve a skill fact from the same patched owner used by combat and attribute calculations. */

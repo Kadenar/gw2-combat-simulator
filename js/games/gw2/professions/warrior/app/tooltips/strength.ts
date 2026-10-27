@@ -16,7 +16,7 @@ export const warriorStrengthTooltips = {
     ['resourceGain', 'Endurance gained']
   ]),
   [TRAIT.PINNACLE_OF_STRENGTH]: traitTooltip('Might grants additional power. Gain critical-strike chance.', [
-    ['attributeBonus', 'Power per might stack'],
+    ['attributePerStack', 'Power per might stack'],
     ['criticalChance', 'Critical chance', tooltipPercent]
   ]),
   [TRAIT.BRAVE_STRIDE]: traitTooltip('Completing a movement skill grants adrenaline and stability.', [
@@ -39,8 +39,8 @@ export const warriorStrengthTooltips = {
   [TRAIT.FORCEFUL_GREATSWORD]: traitTooltip(
     'Gain power and additional power while wielding a greatsword. Critical hits can grant might; the chance doubles with a greatsword.',
     [
-      ['attributeBonus', 'Power'],
-      ['weaponAttributeBonus', 'Additional power with a greatsword'],
+      ['attributeBonuses.power', 'Power'],
+      ['conditionalAttributeBonuses.power', 'Additional power with a greatsword'],
       ['procChance', 'Base might chance on critical hit', tooltipPercent]
     ]
   ),

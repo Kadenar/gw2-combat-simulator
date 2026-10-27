@@ -1,3 +1,4 @@
+import { ELEMENTALIST_CATALYST_PROFILE_FIELDS } from '#gw2/professions/elementalist/specializations/catalyst/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
@@ -21,6 +22,7 @@ export const catalystModule = defineNativeModule({
   id: 'Catalyst',
   traitDefinitions: catalystTraits,
   data: createElementalistModuleData('Catalyst', {
+    profileFields: ELEMENTALIST_CATALYST_PROFILE_FIELDS,
     skillMechanics: CATALYST_SKILL_MECHANICS
   }),
   state: { create: catalystState.create, project: createPublicStateProjector(CATALYST_PUBLIC_STATE_PROJECTION) },

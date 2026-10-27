@@ -464,7 +464,7 @@ test('attribute selection is fixed per query and rebuilt for a new run', () => {
 
 // Exercise declarative effects through the same selection, preview, and provenance pipeline as custom contributions.
 const fixtureAttributeEffects = traitAttributeEffects(101, [
-  { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'all' },
+  { kind: 'flat', to: 'Power', feedsConversions: 'all' },
   {
     kind: 'conversion',
     from: 'Power',
@@ -479,7 +479,7 @@ const trait = defineTrait({
   ...metadata,
   balance: {
     rechargeMultiplier: 0.5,
-    attributeBonus: 20,
+    attributeBonuses: { power: 20 },
     attributeConversion: 0.1,
     effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 }]
   },
@@ -508,7 +508,7 @@ function previewFamily(core = moduleWith([trait])) {
       fixture: {
         balanceProfiles: {
           101: {
-            fields: { attributeBonus: 40, rechargeMultiplier: 0.25 },
+            fields: { 'attributeBonuses.power': 40, rechargeMultiplier: 0.25 },
             removeEffects: [{ effectIndex: 0, type: 'condition', condition: 'Bleeding' }]
           }
         },
@@ -604,7 +604,7 @@ test('preview rules, active profiles, removed effects, and tooltip values share 
       101: (balance) => ({
         description: 'Shared values',
         facts: [
-          { name: 'Power', value: String(tuning(balance, 'attributeBonus')) },
+          { name: 'Power', value: String(balance.catalog.balanceProfilesById.get(101).attributeBonuses.power) },
           { name: 'Damage', value: String(balance.modifierRulesById.get('fixture.damage').parameters.bonus) }
         ]
       })
@@ -688,7 +688,12 @@ test('trait attribute helpers resolve overridden profile IDs without changing co
       moduleWith([
         defineTrait({
           ...metadata,
-          balance: { id: profileId, attributeBonus: 20, weaponAttributeBonus: 30, attributeConversion: 0.15 }
+          balance: {
+            id: profileId,
+            attributeBonuses: { power: 20 },
+            conditionalAttributeBonuses: { power: 30 },
+            attributeConversion: 0.15
+          }
         })
       ])
     ),
@@ -696,7 +701,9 @@ test('trait attribute helpers resolve overridden profile IDs without changing co
       id: 'preview',
       label: 'Preview',
       professions: {
-        fixture: { balanceProfiles: { [profileId]: { fields: { attributeBonus: 40, attributeConversion: 0.25 } } } }
+        fixture: {
+          balanceProfiles: { [profileId]: { fields: { 'attributeBonuses.power': 40, attributeConversion: 0.25 } } }
+        }
       }
     }
   );
@@ -709,8 +716,8 @@ test('trait attribute helpers resolve overridden profile IDs without changing co
     ['eligible', 'round', 19, 36]
   ]) {
     const contribute = traitAttributeEffects(profileId, [
-      { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'all' },
-      { kind: 'flat', to: 'Power', field: 'weaponAttributeBonus', feedsConversions: 'none' },
+      { kind: 'flat', to: 'Power', feedsConversions: 'all' },
+      { kind: 'flat', to: 'Power', group: 'conditionalAttributeBonuses', feedsConversions: 'none' },
       { kind: 'conversion', from: 'Power', to: 'Ferocity', field: 'attributeConversion', input, rounding }
     ]);
     for (const [patchId, power, ferocity] of [
@@ -752,12 +759,12 @@ test('trait attribute helpers reject missing profiles and invalid balance fields
   );
 
   for (const value of [undefined, null, '20', NaN, Infinity]) {
-    const profile = { ...current.catalog.balanceProfilesById.get(101), attributeBonus: value };
+    const profile = { ...current.catalog.balanceProfilesById.get(101), attributeBonuses: { power: value } };
     const balanceContext = {
       ...current,
       catalog: { ...current.catalog, balanceProfilesById: new Map([[101, profile]]) }
     };
-    assert.throws(() => fixtureAttributeEffects({ balanceContext }), /profile=101 field=attributeBonus/);
+    assert.throws(() => fixtureAttributeEffects({ balanceContext }), /owner=101 field=attributeBonuses.power/);
   }
 
   const missingField = traitAttributeEffects(101, [
@@ -780,8 +787,8 @@ test('profile-only attribute bonuses are immutable and isolated between patches'
   const contribute = traitAttributeBonuses(101, (profile) => {
     resolutions++;
     return {
-      traitDurations: { 'Bleeding Duration': profile.attributeBonus },
-      traitCriticalChance: profile.attributeBonus
+      traitDurations: { 'Bleeding Duration': profile.attributeBonuses.power },
+      traitCriticalChance: profile.attributeBonuses.power
     };
   });
   const current = { balanceContext: family.resolvePatch({ id: 'current' }).balanceContext };
@@ -813,10 +820,8 @@ test('prepared attribute declarations isolate patch profiles while live bonuses 
       moduleWith([
         defineTrait({
           ...metadata,
-          balance: { attributeBonus: 20 },
-          attributes: traitAttributeEffects(101, [
-            { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'none' }
-          ])
+          balance: { attributeBonuses: { power: 20 } },
+          attributes: traitAttributeEffects(101, [{ kind: 'flat', to: 'Power', feedsConversions: 'none' }])
         }),
         defineTrait({
           id: 102,
@@ -830,7 +835,7 @@ test('prepared attribute declarations isolate patch profiles while live bonuses 
     {
       id: 'preview',
       label: 'Preview',
-      professions: { fixture: { balanceProfiles: { 101: { fields: { attributeBonus: 40 } } } } }
+      professions: { fixture: { balanceProfiles: { 101: { fields: { 'attributeBonuses.power': 40 } } } } }
     }
   );
   const makeQuery = (patchId) => {

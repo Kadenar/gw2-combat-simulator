@@ -49,8 +49,8 @@ export const guardianZealTooltips = {
   [TRAIT.ZEALOUS_BLADE]: traitTooltip(
     'Gain power, with an additional bonus while wielding a greatsword. Greatsword skills recharge faster.',
     [
-      ['attributeBonus', 'Power', tooltipDecimal],
-      ['weaponAttributeBonus', 'Power with a greatsword', tooltipDecimal],
+      ['attributeBonuses.power', 'Power', tooltipDecimal],
+      ['conditionalAttributeBonuses.power', 'Power with a greatsword', tooltipDecimal],
       ['rechargeMultiplier', 'Greatsword recharge duration', tooltipFactorChange]
     ]
   ),

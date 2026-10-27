@@ -9,6 +9,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -29,7 +30,7 @@ const inspiringImplements = defineTrait({
   name: 'Inspiring Implements',
   id: TRAIT.INSPIRING_IMPLEMENTS,
   balance: {
-    attributeBonus: 180,
+    attributeBonuses: { concentration: 180 },
     internalCooldown: 4,
     resourceGain: 5,
     minimumStacks: 2
@@ -40,7 +41,7 @@ const inspiringImplements = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.INSPIRING_IMPLEMENTS, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.INSPIRING_IMPLEMENTS, 'concentration'),
           feedsConversions: 'none',
           enabled: true
         }

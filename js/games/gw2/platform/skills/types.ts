@@ -4,7 +4,7 @@ import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
-import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
@@ -39,6 +39,8 @@ export interface Skill extends CatalogEntity {
    * when the grant applies (readiness, held bundle); the amounts stay with the skill so patches edit one owner.
    */
   readonly attributeBonuses?: Readonly<Partial<Record<SkillAttributeKey, number>>>;
+  /** Fixed grants while the skill's active state applies. */
+  readonly activeAttributeBonuses?: Skill['attributeBonuses'];
   /** Duration in seconds of a skill-owned form or state, including a preparation's arming phase. */
   readonly duration?: number;
   /** Multiplier applied by the skill's mechanic to its eligible attribute pool. */
@@ -183,6 +185,10 @@ export interface Skill extends CatalogEntity {
  * Trait-owned balance data, using the same declarative effects as skills.
  */
 export interface BalanceProfile extends CatalogEntity {
+  /** Fixed amounts keyed by canonical attribute, shared by preview, combat, and tooltips. */
+  readonly attributeBonuses?: Skill['attributeBonuses'];
+  /** Alternative or additional fixed grants selected by the owner's condition. */
+  readonly conditionalAttributeBonuses?: Skill['attributeBonuses'];
   /** Lifetime in seconds of the state or charges owned by this profile, separate from its effects. */
   readonly duration?: number;
   /** Initial seconds before resource-scaled additions or extensions. */
@@ -264,7 +270,9 @@ export interface CanonicalCatalog<TSkill extends Skill = Skill> {
   readonly skills: readonly TSkill[];
   readonly skillsById: ReadonlyMap<SkillId, TSkill>;
   /** Shared and profession-owned skill fields; validation, patching, and authoring read this one table. */
-  readonly skillFields: SkillFieldSpecs;
+  readonly skillFields: FieldSpecs;
+  /** Shared and profession-owned balance-profile field declarations. */
+  readonly profileFields: FieldSpecs;
   readonly balanceProfiles: readonly BalanceProfile[];
   readonly balanceProfilesById: ReadonlyMap<SkillId, BalanceProfile>;
   readonly autoattackChains: readonly (readonly number[])[];

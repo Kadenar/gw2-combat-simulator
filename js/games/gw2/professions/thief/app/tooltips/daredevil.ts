@@ -48,8 +48,8 @@ export const daredevilTooltips = {
     [TRAIT.STAFF_MASTER]: traitTooltip(
       'Gain power and additional power while wielding a staff. Spending initiative on staff skills restores endurance.',
       [
-        ['attributeBonus', 'Power'],
-        ['weaponAttributeBonus', 'Total power while wielding a staff'],
+        ['attributeBonuses.power', 'Power'],
+        ['conditionalAttributeBonuses.power', 'Total power while wielding a staff'],
         ['resourceGain', 'Endurance per initiative spent']
       ]
     ),

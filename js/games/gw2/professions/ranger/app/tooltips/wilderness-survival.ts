@@ -36,16 +36,16 @@ export const rangerWildernessSurvivalTooltips = {
   [TRAIT.ARACHNOPHOBIA]: traitTooltip(
     'Gain expertise, with an additional expertise bonus for spider and devourer pets. Their Spit or Twin Darts inflicts torment; Twin Darts splits the duration across its projectiles.',
     [
-      ['attributeBonus', 'Expertise'],
-      ['weaponAttributeBonus', 'Additional spider / devourer expertise']
+      ['attributeBonuses.expertise', 'Expertise'],
+      ['conditionalAttributeBonuses.expertise', 'Additional spider / devourer expertise']
     ],
     'Spit; Twin Darts divides duration per projectile'
   ),
   [TRAIT.AMBIDEXTERITY]: traitTooltip(
     'Gain condition damage, increased while wielding a dagger, mace, or torch. Dagger and torch skills recharge faster.',
     [
-      ['attributeBonus', 'Base condition damage'],
-      ['weaponAttributeBonus', 'Condition damage with a dagger, mace, or torch'],
+      ['attributeBonuses.conditionDamage', 'Base condition damage'],
+      ['conditionalAttributeBonuses.conditionDamage', 'Condition damage with a dagger, mace, or torch'],
       ['rechargeMultiplier', 'Dagger / torch recharge', tooltipFactorChange]
     ]
   ),

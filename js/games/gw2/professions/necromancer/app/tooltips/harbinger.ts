@@ -93,7 +93,7 @@ export const harbingerTooltips = {
     [TRAIT.DARK_DISCIPLE]: traitTooltip(
       'This specialization uses Harbinger Shroud and accumulates blight. Variable player health is not simulated.'
     ),
-    [TRAIT.ALCHEMIC_VIGOR]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
+    [TRAIT.ALCHEMIC_VIGOR]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']]),
     [TRAIT.CORRUPTED_TALENT]: traitTooltip('Entering Harbinger Shroud generates life force.', [
       ['lifeForceGain', 'Life force gained', lifeForce]
     ]),

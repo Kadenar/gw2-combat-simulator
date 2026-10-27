@@ -20,7 +20,7 @@ export const elementalistArcaneTooltips = {
     'Changing attunement grants the boon corresponding to the element entered.'
   ),
   [TRAIT.ELEMENTAL_ENCHANTMENT]: traitTooltip('Gain concentration. Attunement and overload recharges are reduced.', [
-    ['attributeBonus', 'Concentration'],
+    ['attributeBonuses.concentration', 'Concentration'],
     ['rechargeMultiplier', 'Recharge', tooltipFactorChange]
   ]),
   [TRAIT.ARCANE_PRECISION]: traitTooltip(
@@ -45,7 +45,7 @@ export const elementalistArcaneTooltips = {
   ),
   [TRAIT.ARCANE_LIGHTNING]: traitTooltip(
     'Completing an arcane skill grants temporary ferocity and its corresponding extra effect. Arcane Blast blinds the target.',
-    [['attributeBonus', 'Ferocity during Arcane Lightning']]
+    [['attributeBonuses.ferocity', 'Ferocity during Arcane Lightning']]
   ),
   [TRAIT.BOUNTIFUL_POWER]: traitTooltip(
     'After enough attunement transitions, gain quickness and a temporary strike-damage bonus.',

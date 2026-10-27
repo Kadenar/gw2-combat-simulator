@@ -1,4 +1,4 @@
-import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { attributeBonusNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
@@ -32,7 +32,7 @@ export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRunti
 /** Selected Signet of the Wild grants ferocity only while ready; callers supply their own observation clock. */
 function signetOfTheWildBonus(context: unknown, selected: boolean, ready = true): number {
   return selected && ready
-    ? skillNumber(requireSkillFromContext(context, ID.SIGNET_OF_THE_WILD), 'attributeBonuses.ferocity')
+    ? attributeBonusNumber(requireSkillFromContext(context, ID.SIGNET_OF_THE_WILD), 'ferocity')
     : 0;
 }
 

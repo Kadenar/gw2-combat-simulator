@@ -6,9 +6,9 @@ import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { combineSkillFields } from '#gw2/platform/skills/field-specs.js';
-import { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/skill-fields.js';
-import { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/skill-fields.js';
+import { combineFields } from '#gw2/platform/skills/field-specs.js';
+import { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
+import { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
@@ -309,7 +309,7 @@ test('nested attribute edits preserve sibling grants and isolate the base catalo
   assert.deepEqual(first.skillsById.get(id).attributeBonuses, { ...base, precision: base.precision + 20 });
   assert.deepEqual(second.skillsById.get(id).attributeBonuses, { ...base, precision: 0 });
   assert.ok(Object.isFrozen(second.skillsById.get(id).attributeBonuses));
-  assert.equal(authoringNumericFieldLabel(field), 'Precision bonus');
+  assert.equal(authoringNumericFieldLabel(field), 'Precision bonus (points)');
   // Only attributes the skill actually grants are editable.
   assert.throws(
     () =>
@@ -325,7 +325,7 @@ test('nested attribute edits preserve sibling grants and isolate the base catalo
 });
 
 // The Elementalist modules' own declarations, combined as profession assembly combines them.
-const ELEMENTALIST_FIELDS = combineSkillFields([
+const ELEMENTALIST_FIELDS = combineFields([
   { owner: 'Core', fields: ELEMENTALIST_CORE_SKILL_FIELDS },
   { owner: 'Evoker', fields: EVOKER_SKILL_FIELDS }
 ]);

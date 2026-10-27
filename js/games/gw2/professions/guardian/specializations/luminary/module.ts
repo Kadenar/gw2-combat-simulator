@@ -11,7 +11,7 @@ import {
   luminaryState
 } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { luminaryTraits } from '#gw2/professions/guardian/specializations/luminary/traits/index.js';
-import { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/skill-fields.js';
+import { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/catalog-fields.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const luminaryModule = defineNativeModule({

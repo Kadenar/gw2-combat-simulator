@@ -7,6 +7,7 @@ import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/run
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -142,8 +143,8 @@ export const zealousBlade = defineTrait({
   name: 'Zealous Blade',
   id: TRAIT.ZEALOUS_BLADE,
   balance: {
-    weaponAttributeBonus: 240,
-    attributeBonus: 120,
+    conditionalAttributeBonuses: { power: 240 },
+    attributeBonuses: { power: 120 },
     rechargeMultiplier: 0.8
   },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
@@ -155,7 +156,7 @@ export const zealousBlade = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(zealousBladeProfile, 'attributeBonus'),
+          amount: attributeBonusNumber(zealousBladeProfile, 'power'),
           feedsConversions: 'none'
         },
         {
@@ -163,8 +164,8 @@ export const zealousBlade = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount:
-            balanceProfileNumber(zealousBladeProfile, 'weaponAttributeBonus') -
-            balanceProfileNumber(zealousBladeProfile, 'attributeBonus'),
+            attributeBonusNumber(zealousBladeProfile, 'power', 'conditionalAttributeBonuses') -
+            attributeBonusNumber(zealousBladeProfile, 'power'),
           feedsConversions: 'all',
           enabled: mainHand === WEAPON.GREATSWORD
         }

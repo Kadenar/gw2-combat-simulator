@@ -15,6 +15,8 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   procChanceFromContext,
@@ -61,7 +63,7 @@ import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/prof
 export const empoweringFlame = defineTrait({
   name: 'Empowering Flame',
   id: TRAIT.EMPOWERING_FLAME,
-  balance: { attributeBonus: 150 },
+  balance: { attributeBonuses: { power: 150 } },
   // Evaluate the current attunement without feeding its temporary Power into conversions.
   attributes(context) {
     return {
@@ -69,7 +71,7 @@ export const empoweringFlame = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.EMPOWERING_FLAME, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.EMPOWERING_FLAME, 'power'),
           feedsConversions: 'none',
           enabled: primaryAttunement(context) === 'Fire'
         }
@@ -156,11 +158,11 @@ export const burningRage = defineTrait({
   id: TRAIT.BURNING_RAGE,
   balance: {
     // The replacement burning belongs to Sunspot's shared trigger.
-    attributeBonus: 180,
+    attributeBonuses: { conditionDamage: 180 },
     effects: [{ type: 'condition', name: 'Sunspot Burning', condition: CONDITION.BURNING, stacks: 2, duration: 4 }]
   },
   attributes: traitAttributeEffects(TRAIT.BURNING_RAGE, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Condition Damage', feedsConversions: 'none' }
   ])
 });
 
@@ -175,8 +177,8 @@ export const powerOverwhelming = defineTrait({
   id: TRAIT.POWER_OVERWHELMING,
   balance: {
     minimumStacks: 10,
-    attributeBonus: 150,
-    weaponAttributeBonus: 300
+    attributeBonuses: { power: 150 },
+    conditionalAttributeBonuses: { power: 300 }
   },
   // Might and the active attunement select one live Power bonus.
   attributes(context) {
@@ -187,9 +189,10 @@ export const powerOverwhelming = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(
+          amount: attributeBonusNumber(
             profile,
-            primaryAttunement(context) === 'Fire' ? 'weaponAttributeBonus' : 'attributeBonus'
+            'power',
+            primaryAttunement(context) === 'Fire' ? 'conditionalAttributeBonuses' : 'attributeBonuses'
           ),
           feedsConversions: 'none',
           enabled: elementalistMightStacks(context) >= balanceProfileNumber(profile, 'minimumStacks')

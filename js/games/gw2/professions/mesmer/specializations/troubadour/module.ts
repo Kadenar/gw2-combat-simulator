@@ -13,7 +13,7 @@ import {
   troubadourState
 } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { troubadourTraits } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
-import { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/skill-fields.js';
+import { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/catalog-fields.js';
 
 export const troubadourModule = defineNativeModule({
   id: 'Troubadour',

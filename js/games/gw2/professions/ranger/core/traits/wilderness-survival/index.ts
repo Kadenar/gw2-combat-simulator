@@ -23,8 +23,9 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
+  attributeBonusNumber,
   balanceNumberFromContext,
-  balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -98,8 +99,8 @@ export const arachnophobia = defineTrait({
   id: TRAIT.ARACHNOPHOBIA,
   balance: {
     // Torment belongs to the triggering spider/devourer pet; pet damage is excluded from this preview.
-    attributeBonus: 150,
-    weaponAttributeBonus: 225,
+    attributeBonuses: { expertise: 150 },
+    conditionalAttributeBonuses: { expertise: 225 },
     effects: [{ name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, duration: 3, stacks: 1 }]
   },
   // Live pet queries may lack a snapshot; captured packet Expertise replaces this later.
@@ -107,14 +108,14 @@ export const arachnophobia = defineTrait({
     const profile = requireBalanceProfileFromContext(context, TRAIT.ARACHNOPHOBIA);
     const familyBonus =
       rangerPetEvent(context) && ['spider', 'devourer'].includes(activePetFamily(context))
-        ? balanceProfileNumber(profile, 'weaponAttributeBonus')
+        ? attributeBonusNumber(profile, 'expertise', 'conditionalAttributeBonuses')
         : 0;
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Expertise',
-          amount: balanceProfileNumber(profile, 'attributeBonus') + familyBonus,
+          amount: attributeBonusNumber(profile, 'expertise') + familyBonus,
           feedsConversions: 'none'
         }
       ]
@@ -184,8 +185,8 @@ export const ambidexterity = defineTrait({
   name: 'Ambidexterity',
   id: TRAIT.AMBIDEXTERITY,
   balance: {
-    weaponAttributeBonus: 240,
-    attributeBonus: 120,
+    conditionalAttributeBonuses: { conditionDamage: 240 },
+    attributeBonuses: { conditionDamage: 120 },
     rechargeMultiplier: 0.8
   },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
@@ -195,12 +196,13 @@ export const ambidexterity = defineTrait({
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: balanceNumberFromContext(
+          amount: attributeBonusFromContext(
             profileContext,
             TRAIT.AMBIDEXTERITY,
+            'conditionDamage',
             weapons.some((weapon) => [WEAPON.DAGGER, WEAPON.MACE, WEAPON.TORCH].some((member) => member === weapon))
-              ? 'weaponAttributeBonus'
-              : 'attributeBonus'
+              ? 'conditionalAttributeBonuses'
+              : 'attributeBonuses'
           ),
           feedsConversions: 'none'
         }

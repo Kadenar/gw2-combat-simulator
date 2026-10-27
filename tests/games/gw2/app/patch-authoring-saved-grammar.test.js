@@ -1,3 +1,4 @@
+import { SHARED_PROFILE_FIELDS } from '#gw2/platform/skills/profile-fields.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
 import assert from 'node:assert/strict';
@@ -82,6 +83,7 @@ for (const section of ['skills', 'balanceProfiles']) {
         name: source.name,
         moduleId: 'Core',
         [section === 'skills' ? 'skill' : 'profile']: source,
+        fieldSpecs: SHARED_PROFILE_FIELDS,
         patchableFields: { cooldown: 10 }
       };
       const payload = {

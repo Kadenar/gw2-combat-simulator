@@ -72,7 +72,13 @@ export const heraldTooltips = {
     [TRAIT.REINFORCED_POTENCY]: traitTooltip(
       'Gain concentration. Each different boon on you increases player strike damage.',
       (balanceContext, id) => [
-        profileFact(balanceContext, id, 'attributeBonus', 'Concentration', (value) => '+' + tooltipDecimal(value)),
+        profileFact(
+          balanceContext,
+          id,
+          'attributeBonuses.concentration',
+          'Concentration',
+          (value) => '+' + tooltipDecimal(value)
+        ),
         { name: 'Strike damage per unique boon', detail: tooltipPercent(0.01) }
       ]
     ),

@@ -1,3 +1,4 @@
+import { RANGER_SOULBEAST_PROFILE_FIELDS } from '#gw2/professions/ranger/specializations/soulbeast/catalog-fields.js';
 import { soulbeastAttributes } from '#gw2/professions/ranger/specializations/soulbeast/attributes.js';
 import { sicEmPlayerModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
@@ -19,6 +20,7 @@ export const soulbeastModule = defineNativeModule({
   attributes: soulbeastAttributes,
   traitDefinitions: soulbeastTraits,
   data: createRangerModuleData('Soulbeast', {
+    profileFields: RANGER_SOULBEAST_PROFILE_FIELDS,
     skillMechanics: SOULBEAST_BASE_SKILL_MECHANICS
   }),
   state: { create: soulbeastState.create, project: createPublicStateProjector(SOULBEAST_PUBLIC_STATE_PROJECTION) },

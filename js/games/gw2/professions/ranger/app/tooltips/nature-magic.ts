@@ -21,7 +21,7 @@ export const rangerNatureMagicTooltips = {
     [['pulseInterval', 'Configured boon refresh interval', tooltipSeconds]],
     RECIPIENT.SUMMONS
   ),
-  [TRAIT.LINGERING_MAGIC]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
+  [TRAIT.LINGERING_MAGIC]: traitTooltip('Gain concentration.', [['attributeBonuses.concentration', 'Concentration']]),
   [TRAIT.BOUNTIFUL_HUNTER]: traitTooltip(
     'You and your pet deal increased strike damage for each different boon affecting the respective attacker.',
     [

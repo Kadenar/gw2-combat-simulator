@@ -17,6 +17,7 @@ import {
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -245,7 +246,7 @@ const sandSage = defineTrait({
   name: 'Sand Sage',
   id: TRAIT.SAND_SAGE,
   balance: {
-    attributeBonus: 225
+    attributeBonuses: { concentration: 225, expertise: 225 }
   },
   // A living shade grants conversion-eligible duration attributes; expiry also removes their utility contribution.
   attributes(context) {
@@ -258,14 +259,14 @@ const sandSage = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'concentration'),
           feedsConversions: 'all',
           enabled: shadeActive
         },
         {
           kind: 'flat',
           to: 'Expertise',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'expertise'),
           feedsConversions: 'all',
           enabled: shadeActive
         }

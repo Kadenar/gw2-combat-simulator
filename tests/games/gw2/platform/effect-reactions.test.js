@@ -471,8 +471,8 @@ test('reaction validation cache admits only immutable context-independent effect
 
 // Frozen reaction data may still reference mutable catalog indexes, so those lookups cannot use the literal fast path.
 test('reaction registration revalidates referenced profile values', () => {
-  const catalog = catalogFor([strike([reaction(grant({ profile: 'amount', field: 'grant' }))])], {}, [
-    { id: 'amount', name: 'Amount', grant: 1, effects: [] }
+  const catalog = catalogFor([strike([reaction(grant({ profile: 'amount', field: 'resourceGain' }))])], {}, [
+    { id: 'amount', name: 'Amount', resourceGain: 1, effects: [] }
   ]);
   const skill = catalog.skills[0];
   const registry = createEffectReactions(catalog, {
@@ -481,7 +481,7 @@ test('reaction registration revalidates referenced profile values', () => {
     apply: () => {}
   });
   registry.register(skill, skill.effects[0]);
-  catalog.balanceProfilesById.set('amount', { ...catalog.balanceProfilesById.get('amount'), grant: -1 });
+  catalog.balanceProfilesById.set('amount', { ...catalog.balanceProfilesById.get('amount'), resourceGain: -1 });
   assert.throws(() => registry.register(skill, skill.effects[0]), /non-negative/);
 });
 

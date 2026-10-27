@@ -10,9 +10,9 @@ import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profe
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/skill-fields.js';
-import type { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/skill-fields.js';
-import type { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/skill-fields.js';
+import type { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
+import type { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';
+import type { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
 
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 

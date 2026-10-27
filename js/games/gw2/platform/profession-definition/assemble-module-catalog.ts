@@ -5,7 +5,7 @@ import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platf
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
 import type { AnyNativeModule, NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
-import { combineSkillFields, type SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { combineFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 
 /** Selects a module from shared input using the same catalog fields as its output. */
 export interface NativeModuleDataSelection<TSkill extends Skill = Skill> extends NativeModuleCatalogData<TSkill> {
@@ -36,6 +36,7 @@ export function createNativeModuleData<TSkill extends Skill = Skill>(
     skillOverrides = {},
     extraSkills = [],
     skillFields,
+    profileFields,
     traits = [],
     specializations = [],
     weapons = [],
@@ -63,6 +64,7 @@ export function createNativeModuleData<TSkill extends Skill = Skill>(
     skillOverrides: Object.freeze(localOverrides),
     extraSkills: Object.freeze([...sharedExtra, ...extraSkills]),
     ...(skillFields == null ? {} : { skillFields }),
+    ...(profileFields == null ? {} : { profileFields }),
     sharedExtraSkillOrder: new Map(sharedExtra.map((skill) => [skill.id, sharedExtraSkills.indexOf(skill)])),
     traits: Object.freeze(traits.filter((trait) => canonicalModuleName(trait, specializations) === id)),
     specializations: Object.freeze(
@@ -160,8 +162,12 @@ function composeNativeCatalog<TSkill extends Skill>(
   restoreSharedSourceOrder(extras.values, modules, (module) => module.data.sharedExtraSkillOrder);
   const traits = mergeEntityArrays(modules, (module) => module.data.traits || [], 'trait id');
   // A profession field has one declaring module; the combined table validates every module's skills.
-  const skillFields: SkillFieldSpecs = combineSkillFields(
+  const skillFields: FieldSpecs = combineFields(
     modules.map((module) => ({ owner: module.id, fields: module.data.skillFields }))
+  );
+  // Profile vocabulary follows the same single-owner contract as skill vocabulary.
+  const profileFields = combineFields(
+    modules.map((module) => ({ owner: module.id, fields: module.data.profileFields }))
   );
   const specializations = mergeEntityArrays(
     modules,
@@ -249,7 +255,8 @@ function composeNativeCatalog<TSkill extends Skill>(
       excludeSkillIds: excludedChains
     },
     skillNormalizer: normalizeGw2ComboCatalogSkill,
-    skillFields
+    skillFields,
+    profileFields
   });
 
   const eliteNames = new Map(
@@ -334,6 +341,7 @@ function composeNativeCatalog<TSkill extends Skill>(
       Object.freeze({
         skills: Object.freeze(catalog.skills.filter((skill) => skillOwners.get(skill.id) === module.id)),
         skillFields,
+        profileFields,
         balanceProfiles: Object.freeze(
           catalog.balanceProfiles.filter((profile) => balanceProfiles.owners.get(profile.id) === module.id)
         ),
@@ -396,6 +404,7 @@ export function assembleNativeRuntimeCatalog<TSkill extends Skill>(
     generated: fragments.flatMap((fragment) => fragment.skills || []),
     // Fragments share one profession-wide table; any fragment supplies it.
     skillFields: fragments.find((fragment) => fragment.skillFields)?.skillFields,
+    profileFields: fragments.find((fragment) => fragment.profileFields)?.profileFields,
     balanceProfiles: fragments.flatMap((fragment) => fragment.balanceProfiles || []),
     traits: fragments.flatMap((fragment) => fragment.traits || []),
     specializations: fragments.flatMap((fragment) => fragment.specializations || []),

@@ -9,7 +9,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { tempestHooks } from '#gw2/professions/elementalist/specializations/tempest/hooks.js';
 import { tempestUi } from '#gw2/professions/elementalist/specializations/tempest/presentation.js';
-import { TEMPEST_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/tempest/skill-fields.js';
+import { TEMPEST_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/tempest/catalog-fields.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import { tempestTraits } from '#gw2/professions/elementalist/specializations/tempest/traits/index.js';

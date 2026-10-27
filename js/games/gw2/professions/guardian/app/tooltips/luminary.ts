@@ -187,7 +187,7 @@ export const luminaryTooltips = {
   },
   traits: {
     [TRAIT.LUMINARY]: traitTooltip('Unlock Radiant Forge, radiant weapons, and radiant virtues.'),
-    [TRAIT.LIGHTS_GIFT]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
+    [TRAIT.LIGHTS_GIFT]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']]),
     [TRAIT.RADIANT_ARMAMENTS]: traitTooltip(
       'Equipping a radiant hammer temporarily increases strike damage. Equipping another radiant weapon removes the hammer bonus.',
       [fromProfile(TRAIT.RADIANT_ARMAMENTS, 'damageIncrease', 'Radiant hammer strike damage', tooltipPercent)]

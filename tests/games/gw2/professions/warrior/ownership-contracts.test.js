@@ -62,7 +62,7 @@ test('Warrior initialization and displays share fixed Core and selected elite ca
 test('Warrior displays use selected stack caps and bonuses', () => {
   const family = preview({
     balanceProfiles: {
-      [TRAIT.SIGNET_MASTERY]: { fields: { maximumStacks: 3, attributeBonus: 120 } },
+      [TRAIT.SIGNET_MASTERY]: { fields: { maximumStacks: 3, attributePerStack: 120 } },
       [TRAIT.FURIOUS]: { fields: { maximumStacks: 7 } },
       [TRAIT.BERSERKERS_POWER]: { fields: { maximumStacks: 6, damageIncreasePerStack: 0.0625 } },
       [TRAIT.FIERCE_AS_FIRE]: { fields: { maximumStacks: 8, damageIncreasePerStack: 0.025 } },

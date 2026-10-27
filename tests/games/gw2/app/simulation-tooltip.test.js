@@ -167,7 +167,9 @@ test('Radiant Power shares patched attribute and critical-chance values across c
     label: 'Radiant profile',
     professions: {
       guardian: {
-        balanceProfiles: { [traits.RADIANT_POWER]: { fields: { attributeBonus: 237, criticalChance: 0.17 } } }
+        balanceProfiles: {
+          [traits.RADIANT_POWER]: { fields: { 'attributeBonuses.ferocity': 237, criticalChance: 0.17 } }
+        }
       }
     }
   }).resolvePatch({ id: 'radiant-profile' }).balanceContext;

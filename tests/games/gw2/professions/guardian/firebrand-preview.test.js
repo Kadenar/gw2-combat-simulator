@@ -116,7 +116,8 @@ test('patch-specific trait positions, attributes, tooltips and authoring metadat
   assert.equal(
     live.attributes(1).attributes['Condition Damage'].final -
       preview.attributes(1).attributes['Condition Damage'].final,
-    profession.resolvePatch({ id: 'current' }).catalog.balanceProfilesById.get(TRAIT.IMBUED_HASTE).attributeBonus
+    profession.resolvePatch({ id: 'current' }).catalog.balanceProfilesById.get(TRAIT.IMBUED_HASTE).attributeBonuses
+      .conditionDamage
   );
   const balance = profession.resolvePatch({ id: patchId }).balanceContext;
   for (const trait of balance.catalog.traits.filter((entry) => entry.specialization === 'Firebrand')) {
@@ -419,12 +420,30 @@ test('module reworks reject unknown or duplicate choices and validate edits agai
     () =>
       profession.validatePatch({
         reworks: ['firebrand-rework'],
-        balanceProfiles: { [TRAIT.IMBUED_HASTE]: { fields: { attributeBonus: 300 } } }
+        balanceProfiles: {
+          [TRAIT.IMBUED_HASTE]: {
+            fields: {
+              'attributeBonuses.conditionDamage': 300,
+              'attributeBonuses.healingPower': 300,
+              'attributeBonuses.vitality': 300
+            }
+          }
+        }
       }),
     /does not expose/
   );
   assert.equal(
-    profession.validatePatch({ balanceProfiles: { [TRAIT.IMBUED_HASTE]: { fields: { attributeBonus: 300 } } } }),
+    profession.validatePatch({
+      balanceProfiles: {
+        [TRAIT.IMBUED_HASTE]: {
+          fields: {
+            'attributeBonuses.conditionDamage': 300,
+            'attributeBonuses.healingPower': 300,
+            'attributeBonuses.vitality': 300
+          }
+        }
+      }
+    }),
     true
   );
 });

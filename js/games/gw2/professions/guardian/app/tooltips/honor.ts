@@ -25,7 +25,7 @@ export const guardianHonorTooltips = {
     [ID.LESSER_SYMBOL_OF_PROTECTION],
     'Committing a healing skill creates Lesser Symbol of Protection, striking the target and granting party protection.'
   ),
-  [TRAIT.HONORABLE_STAFF]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
+  [TRAIT.HONORABLE_STAFF]: traitTooltip('Gain concentration.', [['attributeBonuses.concentration', 'Concentration']]),
   [TRAIT.PURE_OF_HEART]: outsideScopeTooltip,
   [TRAIT.EMPOWERING_MIGHT]: traitTooltip(
     'Critical strikes grant might to the party, subject to an internal cooldown.',
@@ -36,5 +36,5 @@ export const guardianHonorTooltips = {
     'Symbols last longer: their fields are extended, and each symbol keeps pulsing its own payload on its own cadence.',
     [['durationExtension', 'Symbol duration increase', tooltipSeconds]]
   ),
-  [TRAIT.FORCE_OF_WILL]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']])
+  [TRAIT.FORCE_OF_WILL]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']])
 } satisfies NonNullable<ProfessionTooltips['traits']>;

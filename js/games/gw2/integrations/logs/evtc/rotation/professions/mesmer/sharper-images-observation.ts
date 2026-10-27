@@ -15,7 +15,7 @@ import {
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { attributeBonusNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -40,7 +40,7 @@ function sharperImagesDurations(
   if (!selectedSkillIdSet(config.selectedSkillIds).has(ID.SIGNET_OF_MIDNIGHT)) return passiveDurations;
 
   // The selected Signet changes the inferred duration, so its selected skill supplies the bonus.
-  const bonus = skillNumberFromContext({ catalog }, ID.SIGNET_OF_MIDNIGHT, 'attributeBonuses.expertise');
+  const bonus = attributeBonusNumber(requireSkillFromContext({ catalog }, ID.SIGNET_OF_MIDNIGHT), 'expertise');
   const rechargingDurations = expectedConditionDurationsMs(
     baseDuration,
     CONDITION.BLEEDING,

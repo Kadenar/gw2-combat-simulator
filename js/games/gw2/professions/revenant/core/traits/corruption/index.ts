@@ -135,9 +135,9 @@ export const pactOfPain = defineTrait({
 export const seethingMalice = defineTrait({
   name: 'Seething Malice',
   id: TRAIT.SEETHING_MALICE,
-  balance: { attributeBonus: 120 },
+  balance: { attributeBonuses: { conditionDamage: 120 } },
   attributes: traitAttributeEffects(TRAIT.SEETHING_MALICE, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Condition Damage', feedsConversions: 'none' }
   ])
 });
 

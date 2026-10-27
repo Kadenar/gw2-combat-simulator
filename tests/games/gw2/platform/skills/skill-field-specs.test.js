@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import {
-  combineSkillFields,
+  combineFields,
   dataField,
-  defineSkillFields,
+  defineFields,
   numberField,
-  validateSkillFieldValues
+  validateFieldValues
 } from '#gw2/platform/skills/field-specs.js';
 import { SHARED_SKILL_FIELDS, professionSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -19,16 +19,16 @@ import { WARRIOR_SKILL_IDS as WARRIOR } from '#gw2/professions/warrior/data/ids.
 
 // A field has one owner: two modules, or a module and the shared vocabulary, cannot both declare it.
 test('skill field declarations reject duplicate owners and orphaned patch leaves', () => {
-  const tuning = defineSkillFields({ fixtureDelay: numberField({ unit: 'seconds', patch: 'primary' }) });
+  const tuning = defineFields({ fixtureDelay: numberField({ unit: 'seconds', patch: 'primary' }) });
   assert.throws(
     () =>
-      combineSkillFields([
+      combineFields([
         { owner: 'Core', fields: tuning },
         { owner: 'Elite', fields: tuning }
       ]),
-    /Duplicate skill field fixtureDelay in Core and Elite/
+    /Duplicate field fixtureDelay in Core and Elite/
   );
-  assert.throws(() => professionSkillFields({ cooldown: numberField() }), /Duplicate skill field cooldown/);
+  assert.throws(() => professionSkillFields({ cooldown: numberField() }), /Duplicate field cooldown/);
   assert.throws(
     () => professionSkillFields({ 'fixtureGroup.amount': numberField({ patch: 'primary' }) }),
     /requires its group fixtureGroup/
@@ -40,12 +40,12 @@ test('skill field declarations reject duplicate owners and orphaned patch leaves
     numberField({ minimum: 2, maximum: 1 }),
     numberField({ patch: 'primary', runtimeOnly: true })
   ])
-    assert.throws(() => defineSkillFields({ fixtureField: spec }), /fixtureField/);
+    assert.throws(() => defineFields({ fixtureField: spec }), /fixtureField/);
 });
 
 // Declared bounds apply to authored and patched values alike; explicit zero remains valid tuning.
 test('declared numeric bounds validate authored and patched catalogs', () => {
-  const skillFields = defineSkillFields({ fixtureFraction: numberField({ maximum: 1, patch: 'primary' }) });
+  const skillFields = defineFields({ fixtureFraction: numberField({ maximum: 1, patch: 'primary' }) });
   const load = (value) =>
     createCanonicalCatalog({ skillFields, generated: [{ id: 1, name: 'Fixture', fixtureFraction: value }] });
   for (const value of [0, 0.5, 1]) assert.equal(load(value).skillsById.get(1).fixtureFraction, value);
@@ -65,11 +65,11 @@ test('declared numeric bounds validate authored and patched catalogs', () => {
 
 // Compiled rules must read each skill's current own values and retain the bounds of their specific registry.
 test('numeric validation keeps grouped values and registry bounds independent', () => {
-  const fields = defineSkillFields({
+  const fields = defineFields({
     fixtureGroup: dataField,
     'fixtureGroup.amount': numberField({ maximum: 1 })
   });
-  const otherFields = defineSkillFields({
+  const otherFields = defineFields({
     fixtureGroup: dataField,
     'fixtureGroup.amount': numberField({ maximum: 3 })
   });
@@ -82,16 +82,16 @@ test('numeric validation keeps grouped values and registry bounds independent', 
     { fixtureGroup: { amount: 0 } },
     { fixtureGroup: { amount: 1 } }
   ])
-    assert.doesNotThrow(() => validateSkillFieldValues(skill, fields, 'Fixture'));
+    assert.doesNotThrow(() => validateFieldValues(skill, fields, 'Fixture'));
 
   const skill = { fixtureGroup: { amount: 2 } };
-  assert.doesNotThrow(() => validateSkillFieldValues(skill, otherFields, 'Fixture'));
-  assert.throws(() => validateSkillFieldValues(skill, fields, 'Fixture'), /field=fixtureGroup.amount/);
+  assert.doesNotThrow(() => validateFieldValues(skill, otherFields, 'Fixture'));
+  assert.throws(() => validateFieldValues(skill, fields, 'Fixture'), /field=fixtureGroup.amount/);
   skill.fixtureGroup.amount = 0.5;
-  assert.doesNotThrow(() => validateSkillFieldValues(skill, fields, 'Fixture'));
+  assert.doesNotThrow(() => validateFieldValues(skill, fields, 'Fixture'));
   for (const value of [null, '1', NaN, Infinity, -1])
     assert.throws(
-      () => validateSkillFieldValues({ fixtureGroup: { amount: value } }, fields, 'Fixture'),
+      () => validateFieldValues({ fixtureGroup: { amount: value } }, fields, 'Fixture'),
       /field=fixtureGroup.amount/
     );
 });

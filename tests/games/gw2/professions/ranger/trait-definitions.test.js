@@ -37,7 +37,10 @@ test('Ranger trait build callbacks use patched values and isolate disabled-trait
   const catalog = applyBalanceProfilePatch(rangerCatalog, {
     balanceProfiles: {
       [TRAIT.AMBIDEXTERITY]: {
-        fields: { weaponAttributeBonus: { from: 240, to: 300 }, attributeBonus: { from: 120, to: 60 } }
+        fields: {
+          'conditionalAttributeBonuses.conditionDamage': { from: 240, to: 300 },
+          'attributeBonuses.conditionDamage': { from: 120, to: 60 }
+        }
       }
     }
   });
@@ -47,5 +50,8 @@ test('Ranger trait build callbacks use patched values and isolate disabled-trait
   assert.equal(amount(1, null, context) - amount(1, 'Ambidexterity', context), 300);
   assert.equal(amount(2, null, context) - amount(2, 'Ambidexterity', context), 60);
   assert.equal(amount(1, null) - amount(1, 'Ambidexterity'), 240);
-  assert.equal(rangerCatalog.balanceProfilesById.get(TRAIT.AMBIDEXTERITY).weaponAttributeBonus, 240);
+  assert.equal(
+    rangerCatalog.balanceProfilesById.get(TRAIT.AMBIDEXTERITY).conditionalAttributeBonuses.conditionDamage,
+    240
+  );
 });

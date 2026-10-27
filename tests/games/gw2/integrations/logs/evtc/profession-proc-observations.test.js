@@ -196,8 +196,8 @@ const sharpenedEdgesProfile = {
 const arachnophobiaProfile = {
   id: RANGER_TRAIT.ARACHNOPHOBIA,
   name: 'Arachnophobia',
-  attributeBonus: 150,
-  weaponAttributeBonus: 225
+  attributeBonuses: { expertise: 150 },
+  conditionalAttributeBonuses: { expertise: 225 }
 };
 
 test('matches Shrapnel only when expertise-scaled Bleeding and Crippled applications are paired', () => {
@@ -360,7 +360,14 @@ test('Barbed Precision includes profile-owned Sand Sage expertise on each weapon
         condition(1_400, 736, 6_000)
       ]),
       PLAYER,
-      catalog([barbedPrecisionProfile, { id: NECROMANCER_TRAIT.SAND_SAGE, name: 'Sand Sage', attributeBonus: bonus }]),
+      catalog([
+        barbedPrecisionProfile,
+        {
+          id: NECROMANCER_TRAIT.SAND_SAGE,
+          name: 'Sand Sage',
+          attributeBonuses: { concentration: bonus, expertise: bonus }
+        }
+      ]),
       config
     );
     assert.equal(result.matchedApplications, 4);
@@ -373,7 +380,7 @@ test('Barbed Precision includes profile-owned Sand Sage expertise on each weapon
 test('Barbed Precision caps Sand Sage duration and counts overlapping durations only once', () => {
   const profiles = catalog([
     barbedPrecisionProfile,
-    { id: NECROMANCER_TRAIT.SAND_SAGE, name: 'Sand Sage', attributeBonus: 225 }
+    { id: NECROMANCER_TRAIT.SAND_SAGE, name: 'Sand Sage', attributeBonuses: { concentration: 225, expertise: 225 } }
   ]);
   const log = fixture([event(), condition(1_000, 736, 6_000)]);
   const config = {

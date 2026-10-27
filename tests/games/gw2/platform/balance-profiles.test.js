@@ -1,3 +1,4 @@
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -49,10 +50,7 @@ test('balance-profile lookup supports every runtime context shape and preserves 
 
 test('balance-profile numeric lookup returns patched values and rejects invalid fields', () => {
   const profile = { id: 101, name: 'Patchable', threshold: 3, effects: [] };
-  const catalog = {
-    balanceProfiles: [profile],
-    balanceProfilesById: new Map([[101, profile]])
-  };
+  const catalog = createCanonicalCatalog({ balanceProfiles: [profile] });
   const patched = applyBalanceProfilePatch(catalog, {
     balanceProfiles: { 101: { fields: { threshold: 7 } } }
   });

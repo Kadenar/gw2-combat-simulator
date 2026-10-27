@@ -15,9 +15,9 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/prof
 export const lifeAttunement = defineTrait({
   name: 'Life Attunement',
   id: TRAIT.LIFE_ATTUNEMENT,
-  balance: { attributeConversion: 0.07, attributeBonus: 120 },
+  balance: { attributeConversion: 0.07, attributeBonuses: { healingPower: 120 } },
   attributes: traitAttributeEffects(TRAIT.LIFE_ATTUNEMENT, [
-    { kind: 'flat', to: 'Healing Power', field: 'attributeBonus', feedsConversions: 'all' },
+    { kind: 'flat', to: 'Healing Power', feedsConversions: 'all' },
     {
       kind: 'conversion',
       from: 'Healing Power',

@@ -149,7 +149,7 @@ export const evokerTooltips = {
     [TRAIT.ENHANCED_POTENCY]: traitTooltip(
       'With Air selected, fury grants ferocity and additional critical chance. With Fire selected, might grants additional condition damage.',
       [
-        ['attributeBonus', 'Air ferocity with fury'],
+        ['attributeBonuses.ferocity', 'Air ferocity with fury'],
         ['criticalChance', 'Air additional critical chance with fury', tooltipPercent],
         ['attributePerStack', 'Fire condition damage per might']
       ]

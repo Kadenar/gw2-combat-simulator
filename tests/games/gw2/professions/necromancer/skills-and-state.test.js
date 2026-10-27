@@ -379,7 +379,7 @@ test('Scourge point capacity and fixed costs use the selected balance profiles',
             balanceProfiles: {
               [TRAIT.SOUL_BATTERY]: { fields: { lifeForceCapacityMultiplier: capacityMultiplier } },
               [TRAIT.SPITEFUL_FORTITUDE]: { fields: { attributeConversion: 0.2 } },
-              [TRAIT.VITAL_PERSISTENCE]: { fields: { attributeBonus: 100 } }
+              [TRAIT.VITAL_PERSISTENCE]: { fields: { 'attributeBonuses.vitality': 100 } }
             }
           }
         }

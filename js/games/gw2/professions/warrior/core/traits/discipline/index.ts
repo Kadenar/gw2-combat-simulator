@@ -11,6 +11,7 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
@@ -92,8 +93,8 @@ export const axeMastery = defineTrait({
   name: 'Axe Mastery',
   id: TRAIT.AXE_MASTERY,
   balance: {
-    attributeBonus: 120,
-    weaponAttributeBonus: 240,
+    attributeBonuses: { ferocity: 120 },
+    conditionalAttributeBonuses: { ferocity: 240 },
     rechargeMultiplier: 0.8,
     resourceGain: 2
   },
@@ -104,10 +105,11 @@ export const axeMastery = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(
+          amount: attributeBonusFromContext(
             context.balanceContext,
             TRAIT.AXE_MASTERY,
-            weapons.includes(WEAPON.AXE) ? 'weaponAttributeBonus' : 'attributeBonus'
+            'ferocity',
+            weapons.includes(WEAPON.AXE) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
           ),
           // Both the base Ferocity and the equipped-axe bonus participate in conversions.
           feedsConversions: 'all',

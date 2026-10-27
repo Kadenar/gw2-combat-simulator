@@ -2,15 +2,15 @@ import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { combineSkillFields } from '#gw2/platform/skills/field-specs.js';
-import { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/skill-fields.js';
-import { HOLOSMITH_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/holosmith/skill-fields.js';
-import { RANGER_CORE_SKILL_FIELDS } from '#gw2/professions/ranger/core/skill-fields.js';
-import { DRUID_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/druid/skill-fields.js';
-import { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/skill-fields.js';
-import { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/skill-fields.js';
-import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
-import { NECROMANCER_CORE_SKILL_FIELDS } from '#gw2/professions/necromancer/core/skill-fields.js';
+import { combineFields } from '#gw2/platform/skills/field-specs.js';
+import { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/catalog-fields.js';
+import { HOLOSMITH_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/holosmith/catalog-fields.js';
+import { RANGER_CORE_SKILL_FIELDS } from '#gw2/professions/ranger/core/catalog-fields.js';
+import { DRUID_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/druid/catalog-fields.js';
+import { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/catalog-fields.js';
+import { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/catalog-fields.js';
+import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
+import { NECROMANCER_CORE_SKILL_FIELDS } from '#gw2/professions/necromancer/core/catalog-fields.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { bindElementalistFamilyUi } from '#gw2/professions/elementalist/family-presentation.js';
@@ -38,7 +38,7 @@ import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ri
 const skill = (id, name, fields = {}) => ({ id, name, castTimeMs: 0, effects: [], ...fields });
 // Select only the current profession's field vocabulary, matching real catalog assembly.
 const catalogFor = (...tables) => {
-  const skillFields = combineSkillFields(tables.map((fields, index) => ({ owner: `fixture-${index}`, fields })));
+  const skillFields = combineFields(tables.map((fields, index) => ({ owner: `fixture-${index}`, fields })));
   return (...skills) => createCanonicalCatalog({ extraSkills: skills, skillFields });
 };
 

@@ -1,3 +1,4 @@
+import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
@@ -232,18 +233,16 @@ const sharpeningSorrow = defineTrait<MesmerSkill>({
   name: 'Sharpening Sorrow',
   id: TRAIT.SHARPENING_SORROW,
   balance: {
-    expertiseBonus: 150
+    attributeBonuses: { expertise: 150 }
   },
   attributes: ({ balanceContext, loadout }) => ({
-    attributeEffects: [
-      {
-        kind: 'flat',
-        to: 'Expertise',
-        amount: balanceNumberFromContext(balanceContext, TRAIT.SHARPENING_SORROW, 'expertiseBonus'),
-        feedsConversions: 'none',
-        enabled: loadout.assumptions.fury !== false
-      }
-    ]
+    // Fury gates the same named grant used by preview and tooltip consumers.
+    attributeEffects: ownerAttributeEffects(
+      requireBalanceProfileFromContext(balanceContext, TRAIT.SHARPENING_SORROW)
+    ).map((effect) => ({
+      ...effect,
+      enabled: loadout.assumptions.fury !== false
+    }))
   })
 });
 

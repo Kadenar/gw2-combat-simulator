@@ -12,6 +12,7 @@ import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
@@ -96,8 +97,8 @@ const secondOpinion = defineTrait({
   name: 'Second Opinion',
   id: TRAIT.SECOND_OPINION,
   balance: {
-    attributeBonus: 90,
-    attributePerStack: 90,
+    attributeBonuses: { conditionDamage: 90 },
+    conditionalAttributeBonuses: { conditionDamage: 90 },
     attributeConversion: 0.07
   },
   attributes({ loadout, weaponSet, balanceContext }) {
@@ -109,8 +110,10 @@ const secondOpinion = defineTrait({
           kind: 'flat',
           to: 'Condition Damage',
           amount:
-            balanceProfileNumber(secondOpinionProfile, 'attributeBonus') +
-            (weapons.includes(WEAPON.SCEPTER) ? balanceProfileNumber(secondOpinionProfile, 'attributePerStack') : 0),
+            attributeBonusNumber(secondOpinionProfile, 'conditionDamage') +
+            (weapons.includes(WEAPON.SCEPTER)
+              ? attributeBonusNumber(secondOpinionProfile, 'conditionDamage', 'conditionalAttributeBonuses')
+              : 0),
           feedsConversions: 'all'
         },
         {

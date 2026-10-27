@@ -1,3 +1,4 @@
+import { WARRIOR_BLADESWORN_PROFILE_FIELDS } from '#gw2/professions/warrior/specializations/bladesworn/catalog-fields.js';
 import { cartridgeModifiers } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -14,13 +15,14 @@ import {
   projectBladeswornPlanningState
 } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { warriorBladeswornTraits } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
-import { BLADESWORN_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/bladesworn/skill-fields.js';
+import { BLADESWORN_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/bladesworn/catalog-fields.js';
 
 export const bladeswornModule = defineNativeModule({
   canSwapWeaponSetsInCombat: false,
   traitDefinitions: warriorBladeswornTraits,
   id: 'Bladesworn',
   data: createWarriorModuleData('Bladesworn', {
+    profileFields: WARRIOR_BLADESWORN_PROFILE_FIELDS,
     skillFields: BLADESWORN_SKILL_FIELDS,
     skillMechanics: BLADESWORN_SKILL_MECHANICS,
     extraSkills: BLADESWORN_SHARP_AS_THE_WIND_SKILLS,

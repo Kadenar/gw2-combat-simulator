@@ -23,7 +23,7 @@ const profile = {
   id: 1,
   name: 'Profile',
   procChance: 0,
-  intervalMs: 0,
+  pulseInterval: 0,
   effects: [first, second]
 };
 const skill = { id: 1, name: 'Skill', effects: [first, second] };
@@ -64,7 +64,7 @@ test('resolved owners preserve strict effect reads without another catalog looku
   assert.deepEqual(effect, second);
   assert.equal(effectNumber(selected, effect, 'duration'), 3);
   assert.equal(effectNumber(selected, { ...effect, atMs: 0 }, 'atMs'), 0);
-  assert.equal(balanceProfileNumber(selected, 'intervalMs'), 0);
+  assert.equal(balanceProfileNumber(selected, 'pulseInterval'), 0);
   assert.throws(
     () => balanceProfileNumber(selected, 'missing'),
     /profession=fixture patch=preview profile=1 field=missing expected=finite number/
@@ -292,7 +292,7 @@ test('required reads select one source and retain strict numeric and diagnostic 
     const selectedProfile = requireBalanceProfileFromContext(source, 1);
     assert.equal(selectedProfile.id, 1);
     assert.equal(balanceProfileNumber(selectedProfile, 'procChance'), 0);
-    assert.equal(balanceProfileNumber(selectedProfile, 'intervalMs'), 0);
+    assert.equal(balanceProfileNumber(selectedProfile, 'pulseInterval'), 0);
   }
 
   for (const value of [undefined, null, false, '', '3', NaN, Infinity]) {
@@ -355,8 +355,8 @@ test('full previews and selected runtimes preserve removals without leaking acro
             ]
           },
           traitDefinitions: [
-            { id: 1, name: profile.name, balance: { procChance: 0, intervalMs: 0, effects: [first, second] } },
-            { id: 2, name: 'Unedited', balance: { procChance: 0, intervalMs: 0, effects: [first, second] } }
+            { id: 1, name: profile.name, balance: { procChance: 0, pulseInterval: 0, effects: [first, second] } },
+            { id: 2, name: 'Unedited', balance: { procChance: 0, pulseInterval: 0, effects: [first, second] } }
           ],
           state: { create: () => ({}) }
         })

@@ -55,7 +55,7 @@ export const untamedTooltips = {
       'Unlock Untamed, hammer, cantrips, and unleash. Swap unleashed power between yourself and your pet to change available skills.'
     ),
     [TRAIT.NATURAL_FORTITUDE]: traitTooltip('Gain vitality. Ambushes trigger a life siphon at their first impact.', [
-      ['attributeBonus', 'Vitality']
+      ['attributeBonuses.vitality', 'Vitality']
     ]),
     [TRAIT.VOW_OF_THE_UNTAMED]: traitTooltip(
       "Your strikes deal increased damage while you are unleashed or Biorhythm's Vow of the Untamed effect is active.",

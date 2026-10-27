@@ -1,3 +1,4 @@
+import { NECROMANCER_SCOURGE_PROFILE_FIELDS } from '#gw2/professions/necromancer/specializations/scourge/catalog-fields.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
@@ -10,12 +11,13 @@ import {
   scourgeState
 } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import { necromancerScourgeTraits } from '#gw2/professions/necromancer/specializations/scourge/traits/index.js';
-import { SCOURGE_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/scourge/skill-fields.js';
+import { SCOURGE_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/scourge/catalog-fields.js';
 
 export const scourgeModule = defineNativeModule({
   traitDefinitions: necromancerScourgeTraits,
   id: 'Scourge',
   data: createNecromancerModuleData('Scourge', {
+    profileFields: NECROMANCER_SCOURGE_PROFILE_FIELDS,
     skillFields: SCOURGE_SKILL_FIELDS,
     skillMechanics: SCOURGE_BASE_SKILL_MECHANICS
   }),

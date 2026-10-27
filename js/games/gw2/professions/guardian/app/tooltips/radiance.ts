@@ -31,7 +31,7 @@ export const guardianRadianceTooltips = {
   },
   [TRAIT.RENEWED_JUSTICE]: outsideScopeTooltip,
   [TRAIT.RADIANT_POWER]: traitTooltip('Gain ferocity and additional critical-strike chance against burning targets.', [
-    ['attributeBonus', 'Ferocity', tooltipDecimal],
+    ['attributeBonuses.ferocity', 'Ferocity', tooltipDecimal],
     ['criticalChance', 'Critical chance against burning targets', tooltipPercent]
   ]),
   [TRAIT.INNER_FIRE]: traitTooltip('Gain fury when your strike hits a target with enough burning stacks.', [
@@ -39,8 +39,8 @@ export const guardianRadianceTooltips = {
     ['internalCooldown', 'Cooldown', tooltipSeconds]
   ]),
   [TRAIT.RIGHT_HAND_STRENGTH]: traitTooltip('Gain precision and additional power with a one-handed main-hand weapon.', [
-    ['attributeBonus', 'Precision', tooltipDecimal],
-    ['attributeBonus', 'Power with a one-handed main hand', tooltipDecimal]
+    ['attributeBonuses.precision', 'Precision', tooltipDecimal],
+    ['attributeBonuses.power', 'Power with a one-handed main hand', tooltipDecimal]
   ]),
   [TRAIT.HEALERS_RESOLUTION]: traitTooltip('Committing a healing skill grants resolution.', [
     ['internalCooldown', 'Internal cooldown', tooltipSeconds]

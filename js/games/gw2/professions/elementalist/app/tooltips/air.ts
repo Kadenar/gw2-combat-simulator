@@ -20,7 +20,7 @@ export const elementalistAirTooltips = {
   [TRAIT.AEROMANCERS_TRAINING]: traitTooltip(
     'Gain ferocity and an additional equal ferocity bonus while primarily attuned to Air. Air-attuned skills recharge faster.',
     [
-      ['attributeBonus', 'Ferocity per bonus'],
+      ['attributeBonuses.ferocity', 'Ferocity per bonus'],
       ['rechargeMultiplier', 'Air skill recharge', tooltipFactorChange]
     ]
   ),
@@ -34,7 +34,7 @@ export const elementalistAirTooltips = {
   ),
   [TRAIT.RAGING_STORM]: traitTooltip('Eligible critical hits grant fury. Gain ferocity while fury is active.', [
     ['internalCooldown', 'Fury cooldown', tooltipSeconds],
-    ['attributeBonus', 'Ferocity with fury']
+    ['attributeBonuses.ferocity', 'Ferocity with fury']
   ]),
   [TRAIT.STORMSOUL]: traitTooltip('Your strikes deal increased damage.', [
     fromProfile(TRAIT.STORMSOUL, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
@@ -45,7 +45,7 @@ export const elementalistAirTooltips = {
   ),
   [TRAIT.FRESH_AIR]: traitTooltip(
     'Eligible critical hits while outside Air recharge Air attunement and Overload Air. Newly entering Air grants temporary ferocity.',
-    [['attributeBonus', 'Ferocity during Fresh Air']]
+    [['attributeBonuses.ferocity', 'Ferocity during Fresh Air']]
   ),
   [TRAIT.LIGHTNING_ROD]: traitTooltip('Qualifying control effects trigger a strike and inflict weakness.')
 } satisfies NonNullable<ProfessionTooltips['traits']>;

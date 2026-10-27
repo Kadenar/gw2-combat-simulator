@@ -10,6 +10,7 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -153,7 +154,7 @@ export const roaringReveille = defineTrait({
   name: 'Roaring Reveille',
   id: TRAIT.ROARING_REVEILLE,
   balance: {
-    attributeBonus: 120
+    attributeBonuses: { concentration: 120 }
   },
   attributes(context) {
     return {
@@ -161,7 +162,7 @@ export const roaringReveille = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.ROARING_REVEILLE, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.ROARING_REVEILLE, 'concentration'),
           feedsConversions: 'none',
           enabled: true
         }

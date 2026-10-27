@@ -1,8 +1,9 @@
+import { GUARDIAN_CORE_PROFILE_FIELDS } from '#gw2/professions/guardian/core/catalog-fields.js';
 import { GUARDIAN_CORE_TRAIT_SKILLS } from '#gw2/professions/guardian/core/skills/trait-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { guardianCoreHooks } from '#gw2/professions/guardian/core/hooks.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
-import { GUARDIAN_CORE_SKILL_FIELDS } from '#gw2/professions/guardian/core/skill-fields.js';
+import { GUARDIAN_CORE_SKILL_FIELDS } from '#gw2/professions/guardian/core/catalog-fields.js';
 import { guardianPassiveAttributes } from '#gw2/professions/guardian/core/skills/attribute-passives.js';
 import {
   GUARDIAN_CORE_EXTRA_SKILLS,
@@ -18,6 +19,7 @@ export const guardianCoreModule = defineNativeModule({
   id: 'Core',
   traitDefinitions: guardianCoreTraits,
   data: createGuardianModuleData('Core', {
+    profileFields: GUARDIAN_CORE_PROFILE_FIELDS,
     skillMechanics: GUARDIAN_CORE_SKILL_MECHANICS,
     extraSkills: [...GUARDIAN_CORE_EXTRA_SKILLS, ...GUARDIAN_CORE_TRAIT_SKILLS],
     skillFields: GUARDIAN_CORE_SKILL_FIELDS

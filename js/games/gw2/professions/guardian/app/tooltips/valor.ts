@@ -17,7 +17,7 @@ export const guardianValorTooltips = {
     ['rechargeMultiplier', 'Focus recharge duration', tooltipFactorChange]
   ]),
   [TRAIT.STALWART_DEFENDER]: traitTooltip('Gain toughness while wielding an off-hand shield.', [
-    ['attributeBonus', 'Toughness with an off-hand shield']
+    ['attributeBonuses.toughness', 'Toughness with an off-hand shield']
   ]),
   [TRAIT.REDEMPTION]: outsideScopeTooltip,
   [TRAIT.COMMUNAL_DEFENSES]: outsideScopeTooltip,

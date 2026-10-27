@@ -1,3 +1,4 @@
+import { RANGER_UNTAMED_PROFILE_FIELDS } from '#gw2/professions/ranger/specializations/untamed/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { untamedHooks } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
@@ -11,6 +12,7 @@ export const untamedModule = defineNativeModule({
   id: 'Untamed',
   traitDefinitions: untamedTraits,
   data: createRangerModuleData('Untamed', {
+    profileFields: RANGER_UNTAMED_PROFILE_FIELDS,
     skillMechanics: UNTAMED_BASE_SKILL_MECHANICS
   }),
   state: { create: untamedState.create, project: projectUntamedPlanningState },

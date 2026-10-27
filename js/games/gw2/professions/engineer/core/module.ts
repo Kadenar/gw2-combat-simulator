@@ -1,3 +1,4 @@
+import { ENGINEER_CORE_PROFILE_FIELDS } from '#gw2/professions/engineer/core/catalog-fields.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { ENGINEER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/core/state.js';
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
@@ -12,13 +13,14 @@ import {
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
-import { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/skill-fields.js';
+import { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/catalog-fields.js';
 
 export const engineerCoreModule = defineNativeModule({
   canSwapWeaponSetsInCombat: false,
   id: 'Core',
   traitDefinitions: engineerCoreTraits,
   data: createEngineerModuleData('Core', {
+    profileFields: ENGINEER_CORE_PROFILE_FIELDS,
     skillFields: ENGINEER_CORE_SKILL_FIELDS,
     skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
     extraSkills: ENGINEER_CORE_EXTRA_SKILLS,

@@ -1,3 +1,4 @@
+import { GUARDIAN_FIREBRAND_PROFILE_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
@@ -10,12 +11,13 @@ import {
   FIREBRAND_PUBLIC_STATE_PROJECTION
 } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { firebrandTraits } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
-import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
+import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const firebrandModule = defineNativeModule({
   id: 'Firebrand',
   data: createGuardianModuleData('Firebrand', {
+    profileFields: GUARDIAN_FIREBRAND_PROFILE_FIELDS,
     extraSkills: [ashesBurningSkill],
     skillFields: FIREBRAND_SKILL_FIELDS,
     skillMechanics: FIREBRAND_SKILL_MECHANICS

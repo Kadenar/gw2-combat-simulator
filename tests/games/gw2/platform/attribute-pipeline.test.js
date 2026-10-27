@@ -160,7 +160,7 @@ test('Necromancer resource preparation uses patched attribute declarations once'
   const patched = withPatchPreview(family, {
     id: 'attribute-resource',
     label: 'Attribute resource',
-    professions: { necromancer: { balanceProfiles: { [trait.id]: { fields: { attributeBonus: 500 } } } } }
+    professions: { necromancer: { balanceProfiles: { [trait.id]: { fields: { 'attributeBonuses.vitality': 500 } } } } }
   });
   const config = {
     patchId: 'attribute-resource',

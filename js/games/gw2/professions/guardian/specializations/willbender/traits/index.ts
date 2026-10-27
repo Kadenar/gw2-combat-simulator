@@ -251,11 +251,9 @@ const powerForPower = defineTrait({
   id: TRAIT.POWER_FOR_POWER,
   balance: {
     damageMultiplier: 3,
-    attributeBonus: 120
+    attributeBonuses: { power: 120 }
   },
-  attributes: traitAttributeEffects(TRAIT.POWER_FOR_POWER, [
-    { kind: 'flat', to: 'Power', field: 'attributeBonus', feedsConversions: 'all' }
-  ]),
+  attributes: traitAttributeEffects(TRAIT.POWER_FOR_POWER, [{ kind: 'flat', to: 'Power', feedsConversions: 'all' }]),
   modifierRules: [
     {
       id: 'guardian.willbender.power-for-power',
@@ -274,10 +272,8 @@ const powerForPower = defineTrait({
 const conceitedCurate = defineTrait({
   name: 'Conceited Curate',
   id: TRAIT.CONCEITED_CURATE,
-  balance: { attributeBonus: 180 },
-  attributes: traitAttributeEffects(TRAIT.CONCEITED_CURATE, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  balance: { attributeBonuses: { vitality: 180 } },
+  attributes: traitAttributeEffects(TRAIT.CONCEITED_CURATE, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'all' }])
 });
 
 /** Accepted flame strikes emit the surviving Burning packet independently of virtue counters. */
@@ -285,11 +281,11 @@ const searingPact = defineTrait({
   name: 'Searing Pact',
   id: TRAIT.SEARING_PACT,
   balance: {
-    attributeBonus: 120,
+    attributeBonuses: { conditionDamage: 120 },
     effects: [{ type: 'condition', name: CONDITION.BURNING, condition: CONDITION.BURNING, stacks: 1, duration: 1 }]
   },
   attributes: traitAttributeEffects(TRAIT.SEARING_PACT, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'all' }
+    { kind: 'flat', to: 'Condition Damage', feedsConversions: 'all' }
   ]),
   triggers: [
     {

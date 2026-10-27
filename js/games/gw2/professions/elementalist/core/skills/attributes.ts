@@ -1,4 +1,4 @@
-import { skillAttributeEffects } from '#gw2/platform/attributes/passives.js';
+import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
@@ -15,7 +15,7 @@ export const elementalistSkillAttributes: Gw2AttributeContributionCalculator = (
       : weapon === 'Lightning Hammer'
         ? ID.CONJURE_LIGHTNING_HAMMER
         : null;
-  const effects = skillId ? skillAttributeEffects(requireSkillFromContext(context.balanceContext, skillId)) : [];
+  const effects = skillId ? ownerAttributeEffects(requireSkillFromContext(context.balanceContext, skillId)) : [];
 
   return [...elementalistPassiveAttributes(context), { attributeEffects: effects }];
 };

@@ -23,8 +23,8 @@ export const thiefDeadlyArtsTooltips = {
   ]),
   // State the full weapon-dependent bonus so build-only attributes are not hidden by empty profiles.
   [TRAIT.DAGGER_TRAINING]: traitTooltip('Gain power and additional power while wielding a dagger.', [
-    ['attributeBonus', 'Power'],
-    ['weaponAttributeBonus', 'Total power while wielding a dagger']
+    ['attributeBonuses.power', 'Power'],
+    ['conditionalAttributeBonuses.power', 'Total power while wielding a dagger']
   ]),
   [TRAIT.MUG]: traitTooltip(
     'Stealing deals an additional strike that cannot critically strike. Healing is outside combat simulation scope.'
@@ -32,7 +32,7 @@ export const thiefDeadlyArtsTooltips = {
   [TRAIT.DEADLY_AMBITION]: traitTooltip(
     'Gain condition damage. The first landed player strike of a dual attack poisons the target. Potent Poison replaces the base application with more stacks.',
     [
-      ['attributeBonus', 'Condition damage'],
+      ['attributeBonuses.conditionDamage', 'Condition damage'],
       ['playerStacks', 'Poison stacks with Potent Poison']
     ],
     'base application'
@@ -47,8 +47,8 @@ export const thiefDeadlyArtsTooltips = {
     ]
   ),
   [TRAIT.REVEALED_TRAINING]: traitTooltip('Gain power and additional power while revealed.', [
-    ['attributeBonus', 'Power'],
-    ['attributePerStack', 'Additional power while revealed']
+    ['attributeBonuses.power', 'Power'],
+    ['conditionalAttributeBonuses.power', 'Additional power while revealed']
   ]),
   [TRAIT.POTENT_POISON]: traitTooltip(
     "Poison deals increased damage and lasts longer. Serpent's Touch, Deadly Ambition, and Panic Strike apply additional poison stacks.",

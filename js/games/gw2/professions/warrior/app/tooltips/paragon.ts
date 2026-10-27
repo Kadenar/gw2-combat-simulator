@@ -93,7 +93,7 @@ export const paragonTooltips = {
     [TRAIT.INSPIRING_IMPLEMENTS]: traitTooltip(
       'Gain concentration. Weapon swapping grants adrenaline and motivation.',
       [
-        ['attributeBonus', 'Concentration'],
+        ['attributeBonuses.concentration', 'Concentration'],
         ['resourceGain', 'Adrenaline gained'],
         ['minimumStacks', 'Motivation gained'],
         ['internalCooldown', 'Swap-reward cooldown', tooltipSeconds]

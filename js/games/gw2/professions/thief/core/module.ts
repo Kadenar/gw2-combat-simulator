@@ -1,3 +1,4 @@
+import { THIEF_CORE_PROFILE_FIELDS } from '#gw2/professions/thief/core/catalog-fields.js';
 import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
@@ -10,7 +11,7 @@ import { createThiefCoreState, THIEF_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/p
 import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
 
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
-import { THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/skill-fields.js';
+import { THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/catalog-fields.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const thiefCoreModule = defineNativeModule({
@@ -18,6 +19,7 @@ export const thiefCoreModule = defineNativeModule({
   traitDefinitions: coreTraits,
   id: 'Core',
   data: createThiefModuleData('Core', {
+    profileFields: THIEF_CORE_PROFILE_FIELDS,
     skillFields: THIEF_CORE_SKILL_FIELDS,
     skillMechanics: THIEF_CORE_SKILL_MECHANICS,
     extraSkills: THIEF_CORE_EXTRA_SKILLS

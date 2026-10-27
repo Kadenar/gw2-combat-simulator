@@ -33,7 +33,7 @@ export const warriorTacticsTooltips = {
   [TRAIT.SOLDIERS_COMFORT]: traitTooltip(
     "Soldier's Focus grants protection to the party. Healing is outside combat simulation scope."
   ),
-  [TRAIT.ROARING_REVEILLE]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
+  [TRAIT.ROARING_REVEILLE]: traitTooltip('Gain concentration.', [['attributeBonuses.concentration', 'Concentration']]),
   [TRAIT.WARRIORS_CUNNING]: traitTooltip(
     'Deal increased strike damage while the target is above the high-health threshold.',
     [fromProfile(TRAIT.WARRIORS_CUNNING, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]

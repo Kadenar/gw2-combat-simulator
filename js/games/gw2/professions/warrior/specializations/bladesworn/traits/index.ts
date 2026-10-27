@@ -17,6 +17,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
@@ -206,7 +207,7 @@ const gunsAndGlory = defineTrait({
   name: 'Guns and Glory',
   id: TRAIT.GUNS_AND_GLORY,
   balance: {
-    attributeBonus: 250,
+    attributeBonuses: { ferocity: 250 },
     maximumStacks: 12,
     resourceGain: 3
   },
@@ -217,7 +218,7 @@ const gunsAndGlory = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.GUNS_AND_GLORY, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.GUNS_AND_GLORY, 'ferocity'),
           feedsConversions: 'none',
           // Dropping the timeline counts only live self applications, never an ally's or companion's copy.
           enabled: activeBuffStacks({ ...context, timeline: undefined }, 'guns-and-glory', 1) > 0

@@ -1,4 +1,5 @@
-import { PARAGON_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/paragon/skill-fields.js';
+import { WARRIOR_PARAGON_PROFILE_FIELDS } from '#gw2/professions/warrior/specializations/paragon/catalog-fields.js';
+import { PARAGON_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/paragon/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { paragonHooks } from '#gw2/professions/warrior/specializations/paragon/hooks.js';
@@ -11,6 +12,7 @@ export const paragonModule = defineNativeModule({
   traitDefinitions: warriorParagonTraits,
   id: 'Paragon',
   data: createWarriorModuleData('Paragon', {
+    profileFields: WARRIOR_PARAGON_PROFILE_FIELDS,
     skillMechanics: PARAGON_SKILL_MECHANICS,
     skillFields: PARAGON_SKILL_FIELDS
   }),

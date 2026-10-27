@@ -12,6 +12,8 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   procChanceFromContext,
@@ -41,7 +43,7 @@ export const signetMastery = defineTrait({
   balance: {
     threshold: 0.5,
     maximumStacks: 5,
-    attributeBonus: 100,
+    attributePerStack: 100,
     effects: [{ name: 'signet-mastery', type: 'buff', kind: 'signet-mastery', stacks: 1, duration: 60 }]
   },
   // Active Signet Mastery Ferocity feeds conversions; its contribution expires with the live stacks.
@@ -55,7 +57,7 @@ export const signetMastery = defineTrait({
           to: 'Ferocity',
           amount:
             warriorActiveBuffStacks(context, 'signet-mastery', balanceProfileNumber(profile, 'maximumStacks')) *
-            balanceProfileNumber(profile, 'attributeBonus'),
+            balanceProfileNumber(profile, 'attributePerStack'),
           feedsConversions: 'all',
           enabled: true
         }
@@ -88,7 +90,7 @@ export const burstPrecision = defineTrait({
     criticalChance: 1,
     minimumStacks: 2,
     maximumStacks: 4,
-    attributeBonus: 250
+    attributeBonuses: { ferocity: 250 }
   },
   // The accepted Burst Precision window supplies conversion-eligible Ferocity until it expires.
   attributes(context) {
@@ -97,7 +99,7 @@ export const burstPrecision = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.BURST_PRECISION, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.BURST_PRECISION, 'ferocity'),
           feedsConversions: 'all',
           enabled: warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
         }
@@ -161,7 +163,7 @@ export const furious = defineTrait({
   balance: {
     resourceGain: 1,
     maximumStacks: 25,
-    attributeBonus: 15,
+    attributePerStack: 15,
     effects: [{ name: 'furious-surge', type: 'buff', kind: 'furious-surge', stacks: 1, duration: 10 }]
   },
   // Count only accepted self stacks; deselection stops future grants, not existing ones.
@@ -177,7 +179,7 @@ export const furious = defineTrait({
           feedsConversions: 'none',
           amount:
             warriorActiveBuffStacks(context, 'furious-surge', balanceProfileNumber(profile, 'maximumStacks')) *
-            balanceProfileNumber(profile, 'attributeBonus')
+            balanceProfileNumber(profile, 'attributePerStack')
         }
       ]
     };
@@ -267,7 +269,7 @@ export const deepStrikes = defineTrait({
   id: TRAIT.DEEP_STRIKES,
   balance: {
     criticalChance: 0.05,
-    attributeBonus: 180
+    attributeBonuses: { conditionDamage: 180 }
   },
   attributes(context) {
     return {
@@ -275,7 +277,7 @@ export const deepStrikes = defineTrait({
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.DEEP_STRIKES, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.DEEP_STRIKES, 'conditionDamage'),
           feedsConversions: 'none',
           enabled: Boolean(context.loadout.assumptions.fury)
         }
@@ -341,7 +343,7 @@ export const blademaster = defineTrait({
   id: TRAIT.BLADEMASTER,
   balance: {
     rechargeMultiplier: 0.8,
-    attributeBonus: 120
+    attributeBonuses: { expertise: 120, conditionDamage: 120 }
   },
   // Declare both the permanent Expertise and weapon-dependent Condition Damage together.
   attributes(context) {
@@ -352,7 +354,7 @@ export const blademaster = defineTrait({
         {
           kind: 'flat',
           to: 'Expertise',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'expertise'),
           // Permanent Expertise feeds utility conversions even when no sword is equipped.
           feedsConversions: 'all',
           enabled: true
@@ -360,7 +362,7 @@ export const blademaster = defineTrait({
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'conditionDamage'),
           // The sword bonus joins conversion inputs only while its weapon requirement is satisfied.
           feedsConversions: 'all',
           enabled: warriorWieldingSword(context)

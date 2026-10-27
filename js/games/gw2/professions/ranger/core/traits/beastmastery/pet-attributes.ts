@@ -1,7 +1,9 @@
+import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
+
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfileFromContext, balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
@@ -28,14 +30,14 @@ export function beastmasteryPetAttributes(
   context: RangerRuntime | RangerResolverContext
 ): readonly Gw2AttributeEffect[] {
   const declarations = [
-    [TRAIT.PACK_ALPHA, ['Power', 'Precision', 'Toughness', 'Vitality', 'Condition Damage'], 'weaponAttributeBonus'],
-    [TRAIT.HONED_AXES, ['Ferocity'], 'attributeBonus'],
-    [TRAIT.PETS_PROWESS, ['Ferocity'], 'attributeBonus']
+    [TRAIT.PACK_ALPHA, 'conditionalAttributeBonuses'],
+    [TRAIT.HONED_AXES, 'attributeBonuses'],
+    [TRAIT.PETS_PROWESS, 'attributeBonuses']
   ] as const;
-  return declarations.flatMap(([id, attributes, field]) => {
+  return declarations.flatMap(([id, field]) => {
     if (!hasTrait(context, id)) return [];
 
-    const amount = balanceNumberFromContext(context, id, field);
-    return attributes.map((to) => ({ kind: 'flat' as const, to, amount, feedsConversions: 'none' }));
+    const profile = requireBalanceProfileFromContext(context, id);
+    return ownerAttributeEffects({ attributeBonuses: profile[field] });
   });
 }

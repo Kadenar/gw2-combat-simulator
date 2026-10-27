@@ -9,6 +9,8 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  attributeBonusFromContext,
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -37,7 +39,7 @@ const beQuickOrBeKilled = defineTrait({
   name: 'Be Quick or Be Killed',
   id: TRAIT.BE_QUICK_OR_BE_KILLED,
   balance: {
-    attributeBonus: 200,
+    attributeBonuses: { power: 200, precision: 200 },
     effects: [{ type: 'boon', name: BOON.QUICKNESS, boon: BOON.QUICKNESS, stacks: 1, duration: 4 }]
   },
   // Quickness controls both flat attributes in build and live evaluation.
@@ -49,14 +51,14 @@ const beQuickOrBeKilled = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'power'),
           feedsConversions: 'none',
           enabled: boonActive(context, boonKey(BOON.QUICKNESS))
         },
         {
           kind: 'flat',
           to: 'Precision',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'precision'),
           feedsConversions: 'none',
           enabled: boonActive(context, boonKey(BOON.QUICKNESS))
         }
@@ -163,7 +165,7 @@ const premeditation = defineTrait({
   balance: {
     damagePerBoon: 0.01,
     maximumBoons: GW2_STANDARD_BOONS.length,
-    attributeBonus: 180
+    attributeBonuses: { concentration: 180 }
   },
   attributes({ balanceContext }) {
     return {
@@ -171,7 +173,7 @@ const premeditation = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: balanceNumberFromContext(balanceContext, TRAIT.PREMEDITATION, 'attributeBonus'),
+          amount: attributeBonusFromContext(balanceContext, TRAIT.PREMEDITATION, 'concentration'),
           feedsConversions: 'none'
         }
       ]
@@ -201,7 +203,7 @@ const silentScope = defineTrait({
   balance: {
     threshold: 3,
     duration: 3,
-    attributeBonus: 120
+    attributeBonuses: { precision: 120 }
   },
   attributes({ balanceContext }) {
     return {
@@ -209,7 +211,7 @@ const silentScope = defineTrait({
         {
           kind: 'flat',
           to: 'Precision',
-          amount: balanceNumberFromContext(balanceContext, TRAIT.SILENT_SCOPE, 'attributeBonus'),
+          amount: attributeBonusFromContext(balanceContext, TRAIT.SILENT_SCOPE, 'precision'),
           feedsConversions: 'all'
         }
       ]

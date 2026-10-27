@@ -36,12 +36,12 @@ export const rangerSkirmishingTooltips = {
     ]
   ),
   [TRAIT.FANG_AND_CLAW]: traitTooltip('Feline, avian, and drake pets gain precision and ferocity.', [
-    ['attributeBonus', 'Pet precision'],
-    ['weaponAttributeBonus', 'Pet ferocity']
+    ['attributeBonuses.precision', 'Pet precision'],
+    ['attributeBonuses.ferocity', 'Pet ferocity']
   ]),
   [TRAIT.STRIDERS_STRENGTH]: traitTooltip('You and your pet gain power. Wielding a sword increases your bonus.', [
-    ['attributeBonus', 'Base power'],
-    ['weaponAttributeBonus', 'Power while wielding a sword']
+    ['attributeBonuses.power', 'Base power'],
+    ['conditionalAttributeBonuses.power', 'Power while wielding a sword']
   ]),
   [TRAIT.HIDDEN_BARBS]: traitTooltip('Bleeding deals increased damage.', [
     fromProfile(TRAIT.HIDDEN_BARBS, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange)
@@ -65,7 +65,7 @@ export const rangerSkirmishingTooltips = {
     ]
   ),
   [TRAIT.VICIOUS_QUARRY]: traitTooltip('Gain ferocity and additional critical-strike chance while fury is active.', [
-    ['attributeBonus', 'Ferocity'],
+    ['attributeBonuses.ferocity', 'Ferocity'],
     ['criticalChance', 'Additional critical chance with fury', tooltipPercent]
   ])
 } satisfies NonNullable<ProfessionTooltips['traits']>;

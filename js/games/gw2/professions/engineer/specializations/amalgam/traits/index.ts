@@ -104,10 +104,8 @@ const mercurialTendencies = defineTrait({
 const hybridVigor = defineTrait({
   name: 'Hybrid Vigor',
   id: TRAIT.HYBRID_VIGOR,
-  balance: { attributeBonus: 240 },
-  attributes: traitAttributeEffects(TRAIT.HYBRID_VIGOR, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
-  ])
+  balance: { attributeBonuses: { vitality: 240 } },
+  attributes: traitAttributeEffects(TRAIT.HYBRID_VIGOR, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'none' }])
 });
 
 /** Owns Willing Host tuning and its existing Morph/Evolve contribution. */

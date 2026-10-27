@@ -61,7 +61,7 @@ export const reaperTooltips = {
     [TRAIT.REAPERS_ONSLAUGHT]: traitTooltip(
       "Gain ferocity in Reaper's Shroud. Completing the shroud autoattack chain reduces shroud skill recharge.",
       [
-        ['attributeBonus', 'Ferocity in shroud'],
+        ['attributeBonuses.ferocity', 'Ferocity in shroud'],
         ['rechargeReduction', 'Recharge reduction', tooltipSeconds]
       ]
     )

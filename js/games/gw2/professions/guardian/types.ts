@@ -1,5 +1,5 @@
-import type { GUARDIAN_CORE_SKILL_FIELDS } from '#gw2/professions/guardian/core/skill-fields.js';
-import type { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
+import type { GUARDIAN_CORE_SKILL_FIELDS } from '#gw2/professions/guardian/core/catalog-fields.js';
+import type { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
 import type { SimulationActorType } from '#gw2/platform/constants.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -15,7 +15,7 @@ import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializ
 import type { GuardianLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/skill-fields.js';
+import type { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/catalog-fields.js';
 
 export interface GuardianCanonicalBuild extends Gw2CanonicalBuild {
   initialTomePages: number;

@@ -1,3 +1,4 @@
+import { FIREBRAND_REWORK_PROFILE_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/rework/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
@@ -7,7 +8,7 @@ import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebr
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
-import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/skill-fields.js';
+import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
 import {
   firebrandState,
   FIREBRAND_PUBLIC_STATE_PROJECTION
@@ -77,6 +78,7 @@ export const firebrandReworkModule = defineNativeModule({
   data: {
     // The rework replaces the module as a unit, so it declares the same Firebrand skill fields.
     ...createGuardianModuleData('Firebrand', {
+      profileFields: FIREBRAND_REWORK_PROFILE_FIELDS,
       skillMechanics: FIREBRAND_SKILL_MECHANICS,
       skillFields: FIREBRAND_SKILL_FIELDS
     }),

@@ -147,7 +147,7 @@ test('Enhanced Potency respects selection, actor Fury and the active patch', () 
   const patched = withPatchPreview(families.elementalist, {
     id: 'conditional-flat-zero',
     label: 'Conditional flat zero',
-    professions: { elementalist: { balanceProfiles: { [id]: { fields: { attributeBonus: 0 } } } } }
+    professions: { elementalist: { balanceProfiles: { [id]: { fields: { 'attributeBonuses.ferocity': 0 } } } } }
   });
   assert.equal(
     scenario(

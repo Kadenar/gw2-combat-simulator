@@ -136,11 +136,23 @@ export const conduitTooltips = {
       'Unlock Legendary Entity, affinity, Release Potential, and Cosmic Wisdom forms determined by the equipped legends.'
     ),
     [TRAIT.BOLSTERED_BONDS]: traitTooltip('Equipped legends grant attributes. Cosmic Wisdom increases these bonuses.', [
-      ['assassinAttributeBonus', 'Assassin: power and ferocity'],
-      ['demonAttributeBonus', 'Demon: condition damage and expertise'],
-      ['dwarfAttributeBonus', 'Dwarf: toughness and vitality'],
-      ['centaurAttributeBonus', 'Centaur: healing power and concentration'],
-      ['entityAttributeBonus', 'Entity: each supported attribute'],
+      ['assassinAttributeBonuses.power', 'Assassin: power'],
+      ['assassinAttributeBonuses.ferocity', 'Assassin: ferocity'],
+      ['demonAttributeBonuses.conditionDamage', 'Demon: condition damage'],
+      ['demonAttributeBonuses.expertise', 'Demon: expertise'],
+      ['dwarfAttributeBonuses.toughness', 'Dwarf: toughness'],
+      ['dwarfAttributeBonuses.vitality', 'Dwarf: vitality'],
+      ['centaurAttributeBonuses.healingPower', 'Centaur: healing power'],
+      ['centaurAttributeBonuses.concentration', 'Centaur: concentration'],
+      ['entityAttributeBonuses.power', 'Entity: power'],
+      ['entityAttributeBonuses.precision', 'Entity: precision'],
+      ['entityAttributeBonuses.toughness', 'Entity: toughness'],
+      ['entityAttributeBonuses.vitality', 'Entity: vitality'],
+      ['entityAttributeBonuses.ferocity', 'Entity: ferocity'],
+      ['entityAttributeBonuses.conditionDamage', 'Entity: condition damage'],
+      ['entityAttributeBonuses.expertise', 'Entity: expertise'],
+      ['entityAttributeBonuses.concentration', 'Entity: concentration'],
+      ['entityAttributeBonuses.healingPower', 'Entity: healing power'],
       ['attributeMultiplier', 'Cosmic Wisdom attribute increase', tooltipFactorChange]
     ]),
     [TRAIT.NUMINOUS_GIFT]: (balanceContext) => {

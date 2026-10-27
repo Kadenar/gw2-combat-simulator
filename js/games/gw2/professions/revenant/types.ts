@@ -101,5 +101,5 @@ export interface RevenantUiContext extends Omit<
 export type RevenantUiSlice = Partial<ProfessionUiContract<Partial<RevenantState>>>;
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { CONDUIT_SKILL_FIELDS } from '#gw2/professions/revenant/specializations/conduit/skill-fields.js';
-import type { REVENANT_CORE_SKILL_FIELDS } from '#gw2/professions/revenant/core/skill-fields.js';
+import type { CONDUIT_SKILL_FIELDS } from '#gw2/professions/revenant/specializations/conduit/catalog-fields.js';
+import type { REVENANT_CORE_SKILL_FIELDS } from '#gw2/professions/revenant/core/catalog-fields.js';

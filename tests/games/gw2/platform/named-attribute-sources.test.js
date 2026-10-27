@@ -95,7 +95,9 @@ for (const [family, profession, specialization, traitName, amount, read] of [
     const patched = withPatchPreview(family, {
       id: 'source-preview',
       label: 'Source preview',
-      professions: { [profession]: { balanceProfiles: { [id]: { fields: { attributeBonus: amount * 2 } } } } }
+      professions: {
+        [profession]: { balanceProfiles: { [id]: { fields: { 'attributeBonuses.conditionDamage': amount * 2 } } } }
+      }
     });
     const sample = (patchId) => {
       const context = facts(patched, specialization, [traitName], { patchId });

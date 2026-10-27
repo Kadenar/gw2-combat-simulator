@@ -10,6 +10,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -86,7 +87,7 @@ export const righteousInstincts = defineTrait({
 export const rightHandStrength = defineTrait({
   name: 'Right-Hand Strength',
   id: TRAIT.RIGHT_HAND_STRENGTH,
-  balance: { attributeBonus: 80 },
+  balance: { attributeBonuses: { precision: 80, power: 80 } },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const rightHandStrengthProfile = requireBalanceProfileFromContext(profileContext, TRAIT.RIGHT_HAND_STRENGTH);
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
@@ -101,13 +102,13 @@ export const rightHandStrength = defineTrait({
         {
           kind: 'flat',
           to: 'Precision',
-          amount: balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus'),
+          amount: attributeBonusNumber(rightHandStrengthProfile, 'precision'),
           feedsConversions: 'none'
         },
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(rightHandStrengthProfile, 'attributeBonus'),
+          amount: attributeBonusNumber(rightHandStrengthProfile, 'power'),
           // Only the one-handed Power bonus feeds conversions; the passive Precision stays excluded.
           feedsConversions: 'all',
           enabled: oneHandedMainHand
@@ -123,11 +124,9 @@ export const radiantPower = defineTrait({
   id: TRAIT.RADIANT_POWER,
   balance: {
     criticalChance: 0.1,
-    attributeBonus: 150
+    attributeBonuses: { ferocity: 150 }
   },
-  attributes: traitAttributeEffects(TRAIT.RADIANT_POWER, [
-    { kind: 'flat', to: 'Ferocity', field: 'attributeBonus', feedsConversions: 'none' }
-  ]),
+  attributes: traitAttributeEffects(TRAIT.RADIANT_POWER, [{ kind: 'flat', to: 'Ferocity', feedsConversions: 'none' }]),
   modifierRules: [
     {
       order: -9,

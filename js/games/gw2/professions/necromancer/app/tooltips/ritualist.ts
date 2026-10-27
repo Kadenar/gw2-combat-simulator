@@ -163,7 +163,7 @@ export const ritualistTooltips = {
       'This specialization summons spirits and uses soul shards and Innervate commands.'
     ),
     [TRAIT.BOON_OF_CREATION]: traitTooltip('Gain concentration. Summoning a creature generates life force.', [
-      ['attributeBonus', 'Concentration'],
+      ['attributeBonuses.concentration', 'Concentration'],
       ['lifeForceGain', 'Life force per creature summoned', lifeForce]
     ]),
     [TRAIT.CHARGED_SOULS]: traitTooltip(

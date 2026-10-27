@@ -17,7 +17,7 @@ export const thiefTrickeryTooltips = {
   [TRAIT.KLEPTOMANIAC]: traitTooltip('Stealing restores initiative.', [['resourceGain', 'Initiative restored']]),
   // Only the traited capacity varies with the patch; the baseline is the shared initiative rule.
   [TRAIT.PREPAREDNESS]: traitTooltip('Increase maximum initiative and gain expertise.', (context, id) => [
-    profileFact(context, id, 'attributeBonus', 'Expertise'),
+    profileFact(context, id, 'attributeBonuses.expertise', 'Expertise'),
     profileFact(context, id, 'maximumStacks', 'Maximum initiative with Preparedness'),
     { name: 'Maximum initiative without Preparedness', detail: String(INITIATIVE.maximum) }
   ]),

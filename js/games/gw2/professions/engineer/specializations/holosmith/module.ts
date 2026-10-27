@@ -1,3 +1,4 @@
+import { ENGINEER_HOLOSMITH_PROFILE_FIELDS } from '#gw2/professions/engineer/specializations/holosmith/catalog-fields.js';
 import { holosmithTraits } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
@@ -13,12 +14,13 @@ import {
   HOLOSMITH_PUBLIC_STATE_PROJECTION,
   holosmithState
 } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { HOLOSMITH_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/holosmith/skill-fields.js';
+import { HOLOSMITH_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/holosmith/catalog-fields.js';
 
 export const holosmithModule = defineNativeModule({
   id: 'Holosmith',
   traitDefinitions: holosmithTraits,
   data: createEngineerModuleData('Holosmith', {
+    profileFields: ENGINEER_HOLOSMITH_PROFILE_FIELDS,
     skillFields: HOLOSMITH_SKILL_FIELDS,
     skillMechanics: HOLOSMITH_SKILL_MECHANICS,
     autoattackChains: { additional: HOLOSMITH_AUTOATTACK_CHAINS }

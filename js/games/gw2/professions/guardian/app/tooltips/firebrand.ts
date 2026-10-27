@@ -170,7 +170,9 @@ export const firebrandTooltips = {
       ]
     ),
     [TRAIT.IMBUED_HASTE]: traitTooltip('Quickness grants condition damage, healing power, and vitality.', [
-      ['attributeBonus', 'Each attribute with quickness', tooltipDecimal]
+      ['attributeBonuses.conditionDamage', 'Condition Damage with quickness', tooltipDecimal],
+      ['attributeBonuses.healingPower', 'Healing Power with quickness', tooltipDecimal],
+      ['attributeBonuses.vitality', 'Vitality with quickness', tooltipDecimal]
     ]),
     [TRAIT.UNRELENTING_CRITICISM]: traitTooltip('Player axe strikes inflict bleeding.'),
     [TRAIT.LIBERATORS_VOW]: traitTooltip('Using a healing skill grants quickness to the party.', [

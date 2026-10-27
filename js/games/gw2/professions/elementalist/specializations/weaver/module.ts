@@ -33,4 +33,4 @@ export const weaverModule = defineNativeModule({
 });
 
 import { weaverTraits } from '#gw2/professions/elementalist/specializations/weaver/traits/index.js';
-import { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/skill-fields.js';
+import { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';

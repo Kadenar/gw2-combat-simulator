@@ -140,11 +140,16 @@ export const weaverTooltips = {
       'Unlock Weaver, sword, stances, and dual attunements. Weapon skills depend on your primary and secondary elements.'
     ),
     [TRAIT.ELEMENTAL_REFRESHMENT]: traitTooltip('Gain vitality. Barrier does not change outgoing combat results.', [
-      ['attributeBonus', 'Vitality']
+      ['attributeBonuses.vitality', 'Vitality']
     ]),
     [TRAIT.ELEMENTAL_POLYPHONY]: traitTooltip(
       'Gain attributes from each distinct active attunement: Fire grants power, Water healing power, Air ferocity, and Earth condition damage. Matching elements apply once.',
-      [['attributeBonus', 'Bonus per corresponding attribute']]
+      [
+        ['attributeBonuses.power', 'Power in Fire'],
+        ['attributeBonuses.ferocity', 'Ferocity in Air'],
+        ['attributeBonuses.healingPower', 'Healing power in Water'],
+        ['attributeBonuses.conditionDamage', 'Condition damage in Earth']
+      ]
     ),
     [TRAIT.SUPERIOR_ELEMENTS]: traitTooltip(
       'Completing an eligible dual attack inflicts weakness. Gain personal critical-strike chance against weakened targets.',

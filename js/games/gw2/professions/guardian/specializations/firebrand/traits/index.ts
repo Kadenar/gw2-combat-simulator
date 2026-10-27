@@ -1,3 +1,4 @@
+import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
 import { RECIPIENT, ACTOR, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
@@ -5,12 +6,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 
@@ -19,7 +15,13 @@ import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 
-import { effectNumber } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext,
+  requireEffect,
+  effectNumber
+} from '#gw2/platform/skills/balance-profiles.js';
 import {
   finalMantraChargeUsed,
   firebrandBuffApplied,
@@ -199,16 +201,12 @@ const imbuedHaste = defineTrait({
   name: 'Imbued Haste',
   id: TRAIT.IMBUED_HASTE,
   balance: {
-    attributeBonus: 250
+    attributeBonuses: { conditionDamage: 250, healingPower: 250, vitality: 250 }
   },
   attributes: ({ loadout, balanceContext }) => ({
-    attributeEffects: (['Condition Damage', 'Healing Power', 'Vitality'] as const).map((to) => ({
-      kind: 'flat' as const,
-      to,
-      amount: balanceNumberFromContext(balanceContext, TRAIT.IMBUED_HASTE, 'attributeBonus'),
-      feedsConversions: 'all',
-      enabled: loadout.assumptions.quickness !== false
-    }))
+    attributeEffects: ownerAttributeEffects(requireBalanceProfileFromContext(balanceContext, TRAIT.IMBUED_HASTE)).map(
+      (effect) => ({ ...effect, feedsConversions: 'all', enabled: loadout.assumptions.quickness !== false })
+    )
   })
 });
 

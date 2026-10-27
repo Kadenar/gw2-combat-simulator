@@ -22,8 +22,8 @@ export const thiefAcrobaticsTooltips = {
   [TRAIT.PAIN_RESPONSE]: outsideScopeTooltip,
   [TRAIT.GUARDED_INITIATION]: outsideScopeTooltip,
   [TRAIT.SWINDLERS_EQUILIBRIUM]: traitTooltip('Gain power and additional power while wielding a sword.', [
-    ['attributeBonus', 'Power'],
-    ['weaponAttributeBonus', 'Total power while wielding a sword']
+    ['attributeBonuses.power', 'Power'],
+    ['conditionalAttributeBonuses.power', 'Total power while wielding a sword']
   ]),
   [TRAIT.HARD_TO_CATCH]: traitTooltip('Completing a movement skill restores endurance.', [
     ['resourceGain', 'Endurance restored']

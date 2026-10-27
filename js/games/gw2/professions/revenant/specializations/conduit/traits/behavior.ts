@@ -2,11 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeSpecializationState } from '#gw2/professions/revenant/core/state-queries.js';
@@ -19,28 +15,15 @@ import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-// Legendary Entity grants every attribute represented by Bolstered Bonds.
-const ALL_ATTRIBUTES = Object.freeze([
-  'power',
-  'precision',
-  'toughness',
-  'vitality',
-  'ferocity',
-  'conditionDamage',
-  'expertise',
-  'concentration',
-  'healingPower'
+const LEGEND_ATTRIBUTE_GROUPS = new Map<string, string>([
+  [LEGEND.ASSASSIN, 'assassinAttributeBonuses'],
+  [LEGEND.CENTAUR, 'centaurAttributeBonuses'],
+  [LEGEND.DEMON, 'demonAttributeBonuses'],
+  [LEGEND.DWARF, 'dwarfAttributeBonuses'],
+  [LEGEND.ENTITY, 'entityAttributeBonuses']
 ]);
 
-/**
- * Calculates the combined Bolstered Bonds bonuses for the selected legends.
- *
- * Each supported legend contributes its own attribute pair; Legendary Entity
- * contributes every attribute. Legends without a Bolstered Bonds bonus are
- * ignored.
- *
- * Bonuses keyed by runtime attribute name.
- */
+/** Each selected legend contributes its named grants, preserving shared attributes and the active multiplier. */
 export function bolsteredBondsBonuses(
   context: unknown,
   selectedLegendIds: readonly string[] = [],
@@ -49,31 +32,14 @@ export function bolsteredBondsBonuses(
   if (!multiplier) return {};
 
   const bonuses: Record<string, number> = {};
-  const add = (attribute: string, amount: number): void => {
-    bonuses[attribute] = (bonuses[attribute] || 0) + amount * multiplier;
-  };
-
   for (const legendId of selectedLegendIds) {
-    if (legendId === LEGEND.ASSASSIN) {
-      const bolsteredBondsProfile = requireBalanceProfileFromContext(context, TRAIT.BOLSTERED_BONDS);
-      add('power', balanceProfileNumber(bolsteredBondsProfile, 'assassinAttributeBonus'));
-      add('ferocity', balanceProfileNumber(bolsteredBondsProfile, 'assassinAttributeBonus'));
-    } else if (legendId === LEGEND.CENTAUR) {
-      const bolsteredBondsProfile = requireBalanceProfileFromContext(context, TRAIT.BOLSTERED_BONDS);
-      add('healingPower', balanceProfileNumber(bolsteredBondsProfile, 'centaurAttributeBonus'));
-      add('concentration', balanceProfileNumber(bolsteredBondsProfile, 'centaurAttributeBonus'));
-    } else if (legendId === LEGEND.DEMON) {
-      const bolsteredBondsProfile = requireBalanceProfileFromContext(context, TRAIT.BOLSTERED_BONDS);
-      add('conditionDamage', balanceProfileNumber(bolsteredBondsProfile, 'demonAttributeBonus'));
-      add('expertise', balanceProfileNumber(bolsteredBondsProfile, 'demonAttributeBonus'));
-    } else if (legendId === LEGEND.DWARF) {
-      const bolsteredBondsProfile = requireBalanceProfileFromContext(context, TRAIT.BOLSTERED_BONDS);
-      add('toughness', balanceProfileNumber(bolsteredBondsProfile, 'dwarfAttributeBonus'));
-      add('vitality', balanceProfileNumber(bolsteredBondsProfile, 'dwarfAttributeBonus'));
-    } else if (legendId === LEGEND.ENTITY) {
-      for (const attribute of ALL_ATTRIBUTES)
-        add(attribute, balanceNumberFromContext(context, TRAIT.BOLSTERED_BONDS, 'entityAttributeBonus'));
-    }
+    const group = LEGEND_ATTRIBUTE_GROUPS.get(legendId);
+
+    if (!group) continue;
+
+    const profile = requireBalanceProfileFromContext(context, TRAIT.BOLSTERED_BONDS);
+    for (const [attribute, amount] of Object.entries(profile[group] as Readonly<Record<string, number>>))
+      bonuses[attribute] = (bonuses[attribute] ?? 0) + amount * multiplier;
   }
 
   return bonuses;

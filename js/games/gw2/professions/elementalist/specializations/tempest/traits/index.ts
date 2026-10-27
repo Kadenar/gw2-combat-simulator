@@ -216,10 +216,10 @@ const gatheredFocus = defineTrait({
   name: 'Gathered Focus',
   id: TRAIT.GATHERED_FOCUS,
   balance: {
-    attributeBonus: 240
+    attributeBonuses: { concentration: 240 }
   },
   attributes: traitAttributeEffects(TRAIT.GATHERED_FOCUS, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Concentration', feedsConversions: 'none' }
   ])
 });
 

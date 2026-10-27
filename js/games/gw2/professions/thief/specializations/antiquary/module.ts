@@ -1,3 +1,4 @@
+import { THIEF_ANTIQUARY_PROFILE_FIELDS } from '#gw2/professions/thief/specializations/antiquary/catalog-fields.js';
 import { ANTIQUARY_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/antiquary/skills/guild-attacks.js';
 import { kryptisTurretModifiers } from '#gw2/professions/thief/specializations/antiquary/skills/artifact-actions.js';
 import { projectAntiquaryPlanningState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -10,12 +11,13 @@ import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary
 import { antiquaryUi } from '#gw2/professions/thief/specializations/antiquary/presentation.js';
 import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { ANTIQUARY_SKILL_FIELDS } from '#gw2/professions/thief/specializations/antiquary/skill-fields.js';
+import { ANTIQUARY_SKILL_FIELDS } from '#gw2/professions/thief/specializations/antiquary/catalog-fields.js';
 
 export const antiquaryModule = defineNativeModule({
   traitDefinitions: antiquaryTraits,
   id: 'Antiquary',
   data: createThiefModuleData('Antiquary', {
+    profileFields: THIEF_ANTIQUARY_PROFILE_FIELDS,
     extraSkills: ANTIQUARY_GUILD_ATTACK_SKILLS,
     skillFields: ANTIQUARY_SKILL_FIELDS,
     skillMechanics: ANTIQUARY_SKILL_MECHANICS

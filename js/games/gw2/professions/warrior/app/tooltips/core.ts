@@ -135,7 +135,8 @@ export const warriorCoreTooltips = {
       'Passively grants precision while ready. Activation grants adrenaline (Flow for Bladesworn) and temporarily increases precision and ferocity.',
       [
         fromSkill(ID.SIGNET_OF_FURY, 'attributeBonuses.precision', 'Passive precision'),
-        fromSkill(ID.SIGNET_OF_FURY, 'activeAttributeBonus', 'Precision and ferocity during the active buff')
+        fromSkill(ID.SIGNET_OF_FURY, 'activeAttributeBonuses.precision', 'Precision during the active buff'),
+        fromSkill(ID.SIGNET_OF_FURY, 'activeAttributeBonuses.ferocity', 'Ferocity during the active buff')
       ]
     ),
     [ID.RIFLE_BUTT]: skillTooltip(

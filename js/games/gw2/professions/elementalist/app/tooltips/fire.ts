@@ -17,7 +17,7 @@ import { percentagePoints } from '#gw2/professions/elementalist/app/tooltips/sha
 /** Describe fire tooltips from the selected balance data. */
 export const elementalistFireTooltips = {
   [TRAIT.EMPOWERING_FLAME]: traitTooltip('Gain power while primarily attuned to Fire.', [
-    ['attributeBonus', 'Power in Fire']
+    ['attributeBonuses.power', 'Power in Fire']
   ]),
   [TRAIT.SUNSPOT]: traitTooltip(
     'Entering Fire in combat, or beginning a Fire overload, grants Fire Aura and triggers a strike that cannot critically strike.'
@@ -45,7 +45,7 @@ export const elementalistFireTooltips = {
   [TRAIT.CONJURER]: traitTooltip('Equipping a conjured weapon grants Fire Aura.'),
   [TRAIT.BURNING_FIRE]: outsideScopeTooltip,
   [TRAIT.BURNING_RAGE]: traitTooltip('Gain condition damage. Sunspot also burns the target.', [
-    ['attributeBonus', 'Condition damage']
+    ['attributeBonuses.conditionDamage', 'Condition damage']
   ]),
   [TRAIT.SMOTHERING_AURAS]: traitTooltip('Auras last longer.', [
     ['durationMultiplier', 'Aura duration', tooltipFactorChange]
@@ -54,8 +54,8 @@ export const elementalistFireTooltips = {
     'Gain power while you have enough might. Fire attunement uses the larger bonus instead.',
     [
       ['minimumStacks', 'Might stacks required'],
-      ['attributeBonus', 'Power outside Fire'],
-      ['weaponAttributeBonus', 'Power in Fire']
+      ['attributeBonuses.power', 'Power outside Fire'],
+      ['conditionalAttributeBonuses.power', 'Power in Fire']
     ]
   ),
   [TRAIT.PERSISTING_FLAMES]: traitTooltip(

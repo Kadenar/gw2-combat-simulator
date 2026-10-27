@@ -1,5 +1,5 @@
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { attributeBonusNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 /** Owns Energy Amplifier tuning and behavior at its established runtime and build boundaries. */
@@ -7,7 +7,7 @@ export const energyAmplifier = defineTrait({
   name: 'Energy Amplifier',
   id: TRAIT.ENERGY_AMPLIFIER,
   balance: {
-    attributeBonus: 250
+    attributeBonuses: { power: 250, healingPower: 250 }
   },
   attributes: ({ balanceContext: profileContext, loadout }) => {
     const engineerBuild = loadout;
@@ -17,14 +17,14 @@ export const energyAmplifier = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
+          amount: attributeBonusNumber(energyAmplifierProfile, 'power'),
           feedsConversions: 'none',
           enabled: engineerBuild.assumptions.regeneration !== false
         },
         {
           kind: 'flat',
           to: 'Healing Power',
-          amount: balanceProfileNumber(energyAmplifierProfile, 'attributeBonus'),
+          amount: attributeBonusNumber(energyAmplifierProfile, 'healingPower'),
           feedsConversions: 'none',
           enabled: engineerBuild.assumptions.regeneration !== false
         }

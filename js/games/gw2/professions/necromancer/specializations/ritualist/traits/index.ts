@@ -68,9 +68,9 @@ const explosiveGrowth = defineTrait({
 const boonOfCreation = defineTrait({
   name: 'Boon of Creation',
   id: TRAIT.BOON_OF_CREATION,
-  balance: { attributeBonus: 180, lifeForceGain: 10, effects: [] },
+  balance: { attributeBonuses: { concentration: 180 }, lifeForceGain: 10, effects: [] },
   attributes: traitAttributeEffects(TRAIT.BOON_OF_CREATION, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Concentration', feedsConversions: 'none' }
   ]),
   triggers: [
     onTriggerPoint(creatureSummoned, {

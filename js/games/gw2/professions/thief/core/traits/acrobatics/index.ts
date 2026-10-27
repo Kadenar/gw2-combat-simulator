@@ -5,6 +5,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext
@@ -90,7 +91,7 @@ export const hardToCatch = defineTrait({
 export const swindlersEquilibrium = defineTrait({
   name: "Swindler's Equilibrium",
   id: TRAIT.SWINDLERS_EQUILIBRIUM,
-  balance: { attributeBonus: 120, weaponAttributeBonus: 240 },
+  balance: { attributeBonuses: { power: 120 }, conditionalAttributeBonuses: { power: 240 } },
   attributes({ loadout, weaponSet, balanceContext }) {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
@@ -98,10 +99,11 @@ export const swindlersEquilibrium = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceNumberFromContext(
+          amount: attributeBonusFromContext(
             balanceContext,
             TRAIT.SWINDLERS_EQUILIBRIUM,
-            weapons.includes(WEAPON.SWORD) ? 'weaponAttributeBonus' : 'attributeBonus'
+            'power',
+            weapons.includes(WEAPON.SWORD) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
           ),
           feedsConversions: 'all'
         }

@@ -71,9 +71,9 @@ export const hgh = defineTrait({
 export const compoundingChemicals = defineTrait({
   name: 'Compounding Chemicals',
   id: TRAIT.COMPOUNDING_CHEMICALS,
-  balance: { attributeBonus: 240 },
+  balance: { attributeBonuses: { concentration: 240 } },
   attributes: traitAttributeEffects(TRAIT.COMPOUNDING_CHEMICALS, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Concentration', feedsConversions: 'none' }
   ])
 });
 

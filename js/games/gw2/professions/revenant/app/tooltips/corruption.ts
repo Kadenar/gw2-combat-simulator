@@ -19,7 +19,7 @@ export const revenantCorruptionTooltips = {
     ...variantEffects(tooltipProfile(balanceContext, entity.id).effects)
   }),
   [TRAIT.SEETHING_MALICE]: traitTooltip('Gain condition damage.', [
-    ['attributeBonus', 'Condition Damage', (value) => '+' + tooltipDecimal(value)]
+    ['attributeBonuses.conditionDamage', 'Condition Damage', (value) => '+' + tooltipDecimal(value)]
   ]),
   [TRAIT.YEARNING_EMPOWERMENT]: traitTooltip(
     'Damaging conditions last longer. Numinous Gift strengthens this duration bonus.',

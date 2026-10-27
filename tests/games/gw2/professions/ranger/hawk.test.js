@@ -65,7 +65,8 @@ test('Untamed Hawk reserves special skills for commands without overlapping its 
 
 // Pet boon duration uses its own selected traits independently of player equipment.
 test('pet Screech scales only with Lingering Magic while merged Screech uses player boon duration', () => {
-  const concentrationBonus = rangerCatalog.balanceProfilesById.get(TRAIT.LINGERING_MAGIC).attributeBonus;
+  const concentrationBonus = rangerCatalog.balanceProfilesById.get(TRAIT.LINGERING_MAGIC).attributeBonuses
+    .concentration;
   for (const trait of [false, true]) {
     const result = runRanger([ID.QUICKENING_SCREECH_PET, wait(1000)], {
       ...hawk,

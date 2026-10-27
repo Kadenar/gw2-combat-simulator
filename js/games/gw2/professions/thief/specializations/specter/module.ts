@@ -7,7 +7,7 @@ import { specterUi } from '#gw2/professions/thief/specializations/specter/presen
 import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/specter/skills/index.js';
 import { SPECTER_PUBLIC_STATE_PROJECTION, specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import { specterTraits } from '#gw2/professions/thief/specializations/specter/traits/index.js';
-import { SPECTER_SKILL_FIELDS } from '#gw2/professions/thief/specializations/specter/skill-fields.js';
+import { SPECTER_SKILL_FIELDS } from '#gw2/professions/thief/specializations/specter/catalog-fields.js';
 
 export const specterModule = defineNativeModule({
   traitDefinitions: specterTraits,

@@ -1,6 +1,7 @@
+import { attributeBonusFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 /** Owns Focus Mastery's live tuning and trait behavior. */
@@ -22,7 +23,7 @@ export const focusMastery = defineTrait({
 export const stalwartDefender = defineTrait({
   name: 'Stalwart Defender',
   id: TRAIT.STALWART_DEFENDER,
-  balance: { attributeBonus: 240 },
+  balance: { attributeBonuses: { toughness: 240 } },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const offHand = weapons[1] || '';
@@ -31,7 +32,7 @@ export const stalwartDefender = defineTrait({
         {
           kind: 'flat',
           to: 'Toughness',
-          amount: balanceNumberFromContext(profileContext, TRAIT.STALWART_DEFENDER, 'attributeBonus'),
+          amount: attributeBonusFromContext(profileContext, TRAIT.STALWART_DEFENDER, 'toughness'),
           feedsConversions: 'none',
           enabled: offHand === WEAPON.SHIELD
         }

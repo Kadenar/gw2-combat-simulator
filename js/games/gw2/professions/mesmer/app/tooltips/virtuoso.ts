@@ -50,7 +50,7 @@ export const virtuosoTooltips = {
       "A phantasm's completed attack lifecycle fires an additional blade strike."
     ),
     [TRAIT.SHARPENING_SORROW]: traitTooltip('Gain expertise while fury is assumed active.', [
-      ['expertiseBonus', 'Expertise']
+      ['attributeBonuses.expertise', 'Expertise']
     ]),
     [TRAIT.PSYCHIC_RIPOSTE]: outsideScopeTooltip,
     [TRAIT.INFINITE_FORGE]: traitTooltip(

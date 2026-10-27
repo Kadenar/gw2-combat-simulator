@@ -12,7 +12,9 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 export const engineerAlchemyTooltips = {
   [TRAIT.HIDDEN_FLASK]: outsideScopeTooltip,
   [TRAIT.TRANSMUTE]: outsideScopeTooltip,
-  [TRAIT.COMPOUNDING_CHEMICALS]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
+  [TRAIT.COMPOUNDING_CHEMICALS]: traitTooltip('Gain concentration.', [
+    ['attributeBonuses.concentration', 'Concentration']
+  ]),
   [TRAIT.INVIGORATING_SPEED]: outsideScopeTooltip,
   [TRAIT.PROTECTION_INJECTION]: outsideScopeTooltip,
   [TRAIT.HEALTH_INSURANCE]: outsideScopeTooltip,

@@ -51,7 +51,7 @@ export const thiefCriticalStrikesTooltips = {
     description:
       'Gain ferocity while you have fury. Eligible critical hits extend fury only if it was already active before the hit.',
     facts: [
-      profileFact(balanceContext, entity.id, 'attributeBonus', 'Ferocity with fury'),
+      profileFact(balanceContext, entity.id, 'attributeBonuses.ferocity', 'Ferocity with fury'),
       profileFact(balanceContext, entity.id, 'internalCooldown', 'Internal cooldown', tooltipSeconds),
       ...simulationEffectFacts(tooltipProfile(balanceContext, entity.id).effects, 'extension of existing fury').facts
     ]

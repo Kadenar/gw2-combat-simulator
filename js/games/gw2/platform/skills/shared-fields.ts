@@ -1,12 +1,12 @@
-import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
+import { attributeFields } from '#gw2/platform/skills/attribute-fields.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
-  assertSkillFieldGroups,
-  combineSkillFields,
+  assertFieldGroups,
+  combineFields,
   dataField,
-  defineSkillFields,
+  defineFields,
   numberField,
-  type SkillFieldSpecs
+  type FieldSpecs
 } from '#gw2/platform/skills/field-specs.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
@@ -14,7 +14,7 @@ import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
  * Skill fields read by platform, application, or integration code. A field read only by one profession's code is
  * declared by that profession's module instead, so this table never grows with profession vocabulary.
  */
-export const SHARED_SKILL_FIELDS: SkillFieldSpecs = defineSkillFields(
+export const SHARED_SKILL_FIELDS: FieldSpecs = defineFields(
   {
     // Identity, presentation, and palette placement.
     id: dataField,
@@ -129,13 +129,7 @@ export const SHARED_SKILL_FIELDS: SkillFieldSpecs = defineSkillFields(
 
     // Attribute grants: the group is closed to canonical attributes, and each attribute is its own patch leaf.
     attributeMultiplier: numberField({ patch: 'primary' }),
-    attributeBonuses: dataField,
-    ...Object.fromEntries(
-      Object.entries(ATTRIBUTE_NAMES).map(([attribute, name]) => [
-        `attributeBonuses.${attribute}`,
-        numberField({ label: `${name} bonus`, patch: 'primary' })
-      ])
-    )
+    ...attributeFields()
   },
   'Shared skill fields'
 );
@@ -144,16 +138,16 @@ export const SHARED_SKILL_FIELDS: SkillFieldSpecs = defineSkillFields(
  * Combine one profession's module declarations with the shared vocabulary. Redeclaring a shared field is an error:
  * a field has one owner, whichever profession reads it.
  */
-export function professionSkillFields(professionFields: SkillFieldSpecs | undefined): SkillFieldSpecs {
-  const fields = combineSkillFields([
+export function professionSkillFields(professionFields: FieldSpecs | undefined): FieldSpecs {
+  const fields = combineFields([
     { owner: 'Shared skill fields', fields: SHARED_SKILL_FIELDS },
     { owner: 'Profession skill fields', fields: professionFields }
   ]);
-  assertSkillFieldGroups(fields);
+  assertFieldGroups(fields);
   return fields;
 }
 
 /** A catalog built without profession declarations accepts exactly the shared vocabulary. */
-export function catalogSkillFields(catalog: Pick<CanonicalCatalog, 'skillFields'> | null | undefined): SkillFieldSpecs {
+export function catalogSkillFields(catalog: Pick<CanonicalCatalog, 'skillFields'> | null | undefined): FieldSpecs {
   return catalog?.skillFields ?? SHARED_SKILL_FIELDS;
 }

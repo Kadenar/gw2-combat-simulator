@@ -12,7 +12,7 @@ import {
   galeshotState
 } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { galeshotTraits } from '#gw2/professions/ranger/specializations/galeshot/traits/index.js';
-import { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/skill-fields.js';
+import { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/catalog-fields.js';
 
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const galeshotModule = defineNativeModule({

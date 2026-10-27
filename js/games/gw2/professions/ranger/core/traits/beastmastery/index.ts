@@ -1,3 +1,5 @@
+import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
+
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { WEAPON, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
@@ -14,6 +16,7 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   effectNumber,
   requireBalanceProfileFromContext,
@@ -118,8 +121,8 @@ export const honedAxes = defineTrait({
   name: 'Honed Axes',
   id: TRAIT.HONED_AXES,
   balance: {
-    weaponAttributeBonus: 240,
-    attributeBonus: 120,
+    conditionalAttributeBonuses: { ferocity: 240 },
+    attributeBonuses: { ferocity: 120 },
     rechargeMultiplier: 0.8
   },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
@@ -129,10 +132,11 @@ export const honedAxes = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(
+          amount: attributeBonusFromContext(
             profileContext,
             TRAIT.HONED_AXES,
-            weapons.includes(WEAPON.AXE) ? 'weaponAttributeBonus' : 'attributeBonus'
+            'ferocity',
+            weapons.includes(WEAPON.AXE) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
           ),
           feedsConversions: 'none'
         }
@@ -153,18 +157,18 @@ export const packAlpha = defineTrait({
   name: 'Pack Alpha',
   id: TRAIT.PACK_ALPHA,
   balance: {
-    attributeBonus: 150,
-    weaponAttributeBonus: 300,
+    attributeBonuses: { power: 150, conditionDamage: 150, precision: 150, toughness: 150, vitality: 150 },
+    conditionalAttributeBonuses: { power: 300, conditionDamage: 300, precision: 300, toughness: 300, vitality: 300 },
     rechargeMultiplier: 0.8
   },
   attributes: ({ balanceContext, loadout, runtime }) => ({
-    attributeEffects: ['Power', 'Condition Damage', 'Precision', 'Toughness', 'Vitality'].map((to) => ({
-      kind: 'flat' as const,
-      to,
-      amount: balanceNumberFromContext(balanceContext, TRAIT.PACK_ALPHA, 'attributeBonus'),
-      feedsConversions: 'none',
-      enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
-    }))
+    attributeEffects: ownerAttributeEffects(requireBalanceProfileFromContext(balanceContext, TRAIT.PACK_ALPHA)).map(
+      (effect) => ({
+        ...effect,
+        feedsConversions: 'none',
+        enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
+      })
+    )
   }),
   rechargeRules: [
     {
@@ -180,7 +184,7 @@ export const petsProwess = defineTrait({
   name: "Pet's Prowess",
   id: TRAIT.PETS_PROWESS,
   balance: {
-    attributeBonus: 300
+    attributeBonuses: { ferocity: 300 }
   },
   attributes: ({ balanceContext: profileContext, loadout, runtime }) => {
     return {
@@ -188,7 +192,7 @@ export const petsProwess = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(profileContext, TRAIT.PETS_PROWESS, 'attributeBonus'),
+          amount: attributeBonusFromContext(profileContext, TRAIT.PETS_PROWESS, 'ferocity'),
           feedsConversions: 'none',
           enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
         }

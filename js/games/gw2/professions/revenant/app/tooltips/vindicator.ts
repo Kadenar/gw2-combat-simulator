@@ -50,7 +50,7 @@ export const vindicatorTooltips = {
     [TRAIT.TENACIOUS_RUIN]: traitTooltip('Replace the ordinary dodge with the selected Vindicator dodge attack.'),
     [TRAIT.BALANCE_IN_DISCORD]: outsideScopeTooltip,
     [TRAIT.EMPIRE_DIVIDED]: traitTooltip('Gain power at the full player health used by combat simulations.', [
-      ['attributeBonus', 'Power', (value) => '+' + tooltipDecimal(value)]
+      ['attributeBonuses.power', 'Power', (value) => '+' + tooltipDecimal(value)]
     ]),
     [TRAIT.LEVIATHAN_STRENGTH]: traitTooltip(
       'Player-owned strikes deal increased damage while endurance is below full.',

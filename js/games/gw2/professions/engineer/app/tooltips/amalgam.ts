@@ -141,7 +141,7 @@ export const amalgamTooltips = {
     [TRAIT.EXPERIMENTAL_UNION]: traitTooltip(
       'Replace toolbelt skills with selected protocols and Evolve. Protocols grant the corresponding Morph effects.'
     ),
-    [TRAIT.HYBRID_VIGOR]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
+    [TRAIT.HYBRID_VIGOR]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']]),
     [TRAIT.WILLING_HOST]: traitTooltip('Using a protocol temporarily increases player strike and condition damage.', [
       fromProfile(TRAIT.WILLING_HOST, 'damageIncrease', 'Strike damage', tooltipPercent),
       fromProfile(TRAIT.WILLING_HOST, 'conditionDamageIncrease', 'Condition damage', tooltipPercent),

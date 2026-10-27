@@ -6,7 +6,8 @@ export const engineerInventionsTooltips = {
   [TRAIT.CLEANSING_SYNERGY]: outsideScopeTooltip,
   [TRAIT.RECONSTRUCTION_ENCLOSURE]: outsideScopeTooltip,
   [TRAIT.ENERGY_AMPLIFIER]: traitTooltip('Regeneration grants power and healing power.', [
-    ['attributeBonus', 'Each attribute with regeneration']
+    ['attributeBonuses.power', 'Power with regeneration'],
+    ['attributeBonuses.healingPower', 'Healing Power with regeneration']
   ]),
   [TRAIT.OVER_SHIELD]: outsideScopeTooltip,
   [TRAIT.AUTOMATED_MEDICAL_RESPONSE]: outsideScopeTooltip,

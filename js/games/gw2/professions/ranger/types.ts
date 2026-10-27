@@ -1,4 +1,4 @@
-import type { RANGER_CORE_SKILL_FIELDS } from '#gw2/professions/ranger/core/skill-fields.js';
+import type { RANGER_CORE_SKILL_FIELDS } from '#gw2/professions/ranger/core/catalog-fields.js';
 import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -13,7 +13,7 @@ import type { GaleshotState } from '#gw2/professions/ranger/specializations/gale
 import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerInitialUntamedState, UntamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/skill-fields.js';
+import type { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/catalog-fields.js';
 
 export interface RangerBuild extends Gw2Build {
   specializations?: ProfessionTraitSelection[];

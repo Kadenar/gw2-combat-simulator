@@ -6,7 +6,7 @@ import type { ProfessionFamilyContract } from '#gw2/platform/profession-definiti
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
-import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
@@ -28,7 +28,9 @@ export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
   readonly skillOverrides?: Readonly<Record<string, Partial<TSkill>>>;
   readonly extraSkills?: readonly TSkill[];
   /** Skill fields read only by this module's profession code; assembly gives each field one owning module. */
-  readonly skillFields?: SkillFieldSpecs;
+  readonly skillFields?: FieldSpecs;
+  /** Profession-owned profile vocabulary contributed by this module. */
+  readonly profileFields?: FieldSpecs;
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];
   readonly weapons?: readonly string[];

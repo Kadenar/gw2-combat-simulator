@@ -1,3 +1,4 @@
+import { MESMER_VIRTUOSO_PROFILE_FIELDS } from '#gw2/professions/mesmer/specializations/virtuoso/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { virtuosoPhantasmalFuryRule } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
@@ -10,6 +11,7 @@ import { virtuosoTraits } from '#gw2/professions/mesmer/specializations/virtuoso
 export const virtuosoModule = defineNativeModule({
   id: 'Virtuoso',
   data: createMesmerModuleData('Virtuoso', {
+    profileFields: MESMER_VIRTUOSO_PROFILE_FIELDS,
     skillMechanics: MESMER_VIRTUOSO_SKILL_MECHANICS
   }),
   state: {

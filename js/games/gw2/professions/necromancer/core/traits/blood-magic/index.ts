@@ -43,10 +43,8 @@ import { canonicalTime } from '#kernel/core/clock.js';
 export const lastRites = defineTrait({
   name: 'Last Rites',
   id: TRAIT.LAST_RITES,
-  balance: { attributeBonus: 150 },
-  attributes: traitAttributeEffects(TRAIT.LAST_RITES, [
-    { kind: 'flat', to: 'Healing Power', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  balance: { attributeBonuses: { healingPower: 150 } },
+  attributes: traitAttributeEffects(TRAIT.LAST_RITES, [{ kind: 'flat', to: 'Healing Power', feedsConversions: 'all' }])
 });
 
 /** Owns Vampiric tuning and behavior at its existing execution boundaries. */

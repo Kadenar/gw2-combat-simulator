@@ -92,10 +92,10 @@ export const unyieldingBlast = defineTrait({
 export const vitalPersistence = defineTrait({
   name: 'Vital Persistence',
   id: TRAIT.VITAL_PERSISTENCE,
-  balance: { attributeBonus: 180 },
+  balance: { attributeBonuses: { vitality: 180 } },
   attributes: traitAttributeEffects(TRAIT.VITAL_PERSISTENCE, [
     // Native Necromancer conversions include this bonus, but utility consumables exclude it.
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'profession-only' }
+    { kind: 'flat', to: 'Vitality', feedsConversions: 'profession-only' }
   ])
 });
 

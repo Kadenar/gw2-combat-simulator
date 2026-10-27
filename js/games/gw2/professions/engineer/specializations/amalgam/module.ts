@@ -1,4 +1,4 @@
-import { AMALGAM_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/amalgam/skill-fields.js';
+import { AMALGAM_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/amalgam/catalog-fields.js';
 import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
 import { plasmaticStateModifiers } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';

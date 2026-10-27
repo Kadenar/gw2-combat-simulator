@@ -58,7 +58,7 @@ export const tempestTooltips = {
       'Unlock Tempest, warhorn, shouts, and overloads. Holding an attunement forms its singularity, making its overload available.',
       [['duration', 'Base attunement dwell', tooltipSeconds]]
     ),
-    [TRAIT.GATHERED_FOCUS]: traitTooltip('Gain concentration.', [['attributeBonus', 'Concentration']]),
+    [TRAIT.GATHERED_FOCUS]: traitTooltip('Gain concentration.', [['attributeBonuses.concentration', 'Concentration']]),
     [TRAIT.HARDY_CONDUIT]: traitTooltip('Beginning an overload grants protection.'),
     [TRAIT.GALE_SONG]: traitTooltip('Completing a healing skill grants protection.'),
     [TRAIT.LATENT_STAMINA]: traitTooltip('Entering Water grants vigor.', [

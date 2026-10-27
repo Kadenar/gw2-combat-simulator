@@ -155,7 +155,10 @@ test('duration fields validate finite nonnegative seconds and preserve explicit 
     const profile = { id: 1, name: 'Duration', [field]: 2 };
     const catalog = createCanonicalCatalog({ balanceProfiles: [profile] });
     for (const value of [-1, NaN, Infinity, '3', null]) {
-      assert.throws(() => createCanonicalCatalog({ balanceProfiles: [{ ...profile, [field]: value }] }), /seconds/);
+      assert.throws(
+        () => createCanonicalCatalog({ balanceProfiles: [{ ...profile, [field]: value }] }),
+        /expected=finite number/
+      );
       assert.throws(() =>
         applyBalanceProfilePatch(catalog, { balanceProfiles: { 1: { fields: { [field]: value } } } })
       );

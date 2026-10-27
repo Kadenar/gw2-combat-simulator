@@ -154,10 +154,8 @@ const dulledSenses = defineTrait({
 const defendersDogma = defineTrait({
   name: "Defender's Dogma",
   id: TRAIT.DEFENDERS_DOGMA,
-  balance: { attributeBonus: 180 },
-  attributes: traitAttributeEffects(TRAIT.DEFENDERS_DOGMA, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  balance: { attributeBonuses: { vitality: 180 } },
+  attributes: traitAttributeEffects(TRAIT.DEFENDERS_DOGMA, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'all' }])
 });
 
 /** Owns Heavy Light's tuning and behavior at the existing Dragonhunter boundaries. */

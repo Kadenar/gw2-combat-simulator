@@ -292,11 +292,9 @@ const alchemicVigor = defineTrait({
   name: 'Alchemic Vigor',
   id: TRAIT.ALCHEMIC_VIGOR,
   balance: {
-    attributeBonus: 240
+    attributeBonuses: { vitality: 240 }
   },
-  attributes: traitAttributeEffects(TRAIT.ALCHEMIC_VIGOR, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  attributes: traitAttributeEffects(TRAIT.ALCHEMIC_VIGOR, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'all' }])
 });
 
 /** Owns Twisted Medicine tuning and behavior at its existing execution boundaries. */

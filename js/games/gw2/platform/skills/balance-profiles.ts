@@ -13,7 +13,7 @@ import {
   requireCanonicalSkillEffects,
   skillEffectKey
 } from '#gw2/platform/effects/validation.js';
-import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { BalanceProfile, Skill, SkillAttributeKey, SkillId } from '#gw2/platform/skills/types.js';
 
 type SkillEffectByType<TType extends SkillEffect['type']> = TType extends StrikeEffect['type']
   ? StrikeEffect
@@ -105,11 +105,36 @@ export function requireBalanceProfileFromContext(context: unknown, id: SkillId):
 
 /** Required balance inputs fail visibly instead of silently using unpatched values or producing NaN. */
 export function balanceProfileNumber(profile: BalanceProfile, field: string): number {
+  // Scalar tuning is read directly on combat paths; attribute maps have their own typed reader.
   const value = profile[field];
 
   if (typeof value === 'number' && Number.isFinite(value)) return value;
 
   return requireBalanceNumber(value, ownerDataLabel(profile, `profile=${profile.id} field=${field}`));
+}
+
+/** Read a named fixed grant without parsing authoring paths during combat. */
+export function attributeBonusNumber(
+  owner: Skill | BalanceProfile,
+  attribute: SkillAttributeKey,
+  group = 'attributeBonuses'
+): number {
+  const grants = owner[group] as Skill['attributeBonuses'];
+  const value = grants?.[attribute];
+
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+
+  return requireBalanceNumber(value, ownerDataLabel(owner, `owner=${owner.id} field=${group}.${attribute}`));
+}
+
+/** Resolve the selected profile before reading its named fixed grant. */
+export function attributeBonusFromContext(
+  context: unknown,
+  id: SkillId,
+  attribute: SkillAttributeKey,
+  group = 'attributeBonuses'
+): number {
+  return attributeBonusNumber(requireBalanceProfileFromContext(context, id), attribute, group);
 }
 
 /** Read one required numeric field from a required profile in the context's selected balance source. */

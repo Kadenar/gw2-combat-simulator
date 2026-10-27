@@ -1,3 +1,4 @@
+import { MESMER_CORE_PROFILE_FIELDS } from '#gw2/professions/mesmer/core/catalog-fields.js';
 import { MESMER_CORE_TRAIT_SKILLS } from '#gw2/professions/mesmer/core/skills/trait-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
@@ -9,12 +10,13 @@ import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills
 import { createMesmerCoreState, projectMesmerCorePlanningState } from '#gw2/professions/mesmer/core/state.js';
 import { mesmerCoreTraits } from '#gw2/professions/mesmer/core/traits/index.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
-import { MESMER_CORE_SKILL_FIELDS } from '#gw2/professions/mesmer/core/skill-fields.js';
+import { MESMER_CORE_SKILL_FIELDS } from '#gw2/professions/mesmer/core/catalog-fields.js';
 
 export const mesmerCoreModule = defineNativeModule({
   attributes: mesmerPassiveAttributes,
   id: 'Core',
   data: createMesmerModuleData('Core', {
+    profileFields: MESMER_CORE_PROFILE_FIELDS,
     skillFields: MESMER_CORE_SKILL_FIELDS,
     skillMechanics: MESMER_CORE_SKILL_MECHANICS,
     extraSkills: [...MESMER_CORE_EXTRA_SKILLS, ...MESMER_CORE_TRAIT_SKILLS]

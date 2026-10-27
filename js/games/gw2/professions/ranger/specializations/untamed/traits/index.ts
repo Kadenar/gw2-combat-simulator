@@ -59,7 +59,7 @@ const naturalFortitude = defineTrait({
   name: 'Natural Fortitude',
   id: TRAIT.NATURAL_FORTITUDE,
   balance: {
-    attributeBonus: 240,
+    attributeBonuses: { vitality: 240 },
     // The unconditional ambush siphon keeps trait attribution and reads the active patch's damage payload.
     effects: [
       {
@@ -77,7 +77,7 @@ const naturalFortitude = defineTrait({
     ]
   },
   attributes: traitAttributeEffects(TRAIT.NATURAL_FORTITUDE, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Vitality', feedsConversions: 'none' }
   ]),
   lifetime: {
     eventHandlers: {

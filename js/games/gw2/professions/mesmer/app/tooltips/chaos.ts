@@ -21,8 +21,8 @@ export const mesmerChaosTooltips = {
     ]
   ),
   [TRAIT.CHAOTIC_PERSISTENCE]: traitTooltip('Gain expertise and concentration while regeneration is assumed active.', [
-    ['expertiseBonus', 'Expertise'],
-    ['concentrationBonus', 'Concentration']
+    ['attributeBonuses.expertise', 'Expertise'],
+    ['attributeBonuses.concentration', 'Concentration']
   ]),
   [TRAIT.METHOD_OF_MADNESS]: traitSkillTooltip(
     [ID.LESSER_CHAOS_STORM],

@@ -19,6 +19,8 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  attributeBonusFromContext,
+  attributeBonusNumber,
   balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
@@ -49,7 +51,7 @@ import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/
 export const daggerTraining = defineTrait({
   name: 'Dagger Training',
   id: TRAIT.DAGGER_TRAINING,
-  balance: { attributeBonus: 80, weaponAttributeBonus: 160 },
+  balance: { attributeBonuses: { power: 80 }, conditionalAttributeBonuses: { power: 160 } },
   attributes({ loadout, weaponSet, balanceContext }) {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     return {
@@ -57,10 +59,11 @@ export const daggerTraining = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceNumberFromContext(
+          amount: attributeBonusFromContext(
             balanceContext,
             TRAIT.DAGGER_TRAINING,
-            weapons.includes(WEAPON.DAGGER) ? 'weaponAttributeBonus' : 'attributeBonus'
+            'power',
+            weapons.includes(WEAPON.DAGGER) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
           ),
           feedsConversions: 'all'
         }
@@ -74,7 +77,7 @@ export const deadlyAmbition = defineTrait({
   name: 'Deadly Ambition',
   id: TRAIT.DEADLY_AMBITION,
   balance: {
-    attributeBonus: 180,
+    attributeBonuses: { conditionDamage: 180 },
     playerStacks: 2,
     effects: [{ type: 'condition', name: CONDITION.POISONED, condition: CONDITION.POISONED, stacks: 1, duration: 3 }]
   },
@@ -84,7 +87,7 @@ export const deadlyAmbition = defineTrait({
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: balanceNumberFromContext(balanceContext, TRAIT.DEADLY_AMBITION, 'attributeBonus'),
+          amount: attributeBonusFromContext(balanceContext, TRAIT.DEADLY_AMBITION, 'conditionDamage'),
           feedsConversions: 'all'
         }
       ]
@@ -269,8 +272,8 @@ export const revealedTraining = defineTrait({
   name: 'Revealed Training',
   id: TRAIT.REVEALED_TRAINING,
   balance: {
-    attributeBonus: 80,
-    attributePerStack: 120
+    attributeBonuses: { power: 80 },
+    conditionalAttributeBonuses: { power: 120 }
   },
   // Keep the permanent bonus and live Revealed bonus under the same selected trait.
   attributes(context) {
@@ -292,14 +295,14 @@ export const revealedTraining = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'power'),
           feedsConversions: 'none',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(profile, 'attributePerStack'),
+          amount: attributeBonusNumber(profile, 'power', 'conditionalAttributeBonuses'),
           feedsConversions: 'none',
           enabled: (state.revealedUntil || 0) > context.time && !revealingAttack
         }

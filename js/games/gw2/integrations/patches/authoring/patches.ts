@@ -2,14 +2,13 @@ import { hasActionEffects, skillActions } from '#gw2/platform/effects/actions.js
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
 import { validateActionIds } from '#gw2/platform/effects/action-validation.js';
 import {
-  PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS,
   PATCHABLE_EFFECT_NUMERIC_FIELDS,
   effectNumericFieldIsPatchable
 } from '#gw2/integrations/patches/authoring/fields.js';
 import { deepFreeze, cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
 import { normalizeSkillEffects, requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
-import { validateCanonicalCatalog, validateDurationFields } from '#gw2/platform/skills/validation.js';
-import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
+import { validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -153,7 +152,6 @@ export interface PatchPreview {
   readonly professions?: Readonly<Record<string, ProfessionPatchPreview>>;
 }
 
-const BALANCE_PROFILE_NUMERIC_FIELDS = new Set(PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS);
 const EFFECT_NUMERIC_FIELDS = PATCHABLE_EFFECT_NUMERIC_FIELDS;
 
 /** Patch only existing grant numbers, preserving ids, trigger predicates, and the declared condition observation. */
@@ -729,7 +727,7 @@ function normalizeEffectEdits(source: Pick<Skill, 'name' | 'effects'>, edit: Ski
 }
 
 /** Produces an immutable patched skill without mutating the live catalog record. */
-function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string, skillFields: SkillFieldSpecs): Skill {
+function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string, skillFields: FieldSpecs): Skill {
   const ownerLabel = `${label} skill=${skill.id} (${skill.name})`;
   const clone = cloneCatalogData(skill);
   for (const { action, changes } of actionEffectEdits(clone, edit))
@@ -777,12 +775,17 @@ function patchSkill(skill: Skill, edit: SkillPatchEdit, label: string, skillFiel
   // Finish all reward edits before freezing and normalizing the cloned action declarations.
   if (clone.sideEffects) mutable.sideEffects = snapshotActionDeclaration(clone.sideEffects, normalizeSkillEffects);
 
-  validateDurationFields(mutable, ownerLabel);
+  validateFieldValues(mutable, skillFields, ownerLabel);
   return deepFreeze(clone);
 }
 
 /** Patches only fields exposed by the canonical profile; obsolete spellings fail ordinary numeric validation. */
-function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, label: string): BalanceProfile {
+function patchBalanceProfile(
+  profile: BalanceProfile,
+  edit: SkillPatchEdit,
+  label: string,
+  profileFields: FieldSpecs
+): BalanceProfile {
   const ownerLabel = `${label} profile=${profile.id} (${profile.name})`;
 
   if (edit.assumption !== undefined && (typeof edit.assumption !== 'string' || !edit.assumption.trim()))
@@ -800,7 +803,7 @@ function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, labe
     ...(edit.cooldown == null ? {} : { cooldown: edit.cooldown })
   };
   for (const [field, numericEdit] of Object.entries(fields)) {
-    if (!BALANCE_PROFILE_NUMERIC_FIELDS.has(field)) {
+    if (profileFields[field]?.kind !== 'number' || !profileFields[field].patch) {
       throw new TypeError(`${ownerLabel} has unsupported patch field ${field}.`);
     }
 
@@ -808,7 +811,7 @@ function patchBalanceProfile(profile: BalanceProfile, edit: SkillPatchEdit, labe
   }
 
   Object.assign(mutable, patchEffects(clone, edit, ownerLabel));
-  validateDurationFields(mutable, ownerLabel);
+  validateFieldValues(mutable, profileFields, ownerLabel);
   return deepFreeze(clone);
 }
 
@@ -917,7 +920,7 @@ export function applyBalanceProfilePatch(
       throw new TypeError(`Patch edits balance profile ${profile.name} more than once.`);
     }
 
-    replacements.set(profile, patchBalanceProfile(profile, edit, catalogPatchLabel(catalog)));
+    replacements.set(profile, patchBalanceProfile(profile, edit, catalogPatchLabel(catalog), catalog.profileFields));
   }
 
   if (!replacements.size) return catalog;

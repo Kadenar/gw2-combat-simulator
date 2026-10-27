@@ -122,7 +122,7 @@ export const deadeyeTooltips = {
     [TRAIT.SILENT_SCOPE]: traitTooltip(
       'Gain precision. Dodging above the malice threshold grants one temporary stealth-attack use without entering stealth.',
       [
-        ['attributeBonus', 'Precision'],
+        ['attributeBonuses.precision', 'Precision'],
         ['threshold', 'Malice must exceed'],
         ['duration', 'Attack availability', tooltipSeconds]
       ]
@@ -131,7 +131,7 @@ export const deadeyeTooltips = {
     [TRAIT.PREMEDITATION]: traitTooltip(
       'Gain concentration and increased strike damage for each different boon on you.',
       [
-        ['attributeBonus', 'Concentration'],
+        ['attributeBonuses.concentration', 'Concentration'],
         fromProfile(TRAIT.PREMEDITATION, 'damagePerBoon', 'Strike damage per boon', tooltipPercent)
       ]
     ),
@@ -144,7 +144,10 @@ export const deadeyeTooltips = {
     ),
     [TRAIT.BE_QUICK_OR_BE_KILLED]: traitTooltip(
       'Marking a target grants quickness. Gain power and precision while quickness is active.',
-      [['attributeBonus', 'Power and precision with quickness']]
+      [
+        ['attributeBonuses.power', 'Power with quickness'],
+        ['attributeBonuses.precision', 'Precision with quickness']
+      ]
     ),
     [TRAIT.FIRE_FOR_EFFECT]: traitTooltip(
       'Replace stolen skill choices with Steal Time. Using a stolen skill grants might and fury to the party.',

@@ -286,7 +286,7 @@ const primalRage = defineTrait({ name: 'Primal Rage', id: TRAIT.PRIMAL_RAGE, bal
 const fatalFrenzy = defineTrait({
   name: 'Fatal Frenzy',
   id: TRAIT.FATAL_FRENZY,
-  balance: { attributeBonus: 300, attributePerStack: 150 }
+  balance: { attributeBonuses: { power: 300, conditionDamage: 150 } }
 });
 
 /** Register native owners once in declaration order. */

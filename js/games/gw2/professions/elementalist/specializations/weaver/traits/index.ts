@@ -10,8 +10,8 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
+  attributeBonusNumber,
   balanceNumberFromContext,
-  balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -40,10 +40,10 @@ import { elementsOfRageAvailability } from '#gw2/professions/elementalist/specia
 const elementalRefreshment = defineTrait({
   name: 'Elemental Refreshment',
   id: TRAIT.ELEMENTAL_REFRESHMENT,
-  balance: { attributeBonus: 180 },
+  balance: { attributeBonuses: { vitality: 180 } },
   attributes: traitAttributeEffects(TRAIT.ELEMENTAL_REFRESHMENT, [
     // Intrinsic Vitality feeds both consumables and Reinforced Armor before converted bonuses are applied.
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
+    { kind: 'flat', to: 'Vitality', feedsConversions: 'all' }
   ])
 });
 
@@ -51,7 +51,7 @@ const elementalPolyphony = defineTrait({
   name: 'Elemental Polyphony',
   id: TRAIT.ELEMENTAL_POLYPHONY,
   balance: {
-    attributeBonus: 200
+    attributeBonuses: { power: 200, ferocity: 200, healingPower: 200, conditionDamage: 200 }
   },
   // Each distinct active attunement contributes once, including configured hands before runtime exists.
   attributes(context) {
@@ -69,28 +69,28 @@ const elementalPolyphony = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'power'),
           feedsConversions: 'none',
           enabled: active.has('Fire')
         },
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'ferocity'),
           feedsConversions: 'none',
           enabled: active.has('Air')
         },
         {
           kind: 'flat',
           to: 'Healing Power',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'healingPower'),
           feedsConversions: 'none',
           enabled: active.has('Water')
         },
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'conditionDamage'),
           feedsConversions: 'none',
           enabled: active.has('Earth')
         }

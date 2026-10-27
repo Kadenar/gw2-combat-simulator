@@ -2,11 +2,11 @@ import { COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platfo
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { passiveSkillAttributes } from '#gw2/platform/attributes/passives.js';
+import { ownerAttributeEffects, passiveSkillAttributes } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -220,7 +220,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
   },
   [ID.SIGNET_OF_FURY]: {
     attributeBonuses: { precision: 180 },
-    activeAttributeBonus: 360,
+    activeAttributeBonuses: { precision: 360, ferocity: 360 },
     cooldown: 16,
     castTimeMs: 400,
     dualWieldCastTimeMs: 280,
@@ -383,8 +383,8 @@ export function signetAttributeEffects(context: Gw2AttributeContext): readonly G
 /** Intrinsic active and passive attributes use live self status and selected signet recharge. */
 export function signetActiveAttributeEffects(context: Gw2ModifierContext): readonly Gw2AttributeEffect[] {
   if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
-    const bonus = skillNumberFromContext(context, ID.SIGNET_OF_FURY, 'activeAttributeBonus');
-    return ['Precision', 'Ferocity'].map((to) => ({ kind: 'flat', to, amount: bonus, feedsConversions: 'none' }));
+    const skill = requireSkillFromContext(context, ID.SIGNET_OF_FURY);
+    return ownerAttributeEffects({ attributeBonuses: skill.activeAttributeBonuses });
   }
 
   return [];

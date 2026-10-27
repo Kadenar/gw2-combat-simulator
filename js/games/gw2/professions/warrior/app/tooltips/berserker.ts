@@ -70,8 +70,8 @@ export const berserkerTooltips = {
     ),
     [TRAIT.BURST_OF_AGGRESSION]: traitTooltip('Entering Berserk grants quickness and fury.'),
     [TRAIT.FATAL_FRENZY]: traitTooltip('Berserk grants power and condition damage.', [
-      fromProfile(TRAIT.FATAL_FRENZY, 'attributeBonus', 'Power during Berserk'),
-      fromProfile(TRAIT.FATAL_FRENZY, 'attributePerStack', 'Condition damage during Berserk')
+      fromProfile(TRAIT.FATAL_FRENZY, 'attributeBonuses.power', 'Power during Berserk'),
+      fromProfile(TRAIT.FATAL_FRENZY, 'attributeBonuses.conditionDamage', 'Condition damage during Berserk')
     ]),
     [TRAIT.SMASH_BRAWLER]: traitTooltip(
       'Gain critical-strike chance during Berserk. Completing primal bursts extends Berserk; Decapitate uses a shorter extension.',

@@ -20,7 +20,7 @@ export const necromancerCursesTooltips = {
     'on eligible critical hits'
   ),
   [TRAIT.FURIOUS_DEMISE]: traitTooltip('Gain precision. Entering shroud grants fury.', [
-    ['attributeBonus', 'Precision']
+    ['attributeBonuses.precision', 'Precision']
   ]),
   [TRAIT.TARGET_THE_WEAK]: traitTooltip(
     'Gain condition damage from precision and critical-strike chance for each condition on the target.',
@@ -62,7 +62,7 @@ export const necromancerCursesTooltips = {
   [TRAIT.LINGERING_CURSE]: traitTooltip(
     'Gain condition damage, extend scepter conditions, and replace Feast of Corruption with Devouring Darkness.',
     [
-      ['attributeBonus', 'Condition damage'],
+      ['attributeBonuses.conditionDamage', 'Condition damage'],
       ['durationMultiplier', 'Scepter condition duration', tooltipFactorChange]
     ]
   )

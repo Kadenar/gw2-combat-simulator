@@ -33,8 +33,8 @@ export const warriorDisciplineTooltips = {
   [TRAIT.AXE_MASTERY]: traitTooltip(
     'Gain ferocity, with an additional bonus while wielding an axe. Eligible axe critical hits grant adrenaline.',
     [
-      ['attributeBonus', 'Ferocity'],
-      ['weaponAttributeBonus', 'Total ferocity while wielding an axe'],
+      ['attributeBonuses.ferocity', 'Ferocity'],
+      ['conditionalAttributeBonuses.ferocity', 'Total ferocity while wielding an axe'],
       ['rechargeMultiplier', 'Axe recharge reduction', (value) => tooltipPercent(1 - value)],
       ['resourceGain', 'Adrenaline per axe critical hit']
     ]

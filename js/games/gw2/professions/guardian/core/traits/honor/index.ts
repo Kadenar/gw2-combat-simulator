@@ -80,19 +80,17 @@ export const writOfPersistence = defineTrait({
 export const forceOfWill = defineTrait({
   name: 'Force of Will',
   id: TRAIT.FORCE_OF_WILL,
-  balance: { attributeBonus: 300 },
-  attributes: traitAttributeEffects(TRAIT.FORCE_OF_WILL, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  balance: { attributeBonuses: { vitality: 300 } },
+  attributes: traitAttributeEffects(TRAIT.FORCE_OF_WILL, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'all' }])
 });
 
 /** Owns Honorable Staff's live tuning and trait behavior. */
 export const honorableStaff = defineTrait({
   name: 'Honorable Staff',
   id: TRAIT.HONORABLE_STAFF,
-  balance: { attributeBonus: 120 },
+  balance: { attributeBonuses: { concentration: 120 } },
   attributes: traitAttributeEffects(TRAIT.HONORABLE_STAFF, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Concentration', feedsConversions: 'none' }
   ])
 });
 

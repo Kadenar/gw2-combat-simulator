@@ -141,7 +141,7 @@ export const furiousDemise = defineTrait({
   name: 'Furious Demise',
   id: TRAIT.FURIOUS_DEMISE,
   balance: {
-    attributeBonus: 180,
+    attributeBonuses: { precision: 180 },
     effects: [
       {
         name: boonKey(BOON.FURY),
@@ -155,7 +155,7 @@ export const furiousDemise = defineTrait({
   },
   attributes: traitAttributeEffects(TRAIT.FURIOUS_DEMISE, [
     // Target the Weak explicitly converts this Precision; utility consumables do not.
-    { kind: 'flat', to: 'Precision', field: 'attributeBonus', feedsConversions: 'profession-only' }
+    { kind: 'flat', to: 'Precision', feedsConversions: 'profession-only' }
   ]),
   triggers: [
     onTriggerPoint(shroudEntered, {
@@ -208,11 +208,11 @@ export const lingeringCurse = defineTrait({
   name: 'Lingering Curse',
   id: TRAIT.LINGERING_CURSE,
   balance: {
-    attributeBonus: 200,
+    attributeBonuses: { conditionDamage: 200 },
     durationMultiplier: 1.5
   },
   attributes: traitAttributeEffects(TRAIT.LINGERING_CURSE, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Condition Damage', feedsConversions: 'none' }
   ]),
   // Scale eligible Scepter base durations before ordinary duration bonuses and their cap.
   modifierRules: [

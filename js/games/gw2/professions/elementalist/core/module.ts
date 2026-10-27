@@ -1,3 +1,4 @@
+import { ELEMENTALIST_CORE_PROFILE_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
@@ -15,7 +16,7 @@ import {
 } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistCoreTraits } from '#gw2/professions/elementalist/core/traits/index.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
-import { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/skill-fields.js';
+import { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
 
 /**
  * Core Elementalist module: binds the shared attunement/endurance state, its
@@ -27,6 +28,7 @@ export const elementalistCoreModule = defineNativeModule({
   canSwapWeaponSetsInCombat: false,
   id: 'Core',
   data: createElementalistModuleData('Core', {
+    profileFields: ELEMENTALIST_CORE_PROFILE_FIELDS,
     skillFields: ELEMENTALIST_CORE_SKILL_FIELDS,
     skillMechanics: ELEMENTALIST_CORE_SKILL_MECHANICS,
     extraSkills: ELEMENTALIST_CORE_EXTRA_SKILLS

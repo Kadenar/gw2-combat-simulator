@@ -1,3 +1,4 @@
+import { REVENANT_RENEGADE_PROFILE_FIELDS } from '#gw2/professions/revenant/specializations/renegade/catalog-fields.js';
 import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
@@ -16,6 +17,7 @@ export const renegadeModule = defineNativeModule({
   traitDefinitions,
   id: 'Renegade',
   data: createRevenantModuleData('Renegade', {
+    profileFields: REVENANT_RENEGADE_PROFILE_FIELDS,
     skillMechanics: RENEGADE_BASE_SKILL_MECHANICS,
     extraSkills: RENEGADE_EXTRA_SKILLS
   }),

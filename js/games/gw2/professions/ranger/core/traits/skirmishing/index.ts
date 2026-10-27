@@ -20,6 +20,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
@@ -275,8 +276,7 @@ export const fangAndClaw = defineTrait({
   name: 'Fang and Claw',
   id: TRAIT.FANG_AND_CLAW,
   balance: {
-    attributeBonus: 420,
-    weaponAttributeBonus: 450
+    attributeBonuses: { precision: 420, ferocity: 450 }
   }
 });
 
@@ -285,8 +285,8 @@ export const stridersStrength = defineTrait({
   name: "Strider's Strength",
   id: TRAIT.STRIDERS_STRENGTH,
   balance: {
-    weaponAttributeBonus: 240,
-    attributeBonus: 120
+    conditionalAttributeBonuses: { power: 240 },
+    attributeBonuses: { power: 120 }
   },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
@@ -295,10 +295,11 @@ export const stridersStrength = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceNumberFromContext(
+          amount: attributeBonusFromContext(
             profileContext,
             TRAIT.STRIDERS_STRENGTH,
-            weapons.includes(WEAPON.SWORD) ? 'weaponAttributeBonus' : 'attributeBonus'
+            'power',
+            weapons.includes(WEAPON.SWORD) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
           ),
           // Both the permanent and sword-dependent Power bonuses feed conversions.
           feedsConversions: 'all'
@@ -314,7 +315,7 @@ export const viciousQuarry = defineTrait({
   id: TRAIT.VICIOUS_QUARRY,
   balance: {
     criticalChance: 0.15,
-    attributeBonus: 250
+    attributeBonuses: { ferocity: 250 }
   },
   attributes: ({ balanceContext: profileContext, loadout }) => {
     return {
@@ -322,7 +323,7 @@ export const viciousQuarry = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(profileContext, TRAIT.VICIOUS_QUARRY, 'attributeBonus'),
+          amount: attributeBonusFromContext(profileContext, TRAIT.VICIOUS_QUARRY, 'ferocity'),
           feedsConversions: 'none',
           enabled: loadout.assumptions.fury !== false
         }

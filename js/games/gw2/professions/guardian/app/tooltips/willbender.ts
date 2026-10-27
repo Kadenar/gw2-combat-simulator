@@ -70,13 +70,13 @@ export const willbenderTooltips = {
       ]
     ),
     [TRAIT.SEARING_PACT]: traitTooltip('Gain condition damage. Willbender flames also inflict burning.', [
-      ['attributeBonus', 'Condition damage']
+      ['attributeBonuses.conditionDamage', 'Condition damage']
     ]),
     [TRAIT.POWER_FOR_POWER]: traitTooltip('Gain power. Willbender flame strikes deal increased damage.', [
-      ['attributeBonus', 'Power'],
+      ['attributeBonuses.power', 'Power'],
       fromProfile(TRAIT.POWER_FOR_POWER, 'damageMultiplier', 'Willbender flame strike damage', tooltipFactorChange)
     ]),
-    [TRAIT.CONCEITED_CURATE]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
+    [TRAIT.CONCEITED_CURATE]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']]),
     [TRAIT.RESTORATIVE_VIRTUES]: traitTooltip(
       'Activating Resolve grants vigor. Completed virtue triggers reduce active-weapon cooldowns.',
       [['rechargeReduction', 'Weapon recharge reduction per trigger', tooltipSeconds]]

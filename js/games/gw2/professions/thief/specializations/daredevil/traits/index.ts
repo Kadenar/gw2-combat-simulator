@@ -11,6 +11,7 @@ import { selectedDodgeProfile } from '#gw2/professions/thief/specializations/dar
 
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -189,8 +190,8 @@ const staffMaster = defineTrait({
   name: 'Staff Master',
   id: TRAIT.STAFF_MASTER,
   balance: {
-    attributeBonus: 120,
-    weaponAttributeBonus: 240,
+    attributeBonuses: { power: 120 },
+    conditionalAttributeBonuses: { power: 240 },
     resourceGain: 2
   },
   attributes({ loadout, weaponSet, balanceContext }) {
@@ -200,10 +201,11 @@ const staffMaster = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceNumberFromContext(
+          amount: attributeBonusFromContext(
             balanceContext,
             TRAIT.STAFF_MASTER,
-            weapons.includes(WEAPON.STAFF) ? 'weaponAttributeBonus' : 'attributeBonus'
+            'power',
+            weapons.includes(WEAPON.STAFF) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
           ),
           feedsConversions: 'all'
         }

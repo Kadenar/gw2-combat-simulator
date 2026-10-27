@@ -25,7 +25,7 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
         [ID.SIGNET_OF_DOMINATION, { attributeBonuses: { conditionDamage: 220 } }]
       ]),
       balanceProfilesById: new Map([
-        [TRAIT.CHAOTIC_PERSISTENCE, { expertiseBonus: 130, concentrationBonus: 270 }],
+        [TRAIT.CHAOTIC_PERSISTENCE, { attributeBonuses: { expertise: 130, concentration: 270 } }],
         [TRAIT.FENCERS_FINESSE, { duration: 7, maximumStacks: 8, attributePerStack: 12 }]
       ])
     },

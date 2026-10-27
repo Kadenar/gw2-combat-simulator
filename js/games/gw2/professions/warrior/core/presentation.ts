@@ -173,7 +173,7 @@ function warriorCoreStateSnapshot(
   if (hasSignetMasteryTrait(context)) {
     const profile = requireBalanceProfileFromContext(balance, TRAIT.SIGNET_MASTERY);
     const maximum = balanceProfileNumber(profile, 'maximumStacks');
-    const bonus = balanceProfileNumber(profile, 'attributeBonus');
+    const bonus = balanceProfileNumber(profile, 'attributePerStack');
     const stacks = planningBuffStacks(context.planningState, 'signet-mastery');
 
     if (stacks > 0) {

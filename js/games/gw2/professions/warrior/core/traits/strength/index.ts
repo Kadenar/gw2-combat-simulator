@@ -13,6 +13,7 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -232,7 +233,7 @@ export const pinnacleOfStrength = defineTrait({
   id: TRAIT.PINNACLE_OF_STRENGTH,
   balance: {
     criticalChance: 0.05,
-    attributeBonus: 10
+    attributePerStack: 10
   },
   // Might adds temporary Power without entering ordinary conversions or Blood Reaction.
   attributes(context) {
@@ -245,7 +246,7 @@ export const pinnacleOfStrength = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount:
-            might * balanceNumberFromContext(context.balanceContext, TRAIT.PINNACLE_OF_STRENGTH, 'attributeBonus'),
+            might * balanceNumberFromContext(context.balanceContext, TRAIT.PINNACLE_OF_STRENGTH, 'attributePerStack'),
           feedsConversions: 'none',
           enabled: true
         }
@@ -269,8 +270,8 @@ export const forcefulGreatsword = defineTrait({
   id: TRAIT.FORCEFUL_GREATSWORD,
   balance: {
     rechargeMultiplier: 0.8,
-    attributeBonus: 120,
-    weaponAttributeBonus: 120,
+    attributeBonuses: { power: 120 },
+    conditionalAttributeBonuses: { power: 120 },
     // Critical Might has twice the proc chance while wielding a greatsword.
     procChance: 0.5,
     weaponProcChanceMultiplier: 2,
@@ -283,14 +284,19 @@ export const forcefulGreatsword = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD, 'power'),
           feedsConversions: 'all',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Power',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD, 'weaponAttributeBonus'),
+          amount: attributeBonusFromContext(
+            context.balanceContext,
+            TRAIT.FORCEFUL_GREATSWORD,
+            'power',
+            'conditionalAttributeBonuses'
+          ),
           // The greatsword bonus feeds the same conversion pool as the permanent Power grant.
           feedsConversions: 'all',
           enabled: weapons.includes(WEAPON.GREATSWORD)

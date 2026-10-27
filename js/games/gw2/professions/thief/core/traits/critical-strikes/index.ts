@@ -18,6 +18,7 @@ import { criticalProcHandler } from '#gw2/platform/profession-definition/critica
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
@@ -183,7 +184,7 @@ export const noQuarter = defineTrait({
   id: TRAIT.NO_QUARTER,
   balance: {
     internalCooldown: 2,
-    attributeBonus: 250,
+    attributeBonuses: { ferocity: 250 },
     effects: [{ type: 'boon', name: BOON.FURY, boon: BOON.FURY, stacks: 1, duration: 2 }]
   },
   attributes({ loadout, balanceContext }) {
@@ -193,7 +194,7 @@ export const noQuarter = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(balanceContext, TRAIT.NO_QUARTER, 'attributeBonus'),
+          amount: attributeBonusFromContext(balanceContext, TRAIT.NO_QUARTER, 'ferocity'),
           feedsConversions: 'none',
           enabled: Boolean(thiefBuild.assumptions.fury)
         }

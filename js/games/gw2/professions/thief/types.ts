@@ -1,6 +1,6 @@
-import { ANTIQUARY_SKILL_FIELDS } from '#gw2/professions/thief/specializations/antiquary/skill-fields.js';
-import { SPECTER_SKILL_FIELDS } from '#gw2/professions/thief/specializations/specter/skill-fields.js';
-import { DEADEYE_SKILL_FIELDS } from '#gw2/professions/thief/specializations/deadeye/skill-fields.js';
+import { ANTIQUARY_SKILL_FIELDS } from '#gw2/professions/thief/specializations/antiquary/catalog-fields.js';
+import { SPECTER_SKILL_FIELDS } from '#gw2/professions/thief/specializations/specter/catalog-fields.js';
+import { DEADEYE_SKILL_FIELDS } from '#gw2/professions/thief/specializations/deadeye/catalog-fields.js';
 import type {
   Gw2Build,
   Gw2BuildSpecialization,
@@ -21,7 +21,7 @@ import type { DaredevilState } from '#gw2/professions/thief/specializations/dare
 import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { SpecterState } from '#gw2/professions/thief/specializations/specter/state.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/skill-fields.js';
+import type { THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/catalog-fields.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 export type ThiefDodge = 'Dodge' | 'Lotus Training' | 'Bounding Dodger' | 'Unhindered Combatant';

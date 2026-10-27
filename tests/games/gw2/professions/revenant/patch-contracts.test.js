@@ -272,7 +272,7 @@ test('legend swaps preserve extended Cosmic Wisdom and select Mesmer costs', () 
 // Ordinary declarations consume the patched profile once per query.
 test('Empire Divided shared declaration reads its attribute profile', () => {
   const catalog = applyBalanceProfilePatch(revenantCatalog, {
-    balanceProfiles: { [TRAIT.EMPIRE_DIVIDED]: { fields: { attributeBonus: 321 } } }
+    balanceProfiles: { [TRAIT.EMPIRE_DIVIDED]: { fields: { 'attributeBonuses.power': 321 } } }
   });
   {
     const config = {

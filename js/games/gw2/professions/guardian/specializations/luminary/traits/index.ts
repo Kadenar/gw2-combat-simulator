@@ -202,10 +202,8 @@ const illuminatingInspiration = defineTrait({
 const lightsGift = defineTrait({
   name: "Light's Gift",
   id: TRAIT.LIGHTS_GIFT,
-  balance: { attributeBonus: 180 },
-  attributes: traitAttributeEffects(TRAIT.LIGHTS_GIFT, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'all' }
-  ])
+  balance: { attributeBonuses: { vitality: 180 } },
+  attributes: traitAttributeEffects(TRAIT.LIGHTS_GIFT, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'all' }])
 });
 
 /** Virtue reset targets and reporting share this behavior-only trait owner. */

@@ -18,6 +18,7 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -177,11 +178,11 @@ export const elementalEnchantment = defineTrait({
   name: 'Elemental Enchantment',
   id: TRAIT.ELEMENTAL_ENCHANTMENT,
   balance: {
-    attributeBonus: 180,
+    attributeBonuses: { concentration: 180 },
     rechargeMultiplier: 0.85
   },
   attributes: traitAttributeEffects(TRAIT.ELEMENTAL_ENCHANTMENT, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Concentration', feedsConversions: 'none' }
   ]),
   rechargeRules: [
     {
@@ -202,7 +203,7 @@ export const arcaneLightning = defineTrait({
   name: 'Arcane Lightning',
   id: TRAIT.ARCANE_LIGHTNING,
   balance: {
-    attributeBonus: 150,
+    attributeBonuses: { ferocity: 150 },
     effects: [
       {
         type: 'buff',
@@ -224,7 +225,7 @@ export const arcaneLightning = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.ARCANE_LIGHTNING, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.ARCANE_LIGHTNING, 'ferocity'),
           feedsConversions: 'all',
           enabled: activeBuffStacks(context, 'arcane-lightning', 1) > 0
         }

@@ -52,10 +52,8 @@ export const aquamancersTraining = defineTrait({
 export const soothingPower = defineTrait({
   name: 'Soothing Power',
   id: TRAIT.SOOTHING_POWER,
-  balance: { attributeBonus: 300 },
-  attributes: traitAttributeEffects(TRAIT.SOOTHING_POWER, [
-    { kind: 'flat', to: 'Vitality', field: 'attributeBonus', feedsConversions: 'none' }
-  ])
+  balance: { attributeBonuses: { vitality: 300 } },
+  attributes: traitAttributeEffects(TRAIT.SOOTHING_POWER, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'none' }])
 });
 
 export const flowLikeWater = defineTrait({

@@ -39,7 +39,7 @@ export const necromancerSoulReapingTooltips = {
     fromProfile(TRAIT.SOUL_BARBS, 'conditionDamageIncrease', 'Condition damage', tooltipPercent),
     ['duration', 'Damage bonus duration', tooltipSeconds]
   ]),
-  [TRAIT.VITAL_PERSISTENCE]: traitTooltip('Gain vitality.', [['attributeBonus', 'Vitality']]),
+  [TRAIT.VITAL_PERSISTENCE]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']]),
   [TRAIT.FEAR_OF_DEATH]: traitTooltip(
     'Landing fear from a non-summon source generates life force, subject to its internal cooldown.',
     [

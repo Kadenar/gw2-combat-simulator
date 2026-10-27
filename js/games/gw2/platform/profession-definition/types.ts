@@ -5,7 +5,7 @@ import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/type
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
-import type { SkillFieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines runtime capabilities and composition inputs; display and build callback types have separate owners. */
@@ -72,7 +72,9 @@ export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {
    * The profession-wide table of profession-owned skill fields. Every fragment carries all of it, because shared
    * weapon skills authored by an elite can resolve to the Core fragment of a runtime without that elite.
    */
-  readonly skillFields?: SkillFieldSpecs;
+  readonly skillFields?: FieldSpecs;
+  /** Profession-owned profile vocabulary contributed by this module. */
+  readonly profileFields?: FieldSpecs;
   readonly balanceProfiles?: readonly BalanceProfile[];
   readonly traits?: readonly CatalogEntity[];
   readonly specializations?: readonly CatalogEntity[];

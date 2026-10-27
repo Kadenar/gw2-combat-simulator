@@ -15,8 +15,8 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusNumber,
   balanceNumberFromContext,
-  balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -349,10 +349,10 @@ export const lingeringMagic = defineTrait({
   name: 'Lingering Magic',
   id: TRAIT.LINGERING_MAGIC,
   balance: {
-    attributeBonus: 240
+    attributeBonuses: { concentration: 240 }
   },
   attributes: traitAttributeEffects(TRAIT.LINGERING_MAGIC, [
-    { kind: 'flat', to: 'Concentration', field: 'attributeBonus', feedsConversions: 'none' }
+    { kind: 'flat', to: 'Concentration', feedsConversions: 'none' }
   ])
 });
 
@@ -401,7 +401,7 @@ export const bountifulHunter = defineTrait({
 /** Lingering Magic supplies companion Concentration while the pet mechanic owns boon attribution. */
 export function lingeringMagicConcentration(context: SelectedContentContext): number {
   return context.hasTrait(TRAIT.LINGERING_MAGIC)
-    ? balanceProfileNumber(context.requireBalanceProfile(TRAIT.LINGERING_MAGIC), 'attributeBonus')
+    ? attributeBonusNumber(context.requireBalanceProfile(TRAIT.LINGERING_MAGIC), 'concentration')
     : 0;
 }
 

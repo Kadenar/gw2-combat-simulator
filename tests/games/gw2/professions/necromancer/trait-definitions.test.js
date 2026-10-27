@@ -34,7 +34,9 @@ test('Necromancer trait build contributions preserve patched conversion inputs a
   const family = withPatchPreview(necromancerProfession, {
     id: 'necromancer-trait-owners',
     label: 'Necromancer trait owners',
-    professions: { necromancer: { balanceProfiles: { [TRAIT.FURIOUS_DEMISE]: { fields: { attributeBonus: 250 } } } } }
+    professions: {
+      necromancer: { balanceProfiles: { [TRAIT.FURIOUS_DEMISE]: { fields: { 'attributeBonuses.precision': 250 } } } }
+    }
   });
   const calculate = createCalculateAttributes(
     createProfessionBuildAttributeRules(necromancerCatalog),
@@ -76,7 +78,10 @@ test('Necromancer trait build contributions preserve patched conversion inputs a
     ).precision,
     1000
   );
-  assert.equal(necromancerProfession.catalog.balanceProfilesById.get(TRAIT.FURIOUS_DEMISE).attributeBonus, 180);
+  assert.equal(
+    necromancerProfession.catalog.balanceProfilesById.get(TRAIT.FURIOUS_DEMISE).attributeBonuses.precision,
+    180
+  );
 });
 
 // Capacity is shared patch tuning, while Flesh selection controls only its minion-backed contribution.

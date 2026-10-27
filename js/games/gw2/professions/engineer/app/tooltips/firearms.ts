@@ -41,7 +41,7 @@ export const engineerFirearmsTooltips = {
     ]
   ),
   [TRAIT.CHEMICAL_ROUNDS]: traitTooltip('Gain condition damage. Conditions inflicted by pistol skills last longer.', [
-    ['attributeBonus', 'Condition damage'],
+    ['attributeBonuses.conditionDamage', 'Condition damage'],
     [
       'conditionDurationMultiplier',
       'Pistol condition duration',
@@ -58,12 +58,12 @@ export const engineerFirearmsTooltips = {
   [TRAIT.THERMAL_VISION]: traitTooltip(
     'Gain expertise. Player-owned burning applications temporarily increase condition damage.',
     [
-      ['attributeBonus', 'Expertise'],
+      ['attributeBonuses.expertise', 'Expertise'],
       fromProfile(TRAIT.THERMAL_VISION, 'conditionDamageIncrease', 'Condition damage during the bonus', tooltipPercent)
     ]
   ),
   [TRAIT.NO_SCOPE]: traitTooltip('Eligible critical hits grant fury. Gain ferocity while you have fury.', [
-    ['attributeBonus', 'Ferocity with fury'],
+    ['attributeBonuses.ferocity', 'Ferocity with fury'],
     ['internalCooldown', 'Fury cooldown', tooltipSeconds]
   ]),
   [TRAIT.HEAVY_METAL]: traitTooltip(

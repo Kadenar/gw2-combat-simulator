@@ -145,7 +145,7 @@ export const bladeswornTooltips = {
     [TRAIT.GUNS_AND_GLORY]: traitTooltip(
       'Qualifying explosions extend a temporary ferocity bonus, up to its duration cap.',
       [
-        ['attributeBonus', 'Ferocity'],
+        ['attributeBonuses.ferocity', 'Ferocity'],
         ['resourceGain', 'Duration added per explosion', tooltipSeconds],
         ['maximumStacks', 'Maximum remaining duration', tooltipSeconds]
       ]

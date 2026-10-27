@@ -19,7 +19,7 @@ export const warriorArmsTooltips = {
   [TRAIT.DEEP_STRIKES]: traitTooltip(
     'Gain condition damage while you have fury and critical-strike chance against bleeding targets.',
     [
-      ['attributeBonus', 'Condition damage with fury'],
+      ['attributeBonuses.conditionDamage', 'Condition damage with fury'],
       ['criticalChance', 'Critical chance against bleeding targets', tooltipPercent]
     ]
   ),
@@ -33,7 +33,7 @@ export const warriorArmsTooltips = {
     [ID.LESSER_SIGNET_OF_MIGHT],
     'Activating signets grants stacking ferocity. Striking below the target health threshold invokes Lesser Signet of Might.',
     [
-      ['attributeBonus', 'Ferocity per stack'],
+      ['attributePerStack', 'Ferocity per stack'],
       ['maximumStacks', 'Maximum stacks'],
       ['threshold', 'Target health below', tooltipPercent]
     ]
@@ -58,20 +58,21 @@ export const warriorArmsTooltips = {
     };
   },
   [TRAIT.BLADEMASTER]: traitTooltip('Gain expertise. Wielding a sword also grants condition damage.', [
-    ['attributeBonus', 'Expertise / sword condition damage']
+    ['attributeBonuses.expertise', 'Expertise'],
+    ['attributeBonuses.conditionDamage', 'Condition damage with a sword']
   ]),
   [TRAIT.BURST_PRECISION]: traitTooltip(
     'Burst hits gain critical-strike chance and open a temporary critical-chance and ferocity window. The highest adrenaline tier grants the longer window.',
     [
       ['criticalChance', 'Critical chance', tooltipPercent],
-      ['attributeBonus', 'Ferocity during the window'],
+      ['attributeBonuses.ferocity', 'Ferocity during the window'],
       ['minimumStacks', 'Base window', tooltipSeconds],
       ['maximumStacks', 'Highest-tier window', tooltipSeconds]
     ]
   ),
   [TRAIT.FURIOUS]: traitTooltip('Eligible critical hits grant adrenaline and stacking condition damage.', [
     ['resourceGain', 'Adrenaline per critical hit'],
-    ['attributeBonus', 'Condition damage per stack'],
+    ['attributePerStack', 'Condition damage per stack'],
     ['maximumStacks', 'Maximum stacks']
   ]),
   [TRAIT.DUAL_WIELDING]: traitTooltip(

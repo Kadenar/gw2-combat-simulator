@@ -10,6 +10,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   procChanceFromContext,
@@ -78,7 +79,7 @@ export const noScope = defineTrait({
   id: TRAIT.NO_SCOPE,
   balance: {
     internalCooldown: 8,
-    attributeBonus: 150,
+    attributeBonuses: { ferocity: 150 },
     effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 }]
   },
   attributes: ({ balanceContext: profileContext, loadout }) => {
@@ -88,7 +89,7 @@ export const noScope = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(profileContext, TRAIT.NO_SCOPE, 'attributeBonus'),
+          amount: attributeBonusFromContext(profileContext, TRAIT.NO_SCOPE, 'ferocity'),
           feedsConversions: 'none',
           enabled: engineerBuild.assumptions.fury !== false
         }
@@ -162,12 +163,10 @@ export const thermalVision = defineTrait({
   id: TRAIT.THERMAL_VISION,
   balance: {
     conditionDamageIncrease: 0.05,
-    attributeBonus: 150,
+    attributeBonuses: { expertise: 150 },
     effects: [{ name: 'thermal-vision', type: 'buff', kind: 'thermal-vision', stacks: 1, duration: 4 }]
   },
-  attributes: traitAttributeEffects(TRAIT.THERMAL_VISION, [
-    { kind: 'flat', to: 'Expertise', field: 'attributeBonus', feedsConversions: 'all' }
-  ]),
+  attributes: traitAttributeEffects(TRAIT.THERMAL_VISION, [{ kind: 'flat', to: 'Expertise', feedsConversions: 'all' }]),
   modifierRules: [
     {
       order: -8,
@@ -225,10 +224,10 @@ export const chemicalRounds = defineTrait({
   id: TRAIT.CHEMICAL_ROUNDS,
   balance: {
     conditionDurationMultiplier: 4 / 3,
-    attributeBonus: 120
+    attributeBonuses: { conditionDamage: 120 }
   },
   attributes: traitAttributeEffects(TRAIT.CHEMICAL_ROUNDS, [
-    { kind: 'flat', to: 'Condition Damage', field: 'attributeBonus', feedsConversions: 'all' }
+    { kind: 'flat', to: 'Condition Damage', feedsConversions: 'all' }
   ]),
   // Keep the pistol multiplier outside the capped duration stage.
   modifierRules: [

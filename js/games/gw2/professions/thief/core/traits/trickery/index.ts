@@ -7,6 +7,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -131,14 +132,14 @@ export const leadAttacks = defineTrait({
 export const preparedness = defineTrait({
   name: 'Preparedness',
   id: TRAIT.PREPAREDNESS,
-  balance: { attributeBonus: 150, maximumStacks: 15 },
+  balance: { attributeBonuses: { expertise: 150 }, maximumStacks: 15 },
   attributes({ balanceContext }) {
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Expertise',
-          amount: balanceNumberFromContext(balanceContext, TRAIT.PREPAREDNESS, 'attributeBonus'),
+          amount: attributeBonusFromContext(balanceContext, TRAIT.PREPAREDNESS, 'expertise'),
           feedsConversions: 'all'
         }
       ]

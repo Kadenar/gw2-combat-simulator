@@ -1,3 +1,4 @@
+import { RANGER_CORE_PROFILE_FIELDS } from '#gw2/professions/ranger/core/catalog-fields.js';
 import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
 import { rangerForceOfNatureModifier } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
@@ -23,7 +24,7 @@ import { rangerShortbowConditionDurationModifier } from '#gw2/professions/ranger
 import { createRangerCoreState, projectRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { rangerCoreTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
-import { RANGER_CORE_SKILL_FIELDS } from '#gw2/professions/ranger/core/skill-fields.js';
+import { RANGER_CORE_SKILL_FIELDS } from '#gw2/professions/ranger/core/catalog-fields.js';
 
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const rangerCoreModule = defineNativeModule({
@@ -31,6 +32,7 @@ export const rangerCoreModule = defineNativeModule({
   id: 'Core',
   traitDefinitions: rangerCoreTraits,
   data: createRangerModuleData('Core', {
+    profileFields: RANGER_CORE_PROFILE_FIELDS,
     skillFields: RANGER_CORE_SKILL_FIELDS,
     skillMechanics: RANGER_CORE_BASE_SKILL_MECHANICS,
     extraSkills: RANGER_CORE_EXTRA_SKILLS

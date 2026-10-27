@@ -108,8 +108,8 @@ export const specterTooltips = {
     [TRAIT.SECOND_OPINION]: traitTooltip(
       'Gain condition damage, with an additional bonus while wielding a scepter. Gain healing power from condition damage.',
       [
-        ['attributeBonus', 'Condition damage'],
-        ['attributePerStack', 'Additional condition damage with scepter'],
+        ['attributeBonuses.conditionDamage', 'Condition damage'],
+        ['conditionalAttributeBonuses.conditionDamage', 'Additional condition damage with scepter'],
         ['attributeConversion', 'Condition damage converted to healing power', tooltipPercent]
       ]
     ),

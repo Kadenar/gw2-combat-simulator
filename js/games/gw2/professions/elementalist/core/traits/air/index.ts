@@ -17,8 +17,9 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
+  attributeBonusFromContext,
+  attributeBonusNumber,
   balanceNumberFromContext,
-  balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -68,7 +69,7 @@ export const freshAir = defineTrait({
   name: 'Fresh Air',
   id: TRAIT.FRESH_AIR,
   balance: {
-    attributeBonus: 250,
+    attributeBonuses: { ferocity: 250 },
     effects: [{ name: 'fresh-air', type: 'buff', kind: 'fresh-air', stacks: 1, duration: 5 }]
   },
   // Read the accepted Fresh Air window without changing its lifetime.
@@ -78,7 +79,7 @@ export const freshAir = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.FRESH_AIR, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.FRESH_AIR, 'ferocity'),
           feedsConversions: 'none',
           enabled: activeBuffStacks(context, 'fresh-air', 1) > 0
         }
@@ -230,7 +231,7 @@ export const ragingStorm = defineTrait({
   id: TRAIT.RAGING_STORM,
   balance: {
     internalCooldown: 8,
-    attributeBonus: 180,
+    attributeBonuses: { ferocity: 180 },
     effects: [
       {
         type: 'boon',
@@ -250,7 +251,7 @@ export const ragingStorm = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.RAGING_STORM, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.RAGING_STORM, 'ferocity'),
           feedsConversions: 'none',
           enabled:
             context.query?.furyActiveAt(context.time, context.runtime, context.event) ??
@@ -271,7 +272,7 @@ export const aeromancersTraining = defineTrait({
   name: "Aeromancer's Training",
   id: TRAIT.AEROMANCERS_TRAINING,
   balance: {
-    attributeBonus: 150,
+    attributeBonuses: { ferocity: 150 },
     rechargeMultiplier: 0.8
   },
   // The attunement bonus is evaluated alongside ordinary trait contributions.
@@ -284,14 +285,14 @@ export const aeromancersTraining = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'ferocity'),
           feedsConversions: 'none',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceProfileNumber(profile, 'attributeBonus'),
+          amount: attributeBonusNumber(profile, 'ferocity'),
           feedsConversions: 'none',
           enabled: primaryAttunement(context) === 'Air'
         }

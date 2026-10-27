@@ -7,6 +7,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
 import {
+  attributeBonusFromContext,
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
@@ -277,7 +278,7 @@ const reapersOnslaught = defineTrait({
   name: "Reaper's Onslaught",
   id: TRAIT.REAPERS_ONSLAUGHT,
   balance: {
-    attributeBonus: 300,
+    attributeBonuses: { ferocity: 300 },
     rechargeReduction: 1
   },
   // Reaper Shroud enables Ferocity through the shared trait evaluator.
@@ -287,7 +288,7 @@ const reapersOnslaught = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: balanceNumberFromContext(context.balanceContext, TRAIT.REAPERS_ONSLAUGHT, 'attributeBonus'),
+          amount: attributeBonusFromContext(context.balanceContext, TRAIT.REAPERS_ONSLAUGHT, 'ferocity'),
           feedsConversions: 'none',
           enabled: necromancerActiveShroud(context) === 'reaper'
         }

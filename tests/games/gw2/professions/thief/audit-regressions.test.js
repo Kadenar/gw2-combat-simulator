@@ -735,7 +735,7 @@ test('No Quarter build contribution follows Fury, disabled selection and the sel
     calculate(build, [], 1, null, null, balanceContext).attributes.Ferocity.final -
     calculate(build, [], 1, 'No Quarter', null, balanceContext).attributes.Ferocity.final;
   assert.equal(contribution(), 250);
-  const catalog = withProfile(thiefCatalog, TRAIT.NO_QUARTER, { attributeBonus: 300 });
+  const catalog = withProfile(thiefCatalog, TRAIT.NO_QUARTER, { attributeBonuses: { ferocity: 300 } });
   assert.equal(contribution({ catalog }), 300);
   build.assumptions.fury = false;
   assert.equal(contribution({ catalog }), 0);

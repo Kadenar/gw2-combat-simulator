@@ -590,13 +590,13 @@ function balanceProfileFieldRows(
   tier: 'primary' | 'advanced'
 ): string {
   return Object.entries(entry.patchableFields)
-    .filter(([field]) => balanceProfileNumericFieldTier(field) === tier)
+    .filter(([field]) => balanceProfileNumericFieldTier(field, entry.fieldSpecs) === tier)
     .map(([field, current]) =>
       numberInput({
         entity: 'balance-profile',
         id: String(entry.id),
         field,
-        label: authoringNumericFieldLabel(field),
+        label: authoringNumericFieldLabel(field, entry.fieldSpecs[field]),
         current,
         edit: edit?.fields?.[field]
       })

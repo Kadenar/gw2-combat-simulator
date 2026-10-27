@@ -15,8 +15,16 @@ export const rangerBeastmasteryTooltips = {
   [TRAIT.PACK_ALPHA]: traitTooltip(
     'Your pet gains power, precision, toughness, vitality, and condition damage. Beastmode grants the smaller player bonus. Pet skills recharge faster.',
     [
-      ['weaponAttributeBonus', 'Pet bonus to each attribute'],
-      ['attributeBonus', 'Player bonus to each attribute in Beastmode'],
+      ['conditionalAttributeBonuses.power', 'Pet Power'],
+      ['conditionalAttributeBonuses.conditionDamage', 'Pet Condition Damage'],
+      ['conditionalAttributeBonuses.precision', 'Pet Precision'],
+      ['conditionalAttributeBonuses.toughness', 'Pet Toughness'],
+      ['conditionalAttributeBonuses.vitality', 'Pet Vitality'],
+      ['attributeBonuses.power', 'Player Power in Beastmode'],
+      ['attributeBonuses.conditionDamage', 'Player Condition Damage in Beastmode'],
+      ['attributeBonuses.precision', 'Player Precision in Beastmode'],
+      ['attributeBonuses.toughness', 'Player Toughness in Beastmode'],
+      ['attributeBonuses.vitality', 'Player Vitality in Beastmode'],
       ['rechargeMultiplier', 'Pet skill recharge', tooltipFactorChange]
     ]
   ),
@@ -33,7 +41,7 @@ export const rangerBeastmasteryTooltips = {
     ]
   ),
   [TRAIT.PETS_PROWESS]: traitTooltip('Your pet gains ferocity. The bonus also applies to you in Beastmode.', [
-    ['attributeBonus', 'Ferocity']
+    ['attributeBonuses.ferocity', 'Ferocity']
   ]),
   [TRAIT.GO_FOR_THE_EYES]: traitTooltip('The first hit of your merged Beast Ability blinds the target.', [
     ['internalCooldown', 'Internal cooldown', tooltipSeconds]
@@ -57,8 +65,8 @@ export const rangerBeastmasteryTooltips = {
   [TRAIT.HONED_AXES]: traitTooltip(
     'You and your pet gain ferocity. Wielding an axe increases your bonus. Axe skills recharge faster.',
     [
-      ['attributeBonus', 'Base ferocity'],
-      ['weaponAttributeBonus', 'Ferocity while wielding an axe'],
+      ['attributeBonuses.ferocity', 'Base ferocity'],
+      ['conditionalAttributeBonuses.ferocity', 'Ferocity while wielding an axe'],
       ['rechargeMultiplier', 'Axe recharge', tooltipFactorChange]
     ]
   ),
