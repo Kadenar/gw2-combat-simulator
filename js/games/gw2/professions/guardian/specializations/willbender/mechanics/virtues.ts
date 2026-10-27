@@ -149,7 +149,7 @@ function reactToWillbenderHit(
 
     if (virtue === 'justice') {
       const profile = requireSkillFromContext(runtime, ID.JUSTICE);
-      const burn = requireEffect(profile, 'condition', 'Burning (active)');
+      const burn = requireEffect(profile, 'condition', 'Burning (active)', requireSkillAction(profile, 'justice'));
 
       if (burn) {
         runtime.effects.emit({

@@ -180,9 +180,7 @@ export interface Skill extends CatalogEntity {
 }
 
 /**
- * Patchable balance data that is not itself a castable skill. Profiles keep
- * trait effects and shared mechanic limits out of the skill catalog while
- * retaining the same declarative effect vocabulary.
+ * Trait-owned balance data, using the same declarative effects as skills.
  */
 export interface BalanceProfile extends CatalogEntity {
   /** Lifetime in seconds of the state or charges owned by this profile, separate from its effects. */
@@ -199,7 +197,6 @@ export interface BalanceProfile extends CatalogEntity {
   readonly balanceDataContext?: CanonicalCatalog['balanceDataContext'];
   /** Identity-only tombstones scoped to this profile; callbacks retain removal provenance. */
   readonly removedEffectKeys?: readonly string[];
-  readonly profileKind: 'trait' | 'mechanic';
   /** Opts this profession-owned proc into shared build overrides without changing its trigger or effects. */
   readonly procRate?: {
     readonly id: string;

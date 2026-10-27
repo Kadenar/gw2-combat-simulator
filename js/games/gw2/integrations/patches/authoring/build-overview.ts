@@ -1,3 +1,6 @@
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
+import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
@@ -20,6 +23,27 @@ export function buildRelevantPatch(
 ): ProfessionPatchPreview {
   const traits = new Set(config.selectedTraitIds);
   const relevantIds = new Set([...selectedSkillIdSet(config.selectedSkillIds), ...observedIds, ...traits]);
+
+  // Patch-note relevance includes shared tuning consumed without casting its owning skill.
+  if (metadata.professionId === 'guardian') relevantIds.add(GUARDIAN_SKILL_IDS.JUSTICE);
+
+  if (metadata.professionId === 'engineer' && config.specialization === 'Amalgam') {
+    const morphs = new Set((config as EngineerConfig).selectedMorphSkillIds);
+    for (const [owner, ...variants] of [
+      [
+        ENGINEER.DEFENSIVE_PROTOCOL_THORNS,
+        ENGINEER.DEFENSIVE_PROTOCOL_THORNS_ID_77163,
+        ENGINEER.DEFENSIVE_PROTOCOL_THORNS_ID_77104
+      ],
+      [
+        ENGINEER.OFFENSIVE_PROTOCOL_OBLITERATE,
+        ENGINEER.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806,
+        ENGINEER.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901
+      ]
+    ])
+      if ([owner, ...variants].some((id) => morphs.has(id))) relevantIds.add(owner);
+  }
+
   for (const skill of catalog.skills) {
     if (
       skill.type === 'Weapon' &&
@@ -54,7 +78,6 @@ export function buildRelevantPatch(
     for (const trait of module.traitDefinitions ?? []) {
       if (trait.balance) profileOwners.set(trait.balance.id ?? trait.id, trait.id);
 
-      for (const profile of trait.profiles ?? []) profileOwners.set(profile.id, trait.id);
       for (const rule of trait.modifierRules ?? []) modifierOwners.set(rule.id, trait.id);
     }
   }
@@ -69,7 +92,7 @@ export function buildRelevantPatch(
 
       if (owner != null && !traits.has(owner)) continue;
 
-      if (entry.profile.profileKind === 'trait' && owner == null && !relevantIds.has(entry.id)) continue;
+      if (owner == null && !relevantIds.has(entry.id)) continue;
 
       profileIds.add(String(entry.id));
       profileIds.add(entry.name);

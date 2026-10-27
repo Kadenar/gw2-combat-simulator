@@ -90,7 +90,6 @@ const catalog = createCanonicalCatalog({
     {
       id: 'test.proc',
       name: 'Test Proc',
-      profileKind: 'trait',
       internalCooldown: 2,
       resourceGain: 3,
       rechargeMultiplier: 0.5,
@@ -99,18 +98,16 @@ const catalog = createCanonicalCatalog({
     {
       id: 'test.attribution',
       name: 'Attribution Proc',
-      profileKind: 'trait',
       internalCooldown: 2,
       effects: [
         { type: 'boon', name: 'might', boon: 'might', stacks: 2, duration: 3, actorType: 'summon' },
         { type: 'boon', name: 'fury', boon: 'fury', stacks: 1, duration: 4 }
       ]
     },
-    { id: 'test.other', name: 'Other Proc', profileKind: 'trait', internalCooldown: 2, effects: [] },
+    { id: 'test.other', name: 'Other Proc', internalCooldown: 2, effects: [] },
     {
       id: 'test.variant',
       name: 'Selected Variant',
-      profileKind: 'trait',
       effects: [
         { type: 'custom', eventType: 'test.selected', event: {}, when: (runtime) => runtime.profession.selected },
         { type: 'custom', eventType: 'test.excluded', event: {}, when: () => false }

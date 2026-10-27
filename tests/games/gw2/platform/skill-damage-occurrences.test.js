@@ -33,7 +33,6 @@ test('trait contributions use runtime filtering, transforms, selection, and attr
       {
         id: TRAIT,
         name: 'Contextual trait',
-        profileKind: 'trait',
         effects: [
           { type: 'condition', name: 'Burning', condition: 'Burning', stacks: 1, duration: 99 },
           { type: 'condition', name: 'Poisoned', condition: 'Poisoned', stacks: 1, duration: 99 }
@@ -96,7 +95,6 @@ test('condition rows preserve distinct trait owners with identical damage facts'
       traits,
       balanceProfiles: traits.map((trait) => ({
         ...trait,
-        profileKind: 'trait',
         effects: [{ type: 'condition', condition: 'Burning', stacks: 1, duration: 2 }]
       }))
     }),

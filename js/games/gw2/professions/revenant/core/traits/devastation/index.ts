@@ -436,19 +436,21 @@ function completeBattleScarred(runtime: RevenantRuntime, { cast }: RevenantCastC
 
 /** Runs the trait at its original ordered mechanic boundary. */
 function reactDanceOfDeath(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
+  // Other conditions cannot grant Battle Scars and need no balance lookup.
+  if (event.condition !== CONDITION.VULNERABILITY) return;
+
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.DANCE_OF_DEATH);
   const buff = requireEffect(profile, 'buff', 'battle-scars');
 
   if (!buff) return;
 
-  if (event.condition === CONDITION.VULNERABILITY)
-    grantBattleScars(runtime, {
-      stacks: (event.stacks || 0) * effectNumber(profile, buff, 'stacks'),
-      duration: effectNumber(profile, buff, 'duration'),
-      sourceId: TRAIT.DANCE_OF_DEATH,
-      sourceName: 'Dance of Death',
-      cause: event
-    });
+  grantBattleScars(runtime, {
+    stacks: (event.stacks || 0) * effectNumber(profile, buff, 'stacks'),
+    duration: effectNumber(profile, buff, 'duration'),
+    sourceId: TRAIT.DANCE_OF_DEATH,
+    sourceName: 'Dance of Death',
+    cause: event
+  });
 }
 
 /** Adds expiring Battle Scars up to the shared cap and publishes only the stacks actually granted. */

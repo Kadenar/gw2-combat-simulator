@@ -364,7 +364,7 @@ test('deleted Justice Burning preserves the Willbender cycle trigger and its sur
     professions: {
       guardian: {
         skills: {
-          [SKILL.JUSTICE]: remove('condition', 'Burning (active)')
+          [SKILL.JUSTICE]: { sideEffects: { justice: remove('condition', 'Burning (active)') } }
         }
       }
     }
@@ -420,7 +420,9 @@ test('Dragonhunter passive Crippled depends on emitted Burning and each survivin
   // Cross one passive threshold with a single accepted hit to isolate the dependency between the two payloads.
   for (const removed of ['none', 'burning', 'crippled']) {
     const skills = {
-      ...(removed === 'burning' ? { [SKILL.JUSTICE]: remove('condition', 'Burning (passive)') } : {}),
+      ...(removed === 'burning'
+        ? { [SKILL.JUSTICE]: { sideEffects: { justice: remove('condition', 'Burning (passive)') } } }
+        : {}),
       ...(removed === 'crippled' ? { [SKILL.SPEAR_OF_JUSTICE]: remove('condition', 'Crippled (passive)') } : {})
     };
     const profession = withPatchPreview(guardianProfession, {

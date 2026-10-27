@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   RAZORCLAW_PROC_ID,
   SOULCLEAVE_PROC_ID
@@ -5,7 +6,6 @@ import {
 import {
   fromProfile,
   outsideScopeTooltip,
-  profileTooltip,
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
@@ -52,7 +52,10 @@ const bandTogetherTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
         label: 'Base effects',
         facts: [
           ...simulationEffectFacts(selected.effects).facts,
-          ...simulationEffectFacts(balanceContext.catalog.skillsById.get(ID.LEGENDARY_RENEGADE_STANCE)!.effects).facts
+          ...simulationEffectFacts(
+            requireSkillAction(balanceContext.catalog.skillsById.get(ID.LEGENDARY_RENEGADE_STANCE)!, 'band-together')
+              .effects
+          ).facts
         ]
       },
       { label: 'Enhanced effects', facts: simulationEffectFacts(enhanced.effects).facts }
@@ -129,8 +132,7 @@ export const renegadeTooltips = {
     )
   },
   traits: {
-    [TRAIT.AMBUSH_COMMANDER]: profileTooltip(
-      TRAIT.AMBUSH_COMMANDER,
+    [TRAIT.AMBUSH_COMMANDER]: traitTooltip(
       "Qualifying critical or positional hits grant Kalla's Fervor. Defiant targets satisfy the simulator's positional condition.",
       [
         ['maximumStacks', 'Maximum stacks'],
@@ -144,28 +146,19 @@ export const renegadeTooltips = {
         ['lifeSiphonDamagePerStack', 'Life-siphon damage per stack', tooltipPercent]
       ]
     ),
-    [TRAIT.ENDLESS_ENMITY]: profileTooltip(TRAIT.ENDLESS_ENMITY, 'Eligible critical hits grant fury to the party.', [
+    [TRAIT.ENDLESS_ENMITY]: traitTooltip('Eligible critical hits grant fury to the party.', [
       ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]),
-    [TRAIT.BRUTAL_MOMENTUM]: profileTooltip(
-      TRAIT.BRUTAL_MOMENTUM,
-      'Gain critical-strike chance. Receiving fury grants vigor.',
-      [
-        ['criticalChance', 'Critical chance', tooltipPercent],
-        ['fullEnduranceCriticalChance', 'Critical chance at full endurance', tooltipPercent],
-        ['internalCooldown', 'Vigor cooldown', tooltipSeconds]
-      ]
-    ),
-    [TRAIT.ASHEN_DEMEANOR]: profileTooltip(
-      TRAIT.ASHEN_DEMEANOR,
-      "Using a healing skill grants boons and Kalla's Fervor.",
-      [
-        ['cooldown', 'Internal cooldown', tooltipSeconds],
-        ['fervorStacks', 'Fervor stacks gained']
-      ]
-    ),
-    [TRAIT.BLOOD_FURY]: profileTooltip(
-      TRAIT.BLOOD_FURY,
+    [TRAIT.BRUTAL_MOMENTUM]: traitTooltip('Gain critical-strike chance. Receiving fury grants vigor.', [
+      ['criticalChance', 'Critical chance', tooltipPercent],
+      ['fullEnduranceCriticalChance', 'Critical chance at full endurance', tooltipPercent],
+      ['internalCooldown', 'Vigor cooldown', tooltipSeconds]
+    ]),
+    [TRAIT.ASHEN_DEMEANOR]: traitTooltip("Using a healing skill grants boons and Kalla's Fervor.", [
+      ['cooldown', 'Internal cooldown', tooltipSeconds],
+      ['fervorStacks', 'Fervor stacks gained']
+    ]),
+    [TRAIT.BLOOD_FURY]: traitTooltip(
       "Fury applications grant Kalla's Fervor. Bleeding lasts longer while you have fury.",
       [
         ['cooldown', 'Fervor cooldown', tooltipSeconds],
@@ -173,8 +166,7 @@ export const renegadeTooltips = {
       ]
     ),
     [TRAIT.WROUGHT_IRON_WILL]: outsideScopeTooltip,
-    [TRAIT.BOLD_REVERSAL]: profileTooltip(
-      TRAIT.BOLD_REVERSAL,
+    [TRAIT.BOLD_REVERSAL]: traitTooltip(
       'Orders from Above also grants protection when Righteous Rebel is selected.',
       undefined,
       'with Righteous Rebel'
@@ -191,15 +183,11 @@ export const renegadeTooltips = {
         fromProfile(TRAIT.HEARTPIERCER, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange)
       ]
     ),
-    [TRAIT.ALL_FOR_ONE]: profileTooltip(TRAIT.ALL_FOR_ONE, 'An empowered Band Together skill recharges faster.', [
+    [TRAIT.ALL_FOR_ONE]: traitTooltip('An empowered Band Together skill recharges faster.', [
       ['rechargeMultiplier', 'Empowered summon recharge duration', tooltipFactorChange]
     ]),
-    [TRAIT.VINDICATION]: profileTooltip(
-      TRAIT.VINDICATION,
-      "Citadel Bombardment's first impact applies a daze control event."
-    ),
-    [TRAIT.LASTING_LEGACY]: profileTooltip(
-      TRAIT.LASTING_LEGACY,
+    [TRAIT.VINDICATION]: traitTooltip("Citadel Bombardment's first impact applies a daze control event."),
+    [TRAIT.LASTING_LEGACY]: traitTooltip(
       "Kalla's Fervor lasts longer and grants stronger damage bonuses. Heroic Command grants additional might per Fervor stack.",
       [
         ['maximumStacks', 'Maximum stacks'],

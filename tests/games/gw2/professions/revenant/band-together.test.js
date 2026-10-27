@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import assert from 'node:assert/strict';
@@ -82,9 +83,10 @@ test('ordinary completion replaces the timed Band Together buff and cannot grant
   grant(99);
   runtime.time = ordinary.effectiveEnd;
   apply(ordinary, 'castCommit');
-  const duration = runtime.helpers.skillsById
-    .get(ID.LEGENDARY_RENEGADE_STANCE)
-    .effects.find((effect) => effect.kind === 'band-together').duration;
+  const duration = requireSkillAction(
+    runtime.helpers.skillsById.get(ID.LEGENDARY_RENEGADE_STANCE),
+    'band-together'
+  ).effects.find((effect) => effect.kind === 'band-together').duration;
   assert.equal(effectStateValue(observe(), runtime.time).count, 1);
   assert.equal(effectStateValue(observe(), runtime.time).expiresAt, runtime.time + duration);
   const granted = runtime.combat.buffApplications('band-together');

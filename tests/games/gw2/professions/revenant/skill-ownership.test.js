@@ -367,7 +367,6 @@ test('Twin Moon affinity belongs to each resolved player packet, independently o
 // Removed profile targets reject edits; specialization minors retain intrinsic capacity without explicit selection.
 test('Revenant intrinsic profiles have one canonical owner', () => {
   const catalog = revenantProfession.catalog;
-  assert.equal(catalog.balanceProfiles.filter((profile) => profile.profileKind === 'skill-variant').length, 0);
   for (const id of [
     'revenant.nature-assassin',
     'revenant.conduit.affinity',

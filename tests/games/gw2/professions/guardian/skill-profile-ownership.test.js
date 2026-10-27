@@ -1,3 +1,6 @@
+import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
+import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
+import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -18,19 +21,7 @@ function preview(skills = {}, balanceProfiles = {}) {
   });
 }
 
-test('Guardian derives only trait profiles and keeps Justice and Ashes tuning on skills', () => {
-  const profiles = guardianProfession.catalog.balanceProfiles;
-  assert.equal(
-    profiles.some((profile) => profile.profileKind === 'skill-variant'),
-    false
-  );
-  assert.deepEqual(
-    profiles
-      .filter((profile) => profile.profileKind === 'mechanic')
-      .map((profile) => profile.id)
-      .sort(),
-    []
-  );
+test('Guardian keeps Justice and Ashes tuning on skills', () => {
   for (const id of [
     'guardian.core.justice',
     'guardian.firebrand.ashes-of-the-just',
@@ -157,6 +148,46 @@ test('each Willbender flame identity consumes its own selected payload', () => {
     assert.equal(
       result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === flame),
       virtue !== ID.RUSHING_JUSTICE
+    );
+  }
+});
+
+// Justice burns are deferred hit rewards: presentation must not count them as cast damage or repeat their facts.
+test('Justice exposes each helper burn once and has no damaging cast occurrence', () => {
+  const family = preview();
+  const context = family.resolvePatch().balanceContext;
+  const justice = context.catalog.skillsById.get(ID.JUSTICE);
+  const tooltip = describeSimulationSkill(context, justice, guardianTooltips);
+  assert.equal(tooltip.facts.filter((fact) => fact.name === 'Burning').length, 2);
+  const occurrence = executeDamageOccurrence(
+    family,
+    { specialization: 'Core', selectedTraitIds: [] },
+    {
+      id: 'justice',
+      name: 'Justice',
+      effect: { kind: 'skill', id: ID.JUSTICE }
+    }
+  );
+  assert.equal(occurrence.damaging, false);
+});
+
+// Elite virtues consume the core recipes even when neither selected nor observed skills contain core Justice.
+test('every Guardian elite keeps Justice patch notes without including unrelated skills', () => {
+  const family = preview({
+    [ID.JUSTICE]: {
+      sideEffects: { justice: { effects: [{ type: 'condition', name: 'Burning (active)', duration: 3 }] } }
+    },
+    [ID.BANE_SIGNET]: { fields: { 'attributeBonuses.power': 1 } }
+  });
+  for (const specialization of ['Core', 'Dragonhunter', 'Firebrand', 'Willbender', 'Luminary']) {
+    const notes = family.patchOverviewFor({ specialization, selectedSkillIds: [], selectedTraitIds: [] }, []);
+    assert.ok(
+      notes.some((note) => note.subject === family.catalog.skillsById.get(ID.JUSTICE).name),
+      specialization
+    );
+    assert.equal(
+      notes.some((note) => note.subject === family.catalog.skillsById.get(ID.BANE_SIGNET).name),
+      false
     );
   }
 });

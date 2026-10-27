@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
@@ -85,7 +86,12 @@ export function applyJusticeBurn(
   }
 ): JusticeBurnOutcome {
   const justiceSkill = requireSkillFromContext(context, GUARDIAN_SKILL_IDS.JUSTICE);
-  const burn = requireEffect(justiceSkill, 'condition', active ? 'Burning (active)' : 'Burning (passive)');
+  const burn = requireEffect(
+    justiceSkill,
+    'condition',
+    active ? 'Burning (active)' : 'Burning (passive)',
+    requireSkillAction(justiceSkill, 'justice')
+  );
 
   if (!burn) return null;
 
@@ -169,7 +175,8 @@ export function reactToJusticeHitWithOptions(
 
   const justiceSkill = requireSkillFromContext(context, GUARDIAN_SKILL_IDS.JUSTICE);
 
-  if (!requireEffect(justiceSkill, 'condition', 'Burning (passive)')) return null;
+  if (!requireEffect(justiceSkill, 'condition', 'Burning (passive)', requireSkillAction(justiceSkill, 'justice')))
+    return null;
 
   const triggerHits = permeatingWrathThreshold(context, 'justice', skillNumber(justiceSkill, 'threshold'));
   // Reset accepted passive hit progress before burning can cause another reaction.

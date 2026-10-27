@@ -1,3 +1,5 @@
+import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
+import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -34,7 +36,9 @@ test('Band Together uses the stance skill window and retires its former profile 
       catalog: (catalog) =>
         applySkillPatch(catalog, {
           skills: {
-            [ID.LEGENDARY_RENEGADE_STANCE]: { effects: [{ type: 'buff', name: 'band-together', duration: 0.5 }] }
+            [ID.LEGENDARY_RENEGADE_STANCE]: {
+              sideEffects: { 'band-together': { effects: [{ type: 'buff', name: 'band-together', duration: 0.5 }] } }
+            }
           }
         })
     }
@@ -77,7 +81,6 @@ test('Revenant specialization patches use canonical trait IDs and reject obsolet
     [TRAIT.ENDLESS_ENMITY, 'revenant.renegade.endless-enmity', 'internalCooldown']
   ]) {
     const original = revenantCatalog.balanceProfilesById.get(trait);
-    assert.equal(original.profileKind, 'trait');
     assert.equal(revenantCatalog.balanceProfilesById.has(obsolete), false);
     assert.throws(
       () => applyBalanceProfilePatch(revenantCatalog, { balanceProfiles: { [obsolete]: { fields: {} } } }),
@@ -357,4 +360,32 @@ test('Revenant stack displays use patched skill and selected trait caps', () => 
       );
     }
   }
+});
+
+// The stance carries a helper window for warband completion, never an automatic stance reward.
+test('Renegade stance does not advertise or grant Band Together on entry', () => {
+  const context = { catalog: revenantCatalog };
+  const tooltip = describeSimulationSkill(
+    context,
+    revenantCatalog.skillsById.get(ID.LEGENDARY_RENEGADE_STANCE),
+    revenantTooltips
+  );
+  assert.equal(
+    tooltip.facts.some((fact) => /band.together/i.test(fact.name)),
+    false
+  );
+  const warband = describeSimulationSkill(context, revenantCatalog.skillsById.get(ID.ICERAZORS_IRE), revenantTooltips);
+  assert.ok(
+    warband.factTabs.find((tab) => tab.label === 'Base effects').facts.some((fact) => /band.together/i.test(fact.name))
+  );
+  const result = runRevenant([ID.SWAP_LEGENDS], {
+    specialization: 'Renegade',
+    selectedLegends: [LEGEND.ASSASSIN, LEGEND.RENEGADE],
+    startingLegend: LEGEND.ASSASSIN
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.some((event) => event.kind === 'band-together'),
+    false
+  );
 });

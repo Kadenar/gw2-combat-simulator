@@ -67,7 +67,7 @@ test('Amalgam resolver procs honor positive poison fields and zero strike coeffi
         core: {},
         specialization: {
           kind: 'Amalgam',
-          state: { evolvedUntil: 10, rapaciousUntil: 10, rapaciousSkillId: ID.DEFENSIVE_PROTOCOL_THORNS }
+          state: { evolvedUntil: 10, rapaciousUntil: 10 }
         }
       },
       queue: new StableEventQueue(),
@@ -110,7 +110,7 @@ test('Rapacious with zero ICD cannot trigger itself but still triggers Carbolic 
       core: {},
       specialization: {
         kind: 'Amalgam',
-        state: { evolvedUntil: 10, rapaciousUntil: 10, rapaciousSkillId: ID.DEFENSIVE_PROTOCOL_THORNS }
+        state: { evolvedUntil: 10, rapaciousUntil: 10 }
       }
     },
     effects: captureEffectEmissions({

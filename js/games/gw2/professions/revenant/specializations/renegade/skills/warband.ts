@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { RAZORCLAW_PROC_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
@@ -169,7 +170,8 @@ export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast
   if (selected.enhanced) return;
 
   const window = requireSkillFromContext(runtime, ID.LEGENDARY_RENEGADE_STANCE);
-  const effect = requireEffect(window, 'buff', 'band-together');
+  const action = requireSkillAction(window, 'band-together');
+  const effect = requireEffect(window, 'buff', 'band-together', action);
 
   // The enhancement window is the buff, so a removed buff arms no enhancement.
   if (!effect) return;
@@ -183,7 +185,7 @@ export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast
   runtime.effects.emit({
     kind: 'profile',
     profile: window,
-    effects: window.effects ?? [],
+    effects: action.effects,
     attribution: (effect) => ({
       activationId: cast.id,
       source: 'revenant',

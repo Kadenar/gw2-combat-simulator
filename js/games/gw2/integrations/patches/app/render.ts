@@ -615,7 +615,7 @@ function balanceProfileDetail(entry: NativePatchAuthoringBalanceProfile | null):
   const effects = (entry.profile.effects || []) as readonly SkillEffect[];
   const primaryFields = balanceProfileFieldRows(entry, edit, 'primary');
   const advancedFields = balanceProfileFieldRows(entry, edit, 'advanced');
-  const profileLabel = entry.profile.profileKind === 'trait' ? 'Trait effect' : 'Profession mechanic';
+  const profileLabel = 'Trait effect';
   const rawMetadata = Object.fromEntries(Object.entries(entry.profile).filter(([key]) => key !== 'effects'));
   const effectEditors = effects.flatMap((effect, effectIndex) => {
     const primaryRows = balanceProfileEffectRows(id, effectIndex, effect, edit, 'primary');
@@ -658,33 +658,30 @@ function balanceProfileDetail(entry: NativePatchAuthoringBalanceProfile | null):
   </article>`;
 }
 
-/** Renders a trait or profession-mechanic profile navigation row. */
+/** Renders a trait profile navigation row. */
 function balanceProfileOption(entry: NativePatchAuthoringBalanceProfile): string {
   return `<button type="button" class="patch-skill-option${String(entry.id) === editorState.selectedProfileId ? ' is-selected' : ''}${hasBalanceProfileEdit(String(entry.id)) ? ' is-changed' : ''}" data-select-profile="${escapeHtml(entry.id)}">
-    <span><strong>${escapeHtml(entry.name)}</strong><small>${escapeHtml(entry.profile.profileKind)} &middot; ${escapeHtml(entry.id)}</small></span>
+    <span><strong>${escapeHtml(entry.name)}</strong><small>Trait &middot; ${escapeHtml(entry.id)}</small></span>
   </button>`;
 }
 
-/** Renders one semantic profile kind in the tab belonging to that game concept. */
-function balanceProfileSection(module: NativePatchAuthoringModule, profileKind: 'trait' | 'mechanic'): string {
+/** Renders the trait profiles derived from native trait definitions. */
+function balanceProfileSection(module: NativePatchAuthoringModule): string {
   const query = editorState.search.trim().toLocaleLowerCase();
-  const authorableProfiles = module.balanceProfiles.filter((entry) => entry.profile.profileKind === profileKind);
+  const authorableProfiles = module.balanceProfiles;
   const profiles = [...authorableProfiles]
     .filter((entry) => {
       if (editorState.changedOnly && !hasBalanceProfileEdit(String(entry.id))) return false;
 
-      return !query || patchSearchText(entry.id, entry.name, entry.profile.profileKind).includes(query);
+      return !query || patchSearchText(entry.id, entry.name, 'trait').includes(query);
     })
     .sort((left, right) => left.name.localeCompare(right.name));
   const selected = authorableProfiles.find((entry) => String(entry.id) === editorState.selectedProfileId) || null;
-  const label = profileKind === 'trait' ? 'Trait effects' : 'Profession mechanics';
-  const description =
-    profileKind === 'trait'
-      ? 'Numeric effects owned by traits in this specialization.'
-      : 'Profession-state values that are not owned by a skill or trait.';
-  return `<section class="patch-work-section patch-skills" aria-labelledby="${profileKind}-profile-heading">
+  const label = 'Trait effects';
+  const description = 'Numeric effects owned by traits in this specialization.';
+  return `<section class="patch-work-section patch-skills" aria-labelledby="trait-profile-heading">
     <div class="patch-section-heading">
-      <div><p class="patch-eyebrow">${profileKind === 'trait' ? 'Trait authoring' : 'Profession authoring'}</p><h2 id="${profileKind}-profile-heading">${label}</h2></div>
+      <div><p class="patch-eyebrow">Trait authoring</p><h2 id="trait-profile-heading">${label}</h2></div>
       <span>${profiles.length} of ${authorableProfiles.length} profiles</span>
     </div>
     <p class="patch-section-description">${description}</p>
@@ -801,7 +798,6 @@ export function renderPatchAuthoring(): void {
         <div class="patch-section-tabs" role="tablist" aria-label="Authoring section">
           <button type="button" data-select-section="traits" class="${editorState.selectedSection === 'traits' ? 'is-selected' : ''}">Traits</button>
           <button type="button" data-select-section="skills" class="${editorState.selectedSection === 'skills' ? 'is-selected' : ''}">Skills</button>
-          <button type="button" data-select-section="mechanics" class="${editorState.selectedSection === 'mechanics' ? 'is-selected' : ''}">Mechanics</button>
           <button type="button" data-select-section="overview" class="${editorState.selectedSection === 'overview' ? 'is-selected' : ''}">Overview &amp; source</button>
         </div>
         ${
@@ -818,12 +814,10 @@ export function renderPatchAuthoring(): void {
           ? editorState.selectedSection === 'traits'
             ? editorState.selectedTraitView === 'modifiers'
               ? modifierSection(module)
-              : balanceProfileSection(module, 'trait')
+              : balanceProfileSection(module)
             : editorState.selectedSection === 'skills'
               ? skillSection(module)
-              : editorState.selectedSection === 'mechanics'
-                ? balanceProfileSection(module, 'mechanic')
-                : overviewSection(profession)
+              : overviewSection(profession)
           : '<p class="patch-empty">No authoring metadata is available.</p>'
       }
       <details class="patch-generated-preview"><summary>Preview object to be written</summary><pre>${jsonHtml(compactPatchPreview(editorState.draft))}</pre></details>

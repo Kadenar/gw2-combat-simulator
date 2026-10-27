@@ -165,11 +165,7 @@ test('Guild actor strike removal preserves conditions and summon expiry', () => 
 });
 
 // Old profile targets must fail rather than silently applying an obsolete tuning path.
-test('Thief has no skill variants and rejects removed intrinsic profile targets', () => {
-  assert.equal(
-    thiefCatalog.balanceProfiles.some((profile) => profile.profileKind === 'skill-variant'),
-    false
-  );
+test('Thief rejects removed intrinsic profile targets', () => {
   for (const id of [
     'thief.core.unload-refund',
     'thief.core.spider-venom-proc',

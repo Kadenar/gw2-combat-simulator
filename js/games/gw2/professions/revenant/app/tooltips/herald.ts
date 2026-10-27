@@ -2,7 +2,6 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   outsideScopeTooltip,
   profileFact,
-  profileTooltip,
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
@@ -82,15 +81,12 @@ export const heraldTooltips = {
       ['duration', 'Additional boon extension', tooltipSeconds]
     ]),
     [TRAIT.RISING_MOMENTUM]: outsideScopeTooltip,
-    [TRAIT.SHARED_EMPOWERMENT]: profileTooltip(
-      TRAIT.SHARED_EMPOWERMENT,
-      'Applying a boon to an ally grants might to the party.',
-      [['internalCooldown', 'Internal cooldown', tooltipSeconds]]
-    ),
+    [TRAIT.SHARED_EMPOWERMENT]: traitTooltip('Applying a boon to an ally grants might to the party.', [
+      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
+    ]),
     [TRAIT.SHINING_ASPECTS]: outsideScopeTooltip,
     [TRAIT.HARDENING_PERSISTENCE]: outsideScopeTooltip,
-    [TRAIT.ELEVATED_COMPASSION]: profileTooltip(
-      TRAIT.ELEVATED_COMPASSION,
+    [TRAIT.ELEVATED_COMPASSION]: traitTooltip(
       'Gain concentration from the common power attribute pool. Maintaining enough aggregate upkeep periodically grants party quickness.',
       [
         ['attributeConversion', 'Power converted to concentration', tooltipPercent],
@@ -98,8 +94,7 @@ export const heraldTooltips = {
         ['cooldown', 'Quickness interval', tooltipSeconds]
       ]
     ),
-    [TRAIT.DRACONIC_ECHO]: profileTooltip(
-      TRAIT.DRACONIC_ECHO,
+    [TRAIT.DRACONIC_ECHO]: traitTooltip(
       'Consumed facets retain their passive effects temporarily. Strength grants strike damage, Elements grants condition damage, Darkness grants critical chance, and Nature grants boon duration.',
       [
         ['duration', 'Echo duration', tooltipSeconds],

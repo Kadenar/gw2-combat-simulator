@@ -22,7 +22,6 @@ const second = { type: 'condition', name: 'Second', condition: 'Bleeding', stack
 const profile = {
   id: 1,
   name: 'Profile',
-  profileKind: 'trait',
   procChance: 0,
   intervalMs: 0,
   effects: [first, second]
@@ -72,12 +71,12 @@ test('resolved owners preserve strict effect reads without another catalog looku
   );
   assert.throws(
     () => requireEffect(selected, 'condition', 'Typo'),
-    /profession=fixture patch=preview balance-profile=1 effect=condition\/Typo unknown effect key/
+    /profession=fixture patch=preview owner=1 effect=condition\/Typo unknown effect key/
   );
   for (const value of [undefined, null, false, '', '3', NaN, Infinity]) {
     assert.throws(
       () => effectNumber(selected, { ...effect, duration: value }, 'duration'),
-      /profession=fixture patch=preview balance-profile=1 effect=condition\/Second field=duration expected=finite number/
+      /profession=fixture patch=preview owner=1 effect=condition\/Second field=duration expected=finite number/
     );
   }
 
@@ -385,7 +384,7 @@ test('full previews and selected runtimes preserve removals without leaking acro
       // Only balance profiles carry patch metadata, so skill diagnostics name the owner and effect alone.
       assert.throws(
         () => requireEffect(owner, 'condition', 'Typo'),
-        kind === 'skill' ? /skill=1 effect=condition\/Typo unknown effect key/ : /profession=fixture patch=preview/
+        kind === 'skill' ? /owner=1 effect=condition\/Typo unknown effect key/ : /profession=fixture patch=preview/
       );
     }
 

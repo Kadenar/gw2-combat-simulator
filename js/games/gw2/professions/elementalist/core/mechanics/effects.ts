@@ -58,7 +58,7 @@ export function elementalistEventSkill(
 type ElementalistEffectOwner =
   { readonly profile: BalanceProfile } | { readonly skill: Skill; readonly action: CustomSideEffectAction };
 
-/** Select a surviving skill-action or profile boon at ordinary priority; retain its authored audience and cast context. */
+/** Select a surviving boon and derive trait attribution from its explicit owner; retain audience and cast context. */
 export function elementalistBuffEffectRequest(
   context: ElementalistRuntime,
   at: number,
@@ -81,8 +81,8 @@ export function elementalistBuffEffectRequest(
     cast: emissionCast,
     priority: 0,
     attribution: {
-      source: profile.profileKind === 'trait' ? 'Trait' : source,
-      sourceId: profile.profileKind === 'trait' ? profile.id : sourceId,
+      source: 'profile' in owner ? 'Trait' : source,
+      sourceId: 'profile' in owner ? profile.id : sourceId,
       actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: source

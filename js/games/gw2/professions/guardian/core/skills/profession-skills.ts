@@ -1,3 +1,4 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -12,29 +13,37 @@ export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     castTimeMs: 0,
     // Justice owns the shared burn recipes; activation only arms the next eligible hit.
     threshold: 5,
-    effects: [
+    effects: [],
+    // Activation arms the next hit; its helper burns are never cast effects.
+    sideEffects: [
       {
-        type: 'condition',
-        name: 'Burning (active)',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 2,
-        actorType: ACTOR.PLAYER,
-        packetLabel: 'active'
-      },
-      {
-        type: 'condition',
-        name: 'Burning (passive)',
-        condition: CONDITION.BURNING,
-        stacks: 1,
-        duration: 1.2,
-        actorType: ACTOR.PLAYER,
-        packetLabel: 'passive'
+        on: 'castCommit',
+        do: {
+          type: 'guardian.arm-justice',
+          id: 'justice',
+          effects: [
+            {
+              type: 'condition',
+              name: 'Burning (active)',
+              condition: CONDITION.BURNING,
+              stacks: 1,
+              duration: 2,
+              actorType: ACTOR.PLAYER,
+              packetLabel: 'active'
+            },
+            {
+              type: 'condition',
+              name: 'Burning (passive)',
+              condition: CONDITION.BURNING,
+              stacks: 1,
+              duration: 1.2,
+              actorType: ACTOR.PLAYER,
+              packetLabel: 'passive'
+            }
+          ]
+        }
       }
-    ],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    // A committed activation entitles the next eligible hit to the selected active burn.
-    sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-justice' } }]
+    ]
   },
   [ID.COURAGE]: {
     castTimeMs: 0,
@@ -48,8 +57,9 @@ export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
 
 const guardianJusticeActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.arm-justice'(runtime) {
+    const skill = requireSkillFromContext(runtime, ID.JUSTICE);
     runtime.profession.core.justiceActiveArmed = Boolean(
-      requireEffect(requireSkillFromContext(runtime, ID.JUSTICE), 'condition', 'Burning (active)')
+      requireEffect(skill, 'condition', 'Burning (active)', requireSkillAction(skill, 'justice'))
     );
   }
 };

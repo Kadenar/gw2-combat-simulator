@@ -6,8 +6,8 @@ import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timelin
 // Exercise the shared clock with real recharge intervals, independently of profession trigger eligibility.
 function fixture(rate = 1.25) {
   const profiles = new Map([
-    [1, { id: 1, name: 'Fixed proc', profileKind: 'trait', internalCooldown: 10 }],
-    [3, { id: 3, name: 'Summon skill', profileKind: 'trait', cooldown: 10, cooldownPolicy: 'summonRecharge' }]
+    [1, { id: 1, name: 'Fixed proc', internalCooldown: 10 }],
+    [3, { id: 3, name: 'Summon skill', cooldown: 10, cooldownPolicy: 'summonRecharge' }]
   ]);
   const events = [];
   const timeline = createGw2TimelineIndex({ playerAlacrityRechargeRate: rate, events, resolved: true });

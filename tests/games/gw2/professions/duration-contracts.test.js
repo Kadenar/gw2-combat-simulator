@@ -137,7 +137,7 @@ test('duration and flip patches reject obsolete names while real multipliers rem
     /unsupported field: durationMultiplier/
   );
   const factors = createCanonicalCatalog({
-    balanceProfiles: [{ id: 1, name: 'Factor', profileKind: 'trait', durationMultiplier: 1.5 }]
+    balanceProfiles: [{ id: 1, name: 'Factor', durationMultiplier: 1.5 }]
   });
   assert.equal(
     applyBalanceProfilePatch(factors, {
@@ -152,7 +152,7 @@ test('duration and flip patches reject obsolete names while real multipliers rem
 // Both catalog construction and patch application reject malformed seconds before they enter runtime math.
 test('duration fields validate finite nonnegative seconds and preserve explicit zero', () => {
   for (const field of ['duration', 'baseDuration', 'durationPerTier', 'durationExtension']) {
-    const profile = { id: 1, name: 'Duration', profileKind: 'mechanic', [field]: 2 };
+    const profile = { id: 1, name: 'Duration', [field]: 2 };
     const catalog = createCanonicalCatalog({ balanceProfiles: [profile] });
     for (const value of [-1, NaN, Infinity, '3', null]) {
       assert.throws(() => createCanonicalCatalog({ balanceProfiles: [{ ...profile, [field]: value }] }), /seconds/);

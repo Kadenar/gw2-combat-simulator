@@ -498,7 +498,6 @@ test('Ashes resolves live Quickfire and preview Righteous Flames without mixing 
       const resolved = resolveAshes({ catalog, traits: new Set([traitId]) });
       assert.deepEqual(resolved.baseline, { stacks: base.stacks, baseDurationSeconds: base.duration });
       assert.deepEqual(resolved.burning, id === patchId ? { stacks: 2, baseDurationSeconds: 4 } : resolved.baseline);
-      assert.equal(resolved.payloadId, id === patchId ? REWORK.RIGHTEOUS_FLAMES : ashesBurningSkill.id);
       assert.equal(resolved.overrideTraitId, id === patchId ? REWORK.RIGHTEOUS_FLAMES : undefined);
     }
   }

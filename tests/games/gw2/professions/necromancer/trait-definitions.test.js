@@ -16,14 +16,9 @@ import test from 'node:test';
 test('Necromancer trait profiles have a single registered owner across Core and all elites', () => {
   const definitions = necromancerNativeModules.flatMap((module) => module.traitDefinitions);
   assert.equal(new Set(definitions.map(({ id }) => id)).size, definitions.length);
-  for (const profile of necromancerProfession.catalog.balanceProfiles.filter(
-    ({ profileKind }) => profileKind === 'trait'
-  )) {
+  for (const profile of necromancerProfession.catalog.balanceProfiles) {
     assert.equal(
-      definitions.filter(
-        ({ id, balance, profiles }) =>
-          (balance && (balance.id ?? id) === profile.id) || profiles?.some(({ id }) => id === profile.id)
-      ).length,
+      definitions.filter(({ id, balance }) => balance && (balance.id ?? id) === profile.id).length,
       1,
       profile.name
     );

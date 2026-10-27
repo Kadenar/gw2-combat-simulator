@@ -8,7 +8,8 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Skills own their payloads and archetypes use fixed rules, leaving only generated trait tuning.
 test('Ranger balance profiles contain only generated trait tuning', () => {
-  assert.ok(rangerCatalog.balanceProfiles.every((profile) => profile.profileKind === 'trait'));
+  for (const profile of rangerCatalog.balanceProfiles)
+    assert.ok(rangerCatalog.traits.some((trait) => trait.id === profile.id));
   for (const id of [
     'ranger.core.sic-em',
     'ranger.druid.resources',

@@ -137,10 +137,6 @@ test('Blight cadence rejects intervals smaller than the canonical clock', () => 
 // Removed profile IDs reject edits instead of silently accepting a stale patch target.
 test('obsolete intrinsic profiles are absent and reject patch edits', () => {
   const catalog = necromancerProfession.catalog;
-  assert.equal(
-    catalog.balanceProfiles.some((profile) => profile.profileKind === 'skill-variant'),
-    false
-  );
   for (const id of [
     'necromancer.ritualist.spirit-cadence',
     'necromancer.ritualist.painful-bond',

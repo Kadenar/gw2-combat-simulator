@@ -158,7 +158,7 @@ export function requireCanonicalSkillEffects(
   if (!effects || !canonicalEffectLists.has(effects)) {
     const metadata = owner.balanceDataContext as BalanceProfile['balanceDataContext'];
     throw new TypeError(
-      `Invalid balance data: profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${'profileKind' in owner ? 'balance-profile' : 'skill'}=${owner.id}${action ? ` action=${action.id ?? action.type}` : ''} effects must be normalized at construction`
+      `Invalid balance data: profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} owner=${owner.id}${action ? ` action=${action.id ?? action.type}` : ''} effects must be normalized at construction`
     );
   }
 

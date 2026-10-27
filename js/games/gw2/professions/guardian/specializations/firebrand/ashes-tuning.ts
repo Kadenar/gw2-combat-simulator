@@ -24,7 +24,6 @@ export interface ResolvedAshes {
   readonly triggerIntervalSeconds: number;
   readonly baseline: AshesBurning;
   readonly burning: AshesBurning;
-  readonly payloadId: SkillId;
   readonly overrideTraitId?: SkillId;
 }
 
@@ -52,7 +51,6 @@ export function resolveAshes(selection: AshesSelection): ResolvedAshes | undefin
   }
 
   let burning = baseline;
-  let payloadId: SkillId = mechanic.id;
   let overrideTraitId: SkillId | undefined;
 
   if (traitId !== undefined && hasTrait(selection, traitId)) {
@@ -64,7 +62,6 @@ export function resolveAshes(selection: AshesSelection): ResolvedAshes | undefin
         stacks: effectNumber(trait, replacement, 'stacks'),
         baseDurationSeconds: effectNumber(trait, replacement, 'duration')
       };
-      payloadId = trait.id;
       overrideTraitId = traitId;
     }
   }
@@ -73,7 +70,6 @@ export function resolveAshes(selection: AshesSelection): ResolvedAshes | undefin
     triggerIntervalSeconds: skillNumber(mechanic, 'internalCooldown'),
     baseline,
     burning,
-    payloadId,
     overrideTraitId
   };
 }

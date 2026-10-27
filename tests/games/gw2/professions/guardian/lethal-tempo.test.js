@@ -15,14 +15,12 @@ test('Lethal Tempo uses patched caps and trait windows without sharing phase sta
       {
         id: TRAIT.LETHAL_TEMPO,
         name: 'Lethal Tempo',
-        profileKind: 'trait',
         maximumStacks: 5,
         effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', stacks: 2, duration: 9 }]
       },
       {
         id: TRAIT.TYRANTS_MOMENTUM,
         name: "Tyrant's Momentum",
-        profileKind: 'trait',
         effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', stacks: 3, duration: 3 }]
       }
     ]
@@ -67,7 +65,6 @@ function grantTempo(state, at, parameters) {
       {
         id: TRAIT.LETHAL_TEMPO,
         name: 'Lethal Tempo',
-        profileKind: 'trait',
         maximumStacks: parameters.maximumStacks,
         effects: [
           {
@@ -101,7 +98,6 @@ test('Lethal Tempo initialization does not multiply imported stacks by the selec
       {
         id: TRAIT.LETHAL_TEMPO,
         name: 'Lethal Tempo',
-        profileKind: 'trait',
         maximumStacks: 5,
         effects: [{ type: 'buff', name: 'lethal-tempo', kind: 'lethal-tempo', duration: 6, stacks: 3 }]
       }

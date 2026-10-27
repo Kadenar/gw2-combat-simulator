@@ -1,3 +1,4 @@
+import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -139,7 +140,7 @@ test('removed Berserk window retains resource spending and entry boons without a
     }
   );
   assert.equal(result.planningState.profession.berserkUntil, null);
-  assert.equal(result.planningState.profession.adrenaline.maximum, 30);
+  assert.equal(result.planningState.profession.adrenaline.maximum, WARRIOR_MAXIMUM_ADRENALINE);
   assert.ok(result.planningState.profession.adrenaline.value < 30);
   assert.ok(result.events.some((e) => e.kind === 'quickness'));
   assert.equal(

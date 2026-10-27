@@ -157,7 +157,6 @@ function catalog(profiles, additionalSkills = []) {
 const shrapnelProfile = {
   id: ENGINEER_TRAIT.SHRAPNEL,
   name: 'Shrapnel',
-  profileKind: 'trait',
   procChance: 0.33,
   effects: [
     { type: 'condition', condition: 'Bleeding', duration: 6 },
@@ -169,7 +168,6 @@ const serratedSteelProfile = {
   id: ENGINEER_TRAIT.SERRATED_STEEL,
   name: 'Serrated Steel',
   durationMultiplier: 0.33,
-  profileKind: 'trait',
   procChance: 0.33,
   effects: [{ type: 'condition', condition: 'Bleeding', duration: 3 }]
 };
@@ -178,7 +176,6 @@ const barbedPrecisionProfile = {
   id: NECROMANCER_TRAIT.BARBED_PRECISION,
   name: 'Barbed Precision',
   conditionDurationMultiplier: 1,
-  profileKind: 'trait',
   criticalChance: 0.33,
   effects: [{ type: 'condition', condition: 'Bleeding', duration: 3 }]
 };
@@ -186,14 +183,12 @@ const barbedPrecisionProfile = {
 const sharperImagesProfile = {
   id: MESMER_TRAIT.SHARPER_IMAGES,
   name: 'Sharper Images',
-  profileKind: 'trait',
   effects: [{ type: 'condition', condition: 'Bleeding', duration: 5 }]
 };
 
 const sharpenedEdgesProfile = {
   id: RANGER_TRAIT.SHARPENED_EDGES,
   name: 'Sharpened Edges',
-  profileKind: 'trait',
   criticalChance: 0.33,
   effects: [{ type: 'condition', condition: 'Bleeding', duration: 3 }]
 };
@@ -201,7 +196,6 @@ const sharpenedEdgesProfile = {
 const arachnophobiaProfile = {
   id: RANGER_TRAIT.ARACHNOPHOBIA,
   name: 'Arachnophobia',
-  profileKind: 'trait',
   attributeBonus: 150,
   weaponAttributeBonus: 225
 };

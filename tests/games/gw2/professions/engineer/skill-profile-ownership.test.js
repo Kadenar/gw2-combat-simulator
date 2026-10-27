@@ -28,11 +28,7 @@ function preview(skills, balanceProfiles = {}) {
   });
 }
 
-test('Engineer rejects removed skill profiles and exposes no skill-variant catalog owners', () => {
-  assert.equal(
-    engineerCatalog.balanceProfiles.some((profile) => profile.profileKind === 'skill-variant'),
-    false
-  );
+test('Engineer rejects removed skill profile targets', () => {
   for (const id of [
     'engineer.core.lightning-rod',
     'engineer.core.focused-lightning-rod',
@@ -319,15 +315,16 @@ test('Forge entry reads its selected kit lockout and primary beam damage precede
   assert.ok(hits.slice(1).some((event) => event.name === 'Field Damage'));
 });
 
-// Every slot owns independent Rapacious tuning; a retained grant survives reselection but expires on its own deadline.
+// Every slot reads shared Rapacious tuning; retained grants expire independently of later protocol selection.
 for (const id of [
   ID.DEFENSIVE_PROTOCOL_THORNS,
   ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104,
   ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163
 ]) {
-  test('Thorns ' + id + ' owns Rapacious cooldown, payload, expiry, and tooltip', () => {
+  test('Thorns ' + id + ' reads shared Rapacious cooldown, payload, expiry, and tooltip', () => {
+    const baseline = engineerCatalog.skillsById.get(ID.DEFENSIVE_PROTOCOL_THORNS).rapaciousDuration;
     const family = preview({
-      [id]: {
+      [ID.DEFENSIVE_PROTOCOL_THORNS]: {
         fields: { rapaciousDuration: 1.5, rapaciousInternalCooldown: 0.6 },
         sideEffects: { strain: { effects: [{ type: 'strike', name: 'Rapacious Strain', coefficient: 0.9 }] } }
       }
@@ -376,11 +373,10 @@ for (const id of [
       [0.25, 1]
     );
     assert.ok(procs.every((event) => event.coefficient === 0.9));
-    assert.equal(observedRuntime(result).profession.specialization.state.rapaciousSkillId, id);
     const selected = family.resolvePatch({ id: 'engineer-ownership' }).balanceContext;
     const tooltip = describeSimulationSkill(selected, selected.catalog.skillsById.get(id), engineerTooltips);
     assert.equal(tooltip.facts.find((fact) => fact.name === 'Rapacious Strain duration').detail, '1.5s');
-    assert.equal(engineerCatalog.skillsById.get(id).rapaciousDuration, 8);
+    assert.equal(engineerCatalog.skillsById.get(ID.DEFENSIVE_PROTOCOL_THORNS).rapaciousDuration, baseline);
   });
 }
 
@@ -399,7 +395,7 @@ test('removed Rapacious payload cannot arm a strain through Evolve or Silver Lin
         catalog: (catalog) =>
           applySkillPatch(catalog, {
             skills: {
-              [id]: {
+              [ID.DEFENSIVE_PROTOCOL_THORNS]: {
                 sideEffects: { strain: { removeEffects: [{ type: 'strike', name: 'Rapacious Strain' }] } }
               }
             }
@@ -409,19 +405,20 @@ test('removed Rapacious payload cannot arm a strain through Evolve or Silver Lin
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
     assert.equal(runtime.profession.specialization.state.rapaciousUntil, 0);
-    assert.equal(runtime.profession.specialization.state.rapaciousSkillId, null);
     assert.equal(runtime.procs.deadline('rapacious'), 0);
   }
 });
 
-// Titanic reads the granting Obliterate, while expiry removes its contribution and live Might determines its size.
+// All Obliterate slots share Titanic scaling; expiry removes its contribution and live Might determines its size.
 test('Obliterate owns Titanic scaling after protocol reselection and until strain expiry', () => {
   for (const id of [
     ID.OFFENSIVE_PROTOCOL_OBLITERATE,
     ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806,
     ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901
   ]) {
-    const catalog = applySkillPatch(engineerCatalog, { skills: { [id]: { fields: { titanicAttributePerStack: 9 } } } });
+    const catalog = applySkillPatch(engineerCatalog, {
+      skills: { [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: { fields: { titanicAttributePerStack: 9 } } }
+    });
     const result = runEngineer(
       [],
       { specialization: 'Amalgam' },
@@ -435,7 +432,6 @@ test('Obliterate owns Titanic scaling after protocol reselection and until strai
     );
     assert.deepEqual(result.warnings, []);
     const state = observedRuntime(result).profession.specialization.state;
-    assert.equal(state.titanicSkillId, id);
     for (const [time, expected] of [
       [1, 1090],
       [state.titanicUntil, 1000]
@@ -453,5 +449,51 @@ test('Obliterate owns Titanic scaling after protocol reselection and until strai
       assert.equal(actual.power, expected);
       assert.equal(actual.conditionDamage, expected);
     }
+  }
+});
+
+// One edit must apply across grants from different slots without resetting the shared proc deadline.
+test('Rapacious regrants from another slot retain the shared cooldown and canonical patch notes', () => {
+  const owner = ID.DEFENSIVE_PROTOCOL_THORNS;
+  const slots = [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163, ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104];
+  const family = preview({ [owner]: { fields: { rapaciousInternalCooldown: 1 } } });
+  const result = runEngineer(
+    [{ type: 'wait', durationMs: 1500 }],
+    { specialization: 'Amalgam', patchId: 'engineer-ownership' },
+    {
+      profession: family,
+      initialize(runtime) {
+        runtime.profession.specialization.state.evolvedUntil = 10;
+        applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(slots[0]), 0);
+        for (const at of [0.1, 0.5, 1.2])
+          runtime.schedule('test.emit', at, {
+            type: 'damage',
+            at,
+            source: 'fixture',
+            sourceId: ID.OFFENSIVE_PROTOCOL_SHRED,
+            actorType: 'player',
+            skillId: ID.OFFENSIVE_PROTOCOL_SHRED,
+            skillName: 'Trigger',
+            coefficient: 1,
+            weaponStrength: 1000
+          });
+      },
+      probes: [[0.3, (runtime) => applyAmalgamStrain(runtime, runtime.helpers.skillsById.get(slots[1]), runtime.time)]]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.sourceId === 'engineer.rapacious-strain' && event.type === 'damage')
+      .map((event) => event.at),
+    [0.1, 1.2]
+  );
+  for (const id of slots) {
+    assert.equal(engineerCatalog.skillsById.get(id).rapaciousInternalCooldown, undefined);
+    const notes = family.patchOverviewFor(
+      { specialization: 'Amalgam', selectedTraitIds: [], selectedMorphSkillIds: [id] },
+      []
+    );
+    assert.ok(notes.some((note) => note.subject === engineerCatalog.skillsById.get(owner).name));
   }
 });

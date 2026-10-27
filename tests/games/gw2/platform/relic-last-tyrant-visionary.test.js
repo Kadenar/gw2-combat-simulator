@@ -306,7 +306,6 @@ test('profiled condition procs preserve fractional totals and source attribution
           {
             id: 'fixture',
             name: 'Fixture',
-            profileKind: 'trait',
             effects: [{ type: 'condition', name: 'Fire', condition, stacks, duration: 7 }]
           }
         ]

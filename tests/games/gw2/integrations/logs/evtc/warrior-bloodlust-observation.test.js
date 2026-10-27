@@ -63,7 +63,6 @@ const catalog = {
         id: TRAIT.BLOODLUST,
         name: 'Bloodlust',
         conditionDurationBonus: 0,
-        profileKind: 'trait',
         procChance: 0.33,
         effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 }]
       }

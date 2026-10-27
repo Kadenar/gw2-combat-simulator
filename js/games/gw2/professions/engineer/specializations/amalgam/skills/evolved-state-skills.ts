@@ -1,6 +1,7 @@
+import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { skillNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
@@ -214,13 +215,14 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
 export function applyAmalgamStrain(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   const state = amalgamState.from(context);
   const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
+  // Resolve shared strain tuning before granting it, independently of the triggering slot.
+  skill = requireSkillFromContext(context, amalgamStrainOwnerId(skill.id));
   const action = requireSkillAction(skill, 'strain');
 
   if (morphKind === 'thorns') {
-    // Retain the granting slot's identity; removing its payload cannot arm an empty proc window.
+    // A removed shared payload cannot arm an empty proc window.
     if (requireEffect(skill, 'strike', 'Rapacious Strain', action)) {
       state.rapaciousUntil = Math.max(state.rapaciousUntil || 0, at + skillNumber(skill, 'rapaciousDuration'));
-      state.rapaciousSkillId = skill.id;
     }
 
     return;
@@ -248,7 +250,6 @@ export function applyAmalgamStrain(context: EngineerRuntime, skill: EngineerSkil
     if (effect.type === 'boon') {
       if (morphKind === 'obliterate') {
         state.titanicUntil = Math.max(state.titanicUntil || 0, at + effect.duration);
-        state.titanicSkillId = skill.id;
       } else if (morphKind === 'shred') state.predatorUntil = Math.max(state.predatorUntil || 0, at + effect.duration);
       else if (morphKind === 'demolish')
         state.berserkerUntil = Math.max(state.berserkerUntil || 0, at + effect.duration);

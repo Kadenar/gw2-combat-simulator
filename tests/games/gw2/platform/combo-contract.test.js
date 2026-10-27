@@ -188,7 +188,6 @@ test('combo declarations reject missing, blank, and non-string ownership before 
               {
                 id: 'fixture.profile',
                 name: 'Profile',
-                profileKind: 'mechanic',
                 effects: [{ type: 'strike', coefficient: 1, ...metadata }]
               }
             ]

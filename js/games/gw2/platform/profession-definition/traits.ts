@@ -103,7 +103,6 @@ export interface TraitDefinition<TSkill extends Skill = Skill> {
     readonly cooldownPolicy?: BalanceProfile['cooldownPolicy'];
     readonly effects?: BalanceProfile['effects'];
   };
-  readonly profiles?: readonly BalanceProfile[];
   readonly modifierRules?: readonly (Gw2ModifierRule & {
     /** Applied effects may outlive selection; their predicate owns eligibility instead. */
     readonly requiresSelection?: boolean;
@@ -127,15 +126,13 @@ export function traitBalanceProfiles<TSkill extends Skill>(
           {
             id: trait.balance.id ?? trait.id,
             name: trait.name,
-            profileKind: 'trait' as const,
             categories: ['Trait'],
             skillFamily: 'Trait',
             effects: [],
             ...trait.balance
           }
         ]
-      : []),
-    ...(trait.profiles ?? [])
+      : [])
   ]);
 }
 
@@ -231,7 +228,6 @@ export function defineTrait<TSkill extends Skill>(
         'id',
         'name',
         'balance',
-        'profiles',
         'modifierRules',
         'triggers',
         'rechargeRules',
@@ -242,7 +238,7 @@ export function defineTrait<TSkill extends Skill>(
       ].includes(key)
     )
       throw new TypeError(`Unsupported trait definition field: ${key}.`);
-  for (const key of ['profiles', 'modifierRules', 'triggers', 'rechargeRules'] as const)
+  for (const key of ['modifierRules', 'triggers', 'rechargeRules'] as const)
     if (definition[key] != null && !Array.isArray(definition[key]))
       throw new TypeError(`Trait ${definition.id}.${key} must be an array.`);
   for (const rule of [...(definition.triggers ?? []), ...(definition.rechargeRules ?? [])])
@@ -256,8 +252,7 @@ export function defineTrait<TSkill extends Skill>(
     if (typeof definition.balance !== 'object' || Array.isArray(definition.balance))
       throw new TypeError(`Trait ${definition.id}.balance must be an object.`);
 
-    for (const key of ['name', 'profileKind'])
-      if (key in definition.balance) throw new TypeError(`Trait ${definition.id}.balance cannot override ${key}.`);
+    if ('name' in definition.balance) throw new TypeError(`Trait ${definition.id}.balance cannot override name.`);
   }
 
   for (const surface of ['hooks', 'lifetime'] as const) {

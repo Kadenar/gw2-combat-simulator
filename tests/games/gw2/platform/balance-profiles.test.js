@@ -48,7 +48,7 @@ test('balance-profile lookup supports every runtime context shape and preserves 
 });
 
 test('balance-profile numeric lookup returns patched values and rejects invalid fields', () => {
-  const profile = { id: 101, name: 'Patchable', profileKind: 'trait', threshold: 3, effects: [] };
+  const profile = { id: 101, name: 'Patchable', threshold: 3, effects: [] };
   const catalog = {
     balanceProfiles: [profile],
     balanceProfilesById: new Map([[101, profile]])

@@ -483,7 +483,6 @@ const trait = defineTrait({
     attributeConversion: 0.1,
     effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 }]
   },
-  profiles: [{ id: 'fixture.extra', name: 'Separate proc', profileKind: 'trait', effects: [] }],
   modifierRules: [
     {
       id: 'fixture.damage',
@@ -577,7 +576,7 @@ test('trait expansion preserves scalar hooks, damage policies, and cached runtim
   assert.equal(selected.modifyCriticalChance({}, 0), 0.1);
   assert.equal(selected.rechargeWork({ config: { selectedTraitIds: [101] }, helpers: selected.catalog }, skill, 10), 5);
   assert.equal(unselected.rechargeWork({ config: { selectedTraitIds: [] }, helpers: selected.catalog }, skill, 10), 10);
-  assert.equal(family.catalog.balanceProfilesById.has('fixture.extra'), true);
+  assert.throws(() => defineTrait({ ...metadata, profiles: [] }), /Unsupported trait definition field: profiles/);
   const behaviorOnly = familyWith(moduleWith([defineTrait({ id: 102, name: 'No balance' })]));
   assert.equal(behaviorOnly.catalog.balanceProfiles.length, 0);
   const named = familyWith(
@@ -993,7 +992,7 @@ test('composition rejects duplicate ownership and invalid declarative references
           defineTrait({
             id: 102,
             name: 'Duplicate profile',
-            profiles: [{ id: 101, name: 'Duplicate', profileKind: 'trait' }]
+            balance: { id: 101 }
           })
         ])
       ),

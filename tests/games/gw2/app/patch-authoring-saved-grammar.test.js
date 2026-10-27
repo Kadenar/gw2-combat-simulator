@@ -21,7 +21,6 @@ for (const section of ['skills', 'balanceProfiles']) {
         id: 1,
         name: 'Fixture',
         cooldown: 10,
-        ...(section === 'balanceProfiles' ? { profileKind: 'mechanic' } : {}),
         effects: [
           { type: 'strike', name: 'Initial', coefficient: 1 },
           ...(stacked
@@ -107,11 +106,13 @@ for (const section of ['skills', 'balanceProfiles']) {
         ]
       };
       loadEditorPayload(payload);
-      editorState.selectedSection = section === 'skills' ? 'skills' : 'mechanics';
+      editorState.selectedSection = section === 'skills' ? 'skills' : 'traits';
+      editorState.selectedTraitView = 'effects';
       editorState.selectedSkillId = '1';
       editorState.selectedProfileId = '1';
       const root = { innerHTML: '', addEventListener() {} };
       bindPatchAuthoringView(root, { onSave() {}, onReset() {} });
+      assert.doesNotMatch(root.innerHTML, /data-select-section="mechanics"/);
       const displayed = (field) => {
         editorState.selectedSkillId = '1';
         editorState.selectedProfileId = '1';

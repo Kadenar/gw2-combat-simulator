@@ -909,7 +909,9 @@ test('removed Justice packets cannot arm an active charge or advance the passive
     id: 'no-justice',
     label: 'No Justice',
     professions: {
-      guardian: { skills: { [ID.JUSTICE]: { removeEffects: [{ type: 'condition', all: true }] } } }
+      guardian: {
+        skills: { [ID.JUSTICE]: { sideEffects: { justice: { removeEffects: [{ type: 'condition', all: true }] } } } }
+      }
     }
   });
   for (const rotation of [[wait(1000)], [ID.JUSTICE, wait(1000)]]) {

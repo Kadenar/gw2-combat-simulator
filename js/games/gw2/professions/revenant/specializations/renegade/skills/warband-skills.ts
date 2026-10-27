@@ -318,10 +318,26 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     energyCost: 0,
     castTimeMs: 0,
     // Warband completion delivers this stance-owned window; entering the stance never grants it.
-    effects: [
-      { name: 'band-together', type: 'buff', kind: 'band-together', duration: 4, stacks: 1, actorType: ACTOR.PLAYER }
-    ],
-    effectVariants: [{ when: () => true, transform: () => [] }]
+    effects: [],
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'revenant.complete-band-together',
+          id: 'band-together',
+          effects: [
+            {
+              name: 'band-together',
+              type: 'buff',
+              kind: 'band-together',
+              duration: 4,
+              stacks: 1,
+              actorType: ACTOR.PLAYER
+            }
+          ]
+        }
+      }
+    ]
   },
   [ID.CALL_OF_THE_RENEGADE]: {
     cooldown: 0,

@@ -1,3 +1,6 @@
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { elementalistBuffEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -617,11 +620,11 @@ test('inline action payload validation and patch removal retain canonical owners
   assert.ok(Object.isFrozen(action(patched).effects));
   assert.throws(
     () => read(catalog, 'Typo'),
-    /profession=fixture patch=selected skill=1 action=reward effect=boon\/Typo unknown effect key/
+    /profession=fixture patch=selected owner=1 action=reward effect=boon\/Typo unknown effect key/
   );
   assert.throws(
     () => requireEffect(owner(catalog), 'boon', 'Reward', { ...action(catalog), effects: [effect] }),
-    /profession=fixture patch=selected skill=1 action=reward effects must be normalized/
+    /profession=fixture patch=selected owner=1 action=reward effects must be normalized/
   );
   const removed = patch(patched, { removeEffects: [{ type: 'boon', name: 'Reward' }] });
   assert.equal(read(removed), undefined);
@@ -640,4 +643,33 @@ test('inline action payload validation and patch removal retain canonical owners
   const selected = patch(sharedHandler, { effects: [{ name: 'Reward', stacks: 4 }] });
   assert.equal(read(selected).stacks, 4);
   assert.equal(selected.skillsById.get(1).sideEffects[1].do.effects[0].stacks, 1);
+});
+
+// Shared boon emission must preserve trait ownership separately from the triggering skill's attribution.
+test('Elementalist boon emission distinguishes trait rewards from skill-action rewards', () => {
+  const boon = { type: 'boon', name: 'Reward', boon: 'Might', duration: 1, stacks: 1 };
+  const catalog = createCanonicalCatalog({
+    generated: [
+      {
+        id: 1,
+        name: 'Trigger',
+        effects: [],
+        sideEffects: [{ on: 'castCommit', do: { type: 'fixture.reward', id: 'reward', effects: [boon] } }]
+      }
+    ],
+    balanceProfiles: [{ id: 2, name: 'Trait reward', effects: [boon] }]
+  });
+  const skill = catalog.skillsById.get(1);
+  for (const [owner, source, sourceId] of [
+    [{ profile: catalog.balanceProfilesById.get(2) }, 'Trait', 2],
+    [{ skill, action: requireSkillAction(skill, 'reward') }, 'Elementalist', 1]
+  ]) {
+    const captured = captureEffectEmissions();
+    captured.effects.emit(elementalistBuffEffectRequest({ helpers: catalog }, 0, owner, 'Reward', 'Elementalist', 1));
+    assert.equal(captured.events.length, 1);
+    const event = captured.events[0];
+    assert.equal(event.source, source);
+    assert.equal(event.sourceId, sourceId);
+    assert.equal(event.skillId, skill.id);
+  }
 });

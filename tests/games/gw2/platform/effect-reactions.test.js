@@ -295,7 +295,7 @@ test('condition and control reactions run before profession observers with order
 test('variants and explicit summon ownership select their own reaction groups', () => {
   const base = strike([reaction(grant(1))]);
   const replacement = strike([reaction(grant(6), { actor: 'summon' })], { actorType: 'summon' });
-  const profiles = [{ id: 'fixture.variant', name: 'Variant', profileKind: 'trait', effects: [replacement] }];
+  const profiles = [{ id: 'fixture.variant', name: 'Variant', effects: [replacement] }];
   for (const keep of [true, false]) {
     const result = run([base], {
       profiles,
@@ -352,7 +352,6 @@ test('procedural profile actions retain causality and authored skill tasks stay 
       {
         id: 'fixture.reward',
         name: 'Reward',
-        profileKind: 'trait',
         effects: [strike([reaction(grant(5), { actor: 'effect' })], { atMs: 0 })]
       }
     ],
@@ -418,7 +417,7 @@ test('reaction validation rejects incompatible stages, malformed actions and mis
   assert.throws(
     () =>
       run([strike([])], {
-        profiles: [{ id: 'variant', name: 'Variant', profileKind: 'trait', effects: [] }],
+        profiles: [{ id: 'variant', name: 'Variant', effects: [] }],
         skill: {
           effectVariants: [{ when: () => true, profileId: 'variant', transform: () => [strike([reaction(grant(-1))])] }]
         }
@@ -473,7 +472,7 @@ test('reaction validation cache admits only immutable context-independent effect
 // Frozen reaction data may still reference mutable catalog indexes, so those lookups cannot use the literal fast path.
 test('reaction registration revalidates referenced profile values', () => {
   const catalog = catalogFor([strike([reaction(grant({ profile: 'amount', field: 'grant' }))])], {}, [
-    { id: 'amount', name: 'Amount', profileKind: 'trait', grant: 1, effects: [] }
+    { id: 'amount', name: 'Amount', grant: 1, effects: [] }
   ]);
   const skill = catalog.skills[0];
   const registry = createEffectReactions(catalog, {

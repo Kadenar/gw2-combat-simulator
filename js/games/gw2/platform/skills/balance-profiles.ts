@@ -75,8 +75,9 @@ function ownerDataLabel(owner: Skill | BalanceProfile, subject: string): string 
   return `profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${subject}`;
 }
 
+/** Shared effect diagnostics identify the owner without requiring a stored skill/profile discriminator. */
 function effectOwnerLabel(owner: Skill | BalanceProfile): string {
-  return ownerDataLabel(owner, `${'profileKind' in owner ? 'balance-profile' : 'skill'}=${owner.id}`);
+  return ownerDataLabel(owner, `owner=${owner.id}`);
 }
 
 /** Resolves patched balance data across scheduler, resolver, profession, and application context shapes. */

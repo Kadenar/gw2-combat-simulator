@@ -63,9 +63,9 @@ function createRitualistState(): RitualistState {
     painfulBondGeneration: 0,
     activeSpirits: {},
     spiritGeneration: 0,
-    // NaN signals "no anchor established yet"; the first summon uses the resource profile's initialDelay
+    // NaN signals "no anchor established yet"; the first summon uses the initial summon delay constant
     spiritAutoAnchorAt: Number.NaN,
-    // A re-summon uses the shorter resummonedSpiritAttackDelayMs profile value when establishing the next anchor.
+    // A re-summon uses the shorter re-summon delay constant when establishing the next anchor.
     resummonedSpiritAutoCycle: false,
     weaponSpells: {},
     soulTwistingAvailable: false,

@@ -1,7 +1,8 @@
+import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { signetAttributeEffects } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -46,6 +47,7 @@ test('tier variants use the captured spend after the live adrenaline pool change
 
 // Skill-owned mode duration and Rage extensions must compose without changing sibling skills or the base catalog.
 test('Berserk and individual Rage skills own independently selected mode durations', () => {
+  const originalExtension = warriorProfession.catalog.skillsById.get(ID.OUTRAGE).durationExtension;
   const patchId = 'warrior-mode-owners';
   const family = withPatchPreview(warriorProfession, {
     id: patchId,
@@ -80,10 +82,15 @@ test('Berserk and individual Rage skills own independently selected mode duratio
     });
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession.berserkUntil != null, active);
-    assert.equal(result.planningState.profession.adrenaline.maximum, active ? 10 : 30);
+    assert.equal(
+      result.planningState.profession.adrenaline.maximum,
+      active
+        ? warriorProfession.catalog.balanceProfilesById.get(TRAIT.PRIMAL_RAGE).maximumStacks
+        : WARRIOR_MAXIMUM_ADRENALINE
+    );
   }
 
-  assert.equal(warriorProfession.catalog.skillsById.get(ID.OUTRAGE).durationExtension, 3);
+  assert.equal(warriorProfession.catalog.skillsById.get(ID.OUTRAGE).durationExtension, originalExtension);
 });
 
 // Removing a magazine payload never refunds its captured ammunition or synthesizes another strike.

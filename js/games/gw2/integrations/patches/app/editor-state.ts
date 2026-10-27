@@ -23,7 +23,7 @@ export interface AuthoringPayload {
   readonly sourceFile: string;
 }
 
-export type AuthoringSection = 'traits' | 'skills' | 'mechanics' | 'overview';
+export type AuthoringSection = 'traits' | 'skills' | 'overview';
 
 export type TraitAuthoringView = 'modifiers' | 'effects';
 
@@ -279,7 +279,7 @@ export function hasSkillEdit(skillId: string): boolean {
   return Boolean(skillEdit(skillId));
 }
 
-/** Reports whether a trait or mechanic balance profile has a draft edit. */
+/** Reports whether a trait balance profile has a draft edit. */
 export function hasBalanceProfileEdit(profileId: string): boolean {
   return Boolean(balanceProfileEdit(profileId));
 }
@@ -309,7 +309,7 @@ export function selectSkill(skillId: string): void {
   editorState.selectedSkillId = skillId;
 }
 
-/** Selects one trait or mechanic balance profile. */
+/** Selects one trait balance profile. */
 export function selectProfile(profileId: string): void {
   editorState.selectedProfileId = profileId;
 }

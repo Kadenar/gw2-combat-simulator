@@ -23,14 +23,6 @@ test('fixed costs validate nonnegative finite amounts and reject competing selec
   );
 });
 
-// Reject obsolete owner kinds at catalog construction, before authoring or runtime can consume them.
-test('balance profiles accept only trait and shared mechanic owners', () => {
-  const load = (profileKind) =>
-    createCanonicalCatalog({ balanceProfiles: [{ id: 'owner', name: 'Owner', profileKind, effects: [] }] });
-  for (const kind of ['trait', 'mechanic']) assert.doesNotThrow(() => load(kind));
-  for (const kind of ['skill-variant', 'unknown', undefined]) assert.throws(() => load(kind), /invalid profileKind/);
-});
-
 test('shared autoattack helpers derive and index ID-based chains', () => {
   const chains = deriveAutoattackChains([
     { id: 1, type: 'Weapon', slot: 'Weapon_1', nextChainId: 2 },
@@ -112,7 +104,7 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
         { id: 1, name: 'Action', effects: [], ...extra },
         { id: 2, name: 'Ammo', ammo: 2, effects: [] }
       ],
-      balanceProfiles: [{ id: 'test.profile', name: 'Profile', profileKind: 'trait', resourceGain: 3, effects: [] }]
+      balanceProfiles: [{ id: 'test.profile', name: 'Profile', resourceGain: 3, effects: [] }]
     });
   const declaration = (action) => ({ sideEffects: [{ on: 'castCommit', do: action }] });
   for (const action of [

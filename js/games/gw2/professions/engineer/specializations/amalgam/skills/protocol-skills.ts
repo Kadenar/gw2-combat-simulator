@@ -81,9 +81,6 @@ const shred: Partial<AmalgamSkill> = {
 };
 
 const thorns: Partial<AmalgamSkill> = {
-  // Evolve and Silver Lining grant this skill's persistent Rapacious payload.
-  rapaciousDuration: 8,
-  rapaciousInternalCooldown: 0.48,
   // The intrinsic field-gated retaliation is scheduled once; Morph trait rewards remain shared.
   maximumStacks: 6,
   retaliationInterval: 1,
@@ -183,8 +180,6 @@ const demolish: Partial<AmalgamSkill> = {
 };
 
 const obliterate: Partial<AmalgamSkill> = {
-  // Titanic grants this additional Power and Condition Damage per live Might stack.
-  titanicAttributePerStack: 5,
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 800,
@@ -326,19 +321,29 @@ const protect: Partial<AmalgamSkill> = {
   ]
 };
 
+/** Slot variants dispatch the same strain; only its canonical skill exposes the shared payload for patching. */
+function withoutStrainPayload(skill: Partial<AmalgamSkill>): Partial<AmalgamSkill> {
+  return {
+    ...skill,
+    sideEffects: skill.sideEffects?.map((rule) =>
+      'id' in rule.do && rule.do.id === 'strain' ? { ...rule, do: { type: 'engineer.morph' } } : rule
+    )
+  };
+}
+
 export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<AmalgamSkill>>> = Object.freeze({
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: { ...shred, mechanicSlot: 2 },
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: { ...shred, mechanicSlot: 3 },
   [ID.OFFENSIVE_PROTOCOL_SHRED]: { ...shred, mechanicSlot: 4 },
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: { ...thorns, mechanicSlot: 2 },
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: { ...thorns, mechanicSlot: 3 },
-  [ID.DEFENSIVE_PROTOCOL_THORNS]: { ...thorns, mechanicSlot: 4 },
+  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: { ...withoutStrainPayload(thorns), mechanicSlot: 2 },
+  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: { ...withoutStrainPayload(thorns), mechanicSlot: 3 },
+  [ID.DEFENSIVE_PROTOCOL_THORNS]: { ...thorns, rapaciousDuration: 8, rapaciousInternalCooldown: 0.48, mechanicSlot: 4 },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: { ...demolish, mechanicSlot: 2 },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: { ...demolish, mechanicSlot: 3 },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: { ...demolish, mechanicSlot: 4 },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: { ...obliterate, mechanicSlot: 2 },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: { ...obliterate, mechanicSlot: 3 },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: { ...obliterate, mechanicSlot: 4 },
+  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: { ...withoutStrainPayload(obliterate), mechanicSlot: 2 },
+  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: { ...withoutStrainPayload(obliterate), mechanicSlot: 3 },
+  [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: { ...obliterate, titanicAttributePerStack: 5, mechanicSlot: 4 },
   [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798]: { ...cleanse, mechanicSlot: 2 },
   [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285]: { ...cleanse, mechanicSlot: 3 },
   [ID.DEFENSIVE_PROTOCOL_CLEANSE]: { ...cleanse, mechanicSlot: 4 },

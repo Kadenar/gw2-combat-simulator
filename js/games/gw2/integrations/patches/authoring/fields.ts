@@ -105,12 +105,10 @@ export const PATCHABLE_BALANCE_PROFILE_NUMERIC_FIELDS = Object.freeze([
   'expertiseBonus',
   'vitalityConversion',
   'weaponAttributeBonus',
-  'baseAttribute',
   'inheritanceRatio',
   'secondaryAttributeCap',
   'powerCap',
   'precisionCap',
-  'basePrecision',
   'criticalChance',
   'criticalDamage',
   'criticalChanceBonus',
@@ -401,7 +399,6 @@ export function balanceProfileAuthoringReference(profile: Readonly<BalanceProfil
   return deepFreeze({
     id: profile.id,
     name: profile.name,
-    profileKind: profile.profileKind,
     ...balanceProfilePatchableNumericFields(profile),
     effects: (profile.effects || []).map((effect) =>
       balanceProfileEffectAuthoringReference(effect as unknown as Readonly<Record<string, unknown>>)

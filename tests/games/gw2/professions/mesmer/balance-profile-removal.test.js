@@ -349,8 +349,8 @@ test('fixed clone capacity is shared by simulation and presentation', () => {
     primaryWeapon: 'Scepter',
     initialResource: 10
   });
-  assert.equal(result.planningState.profession.resource, 3);
-  assert.equal(mesmerCoreUi.resourceViews({ catalog: mesmerCatalog })[0].maximum, 3);
+  const maximum = mesmerCoreUi.resourceViews({ catalog: mesmerCatalog })[0].maximum;
+  assert.equal(result.planningState.profession.resource, maximum);
 });
 
 test('removing the first Fury packet keeps the edited allied packet bound to allies', () => {

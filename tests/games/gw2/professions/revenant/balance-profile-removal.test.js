@@ -179,7 +179,7 @@ test('Battle Scars honors skill damage patches and trait grant removal and expir
 
 test('removed Band Together buff arms no enhancement while the unpatched window still does', () => {
   for (const [skills, ready] of [
-    [{ [ID.LEGENDARY_RENEGADE_STANCE]: remove('buff', 'band-together') }, false],
+    [{ [ID.LEGENDARY_RENEGADE_STANCE]: { sideEffects: { 'band-together': remove('buff', 'band-together') } } }, false],
     [{}, true]
   ]) {
     const result = runRevenant([{ type: 'cast', skillId: 40485 }], RENEGADE_CONFIG, {

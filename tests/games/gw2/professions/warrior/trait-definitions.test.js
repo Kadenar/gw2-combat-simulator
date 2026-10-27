@@ -7,14 +7,9 @@ import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js
 test('Warrior trait profiles have a single registered owner across Core and all elites', () => {
   const definitions = warriorNativeModules.flatMap((module) => module.traitDefinitions);
   assert.equal(new Set(definitions.map(({ id }) => id)).size, definitions.length);
-  for (const profile of warriorProfession.catalog.balanceProfiles.filter(
-    ({ profileKind }) => profileKind === 'trait'
-  )) {
+  for (const profile of warriorProfession.catalog.balanceProfiles) {
     assert.equal(
-      definitions.filter(
-        ({ id, balance, profiles }) =>
-          (balance && (balance.id ?? id) === profile.id) || profiles?.some(({ id }) => id === profile.id)
-      ).length,
+      definitions.filter(({ id, balance }) => balance && (balance.id ?? id) === profile.id).length,
       1,
       profile.name
     );

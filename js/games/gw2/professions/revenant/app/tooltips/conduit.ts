@@ -1,7 +1,6 @@
 import {
   outsideScopeTooltip,
   profileFact,
-  profileTooltip,
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
@@ -185,8 +184,7 @@ export const conduitTooltips = {
       description: 'Entity skills grant swiftness. Specific Entity skills grant additional boons.',
       ...variantEffects(tooltipProfile(balanceContext, TRAIT.SHARED_WISDOM).effects)
     }),
-    [TRAIT.LINGERING_DETERMINATION]: profileTooltip(
-      TRAIT.LINGERING_DETERMINATION,
+    [TRAIT.LINGERING_DETERMINATION]: traitTooltip(
       'Swapping legends in combat grants affinity after the swap resets it.',
       [['resourceGain', 'Affinity gained']]
     ),
@@ -197,20 +195,16 @@ export const conduitTooltips = {
         ['resourceGain', 'Virtual affinity bonus']
       ]
     ),
-    [TRAIT.EXPANDED_CONSCIOUSNESS]: profileTooltip(
-      TRAIT.EXPANDED_CONSCIOUSNESS,
-      'Reaching maximum affinity grants energy.',
-      [['resourceGain', 'Energy gained']]
-    ),
+    [TRAIT.EXPANDED_CONSCIOUSNESS]: traitTooltip('Reaching maximum affinity grants energy.', [
+      ['resourceGain', 'Energy gained']
+    ]),
     [TRAIT.ETHEREAL_PURIFICATION]: outsideScopeTooltip,
-    [TRAIT.MISTFIRE]: profileTooltip(TRAIT.MISTFIRE, 'Control effects inflict burning. Twin Moon Sweep is excluded.', [
+    [TRAIT.MISTFIRE]: traitTooltip('Control effects inflict burning. Twin Moon Sweep is excluded.', [
       ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]),
-    [TRAIT.ENHANCED_EMBODIMENT]: profileTooltip(
-      TRAIT.ENHANCED_EMBODIMENT,
-      'Legend swaps in combat recharge faster and extend Cosmic Wisdom.',
-      [['rechargeMultiplier', 'Legend-swap recharge duration', tooltipFactorChange]]
-    ),
+    [TRAIT.ENHANCED_EMBODIMENT]: traitTooltip('Legend swaps in combat recharge faster and extend Cosmic Wisdom.', [
+      ['rechargeMultiplier', 'Legend-swap recharge duration', tooltipFactorChange]
+    ]),
     [TRAIT.FOUND_PURPOSE]: (balanceContext) => ({
       description: 'Swapping legends in combat shares the Numinous Gift boon package with nearby allies.',
       ...variantEffects(tooltipProfile(balanceContext, TRAIT.NUMINOUS_GIFT).effects)

@@ -75,7 +75,9 @@ test('removed Justice effects cannot grant an outcome or consume passive progres
       helpers: applySkillPatch(guardianCatalog, {
         skills: {
           [ID.JUSTICE]: {
-            removeEffects: [{ type: 'condition', name: `Burning (${active ? 'active' : 'passive'})` }]
+            sideEffects: {
+              justice: { removeEffects: [{ type: 'condition', name: `Burning (${active ? 'active' : 'passive'})` }] }
+            }
           }
         }
       }),

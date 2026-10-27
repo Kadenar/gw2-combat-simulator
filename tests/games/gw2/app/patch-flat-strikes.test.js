@@ -30,7 +30,6 @@ for (const section of ['skills', 'balanceProfiles']) {
         const source = {
           id: 1,
           name: 'Flat strike',
-          ...(section === 'balanceProfiles' ? { profileKind: 'mechanic' } : {}),
           effects: [
             {
               type: 'strike',
@@ -75,7 +74,6 @@ for (const section of ['skills', 'balanceProfiles']) {
       name: 'Unused fields',
       activeDamageIncrease: 1,
       ferocityBonus: 20,
-      ...(section === 'balanceProfiles' ? { profileKind: 'mechanic' } : {}),
       effects: []
     };
     const fields =
@@ -87,8 +85,7 @@ for (const section of ['skills', 'balanceProfiles']) {
         {
           id: source.id,
           name: source.name,
-          effects: [],
-          ...(section === 'balanceProfiles' ? { profileKind: 'mechanic' } : {})
+          effects: []
         }
       ]
     });

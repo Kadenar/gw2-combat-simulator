@@ -114,7 +114,9 @@ export const guardianCoreTooltips = {
       'Activate Justice to arm Burning on your next qualifying hit. While its passive is ready, qualifying hits periodically burn the target; activation and the passive use their listed alternatives.',
       (balanceContext) => [
         skillFact(balanceContext, ID.JUSTICE, 'threshold', 'Base qualifying hits per passive trigger'),
-        ...simulationEffectFacts(requireSkillFromContext(balanceContext, ID.JUSTICE).effects).facts
+        ...simulationEffectFacts(
+          requireSkillAction(requireSkillFromContext(balanceContext, ID.JUSTICE), 'justice').effects
+        ).facts
       ]
     ),
     [ID.BANISH]: skillTooltip("Strike and knock back your target. A completed cast resets Mighty Blow's recharge.")

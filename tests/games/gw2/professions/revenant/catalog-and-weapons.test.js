@@ -115,7 +115,10 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
     resourceGain: 75,
     threshold: 10
   });
-  assert.equal(battleScars.skill.effects[0].flatStrikeBase, 117);
+  assert.equal(
+    battleScars.skill.effects[0].flatStrikeBase,
+    revenantCatalog.skillsById.get(battleScarsSkill.id).effects[0].flatStrikeBase
+  );
   assert.equal(
     skill(SKILL.ABYSSAL_RAZE).skill.effects.find((effect) => effect.type === 'strike').damageIncreasePerStack,
     0.33

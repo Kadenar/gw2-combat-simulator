@@ -28,11 +28,6 @@ function canonicalModuleName(value: object, specializations: readonly CatalogEnt
 export function createNativeModuleData<TSkill extends Skill = Skill>(
   selection: NativeModuleDataSelection<TSkill>
 ): NativeModuleCatalogData<TSkill> {
-  // Reject obsolete module tuning before selection could silently discard it.
-  if (Object.hasOwn(selection, 'balanceProfiles')) {
-    throw new TypeError('Module data.balanceProfiles is not supported; declare skill tuning or traitDefinitions.');
-  }
-
   const {
     id,
     generatedSkills = [],

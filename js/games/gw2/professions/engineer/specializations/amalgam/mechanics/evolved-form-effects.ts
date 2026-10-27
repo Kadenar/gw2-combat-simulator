@@ -11,7 +11,7 @@ import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/
 import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** A positive strike resolved while Amalgam is selected; the cause is the resolved hit. */
 export interface AmalgamStrike {
@@ -38,8 +38,8 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
   )
     return;
 
-  // The retained grant owns the proc even if a different protocol is selected afterwards.
-  const skill = requireSkillFromContext(context, strain.rapaciousSkillId!);
+  // The shared strain owner keeps one cooldown regardless of the last granting slot.
+  const skill = requireSkillFromContext(context, ID.DEFENSIVE_PROTOCOL_THORNS);
   // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.
   const cooldown = skillNumber(skill, 'rapaciousInternalCooldown');
 

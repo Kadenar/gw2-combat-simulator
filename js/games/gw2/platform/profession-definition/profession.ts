@@ -61,11 +61,7 @@ import type {
   NativeProfessionRuntimeState
 } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  defineTrait,
-  prepareTraitAttributes,
-  traitBalanceProfiles
-} from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, prepareTraitAttributes } from '#gw2/platform/profession-definition/traits.js';
 import {
   assertTraitTrigger,
   compileProfessionRules,
@@ -126,10 +122,6 @@ function assertNativeModuleDefinition(definition: object): void {
     throw new TypeError('canSwapWeaponSetsInCombat must be a boolean.');
 
   assertObject(candidate.data, `${candidate.id}.data`);
-
-  // Module data admits skills and metadata; trait definitions are the only source of trait balance profiles.
-  if (Object.hasOwn(candidate.data!, 'balanceProfiles'))
-    throw new TypeError('Module data.balanceProfiles is not supported; declare skill tuning or traitDefinitions.');
 
   assertObject(candidate.state, `${candidate.id}.state`);
   for (const key of Object.keys(candidate.state!)) {
@@ -401,11 +393,11 @@ export function defineNativeProfession<
       ruleOwners.add(rule.id);
     }
 
-    // A Core rule cannot refer to an inactive elite profile; elite rules may use Core contributions.
+    // Reuse assembled profiles; Core rules cannot refer to inactive elite tuning.
     const profiles = new Map(
       [
-        ...traitBalanceProfiles(modules[0].traitDefinitions ?? []),
-        ...traitBalanceProfiles(module.traitDefinitions ?? [])
+        ...(assembly.fragments.get(modules[0].id)!.balanceProfiles ?? []),
+        ...(assembly.fragments.get(module.id)!.balanceProfiles ?? [])
       ].map((profile) => [profile.id, profile])
     );
     for (const trigger of module.hooks?.traitTriggers ?? []) {

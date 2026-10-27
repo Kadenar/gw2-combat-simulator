@@ -303,22 +303,6 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
   );
 });
 
-// Both entry points reject obsolete profile input instead of silently dropping authored tuning.
-test('module definitions and data factories reject authored balanceProfiles', () => {
-  assert.throws(
-    () => defineNativeModule({ id: 'Core', data: { balanceProfiles: [] }, state: { create: () => ({}) } }),
-    /Module data\.balanceProfiles is not supported/
-  );
-  assert.throws(
-    () => createNativeModuleData({ id: 'Core', balanceProfiles: [] }),
-    /Module data\.balanceProfiles is not supported/
-  );
-  assert.throws(
-    () => createProfessionModuleDataFactory({})('Core', { skillMechanics: {}, balanceProfiles: [] }),
-    /Module data\.balanceProfiles is not supported/
-  );
-});
-
 test('resolved critical-hit helper shares sampled outcomes and strict ICDs across modes', () => {
   assert.throws(() => criticalProcHandler({ id: '', handler() {} }), /Critical proc requires id and handler/);
   assert.throws(() => criticalProcHandler({ id: 'invalid' }), /Critical proc requires id and handler/);

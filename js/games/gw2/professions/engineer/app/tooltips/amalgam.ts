@@ -1,3 +1,4 @@
+import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   fromProfile,
@@ -29,6 +30,7 @@ function strainFacts(
   qualifier: string
 ): readonly TooltipFact[] {
   const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skillId);
+  skillId = amalgamStrainOwnerId(skillId);
   const skill = balanceContext.catalog.skillsById.get(skillId)!;
   const effects = requireSkillAction(skill, 'strain').effects;
   const facts = simulationEffectFacts(

@@ -53,7 +53,7 @@ export interface NativePatchAuthoringModule {
   readonly id: string;
   readonly traits: readonly Readonly<CatalogEntity>[];
   readonly skills: readonly NativePatchAuthoringSkill[];
-  /** Trait and shared mechanic tuning; skills own their conditional payloads directly. */
+  /** Trait tuning; skills own their intrinsic and conditional payloads directly. */
   readonly balanceProfiles: readonly NativePatchAuthoringBalanceProfile[];
   readonly modifierRules: readonly NativePatchAuthoringModifierRule[];
 }

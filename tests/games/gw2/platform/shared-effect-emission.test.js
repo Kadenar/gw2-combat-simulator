@@ -285,7 +285,7 @@ test('trait profile selection validates named effects and preserves cast attribu
     ]
   };
   const runtime = {
-    helpers: createCanonicalCatalog({ balanceProfiles: [{ ...profile, profileKind: 'trait' }] }),
+    helpers: createCanonicalCatalog({ balanceProfiles: [profile] }),
     effects: createEffectEmissionService({
       expansionBudget: createEffectExpansionBudget(),
       now: () => 2,
@@ -329,7 +329,6 @@ test('trait profiles retain mechanic cancellation ownership independently of cas
       {
         id: 42,
         name: 'Owned trait',
-        profileKind: 'trait',
         effects: [{ type: 'boon', boon: 'Might', duration: 2, stacks: 1 }]
       }
     ]
