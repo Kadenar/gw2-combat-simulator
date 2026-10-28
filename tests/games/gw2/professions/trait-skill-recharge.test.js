@@ -76,7 +76,13 @@ const cases = [
     G.ZEALOTS_RESOLUTION,
     GS.LESSER_SYMBOL_OF_RESOLUTION,
     30,
-    (r) => r.fireTrigger(guardianStruck, { cause: hit(r), damage: 1 })
+    // Supply the pre-hit health snapshot so the health-gated trait reaches its recharge contract.
+    (r) =>
+      r.fireTrigger(guardianStruck, {
+        cause: hit(r),
+        damage: 1,
+        targetHealthFractionBefore: r.config.target.fixedHealthFraction
+      })
   ],
   [
     guardianProfession,

@@ -1203,8 +1203,10 @@ test('benchmark navigation preserves the workspace, filters, browser history, an
     .getByRole('group', { name: 'Professions', exact: true })
     .getByRole('link', { name: 'Guardian', exact: true })
     .click();
-  await expect(page).toHaveURL(/guardian\.html\?embed=1&standalone=1#benchmarks$/);
-  await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
+  // Profession changes open Golem while preserving the embedding flags from the benchmark page.
+  await expect(page).toHaveURL(/guardian\.html\?embed=1&standalone=1#workspace$/);
+  await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
+  await expect(navigation.getByRole('link', { name: 'Golem', exact: true })).toHaveAttribute('aria-current', 'page');
 });
 
 // Table activation uses native buttons for keyboard access and preserves selection across ranking changes.
