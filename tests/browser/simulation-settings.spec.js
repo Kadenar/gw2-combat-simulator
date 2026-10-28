@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openSimulator } from '#tests/helpers/browser-workspace.js';
 
 // Native target and delay edits must preserve row layout through worker results, including swaps after target death.
 test('weapon-swap line breaks survive settings that end combat before the remaining rotation', async ({ page }) => {
@@ -248,4 +249,93 @@ test('simulation seed and critical damage settings persist with the build', asyn
       window.professionApp.resultRevision === window.professionApp.buildRevision &&
       window.professionApp.results?.randomness.seed === 0
   );
+});
+
+test('simulation config controls and result-dependent palette state work in the browser', async ({ page }) => {
+  await openSimulator(page);
+
+  const openConfig = page.locator('#simulation-settings > summary');
+
+  await openConfig.click();
+  const config = page.locator('#simulation-settings');
+
+  await expect(config).toBeVisible();
+  await expect(config.getByText('Timeline Display', { exact: true })).toBeVisible();
+  await expect(config.getByLabel('Display idle time')).toBeVisible();
+  await expect(config.getByLabel('Overlay sigils')).toBeVisible();
+  await expect(config.getByLabel('Overlay relics')).toBeVisible();
+  await expect(config.getByLabel('Overlay Sovereign of Light')).toHaveCount(0);
+
+  await openConfig.click();
+  await expect(config.locator('#perma-boons')).toBeHidden();
+  await expect(openConfig).toBeFocused();
+
+  await page.locator('.pal-skill[data-skill="Bladecall"]').click();
+  await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
+  await expect(page.locator('#header-dps')).toHaveAttribute('aria-label', /Current rotation DPS: /);
+  await expect(page.locator('[data-role="current-rotation-dps"]')).toHaveCount(0);
+});
+
+// Embedded settings use the same native disclosure and retain edits across collapse and resize.
+test('embedded simulation settings expand inline on narrow frames', async ({ page }) => {
+  await page.goto('/');
+  await page.setContent(
+    '<iframe title="Simulator" src="/mesmer.html?embed=1" style="width: 800px; height: 600px"></iframe>'
+  );
+  const frame = page.frameLocator('iframe');
+  await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
+  const trigger = frame.locator('#simulation-settings > summary');
+  const config = frame.locator('#simulation-settings');
+  const controls = config.locator('#perma-boons');
+
+  await trigger.focus();
+  await trigger.press('Enter');
+  await expect(controls).toBeVisible();
+  await expect(trigger).toBeFocused();
+  await expect(frame.locator('dialog[open]')).toHaveCount(0);
+  await config.getByLabel('Display idle time').check();
+  await trigger.click();
+  await expect(controls).toBeHidden();
+  await expect(trigger).toBeFocused();
+
+  await page.locator('iframe').evaluate((iframe) => {
+    iframe.style.width = '320px';
+    iframe.style.height = '400px';
+  });
+  await trigger.press('Space');
+  await expect(config.getByLabel('Display idle time')).toBeChecked();
+  expect(await config.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await config.getByLabel('Overlay relics').check();
+  await trigger.click();
+  await expect(controls).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+// Settings occupy page space before the builder instead of covering it, and remain hidden in Analysis.
+test('simulation settings fit the workspace and hide in Analysis', async ({ page }) => {
+  await openSimulator(page);
+  const config = page.locator('.rotation-section > #simulation-settings');
+  const trigger = config.locator(':scope > summary');
+  const controls = config.locator('#perma-boons');
+
+  for (const width of [320, 390, 1280]) {
+    await page.setViewportSize({ width, height: 900 });
+    await trigger.click();
+    await expect(controls).toBeVisible();
+    expect(await config.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    const expanded = await config.boundingBox();
+    const builder = await page.locator('.rotation-panel-shell').boundingBox();
+    expect(builder.y).toBeGreaterThanOrEqual(expanded.y + expanded.height);
+    await trigger.click();
+    await expect(controls).toBeHidden();
+    await expect(trigger).toBeFocused();
+    expect((await config.boundingBox()).height).toBeLessThan(expanded.height);
+  }
+
+  await trigger.click();
+  // Isolate Analysis visibility from navigation's separate workspace-reset behavior.
+  await page.evaluate(() => {
+    document.body.dataset.simulatorView = 'analysis';
+  });
+  await expect(config).toBeHidden();
 });

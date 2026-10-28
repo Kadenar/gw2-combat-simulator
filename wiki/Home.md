@@ -17,6 +17,8 @@ state. Use it for controlled comparisons; it is not a replacement for in-game te
 
 ## More help
 
+- [Benchmarks](Benchmarks)
+- [Boss scenarios](Boss-Scenarios)
 - [Importing rotations and combat logs](Importing-Rotations)
 - [Profession support](Profession-Support)
 - [Accuracy and scope](Accuracy-and-Scope)

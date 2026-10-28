@@ -75,6 +75,20 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
   });
   assert.equal(nextPulse(reset), 11);
 
+  // Rearming replaces the old task: the reset deadline grants one pulse and advances one cadence.
+  const observed = [];
+  const rearmed = live(
+    'Core',
+    ["Infiltrator's Signet", wait(1000), { type: 'cooldown-reset' }, wait(10000)],
+    { selectedSkillIds, initialInitiative: 0 },
+    {
+      probes: [10, 11].map((at) => [at, (runtime) => observed.push(runtime.resourceController.value('initiative'))])
+    }
+  );
+  assert.deepEqual(rearmed.warnings, []);
+  assert.equal(observed[1] - observed[0], 2, 'one second of regeneration plus one discrete pulse');
+  assert.equal(nextPulse(rearmed), 21);
+
   const step = simulate('Core', ["Infiltrator's Signet", wait(1000)], {
     selectedSkillIds,
     relic: 'Peitha',

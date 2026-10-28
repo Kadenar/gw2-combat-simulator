@@ -29,6 +29,19 @@ Pages and release CI run each of the nine profession directories in a named step
 shared profession contracts step runs `tests/games/gw2/professions/*.test.js`. A failed step does not skip the remaining
 test groups, but any failed check still blocks deployment or release asset publication.
 
+`architecture/test-discovery.test.js` checks that publication CI assigns every Node suite to exactly one group. Update
+the publication globs when adding a new test owner; build-context tests run with app/UI and all integration tests run
+with importers.
+
+Browser benchmark coverage is separated into dashboard controls, navigation/loading, charts, build previews, health
+charts, and patch previews. Shared page setup lives in `helpers/browser-benchmarks.js` and
+`helpers/browser-workspace.js`. Rotation loading, hotkeys, comparison, and simulation settings live in their feature
+suites; `browser/layout.spec.js` owns the remaining workspace layout contracts.
+
+GW2 app tests group build file workflows, palette composition, proc markers, workspace presentation, chart models, chart
+views, summaries, and event-log rendering by feature. Extend those suites instead of restoring a catch-all
+`app-ui.test.js` or adding unrelated cases to `result-presentation.test.js`.
+
 GW2 palette, timeline, chart, result, and icon views belong in `games/gw2/app/`, even when their exported names describe
 shared UI. Neutral `#ui/` primitives belong in `ui/`. View tests can reuse `helpers/dom.js` to capture markup without
 browser nodes.

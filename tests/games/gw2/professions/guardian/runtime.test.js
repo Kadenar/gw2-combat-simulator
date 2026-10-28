@@ -370,16 +370,24 @@ test('Willbender same-virtue trails overlap while a different virtue retires pen
   const fields = overlapping.resolvedEvents.filter((event) => event.type === 'damage' && event.willbenderFlames);
   assert.equal(new Set(fields.map((event) => event.activationId)).size, 2);
   assert.equal(wb(overlapping).flameGeneration, 1);
-  const switched = run([ID.FLOWING_RESOLVE, wait(500), ID.RUSHING_JUSTICE, wait(3000)], willbender);
-  const old = switched.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillId === ID.WILLBENDER_FLAMES
-  );
-  assert.deepEqual(
-    old.map((event) => event.at),
-    [1]
-  );
-  assert.equal(wb(switched).flameGeneration, 2);
-  assert.deepEqual(switched.warnings, []);
+  // Either replacement virtue retires every old activation while retaining its own field.
+  for (const [skill, kind, fieldId] of [
+    [ID.RUSHING_JUSTICE, 'willbender-justice', ID.WILLBENDER_FLAMES_ID_62618],
+    [ID.CRASHING_COURAGE, 'willbender-courage', ID.WILLBENDER_FLAMES_COURAGE]
+  ]) {
+    const switched = run([ID.FLOWING_RESOLVE, ID.FLOWING_RESOLVE, wait(1000), skill, wait(6000)], willbender);
+    const old = switched.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === ID.WILLBENDER_FLAMES
+    );
+    const replacement = switched.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === fieldId);
+    const activation = switched.events.find((event) => event.kind === kind).at;
+    assert.equal(new Set(old.map((event) => event.activationId)).size, 2);
+    assert.ok(old.every((event) => event.at < activation));
+    assert.ok(replacement.length > 0);
+    assert.ok(replacement.every((event) => event.at >= activation));
+    assert.equal(wb(switched).flameGeneration, 2);
+    assert.deepEqual(switched.warnings, []);
+  }
 });
 
 test('Willbender canceled activations preserve existing fields and cannot create virtue windows', () => {

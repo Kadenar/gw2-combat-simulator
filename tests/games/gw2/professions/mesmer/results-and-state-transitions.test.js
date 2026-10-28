@@ -205,11 +205,13 @@ test('Combat Start is timeline zero while DPS waits for the first subsequent hit
     formatResultTimelineTime(result.events.find((event) => event.type === 'combat_start').at * 1000, result),
     '0.000s'
   );
-  assert.equal(
-    formatResultTimelineTime(result.steps.find((step) => step.skill === 'Bladecall').start, result),
-    '0.180s'
-  );
-  assert.equal(formatResultTimelineTime(result.steps.find((step) => step.skill === 'Bladecall').end, result), '0.620s');
+  // Timeline labels subtract the combat origin from recorded endpoints, independently of skill tuning.
+  const bladecall = result.steps.find((step) => step.skill === 'Bladecall');
+  const combatStart = result.events.find((event) => event.type === 'combat_start').at;
+  for (const endpoint of [bladecall.start, bladecall.end]) {
+    assert.equal(formatResultTimelineTime(endpoint, result), `${(endpoint / 1000 - combatStart).toFixed(3)}s`);
+  }
+
   assert.equal(result.dpsStartTime, result.firstHitTime);
 });
 

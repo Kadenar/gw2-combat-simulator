@@ -1,10 +1,11 @@
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { professionOptions } from '#gw2/profession-registry.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
+import { selectSpecialization } from '#gw2/app/build/panels/traits.js';
 
 // Every profession must preserve empty tiers and minor opt-outs through the shared build codec and trait resolver.
 test('disabled traits survive saving and loading for every profession', async () => {
@@ -81,4 +82,136 @@ test('patch trait positions survive saving and loading while malformed positions
   assert.deepEqual(adapter.profession.migrateBuild(build).specializations[0].patchTraits, { kept: '1-2-3' });
   build.specializations[0].patchTraits = { dropped: 'x' };
   assert.equal(Object.hasOwn(adapter.profession.migrateBuild(build).specializations[0], 'patchTraits'), false);
+});
+
+test('specialization selection replaces another elite line and refreshes its resources', () => {
+  let changed = 0;
+  const app = {
+    patch: patchSelectionFixture({
+      specializations: [
+        { name: 'Damage', elite: false },
+        { name: 'Support', elite: false },
+        { name: 'Fallback', elite: false },
+        { name: 'Old Elite', elite: true },
+        { name: 'New Elite', elite: true }
+      ]
+    }),
+    build: {
+      initialResource: 10,
+      specializations: [
+        { name: 'Damage', traits: '2-2-2' },
+        { name: 'Old Elite', traits: '3-3-3' },
+        { name: 'Support', traits: '2-2-2' }
+      ]
+    },
+    activeCatalog: {
+      specializations: [
+        { name: 'Damage', elite: false },
+        { name: 'Support', elite: false },
+        { name: 'Fallback', elite: false },
+        { name: 'Old Elite', elite: true },
+        { name: 'New Elite', elite: true }
+      ]
+    },
+    adapter: {
+      eliteSpecialization: (build) =>
+        build.specializations.find((specialization) => specialization.name.endsWith('Elite'))?.name || 'Core'
+    },
+    resourceDefinitions: (specialization) => {
+      assert.equal(specialization, 'New Elite');
+      return [{ maximum: 5 }];
+    },
+    changed() {
+      changed += 1;
+    }
+  };
+
+  selectSpecialization(app, 2, 'New Elite');
+
+  assert.deepEqual(app.build.specializations, [
+    { name: 'Damage', traits: '2-2-2' },
+    { name: 'Support', traits: '2-2-2' },
+    { name: 'New Elite', traits: '1-1-1' }
+  ]);
+  assert.equal(app.build.initialResource, 5);
+  assert.equal(changed, 1);
+});
+
+test('elite specialization changes preserve unique Warrior lines through persistence normalization', async () => {
+  const adapter = await loadProfessionAppAdapter('warrior');
+  for (const line of [0, 1, 2]) {
+    const build = createDefaultBuild(adapter);
+    build.specializations = [
+      { name: 'Strength', traits: '2-2-2' },
+      { name: 'Berserker', traits: '3-3-3' },
+      { name: 'Arms', traits: '2-3-1' }
+    ];
+    const original = structuredClone(build.specializations);
+    let changed = 0;
+    const app = {
+      patch: adapter.profession.resolvePatch({ id: 'current' }),
+      build,
+      adapter,
+      activeCatalog: adapter.profession.catalog,
+      resourceDefinitions: (specialization) =>
+        adapter.profession.ui.resourceViews({ specialization, catalog: app.activeCatalog, build: app.build }),
+      changed() {
+        changed += 1;
+      }
+    };
+
+    selectSpecialization(app, line, 'Spellbreaker');
+
+    const expected = [original[0], original[2], { name: 'Spellbreaker', traits: '1-1-1' }];
+    assert.deepEqual(build.specializations, expected);
+    assert.equal(new Set(build.specializations.map(({ name }) => name)).size, 3);
+    assert.equal(
+      build.specializations.filter(
+        ({ name }) => adapter.profession.catalog.specializations.find((spec) => spec.name === name).elite
+      ).length,
+      1
+    );
+    // Save-time migration and application loading must retain the chosen elite and the existing core traits.
+    const saved = adapter.profession.migrateBuild(build);
+    assert.deepEqual(saved.specializations, expected);
+    assert.deepEqual(adapter.toApplicationBuild(JSON.parse(JSON.stringify(saved))).specializations, expected);
+    assert.equal(changed, 1);
+    selectSpecialization(app, line === 0 ? 2 : 0, 'Spellbreaker');
+    assert.deepEqual(build.specializations, expected);
+    assert.equal(changed, 1);
+  }
+});
+
+// Selecting an elite from any core row moves it to the bottom without resetting the surviving core traits.
+test('selecting an elite shifts the remaining core lines above it', () => {
+  const original = [
+    { name: 'Damage', traits: '2-2-2' },
+    { name: 'Support', traits: '3-3-3' },
+    { name: 'Defense', traits: '2-3-1' }
+  ];
+  for (const line of [0, 1, 2]) {
+    let changed = 0;
+    const app = {
+      patch: patchSelectionFixture({
+        specializations: [...original.map(({ name }) => ({ name, elite: false })), { name: 'Elite', elite: true }]
+      }),
+      build: { specializations: structuredClone(original) },
+      activeCatalog: {
+        specializations: [...original.map(({ name }) => ({ name, elite: false })), { name: 'Elite', elite: true }]
+      },
+      adapter: { eliteSpecialization: () => 'Elite' },
+      resourceDefinitions: () => [],
+      changed() {
+        changed += 1;
+      }
+    };
+
+    selectSpecialization(app, line, 'Elite');
+
+    assert.deepEqual(app.build.specializations, [
+      ...original.filter((_, index) => index !== line),
+      { name: 'Elite', traits: '1-1-1' }
+    ]);
+    assert.equal(changed, 1);
+  }
 });

@@ -116,13 +116,13 @@ runs:
       run: >-
         npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
         --test-reporter-destination=dist/test-reports/app-ui.xml "tests/browser/**/*.test.js"
-        "tests/games/gw2/app/**/*.test.js" "tests/ui/**/*.test.js"
+        "tests/games/gw2/app/**/*.test.js" "tests/games/gw2/*.test.js" "tests/ui/**/*.test.js"
     - name: Test importers and log analysis
       if: ${{ !cancelled() && steps.build.outcome == 'success' }}
       shell: bash
       run: >-
         npm run test:node -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit
-        --test-reporter-destination=dist/test-reports/importers.xml "tests/games/gw2/integrations/logs/**/*.test.js"
+        --test-reporter-destination=dist/test-reports/importers.xml "tests/games/gw2/integrations/**/*.test.js"
     - name: Test architecture and scripts
       if: ${{ !cancelled() && steps.build.outcome == 'success' }}
       shell: bash

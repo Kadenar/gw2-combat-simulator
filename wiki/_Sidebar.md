@@ -5,6 +5,8 @@
 - [Builds and templates](Builds-and-Templates)
 - [Rotation builder](Rotation-Builder)
 - [Reading results](Reading-Results)
+- [Benchmarks](Benchmarks)
+- [Boss scenarios](Boss-Scenarios)
 - [Importing rotations](Importing-Rotations)
 - [Profession support](Profession-Support)
 - [Accuracy and scope](Accuracy-and-Scope)

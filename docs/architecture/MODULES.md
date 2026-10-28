@@ -246,6 +246,26 @@ Scheduling stays feature-specific: modifiers debounce and defer to RNG work, RNG
 the optimizer keeps worker state across search rounds, baseline execution coalesces edits through one persistent worker,
 and relic comparison runs one deferred main-thread simulation. A general analysis-runner abstraction is not needed.
 
+### Benchmarks and boss scenarios
+
+`benchmarks.html` hosts the standalone dashboard. `page/benchmarks.ts` loads and filters saved manifest metrics;
+`page/benchmark-dashboard.ts` owns the shared filters and charts, and `page/benchmark-workspace.ts` opens a saved build
+and rotation in the profession workspace. `page/benchmark-comparison/` owns explicit simulation comparisons, including
+its request preparation, worker execution, result cache, chart, and view. Browsing saved metrics does not start those
+comparison simulations. See the [Benchmarks guide](../../wiki/Benchmarks.md).
+
+`boss-scenarios/` owns scenario documents and their browser workflow: `model.ts` validates inputs, `storage.ts` persists
+them, `editor.ts` binds a separate build workspace, and `view.ts` mounts the controls. `catalog.ts`, `health-data.ts`,
+and `phases.ts` supply supported encounters, target evidence, and phase plans. `simulation.ts` compiles those inputs and
+applies the scenario configuration to baseline and analysis jobs. `analysis-model.ts` and `analysis-view.ts` project
+phase results; `rotation/timeline/encounter.ts` displays phase boundaries in the editor.
+
+`platform/combat/state/encounter.ts` owns live target health, phase transitions, group damage, and downtime on the
+shared clock. `platform/simulation/runtime.ts` constructs that controller and schedules its work. The browser authors
+plans and displays observations; combat state stays in the runtime. See
+[encounter configuration](PROGRAMMATIC-SIMULATION.md#boss-encounters) and the
+[Boss scenarios guide](../../wiki/Boss-Scenarios.md).
+
 ### Patch-preview authoring UI
 
 `js/games/gw2/integrations/patches/app/` reads patch-authoring metadata exposed by native professions and lets

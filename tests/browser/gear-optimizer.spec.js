@@ -632,3 +632,32 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
   await withoutFood.locator('.optimizer-damage').click();
   await expect(panel.getByRole('button', { name: 'Apply gear', exact: true })).toBeDisabled();
 });
+
+// Component styles must keep hidden controls out of layout on narrow hosts.
+test('relic comparison controls survive a narrow host', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.addStyleTag({ url: '/css/style.css' });
+  await page.evaluate(() => {
+    document.body.innerHTML = '<div class="build-templates"></div>';
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(async () => {
+    const { mountRelicComparison } = await import('/js/games/gw2/app/optimizer/relic-comparison/panel.ts');
+    const host = document.createElement('div');
+    host.dataset.layoutFixture = 'relic-comparison';
+    host.style.width = '350px';
+    document.body.append(host);
+    mountRelicComparison(host, {
+      relicComparisonAvailable: true,
+      relicComparisonTarget: 'Fireworks',
+      relicComparisonTargets: ['Fireworks', 'Thorns', 'Nourys']
+    });
+  });
+  const comparison = page.locator('[data-layout-fixture="relic-comparison"] .relic-cmp');
+  const relicSelect = comparison.locator('select[data-role="relic-comparison-target"]');
+  await expect(relicSelect.locator('optgroup')).toHaveCount(3);
+  await expect(comparison.locator('[data-role="relic-comparison-stacks-control"]')).toBeHidden();
+  await expect(comparison.getByRole('button', { name: 'Run comparison' })).toBeEnabled();
+  expect(await comparison.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+});

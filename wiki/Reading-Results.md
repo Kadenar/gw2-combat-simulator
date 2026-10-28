@@ -1,7 +1,9 @@
 # Reading results
 
 The simulator recalculates after a build or rotation change. Use **Workspace** to edit and **Analysis** to inspect the
-result.
+result. Analysis follows the active Golem or Bosses workspace; [Boss scenarios](Boss-Scenarios) also provide phase
+damage and DPS, with downtime included in overall encounter DPS. To compare saved builds across professions, use
+[Benchmarks](Benchmarks).
 
 ## Summary
 

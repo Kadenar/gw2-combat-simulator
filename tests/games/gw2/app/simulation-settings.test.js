@@ -16,6 +16,15 @@ import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js
 import { beginRotationComparison, setRotationReference } from '#gw2/app/rotation/comparison-state.js';
 import { createBossScenario, parseBossScenario } from '#gw2/app/boss-scenarios/model.js';
 import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
+import {
+  normalizeTargetArmor,
+  PRIMARY_ATTRIBUTES,
+  STACKING_TARGET_CONDITIONS,
+  TARGET_ARMOR_OPTIONS,
+  TARGET_CONDITION_GROUPS
+} from '#gw2/app/build/panels/metadata.js';
+import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 
 // Browser storage is separate from the build codec; missing or corrupt preferences remain safe.
 test('simulation settings normalize invalid storage and persist separately from builds', (t) => {
@@ -336,4 +345,40 @@ test('Golem and separate boss scenarios retain independent delays, caches, and s
   assert.equal(restored.simulationSettings.transitionDelays.weaponSwapMs, 250);
   restored.simulationSettings.transitionDelays.weaponSwapMs = 999;
   assert.equal(first.simulationSettings.transitionDelays.weaponSwapMs, 250);
+});
+
+test('target armor presets use base by default and allow custom values', () => {
+  assert.equal(STANDARD_TARGET_ARMOR, 2597);
+  assert.deepEqual(TARGET_ARMOR_OPTIONS, [
+    { value: 2597, label: 'Base' },
+    { value: 1910, label: 'Vale Guardian / Keep Construct' },
+    { value: 5346, label: 'McLeod' },
+    { value: 2460, label: 'Berg' },
+    { value: 2323, label: 'Zane' },
+    { value: 2184, label: 'Narella' }
+  ]);
+  assert.equal(normalizeTargetArmor(1910), 1910);
+  assert.equal(normalizeTargetArmor('2184'), 2184);
+  assert.equal(normalizeTargetArmor(3210), 3210);
+  assert.equal(normalizeTargetArmor('not armor'), STANDARD_TARGET_ARMOR);
+});
+
+test('shared app metadata owns common attributes and target conditions', () => {
+  const defaultTargetConditions = createMesmerBuildDefaults().assumptions.targetConditions;
+
+  assert.equal(PRIMARY_ATTRIBUTES.includes('Condition Damage'), true);
+  assert.equal(Object.hasOwn(defaultTargetConditions, 'Fear'), false);
+  assert.equal(Object.hasOwn(defaultTargetConditions, 'Taunt'), false);
+  assert.equal(STACKING_TARGET_CONDITIONS.has('Vulnerability'), true);
+  assert.equal(STACKING_TARGET_CONDITIONS.has('Burning'), false);
+  assert.deepEqual(
+    TARGET_CONDITION_GROUPS.map((group) => [group.label, [...group.conditions]]),
+    [
+      ['Damaging', ['Burning', 'Bleeding', 'Torment', 'Confusion', 'Poisoned']],
+      [
+        'Control',
+        ['Vulnerability', 'Weakness', 'Blindness', 'Slow', 'Chilled', 'Crippled', 'Immobilized', 'Fear', 'Taunt']
+      ]
+    ]
+  );
 });

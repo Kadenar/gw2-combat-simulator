@@ -1,17 +1,18 @@
 # Skill timing audit: 40 ms boundaries
 
-Rechecked existing findings against the assembled catalogs on 2026-10-19. Covers authored cast durations and
-strike/condition offsets and intervals, including balance profiles; excludes procedural runtime timing.
+Rechecked the existing cast findings against the assembled current catalogs and both listed damage-offset findings
+against their source declarations on 2026-10-27. Rows that now fall on the 40 ms grid have been removed. This is a
+recheck of the earlier findings, not a complete inventory of newly added skills or procedural runtime timing.
 
 All values are milliseconds. **Bold values are off the 40 ms grid** (tolerance: 0.000001 ms). A dash means no explicit
 Quickness duration. Summon timing uses `independentCast || quicknessCastTimeMs != null`.
 
 ## Damage offsets
 
-| Profession  | Skill / profile                                                  | Off-grid offsets (ms)                       | Source                                                                                     |
-| ----------- | ---------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Necromancer | Sandstorm Shroud - Pulses (necromancer.scourge.sandstorm-shroud) | 3500 from cast start for strike and Torment | [profiles.ts](../js/games/gw2/professions/necromancer/specializations/scourge/profiles.ts) |
-| Revenant    | Unrelenting Assault (26699)                                      | 260, 405, 550, 695 from cast start          | [sword.ts](../js/games/gw2/professions/revenant/core/skills/weapons/sword.ts)              |
+| Profession  | Skill / declaration                         | Off-grid offsets (ms)                       | Source                                                                                             |
+| ----------- | ------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Necromancer | Sandstorm Shroud delayed strike and Torment | 3500 from cast start for strike and Torment | [skills/index.ts](../js/games/gw2/professions/necromancer/specializations/scourge/skills/index.ts) |
+| Revenant    | Unrelenting Assault (26699)                 | 260, 405, 550, 695 from cast start          | [sword.ts](../js/games/gw2/professions/revenant/core/skills/weapons/sword.ts)                      |
 
 ## Cast durations
 
@@ -33,35 +34,26 @@ Quickness duration. Summon timing uses `independentCast || quicknessCastTimeMs !
 | Skill ID | Skill               | Timing model | Cast / base ms | Explicit Quickness ms |
 | -------- | ------------------- | ------------ | -------------: | --------------------: |
 | 6176     | Regenerating Mist   | Player       |        **300** |                     - |
-| 63345    | Core Reactor Shot   | Summon       |       **1500** |                  1000 |
-| 63365    | Explosive Knuckle   | Summon       |        **500** |                     - |
-| 63298    | Hard Strike         | Summon       |        **250** |                   200 |
-| 63263    | Heavy Smash (Mech)  | Summon       |        **500** |                   360 |
 | 63121    | Jade Mortar         | Summon       |       **1620** |                  1080 |
 | 63185    | Rocket Punch (Mech) | Summon       |        **500** |                   360 |
-| 63236    | Sky Circus          | Summon       |       **3180** |                  2120 |
-| 63188    | Spark Revolver      | Summon       |       **2100** |                  1400 |
-| 63288    | Twin Strike (Mech)  | Summon       |        **500** |                   360 |
 
 ### Mesmer
 
 [Catalog](../js/games/gw2/professions/mesmer/catalog.ts)
 
-| Skill ID | Skill                    | Timing model |    Cast / base ms | Explicit Quickness ms |
-| -------- | ------------------------ | ------------ | ----------------: | --------------------: |
-| 71800    | Effervescence            | Player       | **166.666666667** |                     - |
-| 10176    | Ether Feast              | Player       | **666.666666667** |                     - |
-| 71892    | Friendly Fire            | Player       |           **500** |                     - |
-| 72005    | Inspiring Imagery        | Player       |           **500** |                     - |
-| 71897    | Journey                  | Player       | **333.333333333** |                     - |
-| 42851    | Mirage Advance           | Player       |           **500** |                     - |
-| 45230    | Mirage Thrust            | Player       |           **500** |                     - |
-| 10177    | Mirror                   | Player       | **833.333333333** |                     - |
-| 72007    | Phantasmal Sharpshooter  | Player       |           **500** |                     - |
-| 72008    | Singularity Shot         | Player       | **333.333333333** |                     - |
-| 76971    | Tale of the August Queen | Player       | **666.666666667** |                     - |
-| 76695    | Tale of the Second Scion | Player       | **666.666666667** |                     - |
-| 10186    | Temporal Curtain         | Player       |           **740** |                     - |
+| Skill ID | Skill                   | Timing model |    Cast / base ms | Explicit Quickness ms |
+| -------- | ----------------------- | ------------ | ----------------: | --------------------: |
+| 71800    | Effervescence           | Player       | **166.666666667** |                     - |
+| 10176    | Ether Feast             | Player       | **666.666666667** |                     - |
+| 71892    | Friendly Fire           | Player       |           **500** |                     - |
+| 72005    | Inspiring Imagery       | Player       |           **500** |                     - |
+| 71897    | Journey                 | Player       | **333.333333333** |                     - |
+| 42851    | Mirage Advance          | Player       |           **500** |                     - |
+| 45230    | Mirage Thrust           | Player       |           **500** |                     - |
+| 10177    | Mirror                  | Player       | **833.333333333** |                     - |
+| 72007    | Phantasmal Sharpshooter | Player       |           **500** |                     - |
+| 72008    | Singularity Shot        | Player       | **333.333333333** |                     - |
+| 10186    | Temporal Curtain        | Player       |           **740** |                     - |
 
 ### Ranger
 

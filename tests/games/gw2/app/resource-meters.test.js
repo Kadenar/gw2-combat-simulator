@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
+import { resourceDisplayViews, activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
+import { clampStartingResourceValues } from '#gw2/app/build/panels/traits.js';
 
 // Every resource presentation must consume a bounded canonical planning pool without requiring browser navigation.
 for (const [professionId, elite, resourceId, key] of [
@@ -51,3 +53,61 @@ for (const [professionId, elite, resourceId, key] of [
     }
   });
 }
+
+test('starting resource clamps cover every active resource view', () => {
+  const app = {
+    patch: patchSelectionFixture(undefined),
+    build: {
+      initialResource: 25,
+      initialBlight: 15,
+      initialInitiative: 15,
+      unchanged: 9
+    },
+    resourceDefinitions: (specialization) => {
+      assert.equal(specialization, 'Multi Resource');
+      return [
+        { maximum: 10 },
+        { buildKey: 'initialBlight', maximum: 5 },
+        { buildKey: 'initialInitiative', maximum: 12, startMaximum: 15 },
+        { buildKey: 'missingResource', maximum: 3 }
+      ];
+    }
+  };
+
+  clampStartingResourceValues(app, 'Multi Resource');
+
+  assert.deepEqual(app.build, {
+    initialResource: 10,
+    initialBlight: 5,
+    initialInitiative: 15,
+    unchanged: 9
+  });
+});
+
+test('15-pip initiative uses specialization-neutral rows', () => {
+  const html = activeResourceGroup({
+    adapter: { eliteSpecialization: () => 'Core' },
+    build: { initialResource: 15 },
+    profession: {
+      ui: {
+        resourceViews: () => [
+          {
+            id: 'resource',
+            maximum: 15,
+            value: 9,
+            pipRows: 2,
+            pipStyle: 'thief-initiative'
+          }
+        ]
+      }
+    },
+    results: { planningState: { availability: {}, atSeconds: 0, profession: {} } }
+  });
+
+  const rowPipCounts = [
+    ...html.matchAll(/<span class="resource-pip-row">((?:<span class="active-resource-pip[^"]*"><\/span>)+)<\/span>/g)
+  ].map(([, pips]) => [...pips.matchAll(/active-resource-pip/g)].length);
+
+  assert.match(html, /class="active-resource-pips thief-initiative pip-rows-2 pip-count-15"/);
+  assert.deepEqual(rowPipCounts, [7, 8]);
+});

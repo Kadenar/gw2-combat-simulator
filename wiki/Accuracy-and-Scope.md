@@ -10,6 +10,7 @@ in-game DPS.
 - Boons, conditions, traits, equipment effects, and damage modifiers
 - Weapon swaps, skill chains, transformations, and supported profession mechanics
 - Reproducible seeded proc outcomes and weapon-strength sampling
+- Supported boss phase plans, health gates, timed damage windows, target changes, splits, intermissions, and group DPS
 
 ## Main boundaries
 
@@ -19,12 +20,17 @@ does not attempt to reproduce:
 - Movement, pathing, latency, or player execution errors
 - Incoming attacks and most active defense
 - Ally healing, barrier, cleansing, revival, or other support-only effects
-- Secondary targets and encounter-specific mechanics
+- General cleave and encounter mechanics beyond the authored boss phase plans
 - Competitive PvP or WvW balance splits
 - Unknown, undocumented, or newly changed game behavior
 
 Player health stays at 100% during combat simulation. Only the isolated attribute preview may vary it; target health
 remains modeled.
+
+[Boss scenarios](Boss-Scenarios) keep separate health pools for encounter targets and apply configured group DPS to
+them. Player attacks use the selected target. Splits and intermissions block boss damage; splits allow preparation
+actions, while intermissions also pause rotation commands. This models damage opportunities without simulating movement,
+incoming boss attacks, or the full party's rotations.
 
 Both modes use seeded rolls for critical-proc eligibility and other chance-based effects. Deterministic mode uses
 midpoint weapon strength and defaults to averaged critical damage; the **Critical damage** setting can use individual

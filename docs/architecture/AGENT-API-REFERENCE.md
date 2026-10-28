@@ -52,7 +52,8 @@ console.log({ dps: result.dps, warnings: result.warnings });
 - `output: 'score'` returns `Gw2SimulationScore`: aggregate metrics and warnings without report histories.
   `damageDiagnostics: true` captures actual damage calculations in detailed events; it is never saved in builds.
 - Inspect `warnings` on every run; each is a `{ message, at?, rotationIndex? }` diagnostic, and
-  `formatSimulationDiagnostic` renders it as text. Planning snapshots are detached observations, not resumable runtime checkpoints.
+  `formatSimulationDiagnostic` renders it as text. Planning snapshots are detached observations, not resumable runtime
+  checkpoints.
 - Live timestamps and result boundaries use seconds; authored `*Ms`, step `start`/`end`, and cooldown projections use
   ms.
 - Player health is always 100%; only isolated attribute previews may vary it. Target health remains modeled.
@@ -68,7 +69,8 @@ console.log({ dps: result.dps, warnings: result.warnings });
   contracts.
 - `platform/combat/`: formulas and live combat state, resources, targets, and executed facts used by mechanics.
 - `platform/builds/` and `platform/equipment/`: build codecs, validation, rotation commands, and equipment rules;
-  `platform/attributes/` owns attribute seeds and calculation. `app/simulation/build-config.ts` exposes `createGw2SimulationConfig(...)` for application build conversion.
+  `platform/attributes/` owns attribute seeds and calculation. `build-context/simulation-config.ts` exposes
+  `createGw2SimulationConfig(...)`; use `loadBuildContext()` from `build-context/load.ts` for saved-build calculations.
 - `platform/profession-definition/`: `defineNativeProfession(...)` in `profession.ts` compiles native modules;
   `runtime-hooks.ts` defines hook contributions, and `mechanic-context.ts` defines query/combat/lifecycle capabilities.
 - `professions/<name>/`: owns `profession.ts`, `catalog.ts`, `build/`, `core/`, and `specializations/`
@@ -81,6 +83,9 @@ console.log({ dps: result.dps, warnings: result.warnings });
   gameplay.
 - `js/browser/`, `js/ui/`, and `app/`: browser composition, neutral views, GW2 persistence, workers, and presentation.
 - `integrations/`: log import, keybinds, and patch overlays; `data/gw2/` at repository root holds saved presets.
+- `platform/combat/state/encounter.ts`: `EncounterConfig` and live phase/target state, supplied through
+  `config.encounter`. `app/boss-scenarios/` owns scenario editing, persistence, and compilation into that configuration.
+  See [encounter configuration](PROGRAMMATIC-SIMULATION.md#boss-encounters).
 
 ## Validate changes
 

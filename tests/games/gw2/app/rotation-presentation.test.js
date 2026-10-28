@@ -20,7 +20,9 @@ import {
   timelineStepsWithChargeFills,
   timelineTargetImpactDetails,
   timelineWeaponRowGroups,
-  timelineWeaponRows
+  timelineWeaponRows,
+  rotationSkillHighlightKey,
+  targetHealthTimelineMarkers
 } from '#gw2/app/rotation/timeline/model.js';
 import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/interactions.js';
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
@@ -28,6 +30,8 @@ import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
 
 // GW2 rotation views preserve editing, palette interactions, and timeline presentation.
 test('activation editor suggests and validates manual interruption times', () => {
@@ -654,4 +658,73 @@ test('a final weapon swap remains on its originating weapon-set row', () => {
     rows[0].skills.map((skill) => skill.index),
     [0, 1]
   );
+});
+
+test('rotation skill highlights group occurrences by displayed skill', () => {
+  assert.equal(rotationSkillHighlightKey({ type: 'cast', skillId: 123 }), 'skill:123');
+  assert.equal(rotationSkillHighlightKey({ type: 'cast', skillId: 123, interruptAfterMs: 500 }), 'skill:123');
+  assert.equal(rotationSkillHighlightKey({ type: 'cast', skillId: -5 }), 'skill:-5');
+});
+
+test('target-health timeline markers are inserted after the crossing hit', () => {
+  const result = {
+    steps: [
+      { ri: 0, start: 0 },
+      { ri: 1, start: 1000 },
+      { ri: 2, start: 2000 }
+    ],
+    resolvedEvents: [
+      { type: 'damage', at: 0.5, damage: 400 },
+      { type: 'damage', at: 1.5, damage: 200 }
+    ]
+  };
+
+  assert.deepEqual(targetHealthTimelineMarkers(result, 1000, [0.5], 3), [
+    {
+      insertionIndex: 2,
+      healthPercent: 50,
+      start: 1500,
+      damage: 600
+    }
+  ]);
+  assert.deepEqual(targetHealthTimelineMarkers(result, 1000, [], 3), []);
+});
+
+test('Engineer kits register distinct weapon lines in the timeline', async () => {
+  const adapter = await loadProfessionAppAdapter('engineer');
+  const build = createEngineerBuildDefaults();
+  const catalogSkills = adapter.profession.catalog.skills;
+  const rotationNames = [
+    'Grenade Kit',
+    'Shrapnel Grenade',
+    'Flamethrower',
+    'Flame Blast',
+    'Stow Flamethrower',
+    'Blunderbuss'
+  ];
+  const rotation = rotationNames.map((name) => ({
+    type: 'cast',
+    skillId: catalogSkills.find((skill) => skill.name === name).id
+  }));
+  const rows = timelineWeaponRows(rotation, {
+    startingWeaponSet: 1,
+    isWeaponSwap: () => false,
+    skillName: (entry) => adapter.profession.catalog.skillsById.get(entry.skillId)?.name || '',
+    weaponLineTransition(entry, current) {
+      const skill = adapter.profession.catalog.skillsById.get(entry.skillId);
+
+      return adapter.profession.ui.timelineWeaponLineTransition({
+        entry,
+        skill,
+        build,
+        ...current
+      });
+    }
+  });
+
+  assert.deepEqual(
+    rows.map((row) => row.skills.map((skill) => skill.index)),
+    [[0], [1, 2], [3, 4], [5]]
+  );
+  assert.ok(rows.every((row) => row.weaponSet === 1));
 });

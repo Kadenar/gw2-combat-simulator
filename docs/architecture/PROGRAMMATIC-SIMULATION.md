@@ -116,6 +116,41 @@ Player health is fixed at 100%. Isolated attribute previews may vary it, but sav
 Target health remains modeled. For test fixtures, `tests/helpers/profession-simulation.js` and
 `tests/helpers/simulation-config.js` provide test-only setup helpers.
 
+## Boss encounters
+
+Supply `config.encounter` to run a phase plan through the same combat runtime. `EncounterConfig`, `EncounterPhase`, and
+`EncounterPhaseTarget` are defined in `platform/combat/state/encounter.ts`. This configuration is separate from saved
+build assumptions; the browser's scenario document owns the encounter inputs alongside its own build and rotation.
+
+- `phases` is an ordered array with unique phase IDs. A `boss` phase supplies `playerTargetId`, `targets`, and
+  `durationSeconds` (`null` for a health-gated phase, a positive duration for a timed window).
+- Each target supplies `id`, `name`, `maximumHealth`, `armor`, `hitboxWidth`, `groupDps`, `endHealthPercent`,
+  `startHealthPercent`, and `entryHealthLossPercent`. Group DPS excludes the player. A null starting percentage
+  preserves the target's current health; an explicit percentage starts a replacement bar or transformation. A changed
+  maximum health requires an explicit starting percentage. `entryHealthLossPercent` applies an authored health loss on
+  phase entry without adding player damage.
+- A `split` or `intermission` phase supplies `id`, `kind`, and a non-negative `durationSeconds`. Both block damage;
+  splits permit rotation commands, while intermissions hold commands until their deadline. The live clock continues
+  advancing cooldowns, resources, and effect expiry.
+- `repeatFrom` is null for a finite plan or the ID of the phase to repeat from. Repeating plans require a timed boss
+  window so the cycle can advance by time.
+
+The runtime seeds health, armor, and hitbox size from the first selected encounter target and updates them on target
+transitions. Targets retain separate health pools; player attacks stay on the selected target even when it reaches its
+phase gate before the other targets. Group damage is accounted for separately from player damage. Without an explicit or
+inherited combat boundary, encounters start combat at time zero. The normal observation policy still limits the run;
+supplying an encounter does not extend a rotation automatically until the boss dies.
+
+For saved browser scenarios, `app/boss-scenarios/model.ts` validates the document against the supported boss and
+difficulty. `scenarioSimulation()` in `app/boss-scenarios/simulation.ts` compiles the authored plan;
+`withScenarioConfig(config, draft)` also applies the browser's boss assumptions (four allies, no automatic player-boon
+sharing with summons, and a defiant target). All scenario analysis jobs use that same configuration.
+
+`result.encounter` reports target health, current phase, defeat state, transition estimates, and observed phases with
+player/group damage and player DPS. Its `overallDps` includes splits and intermissions in elapsed time. It can describe
+an incomplete encounter when observation ends first. The browser workflow is documented in
+[Boss scenarios](../../wiki/Boss-Scenarios.md).
+
 ## Rotation commands
 
 ```js

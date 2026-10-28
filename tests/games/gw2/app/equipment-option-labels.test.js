@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
 import {
   foodOptionLabel,
   prefixOptionLabel,
@@ -12,9 +11,9 @@ import {
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
 import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
-import { PREFIX_GROUPS } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
+import { PREFIX_GROUPS, PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
 import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
-import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_GROUPS, SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 
 test('equipment dropdown labels expose their effects without hover text', () => {
   assert.equal(prefixOptionLabel("Berserker's"), "Berserker's — Power, Precision, Ferocity");
@@ -96,4 +95,80 @@ test('every selectable equipment option has visible effect details', () => {
       assert.doesNotMatch(label, /undefined|NaN/, item);
     }
   }
+});
+
+test('gear prefixes and sigils are sorted into Power and Condition groups', () => {
+  // Prefixes without Condition Damage belong to Power, including defensive and support stat combinations.
+  assert.deepEqual(PREFIX_GROUPS, [
+    {
+      label: 'Power',
+      items: [
+        "Assassin's",
+        "Berserker's",
+        "Demolisher's",
+        "Diviner's",
+        "Dragon's",
+        "Harrier's",
+        "Knight's",
+        'Marauder',
+        "Zealot's"
+      ]
+    },
+    {
+      label: 'Condition',
+      items: [
+        'Celestial',
+        'Dire',
+        'Grieving',
+        "Plaguedoctor's",
+        'Rabid',
+        "Rampager's",
+        "Ritualist's",
+        'Sinister',
+        "Trailblazer's",
+        "Viper's"
+      ]
+    }
+  ]);
+  assert.deepEqual(SIGIL_GROUPS, [
+    {
+      label: 'Power',
+      items: [
+        'Accuracy',
+        'Air',
+        'Bloodlust',
+        'Concentration',
+        'Cruelty',
+        'Energy',
+        'Force',
+        'Hydromancy',
+        'Impact',
+        'Mischief',
+        'Night',
+        'Severance',
+        'Slaying',
+        'Stars'
+      ]
+    },
+    {
+      label: 'Condition',
+      items: [
+        'Agony',
+        'Blight',
+        'Bursting',
+        'Corruption',
+        'Demons',
+        'Doom',
+        'Earth',
+        'Geomancy',
+        'Ice',
+        'Malice',
+        'Smoldering',
+        'Torment',
+        'Venom'
+      ]
+    }
+  ]);
+  assert.deepEqual(PREFIX_GROUPS.flatMap((group) => group.items).sort(), PREFIXES);
+  assert.deepEqual(SIGIL_GROUPS.flatMap((group) => group.items).sort(), SIGIL_NAMES);
 });

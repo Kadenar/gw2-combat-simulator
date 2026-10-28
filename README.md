@@ -50,6 +50,17 @@ Supported `.evtc` and compressed logs can be converted into simulator rotations.
 profession and specialization and extracts supported combat actions. See
 [EVTC Rotation Reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md) for details and limitations.
 
+### Benchmarks and boss scenarios
+
+Open **Benchmarks** from the main navigation to browse saved build metrics, compare DPS and actions per minute, inspect
+DPS by target-health band, or run a comparison over time. Open a benchmark's build and rotation in the simulator to
+customize it. See [Benchmarks](wiki/Benchmarks.md).
+
+In a profession workspace, **Bosses** creates a separate scenario from the active Golem build and rotation. Choose a
+supported encounter and difficulty, configure group DPS and downtime, and inspect phase results. The model supports
+health gates, timed damage windows, target changes, splits, and intermissions. See
+[Boss scenarios](wiki/Boss-Scenarios.md).
+
 ## Supported professions
 
 | Profession       | Specializations                                     |
@@ -136,8 +147,9 @@ notes. Submissions are reviewed before being added. See [Community Build Submiss
 ## Accuracy and scope
 
 The model focuses on single-target PvE outgoing damage. Movement, latency, incoming attacks, most support-only effects,
-and encounter mechanics are outside scope. See [Accuracy and scope](wiki/Accuracy-and-Scope.md) and the profession notes
-for limitations.
+and mechanics beyond the authored boss phase plans are outside scope. Boss scenarios track encounter targets and group
+damage while the player's attacks use the selected target; they do not model general cleave or a full encounter replay.
+See [Accuracy and scope](wiki/Accuracy-and-Scope.md) and the profession notes for limitations.
 
 ## Legal
 

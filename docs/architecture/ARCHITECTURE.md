@@ -13,6 +13,7 @@ commands, internal tasks, and same-time combat ordering.
 - [Events and resolution](#events-and-resolution)
 - [Skills and rotations](#skills-and-rotations)
 - [Builds and attributes](#builds-and-attributes)
+- [Boss encounter execution](#boss-encounter-execution)
 - [Included professions](#included-professions)
 - [Adding another profession](#adding-another-profession)
 
@@ -355,6 +356,19 @@ Each binding supplies a pure skill-loadout resolver and profession assumption de
 reads `profession.ui`: starting-bar skills feed attributes, while every selected bar retains its slot positions in the
 input-tracing configuration. Fixed-loadout presentation builds selectors and labels from the same resolved bar facts.
 The build codec and simulation configuration share the composition of profession and common assumption defaults.
+
+## Boss encounter execution
+
+Optional `config.encounter` supplies an ordered phase plan to the shared runtime. The controller in
+`platform/combat/state/encounter.ts` owns separate target health pools, health gates, timed damage windows, group
+damage, and phase transitions. Splits block boss damage while allowing preparation commands; intermissions also hold
+rotation commands. Both advance the existing clock without resetting player state. Player attacks use the selected
+target, and group damage never contributes to player damage totals.
+
+`app/boss-scenarios/` owns scenario persistence, a separate build workspace, and compilation of supported boss plans. It
+supplies the same encounter configuration to baseline and analysis jobs. Results expose `encounter` observations,
+including phase damage and overall DPS with downtime. The ordinary observation boundary can end a run before encounter
+completion. See [Boss encounters](PROGRAMMATIC-SIMULATION.md#boss-encounters) for the configuration contract.
 
 ## Included professions
 
