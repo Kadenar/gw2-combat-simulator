@@ -141,8 +141,10 @@ test('skill and Combat Start editors expose the scheduled target impact', async 
   });
   const skill = page.locator('#rotation-timeline .rot-skill[data-idx="0"]');
   await expect(skill).toHaveAttribute('data-wiki-details', new RegExp(impactLabel));
-  await skill.hover();
-  await skill.locator('.rot-edit-activation').click();
+  // Keyboard activation keeps this content check independent of hover geometry beneath the sticky header.
+  const skillEditor = skill.locator('.rot-edit-activation');
+  await skillEditor.focus();
+  await skillEditor.press('Enter');
   const editor = page.locator('.rotation-activation-editor:visible');
   await expect(editor.locator('.activation-editor-target-impact')).toHaveText(impactLabel);
   await editor.getByRole('button', { name: 'Cancel', exact: true }).click();

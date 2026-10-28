@@ -7,6 +7,26 @@ async function openWorkspace(page, viewport = { width: 1440, height: 1000 }) {
   await expect(page.locator('#build-workspace-tabs')).toBeVisible();
 }
 
+// Tall wrapped headers scroll away to leave room for editing; shorter headers keep navigation pinned.
+async function checkHeaderScrolling(page) {
+  const header = page.locator('#app > header');
+  const tall = await header.evaluate((element) => Math.ceil(element.getBoundingClientRect().height) > innerHeight / 2);
+  await page.evaluate(() => window.scrollTo(0, 500));
+  await expect(header).toHaveClass(/simulator-header-scrolled/);
+
+  if (tall) {
+    await expect(header).toHaveClass(/simulator-header-unpinned/);
+    await expect.poll(() => header.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThan(0);
+    // Returning to the top must expose the complete toolbar even when it cannot remain pinned.
+    await page.evaluate(() => window.scrollTo(0, 0));
+  } else {
+    await expect(header).not.toHaveClass(/simulator-header-unpinned/);
+  }
+
+  await expect(page.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
+  await expect(page.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
+}
+
 // Profession changes return to Golem and retain display flags; tool links still support browser history.
 test('header profession selector returns to Golem and the landing page owns the copyright', async ({ page }) => {
   await page.goto('/mesmer.html?embed=1&standalone=1#workspace');
@@ -355,11 +375,7 @@ test('many open builds keep the strip and its menu inside narrow screens', async
   await expect(menu.locator('.build-tab.is-active')).toBeInViewport({ ratio: 1 });
   expect(await menu.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   await page.keyboard.press('Escape');
-  // Build switching stays reachable alongside navigation after scrolling the editor.
-  await page.evaluate(() => window.scrollTo(0, 500));
-  await expect(page.locator('#app > header')).toHaveClass(/simulator-header-scrolled/);
-  await expect(strip).toBeInViewport({ ratio: 1 });
-  await expect(page.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
+  await checkHeaderScrolling(page);
 });
 
 // One menu lists the open builds and the actions for the build being edited.
@@ -557,11 +573,7 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
   });
   for (const width of [1100, 700, 390, 320, 1100]) {
     await page.setViewportSize({ width, height: 844 });
-    // Embedded headers keep both rows visible as the header wraps at each width.
-    await page.evaluate(() => window.scrollTo(0, 500));
-    await expect(page.locator('#app > header')).toHaveClass(/simulator-header-scrolled/);
-    await expect(page.locator('#build-workspace-tabs')).toBeInViewport({ ratio: 1 });
-    await expect(page.locator('.simulator-view-tabs')).toBeInViewport({ ratio: 1 });
+    await checkHeaderScrolling(page);
     const mobile = width <= 600;
     // File actions stay explicit buttons at every width instead of collapsing into an overflow menu.
     for (const id of ['btn-export-build', 'btn-import-build'])
@@ -583,6 +595,8 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     // Click a named heading outside the popover to exercise native dismissal across layouts.
     await page.getByRole('heading', { name: 'Gear loadout', exact: true }).click();
     await expect(page.locator('#build-new-menu')).toBeHidden();
+    // The outside click can scroll an unpinned header away; inspect its layout back at the page top.
+    await page.evaluate(() => window.scrollTo(0, 0));
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width + 1);
     const newButton = await page.locator('.build-tab-new').boundingBox();
     const actions = await page.locator('#btn-export-build').boundingBox();
