@@ -17,6 +17,7 @@ import {
 } from '#gw2/app/optimizer/gear/search-space.js';
 import {
   captureGearOptimizerRequest,
+  isOptimizerRequestCurrent,
   createOptimizerSpace,
   createOptimizerEvaluator,
   ordinaryEquipmentAt,
@@ -34,6 +35,14 @@ import {
 } from '#gw2/app/optimizer/gear/candidate-results.js';
 
 const adapter = await loadProfessionAppAdapter('warrior');
+
+// A scenario cannot launch Golem searches or apply cached results from another workspace.
+test('boss workspaces reject gear optimization and cached equipment application', () => {
+  const app = { workspace: { scenario: { encounterId: '020102' } } };
+  assert.throws(() => captureGearOptimizerRequest(app, {}), /only in Golem/);
+  assert.equal(isOptimizerRequestCurrent(app, {}), false);
+  assert.throws(() => applyOptimizerCandidate(app, {}, {}), /stale/);
+});
 
 test('equipped identity ignores entry ordering, while display groups retain different gear with equal DPS', () => {
   const initial = request();

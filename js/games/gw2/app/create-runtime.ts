@@ -27,6 +27,7 @@ import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
@@ -60,7 +61,7 @@ export function createProfessionRuntime({
       transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
     }).simulationConfig();
     const baseConfig = {
-      ...config,
+      ...withScenarioConfig(config, app.workspace?.scenario),
       randomness: {
         ...config.randomness,
         mode: SIMULATION_RANDOMNESS_MODES.STOCHASTIC
@@ -103,13 +104,14 @@ export function createProfessionRuntime({
   }
 
   function baselineSimulationConfig(app: ProfessionAppState, patchId = app.patch.id): Gw2Config {
-    return deterministicSimulationConfig(
+    const config = deterministicSimulationConfig(
       createBuildContext({
         build: app.build,
         patch: profession.resolvePatch({ id: patchId, values: app.patch.values }),
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
       }).simulationConfig()
     );
+    return withScenarioConfig(config, app.workspace?.scenario);
   }
 
   function rotationPlanningStateAt(
@@ -158,13 +160,14 @@ export function createProfessionRuntime({
 
   /** Captures a clone-safe baseline job before later edits can mutate the rotation. */
   function baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest {
-    // Prepare each patch once; the selected run and reference share that same captured config.
-    const patchConfigs = profession.preview?.id
-      ? {
-          current: baselineSimulationConfig(app, 'current'),
-          preview: baselineSimulationConfig(app, profession.preview.id)
-        }
-      : undefined;
+    // Only Golem displays patch comparison; Bosses runs the selected patch without preparing an unused second run.
+    const patchConfigs =
+      profession.preview?.id && !app.workspace?.scenario
+        ? {
+            current: baselineSimulationConfig(app, 'current'),
+            preview: baselineSimulationConfig(app, profession.preview.id)
+          }
+        : undefined;
     const baseConfig = patchConfigs
       ? app.patch.id === patchConfigs.preview.patchId
         ? patchConfigs.preview

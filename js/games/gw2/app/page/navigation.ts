@@ -12,12 +12,13 @@ import { navigationRoute } from '#browser/page/embed.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-export type SimulatorView = 'workspace' | 'analysis' | 'gear-optimizer' | 'benchmarks';
+export type SimulatorView = 'workspace' | 'bosses' | 'analysis' | 'gear-optimizer' | 'benchmarks';
 
 type ScrollPosition = Readonly<{ left: number; top: number }>;
 
 const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
   workspace: '#workspace',
+  bosses: '#bosses',
   analysis: '#analysis',
   'gear-optimizer': '#gear-optimizer',
   benchmarks: '#benchmarks'
@@ -27,6 +28,8 @@ const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
 export function simulatorViewFromHash(hash: string): SimulatorView {
   const normalized = hash.toLowerCase();
 
+  if (normalized === VIEW_HASHES.bosses) return 'bosses';
+
   if (normalized === VIEW_HASHES.analysis) return 'analysis';
 
   if (normalized === VIEW_HASHES['gear-optimizer']) return 'gear-optimizer';
@@ -34,6 +37,11 @@ export function simulatorViewFromHash(hash: string): SimulatorView {
   if (normalized === VIEW_HASHES.benchmarks) return 'benchmarks';
 
   return 'workspace';
+}
+
+/** Gear search belongs to Golem; direct links and history cannot open it against an encounter workspace. */
+export function workspaceSimulatorView(view: SimulatorView, workspace: string | undefined): SimulatorView {
+  return view === 'gear-optimizer' && workspace === 'bosses' ? 'bosses' : view;
 }
 
 /** Keeps simulator tools on the given profession page. */
@@ -62,7 +70,7 @@ function mountAnalysisView(root: Document): void {
 
   const heading = root.createElement('div');
   heading.className = 'analysis-view-heading';
-  heading.innerHTML = `<h2 id="analysis-view-title">Combat analysis</h2>`;
+  heading.innerHTML = `<h2 id="analysis-view-title">Golem analysis</h2>`;
   results.before(heading);
 
   const summaryMirror = root.createElement('div');
@@ -82,7 +90,11 @@ function updateActiveView(root: Document, view: SimulatorView): void {
 
   root.body.dataset.simulatorView = view;
 
-  if (view !== 'workspace') resetRotationWorkspace(root);
+  // Analysis belongs to the last authoring workspace, including browser Back/Forward restoration.
+  if (view === 'workspace' || view === 'bosses') root.body.dataset.analysisWorkspace = view;
+  else root.body.dataset.analysisWorkspace ??= 'workspace';
+
+  if (view !== 'workspace' && view !== 'bosses') resetRotationWorkspace(root);
 
   // Load cross-profession comparisons only when their tool tab is opened; the current build stays mounted.
   if (view === 'benchmarks') {
@@ -97,8 +109,28 @@ function updateActiveView(root: Document, view: SimulatorView): void {
     }
   }
 
-  for (const link of root.querySelectorAll<HTMLAnchorElement>('.simulator-view-tab[data-simulator-view]')) {
-    const active = link.dataset.simulatorView === view;
+  const workspace = root.body.dataset.analysisWorkspace === 'bosses' ? 'bosses' : 'workspace';
+  const simulation = root.querySelector<HTMLAnchorElement>('[data-simulation-link]');
+
+  // Simulation follows the selected workspace; the workspace selector stays selected on its tool pages.
+  if (simulation) {
+    simulation.dataset.simulatorView = workspace;
+    simulation.href = navigationRoute(simulatorViewHref(root.defaultView?.location.pathname || '', workspace));
+  }
+
+  root
+    .querySelector('.simulator-view-tabs')
+    ?.setAttribute('aria-label', workspace === 'bosses' ? 'Boss tools' : 'Golem tools');
+  for (const link of root.querySelectorAll<HTMLAnchorElement>('.simulator-navigation [data-simulator-view]')) {
+    link.hidden = link.dataset.simulatorView === 'gear-optimizer' && root.body.dataset.analysisWorkspace === 'bosses';
+
+    // Name the owning workspace on every navigation update, including history restoration.
+    if (link.dataset.simulatorView === 'analysis')
+      link.setAttribute('aria-label', workspace === 'bosses' ? 'Boss Analysis' : 'Golem Analysis');
+
+    const active = link.classList.contains('simulator-workspace-option')
+      ? link.dataset.simulatorView === (view === 'benchmarks' ? 'benchmarks' : workspace)
+      : link.dataset.simulatorView === view;
     link.classList.toggle('simulator-view-tab-active', active);
 
     if (active) link.setAttribute('aria-current', 'page');
@@ -141,8 +173,19 @@ export function mountSimulatorNavigation(): void {
   if (!professionId) return;
 
   const navigation = document.createElement('nav');
-  navigation.className = 'simulator-view-tabs';
+  navigation.className = 'simulator-navigation';
   navigation.setAttribute('aria-label', 'Simulator sections');
+  navigation.innerHTML = `<div class="simulator-header-chrome">
+    <div class="simulator-header-identity"><div class="simulator-workspace-control">
+      <span class="simulator-control-label">Workspace</span>
+      <div class="simulator-workspace-options" role="group" aria-label="Workspace"></div>
+    </div></div>
+    <div class="simulator-header-global"></div>
+  </div><div class="simulator-view-tabs" role="group" aria-label="Golem tools"></div>`;
+  const identity = navigation.querySelector('.simulator-header-identity')!;
+  const globals = navigation.querySelector('.simulator-header-global')!;
+  const workspaces = navigation.querySelector('.simulator-workspace-options')!;
+  const toolTabs = navigation.querySelector('.simulator-view-tabs')!;
 
   const pathname = document.defaultView?.location.pathname || 'index.html';
   let activeView = simulatorViewFromHash(document.defaultView?.location.hash || '');
@@ -206,10 +249,10 @@ export function mountSimulatorNavigation(): void {
 
     if (event.newState !== 'open') return;
 
-    // Refresh destinations on every opening so normal clicks and new tabs retain the current tool and mode.
+    // Profession changes start in Golem so normal clicks and new tabs never inherit another profession's tool or boss.
     for (const link of professionMenu.querySelectorAll<HTMLAnchorElement>('a')) {
       link.href = navigationRoute(
-        simulatorViewHref(link.dataset.route!, activeView),
+        simulatorViewHref(link.dataset.route!, 'workspace'),
         document.defaultView?.location.search
       );
     }
@@ -222,7 +265,7 @@ export function mountSimulatorNavigation(): void {
   // Keep an open picker inside the viewport when the header reflows after a resize.
   document.defaultView?.addEventListener('resize', positionProfessionMenu);
   professionControl.append(selector, professionMenu);
-  navigation.append(professionControl);
+  identity.prepend(professionControl);
   const scrollPositions = new Map<SimulatorView, ScrollPosition>([[activeView, viewportScrollPosition(document)]]);
   // Restore twice (now + next frame) so layout that settles after the view swap
   // doesn't clobber the scroll; bail if the view changed again in between.
@@ -243,6 +286,13 @@ export function mountSimulatorNavigation(): void {
 
   // Switches to a view, saving the outgoing scroll and restoring the incoming.
   const showView = (view: SimulatorView): void => {
+    const permitted = workspaceSimulatorView(view, body.dataset.analysisWorkspace);
+
+    if (permitted !== view) {
+      view = permitted;
+      document.defaultView?.history.replaceState({ analysisWorkspace: 'bosses' }, '', VIEW_HASHES[view]);
+    }
+
     if (view === activeView) {
       updateActiveView(document, view);
       return;
@@ -255,21 +305,29 @@ export function mountSimulatorNavigation(): void {
     restoreScrollPosition(view, position);
   };
 
-  for (const view of ['workspace', 'analysis', 'gear-optimizer', 'benchmarks'] as const) {
+  for (const view of ['workspace', 'bosses', 'analysis', 'gear-optimizer', 'benchmarks'] as const) {
     const route = simulatorViewHref(pathname, view);
     const link = createNavigationLink(
       document,
       view,
       view === 'workspace'
-        ? 'Workspace'
-        : view === 'analysis'
-          ? 'Analysis'
-          : view === 'benchmarks'
-            ? 'Benchmarks'
-            : 'Gear Optimizer',
+        ? 'Golem'
+        : view === 'bosses'
+          ? 'Bosses'
+          : view === 'analysis'
+            ? 'Analysis'
+            : view === 'benchmarks'
+              ? 'Benchmarks'
+              : 'Gear Optimizer',
       navigationRoute(route)
     );
-    navigation.append(link);
+
+    // Benchmarks is a peer destination, so its selected state never implies an active simulation workspace.
+    if (view === 'workspace' || view === 'bosses' || view === 'benchmarks') {
+      link.className = 'simulator-workspace-option';
+      workspaces.append(link);
+    } else toolTabs.append(link);
+
     link.addEventListener('click', (event) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
         return;
@@ -279,20 +337,53 @@ export function mountSimulatorNavigation(): void {
       const window = document.defaultView;
 
       if (window?.location.hash !== VIEW_HASHES[view]) {
-        window?.history.pushState(null, '', VIEW_HASHES[view]);
+        window?.history.pushState(
+          { analysisWorkspace: view === 'bosses' || view === 'workspace' ? view : body.dataset.analysisWorkspace },
+          '',
+          VIEW_HASHES[view]
+        );
       }
 
       showView(view);
     });
   }
 
+  // A dedicated Simulation tab keeps workspace selection separate from the tools within it.
+  const simulationLink = createNavigationLink(
+    document,
+    'workspace',
+    'Simulation',
+    navigationRoute(simulatorViewHref(pathname, 'workspace'))
+  );
+  simulationLink.dataset.simulationLink = '';
+  simulationLink.addEventListener('click', (event) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    event.preventDefault();
+    const view = body.dataset.analysisWorkspace === 'bosses' ? 'bosses' : 'workspace';
+
+    if (document.defaultView?.location.hash !== VIEW_HASHES[view])
+      document.defaultView?.history.pushState({ analysisWorkspace: view }, '', VIEW_HASHES[view]);
+
+    showView(view);
+  });
+  toolTabs.prepend(simulationLink);
+  const community = header.querySelector('.community-actions');
+
+  if (community) globals.append(community);
+
   header.prepend(navigation);
   mountAnalysisView(document);
-  updateActiveView(document, activeView);
+
+  if (document.defaultView?.history.state?.analysisWorkspace === 'bosses') body.dataset.analysisWorkspace = 'bosses';
+
+  showView(activeView);
   document.defaultView?.addEventListener('hashchange', () => {
     showView(simulatorViewFromHash(document.defaultView?.location.hash || ''));
   });
   document.defaultView?.addEventListener('popstate', () => {
+    body.dataset.analysisWorkspace =
+      document.defaultView?.history.state?.analysisWorkspace === 'bosses' ? 'bosses' : 'workspace';
     showView(simulatorViewFromHash(document.defaultView?.location.hash || ''));
   });
 }

@@ -1,3 +1,4 @@
+import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { CONDITION, BOON } from '#gw2/platform/constants.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { BuildContextFactory } from '#gw2/build-context/types.js';
@@ -114,13 +115,16 @@ export function createModifierContributionRequest(
   if (!Number.isFinite(baselineDps)) throw new TypeError('Modifier contributions require a finite baseline DPS.');
 
   const comparisonConfig = (disabled: ProfessionModifier | null = null): Gw2Config =>
-    deterministicSimulationConfig(
-      createBuildContext({
-        build: app.build,
-        patch: app.patch,
-        transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-        disabledModifier: disabled ?? undefined
-      }).simulationConfig()
+    withScenarioConfig(
+      deterministicSimulationConfig(
+        createBuildContext({
+          build: app.build,
+          patch: app.patch,
+          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
+          disabledModifier: disabled ?? undefined
+        }).simulationConfig()
+      ),
+      app.workspace?.scenario
     );
 
   const baseConfig = comparisonConfig();

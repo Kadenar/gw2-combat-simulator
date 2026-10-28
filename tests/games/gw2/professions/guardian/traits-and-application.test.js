@@ -264,6 +264,55 @@ test("Zealot's Resolution requires the enemy to be below its threshold before th
   );
 });
 
+// The original Golem maximum and a just-replaced encounter bar must not affect this pre-impact trait check.
+test("Zealot's Resolution uses the struck encounter target's pre-hit health", () => {
+  const target = (id, maximumHealth, startHealthPercent, endHealthPercent = 0) => ({
+    id,
+    name: id,
+    maximumHealth,
+    startHealthPercent,
+    endHealthPercent,
+    armor: 2597,
+    hitboxWidth: 140,
+    groupDps: 0,
+    entryHealthLossPercent: 0
+  });
+  const phase = (id, targets, playerTargetId) => ({
+    id,
+    kind: 'boss',
+    targets,
+    playerTargetId,
+    durationSeconds: null
+  });
+  const run = (phases, rotation) =>
+    createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      primaryWeapon: 'Mace',
+      attributeInputs: baseAttributeInputs({ ...config.attributeInputs.weaponSets[0].commonTotals, power: 4000 }),
+      target: { ...config.target, health: 4000 },
+      encounter: { repeatFrom: null, phases },
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOTS_RESOLUTION]
+    })(undefined, rotation);
+  const pulses = (result) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_RESOLUTION
+    );
+  const parallel = [phase('parallel', [target('first', 4000, 100), target('second', 400000, 75)], 'second')];
+  assert.equal(pulses(run(parallel, ['True Strike'])).length, 0);
+  assert.ok(pulses(run(parallel, ['True Strike', 'Pure Strike'])).length > 0);
+  for (const nextId of ['first', 'second']) {
+    const result = run(
+      [
+        phase('opening', [target('first', 4000, 70, 50)], 'first'),
+        phase('next', [target(nextId, 400000, 100)], nextId)
+      ],
+      ['True Strike']
+    );
+    assert.equal(result.encounter.phaseId, 'next');
+    assert.ok(pulses(result).length > 0);
+  }
+});
+
 test("Spear's Furious Focus symbol precedes the tether and only later pulses gain Big Game Hunter", () => {
   // Check modifier ordering rather than pinning cast durations: the tether cannot amplify an earlier pulse.
   for (const quickness of [false, true]) {

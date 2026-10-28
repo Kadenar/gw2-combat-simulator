@@ -29,6 +29,7 @@ export interface MechanicCombatServices {
   targetConditionStacks(condition: string, at: number): number;
   targetHealthLoss(): number;
   targetHealthBelow(threshold: number): boolean;
+  targetHitboxSize(): 'small' | 'large';
   /** Null when target health is unbounded. */
   remainingTargetHealthFraction(): number | null;
   targetConditionCount(at: number): number;
@@ -74,6 +75,16 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
     targetHealthLoss: () => targetHealthLoss(runtime.config, runtime),
     targetHealthBelow: (threshold: number) => remainingTargetHealthBelow(runtime.config, runtime, threshold),
     remainingTargetHealthFraction: () => remainingTargetHealthFraction(runtime.config, runtime),
+    // Full large-golem overlap requires at least its measured 700-unit diameter.
+    // Encounter metadata always wins over the editable Golem assumption.
+    targetHitboxSize: (): 'small' | 'large' =>
+      runtime.encounter
+        ? runtime.encounter.hitboxWidth >= 700
+          ? 'large'
+          : 'small'
+        : runtime.config.professionAssumptions?.hitboxSize === 'large'
+          ? 'large'
+          : 'small',
     targetConditionCount: (at: number) =>
       targetConditionCount({ config: runtime.config, query: runtime.query, runtime, time: at }),
     statsAt: (at: number, event: Gw2ResolverEvent) => runtime.query.statsAt(at, event, runtime),

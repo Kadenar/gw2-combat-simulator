@@ -1,3 +1,4 @@
+import { layoutChartMarkerLabels } from '#gw2/app/results/charts/marker-layout.js';
 import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { escapeHtml } from '#ui/shared/html.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
@@ -8,6 +9,7 @@ import {
   chartAxisMaximum,
   buildRollingDpsSeries,
   buildPhaseEffectSeries,
+  type ChartEncounterPhase,
   type ChartEffectType,
   type ChartPoint,
   type ChartSeries
@@ -29,6 +31,7 @@ export interface ChartOptions {
   readonly defaultVisibleEffectLimit: number;
   readonly emptyEffectsText: string;
   readonly healthBreakpoints: readonly ChartHealthBreakpoint[];
+  readonly encounterPhases: readonly ChartEncounterPhase[] | null;
   readonly targetStartingHealthPercent: number;
   readonly targetDied: boolean;
   readonly healthBreakpointColor: string;
@@ -48,7 +51,7 @@ interface ChartLine {
 interface ChartMarker {
   readonly label: string;
   readonly color: string;
-  readonly healthPercent: number;
+  readonly healthPercent?: number;
   readonly timeMs: number;
   readonly damage: number;
 }
@@ -94,6 +97,7 @@ const DEFAULT_OPTIONS: ChartOptions = {
   defaultVisibleEffectLimit: 8,
   emptyEffectsText: 'No timed effects in this rotation',
   healthBreakpoints: [],
+  encounterPhases: null,
   targetStartingHealthPercent: 100,
   targetDied: false,
   healthBreakpointColor: '#e1c070'
@@ -171,7 +175,7 @@ function fightPhases(series: ChartSeries, markers: readonly ChartMarker[], optio
     [options.targetStartingHealthPercent, { timeMs: 0, damage: 0 }]
   ]);
   for (const marker of markers) {
-    if (Number.isFinite(marker.damage)) {
+    if (marker.healthPercent !== undefined && Number.isFinite(marker.damage)) {
       boundaries.set(marker.healthPercent, {
         timeMs: marker.timeMs,
         damage: marker.damage
@@ -197,20 +201,27 @@ function fightPhases(series: ChartSeries, markers: readonly ChartMarker[], optio
       startDamage: 0,
       endDamage: Number.isFinite(finalDamage) ? finalDamage : 0
     },
-    ...TARGET_HEALTH_BANDS.map((range) => {
-      const start = boundaries.get(range.startHealth);
-      const end = boundaries.get(range.endHealth);
-      const enabled = Boolean(start && end && end.timeMs > start.timeMs && end.damage >= start.damage);
-      return {
-        id: range.id,
-        label: range.label,
-        enabled,
-        startMs: start?.timeMs || 0,
-        endMs: end?.timeMs || 0,
-        startDamage: start?.damage || 0,
-        endDamage: end?.damage || 0
-      };
-    })
+    // Range buttons select damage phases; splits remain on the full-fight clock and transition markers.
+    ...(options.encounterPhases
+      ?.filter((phase) => phase.kind === 'boss')
+      .map((phase) => ({
+        ...phase,
+        enabled: phase.endMs > phase.startMs
+      })) ??
+      TARGET_HEALTH_BANDS.map((range) => {
+        const start = boundaries.get(range.startHealth);
+        const end = boundaries.get(range.endHealth);
+        const enabled = Boolean(start && end && end.timeMs > start.timeMs && end.damage >= start.damage);
+        return {
+          id: range.id,
+          label: range.label,
+          enabled,
+          startMs: start?.timeMs || 0,
+          endMs: end?.timeMs || 0,
+          startDamage: start?.damage || 0,
+          endDamage: end?.damage || 0
+        };
+      }))
   ];
 }
 
@@ -310,6 +321,36 @@ function drawLineChart(
     left: 54
   };
   const plotWidth = cssWidth - pad.left - pad.right;
+  const markerGroups = new Map<number, ChartMarker[]>();
+  for (const marker of markers) {
+    const group = markerGroups.get(marker.timeMs) || [];
+    group.push(marker);
+    markerGroups.set(marker.timeMs, group);
+  }
+
+  context.font = 'bold 10px sans-serif';
+  const markerLabels = layoutChartMarkerLabels(
+    [...markerGroups].map(([timeMs, group]) => ({
+      timeMs,
+      color: group[0]!.color,
+      label: group.map((marker) => marker.label).join(' / ')
+    })),
+    durationMs,
+    pad.left,
+    plotWidth,
+    (label) => context.measureText(label).width
+  );
+  // Extra lanes expand the canvas downward, preserving the plot height and its interaction coordinates.
+  const extraHeight = Math.max(0, ...markerLabels.map((label) => label.lane)) * 14;
+  height += extraHeight;
+  pad.top += extraHeight;
+
+  if (extraHeight) {
+    canvas.height = Math.round(height * dpr);
+    canvas.style.height = `${height}px`;
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
   const plotHeight = height - pad.top - pad.bottom;
   const maxValue = chartAxisMaximum(
     lines.flatMap((line) => line.points.map((point) => point.v)),
@@ -342,17 +383,10 @@ function drawLineChart(
     context.textBaseline = 'middle';
   }
 
-  const markerGroups = new Map<number, ChartMarker[]>();
-  for (const marker of markers) {
-    const group = markerGroups.get(marker.timeMs) || [];
-    group.push(marker);
-    markerGroups.set(marker.timeMs, group);
-  }
-
-  for (const [timeMs, group] of markerGroups) {
-    const x = pad.left + (timeMs / durationMs) * plotWidth;
+  for (const marker of markerLabels) {
+    const x = marker.x;
     context.save();
-    context.strokeStyle = group[0]!.color;
+    context.strokeStyle = marker.color;
     context.lineWidth = 1;
     context.setLineDash([4, 4]);
     context.beginPath();
@@ -361,11 +395,11 @@ function drawLineChart(
     context.stroke();
     context.restore();
 
-    context.fillStyle = group[0]!.color;
+    context.fillStyle = marker.color;
     context.font = 'bold 10px sans-serif';
     context.textBaseline = 'middle';
-    context.textAlign = x < pad.left + 24 ? 'left' : x > cssWidth - pad.right - 24 ? 'right' : 'center';
-    context.fillText(group.map((marker) => marker.label).join(' / '), x, pad.top - 10);
+    context.textAlign = 'left';
+    context.fillText(marker.label, marker.left, 18 + marker.lane * 14);
   }
 
   // Emphasize both audience curves for a visible effect without changing the scale or checkbox selection.
@@ -589,7 +623,7 @@ function chartHtml(
           (phase) => `<button type="button"
         data-chart-phase="${escapeHtml(phase.id)}"
         aria-pressed="${phase.id === 'full' ? 'true' : 'false'}"
-        ${phase.enabled ? '' : 'disabled title="Target health range not reached"'}>
+        ${phase.enabled ? '' : 'disabled title="No observed duration for this phase"'}>
         ${escapeHtml(phase.label)}
       </button>`
         )
@@ -696,11 +730,19 @@ export function mountTimeSeriesCharts(
     colors: { ...DEFAULT_OPTIONS.colors, ...(options.colors || {}) },
     healthBreakpoints: options.healthBreakpoints || []
   };
-  const healthMarkers = healthBreakpointMarkers(
-    resolvedOptions.healthBreakpoints,
-    resolvedSeries.durationMs,
-    resolvedOptions.healthBreakpointColor
-  );
+  // Encounter boundaries replace golem health bands, keeping split time on the full-fight clock.
+  const healthMarkers: ChartMarker[] = resolvedOptions.encounterPhases
+    ? resolvedOptions.encounterPhases.map((phase) => ({
+        label: phase.label,
+        color: phase.kind !== 'boss' ? '#d9ad58' : resolvedOptions.healthBreakpointColor,
+        timeMs: phase.startMs,
+        damage: phase.startDamage
+      }))
+    : healthBreakpointMarkers(
+        resolvedOptions.healthBreakpoints,
+        resolvedSeries.durationMs,
+        resolvedOptions.healthBreakpointColor
+      );
   const phases = fightPhases(resolvedSeries, healthMarkers, resolvedOptions);
   let activePhaseId = 'full';
   let boonAudience: string = RECIPIENT.SELF;

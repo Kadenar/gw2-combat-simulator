@@ -117,6 +117,9 @@ export function captureGearOptimizerRequest(
   selections: GearOptimizerSelections,
   search: 'exact' | 'fast' = 'exact'
 ): GearOptimizerRequest {
+  // Encounter inputs cannot be represented by a Golem equipment-search request.
+  if (app.workspace?.scenario) throw new Error('Gear Optimizer is available only in Golem.');
+
   const request: GearOptimizerRequest = structuredClone({
     gameId: 'gw2',
     contentId: app.contentId,
@@ -612,6 +615,8 @@ const optimizerApplications = new WeakMap<
 
 /** Only this search's own Apply operations advance its accepted revision; unrelated edits still invalidate results. */
 export function isOptimizerRequestCurrent(app: ProfessionAppState, request: GearOptimizerRequest): boolean {
+  if (app.workspace?.scenario) return false;
+
   const applied = optimizerApplications.get(app);
   const revision = applied?.request === request ? applied.revision : request.revision;
   return app.buildRevision === revision && app.contentId === request.contentId && app.patch.id === request.patch.id;

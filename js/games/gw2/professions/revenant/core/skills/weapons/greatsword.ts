@@ -204,8 +204,8 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        // Target size is selected at acceptance, before any impact is queued.
-        when: (runtime) => runtime.config.professionAssumptions?.hitboxSize === 'large',
+        // Target size is selected from the active target at acceptance, before any impact is queued.
+        when: (runtime) => runtime.combat.targetHitboxSize() === 'large',
         ticks: [
           // Large targets overlap all nine random and five guaranteed impact areas.
           { atMs: 1000, coefficient: 0.3, name: "Eternity's Requiem" },

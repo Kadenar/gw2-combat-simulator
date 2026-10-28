@@ -14,6 +14,8 @@ import { createBuildTab, emptyBuildTabSession } from '#gw2/app/build/state/works
 import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { beginRotationComparison, setRotationReference } from '#gw2/app/rotation/comparison-state.js';
+import { createBossScenario, parseBossScenario } from '#gw2/app/boss-scenarios/model.js';
+import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
 
 // Browser storage is separate from the build codec; missing or corrupt preferences remain safe.
 test('simulation settings normalize invalid storage and persist separately from builds', (t) => {
@@ -116,6 +118,7 @@ function settingsWorkspace(t, initialDelay = 0) {
       classList: { remove() {}, contains: () => false }
     },
     getElementById: () => null,
+    dispatchEvent() {},
     querySelector: () => null,
     querySelectorAll: () => []
   });
@@ -124,19 +127,20 @@ function settingsWorkspace(t, initialDelay = 0) {
   const build = createDefaultBuild(adapter);
   build.rotation = [{ type: 'combat-start' }, { type: 'cast', skillId: -3 }, { type: 'cast', skillId: 73154 }];
   const tab = createBuildTab(build, 'A');
+  const simulationSettings = {
+    transitionDelays: Object.fromEntries(TRANSITION_DELAY_KEYS.map((key) => [key, initialDelay]))
+  };
   const app = Object.assign(Object.create(ProfessionApp.prototype), emptyBuildTabSession(), {
     adapter,
     profession: adapter.profession,
-    workspace: { tabs: [tab], activeTabId: tab.id },
+    workspace: { tabs: [tab], activeTabId: tab.id, simulationSettings },
     build,
     patch: adapter.profession.resolvePatch({ id: 'current' }),
     buildRevision: 1,
     resultRevision: -1,
     simulationStatus: 'queued',
     initialRenderGeneration: 0,
-    simulationSettings: {
-      transitionDelays: Object.fromEntries(TRANSITION_DELAY_KEYS.map((key) => [key, initialDelay]))
-    },
+    simulationSettings,
     randomDistributionRunner: { cancel() {}, schedule() {} },
     modifierContributionRunner: { cancel() {}, schedule() {} },
     relicComparisonRunner: { schedule() {} },
@@ -195,7 +199,12 @@ function settingsWorkspace(t, initialDelay = 0) {
   };
 
   const container = element();
-  mountSimulationSettings(app, { getElementById: () => container, createElement: element });
+  const remount = () => {
+    controls.length = 0;
+    mountSimulationSettings(app, { getElementById: () => container, createElement: element });
+  };
+
+  remount();
   const input = (key, value) => {
     const node = controls.find((control) => control.id === `simulation-${key}`);
     node.value = String(value);
@@ -204,7 +213,7 @@ function settingsWorkspace(t, initialDelay = 0) {
   };
 
   const click = (label) => controls.find((control) => control.textContent === label).handlers.click();
-  return { app, tab, cached, reference, settle, input, click };
+  return { app, tab, cached, reference, settle, input, click, remount };
 }
 
 // Every shared field and both bulk actions invalidate Current and Reference without eagerly running inactive tabs.
@@ -225,7 +234,7 @@ for (const action of [...TRANSITION_DELAY_KEYS, 'Apply 100 ms to all', 'Clear al
     assert.equal(app.rotationComparison.referenceStatus, 'queued');
     assert.equal(app.baselineSimulationRunner.queue.pending.revision, app.buildRevision);
     assert.equal(tab.session.results, cached);
-    assert.equal(tab.session.rotationComparison.referenceResult, reference);
+    assert.equal(tab.session.rotationComparison.referenceResult, null);
 
     app.activateBuildTab(tab.id);
     assert.equal(app.results, null);
@@ -281,4 +290,50 @@ test('reverting shared delays still refreshes invalidated tabs and leaves empty 
   assert.ok(app.baselineSimulationRunner.queue.pending.request.referenceRotation);
   settle();
   assert.equal(app.rotationComparison.referenceStatus, 'fresh');
+});
+
+// Cached results stay valid when returning to an unchanged workspace with its own simulation inputs.
+test('Golem and separate boss scenarios retain independent delays, caches, and saved settings', (t) => {
+  const { app, tab, input, settle, remount } = settingsWorkspace(t, 100);
+  const golem = app.workspace;
+  const golemResult = app.results;
+  const first = createBossScenario('020102', app.build, 'First boss', 'current');
+  const second = createBossScenario('020506', app.build, 'Second boss', 'current');
+  const editor = createScenarioEditor(app, () => {}, { import() {}, export() {} });
+  editor.open(first);
+  settle();
+  remount();
+  assert.equal(app.rotationComparison, null);
+  assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 0);
+  input('weaponSwapMs', 250);
+  settle();
+  const firstResult = app.results;
+  assert.equal(first.simulationSettings.transitionDelays.weaponSwapMs, 250);
+  assert.equal(loadSimulationSettings().transitionDelays.weaponSwapMs, 0);
+  assert.equal(tab.resultsFresh, true);
+
+  editor.open(second);
+  settle();
+  remount();
+  assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 0);
+  input('weaponSwapMs', 500);
+  settle();
+  editor.close();
+  remount();
+  assert.equal(app.workspace, golem);
+  assert.equal(app.results, golemResult);
+  assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 100);
+  input('weaponSwapMs', 150);
+  settle();
+  assert.equal(loadSimulationSettings().transitionDelays.weaponSwapMs, 150);
+
+  editor.open(first);
+  assert.equal(app.results, firstResult);
+  assert.equal(app.baselineSimulationRunner.queue.pending, null);
+  assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 250);
+  assert.equal(second.simulationSettings.transitionDelays.weaponSwapMs, 500);
+  const restored = parseBossScenario(JSON.parse(JSON.stringify(first)), 'mesmer', app.adapter.toApplicationBuild);
+  assert.equal(restored.simulationSettings.transitionDelays.weaponSwapMs, 250);
+  restored.simulationSettings.transitionDelays.weaponSwapMs = 999;
+  assert.equal(first.simulationSettings.transitionDelays.weaponSwapMs, 250);
 });

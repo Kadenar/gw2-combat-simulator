@@ -44,6 +44,8 @@ import {
   signetOfMightProcAt
 } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
 import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
+import { BLINK_OR_PHASE_RETREAT_ID } from '#gw2/integrations/logs/shared/rotation/professions/mesmer.js';
 
 /** Selects the player, phase, and build evidence used when reconstructing an imported rotation. */
 export interface DpsReportRotationOptions {
@@ -319,6 +321,16 @@ function warningList(actions: readonly DpsReportRotationAction[]): string[] {
   const unsupported = actions.filter(
     (action) => !action.supportedByCatalog && !isMushroomKingsBlessing(action) && !isWeaponStow(action)
   );
+
+  // Build-resolved ambiguous source rows stay reviewable instead of claiming the report named the skill exactly.
+  if (
+    actions.some(
+      (action) => action.rawSkillId === BLINK_OR_PHASE_RETREAT_ID && action.skillId === MESMER_SKILL_IDS.PHASE_RETREAT
+    )
+  )
+    warnings.push(
+      'Resolved "Blink or Phase Retreat" as Phase Retreat using Staff evidence and your build without Blink. Check that your build matches the log.'
+    );
 
   if (unsupported.length) {
     warnings.push(

@@ -13,6 +13,11 @@ retain JSON traversal order. EI groups rows by skill, so original cross-skill ti
 attacks, split animations and generated bar swaps. Trait/gear/unconditional procs and simulator-generated packets do not
 become independent inputs. Supplied Luminary Forge entries remain inputs; missing opening entries stay missing.
 
+Mesmer's supplied `Blink or Phase Retreat` rows resolve to Phase Retreat when Staff is evidenced by recorded weapon
+casts or the active build, and an explicitly supplied skill loadout excludes Blink. The importer preserves the original
+row and timestamp and reports the build-based resolution for review. With missing build selections, Blink equipped, or
+no Staff evidence, the marker remains unresolved; it is never blindly renamed to Phase Retreat.
+
 Mirage Cloak gains coincident with recorded shatters or cloak-granting Deceptions replay through those skills without
 adding a dodge. Other cloak gains use the ordinary unsupported-action handling. Importing EVTC provides raw buff,
 teleport and mirror damage evidence to identify their source inputs.

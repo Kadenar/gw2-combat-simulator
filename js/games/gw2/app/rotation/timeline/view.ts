@@ -3,6 +3,7 @@ import { timelineInteractionOptions } from '#gw2/app/rotation/editing/timeline-o
 import { bindTimelineInteractions } from '#gw2/app/rotation/timeline/interactions.js';
 import { currentTimelineResults, procFilterKey } from '#gw2/app/rotation/timeline/model.js';
 import { timelineRowsView, type TimelineRowRender } from '#gw2/app/rotation/timeline/rows.js';
+import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
@@ -233,7 +234,8 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     results,
     readOnly,
     procVisibility,
-    procPanelWasOpen
+    procPanelWasOpen,
+    createWorkspacePresentation(app).timeline(app, build, results)
   );
 
   if (procElement) procElement.innerHTML = procHtml;

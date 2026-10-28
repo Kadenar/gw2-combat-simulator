@@ -212,6 +212,7 @@ export function createGw2ResolverRuntimeState({
 
 /** Mutable per-run resolver state: combat stores, reporting collections, and the services resolution handlers share. */
 export interface Gw2ResolverRuntime {
+  encounter?: import('#gw2/platform/combat/state/encounter.js').EncounterController;
   readonly combat: MechanicCombatServices;
   readonly effectRecorder: EffectReportObserver | null;
   readonly procRecorder: ProcStepObserver | null;

@@ -21,7 +21,13 @@ test('Fresh Air keeps only future strike wakes for selected builds', () => {
   // Wakes are candidates, including cancellable strikes; only resolved criticals reset recharge.
   for (const selected of [false, true]) {
     const core = createElementalistCoreState();
-    const runtime = { profession: { core }, time: 1, config: {}, traits: new Set(selected ? [TRAIT.FRESH_AIR] : []) };
+    const runtime = {
+      profession: { core },
+      time: 1,
+      config: {},
+      traits: new Set(selected ? [TRAIT.FRESH_AIR] : []),
+      combat: { targetHitboxSize: () => 'small' }
+    };
     bindTriggerPoints(runtime, elementalistProfession);
     const prepare = (at, overrides = {}) =>
       elementalistCoreHooks.prepareEvent(runtime, {

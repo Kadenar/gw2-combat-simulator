@@ -154,11 +154,11 @@ function disposeInsights(): void {
   reportDialog = null;
 }
 
-/** Insights UI is independent of the timeline layout and keeps its reference when dismissed. */
+/** Golem insights keep their reference when dismissed; encounter workspaces cannot open the report. */
 export function openRotationInsights(app: ProfessionAppState, refresh: () => void): void {
   const session = app.rotationComparison;
 
-  if (!session) return;
+  if (app.workspace?.scenario || !session) return;
 
   if (reportDialog?.session !== session || reportDialog.app !== app) {
     disposeInsights();
@@ -220,7 +220,7 @@ export function renderRotationInsights(app: ProfessionAppState, fresh: boolean):
 
   const comparison = app.rotationComparison;
 
-  if (reportDialog.app !== app || reportDialog.session !== comparison) {
+  if (app.workspace?.scenario || reportDialog.app !== app || reportDialog.session !== comparison) {
     disposeInsights();
     return;
   }

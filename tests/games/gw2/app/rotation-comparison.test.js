@@ -11,6 +11,7 @@ import {
   failRotationReference
 } from '#gw2/app/rotation/comparison-state.js';
 import { manifestRotationMatchesBuild } from '#gw2/app/import-export/rotation-import-dialog.js';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import {
   rotationComparisonMetrics,
   rotationComparisonMetricsFromSeries,
@@ -62,41 +63,93 @@ function comparisonApp(rotation = [{ type: 'cast', skillId: 1 }], currentResult 
 }
 
 test('manifest references require the same profession and selected skill set', () => {
+  const catalog = revenantAppAdapter.profession.catalog;
   const current = {
-    profession: 'mesmer',
+    ...revenantAppAdapter.profession.createBuildDefaults(),
     selectedSkillIds: { Heal: 10176, Utility1: 'Blink', Elite: 10311 }
   };
 
   assert.equal(
     manifestRotationMatchesBuild(
       {
-        profession: 'mesmer',
+        ...current,
         selectedSkillIds: { Elite: 10311, Heal: 10176, Utility1: 'Blink' }
       },
-      current
+      current,
+      catalog
     ),
     true
   );
   assert.equal(
     manifestRotationMatchesBuild(
       {
-        profession: 'mesmer',
+        ...current,
         selectedSkillIds: { Heal: 10176, Utility1: 10202, Elite: 10311 }
       },
-      current
+      current,
+      catalog
     ),
     false
   );
   assert.equal(
     manifestRotationMatchesBuild(
       {
+        ...current,
         profession: 'necromancer',
         selectedSkillIds: { Heal: 10176, Utility1: 'Blink', Elite: 10311 }
       },
-      current
+      current,
+      catalog
     ),
     false
   );
+});
+
+// Empty Revenant skill slots must not make different elite specializations or weapon sets compatible.
+test('manifest references require the same elite specialization and both ordered weapon sets', () => {
+  const catalog = revenantAppAdapter.profession.catalog;
+  const current = {
+    ...revenantAppAdapter.profession.createBuildDefaults(),
+    selectedSkillIds: {},
+    specializations: ['Devastation', 'Invocation', 'Conduit'].map((name) => ({ name, traits: '1-1-1' })),
+    weapons: ['Sword', 'Sword'],
+    alternateWeapons: ['Greatsword', '']
+  };
+  const matches = (candidate) => manifestRotationMatchesBuild(candidate, current, catalog);
+  assert.equal(matches(structuredClone(current)), true);
+
+  for (const name of ['Renegade', 'Herald', 'Vindicator', 'Retribution']) {
+    const candidate = structuredClone(current);
+    candidate.specializations[2].name = name;
+    assert.equal(matches(candidate), false, name);
+  }
+
+  for (const equipment of [
+    { weapons: ['Scepter', 'Sword'] },
+    { weapons: ['Sword', 'Axe'] },
+    { alternateWeapons: ['Staff', ''] },
+    { weapons: current.alternateWeapons, alternateWeapons: current.weapons },
+    { weapons: undefined },
+    { alternateWeapons: undefined }
+  ]) {
+    assert.equal(matches({ ...current, ...equipment }), false);
+  }
+
+  for (const specializations of [undefined, [], [null, null, null]]) {
+    assert.equal(matches({ ...current, specializations }), false);
+  }
+
+  // Core trait lines, trait choices, and equipment bonuses can vary without changing rotation access.
+  const candidate = structuredClone(current);
+  candidate.specializations[0] = { name: 'Retribution', traits: '3-3-3' };
+  candidate.specializations.reverse();
+  candidate.weaponSigils = [
+    ['Force', 'Air'],
+    ['Force', 'Air']
+  ];
+  assert.equal(matches(candidate), true);
+  current.specializations[2].name = 'Retribution';
+  assert.equal(matches(structuredClone(current)), true);
 });
 
 test('comparison rejects empty or stale Current and opens with an empty reference', () => {
@@ -120,6 +173,29 @@ test('comparison rejects empty or stale Current and opens with an empty referenc
     referenceStatus: 'empty',
     referenceError: ''
   });
+});
+
+// Encounter workspaces cannot start either reference workflow, even with fresh simulation results.
+test('boss scenarios reject comparison and insights without queuing a reference', () => {
+  for (const view of ['timelines', 'insights']) {
+    const app = comparisonApp();
+    app.workspace = { scenario: { encounterId: '020102', difficulty: 'normal' } };
+    const current = app.results;
+    const rotation = app.build.rotation;
+    assert.equal(beginRotationComparison(app, view), false);
+    app.startRotationComparison();
+    app.loadRotationReference([{ type: 'cast', skillId: 2 }]);
+    assert.equal(app.rotationComparison, null);
+    assert.deepEqual(app.scheduledRevisions, []);
+    assert.equal(app.results, current);
+    assert.equal(app.build.rotation, rotation);
+
+    app.workspace = {};
+    assert.equal(beginRotationComparison(app, view), true);
+    app.loadRotationReference([{ type: 'cast', skillId: 2 }]);
+    assert.equal(app.rotationComparison.referenceStatus, 'queued');
+    assert.deepEqual(app.scheduledRevisions, [1]);
+  }
 });
 
 // The standalone report pins the same reference without requiring the two-timeline workspace.

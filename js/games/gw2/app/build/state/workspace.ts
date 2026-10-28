@@ -7,6 +7,7 @@ import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import { createDefaultBuild, loadBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
 
 /** Only build-specific editing state travels with a tab; display preferences remain shared. */
 export function emptyBuildTabSession() {
@@ -41,9 +42,17 @@ export interface BuildTab {
 }
 
 export interface BuildWorkspace {
+  /** Simulation inputs belong to this workspace; its tabs share these settings and cache invalidation. */
+  simulationSettings: SimulationSettings;
+  /** Encounter inputs travel with the shared editor but are never saved as Golem build assumptions. */
+  scenario?: import('#gw2/app/boss-scenarios/model.js').BossScenarioDraft;
   tabs: BuildTab[];
   activeTabId: string;
   storageError?: string;
+  /** Encounter workspaces persist phase edits to their scenario instead of the golem library. */
+  persist?: () => void;
+  /** Shared header transfers use the complete encounter document when this workspace owns one. */
+  fileActions?: { export: () => void; import: () => void };
 }
 
 export function createBuildTab(build: Gw2CanonicalBuild, name = 'New build', patchId = 'current'): BuildTab {
@@ -64,6 +73,7 @@ export function workspaceStorageKey(adapter: Gw2AppAdapter): string {
 }
 
 export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
+  const simulationSettings = loadSimulationSettings();
   try {
     const saved = JSON.parse(localStorage.getItem(workspaceStorageKey(adapter)) || 'null');
 
@@ -136,7 +146,11 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
       }
 
       if (tabs.length) {
-        return { tabs, activeTabId: tabs.find((tab) => tab.id === saved.activeTabId)?.id || tabs[0].id };
+        return {
+          simulationSettings,
+          tabs,
+          activeTabId: tabs.find((tab) => tab.id === saved.activeTabId)?.id || tabs[0].id
+        };
       }
     }
   } catch (error) {
@@ -145,7 +159,7 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
   }
 
   const tab = createBuildTab(loadBuild(adapter), 'Build 1');
-  return { tabs: [tab], activeTabId: tab.id };
+  return { simulationSettings, tabs: [tab], activeTabId: tab.id };
 }
 
 /** Snapshots references owned by the outgoing tab without cloning large simulation results. */
@@ -181,6 +195,12 @@ export function saveBuildWorkspace(app: ProfessionAppState): void {
   if (!workspace) return;
 
   captureActiveBuildTab(app);
+
+  if (workspace.persist) {
+    workspace.persist();
+    return;
+  }
+
   try {
     localStorage.setItem(
       workspaceStorageKey(app.adapter),

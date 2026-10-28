@@ -134,6 +134,13 @@ function comparisonHeadingButtons(app: ProfessionAppState): void {
 
   if (!controls) return;
 
+  // The shared editor exposes reference comparisons only in the Golem workspace.
+  if (app.workspace?.scenario) {
+    controls.querySelector('[data-rotation-compare]')?.remove();
+    controls.querySelector('[data-insights-open]')?.remove();
+    return;
+  }
+
   let compareButton = controls.querySelector<HTMLButtonElement>('[data-rotation-compare]');
 
   if (!compareButton) {
@@ -362,7 +369,7 @@ export function renderRotationComparison(app: ProfessionAppState): void {
 
   renderRotationInsights(app, currentIsFresh(app) && comparison?.referenceStatus === 'fresh');
 
-  if (!comparison || comparison.view === 'insights') {
+  if (app.workspace?.scenario || !comparison || comparison.view === 'insights') {
     removeComparisonView();
     return;
   }

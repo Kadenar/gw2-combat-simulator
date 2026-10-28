@@ -1,0 +1,1160 @@
+import type { EncounterHealth } from '#gw2/app/boss-scenarios/health-types.js';
+
+/** Reviewed EI target health, armor, and hitbox widths for boss scenarios; preserve exact values rather than rounded metadata. */
+export const ENCOUNTER_HEALTH: readonly EncounterHealth[] = [
+  {
+    encounterId: '020101',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Vale Guardian',
+        health: 22021440,
+        primary: true,
+        healthBars: null,
+        armor: 1910,
+        hitboxWidth: 140
+      }
+    ]
+  },
+  {
+    encounterId: '020102',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Gorseval the Multifarious',
+        health: 21628200,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 250
+      }
+    ]
+  },
+  {
+    encounterId: '020103',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Sabetha the Saboteur',
+        health: 34015256,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 48
+      }
+    ]
+  },
+  {
+    encounterId: '020201',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Slothasor',
+        health: 18973828,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 360
+      }
+    ]
+  },
+  {
+    encounterId: '020203',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Matthias Gabrel',
+        health: 25953840,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 140
+      }
+    ]
+  },
+  {
+    encounterId: '020302',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Keep Construct',
+        health: 55053600,
+        primary: true,
+        healthBars: null,
+        armor: 1910,
+        hitboxWidth: 200
+      }
+    ]
+  },
+  {
+    encounterId: '020302',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Keep Construct',
+        health: 55053600,
+        primary: true,
+        healthBars: null,
+        armor: 1910,
+        hitboxWidth: 200
+      }
+    ]
+  },
+  {
+    encounterId: '020304',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Xera',
+        health: 24085950,
+        primary: true,
+        healthBars: [
+          [50, 100, 22611300, 0],
+          [0, 50, 25560600, 1]
+        ],
+        armor: 2597,
+        hitboxWidth: 48
+      }
+    ]
+  },
+  {
+    encounterId: '020401',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Cairn the Indomitable',
+        health: 19999998,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 200
+      }
+    ]
+  },
+  {
+    encounterId: '020401',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Cairn the Indomitable',
+        health: 19999998,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 200
+      }
+    ]
+  },
+  {
+    encounterId: '020402',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Mursaat Overseer',
+        health: 30000000,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 160
+      }
+    ]
+  },
+  {
+    encounterId: '020402',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Mursaat Overseer',
+        health: 22021440,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 160
+      }
+    ]
+  },
+  {
+    encounterId: '020403',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Samarog',
+        health: 40000000,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 420
+      }
+    ]
+  },
+  {
+    encounterId: '020403',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Samarog',
+        health: 29493000,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 420
+      }
+    ]
+  },
+  {
+    encounterId: '020404',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Deimos',
+        health: 42804900,
+        primary: true,
+        healthBars: [
+          [10, 100, 42000000, 0],
+          [0, 10, 50049000, 1]
+        ],
+        armor: 2597,
+        hitboxWidth: 140
+      }
+    ]
+  },
+  {
+    encounterId: '020404',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Deimos',
+        health: 37388210,
+        primary: true,
+        healthBars: [
+          [10, 100, 35981456, 0],
+          [0, 10, 50049000, 1]
+        ],
+        armor: 2597,
+        hitboxWidth: 140
+      }
+    ]
+  },
+  {
+    encounterId: '020501',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Soulless Horror',
+        health: 35391600,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 240
+      }
+    ]
+  },
+  {
+    encounterId: '020501',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Soulless Horror',
+        health: 35391600,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 240
+      }
+    ]
+  },
+  {
+    encounterId: '020506',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Dhuum',
+        health: 40000000,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 400
+      }
+    ]
+  },
+  {
+    encounterId: '020506',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Dhuum',
+        health: 32000000,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 400
+      }
+    ]
+  },
+  {
+    encounterId: '020601',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Conjured Amalgamate',
+        health: 52290000,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 16
+      }
+    ]
+  },
+  {
+    encounterId: '020601',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Conjured Amalgamate',
+        health: 52290000,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 16
+      }
+    ]
+  },
+  {
+    encounterId: '020602',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Nikare',
+        health: 19219604,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 120
+      },
+      {
+        index: 1,
+        name: 'Kenut',
+        health: 17548336,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 120
+      }
+    ]
+  },
+  {
+    encounterId: '020602',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Nikare',
+        health: 17548336,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 120
+      },
+      {
+        index: 1,
+        name: 'Kenut',
+        health: 15877066,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 120
+      }
+    ]
+  },
+  {
+    encounterId: '020603',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Qadim',
+        health: 21195636,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 240
+      }
+    ]
+  },
+  {
+    encounterId: '020603',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Qadim',
+        health: 19268760,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 240
+      }
+    ]
+  },
+  {
+    encounterId: '020701',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Cardinal Adina',
+        health: 24872430,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 160
+      }
+    ]
+  },
+  {
+    encounterId: '020701',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Cardinal Adina',
+        health: 22611300,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 160
+      }
+    ]
+  },
+  {
+    encounterId: '020702',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Cardinal Sabir',
+        health: 32442300,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 240
+      }
+    ]
+  },
+  {
+    encounterId: '020702',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Cardinal Sabir',
+        health: 29493000,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 240
+      }
+    ]
+  },
+  {
+    encounterId: '020703',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Qadim the Peerless',
+        health: 51000000,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 400
+      }
+    ]
+  },
+  {
+    encounterId: '020703',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Qadim the Peerless',
+        health: 47188800,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 400
+      }
+    ]
+  },
+  {
+    encounterId: '020801',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Godspoil Greer',
+        health: 42469920,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 800
+      }
+    ]
+  },
+  {
+    encounterId: '020801',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Greer, the Blightbringer',
+        health: 42469920,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 800
+      }
+    ]
+  },
+  {
+    encounterId: '020802',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Godsquall Decima',
+        health: 87318152,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 750
+      }
+    ]
+  },
+  {
+    encounterId: '020802',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Decima, the Stormsinger',
+        health: 54149148,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 750
+      }
+    ]
+  },
+  {
+    encounterId: '020803',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Godscream Ura',
+        health: 82540292,
+        primary: true,
+        healthBars: [
+          [1, 100, 71774168, 0],
+          [0, 16, 71774168, 1]
+        ],
+        armor: 2597,
+        hitboxWidth: 1000
+      }
+    ]
+  },
+  {
+    encounterId: '020803',
+    difficulty: 'legendary',
+    targets: [
+      {
+        index: 0,
+        name: 'Godscream Ura',
+        health: 123451556,
+        primary: true,
+        healthBars: [
+          [1, 100, 94962736, 0],
+          [0, 31, 94962736, 1]
+        ],
+        armor: 2597,
+        hitboxWidth: 1000
+      }
+    ]
+  },
+  {
+    encounterId: '020803',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Ura, the Steamshrieker',
+        health: 55210896,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 1000
+      }
+    ]
+  },
+  {
+    encounterId: '040201',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Icebrood Construct',
+        health: 11698890,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 720
+      }
+    ]
+  },
+  {
+    encounterId: '040202',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Fraenir of Jormag',
+        health: 12387060,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 48
+      },
+      {
+        index: 1,
+        name: 'Icebrood Construct',
+        health: 8258040,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 720
+      }
+    ]
+  },
+  {
+    encounterId: '040203',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Voice of the Fallen',
+        health: 8258040,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 128
+      },
+      {
+        index: 1,
+        name: 'Claw of the Fallen',
+        health: 8258040,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 128
+      }
+    ]
+  },
+  {
+    encounterId: '040204',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Boneskinner',
+        health: 20979420,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 400
+      }
+    ]
+  },
+  {
+    encounterId: '040205',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Whisper of Jormag',
+        health: 24774120,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 400
+      }
+    ]
+  },
+  {
+    encounterId: '040301',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Captain Mai Trin',
+        health: 8008740,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 48
+      },
+      {
+        index: 1,
+        name: 'Echo of Scarlet Briar',
+        health: 36074160,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 300
+      }
+    ]
+  },
+  {
+    encounterId: '040301',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Captain Mai Trin',
+        health: 5308740,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 48
+      },
+      {
+        index: 1,
+        name: 'Echo of Scarlet Briar',
+        health: 15926220,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 300
+      }
+    ]
+  },
+  {
+    encounterId: '040302',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Ankka',
+        health: 46955764,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 48
+      }
+    ]
+  },
+  {
+    encounterId: '040302',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Ankka',
+        health: 26453952,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 48
+      }
+    ]
+  },
+  {
+    encounterId: '040303',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Minister Li',
+        health: 38222928,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 120
+      }
+    ]
+  },
+  {
+    encounterId: '040303',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Minister Li',
+        health: 26543700,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 120
+      }
+    ]
+  },
+  {
+    encounterId: '040304',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'The JormagVoid',
+        health: 16807500,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 1,
+        name: 'The PrimordusVoid',
+        health: 16807500,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 2,
+        name: 'The KralkatorrikVoid',
+        health: 16807500,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 3,
+        name: 'The MordremothVoid',
+        health: 16807500,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 4,
+        name: 'The ZhaitanVoid',
+        health: 16807500,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 5,
+        name: 'The SooWonVoid',
+        health: 31075200,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      }
+    ]
+  },
+  {
+    encounterId: '040304',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'The JormagVoid',
+        health: 6723000,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 1,
+        name: 'The PrimordusVoid',
+        health: 6723000,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 2,
+        name: 'The KralkatorrikVoid',
+        health: 6723000,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 3,
+        name: 'The MordremothVoid',
+        health: 6723000,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 4,
+        name: 'The ZhaitanVoid',
+        health: 6723000,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      },
+      {
+        index: 5,
+        name: 'The SooWonVoid',
+        health: 9711000,
+        primary: true,
+        healthBars: null,
+        armor: 1223,
+        hitboxWidth: 100
+      }
+    ]
+  },
+  {
+    encounterId: '040305',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Prototype Vermilion',
+        health: 21234960,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 200
+      },
+      {
+        index: 1,
+        name: 'Prototype Indigo',
+        health: 21234960,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 200
+      },
+      {
+        index: 2,
+        name: 'Prototype Arsenite',
+        health: 21234960,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 200
+      }
+    ]
+  },
+  {
+    encounterId: '040305',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Prototype Vermillon',
+        health: 12740976,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 200
+      },
+      {
+        index: 1,
+        name: 'Prototype Indigo',
+        health: 12740976,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 200
+      },
+      {
+        index: 2,
+        name: 'Prototype Arsénite',
+        health: 12740976,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 200
+      }
+    ]
+  },
+  {
+    encounterId: '040501',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Dagda',
+        health: 50963904,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 120
+      }
+    ]
+  },
+  {
+    encounterId: '040501',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Dagda',
+        health: 42469920,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 120
+      }
+    ]
+  },
+  {
+    encounterId: '040502',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Cerus',
+        health: 95557328,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 280
+      }
+    ]
+  },
+  {
+    encounterId: '040502',
+    difficulty: 'legendary',
+    targets: [
+      {
+        index: 0,
+        name: 'Cerus',
+        health: 117057712,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 280
+      }
+    ]
+  },
+  {
+    encounterId: '040502',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Cerus',
+        health: 47778660,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 280
+      }
+    ]
+  },
+  {
+    encounterId: '040601',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Kela, Seneschal of Waves',
+        health: 66890120,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 600
+      }
+    ]
+  },
+  {
+    encounterId: '040601',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Kela, Seneschal of Waves',
+        health: 38222928,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 600
+      }
+    ]
+  },
+  {
+    encounterId: '040602',
+    difficulty: 'challenge',
+    targets: [
+      {
+        index: 0,
+        name: 'Vloxx',
+        health: 84939840,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 300
+      }
+    ]
+  },
+  {
+    encounterId: '040602',
+    difficulty: 'legendary',
+    targets: [
+      {
+        index: 0,
+        name: 'Vloxx',
+        health: 102777208,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 300
+      }
+    ]
+  },
+  {
+    encounterId: '040602',
+    difficulty: 'normal',
+    targets: [
+      {
+        index: 0,
+        name: 'Vloxx',
+        health: 42469920,
+        primary: true,
+        healthBars: null,
+        armor: 2597,
+        hitboxWidth: 300
+      }
+    ]
+  }
+];

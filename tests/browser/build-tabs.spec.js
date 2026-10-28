@@ -7,8 +7,8 @@ async function openWorkspace(page, viewport = { width: 1440, height: 1000 }) {
   await expect(page.locator('#build-workspace-tabs')).toBeVisible();
 }
 
-// Profession changes retain the selected tool and display flags; tool links still support browser history.
-test('header profession selector preserves navigation and the landing page owns the copyright', async ({ page }) => {
+// Profession changes return to Golem and retain display flags; tool links still support browser history.
+test('header profession selector returns to Golem and the landing page owns the copyright', async ({ page }) => {
   await page.goto('/mesmer.html?embed=1&standalone=1#workspace');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   const navigation = page.getByRole('navigation', { name: 'Simulator sections' });
@@ -30,13 +30,13 @@ test('header profession selector preserves navigation and the landing page owns 
   // DPS now sits beneath this popover; dismiss through an unobscured editor heading.
   await page.getByRole('heading', { name: 'Gear loadout', exact: true }).click();
   await expect(professions).toBeHidden();
-  await navigation.getByRole('link', { name: 'Analysis', exact: true }).click();
-  await expect(navigation.getByRole('link', { name: 'Analysis', exact: true })).toHaveAttribute('aria-current', 'page');
-  await page.goBack();
-  await expect(navigation.getByRole('link', { name: 'Workspace', exact: true })).toHaveAttribute(
+  await navigation.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
+  await expect(navigation.getByRole('link', { name: 'Golem Analysis', exact: true })).toHaveAttribute(
     'aria-current',
     'page'
   );
+  await page.goBack();
+  await expect(navigation.getByRole('link', { name: 'Golem', exact: true })).toHaveAttribute('aria-current', 'page');
   await navigation.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   await selector.click();
   for (const width of [320, 1440]) {
@@ -45,13 +45,10 @@ test('header profession selector preserves navigation and the landing page owns 
   }
 
   await professions.getByRole('link', { name: 'Guardian', exact: true }).click();
-  await expect(page).toHaveURL(/guardian\.html\?embed=1&standalone=1#gear-optimizer$/);
+  await expect(page).toHaveURL(/guardian\.html\?embed=1&standalone=1#workspace$/);
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await expect(selector).toHaveText('Guardian');
-  await expect(navigation.getByRole('link', { name: 'Gear Optimizer', exact: true })).toHaveAttribute(
-    'aria-current',
-    'page'
-  );
+  await expect(navigation.getByRole('link', { name: 'Golem', exact: true })).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('#app > header #header-dps')).toBeVisible();
   await expect(page.locator('.landing-footer')).toHaveCount(0);
 
@@ -103,16 +100,16 @@ async function settled(page) {
 test('build tabs isolate edits and results and support duplication, rename, close, and refresh', async ({ page }) => {
   await openWorkspace(page);
   const strip = page.locator('#build-workspace-tabs');
-  const current = strip.locator('.build-switcher-name');
+  const current = strip.locator('#build-switcher .build-switcher-name');
   await expect(strip.locator('.build-tab')).toHaveCount(1);
-  await expect(strip.locator('.build-switcher-count')).toHaveText('1 open build');
+  await expect(strip.locator('#build-switcher .build-switcher-count')).toHaveText('1 open build');
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await settled(page);
   const originalDps = await page.locator('#header-dps').textContent();
   await tabAction(page, 'Duplicate');
   await settled(page);
   await expect(strip.locator('.build-tab')).toHaveCount(2);
-  await expect(strip.locator('.build-switcher-count')).toHaveText('2 open builds');
+  await expect(strip.locator('#build-switcher .build-switcher-count')).toHaveText('2 open builds');
   await tabAction(page, 'Rename');
   const renameDialog = page.getByRole('dialog', { name: 'Rename build', exact: true });
   await renameDialog.getByRole('textbox', { name: 'Build name' }).fill('Alternative');
@@ -132,7 +129,7 @@ test('build tabs isolate edits and results and support duplication, rename, clos
   await page.locator('#btn-sim-undo').click();
   await settled(page);
   await expect(page.locator('#rotation-timeline')).not.toHaveClass(/is-empty/);
-  await page.getByRole('link', { name: 'Analysis', exact: true }).click();
+  await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
   await expect(page.locator('#rotation-results')).toContainText('Bladecall');
   await selectBuild(page, 'Build 1');
   await expect(page.locator('#rotation-results')).toContainText('No analysis yet');
@@ -260,14 +257,14 @@ test('rename dialog validates names and restores focus to the switcher', async (
   await input.press('Escape');
   await expect(dialog).toHaveCount(0);
   await expect(switcher).toBeFocused();
-  await expect(strip.locator('.build-switcher-name')).toHaveText('Build 1');
+  await expect(strip.locator('#build-switcher .build-switcher-name')).toHaveText('Build 1');
   await tabAction(page, 'Rename');
   await input.fill('  Alternative <build>  ');
   await input.press('Enter');
   await expect(dialog).toHaveCount(0);
   await expect(switcher).toBeFocused();
   // Markup in a name is shown as text in both the trigger and its list.
-  await expect(strip.locator('.build-switcher-name')).toHaveText('Alternative <build>');
+  await expect(strip.locator('#build-switcher .build-switcher-name')).toHaveText('Alternative <build>');
   const menu = await openSwitcher(page);
   await expect(menu.getByRole('button', { name: 'Alternative <build>', exact: true })).toHaveAttribute(
     'aria-pressed',
@@ -341,7 +338,7 @@ test('many open builds keep the strip and its menu inside narrow screens', async
       addBuildTab(window.professionApp, window.professionApp.build, `Alternative build with a long name ${index}`);
   });
   const strip = page.locator('#build-workspace-tabs');
-  await expect(strip.locator('.build-switcher-count')).toHaveText('9 open builds');
+  await expect(strip.locator('#build-switcher .build-switcher-count')).toHaveText('9 open builds');
   const geometry = await strip.evaluate((element) => ({
     scrollWidth: element.scrollWidth,
     clientWidth: element.clientWidth,
@@ -386,7 +383,7 @@ test('switcher menu exposes builds and actions and supports keyboard dismissal',
   await expect(switcher).toBeFocused();
   await tabAction(page, 'Duplicate');
   await expect(page.locator('.build-tab')).toHaveCount(3);
-  await expect(page.locator('.build-switcher-name')).toHaveText('Build 1 copy');
+  await expect(page.locator('#build-switcher .build-switcher-name')).toHaveText('Build 1 copy');
   await expect(switcher).toBeFocused();
 });
 
@@ -436,7 +433,7 @@ test('Load build replaces the current build and Reset restores only that build',
   await expect(page.locator('.build-tab')).toHaveCount(2);
   await expect(switcher).toBeFocused();
   // The label already names its weapons, so the loaded build must not repeat them.
-  await expect(page.locator('.build-switcher-name')).toHaveText('Mirage · Power (Spear)');
+  await expect(page.locator('#build-switcher .build-switcher-name')).toHaveText('Mirage · Power (Spear)');
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
   // Reset restores this build's loaded template after edits, leaving the blank build independent.
   await page.evaluate(() => {
@@ -493,12 +490,13 @@ test('failed template loading clears progress and re-enables the picker', async 
   await expect(page.locator('.build-tab')).toHaveCount(1);
 });
 
-// Four section links stay readable in a mobile grid and retain keyboard access to the benchmark view.
-test('section navigation fits four tools on mobile and desktop', async ({ page }) => {
+// Workspace selection and global navigation leave the three tool tabs readable at every width.
+test('section navigation fits workspace controls and tools on mobile and desktop', async ({ page }) => {
   await openWorkspace(page);
   const navigation = page.getByRole('navigation', { name: 'Simulator sections' });
   const links = navigation.locator('.simulator-view-tab');
-  await expect(links).toHaveText(['Workspace', 'Analysis', 'Gear Optimizer', 'Benchmarks']);
+  await expect(links).toHaveText(['Simulation', 'Analysis', 'Gear Optimizer']);
+  await expect(navigation.locator('.simulator-workspace-option')).toHaveText(['Golem', 'Bosses', 'Benchmarks']);
 
   for (const width of [320, 390, 600, 1100]) {
     await page.setViewportSize({ width, height: 844 });
@@ -512,9 +510,9 @@ test('section navigation fits four tools on mobile and desktop', async ({ page }
         })
       );
       const context = `${width}px ${font}: ${JSON.stringify(tabs)}`;
-      expect(new Set(tabs.map(({ top }) => top)).size, context).toBe(width <= 600 ? 2 : 1);
+      expect(new Set(tabs.map(({ top }) => top)).size, context).toBe(1);
       expect(tabs[0].top, context).toBe(tabs[1].top);
-      expect(tabs[2].top, context).toBe(tabs[3].top);
+      expect(tabs[1].top, context).toBe(tabs[2].top);
       expect(
         tabs.every(({ left, right, fits }) => left >= 0 && right <= width && fits),
         context
@@ -524,7 +522,7 @@ test('section navigation fits four tools on mobile and desktop', async ({ page }
 
   await page.setViewportSize({ width: 320, height: 844 });
   const benchmarks = navigation.getByRole('link', { name: 'Benchmarks', exact: true });
-  await navigation.getByRole('link', { name: 'Gear Optimizer', exact: true }).focus();
+  await navigation.getByRole('link', { name: 'Bosses', exact: true }).focus();
   await page.keyboard.press('Tab');
   await expect(benchmarks).toBeFocused();
   await expect(benchmarks).toBeInViewport({ ratio: 1 });
@@ -532,7 +530,7 @@ test('section navigation fits four tools on mobile and desktop', async ({ page }
   await expect(benchmarks).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('#benchmarks-view')).toBeVisible();
   await expect(page.locator('#header-dps')).toBeHidden();
-  const workspace = navigation.getByRole('link', { name: 'Workspace', exact: true });
+  const workspace = navigation.getByRole('link', { name: 'Golem', exact: true });
   await workspace.focus();
   await page.keyboard.press('Enter');
   await expect(workspace).toHaveAttribute('aria-current', 'page');
@@ -603,21 +601,15 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     else expect(Math.abs(newButton.y + newButton.height / 2 - (switcher.y + switcher.height / 2))).toBeLessThan(2);
   }
 
-  // Help may wrap with wider system fonts; preserve the header's gap in the actual direction of flow.
+  // Global controls sit above the full-width tool strip, with build context aligned beneath it.
   for (const width of [700, 1100, 1600]) {
     await page.setViewportSize({ width, height: 844 });
     const nav = await page.locator('.simulator-view-tabs').boundingBox();
     const switcher = await page.locator('#build-switcher').boundingBox();
     const help = await page.locator('.community-actions').boundingBox();
     expect(nav.x).toBe(switcher.x);
-    const wrapped = help.y >= nav.y + nav.height;
-
-    if (width === 700) expect(wrapped).toBe(true);
-
-    if (width === 1600) expect(wrapped).toBe(false);
-
-    if (wrapped) expect(help.y - (nav.y + nav.height)).toBeGreaterThanOrEqual(8);
-    else expect(help.x - (nav.x + nav.width)).toBeGreaterThanOrEqual(24);
+    expect(help.y + help.height).toBeLessThanOrEqual(nav.y);
+    expect(switcher.y - (nav.y + nav.height)).toBeGreaterThanOrEqual(14);
   }
 });
 

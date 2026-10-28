@@ -1,3 +1,4 @@
+import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -82,7 +83,15 @@ test('Spite minors and Swift Termination add the 50% target-health timeline mark
       planningState: { atSeconds: 1 }
     };
     const html = () =>
-      timelineRowsView(app, build, result, false, new Set(), false)
+      timelineRowsView(
+        app,
+        build,
+        result,
+        false,
+        new Set(),
+        false,
+        createWorkspacePresentation(app).timeline(app, build, result)
+      )
         .rows.map((row) => row.html)
         .join('');
     assert.match(html(), /50%/, profession.id);

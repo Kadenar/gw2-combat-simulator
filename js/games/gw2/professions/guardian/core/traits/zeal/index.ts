@@ -261,15 +261,12 @@ function stackSymbolicAvenger(runtime: GuardianRuntime, { cause: event }: Guardi
 }
 
 /** Zealot's Resolution samples target health before the current hit. */
-function placeZealotsResolutionSymbol(runtime: GuardianRuntime, { cause: event, damage }: GuardianStrike): void {
-  const health = runtime.config.target?.health ?? 0;
-  // Detached previews pin target health; ordinary simulations still evaluate the health before this hit.
-  const lostFraction =
-    runtime.config.target?.fixedHealthFraction != null
-      ? 1 - runtime.config.target.fixedHealthFraction
-      : health > 0
-        ? (runtime.combat.targetHealthLoss() - damage) / health
-        : 0;
+function placeZealotsResolutionSymbol(
+  runtime: GuardianRuntime,
+  { cause: event, targetHealthFractionBefore }: GuardianStrike
+): void {
+  // Use the struck bar's snapshot; subtracting damage from live health can sample the next phase instead.
+  const lostFraction = targetHealthFractionBefore == null ? 0 : 1 - targetHealthFractionBefore;
 
   if (!(lostFraction > balanceNumberFromContext(runtime, TRAIT.ZEALOTS_RESOLUTION, 'threshold'))) return;
 

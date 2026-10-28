@@ -2,6 +2,11 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 interface Gw2TargetDamageState {
+  readonly encounter?: {
+    readonly remainingHealthFraction: number;
+    readonly maximumHealth: number;
+    readonly remainingHealth: number;
+  };
   readonly totals?: {
     readonly strike?: number;
     readonly condition?: number;
@@ -29,6 +34,9 @@ export function targetHealthLoss(
   config: Pick<Gw2Config, 'target'> | null | undefined,
   state: Gw2TargetDamageState | null | undefined
 ): number {
+  // Encounter bars can differ from the initial configuration and from the previous phase's target.
+  if (state?.encounter) return state.encounter.maximumHealth - state.encounter.remainingHealth;
+
   const maximum = config?.target?.health || 0;
 
   // Isolated measurements hold a declared target state; ordinary simulations still subtract all resolved damage.
@@ -45,6 +53,9 @@ export function remainingTargetHealthFraction(
   config: Pick<Gw2Config, 'target'> | null | undefined,
   state: Gw2TargetDamageState | null | undefined
 ): number | null {
+  // Encounter health follows the active target and replacement bar, independently of the initial golem maximum.
+  if (state?.encounter) return clamp(state.encounter.remainingHealthFraction, 0, 1);
+
   if (config?.target?.fixedHealthFraction != null) return clamp(config.target.fixedHealthFraction, 0, 1);
 
   const maximum = config?.target?.health || 0;

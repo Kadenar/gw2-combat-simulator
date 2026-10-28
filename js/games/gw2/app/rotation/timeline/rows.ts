@@ -2,6 +2,8 @@
  * Projects authored commands and simulation events into timeline rows and the proc panel.
  * The view reconciles this HTML into the DOM, so imported text must be escaped at each HTML boundary.
  */
+import { encounterStepContext } from '#gw2/app/rotation/timeline/encounter.js';
+import type { TimelinePresentation } from '#gw2/app/presentation/model.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
@@ -9,7 +11,6 @@ import {
   doubleEdgeOutcomeLabel,
   hasConfigurableDoubleEdgeOutcome
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
-import { professionPlanningState } from '#gw2/app/rotation/context.js';
 import {
   ACTION_ICONS,
   COMBAT_START_ICON,
@@ -37,7 +38,6 @@ import {
   rotationSkillHighlightKey,
   mechanicResourceSpends,
   sigilProcTimelineMarkers,
-  targetHealthTimelineMarkers,
   timelineDeadTimeMarkers,
   timelineTransitionDelayMarkers,
   timelineItem,
@@ -94,7 +94,8 @@ export function timelineRowsView(
   results: ProfessionAppResult | null,
   readOnly: boolean,
   procVisibility: ReadonlySet<string>,
-  procPanelWasOpen: boolean
+  procPanelWasOpen: boolean,
+  presentation: TimelinePresentation
 ): { rows: TimelineRowRender[]; procHtml: string } {
   const rotation = build.rotation;
   let procHtml = '';
@@ -184,7 +185,7 @@ export function timelineRowsView(
     results?.resolvedEvents || [],
     // The authored Wait tile already represents its own duration. Overlay only
     // idle time beyond that shape so the timeline does not render it twice.
-    { includeExplicitWaits: false }
+    { includeExplicitWaits: false, encounterPhases: presentation.downtimePhases }
   );
   const deadTimesByIndex = new Map<number, typeof deadTimes>();
   const transitionDelays = timelineTransitionDelayMarkers(
@@ -239,26 +240,46 @@ export function timelineRowsView(
     professionMarkersByIndex.set(marker.insertionIndex, markers);
   }
 
-  const targetThresholds =
-    app.profession.ui.targetHealthThresholds?.({
-      catalog: app.activeCatalog,
-      specialization,
-      build,
-      professionState: professionPlanningState(results)
-    }) || [];
-  const healthMarkers = targetHealthTimelineMarkers(
-    results,
-    build.targetHealth,
-    targetThresholds,
-    rotation.length,
-    build.targetStartingHealthPercent
-  );
+  // Workspace policy has already selected the markers; this renderer only places and formats them.
+  const { healthMarkers, encounterMarkers } = presentation;
   const healthMarkersByIndex = new Map<number, typeof healthMarkers>();
   for (const marker of healthMarkers) {
     const markers = healthMarkersByIndex.get(marker.insertionIndex) || [];
     markers.push(marker);
     healthMarkersByIndex.set(marker.insertionIndex, markers);
   }
+
+  const encounterMarkersByIndex = new Map<number, Array<(typeof encounterMarkers)[number]>>();
+  for (const marker of encounterMarkers) {
+    const markers = encounterMarkersByIndex.get(marker.insertionIndex) ?? [];
+    markers.push(marker);
+    encounterMarkersByIndex.set(marker.insertionIndex, markers);
+  }
+
+  // Read-only phase labels share the timeline clock; they never become editable rotation commands.
+  const renderEncounterMarker = (marker: (typeof encounterMarkers)[number]): string => {
+    const state =
+      marker.kind === 'intermission'
+        ? 'No damage'
+        : marker.kind === 'split'
+          ? 'Invulnerable'
+          : marker.kind === 'boss'
+            ? 'Damageable'
+            : 'Encounter ended';
+    const time = formatTime(marker.start);
+    const detail = [
+      `${marker.label}: ${state}`,
+      `Starts at ${time}`,
+      marker.kind !== 'defeated' && marker.end !== null ? `Ends at ${formatTime(marker.end)}` : '',
+      marker.duringAction
+        ? 'Transition occurs during an action already in progress; the action is not split or restarted.'
+        : ''
+    ]
+      .filter(Boolean)
+      .join('\n');
+    return `<div class="rot-encounter-marker" data-encounter-kind="${marker.kind}" role="note" aria-label="${esc(detail)}" title="${esc(detail)}">
+      <strong>${esc(marker.label)}</strong><span>${state}</span><time>${time}</time>${marker.duringAction ? '<small>During action</small>' : ''}</div>`;
+  };
 
   const renderProfessionMarker = (marker: (typeof professionMarkers)[number]): string => {
     const time = formatTime(marker.start);
@@ -381,10 +402,28 @@ export function timelineRowsView(
         </div>`;
   };
 
-  // Emit boundary markers before each authored tile, then close the line with any automatic exits.
+  // Encounter boundaries end the current weapon line, so every phase starts below a full-width heading.
+  type TimelineLinePart = { html: string; marker?: (typeof encounterMarkers)[number] };
   const timelineLines = rows.map((row, rowNumber) => {
+    const parts: TimelineLinePart[] = [];
     const rowItems: string[] = [];
+    const flushLine = (): void => {
+      if (!rowItems.length) return;
+
+      parts.push({ html: `<div class="rot-row-line"><div class="rot-row-skills">${rowItems.join('')}</div></div>` });
+      rowItems.length = 0;
+    };
+
+    const beginEncounterRows = (index: number): void => {
+      for (const marker of encounterMarkersByIndex.get(index) ?? []) {
+        flushLine();
+        parts.push({ html: renderEncounterMarker(marker), marker });
+      }
+    };
+
     row.skills.forEach(({ entry, index }) => {
+      beginEncounterRows(index);
+
       for (const marker of overlayProcMarkersByIndex.get(index) || []) {
         rowItems.push(renderOverlayProcMarker(marker));
       }
@@ -481,6 +520,22 @@ export function timelineRowsView(
           ? `\n${formatTimelineCastDetails(step, formatTime)}`
           : '';
       const resourceTitle = resourceLabel ? `\n${resourceLabel}` : '';
+      const encounterContext = encounterStepContext(step, encounterMarkers);
+      const encounterTitle =
+        encounterMarkers.length && step && !invalid
+          ? `\n${[
+              encounterContext.phase?.label ?? 'Before encounter',
+              ...(encounterContext.phase?.kind === 'split'
+                ? ['Boss invulnerable']
+                : encounterContext.phase?.kind === 'intermission'
+                  ? ['Intermission: no damage']
+                  : []),
+              ...encounterContext.crossings.map(
+                (marker) => `${marker.label} starts during this action at ${formatTime(marker.start)}`
+              )
+            ].join('\n')}`
+          : '';
+      const encounterAttribute = encounterContext.phase ? ` data-encounter-kind="${encounterContext.phase.kind}"` : '';
       const concurrentLabel =
         item.concurrentOffsetMs != null ? formatConcurrentTimelineBadge(item.concurrentOffsetMs, time) : '';
       const interruptLabel =
@@ -505,7 +560,7 @@ export function timelineRowsView(
       const combatTimeAttribute = step && !invalid ? ` data-combat-time-ms="${step.start - combatReferenceMs}"` : '';
       // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
       const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}
-                    data-idx="${index}"${combatTimeAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700" tabindex="0"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
+                    data-idx="${index}"${combatTimeAttribute}${encounterAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle + encounterTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700" tabindex="0"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle + encounterTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
                     ${
@@ -562,6 +617,8 @@ export function timelineRowsView(
 
     // Trailing markers (insertionIndex === rotation.length) belong after the last skill in the last row.
     if (rowNumber === rows.length - 1) {
+      beginEncounterRows(rotation.length);
+
       rowItems.push(
         ...transitionDelays.filter((marker) => marker.insertionIndex === rotation.length).map(renderTransitionDelay)
       );
@@ -582,16 +639,19 @@ export function timelineRowsView(
       }
     }
 
-    const skills = rowItems.join('');
-    // Preserve state boundaries as separate lines without adding labels beside their skill icons.
-    return `<div class="rot-row-line">
-            <div class="rot-row-skills">${skills}</div>
-        </div>`;
+    flushLine();
+    return parts;
   });
 
   // Wrap adjacent lines for one weapon-set stay in a keyed row with its own duration and accessible label.
+  // Reconstruct contiguous stay boundaries from canonical durations so phase rows can clip their own share.
+  let weaponSegmentEndMs = Math.min(
+    0,
+    ...resultSteps.filter((step) => !step.invalid && Number.isFinite(step.start)).map((step) => step.start)
+  );
   let timelineLineIndex = 0;
-  const timelineRows = timelineWeaponRowGroups(rows).map((group, groupNumber) => {
+  let encounterSection: (typeof encounterMarkers)[number] | undefined;
+  const timelineRows = timelineWeaponRowGroups(rows).flatMap((group, groupNumber) => {
     const weapons = group.weaponSet === 1 ? build.weapons : build.alternateWeapons;
     const weaponLabel = weapons.filter(Boolean).join('/') || 'Unequipped';
     const totalDurationMs = weaponDurationTotals?.get(group.weaponSet);
@@ -600,26 +660,55 @@ export function timelineRowsView(
     }`;
     // Consecutive kit/transform lines share one group, while each real swap advances to the next active stay.
     const activeSegment = weaponDurationSegments[groupNumber];
-    const activeDurationMs = activeSegment?.weaponSet === group.weaponSet ? activeSegment.durationMs : undefined;
-    const durationLabel = activeDurationMs == null ? '' : formatTimelineTime(activeDurationMs, 0, 3);
-    const groupLines = timelineLines.slice(timelineLineIndex, timelineLineIndex + group.rows.length).join('');
+    const segmentStartMs = weaponSegmentEndMs;
+    weaponSegmentEndMs += activeSegment?.durationMs ?? 0;
+    const segmentEndMs = weaponSegmentEndMs;
+    const parts = timelineLines.slice(timelineLineIndex, timelineLineIndex + group.rows.length).flat();
     timelineLineIndex += group.rows.length;
     const firstCommand = group.rows[0]?.skills[0]?.entry;
     const groupKey = firstCommand
       ? `${group.weaponSet}:${timelineCommandKey(firstCommand)}`
       : `${group.weaponSet}:empty:${groupNumber}`;
-    return {
-      key: groupKey,
-      html: `<div class="rot-row" role="group" aria-label="${esc(groupTitle)}" style="--row-color:#9d7bd0">
+    const rendered: TimelineRowRender[] = [];
+    const lines: string[] = [];
+    const flushGroup = (boundaryMs?: number): void => {
+      if (!lines.length) return;
+
+      // A weapon stay spanning phases reports only its time in this section, not its full duration on every row.
+      const durationMs =
+        activeSegment?.weaponSet === group.weaponSet
+          ? Math.max(
+              0,
+              Math.min(segmentEndMs, boundaryMs ?? segmentEndMs) -
+                Math.max(segmentStartMs, encounterSection?.start ?? segmentStartMs)
+            )
+          : undefined;
+      const durationLabel = durationMs == null ? '' : formatTimelineTime(durationMs, 0, 3);
+      rendered.push({
+        key: encounterSection ? `${groupKey}:${encounterSection.label}` : groupKey,
+        html: `<div class="rot-row" role="group" aria-label="${esc(encounterSection ? `${encounterSection.label}: ${groupTitle}` : groupTitle)}" style="--row-color:#9d7bd0">
             <div class="rot-row-label" title="${esc(groupTitle)}">
               <span class="rot-row-label-content">
                 <span class="rot-row-label-text">W${group.weaponSet}</span>
                 ${durationLabel ? `<span class="rot-row-duration">${durationLabel}</span>` : ''}
               </span>
             </div>
-            <div class="rot-row-lines">${groupLines}</div>
+            <div class="rot-row-lines">${lines.join('')}</div>
         </div>`
+      });
+      lines.length = 0;
     };
+
+    for (const part of parts) {
+      if (part.marker) {
+        flushGroup(part.marker.start);
+        encounterSection = part.marker;
+        rendered.push({ key: `encounter:${part.marker.label}`, html: part.html });
+      } else lines.push(part.html);
+    }
+
+    flushGroup();
+    return rendered;
   });
 
   // The separate proc panel groups consecutive activations and shares filter keys with timeline overlays.

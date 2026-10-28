@@ -31,6 +31,7 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
       targetConditionCount: combat.targetConditionCount,
       targetHealthLoss: combat.targetHealthLoss,
       targetHealthBelow: combat.targetHealthBelow,
+      targetHitboxSize: combat.targetHitboxSize,
       remainingTargetHealthFraction: combat.remainingTargetHealthFraction,
       statsAt: combat.statsAt,
       conditionDurationMultiplier: combat.conditionDurationMultiplier

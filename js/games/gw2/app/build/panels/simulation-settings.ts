@@ -3,11 +3,11 @@ import {
   TRANSITION_DELAY_KEYS,
   type TransitionDelays
 } from '#gw2/platform/execution/transition-lockouts.js';
-import { loadSimulationSettings, saveSimulationSettings } from '#gw2/app/simulation/settings.js';
+import { saveSimulationSettings } from '#gw2/app/simulation/settings.js';
 import { invalidateInactiveBuildTabs } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
-/** Group shared delays with simulation options; changing them reruns every dependent simulation. */
+/** Delay edits affect the active workspace and invalidate only its dependent build tabs. */
 export function mountSimulationSettings(app: ProfessionAppState, root: Document = document): void {
   const container = root.getElementById('simulation-options');
 
@@ -23,7 +23,7 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
   summary.textContent = 'Transition delays';
   const controls = root.createElement('div');
   controls.className = 'perma-group-content';
-  const settings = (app.simulationSettings ??= loadSimulationSettings());
+  const settings = app.workspace!.simulationSettings;
   const update = (delays: TransitionDelays): void => {
     const normalized = normalizeTransitionDelays(delays);
 
@@ -31,7 +31,10 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
     if (TRANSITION_DELAY_KEYS.every((key) => normalized[key] === settings.transitionDelays[key])) return;
 
     settings.transitionDelays = normalized;
-    saveSimulationSettings(settings);
+
+    if (app.workspace?.scenario) app.workspace.persist?.();
+    else saveSimulationSettings(settings);
+
     invalidateInactiveBuildTabs(app);
     app.changed();
   };
@@ -71,7 +74,7 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
       input.value = String(settings.transitionDelays[key]);
       input.setAttribute('aria-label', `${name}${key === 'weaponSwapMs' ? '' : ` ${direction}`} (ms)`);
       input.title =
-        'Additional input delay after the transition. Overlaps existing cast recovery. Shared across builds.';
+        'Additional input delay after the transition. Overlaps existing cast recovery. Applies within this workspace.';
       input.addEventListener('change', () => {
         update({ ...settings.transitionDelays, [key]: Number(input.value) });
         input.value = String(settings.transitionDelays[key]);

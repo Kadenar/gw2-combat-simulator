@@ -109,8 +109,8 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
   }
 
   control.append(options);
-  // Keep version selection beside navigation without depending on the removed title block.
-  header.insertBefore(control, header.querySelector('.community-actions'));
+  // Game-data controls share the global row while workspace tools occupy their own tab strip.
+  header.querySelector('.simulator-header-global')!.insertBefore(control, header.querySelector('.community-actions'));
 }
 
 export function renderPatchComparison(container: HTMLElement, app: ProfessionAppState): void {

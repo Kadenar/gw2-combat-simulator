@@ -1,4 +1,5 @@
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
+import { createBossScenario } from '#gw2/app/boss-scenarios/model.js';
 import { calculateContributionBatch } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -460,8 +461,8 @@ test('superseded baseline fallbacks release the slot and publish only the newest
   assert.equal(runner.queue.pending, null);
 });
 
-// A request captures one config per patch and reuses the selected config for reference work.
-test('baseline requests prepare each patch once and share the selected snapshot', () => {
+// Golem captures both comparison patches; Bosses prepares only its selected patch, including when preview is selected.
+test('baseline requests prepare comparison patches only for Golem and share the selected snapshot', () => {
   for (const preview of [undefined, { id: 'preview' }]) {
     const prepared = [];
     const profession = {
@@ -478,16 +479,20 @@ test('baseline requests prepare each patch once and share the selected snapshot'
       }
     });
     for (const id of preview ? ['current', 'preview'] : ['current']) {
-      prepared.length = 0;
-      const request = runtime.baselineSimulationRequest({
-        build: { rotation: [] },
-        patch: { id, values: {} }
-      });
-      assert.deepEqual(prepared, preview ? ['current', 'preview'] : ['current']);
-      assert.equal(request.baseConfig.patchId, id);
+      for (const bosses of [false, true]) {
+        prepared.length = 0;
+        const build = { profession: 'fixture', rotation: [] };
+        const request = runtime.baselineSimulationRequest({
+          build,
+          patch: { id, values: {} },
+          workspace: bosses ? { scenario: createBossScenario('020102', build, 'Fixture', id) } : undefined
+        });
+        assert.deepEqual(prepared, preview && !bosses ? ['current', 'preview'] : [id]);
+        assert.equal(request.baseConfig.patchId, id);
 
-      if (preview) assert.equal(request.baseConfig, request.patchConfigs[id]);
-      else assert.equal(request.patchConfigs, undefined);
+        if (preview && !bosses) assert.equal(request.baseConfig, request.patchConfigs[id]);
+        else assert.equal(request.patchConfigs, undefined);
+      }
     }
   }
 });

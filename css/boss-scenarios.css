@@ -1,0 +1,288 @@
+/* Bosses adds encounter controls around the same mounted build editor used by Golem. */
+#boss-encounter-summary,
+#boss-workspace,
+#boss-scenario-toolbar {
+  display: none;
+}
+body[data-simulator-view='bosses'][data-boss-editor-ready='true'] #boss-encounter-summary,
+body[data-simulator-view='bosses'] #boss-workspace {
+  display: block;
+}
+body[data-simulator-view='bosses'] #boss-scenario-toolbar,
+body[data-simulator-view='analysis'][data-analysis-workspace='bosses'] #boss-scenario-toolbar {
+  display: flex;
+}
+body[data-simulator-view='bosses'][data-boss-editor-ready='false'] .build-editor,
+body[data-analysis-workspace='bosses'] :is(#header-dps, #rotation-dps-summary),
+body[data-simulator-view='bosses'] #rotation-results,
+body[data-analysis-workspace='bosses'] :is([data-template-action='new-tab'], [data-template-action='rotation']),
+body[data-simulator-view='analysis'][data-analysis-workspace='bosses'] .patch-preview-picker,
+body[data-simulator-view='analysis'][data-analysis-workspace='bosses']
+  #build-workspace-tabs
+  > :not(#boss-scenario-toolbar) {
+  display: none;
+}
+.boss-workspace {
+  margin: 8px 0;
+}
+.boss-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  /* Share the build row on desktop, then give the scenario its own row on narrow screens. */
+  flex: 0 1 280px;
+  min-width: 0;
+  padding-top: 0;
+}
+.boss-toolbar .build-switcher {
+  flex: 1 1 0;
+  max-width: none;
+}
+@media (max-width: 600px) {
+  .boss-toolbar {
+    flex-basis: 100%;
+  }
+}
+/* Scenario rows share the Golem selector styling, including its inline close control. */
+.build-tab > .boss-scenario-option {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.build-tab.is-active > .boss-scenario-option {
+  font-weight: 600;
+}
+.boss-scenario-option > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.boss-message {
+  color: #e3bf85;
+  overflow-wrap: anywhere;
+}
+.boss-message:empty {
+  display: none;
+}
+.boss-workspace label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.boss-workspace input:not([type='checkbox']),
+.boss-workspace select {
+  background: var(--bg-deep);
+  color: var(--text-bright);
+  border: 1px solid var(--border-light);
+  padding: 5px 8px;
+  border-radius: var(--radius);
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+/* Phase inputs follow the predefined sequence without a second navigation or rotation editor. */
+.boss-setup {
+  padding: 8px 10px 10px;
+}
+.boss-fields {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.boss-fields label {
+  flex: 0 1 260px;
+  min-width: 0;
+}
+/* Compact phase rows keep related inputs close together; narrow views scroll inside the table. */
+.boss-phase-scroll {
+  max-width: 820px;
+  overflow-x: auto;
+}
+.boss-phase-table {
+  width: 100%;
+  min-width: 640px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.boss-phase-table th,
+.boss-phase-table td {
+  padding: 8px 12px 8px 0;
+  text-align: left;
+  vertical-align: top;
+  font-weight: 400;
+}
+.boss-phase-table thead th {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.boss-phase-table th:first-child {
+  width: 22%;
+}
+.boss-phase-table th:nth-child(2) {
+  width: 24%;
+}
+.boss-phase-table th:nth-child(3) {
+  width: 32%;
+}
+.boss-phase-table tbody tr {
+  border-top: 1px solid var(--border-light);
+}
+.boss-phase-table tbody th {
+  color: var(--text-bright);
+}
+.boss-phase-table small {
+  display: block;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.boss-phase-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding-top: 6px;
+  font-weight: 600;
+}
+.boss-phase-option,
+.boss-rate-input + .boss-rate-input {
+  margin-top: 8px;
+}
+.boss-rate-input {
+  max-width: 130px;
+}
+.boss-duration-input {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  align-items: center;
+  width: 88px;
+  max-width: 100%;
+}
+.boss-workspace .boss-duration-input input {
+  grid-area: 1 / 1 / 2 / 3;
+  padding-right: 24px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.boss-duration-input input::-webkit-inner-spin-button,
+.boss-duration-input input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.boss-duration-input > span {
+  grid-area: 1 / 2;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+.boss-duration-input + small {
+  margin-top: 4px;
+}
+.boss-muted {
+  display: inline-block;
+  color: var(--text-dim);
+  margin: 8px 12px 0 0;
+}
+
+/* Keep existing build actions; the scenario selector owns encounter document selection. */
+body[data-analysis-workspace='bosses']
+  #build-workspace-tabs
+  :is(
+    .build-switcher-count,
+    .build-tab-list,
+    .build-tab-list + hr,
+    .build-menu-heading:first-child,
+    .build-tab-new,
+    #build-new-menu,
+    .build-pinned-tabs,
+    [data-build-tab-action='duplicate']
+  ):not(#boss-scenario-toolbar *) {
+  display: none;
+}
+
+/* Each encounter phase owns a full-width heading; its weapon rows and skills begin underneath. */
+.rot-encounter-marker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 6px 0;
+  padding: 8px 10px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-panel));
+  color: var(--text-bright);
+  font-size: 10px;
+  line-height: 1.2;
+}
+.rot-encounter-marker > :is(span, small) {
+  color: var(--text-dim);
+  font-size: 9px;
+}
+.rot-encounter-marker > time {
+  font-variant-numeric: tabular-nums;
+}
+.rot-encounter-marker:is([data-encounter-kind='split'], [data-encounter-kind='intermission']) {
+  background: color-mix(in srgb, #d9ad58 12%, var(--bg-panel));
+}
+.rot-encounter-marker[data-encounter-kind='defeated'] {
+  background: color-mix(in srgb, #85bf88 10%, var(--bg-panel));
+}
+/* An amber outline identifies actions started while the boss is invulnerable, including wrapped lines. */
+.rot-skill:is([data-encounter-kind='split'], [data-encounter-kind='intermission']) {
+  outline: 1px dashed #d9ad58;
+  outline-offset: 2px;
+}
+
+/* Encounter controls grow below the reserved timeline instead of competing for a capped panel height. */
+body[data-simulator-view='bosses']:not([data-rotation-comparison]) .rotation-panel {
+  max-height: none;
+  overflow: visible;
+}
+body[data-simulator-view='bosses']:not([data-rotation-comparison]) #rotation-timeline {
+  flex: 0 0 auto;
+}
+/* Focus mode scrolls downward with the expanded configuration, just like its existing phone layout. */
+body[data-simulator-view='bosses'][data-rotation-focus]:not([data-rotation-comparison]) .rotation-section {
+  display: block;
+  overflow-y: auto;
+}
+body[data-simulator-view='bosses'][data-rotation-focus]:not([data-rotation-comparison])
+  .rotation-panel-shell
+  > .rotation-panel {
+  height: auto;
+}
+
+/* Encounter tables keep the existing analysis typography and row treatments, scrolling within narrow screens. */
+.boss-analysis-scroll {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.boss-analysis-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.boss-analysis-table :is(.res-hdr, .res-row) {
+  display: table-row;
+}
+.boss-analysis-table :is(th, td) {
+  padding: 8px 10px;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.boss-analysis-table th:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+.boss-analysis-table small {
+  display: block;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 400;
+}

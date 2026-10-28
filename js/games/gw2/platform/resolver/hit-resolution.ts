@@ -51,7 +51,8 @@ export function createGw2HitResolution({
   }
 
   function targetArmorFor(ctx: Gw2ResolverRuntime): number {
-    return Math.max(1, ctx.config.target?.armor || STANDARD_TARGET_ARMOR);
+    // Boss encounters own target armor; Golem retains its authored armor setting.
+    return ctx.encounter?.armor ?? Math.max(1, ctx.config.target?.armor || STANDARD_TARGET_ARMOR);
   }
 
   // Sample once for proc eligibility and reporting; rolled damage reuses this same outcome.
@@ -200,6 +201,8 @@ export function createGw2HitResolution({
 
     return {
       stats,
+      // Preserve the struck target's health before damage can switch targets or replace its health bar.
+      targetHealthFractionBefore: currentHealthFraction(ctx),
       coefficientMultiplier: strike.coefficientMultiplier,
       unroundedDamage: damage,
       critical,
@@ -219,7 +222,7 @@ export function createGw2HitResolution({
     event: Gw2ResolverEvent,
     hitContext: Gw2HitResolutionContext
   ): void {
-    const damage = hitContext.damage;
+    let damage = hitContext.damage;
     // Reactions receive the existing hit context; only returned rows need a detached hit packet. Ownership reads the
     // packet's resolved activation, so measurements discard unowned copies before diagnostics are assembled.
     const candidate = ctx.output === 'score' ? null : resolvedHitPacket(ctx, event, hitContext);
@@ -227,11 +230,11 @@ export function createGw2HitResolution({
 
     // Copy already computed facts before health commits; diagnostics never query modifiers or consume RNG again.
     if (resolved && ctx.damageDiagnostics) {
-      const maximum = Number(ctx.config.target?.health);
-      const healthFraction = Number.isFinite(maximum) ? currentHealthFraction(ctx) : null;
+      const maximum = Number(ctx.encounter?.maximumHealth ?? ctx.config.target?.health);
+      const healthFraction = hitContext.targetHealthFractionBefore;
       const damageCalculation: Gw2DamageCalculation = {
         phase: (['Sample', 'Settle', 'Ordinary'] as const)[ctx.queue.currentPhase] ?? 'Ordinary',
-        targetHealthBefore: healthFraction == null ? null : maximum * healthFraction,
+        targetHealthBefore: healthFraction == null || !Number.isFinite(maximum) ? null : maximum * healthFraction,
         targetHealthFractionBefore: healthFraction,
         power: hitContext.stats.power,
         ...(Number.isFinite(hitContext.stats.precision) ? { precision: hitContext.stats.precision } : {}),
@@ -246,6 +249,11 @@ export function createGw2HitResolution({
       };
       Object.assign(resolved, { damageCalculation });
     }
+
+    // Clamp the packet at a health gate before attribution so overkill cannot leak across a split.
+    damage = ctx.encounter?.damage(damage, 'player', event.at) ?? damage;
+
+    if (resolved) Object.assign(resolved, { damage });
 
     const damageType = event.damageKind === 'condition' ? 'conditionDamage' : 'strikeDamage';
 
@@ -324,6 +332,7 @@ export interface Gw2DamageBreakdownEntry {
 }
 
 export interface Gw2HitResolutionContext {
+  readonly targetHealthFractionBefore: number | null;
   readonly coefficientMultiplier: number;
   readonly unroundedDamage: number;
   readonly stats: Gw2ResolvedStats;

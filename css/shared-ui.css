@@ -88,13 +88,16 @@ header {
   text-align: left;
 }
 
-/* Use the compact embed layout everywhere, with room for navigation and help to wrap. */
+/* Separate workspace identity, tool navigation, and build context in one sticky surface. */
 body[data-profession] #app > header {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px 24px;
-  padding-inline: 8px;
+  gap: 14px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-panel);
 }
 
 .landing-page #app > header {
@@ -156,19 +159,64 @@ header h1 {
   letter-spacing: 1px;
 }
 
-/* The profession control leads a flat tool strip; the accent underline marks the current view. */
+/* Workspace selection remains above the tools so Analysis has an unambiguous owner. */
+.simulator-navigation {
+  --simulator-control-height: 36px;
+  width: 100%;
+  min-width: 0;
+}
+
+.simulator-header-chrome,
+.simulator-header-identity,
+.simulator-header-global {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  min-width: 0;
+}
+
+.simulator-header-chrome {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+}
+
+.simulator-header-global {
+  flex-wrap: wrap;
+  /* Labels sit above the control row; links align with the controls below those labels. */
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.simulator-control-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.simulator-workspace-option {
+  text-decoration: none;
+}
+
+.simulator-navigation a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 .simulator-view-tabs {
-  display: grid;
-  grid-template-columns: auto repeat(4, auto);
+  display: flex;
   align-items: center;
-  gap: 0 4px;
+  gap: 24px;
   max-width: 100%;
   border-bottom: 1px solid var(--border);
 }
 
 .simulator-profession-control {
   position: relative;
-  margin-right: 14px;
 }
 
 .simulator-profession-control::before {
@@ -200,7 +248,7 @@ header h1 {
 
 .simulator-profession-control > button {
   appearance: none;
-  min-height: 34px;
+  min-height: var(--simulator-control-height);
   padding: 5px 30px 5px 26px;
   border: 1px solid var(--border-light);
   border-radius: var(--radius);
@@ -281,19 +329,22 @@ a.simulator-view-tab:focus-visible {
   outline-offset: 1px;
 }
 
+/* Workspace-restricted tools leave the navigation and keyboard order together. */
+.simulator-view-tab[hidden] {
+  display: none;
+}
+
 .simulator-view-tab {
   display: flex;
   min-height: 46px;
-  padding: 10px 14px;
+  padding: 11px 0;
   align-items: center;
   justify-content: center;
   border-bottom: 2px solid transparent;
   color: var(--text-dim);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.055em;
+  font-size: 12px;
+  font-weight: 600;
   text-decoration: none;
-  text-transform: uppercase;
   white-space: nowrap;
   transition:
     background 0.15s ease,
@@ -302,23 +353,43 @@ a.simulator-view-tab:focus-visible {
 }
 
 @media (max-width: 600px) {
-  /* Four tools, including Benchmarks, stay fully visible in two rows below the profession picker. */
-  .simulator-view-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: 100%;
+  /* Wrap global controls independently so all three tool tabs stay together on phones. */
+  body[data-profession] #app > header {
+    padding: 12px;
   }
 
-  .simulator-profession-control {
-    grid-column: 1 / -1;
-    justify-self: start;
-    margin: 0 0 4px;
+  .simulator-header-identity,
+  .simulator-header-global {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .simulator-header-identity {
+    flex-wrap: wrap;
+  }
+
+  .simulator-view-tabs {
+    gap: 20px;
   }
 
   .simulator-view-tab {
     min-height: 40px;
-    padding: 8px 4px;
-    font-size: 10px;
-    letter-spacing: 0;
+    font-size: 11px;
+  }
+}
+
+@media (pointer: coarse) {
+  .simulator-navigation {
+    --simulator-control-height: 52px;
+  }
+
+  .simulator-workspace-option,
+  .patch-preview-option,
+  .simulator-view-tab {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
   }
 }
 
@@ -428,6 +499,11 @@ body[data-profession] #app > header .community-actions {
   position: static;
   flex-wrap: wrap;
   margin: 0 0 0 auto;
+}
+
+/* Equal-height hit areas keep each utility link centered on the adjacent segmented controls, even after wrapping. */
+.simulator-header-global .community-link {
+  min-height: var(--simulator-control-height);
 }
 
 /* Shared tutorial launcher and lazy-loaded walkthrough dialog. */
@@ -765,8 +841,11 @@ body[data-profession] #app > header .community-actions {
   text-transform: uppercase;
 }
 
+/* Workspace and game data use one segmented-control treatment, tinted by the current profession. */
+.simulator-workspace-options,
 .patch-preview-options {
   display: inline-flex;
+  min-height: var(--simulator-control-height);
   max-width: 280px;
   padding: 3px;
   border: 1px solid var(--border);
@@ -775,6 +854,7 @@ body[data-profession] #app > header .community-actions {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
 }
 
+.simulator-workspace-option,
 .patch-preview-option {
   overflow: hidden;
   max-width: 190px;
@@ -793,6 +873,8 @@ body[data-profession] #app > header .community-actions {
   cursor: pointer;
 }
 
+.simulator-workspace-option:hover,
+.simulator-workspace-option:focus-visible,
 .patch-preview-option:hover,
 .patch-preview-option:focus-visible {
   border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
@@ -800,6 +882,7 @@ body[data-profession] #app > header .community-actions {
   outline: none;
 }
 
+.simulator-workspace-option[aria-current],
 .patch-preview-option.active {
   border-color: color-mix(in srgb, var(--accent) 62%, var(--border));
   background: color-mix(in srgb, var(--accent) 16%, var(--bg-panel));

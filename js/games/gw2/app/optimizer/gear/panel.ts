@@ -109,6 +109,13 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   if (!runner || typeof document === 'undefined') return;
 
   let panel = document.getElementById('gear-optimizer');
+
+  // Clear the outgoing Golem controls when the shared editor is owned by a boss scenario.
+  if (app.workspace?.scenario) {
+    panel?.remove();
+    return;
+  }
+
   const displayedResults = (): OptimizerCandidate[] => {
     const filter = (panel?.querySelector<HTMLInputElement>('input[name="optimizer-filter"]:checked')?.value ||
       'none') as OptimizerResultFilter;

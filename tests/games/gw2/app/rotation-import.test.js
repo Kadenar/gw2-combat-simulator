@@ -44,8 +44,13 @@ const sources = {
   file: async (_t, items, app) =>
     previewRotationFile(new File([JSON.stringify({ rotation: items })], 'rotation.json'), app),
   manifest: async (t, items, app) => {
-    t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({ rotation: items })));
-    return previewManifestRotation({ rotation: '/fixture.json', label: 'Fixture' }, app);
+    t.mock.method(
+      globalThis,
+      'fetch',
+      async (path) =>
+        new Response(JSON.stringify(String(path).includes('build.json') ? app.build : { rotation: items }))
+    );
+    return previewManifestRotation({ build: '/build.json', rotation: '/fixture.json', label: 'Fixture' }, app);
   }
 };
 
@@ -123,6 +128,30 @@ test('rotation previews preserve explicit commands that saved-build migration wo
   const rotation = [{ type: 'cast', skillId: RANGER_SKILL_IDS.TWIN_DARTS }];
   const preview = await sources.file(t, rotation, app);
   assert.deepEqual(preview.rotation, rotation);
+});
+
+// The preview boundary rejects mismatches even when a caller bypasses the saved-rotation dropdown.
+test('manifest preview rejects incompatible specialization and weapon sets before loading commands', async (t) => {
+  const app = appFor();
+  const original = structuredClone(app.build);
+  const preset = { build: '/build.json', rotation: '/rotation.json', label: 'Fixture' };
+  for (const changes of [
+    { specializations: [...app.build.specializations.slice(0, 2), { name: 'Mirage', traits: '1-1-1' }] },
+    { weapons: ['Staff', ''] },
+    { alternateWeapons: ['Scepter', 'Focus'] }
+  ]) {
+    const fetched = [];
+    t.mock.method(globalThis, 'fetch', async (path) => {
+      fetched.push(path);
+      return new Response(JSON.stringify({ ...app.build, ...changes }));
+    });
+    await assert.rejects(
+      previewManifestRotation(preset, app),
+      /must match your profession, specialization, equipped weapons/
+    );
+    assert.equal(fetched.length, 1);
+    assert.deepEqual(app.build, original);
+  }
 });
 
 // Validate skill-dependent metadata by explicit identity, using the active patch's skill definitions.

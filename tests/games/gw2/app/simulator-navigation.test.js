@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { simulatorViewFromHash, simulatorViewHref } from '#gw2/app/page/navigation.js';
+import { simulatorViewFromHash, simulatorViewHref, workspaceSimulatorView } from '#gw2/app/page/navigation.js';
 
 test('simulator navigation defaults to the workspace and recognizes each tool', () => {
   assert.equal(simulatorViewFromHash(''), 'workspace');
   assert.equal(simulatorViewFromHash('#professions'), 'workspace');
   assert.equal(simulatorViewFromHash('#workspace'), 'workspace');
+  assert.equal(simulatorViewFromHash('#bosses'), 'bosses');
   assert.equal(simulatorViewFromHash('#analysis'), 'analysis');
   assert.equal(simulatorViewFromHash('#ANALYSIS'), 'analysis');
   assert.equal(simulatorViewFromHash('#gear-optimizer'), 'gear-optimizer');
@@ -17,8 +18,18 @@ test('simulator navigation defaults to the workspace and recognizes each tool', 
 
 test('simulator views stay on the selected profession page', () => {
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'workspace'), 'elementalist.html#workspace');
+  assert.equal(simulatorViewHref('/simulator/elementalist.html', 'bosses'), 'elementalist.html#bosses');
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'analysis'), 'elementalist.html#analysis');
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'gear-optimizer'), 'elementalist.html#gear-optimizer');
   assert.equal(simulatorViewHref('/simulator/elementalist.html', 'benchmarks'), 'elementalist.html#benchmarks');
   assert.equal(simulatorViewHref('', 'workspace'), 'index.html#workspace');
+});
+
+// Direct hashes and history use the same workspace restrictions as visible tool links.
+test('boss workspaces cannot navigate into gear optimization', () => {
+  assert.equal(workspaceSimulatorView('gear-optimizer', 'bosses'), 'bosses');
+  assert.equal(workspaceSimulatorView('gear-optimizer', 'workspace'), 'gear-optimizer');
+  assert.equal(workspaceSimulatorView('gear-optimizer', undefined), 'gear-optimizer');
+  assert.equal(workspaceSimulatorView('analysis', 'bosses'), 'analysis');
+  assert.equal(workspaceSimulatorView('workspace', 'bosses'), 'workspace');
 });

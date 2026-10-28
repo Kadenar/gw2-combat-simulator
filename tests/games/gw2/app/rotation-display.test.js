@@ -1,3 +1,4 @@
+import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
@@ -77,7 +78,15 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
     ]
   };
   for (const readOnly of [false, true]) {
-    const html = timelineRowsView(app, build, results, readOnly, new Set(), false)
+    const html = timelineRowsView(
+      app,
+      build,
+      results,
+      readOnly,
+      new Set(),
+      false,
+      createWorkspacePresentation(app).timeline(app, build, results)
+    )
       .rows.map((row) => row.html)
       .join('');
     assert.match(
@@ -92,7 +101,15 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
 
     assert.match(html, /class="rot-skill rot-cancelled"[^>]*data-idx="4"[^>]*--att-border:#ff3b45/);
 
-    const pending = timelineRowsView(app, build, null, readOnly, new Set(), false)
+    const pending = timelineRowsView(
+      app,
+      build,
+      null,
+      readOnly,
+      new Set(),
+      false,
+      createWorkspacePresentation(app).timeline(app, build, null)
+    )
       .rows.map((row) => row.html)
       .join('');
     assert.doesNotMatch(pending, /rot-cancelled|--att-border:#ff3b45/);
@@ -119,7 +136,15 @@ test('both Harp variants keep normal timeline styling after starting to play, in
         activeCatalog: profession.catalog
       };
       for (const readOnly of [false, true]) {
-        const html = timelineRowsView(app, build, results, readOnly, new Set(), false)
+        const html = timelineRowsView(
+          app,
+          build,
+          results,
+          readOnly,
+          new Set(),
+          false,
+          createWorkspacePresentation(app).timeline(app, build, results)
+        )
           .rows.map((row) => row.html)
           .join('');
         assert.doesNotMatch(html, /rot-cancelled|Cancelled without dealing damage|--att-border:#ff3b45/);
@@ -155,7 +180,15 @@ test('timeline labels the executed skill variant while preserving the saved comm
   };
   for (const skill of [traited, base]) {
     const results = { duration: 1, steps: [{ ri: 0, skillId: skill.id, skill: skill.name, start: 0, end: 1000 }] };
-    const html = timelineRowsView(app, build, results, false, new Set(), false)
+    const html = timelineRowsView(
+      app,
+      build,
+      results,
+      false,
+      new Set(),
+      false,
+      createWorkspacePresentation(app).timeline(app, build, results)
+    )
       .rows.map((row) => row.html)
       .join('');
     assert.ok(html.includes(skill.name));
@@ -448,7 +481,15 @@ test('timeline preserves weapon-swap rows after target death in editable and ref
     activeCatalog: profession.catalog
   };
   for (const readOnly of [false, true]) {
-    const rows = timelineRowsView(app, build, results, readOnly, new Set(), false).rows;
+    const rows = timelineRowsView(
+      app,
+      build,
+      results,
+      readOnly,
+      new Set(),
+      false,
+      createWorkspacePresentation(app).timeline(app, build, results)
+    ).rows;
     assert.deepEqual(
       rows.map((row) => Number(row.key.split(':')[0])),
       [1, 2, 1]
@@ -488,7 +529,15 @@ test('timeline keeps tome and kit transitions on their equipped set and follows 
       patch: profession.resolvePatch(),
       activeCatalog: profession.catalog
     };
-    const rows = timelineRowsView(app, build, results, false, new Set(), false).rows;
+    const rows = timelineRowsView(
+      app,
+      build,
+      results,
+      false,
+      new Set(),
+      false,
+      createWorkspacePresentation(app).timeline(app, build, results)
+    ).rows;
     assert.deepEqual(
       rows.map((row) => Number(row.key.split(':')[0])),
       expected,
@@ -500,7 +549,15 @@ test('timeline keeps tome and kit transitions on their equipped set and follows 
 
     // Before execution, do not predict that a possibly rejected swap changes the set.
     assert.deepEqual(
-      timelineRowsView(app, build, null, false, new Set(), false).rows.map((row) => Number(row.key.split(':')[0])),
+      timelineRowsView(
+        app,
+        build,
+        null,
+        false,
+        new Set(),
+        false,
+        createWorkspacePresentation(app).timeline(app, build, null)
+      ).rows.map((row) => Number(row.key.split(':')[0])),
       [1]
     );
   }

@@ -61,9 +61,10 @@ export function previewBuildFileImport(
       );
     }
 
-    if (build && !manifestRotationMatchesBuild(build, app.build)) {
+    // Warn before importing commands against a different specialization, equipment, or skill loadout.
+    if (build && !manifestRotationMatchesBuild(build, app.build, app.adapter.profession.catalog)) {
       warnings.push(
-        'Skills: This rotation was saved with a different heal, utility, or elite loadout than the current build. Apply the build as well to keep them in sync.'
+        'Build: This rotation was saved with a different specialization, equipped weapons, or skill loadout than the current build. Apply the build as well to keep them in sync.'
       );
     }
   }

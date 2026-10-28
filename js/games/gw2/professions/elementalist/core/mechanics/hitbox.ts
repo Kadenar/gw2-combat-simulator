@@ -12,8 +12,8 @@ export function prepareElementalistHitboxEvent(
   event: SimulationEventBase
 ): SimulationEventBase {
   const preparedEvent = event;
-  const professionAssumptions = context.config.professionAssumptions || {};
-  const hitboxSize = String(professionAssumptions.hitboxSize || context.config.hitboxSize || 'small');
+  // Encounter targets own their size; Golem retains the build's editable hitbox assumption.
+  const hitboxSize = context.combat.targetHitboxSize();
 
   if (hitboxSize !== 'small') return preparedEvent;
 

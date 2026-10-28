@@ -129,14 +129,18 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
     onCooldownReset: refreshGuardianVirtues,
     reactions: {
       'damage.resolved'(runtime, event, details) {
-        const damage = (details as NativeResolvedDamageDetails).hitContext?.damage ?? 0;
+        const hit = (details as NativeResolvedDamageDetails).hitContext;
+        const damage = hit?.damage ?? 0;
 
         // Weapon ignition precedes Zeal rewards, which precede Core passive Justice.
         if (event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && damage > 0)
           reactToSymbolOfIgnition(runtime, event);
 
         if (event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && damage > 0)
-          runtime.fireTrigger(guardianStruck, { cause: event, damage });
+          runtime.fireTrigger(guardianStruck, {
+            cause: event,
+            targetHealthFractionBefore: hit!.targetHealthFractionBefore
+          });
 
         if (runtime.profession.specialization.kind !== 'Core') return;
 

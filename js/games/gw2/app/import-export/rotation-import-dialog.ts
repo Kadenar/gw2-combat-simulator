@@ -27,6 +27,7 @@ import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
 type RotationImportDestination = 'current' | 'reference';
@@ -139,6 +140,15 @@ export async function previewManifestRotation(
 ): Promise<RotationImportPreview> {
   if (!preset.rotation) throw new Error('Rotation asset missing.');
 
+  // Recheck the saved build at load time so a stale selection cannot bypass the compatibility filter.
+  const build = await fetchJsonAsset(preset.build);
+
+  if (!manifestRotationMatchesBuild(build, app.build, app.activeCatalog)) {
+    throw new Error(
+      'Saved rotation must match your profession, specialization, equipped weapons, and selected skills.'
+    );
+  }
+
   const items = getRotationItems(await fetchJsonAsset(preset.rotation));
 
   if (!items) throw new Error('Rotation array missing.');
@@ -222,15 +232,48 @@ function selectedSkillIds(build: unknown): (string | number)[] | null {
     : null;
 }
 
-/** Keeps manifest references compatible with the active profession and selected skill loadout. */
-export function manifestRotationMatchesBuild(build: unknown, currentBuild: Gw2CanonicalBuild): boolean {
+/** Resolves elite identity from known trait lines without requiring identical core lines or trait choices. */
+function manifestSpecialization(selections: unknown, catalog: CanonicalCatalog): string | null {
+  if (!Array.isArray(selections) || selections.length !== 3) return null;
+
+  const lines = selections.map((selection) => catalog.specializations.find((line) => line.name === selection?.name));
+
+  if (lines.some((line) => !line)) return null;
+
+  const elites = lines.filter((line) => line?.elite);
+  return elites.length > 1 ? null : (elites[0]?.name ?? 'Core');
+}
+
+/** Weapon slots and set order must match because imported swap commands reuse the current build's equipment. */
+function manifestWeaponsMatch(weapons: unknown, current: readonly string[]): boolean {
+  return (
+    Array.isArray(weapons) && weapons.length === current.length && weapons.every((weapon, i) => weapon === current[i])
+  );
+}
+
+/** Keeps references within the same elite specialization, weapon sets, and selected skill loadout. */
+export function manifestRotationMatchesBuild(
+  build: unknown,
+  currentBuild: Gw2CanonicalBuild,
+  catalog: CanonicalCatalog
+): boolean {
   if (!build || typeof build !== 'object' || Array.isArray(build)) return false;
 
-  const candidate = build as { profession?: unknown };
+  const candidate = build as {
+    profession?: unknown;
+    specializations?: unknown;
+    weapons?: unknown;
+    alternateWeapons?: unknown;
+  };
+  const specialization = manifestSpecialization(candidate.specializations, catalog);
   const candidateSkills = selectedSkillIds(build);
   const currentSkills = selectedSkillIds(currentBuild);
   return (
     candidate.profession === currentBuild.profession &&
+    specialization !== null &&
+    specialization === manifestSpecialization(currentBuild.specializations, catalog) &&
+    manifestWeaponsMatch(candidate.weapons, currentBuild.weapons) &&
+    manifestWeaponsMatch(candidate.alternateWeapons, currentBuild.alternateWeapons) &&
     candidateSkills !== null &&
     currentSkills !== null &&
     candidateSkills.length === currentSkills.length &&
@@ -527,7 +570,7 @@ export function bindRotationImportDialog(
 
     manifestRotations = entries
       .filter((entry): entry is ManifestBuildEntry => entry !== null)
-      .filter((entry) => manifestRotationMatchesBuild(entry.build, app.build))
+      .filter((entry) => manifestRotationMatchesBuild(entry.build, app.build, app.activeCatalog))
       .map((entry) => entry.preset);
     placeholder.textContent = manifestRotations.length ? 'Choose a rotation...' : 'No compatible rotations';
     manifestRotations.forEach((preset, index) => {
@@ -582,8 +625,8 @@ export function bindRotationImportDialog(
     elements.fileName.textContent = '';
     elements.fileName.hidden = true;
     elements.reportInput.value = '';
-    // Start both destinations on report links so a dps.report URL can be pasted immediately.
-    selectSource('link');
+    // Comparisons start with compatible saved rotations; ordinary imports start ready for a dps.report link.
+    selectSource(destination === 'reference' ? 'saved' : 'link');
     showDialog(elements.dialog);
     void populateManifestRotations();
   });

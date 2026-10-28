@@ -171,7 +171,9 @@ export function createEffectDelivery<T extends object>(
       delivery = { ...delivery, owner };
     }
 
-    const deferPreparation = (owner != null || event.type === 'buff') && canonicalTime(event.at) > runtime.time;
+    // Encounter packets must sample the target at delivery, after any intervening phase transition.
+    const deferPreparation =
+      (owner != null || event.type === 'buff' || runtime.encounter != null) && canonicalTime(event.at) > runtime.time;
     const prepared =
       cancelledByCast || deferPreparation
         ? event
@@ -298,6 +300,7 @@ export function createEffectDelivery<T extends object>(
     if (
       ('offTarget' in event && event.offTarget === true) ||
       runtime.deathTime != null ||
+      runtime.encounter?.damageable === false ||
       !runtime.engagement.hostileEffectsAllowed(runtime.time)
     )
       return [];
@@ -398,13 +401,24 @@ export function createEffectDelivery<T extends object>(
       }
     }
 
-    // Accepted entry activates combat; the owner releases explicit producers only on marker dispatch, once.
-    if (
-      !precombat &&
-      isCombatEntryEvent(event) &&
-      runtime.engagementController.acceptEntry(event.at, event.type === 'combat_start')
-    )
-      execution.combatStart?.(runtime);
+    // Eligible opening packets need initialized encounter targets even before the marker drains.
+    // Explicit producers still start exactly once on marker dispatch, after preparation completes.
+    if (!precombat && isCombatEntryEvent(event)) {
+      const triggerCombatStart = runtime.engagementController.acceptEntry(event.at, event.type === 'combat_start');
+      runtime.encounter?.begin(event.at);
+
+      if (triggerCombatStart) execution.combatStart?.(runtime);
+    }
+
+    // Invulnerability blocks target resolution, not attempted packets or their field/finisher self effects.
+    // Existing condition clocks still age; accepted-hit and disable reactions remain behind this gate.
+    if (runtime.encounter?.damageable === false && isHostileTargetEvent(event) && event.type !== 'condition_tick') {
+      if (runtime.output !== 'score') executed.push(event);
+
+      if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);
+
+      return;
+    }
 
     event = bindRuntimeCombo(runtime, event);
 
@@ -446,7 +460,10 @@ export function createEffectDelivery<T extends object>(
     if (runtime.output !== 'score' && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
       executed.push(event);
 
-    if (runtime.deathTime == null && targetHealthLoss(config, runtime) >= targetHealth) {
+    if (
+      runtime.deathTime == null &&
+      (runtime.encounter ? runtime.encounter.deathTime !== null : targetHealthLoss(config, runtime) >= targetHealth)
+    ) {
       runtime.deathTime = event.at;
       lethalActivation = event.activationId;
     }

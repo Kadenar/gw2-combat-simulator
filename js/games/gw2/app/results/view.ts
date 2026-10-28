@@ -1,5 +1,5 @@
+import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import { mountInputActivity } from '#gw2/app/input-profile/results.js';
-import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
 import { mountModifierContributions, modifierContributionsHtml } from '#gw2/app/results/modifier-contributions-view.js';
@@ -9,14 +9,13 @@ import { mountResultCharts, type ResultChartsModel } from '#gw2/app/results/char
 import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
-import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
 import {
   ownerConditionBreakdown,
   skillBreakdownRows,
   skillDamageKeyByIdentity
 } from '#gw2/app/results/skill-breakdown.js';
 import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
-import { renderPatchComparison } from '#gw2/app/patch-preview/view.js';
 import { mountPreviewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
 import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
 import type { ResultIconRow } from '#gw2/app/results/skill-icons.js';
@@ -104,8 +103,11 @@ export function renderModifierContributions(app: ProfessionAppState): void {
 /** Converts a GW2 resolver result into the neutral result-view contract. */
 export function createGw2SimulationViewModel(app: ProfessionAppState): SimulationViewModel {
   const result = app.results;
+  const workspace = createWorkspacePresentation(app);
+  // The selected workspace owns result eligibility and its mode-specific projections.
+  const presentation = app.build.rotation.length && result ? workspace.results(app, result) : null;
 
-  if (!app.build.rotation.length || !result) {
+  if (!result || !presentation) {
     return {
       summary: resultSection((container) =>
         mountResultSummary(container, { metrics: EMPTY_RESULT_METRICS, summaryPlaceholder: true })
@@ -124,24 +126,12 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
         </div>`
         : `<div class="analysis-empty-state">
         <strong>No analysis yet</strong>
-        <span>Add skills to the rotation in the <a href="#workspace">Workspace</a> to generate results.</span>
+        <span>Add skills to the rotation in <a href="${workspace.authoringLink.href}">${workspace.authoringLink.label}</a> to generate results.</span>
       </div>`
     };
   }
 
-  const metrics = resultSummaryMetrics(result).map((metric) =>
-    result.randomDistributionRequested && metric.label === 'Player DPS'
-      ? { ...metric, label: 'Baseline Player DPS' }
-      : metric
-  );
-  const breakpoints = targetHealthBreakpointSnapshots(
-    result,
-    app.build.targetHealth,
-    undefined,
-    app.build.targetStartingHealthPercent
-  );
-
-  const summary = { metrics, breakpoints };
+  const { summary } = presentation;
   const rng = randomDistributionModel(result);
   const rngOptions = { onRunRandomDistribution: () => app.runRandomDistribution() };
   const sharedView: SimulationViewModel = {
@@ -150,7 +140,7 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
       (container) => mountPreviewAssumptionNotice(container, app),
       (container) => mountInputActivity(container, result.inputTrace)
     ),
-    headerDps: metrics.find((metric) => metric.className === 'dps')?.value,
+    headerDps: summary.metrics.find((metric) => metric.className === 'dps')?.value,
     workspace: resultSection((container) => mountRandomDistribution(container, rng, rngOptions)),
     analysis: null
   };
@@ -220,30 +210,25 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
     }
   };
   const chartOptions: Partial<ChartOptions> = {
-    // Phase controls need actual health endpoints to distinguish complete ranges from partial observations.
-    targetStartingHealthPercent: app.build.targetStartingHealthPercent ?? 100,
-    targetDied: result.deathTime != null,
+    ...presentation.chartOptions,
     title: 'DPS & Effects Over Time',
     dpsLabel: 'Average DPS',
     dpsColor: '#54c96b',
     colors: effectColors(effectPresentations),
     defaultVisibleEffectLimit: 8,
-    emptyEffectsText: 'No timed effects in this rotation',
-    healthBreakpoints: breakpoints
+    emptyEffectsText: 'No timed effects in this rotation'
   };
 
   return {
     ...sharedView,
     analysis: resultSection(
+      ...presentation.analysisPanels.map((panel) => (container: HTMLElement) => panel.mount(container)),
       (container) => mountRandomDistribution(container, rng, rngOptions),
       (container) => mountDamageBreakdown(container, breakdown, breakdownOptions),
       (container) => mountResultCharts(container, charts, chartOptions),
       (container) => mountModifierContributions(container, modifiers)
     ),
-    afterAnalysisRender(container) {
-      // Mount the comparison in the same paint as the tables so patch switches cannot briefly collapse its space.
-      if (app.profession?.preview) renderPatchComparison(container, app);
-    }
+    afterAnalysisRender: presentation.afterAnalysisRender
   };
 }
 
@@ -251,6 +236,10 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
 export const gw2SimulationPresentation = Object.freeze({
   createViewModel: createGw2SimulationViewModel,
   render(app: ProfessionAppState, viewModel: SimulationViewModel) {
+    const title = document.getElementById('analysis-view-title');
+
+    if (title) title.textContent = createWorkspacePresentation(app).analysisTitle;
+
     renderSimulationViewModel(viewModel, {
       inputRevision: app.buildRevision,
       outputRevision: app.resultRevision

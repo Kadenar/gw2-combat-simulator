@@ -2,6 +2,8 @@ import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
+import { createBossScenario, selectScenarioEncounter } from '#gw2/app/boss-scenarios/model.js';
 import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
@@ -23,6 +25,7 @@ import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contrib
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
 import { loadBuild } from '#gw2/app/build/state/persistence.js';
 import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
+import { defaultSimulationSettings } from '#gw2/app/simulation/settings.js';
 
 function storage(t, initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -150,13 +153,15 @@ const adapter = {
 // A minimal editor exercises real tab activation and rotation history without a DOM or combat fixture.
 function appFixture() {
   const tab = createBuildTab(build('original'), 'Original');
+  const simulationSettings = defaultSimulationSettings();
   const scheduled = [];
   const cancelled = [];
   const app = Object.assign(Object.create(ProfessionApp.prototype), emptyBuildTabSession(), {
     adapter,
     profession: adapter.profession,
 
-    workspace: { tabs: [tab], activeTabId: tab.id },
+    workspace: { tabs: [tab], activeTabId: tab.id, simulationSettings },
+    simulationSettings,
     build: tab.build,
     patch: adapter.profession.resolvePatch({ id: 'current' }),
     buildRevision: 1,
@@ -181,6 +186,73 @@ function appFixture() {
   recordRotationHistory(app);
   return { app, tab, scheduled, cancelled };
 }
+
+// Changing encounter assumptions never switches the active rotation document or leaks into Golem.
+test('encounter editor keeps one rotation and history across boss and difficulty changes', (t) => {
+  const values = storage(t);
+  const { app } = appFixture();
+  app.build.rotation.push({ type: 'wait', durationMs: 1000 });
+  app.changed();
+  const golem = app.workspace;
+  const golemHistory = app._rotationHistory;
+  const savedGolem = values.get(workspaceStorageKey(adapter));
+  const draft = createBossScenario('020102', app.build, 'Encounter build', 'current', true);
+  let savedDraft;
+  const fileActions = { import() {}, export() {} };
+  const editor = createScenarioEditor(
+    app,
+    () => {
+      savedDraft = structuredClone(draft);
+    },
+    fileActions
+  );
+  const validateGolemImport = captureBuildDestination(app);
+  editor.open(draft);
+  // Header transfers follow the active encounter workspace and disappear when Golem is restored.
+  assert.equal(app.workspace.fileActions, fileActions);
+  assert.throws(validateGolemImport, /build changed/);
+  app.build.gear.Helm = 'encounter gear';
+  app.build.rotation.push({ type: 'wait', durationMs: 2000 });
+  app.changed();
+  const bossHistory = app._rotationHistory;
+  selectScenarioEncounter(draft, '020403', 'challenge');
+  editor.open(draft);
+  assert.equal(app._rotationHistory, bossHistory);
+  assert.equal(app.build.rotation.length, 2);
+  assert.equal(app.workspace.tabs.length, 1);
+  undoRotation(app);
+  assert.deepEqual(savedDraft.build.rotation, [{ type: 'wait', durationMs: 1000 }]);
+  assert.equal(app.build.gear.Helm, 'encounter gear');
+  assert.equal(values.get(workspaceStorageKey(adapter)), savedGolem);
+  editor.close();
+  assert.equal(app.workspace, golem);
+  assert.equal(app.workspace.fileActions, undefined);
+  assert.equal(app.build.gear.Helm, 'original');
+  assert.equal(app._rotationHistory, golemHistory);
+  editor.open(draft);
+  assert.equal(app._rotationHistory, bossHistory);
+  assert.equal(app.build.gear.Helm, 'encounter gear');
+  assert.deepEqual(app.build.rotation, [{ type: 'wait', durationMs: 1000 }]);
+});
+
+// Closing releases the encounter's cached workspace while retaining the independent Golem editing session.
+test('discarding an encounter releases its editor session and restores Golem', (t) => {
+  storage(t);
+  const { app } = appFixture();
+  const golem = app.workspace;
+  const draft = createBossScenario('020102', app.build, 'Encounter build', 'current', true);
+  const editor = createScenarioEditor(app, () => {}, { import() {}, export() {} });
+  editor.open(draft);
+  const discarded = app.workspace;
+  app.build.rotation.push({ type: 'wait', durationMs: 1000 });
+  app.changed();
+  editor.discard(draft.id);
+  assert.equal(app.workspace, golem);
+  assert.deepEqual(app.build.rotation, []);
+  editor.open(draft);
+  assert.notEqual(app.workspace, discarded);
+  assert.deepEqual(app.build.rotation, [{ type: 'wait', durationMs: 1000 }]);
+});
 
 test('legacy build migrates once and workspace round trips only durable inputs and tab order', (t) => {
   const legacy = JSON.stringify(build('legacy'));

@@ -4,8 +4,13 @@ body[data-simulator-view='benchmarks'] :is(.profession-layout, .build-editor) {
   display: none;
 }
 /* Saved benchmarks do not use workspace build controls or the selected game-data version. */
-body[data-simulator-view='benchmarks'] :is(.patch-preview-picker, #build-workspace-tabs) {
+body[data-simulator-view='benchmarks'] :is(.patch-preview-picker, #build-workspace-tabs, .simulator-view-tabs) {
   display: none;
+}
+
+/* Benchmarks owns its own tool tabs; collapse the simulation chrome to one destination row. */
+body[data-simulator-view='benchmarks'] .simulator-header-chrome {
+  padding-bottom: 0;
 }
 #benchmarks-view {
   --benchmark-muted: #96928a;

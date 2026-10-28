@@ -49,10 +49,10 @@ export interface Gw2Config {
     readonly count?: number;
     readonly strikesPerSecond?: number;
   };
-  /** Character hitbox size; melee reach and some area rules read it. */
-  readonly hitboxSize?: string;
   readonly professionAssumptions?: Readonly<ProfessionBuildAssumptions>;
   readonly target?: Gw2TargetConfig;
+  /** Boss-owned health gates and squad assumptions, separate from the player build. */
+  readonly encounter?: import('#gw2/platform/combat/state/encounter.js').EncounterConfig;
   readonly modifiers?: {
     /** Player-owned damage factors exclude summon actors, even when their conditions inherit player stats. */
     readonly playerStrike?: number;

@@ -6,7 +6,12 @@ export interface SimulationSettings {
 
 export const SIMULATION_SETTINGS_STORAGE_KEY = 'gw2.simulation-settings';
 
-/** Simulation preferences belong to this browser, independent of builds, presets, and workspace tabs. */
+/** New encounter workspaces start with their own delays rather than copying Golem preferences. */
+export function defaultSimulationSettings(): SimulationSettings {
+  return { transitionDelays: normalizeTransitionDelays(null) };
+}
+
+/** Restore Golem preferences; boss scenarios persist their settings inside their own documents. */
 export function loadSimulationSettings(): SimulationSettings {
   try {
     const saved = JSON.parse(localStorage.getItem(SIMULATION_SETTINGS_STORAGE_KEY) || 'null');
@@ -16,7 +21,7 @@ export function loadSimulationSettings(): SimulationSettings {
   }
 }
 
-/** Persist normalized browser preferences so every build and workspace tab shares the same simulation inputs. */
+/** Persist Golem preferences shared by its build tabs, independently of boss scenario settings. */
 export function saveSimulationSettings(settings: SimulationSettings): void {
   try {
     localStorage.setItem(

@@ -32,12 +32,13 @@ export function emptyRotationComparisonSession(): RotationComparisonSession {
   return { rotationComparison: null };
 }
 
-/** Opens comparison only when Current has a fresh result to compare against. */
+/** Comparison and insights belong to Golem; both require a fresh Current result. */
 export function beginRotationComparison(
   app: ProfessionAppState,
   view: RotationComparisonState['view'] = 'timelines'
 ): boolean {
   if (
+    app.workspace?.scenario ||
     app.rotationComparison?.view === view ||
     !app.build.rotation.length ||
     !app.results ||
@@ -66,7 +67,7 @@ export function beginRotationComparison(
 
 /** Copies a reference before scheduling, keeping imports independent of Current and its history. */
 export function setRotationReference(app: ProfessionAppState, rotation: readonly RotationCommand[]): boolean {
-  if (!app.rotationComparison || !rotation.length) return false;
+  if (app.workspace?.scenario || !app.rotationComparison || !rotation.length) return false;
 
   Object.assign(app.rotationComparison, {
     reference: null,
@@ -97,6 +98,7 @@ export function swapRotationComparison(app: ProfessionAppState): boolean {
   const comparison = app.rotationComparison;
 
   if (
+    app.workspace?.scenario ||
     !comparison ||
     comparison.referenceStatus !== 'fresh' ||
     !comparison.referenceResult ||
@@ -132,6 +134,8 @@ export function discardRotationComparison(app: ProfessionAppState): boolean {
 export function queueRotationReference(app: RotationComparisonSession): void {
   if (!app.rotationComparison?.referenceRotation.length) return;
 
+  // Keep the pinned rotation, but discard results calculated with the previous simulation settings.
+  app.rotationComparison.referenceResult = null;
   app.rotationComparison.referenceStatus = 'queued';
   app.rotationComparison.referenceError = '';
 }

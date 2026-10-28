@@ -817,3 +817,56 @@ test('maps Conduit Cosmic Wisdom variants and split Mace animations to player in
 
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });
+
+// EI's ambiguous teleport requires build evidence; it must not silently reinterpret a possible Blink.
+test('Mesmer report teleport resolves Phase Retreat with Staff evidence and a loadout excluding Blink', () => {
+  const report = reportFixture(
+    'Troubadour',
+    [
+      { id: MESMER_SKILL.WINDS_OF_CHAOS, skills: [{ castTime: 0, duration: 0 }] },
+      { id: -27, skills: [{ castTime: 1000, duration: 0 }] }
+    ],
+    {
+      [`s${MESMER_SKILL.WINDS_OF_CHAOS}`]: { name: 'Winds of Chaos' },
+      's-27': { name: 'Blink or Phase Retreat', isNotAccurate: true }
+    }
+  );
+  const imported = reconstructDpsReportRotation(report, mesmerCatalog, {
+    professionConfig: { selectedSkillIds: [MESMER_SKILL.TALE_OF_THE_SOULKEEPER] }
+  });
+  const teleport = imported.actions.find((action) => action.rawSkillId === -27);
+  assert.equal(teleport.skillId, MESMER_SKILL.PHASE_RETREAT);
+  assert.equal(teleport.supportedByCatalog, true);
+  assert.equal(teleport.metadataAccurate, false);
+  // Resolving the ambiguous identity must preserve its position relative to the report's combat boundary.
+  assert.equal(
+    imported.sourceActions.find((action) => action.rawSkillId === -27).startMs,
+    teleport.timestampMs + imported.phase.start - imported.combatStartTimestampMs
+  );
+  assert.ok(imported.rotation.some((command) => command.skillId === MESMER_SKILL.PHASE_RETREAT));
+  assert.ok(imported.warnings.some((warning) => warning.includes('your build without Blink')));
+  assert.ok(!imported.warnings.some((warning) => warning.includes('could not be matched')));
+});
+
+test('ambiguous Mesmer teleports stay unresolved without Staff or when Blink cannot be excluded', () => {
+  const report = reportFixture('Troubadour', [{ id: -27, skills: [{ castTime: 1000, duration: 0 }] }], {
+    's-27': { name: 'Blink or Phase Retreat', isNotAccurate: true }
+  });
+  for (const professionConfig of [
+    undefined,
+    { primaryWeapon: 'Staff' },
+    { primaryWeapon: 'Staff', selectedSkillIds: [10200] },
+    { primaryWeapon: 'Scepter', selectedSkillIds: [] }
+  ]) {
+    const imported = reconstructDpsReportRotation(report, mesmerCatalog, { professionConfig });
+    assert.equal(imported.actions[0].supportedByCatalog, false);
+    assert.ok(!imported.rotation.some((command) => command.skillId === MESMER_SKILL.PHASE_RETREAT));
+    assert.ok(imported.warnings.some((warning) => warning.includes('could not be matched')));
+  }
+
+  // A selected Staff also supplies evidence when the report window starts directly with the teleport.
+  const resolved = reconstructDpsReportRotation(report, mesmerCatalog, {
+    professionConfig: { weaponSet2Primary: 'Staff', selectedSkillIds: [] }
+  });
+  assert.equal(resolved.actions[0].skillId, MESMER_SKILL.PHASE_RETREAT);
+});

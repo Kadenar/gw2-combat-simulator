@@ -4,10 +4,10 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-/** An accepted positive player impact, with the damage it dealt. */
+/** An accepted positive player impact, with the target health sampled before it landed. */
 export interface GuardianStrike {
   readonly cause: Gw2ResolverEvent;
-  readonly damage: number;
+  readonly targetHealthFractionBefore: number | null;
 }
 
 /**

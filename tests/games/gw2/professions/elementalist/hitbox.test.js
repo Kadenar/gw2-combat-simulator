@@ -40,7 +40,9 @@ test('small-hitbox caps pair offensive packets by timestamp and occurrence while
   assert.ok(skill.effects[1].ticks.every((tick) => tick.metadata.original));
 
   for (const hitboxSize of ['small', 'large']) {
-    const events = packets.map((packet) => prepareElementalistHitboxEvent({ config: { hitboxSize } }, packet));
+    const events = packets.map((packet) =>
+      prepareElementalistHitboxEvent({ combat: { targetHitboxSize: () => hitboxSize } }, packet)
+    );
     assert.deepEqual(
       events.map((event) => Boolean(event.cancelled)),
       hitboxSize === 'small'

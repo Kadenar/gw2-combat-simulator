@@ -44,6 +44,7 @@ export interface MechanicQueryContext<T extends object = object, TSkill extends 
     | 'targetConditionCount'
     | 'targetHealthLoss'
     | 'targetHealthBelow'
+    | 'targetHitboxSize'
     | 'remainingTargetHealthFraction'
     | 'statsAt'
     | 'conditionDurationMultiplier'

@@ -7,7 +7,9 @@ import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 
 const POWER_SPIKE_ID = 10212;
 const BLINK_ID = 10200;
-const BLINK_OR_PHASE_RETREAT_ID = -27;
+
+/** Shared EI identity keeps ambiguous-teleport reconstruction and its warning in agreement. */
+export const BLINK_OR_PHASE_RETREAT_ID = -27;
 
 /** Resolves represented Mesmer inputs and avoids replaying cloak gains as additional dodges. */
 export function reconstructMesmerDpsReportActions(
@@ -19,7 +21,10 @@ export function reconstructMesmerDpsReportActions(
   const phaseRetreatOnly =
     selectedSkills != null &&
     !selectedSkills.includes(BLINK_ID) &&
-    [config?.primaryWeapon, config?.weaponSet2Primary].includes('Staff');
+    (context.recordedActions.some(
+      (action) => context.catalog?.skillsById.get(action.canonicalSkillId ?? action.rawSkillId)?.weapon === 'Staff'
+    ) ||
+      [config?.primaryWeapon, config?.weaponSet2Primary].includes('Staff'));
 
   return context.recordedActions.flatMap((action) => {
     if (action.rawSkillId === BLINK_OR_PHASE_RETREAT_ID && action.canonicalSkillId == null && phaseRetreatOnly) {
