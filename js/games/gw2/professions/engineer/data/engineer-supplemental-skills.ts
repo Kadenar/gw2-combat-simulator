@@ -363,19 +363,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 6163,
-    name: 'Deploy Mine',
-    description: 'Deploy a remote-controlled mine that damages nearby foes and removes a boon.',
-    icon: 'https://render.guildwars2.com/file/0F0F28210568DB66F8539D684314FC55D8C1022C/103177.png',
-    type: 'Utility',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Gadget'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 6164,
     name: 'Mine Field',
     description: 'Plant five mines around yourself.',
@@ -681,20 +668,6 @@ const records: EngineerSupplementalSkill[] = [
     simulatorExcluded: false
   },
   {
-    id: 30337,
-    name: 'Throw Mine',
-    description:
-      "Throw out a remote-controlled land mine that damages, knocks back {{sic|it doesn't knock back, it stuns}}, and removes a boon from nearby foes.",
-    icon: 'https://render.guildwars2.com/file/0F0F28210568DB66F8539D684314FC55D8C1022C/103177.png',
-    type: 'Utility',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['gadget'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 30371,
     name: 'Mortar Shot',
     description: 'Launch an explosive round from your mortar, damaging foes in the target area.',
@@ -743,19 +716,6 @@ const records: EngineerSupplementalSkill[] = [
     slot: 'Weapon_2',
     specialization: '',
     categories: ['EngineeringKit'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 30893,
-    name: 'Deploy Mine',
-    description: 'Deploy a remote-controlled mine that damages nearby foes and removes a boon.',
-    icon: 'https://render.guildwars2.com/file/0F0F28210568DB66F8539D684314FC55D8C1022C/103177.png',
-    type: 'Utility',
-    slot: 'Utility',
-    specialization: '',
-    categories: ['Gadget'],
     nextChainId: null,
     flipSkillId: null,
     simulatorExcluded: false

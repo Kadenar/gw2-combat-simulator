@@ -113,7 +113,6 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   JUDGES_INTERVENTION: 9247, // Judge's Intervention
   ZEALOTS_EMBRACE: 9260, // Zealot's Embrace
   EMPOWER: 9265, // Empower
-  SHIELD_OF_JUDGMENT_ID_15834: 15834, // Shield of Judgment
   LITANY_OF_WRATH: 21664, // Litany of Wrath
   DEFLECTING_SHOT: 29630, // Deflecting Shot
   SYMBOL_OF_ENERGY: 29789, // Symbol of Energy
@@ -133,7 +132,6 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   MANTRA_OF_SOLACE: 41714, // Mantra of Solace
   OVERWHELMING_CELERITY: 41988, // Overwhelming Celerity
   ECHO_OF_TRUTH: 42360, // Echo of Truth
-  TOME_OF_COURAGE_ID_42371: 42371, // Tome of Courage
   FLAME_SURGE: 42924, // Flame Surge
   REJUVENATING_RESPITE: 42960, // Rejuvenating Respite
   POTENT_HASTE: 42983, // Potent Haste

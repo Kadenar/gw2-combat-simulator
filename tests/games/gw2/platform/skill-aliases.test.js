@@ -93,7 +93,6 @@ test('combat-log and legacy selected-skill loading use the shared alias map', ()
   assert.equal(findRotationSkill(76744, 'Unknown', thiefCatalog, antiquary)?.id, 77230);
   assert.equal(findRotationSkill(29082, 'Unknown', revenantCatalog, renegade)?.id, 27025);
   assert.equal(findRotationSkill(46409, 'Unknown', revenantCatalog, renegade)?.id, 41858);
-  assert.equal(findRotationSkill(76917, 'Unknown', revenantCatalog, conduit)?.id, 76805);
   assert.equal(findRotationSkill(77159, 'Unknown', revenantCatalog, conduit)?.id, 77141);
 });
 
@@ -118,8 +117,8 @@ test('combat-log catalog helpers resolve canonical actions and aliases through t
 test('protected variants and unreviewed IDs remain distinct', () => {
   // Phase 6 retained records either differ behaviorally or still lack an external identity relationship.
   for (const skillId of [
-    9224, 41746, 73006, 73042, 30893, 76550, 76800, 40601, 41110, 41330, 42707, 42803, 43566, 71922, 71950, 72089,
-    73014, 15834, 42371, 6091, 6092, 30337, 45094, 16460, 71967, 76601, 76900, 77288, 72058
+    9224, 41746, 73006, 73042, 76550, 76800, 40601, 41110, 41330, 42707, 42803, 43566, 71922, 71950, 72089, 73014, 6091,
+    6092, 45094, 16460, 71967, 76601, 76900, 77288, 72058
   ]) {
     assert.equal(canonicalGw2SkillId(skillId), skillId);
   }

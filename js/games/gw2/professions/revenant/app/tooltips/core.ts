@@ -162,11 +162,7 @@ export const revenantCoreTooltips = {
     [ID.SWAP_LEGENDS]: legendSwapTooltip,
     [SHARED_SKILL_IDS.DODGE]: dodgeTooltip,
     [ID.ANCIENT_ECHO]: ancientEchoTooltip,
-    ...Object.fromEntries(
-      [ID.VENGEFUL_HAMMERS, ID.VENGEFUL_HAMMERS_ID_56752, ID.PROTECTIVE_SOLACE, ID.PROTECTIVE_SOLACE_ID_29310].map(
-        (id) => [id, upkeepTooltip]
-      )
-    ),
+    ...Object.fromEntries([ID.VENGEFUL_HAMMERS, ID.PROTECTIVE_SOLACE].map((id) => [id, upkeepTooltip])),
     ...Object.fromEntries(
       [ID.RESIST_THE_DARKNESS, ID.RELEASE_HAMMERS, ID.DIMINISH_SOLACE, ID.RELINQUISH_POWER].map((id) => [
         id,

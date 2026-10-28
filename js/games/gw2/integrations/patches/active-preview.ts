@@ -133,19 +133,6 @@ export const activePatchPreview: PatchPreview = {
             }
           ]
         },
-        '76805': {
-          effects: [
-            {
-              type: 'strike',
-              name: 'Beguiling Haze',
-              tickIndex: 'all',
-              coefficient: {
-                from: 2.2,
-                to: 1
-              }
-            }
-          ]
-        },
         '77141': {
           effects: [
             {
@@ -342,18 +329,6 @@ export const activePatchPreview: PatchPreview = {
               coefficient: {
                 from: 0.75,
                 to: 0.85
-              }
-            }
-          ]
-        },
-        '76733': {
-          effects: [
-            {
-              type: 'condition',
-              condition: CONDITION.BURNING,
-              stacks: {
-                from: 2,
-                to: 1
               }
             }
           ]

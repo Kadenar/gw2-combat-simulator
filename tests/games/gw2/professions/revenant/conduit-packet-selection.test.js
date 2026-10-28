@@ -21,44 +21,44 @@ const wait = { type: 'wait', durationMs: 1000 };
 
 test('Beguiling selects its final follow-up before consuming the charge, even with a removed strike', () => {
   // A single patched follow-up exposes selection-after-consumption errors without a saved rotation.
-  for (const skillId of [ID.BEGUILING_HAZE, ID.BEGUILING_HAZE_ID_76805]) {
-    for (const removed of [false, true]) {
-      const result = runRevenant(
-        [{ skillId }, { skillId }],
-        { ...config, selectedTraitIds: [TRAIT.SHARED_WISDOM] },
-        {
-          catalog: (catalog) =>
-            applyBalanceProfilePatch(
-              applySkillPatch(catalog, {
-                skills: {
-                  [ID.BEGUILING_HAZE_FOLLOW_UP]: {
-                    fields: { maximumStacks: 1 },
-                    ...(removed ? { removeEffects: [{ type: 'strike', name: 'Beguiling Haze — Follow-Up' }] } : {})
-                  }
-                }
-              }),
-              {
-                balanceProfiles: {
-                  [TRAIT.SHARED_WISDOM]: { effects: [{ type: 'boon', name: 'beguiling-haze', stacks: 2 }] }
+  const skillId = ID.BEGUILING_HAZE;
+
+  for (const removed of [false, true]) {
+    const result = runRevenant(
+      [{ skillId }, { skillId }],
+      { ...config, selectedTraitIds: [TRAIT.SHARED_WISDOM] },
+      {
+        catalog: (catalog) =>
+          applyBalanceProfilePatch(
+            applySkillPatch(catalog, {
+              skills: {
+                [ID.BEGUILING_HAZE_FOLLOW_UP]: {
+                  fields: { maximumStacks: 1 },
+                  ...(removed ? { removeEffects: [{ type: 'strike', name: 'Beguiling Haze — Follow-Up' }] } : {})
                 }
               }
-            )
-        }
-      );
-      assert.deepEqual(result.warnings, []);
-      const runtime = observedRuntime(result);
-      assert.equal(conduitState.from(runtime).beguilingHazeCharges, 0);
-      assert.equal(runtime.cooldownController.readAmmo(skillId).maximum, 1);
-      assert.ok(runtime.cooldownController.readAmmo(skillId).nextRechargeAt > runtime.time);
-      const followUp = result.events.find(
-        (event) => event.type === 'damage' && event.name === 'Beguiling Haze — Follow-Up'
-      );
-      assert.equal(Boolean(followUp), !removed);
-      // Fury is a committed-cast reward even when the selected variant contains no strike.
-      const lastFury = result.events.findLast((event) => event.type === 'buff' && event.kind === 'fury');
-      assert.equal(lastFury.activationId, result.steps.at(-1).activationId);
-      assert.equal(lastFury.stacks, 2);
-    }
+            }),
+            {
+              balanceProfiles: {
+                [TRAIT.SHARED_WISDOM]: { effects: [{ type: 'boon', name: 'beguiling-haze', stacks: 2 }] }
+              }
+            }
+          )
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    assert.equal(conduitState.from(runtime).beguilingHazeCharges, 0);
+    assert.equal(runtime.cooldownController.readAmmo(skillId).maximum, 1);
+    assert.ok(runtime.cooldownController.readAmmo(skillId).nextRechargeAt > runtime.time);
+    const followUp = result.events.find(
+      (event) => event.type === 'damage' && event.name === 'Beguiling Haze — Follow-Up'
+    );
+    assert.equal(Boolean(followUp), !removed);
+    // Fury is a committed-cast reward even when the selected variant contains no strike.
+    const lastFury = result.events.findLast((event) => event.type === 'buff' && event.kind === 'fury');
+    assert.equal(lastFury.activationId, result.steps.at(-1).activationId);
+    assert.equal(lastFury.stacks, 2);
   }
 });
 

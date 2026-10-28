@@ -680,36 +680,6 @@ const records = [
     nextChainId: null,
     flipSkillId: null,
     simulatorExcluded: false
-  },
-  {
-    id: 76591,
-    name: 'Metal Legion Guitar',
-    description:
-      'Rock out with your guitar, damaging and applying conditions to opponents around you, then slam the ground, damaging and stunning opponents in the area.<br/><br/>For a short time after using this skill, your first weapon skill is replaced with your stealth attack, even when not stealthed.',
-    icon: 'https://render.guildwars2.com/file/02727B1807CF0FEF31037FD9E307BABB2055AE3C/3680214.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    weapon: '',
-    specialization: 'Antiquary',
-    categories: ['Offensive Artifact'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
-    id: 76733,
-    name: 'Zephyrite Sun Crystal',
-    description:
-      'Dash toward your target, damaging and inflicting conditions on enemies and removing conditions from allies around you when you reach your destination. You evade attacks as long as you are still traveling.<br/><br/>For a short time after using this skill, whenever you use a weapon skill that costs initiative, remove conditions from yourself.',
-    icon: 'https://render.guildwars2.com/file/3C1B2075B7B164EB2ABE4F6650F553D40F689E53/3680218.png',
-    type: 'Profession',
-    slot: 'Profession_2',
-    weapon: '',
-    specialization: 'Antiquary',
-    categories: ['Defensive Artifact'],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
   }
 ];
 

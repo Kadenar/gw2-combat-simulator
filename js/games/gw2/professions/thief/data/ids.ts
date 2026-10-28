@@ -134,7 +134,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
   SKRITT_SCUFFLE: 77255, // Skritt Scuffle
   MISTBURN_MORTAR: 77277, // Mistburn Mortar
   SKRITT_SWIPE: 77397, // Skritt Swipe
-  ZEPHYRITE_SUN_CRYSTAL_ID_78309: 78309, // Zephyrite Sun Crystal
   FLAWLESS_EXECUTION: 80244, // Flawless Execution
 
   // Keep identities for supported skills supplied by the supplemental catalog.
@@ -183,9 +182,7 @@ export const THIEF_SKILL_IDS = Object.freeze({
   CUNNING_SALVO: 72034, // Cunning Salvo
   SHATTERING_ASSAULT: 72904, // Shattering Assault
   FALLING_SPIDER: 73076, // Falling Spider
-  METAL_LEGION_GUITAR: 76582, // Metal Legion Guitar
-  METAL_LEGION_GUITAR_ID_76591: 76591, // Metal Legion Guitar
-  ZEPHYRITE_SUN_CRYSTAL_ID_76733: 76733 // Zephyrite Sun Crystal
+  METAL_LEGION_GUITAR: 76582 // Metal Legion Guitar
 });
 
 export const THIEF_TRAIT_IDS = Object.freeze({

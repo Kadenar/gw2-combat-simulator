@@ -150,7 +150,7 @@ export function reconstructGuardianDpsReportActions(
   // Weaponmaster Training makes the sword composite available to every Guardian specialization.
   const composites = reconstructGuardianCompositeActions(context);
   // EI emits a bundle swap 1 ms after tome entry/stow; neither transition swaps weapons or cancels an animation.
-  const tomeIds = new Set([44364, 41780, 42259, 42371, 41380]);
+  const tomeIds = new Set([44364, 41780, 42259, 41380]);
   const recordedActions =
     context.profile.specializationId === 'firebrand'
       ? composites.filter(

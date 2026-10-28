@@ -65,7 +65,7 @@ const generated: readonly GuardianSkill[] = allSkills.map((skill) => {
 
 const SPECIALIZATION_ONLY_SKILLS: Readonly<Record<string, readonly SkillId[]>> = Object.freeze({
   Dragonhunter: [ID.SPEAR_OF_JUSTICE, ID.HUNTERS_VERDICT],
-  Firebrand: [ID.STOW_TOME, ID.TOME_OF_RESOLVE, ID.TOME_OF_COURAGE, ID.TOME_OF_COURAGE_ID_42371, ID.TOME_OF_JUSTICE],
+  Firebrand: [ID.STOW_TOME, ID.TOME_OF_RESOLVE, ID.TOME_OF_COURAGE, ID.TOME_OF_JUSTICE],
   Willbender: [
     ID.WILLBENDER_FLAMES,
     ID.WILLBENDER_FLAMES_ID_62618,

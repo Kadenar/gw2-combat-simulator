@@ -1,5 +1,12 @@
 /** API records omit underwater flags on these skills; exclude them from land catalogs and log replay. */
 export const UNDERWATER_ONLY_SKILL_IDS: ReadonlySet<number> = new Set([
+  // Deploy Mine replaces Throw Mine underwater, including its Gadgeteer variant.
+  6163, // Deploy Mine
+  30893, // Deploy Mine (Gadgeteer)
+  // Conduit's water buttons omit the Underwater flag; land uses 77141/77159 and 76968.
+  76805, // Beguiling Haze
+  76917, // Beguiling Haze follow-up
+  77001, // Twin Moon Sweep
   // Amphibious Ranger pets use separate Beast commands underwater.
   12656, // Icy Bite — Snow Leopard
   12688, // Enfeebling Maul — Black Bear

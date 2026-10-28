@@ -5,6 +5,25 @@ import { decodeGw2BuildTemplate, resolveGw2BuildTemplate } from '#gw2/integratio
 import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/integrations/chat-code/palette-data.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
+
+test('Conduit build-template imports resolve the land Beguiling Haze button', () => {
+  // Removing the underwater catalog entry must not break the game's shared utility palette.
+  const resolved = resolveGw2BuildTemplate(
+    {
+      professionCode: 9,
+      specializations: [
+        { id: revenantCatalog.specializations.find((entry) => entry.name === 'Conduit').id, traits: '1-1-1' }
+      ],
+      skillPaletteIds: [0, 0, 4564],
+      weaponTypeIds: [],
+      skillOverrides: []
+    },
+    { catalog: revenantCatalog, expectedProfession: { code: 9, id: 'revenant', name: 'Revenant' } }
+  );
+  assert.equal(resolved.selectedSkillIds.Utility1, 77141);
+  assert.deepEqual(resolved.warnings, []);
+});
 
 const ELEMENTALIST_CODE = '[&DQYfHSkvMBfHEicPwxIAAL4BAADLAMsAJgCWAAAAAAAAAAAAAAAAAAAAAAADVgBnAC8AAA==]';
 const ENGINEER_CODE = '[&DQMGJyY5SzYqDwAAhgAAAAcBAACTAQAAex0AAAAAAAAAAAAAAAAAAAAAAAACCQE2AAA=]';

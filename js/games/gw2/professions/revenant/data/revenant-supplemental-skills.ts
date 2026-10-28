@@ -18,19 +18,6 @@ const records: readonly Skill[] = [
     weapon: ''
   },
   {
-    id: 26650,
-    name: 'Legendary Dwarf Stance',
-    description: 'Invoke the power of the legendary dwarf King Jalis Ironhammer.',
-    icon: 'https://render.guildwars2.com/file/03C66FA8A89697A0C4D309484172080E3A1141EF/961410.png',
-    type: 'Profession',
-    slot: 'Profession_1',
-    weapon: '',
-    specialization: '',
-    categories: ['Legend'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 27162,
     name: 'Elemental Blast',
     description: 'Consume Facet of Elements to cover the target area in magical dragon breath.',
@@ -40,72 +27,6 @@ const records: readonly Skill[] = [
     weapon: '',
     specialization: 'Herald',
     categories: ['Legendary Dragon', 'Consume'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 27659,
-    name: 'Legendary Assassin Stance',
-    description: 'Invoke the power of the legendary assassin Shiro Tagachi.',
-    icon: 'https://render.guildwars2.com/file/67CDD35F6BC3072E0837715A5E0A90646529BAA2/1030005.png',
-    type: 'Profession',
-    slot: 'Profession_1',
-    weapon: '',
-    specialization: '',
-    categories: ['Legend'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 28141,
-    name: 'Legendary Centaur Stance',
-    description: 'Invoke the power of the legendary centaur Ventari.',
-    icon: 'https://render.guildwars2.com/file/6CFF31B50AA00CAF3D35A02562964802B55AD292/1024105.png',
-    type: 'Profession',
-    slot: 'Profession_1',
-    weapon: '',
-    specialization: '',
-    categories: ['Legend'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 28376,
-    name: 'Legendary Demon Stance',
-    description: 'Invoke the power of the legendary demon Mallyx the Unyielding.',
-    icon: 'https://render.guildwars2.com/file/1A1407F7D34E5ED41B59A25F39EBF728CC926423/961413.png',
-    type: 'Profession',
-    slot: 'Profession_1',
-    weapon: '',
-    specialization: '',
-    categories: ['Legend'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 29310,
-    name: 'Protective Solace',
-    description:
-      'Summon a protective barrier around the tablet that blocks enemy projectiles.<br><br>If this skill is empowered, it also grants protection to allies around the tablet.',
-    icon: 'https://render.guildwars2.com/file/D5B16367CFE84826CCC80E92EE785F202AE9F200/1013017.png',
-    type: 'Utility',
-    slot: 'Utility',
-    weapon: '',
-    specialization: '',
-    categories: ['Legendary Centaur'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 31294,
-    name: 'Jade Winds',
-    description: 'Call upon the Jade Wind to turn nearby enemies into jade, stunning them for a short duration.',
-    icon: 'https://render.guildwars2.com/file/93F6019F04E9F802E658963C79772D979731CE9B/1012987.png',
-    type: 'Elite',
-    slot: 'Elite',
-    weapon: '',
-    specialization: '',
-    categories: ['Legendary Assassin'],
     nextChainId: null,
     flipSkillId: null
   },
@@ -188,74 +109,6 @@ const records: readonly Skill[] = [
     weapon: '',
     specialization: '',
     categories: [],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 56661,
-    name: 'Soothing Stone',
-    description: 'Remove conditions and heal yourself. Gain resolution.',
-    icon: 'https://render.guildwars2.com/file/6B0331B3BBEB4603BA7780911C950401E498B294/961448.png',
-    type: 'Heal',
-    slot: 'Heal',
-    weapon: '',
-    specialization: '',
-    categories: ['Legendary Dwarf'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 56662,
-    name: 'Forced Engagement',
-    description:
-      'Launch a chain at your target. When the chain connects with a foe, it slows and taunts them. You take less damage from taunted foes.',
-    icon: 'https://render.guildwars2.com/file/B244F19EA9F09D96D175BC0C2BC402A23D0EEFA5/961439.png',
-    type: 'Utility',
-    slot: 'Utility',
-    weapon: '',
-    specialization: '',
-    categories: ['Legendary Dwarf'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 56752,
-    name: 'Vengeful Hammers',
-    description: 'Invoke hammers to circle around you, damaging foes.',
-    icon: 'https://render.guildwars2.com/file/04E220E8A8B4BD682B6A7D780D98B80FEDF5B410/961436.png',
-    type: 'Utility',
-    slot: 'Utility',
-    weapon: '',
-    specialization: '',
-    categories: ['Legendary Dwarf'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 56773,
-    name: 'Rite of the Great Dwarf',
-    description:
-      'Channel the power of the Rite of the Great Dwarf to turn yourself and nearby allies to stone to reduce incoming damage.',
-    icon: 'https://render.guildwars2.com/file/D8AEB219F1A057F3F4E47E5E54A12BBABFC8474F/961437.png',
-    type: 'Elite',
-    slot: 'Elite',
-    weapon: '',
-    specialization: '',
-    categories: ['Legendary Dwarf'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 56841,
-    name: 'Inspiring Reinforcement',
-    description:
-      "Create a stone road that damages and weakens foes as it's created. Once it's created it will pulse, granting stability to allies.",
-    icon: 'https://render.guildwars2.com/file/6405B93907AE1B1EEBB752AE52BE4280246ED3C4/961457.png',
-    type: 'Utility',
-    slot: 'Utility',
-    weapon: '',
-    specialization: '',
-    categories: ['Legendary Dwarf'],
     nextChainId: null,
     flipSkillId: null
   },
@@ -377,20 +230,6 @@ const records: readonly Skill[] = [
     flipSkillId: null
   },
   {
-    id: 76805,
-    name: 'Beguiling Haze',
-    description:
-      'Send an unblockable fragment of Razah towards the targeted area. When the fragment reaches its target, shadowstep to its position, dealing damage to enemies in the area. If it hits, you can use this skill up to two more times with no energy cost or casting time. <br><br>Resonance. If Legendary Assassin Stance is equipped, this skill deals additional damage and removes boons if only one enemy was struck by this attack.',
-    icon: 'https://render.guildwars2.com/file/93F823A8E8CD7EA9E579D1A8E32505D5DEB9DD53/3680203.png',
-    type: 'Utility',
-    slot: 'Utility',
-    weapon: '',
-    specialization: 'Conduit',
-    categories: ['Legendary Entity'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 76818,
     name: 'Form of the Dervish (Attack)',
     description:
@@ -402,20 +241,6 @@ const records: readonly Skill[] = [
     weapon: '',
     specialization: 'Conduit',
     categories: ['Skill'],
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 77001,
-    name: 'Twin Moon Sweep',
-    description:
-      'Spawn a Fragment of Razah at your targeted location. Both you and the fragment attack with a scythe, damaging and inflicting conditions on foes at your location. Gain might for each enemy struck.<br>Resonance. This skill gains bonus effects depending on the legend equipped in the other slot.',
-    icon: 'https://render.guildwars2.com/file/7092333DE604FB98B3DEF024E01ABDCFFD967DDA/3680198.png',
-    type: 'Elite',
-    slot: 'Elite',
-    weapon: '',
-    specialization: 'Conduit',
-    categories: ['Legendary Entity'],
     nextChainId: null,
     flipSkillId: null
   },

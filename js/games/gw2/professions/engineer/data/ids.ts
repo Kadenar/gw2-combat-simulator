@@ -125,7 +125,6 @@ export const ENGINEER_SKILL_IDS = Object.freeze({
   SUPER_ELIXIR_CHAIN_SKILL: 6104, // Super Elixir (chain skill)
   STOW_FLAMETHROWER: 6114, // Stow Flamethrower
   SMOKE_VENT: 6159, // Smoke Vent
-  DEPLOY_MINE: 6163, // Deploy Mine
   MINE_FIELD: 6164, // Mine Field
   DETONATE_MINE_FIELD: 6166, // Detonate Mine Field
   REGENERATING_MIST: 6176, // Regenerating Mist
@@ -149,12 +148,10 @@ export const ENGINEER_SKILL_IDS = Object.freeze({
   BANDAGE_TRAIT_SKILL: 30142, // Bandage (trait skill)
   OVERCHARGE_SUPPLY_CRATE: 30264, // Overcharge Supply Crate
   ENDOTHERMIC_SHELL: 30307, // Endothermic Shell
-  THROW_MINE_ID_30337: 30337, // Throw Mine
   MORTAR_SHOT: 30371, // Mortar Shot
   MED_BLASTER: 30521, // Med Blaster
   ORBITAL_STRIKE: 30599, // Orbital Strike
   POISON_GAS_SHELL: 30885, // Poison Gas Shell
-  DEPLOY_MINE_ID_30893: 30893, // Deploy Mine
   SPARE_CAPACITOR: 31167, // Spare Capacitor
   ORBITAL_COMMAND_STRIKE: 41612, // Orbital Command Strike
   FLASH_CUTTER_STORM: 41684, // Flash Cutter—Storm

@@ -98,10 +98,6 @@ export const firebrandTooltips = {
         )
       ])
     ),
-    // This distinct recorded variant has no tome-opening action or simulated payload.
-    [ID.TOME_OF_COURAGE_ID_42371]: skillTooltip(
-      'This Tome of Courage variant has no simulated effects. It does not open a tome, start passive dormancy, or grant Swift Scholar quickness.'
-    ),
     ...Object.fromEntries(
       MANTRAS.flatMap((mantra) => [
         [

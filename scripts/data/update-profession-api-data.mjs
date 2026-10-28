@@ -4,26 +4,31 @@ import { fetchProfessionSnapshot, serializeProfessionSnapshot } from './lib/gw2-
 import { writeGeneratedFiles } from './lib/generator-utils.mjs';
 
 const STABLE_THIEF_ARTIFACT_SKILL_IDS = Object.freeze([76633, 76674, 76702]);
+// Exclude retired duplicates too: supported variants already belong to the canonical skill's mechanics.
 const SIMULATOR_OMITTED_SKILL_IDS = Object.freeze({
   Engineer: Object.freeze([
     5811, 5818, 5821, 5825, 5832, 5834, 5836, 5837, 5838, 5860, 5861, 5862, 5865, 5893, 5900, 5904, 5910, 5912, 5913,
-    5960, 5968, 6113, 29739, 30101, 41218, 44646, 63050, 63089, 63210, 63300, 77018
+    5960, 5968, 6113, 29739, 30101, 30337, 41218, 44646, 63050, 63089, 63210, 63300, 77018
   ]),
   Guardian: Object.freeze([
     // Supported party shouts remain available after regenerating the catalog.
     9085, 9150, 9153, 9163, 9175, 9182, 9245, 9246, 9248, 9251, 9253, 29786, 30461, 30871, 41571, 42864, 43565, 44248,
-    45460, 68676, 77321
+    45460, 68676, 77321, 15834, 42371
   ]),
   Mesmer: Object.freeze([10197, 10200, 10201, 10203, 10236, 62573]),
   Necromancer: Object.freeze([10583, 10609, 10612, 10685, 10687, 40274, 42917, 76752, 76941, 77022]),
   Ranger: Object.freeze([
     12494, 12500, 12502, 12542, 12550, 30238, 31322, 31582, 31746, 34309, 45142, 45789, 45970, 63195, 63256, 72920
   ]),
-  Revenant: Object.freeze([62680, 62687, 62702, 62729, 62738, 62796, 62941, 72931]),
+  Revenant: Object.freeze([
+    26650, 27659, 28141, 28376, 29310, 31294, 56661, 56662, 56752, 56773, 56841, 62680, 62687, 62702, 62729, 62738,
+    62796, 62941, 72931
+  ]),
   // Omit unsupported utilities, retired stolen skills, and unused artifact variants at generation time.
   Thief: Object.freeze([
     1110, 1115, 1118, 1123, 1125, 1129, 1131, 1139, 1141, 1148, 1162, 1167, 13002, 13020, 13035, 13038, 13056, 13060,
-    13065, 13096, 13099, 13117, 16435, 31438, 45094, 76550, 76601, 76784, 76800, 76808, 76879, 76900, 77288, 77361
+    13065, 13096, 13099, 13117, 16435, 31438, 45094, 76550, 76591, 76601, 76733, 76784, 76800, 76808, 76879, 76900,
+    77288, 77361, 78309
   ]),
   Warrior: Object.freeze([
     14368, 14372, 14392, 14403, 14406, 14408, 14409, 14412, 14413, 14528, 14575, 41919, 43745, 45380, 62804, 76769,

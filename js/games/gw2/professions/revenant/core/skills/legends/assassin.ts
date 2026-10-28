@@ -148,28 +148,6 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
         stacks: 1
       }
     ]
-  },
-  [ID.JADE_WINDS_ID_31294]: {
-    cooldown: 10,
-    energyCost: 35,
-    legendId: 'LegendaryAssassin',
-    castTimeMs: 680,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 3,
-        hits: 1,
-        name: 'Jade Winds',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        stacks: 6,
-        duration: 6,
-        actorType: ACTOR.PLAYER
-      }
-    ]
   }
 });
 

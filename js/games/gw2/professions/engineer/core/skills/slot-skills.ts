@@ -156,24 +156,6 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     // A committed follow-up consumes its window and restores the parent.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DETONATE } }]
   },
-  [ID.DEPLOY_MINE]: {
-    cooldown: 15,
-    castTimeMs: 360,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.65,
-        hits: 1,
-        name: 'Deploy Mine',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'control',
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.STUN
-      }
-    ]
-  },
   [ID.A_E_D]: {
     cooldown: 24,
     castTimeMs: 520,
@@ -196,41 +178,5 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     cooldown: 1,
     castTimeMs: 0,
     effects: []
-  },
-  [ID.THROW_MINE_ID_30337]: {
-    cooldown: 12,
-    castTimeMs: 360,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 3,
-        hits: 1,
-        name: 'Throw Mine',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'control',
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.STUN
-      }
-    ]
-  },
-  [ID.DEPLOY_MINE_ID_30893]: {
-    cooldown: 15,
-    castTimeMs: 360,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.65,
-        hits: 1,
-        name: 'Deploy Mine',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'control',
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.STUN
-      }
-    ]
   }
 });

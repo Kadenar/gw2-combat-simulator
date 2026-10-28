@@ -19,15 +19,13 @@ const swiftnessGrants = (result) =>
 const sharedWisdomGrants = (result) =>
   result.resolvedEvents.filter((event) => event.type === 'buff' && event.metadata?.trigger);
 
-// Every Entity button shares Swiftness and its own trait boon, including alternate catalog identities.
+// Every Entity button shares Swiftness and its own trait boon, using only terrestrial button identities.
 for (const [skillId, boon] of [
   [SKILL.SHIELDING_HANDS, 'protection'],
   [SKILL.BEGUILING_HAZE, 'fury'],
-  [SKILL.BEGUILING_HAZE_ID_76805, 'fury'],
   [SKILL.HEX_EATER_VORTEX, 'resolution'],
   [SKILL.GLADIATORS_DEFENSE, 'stability'],
-  [SKILL.TWIN_MOON_SWEEP, 'might'],
-  [SKILL.TWIN_MOON_SWEEP_ID_77001, 'might']
+  [SKILL.TWIN_MOON_SWEEP, 'might']
 ]) {
   test(`Shared Wisdom shares Swiftness and ${boon} from Entity skill ${skillId}`, () => {
     for (const count of [0, 4]) {

@@ -142,24 +142,13 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   RELEASE_POTENTIAL_ASSASSIN: 78845, // Release Potential: Assassin
   RELEASE_POTENTIAL_WARRIOR: 78895, // Release Potential: Warrior
   BEGUILING_HAZE_FOLLOW_UP: 77047, // Beguiling Haze (Follow-Up)
-  LEGENDARY_DWARF_STANCE_ID_26650: 26650, // Legendary Dwarf Stance
   ELEMENTAL_BLAST: 27162, // Elemental Blast
-  LEGENDARY_ASSASSIN_STANCE_ID_27659: 27659, // Legendary Assassin Stance
-  LEGENDARY_CENTAUR_STANCE_ID_28141: 28141, // Legendary Centaur Stance
-  LEGENDARY_DEMON_STANCE_ID_28376: 28376, // Legendary Demon Stance
-  PROTECTIVE_SOLACE_ID_29310: 29310, // Protective Solace
-  JADE_WINDS_ID_31294: 31294, // Jade Winds
   DISMISS_LIEUTENANT_SOULCLEAVE: 42752, // Dismiss Lieutenant Soulcleave
   CALL_OF_THE_DWARF: 46843, // Call of the Dwarf
   CALL_OF_THE_RENEGADE: 46849, // Call of the Renegade
   CALL_OF_THE_ASSASSIN: 46854, // Call of the Assassin
   CALL_OF_THE_DEMON: 46856, // Call of the Demon
   CALL_OF_THE_DRAGON: 46857, // Call of the Dragon
-  SOOTHING_STONE_ID_56661: 56661, // Soothing Stone
-  FORCED_ENGAGEMENT_ID_56662: 56662, // Forced Engagement
-  VENGEFUL_HAMMERS_ID_56752: 56752, // Vengeful Hammers
-  RITE_OF_THE_GREAT_DWARF_ID_56773: 56773, // Rite of the Great Dwarf
-  INSPIRING_REINFORCEMENT_ID_56841: 56841, // Inspiring Reinforcement
   INVOKE_TORMENT: 59591, // Invoke Torment
   SAINTS_SHIELD: 62689, // Saint's Shield
   DEATH_DROP: 62693, // Death Drop
@@ -169,9 +158,7 @@ export const REVENANT_SKILL_IDS = Object.freeze({
   IMPERIAL_IMPACT: 62859, // Imperial Impact
   OTHERWORLDLY_ATTRACTION_ENEMY: 71880, // Otherworldly Attraction (enemy)
   BLITZ_MINES: 73149, // Blitz Mines
-  BEGUILING_HAZE_ID_76805: 76805, // Beguiling Haze
   FORM_OF_THE_DERVISH_ATTACK: 76818, // Form of the Dervish (Attack)
-  TWIN_MOON_SWEEP_ID_77001: 77001, // Twin Moon Sweep
   FORM_OF_THE_DERVISH_ATTACK_ELITE: 77116, // Form of the Dervish (Attack - Elite)
   LESSER_ENCHANTED_DAGGERS: 78971 // Lesser Enchanted Daggers
 });

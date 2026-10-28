@@ -116,7 +116,7 @@ test('refresh imports are inert and each invocation completes the profession pip
         if (profession === 'Revenant') {
           assert.equal(generated.REVENANT_SKILL_IDS.TRUE_NATURE_ASSASSIN, 51667);
           assert.equal(generated.REVENANT_SKILL_IDS.SWAP_LEGENDS, -4);
-          assert.equal(generated.REVENANT_SKILL_IDS.LEGENDARY_DWARF_STANCE, 26650);
+          assert.equal(Object.values(generated.REVENANT_SKILL_IDS).includes(26650), false);
         }
       }
 

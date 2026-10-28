@@ -60,7 +60,6 @@ export const GW2_SKILL_ID_ALIASES: Readonly<Record<number, number>> = Object.fre
   29114: 27356, // Energy Expulsion
   29197: 27715, // Purifying Essence
   46409: 41858, // Legendary Renegade Stance
-  76917: 76805, // Beguiling Haze (underwater follow-up)
   77159: 77141 // Beguiling Haze (terrestrial follow-up)
 });
 

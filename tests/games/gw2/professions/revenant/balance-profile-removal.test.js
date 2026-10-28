@@ -257,63 +257,63 @@ test("Gladiator's Defense uses live Stability tuning only for successful casts",
 });
 
 test('Twin Moon Sweep selects patchable Shared Wisdom Might independently of target hits', () => {
-  // Both identities share the variant; removed base strikes must not remove the independently authored trait boon.
-  for (const skillId of [ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001]) {
-    for (const mode of ['selected', 'unselected', 'removed', 'cancelled']) {
-      const result = runRevenant(
-        [
-          { skillId, offTarget: true, ...(mode === 'cancelled' ? { interruptMs: 0 } : {}) },
-          { type: 'wait', durationMs: 1000 }
-        ],
-        {
-          specialization: 'Conduit',
-          selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
-          startingLegend: LEGEND.ENTITY,
-          selectedTraitIds: mode === 'unselected' ? [] : [TRAIT.SHARED_WISDOM],
-          initialEnergy: 100
-        },
-        {
-          catalog: (catalog) =>
-            withSkill(
-              patched({
-                [TRAIT.SHARED_WISDOM]:
-                  mode === 'removed'
-                    ? remove('boon', 'twin-moon-sweep')
-                    : {
-                        effects: [
-                          {
-                            type: 'boon',
-                            name: 'twin-moon-sweep',
-                            stacks: 7,
-                            applications: 3,
-                            intervalMs: 120
-                          }
-                        ]
-                      }
-              })(catalog),
-              skillId,
-              {
-                effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 1, atMs: 300, timingAnchor: 'castStart' }]
-              }
-            )
-        }
-      );
-      const might = result.events.filter(
-        (event) => event.type === 'buff' && event.metadata?.trigger === 'twin-moon-sweep'
-      );
-      assert.deepEqual(result.warnings, []);
-      assert.deepEqual(
-        might.map((event) => [event.at, event.stacks]),
-        mode === 'selected'
-          ? [
-              [0.3, 7],
-              [0.42, 7],
-              [0.54, 7]
-            ]
-          : []
-      );
-      assert.equal(observedRuntime(result).profession.specialization.state.affinity.value, 0);
-    }
+  // Removed base strikes must not remove the independently authored trait boon.
+  const skillId = ID.TWIN_MOON_SWEEP;
+
+  for (const mode of ['selected', 'unselected', 'removed', 'cancelled']) {
+    const result = runRevenant(
+      [
+        { skillId, offTarget: true, ...(mode === 'cancelled' ? { interruptMs: 0 } : {}) },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      {
+        specialization: 'Conduit',
+        selectedLegends: [LEGEND.ENTITY, LEGEND.DEMON],
+        startingLegend: LEGEND.ENTITY,
+        selectedTraitIds: mode === 'unselected' ? [] : [TRAIT.SHARED_WISDOM],
+        initialEnergy: 100
+      },
+      {
+        catalog: (catalog) =>
+          withSkill(
+            patched({
+              [TRAIT.SHARED_WISDOM]:
+                mode === 'removed'
+                  ? remove('boon', 'twin-moon-sweep')
+                  : {
+                      effects: [
+                        {
+                          type: 'boon',
+                          name: 'twin-moon-sweep',
+                          stacks: 7,
+                          applications: 3,
+                          intervalMs: 120
+                        }
+                      ]
+                    }
+            })(catalog),
+            skillId,
+            {
+              effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 1, atMs: 300, timingAnchor: 'castStart' }]
+            }
+          )
+      }
+    );
+    const might = result.events.filter(
+      (event) => event.type === 'buff' && event.metadata?.trigger === 'twin-moon-sweep'
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(
+      might.map((event) => [event.at, event.stacks]),
+      mode === 'selected'
+        ? [
+            [0.3, 7],
+            [0.42, 7],
+            [0.54, 7]
+          ]
+        : []
+    );
+    assert.equal(observedRuntime(result).profession.specialization.state.affinity.value, 0);
   }
 });
 

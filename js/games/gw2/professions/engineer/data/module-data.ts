@@ -13,14 +13,12 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.CLEANSING_BURST,
-  ID.DEPLOY_MINE,
   ID.MAGNETIC_AURA_TRAIT_SKILL,
   ID.BUNKER_DOWN_TRAIT_SKILL,
   ID.DETONATE_SUPPLY_CRATE_TURRETS,
   ID.CLEANSING_PULSE,
   ID.BANDAGE_TRAIT_SKILL,
-  ID.OVERCHARGE_SUPPLY_CRATE,
-  ID.DEPLOY_MINE_ID_30893
+  ID.OVERCHARGE_SUPPLY_CRATE
 ]);
 
 /** Catalog, equipment matching, and cast availability share the non-Holosmith sword identities. */

@@ -233,7 +233,7 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
     necromancer: { 62655: 3 },
     ranger: { 12597: 3 },
     revenant: { 62962: 2, 27162: 2, 46857: 2 },
-    thief: { 76895: 2, 76733: 2 },
+    thief: { 76895: 2 },
     warrior: { 14519: 3, 42803: 2, 80226: 2 }
   };
   for (const [profession, skills] of Object.entries(skillsByProfession)) {

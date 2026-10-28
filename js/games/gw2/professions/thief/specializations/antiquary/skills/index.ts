@@ -14,72 +14,67 @@ const ARTIFACT_END: NonNullable<Skill['sideEffects']> = [
   { on: 'castCommit', do: { type: 'thief.artifact-completed' as const } }
 ];
 
-// Both API IDs share the primary definition so future timing fixes cannot leave the alias behind.
-const METAL_LEGION_GUITAR_SKILL: Partial<Skill> = {
-  // The artifact owns the number of stealth attacks granted by its identity window.
-  maximumStacks: 3,
-  // Both guitar identities retain the skill-owned lifetime of their stealth attack grant.
-  duration: 10,
-  cooldown: 0,
-  initiativeCost: 0,
-  artifactKind: 'offensive',
-
-  castTimeMs: 1920,
-  effects: [
-    {
-      type: 'strike' as const,
-      coefficient: 3.2,
-      hits: 4,
-      atMs: 0,
-      name: 'Metal Legion Guitar — Packet 1',
-      actorType: ACTOR.PLAYER,
-      timingAnchor: 'castEnd' as const,
-      timingScale: 'fixed' as const
-    },
-    {
-      type: 'strike' as const,
-      ticks: [{ atMs: 0, coefficient: 2.5 }],
-      name: 'Final Smash',
-      // Meticulous Custodian keys its separate final-hit factor on this packet identity, not the display label.
-      metadata: { packetKind: 'thief.metal-legion-guitar-final-smash' },
-      actorType: ACTOR.PLAYER,
-      timingAnchor: 'castEnd' as const,
-      timingScale: 'fixed' as const
-    },
-    {
-      type: 'condition' as const,
-      ticks: [400, 920, 1400, 1920].map((atMs) => ({
-        atMs,
-        condition: CONDITION.CONFUSION,
-        stacks: 1,
-        duration: 8
-      })),
-      actorType: ACTOR.PLAYER,
-      timingAnchor: 'castStart' as const,
-      timingScale: 'fixed' as const
-    },
-    {
-      type: 'control' as const,
-      actorType: ACTOR.PLAYER,
-      controlKind: CONTROL.STUN
-    }
-  ],
-  sideEffects: [
-    ...ARTIFACT_START,
-    {
-      on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.id === ID.METAL_LEGION_GUITAR,
-      do: { type: 'thief.guitar' as const }
-    },
-    ...ARTIFACT_END
-  ]
-};
-
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
 export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.METAL_LEGION_GUITAR]: METAL_LEGION_GUITAR_SKILL,
-  [ID.METAL_LEGION_GUITAR_ID_76591]: METAL_LEGION_GUITAR_SKILL,
+  [ID.METAL_LEGION_GUITAR]: {
+    // The artifact owns the number of stealth attacks granted by its identity window.
+    maximumStacks: 3,
+    // The artifact owns the lifetime of its stealth attack grant.
+    duration: 10,
+    cooldown: 0,
+    initiativeCost: 0,
+    artifactKind: 'offensive',
+
+    castTimeMs: 1920,
+    effects: [
+      {
+        type: 'strike' as const,
+        coefficient: 3.2,
+        hits: 4,
+        atMs: 0,
+        name: 'Metal Legion Guitar — Packet 1',
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castEnd' as const,
+        timingScale: 'fixed' as const
+      },
+      {
+        type: 'strike' as const,
+        ticks: [{ atMs: 0, coefficient: 2.5 }],
+        name: 'Final Smash',
+        // Meticulous Custodian keys its separate final-hit factor on this packet identity, not the display label.
+        metadata: { packetKind: 'thief.metal-legion-guitar-final-smash' },
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castEnd' as const,
+        timingScale: 'fixed' as const
+      },
+      {
+        type: 'condition' as const,
+        ticks: [400, 920, 1400, 1920].map((atMs) => ({
+          atMs,
+          condition: CONDITION.CONFUSION,
+          stacks: 1,
+          duration: 8
+        })),
+        actorType: ACTOR.PLAYER,
+        timingAnchor: 'castStart' as const,
+        timingScale: 'fixed' as const
+      },
+      {
+        type: 'control' as const,
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.STUN
+      }
+    ],
+    sideEffects: [
+      ...ARTIFACT_START,
+      {
+        on: 'castCommit',
+        do: { type: 'thief.guitar' as const }
+      },
+      ...ARTIFACT_END
+    ]
+  },
   [ID.FORGED_SURFER_DASH]: {
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     initialDelay: 1,
@@ -276,31 +271,6 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
     // Fix the outcome at acceptance; cancellation never rerolls or pays coins.
     sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' as const } }]
   },
-  [ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733]: {
-    movementSkill: true,
-    cooldown: 1,
-    initiativeCost: 0,
-    artifactKind: 'defensive',
-
-    castTimeMs: 680,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd' as const, timingScale: 'fixed' as const }, [
-      {
-        type: 'strike' as const,
-        coefficient: 1.2,
-        hits: 1,
-        name: 'Zephyrite Sun Crystal',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition' as const,
-        condition: CONDITION.BURNING,
-        stacks: 2,
-        duration: 4,
-        actorType: ACTOR.PLAYER
-      }
-    ]),
-    sideEffects: [...ARTIFACT_START, ...ARTIFACT_END]
-  },
   [ID.CHAK_SHIELD]: {
     // The artifact owns its identity window; Meticulous Custodian replaces the duration when selected.
     duration: 10,
@@ -472,13 +442,6 @@ export const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>>
       }
     ]),
     sideEffects: [...ARTIFACT_START, { on: 'castCommit', do: { type: 'thief.kryptis' as const } }, ...ARTIFACT_END]
-  },
-  [ID.ZEPHYRITE_SUN_CRYSTAL_ID_78309]: {
-    movementSkill: true,
-    cooldown: 1,
-    initiativeCost: 0,
-    castTimeMs: 0,
-    effects: []
   },
   [ID.CANACH_COIN_TOSS]: {
     usableWhileRecharging: true,

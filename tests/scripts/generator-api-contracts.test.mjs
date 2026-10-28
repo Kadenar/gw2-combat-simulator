@@ -4,6 +4,49 @@ import test from 'node:test';
 import { updateRangerData } from '../../scripts/data/update-ranger-data.mjs';
 import { generateWarriorData } from '../../scripts/data/generate-warrior-data.mjs';
 import { fetchManyGw2 } from '../../scripts/data/lib/gw2-profession-snapshot.mjs';
+import { terrestrialPaletteEntries } from '../../scripts/data/update-build-template-data.mjs';
+import { UNDERWATER_ONLY_SKILL_IDS } from '../../js/games/gw2/platform/skills/underwater-skill-ids.ts';
+import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/integrations/chat-code/palette-data.js';
+
+test('every profession filters underwater palettes while retaining land entries', () => {
+  // Apply the same boundary to generated output and checked-in data, including skills with missing API flags.
+  for (let code = 1; code <= 9; code++) {
+    assert.deepEqual(
+      terrestrialPaletteEntries({
+        code,
+        skills_by_palette: [
+          [2, 90002],
+          ...[...UNDERWATER_ONLY_SKILL_IDS].map((id, index) => [100 + index, id]),
+          [1, 90001]
+        ]
+      }),
+      [
+        [1, 90001],
+        [2, 90002]
+      ]
+    );
+    for (const [, id] of GW2_BUILD_TEMPLATE_PROFESSIONS[code].paletteEntries)
+      assert.equal(UNDERWATER_ONLY_SKILL_IDS.has(id), false, `${code}: ${id}`);
+  }
+});
+
+test('build-template generation selects land Beguiling Haze from its shared palette', () => {
+  // The external palette ID is shared across environments; generated land imports must resolve an executable skill.
+  assert.deepEqual(
+    terrestrialPaletteEntries({
+      code: 9,
+      skills_by_palette: [
+        [4564, 76805],
+        [4554, 76968]
+      ]
+    }),
+    [
+      [4554, 76968],
+      [4564, 77141]
+    ]
+  );
+  assert.deepEqual(terrestrialPaletteEntries({ code: 1, skills_by_palette: [[4564, 123]] }), [[4564, 123]]);
+});
 
 test('API batches normalize IDs, preserve requested ordering, and reject failed requests', async () => {
   // Exercise the batch boundary in both ordering modes with duplicate and invalid inputs.

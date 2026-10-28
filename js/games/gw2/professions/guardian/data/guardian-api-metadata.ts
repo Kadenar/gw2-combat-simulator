@@ -2114,23 +2114,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     flipSkillId: null
   },
   {
-    id: 15834,
-    name: 'Shield of Judgment',
-    description:
-      'Create a shielding wave in front of you that damages foes while giving protection and aegis to you and up to five allies.',
-    icon: 'https://render.guildwars2.com/file/5B2FE8C77DC2B00E75415AF578E5C550DE9B0CB5/103232.png',
-    type: 'Weapon',
-    weapon: 'Shield',
-    slot: 'Weapon_4',
-    specialization: '',
-    categories: [],
-    cooldown: 20,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 21664,
     name: 'Litany of Wrath',
     description:
@@ -2508,23 +2491,6 @@ export const SKILLS: readonly GuardianSkill[] = [
     specialization: 'Firebrand',
     categories: [],
     cooldown: 1,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
-    id: 42371,
-    name: 'Tome of Courage',
-    description:
-      'Virtue: Gain aegis periodically. \nActivate: Conjure a mystic tome containing stories about the heroes of Istan.',
-    icon: 'https://render.guildwars2.com/file/49B3D2E829962602205B09619770E1650BF07108/1770466.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_3',
-    specialization: '',
-    categories: ['Virtue'],
-    cooldown: 0,
     ammo: 0,
     ammoRecharge: 0,
     nextChainId: null,

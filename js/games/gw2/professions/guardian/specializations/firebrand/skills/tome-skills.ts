@@ -267,12 +267,6 @@ export const FIREBRAND_TOME_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     // Reopening preserves the shared dormancy and session controller.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.open-courage' } }]
   },
-  [ID.TOME_OF_COURAGE_ID_42371]: {
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
-    castTimeMs: 0,
-    canCastConcurrently: true,
-    effects: []
-  },
   [ID.SHINING_RIVER]: {
     // Debit on commitment before the earned Swift Scholar refund.
     resourceCost: 1,

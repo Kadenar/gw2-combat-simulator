@@ -77,20 +77,5 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     legendId: 'LegendaryCentaur',
     castTimeMs: 0,
     effects: []
-  },
-  [ID.PROTECTIVE_SOLACE_ID_29310]: {
-    cooldown: 5,
-    energyCost: 5,
-    upkeepCost: 8,
-    pulseInterval: 1,
-    legendId: 'LegendaryCentaur',
-    // Custom: Starts/stops upkeep drain and schedules upkeep pulses; see `core/mechanics/upkeep.ts`.
-    castTimeMs: 0,
-    effects: [],
-    // The declaration owns this activation; shared mechanics retain its live state.
-    sideEffects: [
-      { on: 'castStart', do: { type: 'revenant.reserve-upkeep' } },
-      { on: 'castCommit', do: { type: 'revenant.activate-upkeep' } }
-    ]
   }
 });

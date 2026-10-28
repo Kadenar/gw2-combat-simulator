@@ -1,12 +1,21 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { UNDERWATER_ONLY_SKILL_IDS } from '../../js/games/gw2/platform/skills/underwater-skill-ids.ts';
 
 const API_URL = 'https://api.guildwars2.com/v2/professions?ids=all&v=latest&lang=en';
 const OUTPUT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../../js/games/gw2/integrations/chat-code/palette-data.ts'
 );
+
+/** Select shared land buttons before excluding underwater-only palettes for every profession. */
+export function terrestrialPaletteEntries(profession) {
+  return profession.skills_by_palette
+    .map(([paletteId, skillId]) => [paletteId, profession.code === 9 && paletteId === 4564 ? 77141 : skillId])
+    .filter(([, skillId]) => !UNDERWATER_ONLY_SKILL_IDS.has(skillId))
+    .sort((left, right) => left[0] - right[0]);
+}
 
 /** Refreshes the checked-in palette map so imports never require live API access. */
 async function main() {
@@ -42,7 +51,7 @@ async function main() {
       `  ${profession.code}: {`,
       '    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>(['
     );
-    for (const [paletteId, skillId] of profession.skills_by_palette.sort((left, right) => left[0] - right[0])) {
+    for (const [paletteId, skillId] of terrestrialPaletteEntries(profession)) {
       lines.push(`      [${paletteId}, ${skillId}],`);
     }
 
@@ -54,4 +63,4 @@ async function main() {
   console.log(`Wrote ${OUTPUT}.`);
 }
 
-await main();
+if (import.meta.main) await main();

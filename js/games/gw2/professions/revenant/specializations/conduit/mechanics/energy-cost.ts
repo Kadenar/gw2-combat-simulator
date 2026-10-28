@@ -4,7 +4,6 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import type { RevenantEnergyCostInput, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { BEGUILING_HAZE_SKILL_IDS } from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
 
 /** Only these canonical Demon skills use Mesmer form costs; other skills retain their native costs. */
 const MESMER_FORM_COSTS: ReadonlySet<SkillId> = new Set([
@@ -25,7 +24,7 @@ export function validateConduitMesmerEnergyCosts(catalog: CanonicalCatalog): voi
 
 /** Identifies Beguiling Haze follow-ups so only their temporary charges waive the skill's Energy cost. */
 function isBeguilingHazeFollowUp(state: Partial<ConduitState>, skill: RevenantSkill): boolean {
-  return BEGUILING_HAZE_SKILL_IDS.has(skill.id) && (state.beguilingHazeCharges || 0) > 0;
+  return skill.id === ID.BEGUILING_HAZE && (state.beguilingHazeCharges || 0) > 0;
 }
 
 /** Resolve active form costs from the selected catalog, after free upkeep and follow-up rules. */

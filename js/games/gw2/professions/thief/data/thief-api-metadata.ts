@@ -3378,23 +3378,6 @@ export const SKILLS: readonly ThiefSkill[] = [
     flipSkillId: 43390
   },
   {
-    id: 78309,
-    name: 'Zephyrite Sun Crystal',
-    description:
-      'Break stuns and dash toward your target, damaging and burning enemies around you when you reach your destination. You evade attacks as long as you are still traveling.',
-    icon: 'https://render.guildwars2.com/file/3C1B2075B7B164EB2ABE4F6650F553D40F689E53/3680218.png',
-    type: 'Profession',
-    weapon: '',
-    slot: 'Profession_3',
-    specialization: '',
-    categories: [],
-    cooldown: 1,
-    ammo: 0,
-    ammoRecharge: 0,
-    nextChainId: null,
-    flipSkillId: null
-  },
-  {
     id: 80244,
     name: 'Flawless Execution',
     description: 'Shoot nearby enemies as you spin, slashing with your sword.',

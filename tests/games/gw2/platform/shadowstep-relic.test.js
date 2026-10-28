@@ -61,8 +61,7 @@ const groups = [
       [R.UNRELENTING_ASSAULT],
       [R.DEATHSTRIKE],
       [R.PHASE_SMASH, { primaryWeapon: 'Hammer', secondaryWeapon: '' }],
-      [R.BEGUILING_HAZE],
-      [R.BEGUILING_HAZE_ID_76805]
+      [R.BEGUILING_HAZE]
     ]
   },
   {

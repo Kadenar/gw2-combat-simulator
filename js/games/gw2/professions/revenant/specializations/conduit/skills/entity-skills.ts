@@ -16,10 +16,6 @@ import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import {
-  BEGUILING_HAZE_SKILL_IDS,
-  TWIN_MOON_SKILL_IDS
-} from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
@@ -166,134 +162,6 @@ export function cleanseHexEater(runtime: RevenantRuntime, cast: RuntimeCast<Reve
   hexEaterCleanses.delete(cast);
 }
 
-// Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
-const BEGUILING_HAZE_SKILL: Partial<Skill> = {
-  // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
-  shadowstepSkill: true,
-  peithaImpactAnchor: 'castEnd',
-  peithaImpactDelayMs: 280,
-  cooldown: 10,
-  ammoCastLockout: 0,
-  ammo: 1,
-  ammoRecharge: 10,
-  energyCost: 20,
-  legendId: 'LegendaryEntity',
-  // The 280 ms launch and 240 ms teleport form one main cast; impact precedes completion by one action tick.
-  castTimeMs: 520,
-  effects: [
-    {
-      type: 'strike',
-      name: 'Beguiling Haze',
-      actorType: ACTOR.PLAYER,
-      ticks: [{ atMs: 480, coefficient: 2.2 }],
-      timingAnchor: 'castStart',
-      timingScale: 'fixed'
-    }
-  ],
-  // Select the follow-up skill before its transform spends the final charge.
-  effectVariants: [
-    {
-      when: (runtime: MechanicQueriesOf<RevenantRuntime>) => conduitState.from(runtime).beguilingHazeCharges > 0,
-      transform: (runtime, cast) =>
-        selectBeguilingHaze(runtime, cast, requireSkillFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP).effects ?? [])
-    },
-    { when: () => true, transform: selectBeguilingHaze }
-  ],
-  sideEffects: [
-    { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } },
-    { on: 'castCommit', do: { type: 'revenant.complete-haze' } }
-  ]
-};
-
-// Both API identities represent the same skill, so one fragment keeps their simulation behavior synchronized.
-const TWIN_MOON_SWEEP_SKILL: Partial<Skill> = {
-  cooldown: 3,
-  energyCost: 25,
-  affinityOnHit: true,
-  legendId: 'LegendaryEntity',
-  castTimeMs: 920,
-  comboFinishers: [
-    {
-      ownerId: 'revenant',
-      finisherType: COMBO_FINISHER.WHIRL,
-      applications: 2,
-      effectDelay: 0.04
-    }
-  ],
-  // Share timing defaults while preserving each packet, effect order, and local schedule.
-  effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
-    {
-      type: 'strike',
-      ticks: [{ atMs: 880, coefficient: 2.5 }],
-      name: 'Twin Moon Sweep — Player',
-      actorType: ACTOR.PLAYER,
-      // Every resolved player packet earns affinity; fragments carry no such reaction.
-      reactions: [
-        { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'each', do: { type: 'revenant.entity-hit-affinity' } }
-      ]
-    },
-    {
-      type: 'strike',
-      ticks: [{ atMs: 880, coefficient: 2.5 }],
-      name: 'Twin Moon Sweep — Fragment',
-      actorType: ACTOR.PLAYER
-    },
-    {
-      type: 'condition',
-      ticks: Array.from({ length: 2 }, (_, index) => ({
-        atMs: 880 + index * 0,
-        condition: CONDITION.BLEEDING,
-        stacks: 2,
-        duration: 3
-      })),
-      actorType: ACTOR.PLAYER
-    },
-    {
-      type: 'boon',
-      boon: BOON.MIGHT,
-      stacks: 2,
-      duration: 8,
-      applications: 2,
-      intervalMs: 0,
-      atMs: 880
-    },
-    {
-      type: 'condition',
-      ticks: [{ atMs: 880, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }],
-      actorType: ACTOR.PLAYER,
-      metadata: { legendId: LEGEND.ASSASSIN },
-      when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
-        runtime.profession.core.selectedLegendIds.includes(LEGEND.ASSASSIN)
-    },
-    {
-      type: 'strike',
-      coefficient: 0.4,
-      hits: 2,
-      atMs: 1400,
-      name: 'Twin Moon Sweep — Shatter',
-      actorType: ACTOR.PLAYER,
-      metadata: { legendId: LEGEND.DEMON },
-      when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
-        runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
-    },
-    {
-      type: 'condition',
-      ticks: Array.from({ length: 2 }, (_, index) => ({
-        atMs: 1400 + index * 0,
-        condition: CONDITION.CONFUSION,
-        stacks: 3,
-        duration: 3
-      })),
-      actorType: ACTOR.PLAYER,
-      metadata: { legendId: LEGEND.DEMON },
-      when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
-        runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
-    }
-  ]),
-  // Shared Wisdom adds its live profile's Might at the first surviving base impact, independently of hitting a target.
-  effectVariants: [twinMoonSharedWisdom]
-};
-
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // The selected follow-up owns its payload and charge budget; the main button retains the activation identity.
@@ -317,10 +185,136 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       }
     ]
   },
-  [ID.BEGUILING_HAZE_ID_76805]: BEGUILING_HAZE_SKILL,
-  [ID.TWIN_MOON_SWEEP]: TWIN_MOON_SWEEP_SKILL,
-  [ID.TWIN_MOON_SWEEP_ID_77001]: TWIN_MOON_SWEEP_SKILL,
-  [ID.BEGUILING_HAZE]: BEGUILING_HAZE_SKILL,
+  // The land button composes its shared strike with the equipped legend's resonance effects.
+  [ID.TWIN_MOON_SWEEP]: {
+    cooldown: 3,
+    energyCost: 25,
+    affinityOnHit: true,
+    legendId: 'LegendaryEntity',
+    castTimeMs: 920,
+    comboFinishers: [
+      {
+        ownerId: 'revenant',
+        finisherType: COMBO_FINISHER.WHIRL,
+        applications: 2,
+        effectDelay: 0.04
+      }
+    ],
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+      {
+        type: 'strike',
+        ticks: [{ atMs: 880, coefficient: 2.5 }],
+        name: 'Twin Moon Sweep — Player',
+        actorType: ACTOR.PLAYER,
+        // Every resolved player packet earns affinity; fragments carry no such reaction.
+        reactions: [
+          { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'each', do: { type: 'revenant.entity-hit-affinity' } }
+        ]
+      },
+      {
+        type: 'strike',
+        ticks: [{ atMs: 880, coefficient: 2.5 }],
+        name: 'Twin Moon Sweep — Fragment',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: 880 + index * 0,
+          condition: CONDITION.BLEEDING,
+          stacks: 2,
+          duration: 3
+        })),
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks: 2,
+        duration: 8,
+        applications: 2,
+        intervalMs: 0,
+        atMs: 880
+      },
+      {
+        type: 'condition',
+        ticks: [{ atMs: 880, condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }],
+        actorType: ACTOR.PLAYER,
+        metadata: { legendId: LEGEND.ASSASSIN },
+        when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
+          runtime.profession.core.selectedLegendIds.includes(LEGEND.ASSASSIN)
+      },
+      {
+        type: 'strike',
+        coefficient: 0.4,
+        hits: 2,
+        atMs: 1400,
+        name: 'Twin Moon Sweep — Shatter',
+        actorType: ACTOR.PLAYER,
+        metadata: { legendId: LEGEND.DEMON },
+        when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
+          runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
+      },
+      {
+        type: 'condition',
+        ticks: Array.from({ length: 2 }, (_, index) => ({
+          atMs: 1400 + index * 0,
+          condition: CONDITION.CONFUSION,
+          stacks: 3,
+          duration: 3
+        })),
+        actorType: ACTOR.PLAYER,
+        metadata: { legendId: LEGEND.DEMON },
+        when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
+          runtime.profession.core.selectedLegendIds.includes(LEGEND.DEMON)
+      }
+    ]),
+    // Shared Wisdom adds its live profile's Might at the first surviving base impact, independently of hitting a target.
+    effectVariants: [twinMoonSharedWisdom]
+  },
+  // The land button selects its opening or follow-up payload from the current charge state.
+  [ID.BEGUILING_HAZE]: {
+    // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
+    shadowstepSkill: true,
+    peithaImpactAnchor: 'castEnd',
+    peithaImpactDelayMs: 280,
+    cooldown: 10,
+    ammoCastLockout: 0,
+    ammo: 1,
+    ammoRecharge: 10,
+    energyCost: 20,
+    legendId: 'LegendaryEntity',
+    // The 280 ms launch and 240 ms teleport form one main cast; impact precedes completion by one action tick.
+    castTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        name: 'Beguiling Haze',
+        actorType: ACTOR.PLAYER,
+        ticks: [{ atMs: 480, coefficient: 2.2 }],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      }
+    ],
+    // Select the follow-up skill before its transform spends the final charge.
+    effectVariants: [
+      {
+        when: (runtime: MechanicQueriesOf<RevenantRuntime>) => conduitState.from(runtime).beguilingHazeCharges > 0,
+        transform: (runtime, cast) =>
+          selectBeguilingHaze(
+            runtime,
+            cast,
+            requireSkillFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP).effects ?? []
+          )
+      },
+      { when: () => true, transform: selectBeguilingHaze }
+    ],
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } },
+      { on: 'castCommit', do: { type: 'revenant.complete-haze' } }
+    ]
+  },
   [ID.HEX_EATER_VORTEX]: {
     cooldown: 5,
     energyCost: 15,
@@ -425,13 +419,13 @@ export const conduitEntityModifierRules: readonly Gw2ModifierRule[] = [
     operation: 'multiply',
     // Assassin resonance doubles Beguiling Haze damage when Assassin is equipped (not necessarily active).
     factor: 2,
-    when: (context) => BEGUILING_HAZE_SKILL_IDS.has(Number(context.event?.skillId)) && assassinLegendEquipped(context)
+    when: (context) => Number(context.event?.skillId) === ID.BEGUILING_HAZE && assassinLegendEquipped(context)
   },
   {
     id: 'revenant.twin-moon-assassin-resonance',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.5,
-    when: (context) => TWIN_MOON_SKILL_IDS.has(Number(context.event?.skillId)) && assassinLegendEquipped(context)
+    when: (context) => Number(context.event?.skillId) === ID.TWIN_MOON_SWEEP && assassinLegendEquipped(context)
   }
 ];

@@ -10,8 +10,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 export const REVENANT_UPKEEP_PULSE = 'revenant.upkeep-pulse';
 
-const VENGEFUL_HAMMERS_IDS = new Set<SkillId>([ID.VENGEFUL_HAMMERS, ID.VENGEFUL_HAMMERS_ID_56752]);
-
 interface UpkeepPulse {
   readonly skillId: SkillId;
   readonly startsAt: number;
@@ -24,7 +22,7 @@ export function scheduleRevenantUpkeepPulses(runtime: RevenantRuntime, cast: Run
   const first =
     skill.id === ID.EMBRACE_THE_DARKNESS
       ? Math.floor(canonicalTime(runtime.time)) + 1
-      : VENGEFUL_HAMMERS_IDS.has(skill.id)
+      : skill.id === ID.VENGEFUL_HAMMERS
         ? runtime.time + Math.max(0, skill.pulseInterval ?? 1)
         : null;
 
@@ -48,7 +46,7 @@ export function revenantUpkeepPulse(runtime: RevenantRuntime, data: unknown): vo
   if (skill.id === ID.EMBRACE_THE_DARKNESS) {
     embracePulse(runtime, skill, runtime.time, active.empoweredNextPulse);
     active.empoweredNextPulse = false;
-  } else if (VENGEFUL_HAMMERS_IDS.has(skill.id)) hammerPulse(runtime, skill, runtime.time);
+  } else if (skill.id === ID.VENGEFUL_HAMMERS) hammerPulse(runtime, skill, runtime.time);
   else return;
 
   runtime.schedule(

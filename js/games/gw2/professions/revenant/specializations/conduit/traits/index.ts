@@ -39,10 +39,6 @@ import {
   cosmicWisdomEntered,
   cosmicWisdomEntering
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
-import {
-  BEGUILING_HAZE_SKILL_IDS,
-  TWIN_MOON_SKILL_IDS
-} from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -213,7 +209,7 @@ const mistfire = defineTrait({
       on: 'control.resolved',
       cooldown: 'profile',
       when: (runtime, event) =>
-        !(event.skillId != null && TWIN_MOON_SKILL_IDS.has(event.skillId)) &&
+        event.skillId !== ID.TWIN_MOON_SWEEP &&
         Boolean(
           requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.MISTFIRE), 'condition', CONDITION.BURNING)
         ),
@@ -527,7 +523,7 @@ function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<Reve
 
 /** Retain each accepted Entity action's source identity while the trait owns its boon selection. */
 function grantEntitySkillBoon(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const haze = BEGUILING_HAZE_SKILL_IDS.has(cast.skill.id);
+  const haze = cast.skill.id === ID.BEGUILING_HAZE;
   const hex = cast.skill.id === ID.HEX_EATER_VORTEX;
   const trigger =
     cast.skill.id === ID.SHIELDING_HANDS

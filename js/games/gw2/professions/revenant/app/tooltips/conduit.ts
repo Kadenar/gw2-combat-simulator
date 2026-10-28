@@ -116,10 +116,10 @@ const releasePotentialTooltip: DescribeSimulationTooltip = (balanceContext, enti
 /** Describe conduit tooltips from the selected balance data. */
 export const conduitTooltips = {
   skills: {
-    ...Object.fromEntries([ID.BEGUILING_HAZE, ID.BEGUILING_HAZE_ID_76805].map((id) => [id, beguilingHazeTooltip])),
+    [ID.BEGUILING_HAZE]: beguilingHazeTooltip,
     [ID.HEX_EATER_VORTEX]: hexEaterVortexTooltip,
     [ID.GLADIATORS_DEFENSE]: gladiatorsDefenseTooltip,
-    ...Object.fromEntries([ID.TWIN_MOON_SWEEP, ID.TWIN_MOON_SWEEP_ID_77001].map((id) => [id, twinMoonSweepTooltip])),
+    [ID.TWIN_MOON_SWEEP]: twinMoonSweepTooltip,
     [ID.COSMIC_WISDOM]: cosmicWisdomTooltip,
     ...Object.fromEntries(
       [

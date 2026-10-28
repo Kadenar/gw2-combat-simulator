@@ -189,9 +189,7 @@ export const antiquaryTooltips = {
         ID.ZEPHYRITE_SUN_CRYSTAL,
         ID.SUMMON_KRYPTIS_TURRET,
         ID.MISTBURN_MORTAR,
-        ID.METAL_LEGION_GUITAR,
-        ID.METAL_LEGION_GUITAR_ID_76591,
-        ID.ZEPHYRITE_SUN_CRYSTAL_ID_76733
+        ID.METAL_LEGION_GUITAR
       ].map((id) => [id, artifactTooltip])
     ),
     [ID.RESHUFFLE]: reshuffleTooltip,

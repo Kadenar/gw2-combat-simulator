@@ -6,37 +6,13 @@ import type { RevenantRuntimeState } from '#gw2/professions/revenant/types.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 
 export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.LEGENDARY_DWARF_STANCE_ID_26650]: {
-    cooldown: 0,
-    energyCost: 0,
-    castTimeMs: 0,
-    effects: []
-  },
-  [ID.LEGENDARY_ASSASSIN_STANCE_ID_27659]: {
-    cooldown: 0,
-    energyCost: 0,
-    castTimeMs: 0,
-    effects: []
-  },
   [ID.LEGENDARY_ASSASSIN_STANCE]: {
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 0,
     effects: []
   },
-  [ID.LEGENDARY_CENTAUR_STANCE_ID_28141]: {
-    cooldown: 0,
-    energyCost: 0,
-    castTimeMs: 0,
-    effects: []
-  },
   [ID.LEGENDARY_CENTAUR_STANCE]: {
-    cooldown: 0,
-    energyCost: 0,
-    castTimeMs: 0,
-    effects: []
-  },
-  [ID.LEGENDARY_DEMON_STANCE_ID_28376]: {
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 0,

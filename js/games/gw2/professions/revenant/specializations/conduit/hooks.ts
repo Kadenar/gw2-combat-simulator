@@ -31,10 +31,6 @@ import {
   swapLegend
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import {
-  BEGUILING_HAZE_SKILL_IDS,
-  TWIN_MOON_SKILL_IDS
-} from '#gw2/professions/revenant/specializations/conduit/skill-groups.js';
-import {
   cleanseHexEater,
   completeBeguilingHaze
 } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
@@ -78,7 +74,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   availability(runtime, skill) {
     const state = conduitState.from(runtime);
 
-    if (BEGUILING_HAZE_SKILL_IDS.has(skill.id)) {
+    if (skill.id === ID.BEGUILING_HAZE) {
       // Project the shared recharge without mutating state during an availability query.
       const readyAt = state.beguilingHazeRecharge
         ? gw2CooldownReadyAt(runtime.cooldownController.project(skill, state.beguilingHazeRecharge))
@@ -103,7 +99,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   resolveCastSkill(runtime, skill) {
     // Select the follow-up cutoff before cancellation checks and charge consumption.
-    if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id) || conduitState.from(runtime).beguilingHazeCharges <= 0) return skill;
+    if (skill.id !== ID.BEGUILING_HAZE || conduitState.from(runtime).beguilingHazeCharges <= 0) return skill;
 
     return {
       ...skill,
@@ -111,7 +107,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     };
   },
   castDurationMs(runtime, skill, durationMs) {
-    if (!BEGUILING_HAZE_SKILL_IDS.has(skill.id)) return durationMs;
+    if (skill.id !== ID.BEGUILING_HAZE) return durationMs;
 
     const specialization = runtime.profession.specialization;
 
@@ -156,7 +152,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     if (dervishCasts.has(cast)) {
       dervishAttack(runtime, cast, runtime.time);
 
-      if (TWIN_MOON_SKILL_IDS.has(skill.id)) dervishAttack(runtime, cast, runtime.time, true);
+      if (skill.id === ID.TWIN_MOON_SWEEP) dervishAttack(runtime, cast, runtime.time, true);
     }
 
     dervishCasts.delete(cast);

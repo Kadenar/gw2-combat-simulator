@@ -288,15 +288,6 @@ test('Guardian snapshots display selected caps and modifier bonuses', () => {
   );
 });
 
-test('the retained Courage variant describes its implemented behavior separately', () => {
-  const context = withPatchPreview(guardianProfession, null).resolvePatch().balanceContext;
-  const describe = (id) => guardianTooltips.skills[id](context, context.catalog.skillsById.get(id));
-  assert.match(describe(ID.TOME_OF_COURAGE).description, /^Open this tome/);
-  const variant = describe(ID.TOME_OF_COURAGE_ID_42371);
-  assert.match(variant.description, /no simulated effects/);
-  assert.deepEqual(variant.facts, []);
-});
-
 // The same selected grant feeds the self charge owner, allied delivery, and its announcement.
 test('Quickfire grants selected charges to self or the eligible ally', async () => {
   const { quickfire } = await import('#gw2/professions/guardian/specializations/firebrand/traits/index.js');

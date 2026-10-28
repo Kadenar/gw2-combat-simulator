@@ -75,7 +75,7 @@ export const sereneRejuvenation = defineTrait({
 /** Runs the trait at its original ordered mechanic boundary. */
 function completeSereneRejuvenation(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
   const skill = cast.skill;
-  const skillId = skill.id === ID.PROTECTIVE_SOLACE_ID_29310 ? ID.PROTECTIVE_SOLACE : skill.id;
+  const skillId = skill.id;
 
   if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skill.id)) return;
 

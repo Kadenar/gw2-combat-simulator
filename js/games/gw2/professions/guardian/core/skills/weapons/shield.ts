@@ -13,16 +13,6 @@ export const GUARDIAN_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
       }
     ]
   },
-  [ID.SHIELD_OF_JUDGMENT_ID_15834]: {
-    castTimeMs: 520,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1
-      }
-    ]
-  },
   [ID.SHIELD_OF_ABSORPTION]: {
     // Detonation stays available while the dome lasts.
     flipDuration: 4,
