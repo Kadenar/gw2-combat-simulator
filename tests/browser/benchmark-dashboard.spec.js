@@ -1273,11 +1273,17 @@ test('table preview ignores stale selections and fits a narrow viewport', async 
   await expect.poll(() => Boolean(held)).toBe(true);
   await rows.nth(1).locator('[data-inspect-overview]').click();
   await expect(inspector.locator('.benchmark-preview-equipment')).toBeVisible();
-  const contents = await inspector.locator('[data-build-preview]').innerHTML();
+  // Image fallback URLs can change independently; stale responses must preserve the selected build's content.
+  const preview = inspector.locator('[data-build-preview]');
+  const contents = await preview.textContent();
+  const selectedTraits = () =>
+    preview.locator('.is-picked img').evaluateAll((images) => images.map((image) => image.alt));
+  const traits = await selectedTraits();
   const completed = page.waitForResponse(held.request().url());
   await held.continue();
-  await completed;
-  await expect(inspector.locator('[data-build-preview]')).toHaveJSProperty('innerHTML', contents);
+  await (await completed).finished();
+  await expect(preview).toHaveText(contents);
+  await expect.poll(selectedTraits).toEqual(traits);
   const bounds = await inspector.boundingBox();
   expect(bounds.x).toBeGreaterThanOrEqual(0);
   expect(bounds.x + bounds.width).toBeLessThanOrEqual(375);
