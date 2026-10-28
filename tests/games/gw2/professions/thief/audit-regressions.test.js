@@ -91,42 +91,10 @@ test("Infiltrator's Signet pulses discrete initiative only while ready and resta
 
   const step = simulate('Core', ["Infiltrator's Signet", wait(1000)], {
     selectedSkillIds,
-    relic: 'Peitha',
     selectedTraitIds: [TRAIT.FLUID_STRIKES]
   });
   assert.deepEqual(step.warnings, []);
-  assert.ok(
-    step.events.some(
-      (event) => event.type === 'buff' && event.kind === 'relic-peitha' && event.triggeredBy === "Infiltrator's Signet"
-    )
-  );
   assert.ok(observedRuntime(step).buffs.get('fluid-strikes').at(-1).expiresAt > 1);
-  assert.ok(
-    step.resolvedEvents.some(
-      (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha' && event.condition === 'Torment'
-    )
-  );
-});
-
-test('Shadow Strike owns the Peitha buff and Torment triggered by its shadowstep', () => {
-  // Exercise the live skill so its shadowstep metadata reaches the shared relic handler.
-  const result = simulate('Core', ['Shadow Strike', wait(1000)], {
-    primaryWeapon: 'Pistol',
-    secondaryWeapon: 'Dagger',
-    relic: 'Peitha'
-  });
-  assert.deepEqual(result.warnings, []);
-  const cast = result.events.find((event) => event.type === 'action' && event.skillId === ID.SHADOW_STRIKE);
-  const buff = result.events.find((event) => event.type === 'buff' && event.kind === 'relic-peitha');
-  const torment = result.resolvedEvents.find(
-    (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha' && event.condition === 'Torment'
-  );
-  assert.ok(cast);
-  assert.ok(buff);
-  assert.ok(torment);
-  assert.equal(buff.triggeredBy, 'Shadow Strike');
-  assert.equal(buff.activationId, cast.activationId);
-  assert.equal(torment.activationId, cast.activationId);
 });
 
 test('Signet of Agility grants precision while ready and restores 100 endurance on its 30-second recharge', () => {

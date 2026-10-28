@@ -59,6 +59,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: flameEffects
   },
   [ID.CRASHING_COURAGE]: {
+    shadowstepSkill: true,
     castTimeMs: 680,
     // Grant the virtue's defensive boons with its initial strike.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -132,6 +133,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.HEAVENS_PALM]: {
+    shadowstepSkill: true,
     cooldown: 20,
     castTimeMs: 960,
     effects: [
@@ -213,6 +215,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.FLASH_COMBO]: {
+    shadowstepSkill: true,
     cooldown: 20,
     castTimeMs: 680,
     interruptMode: 'per-packet',
@@ -280,6 +283,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.REPOSE]: {
+    shadowstepSkill: true,
     castTimeMs: 200,
     effects: [],
     // A committed follow-up consumes its window and restores the parent.

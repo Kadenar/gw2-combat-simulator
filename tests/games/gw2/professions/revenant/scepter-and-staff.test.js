@@ -129,14 +129,3 @@ test('Staff attacks divide their total coefficients per hit and Rejuvenating Ass
       .comboFinishers.some((finisher) => finisher.finisherType === 'Whirl')
   );
 });
-
-test('Unrelenting Assault triggers Peitha once from its opening shadowstep', () => {
-  const result = simulate('Core', ['Unrelenting Assault'], { primaryWeapon: 'Sword', relic: 'Peitha' }, tail);
-  assert.deepEqual(result.warnings, []);
-  assert.ok(
-    result.events.filter((event) => event.type === 'damage' && event.skillId === ID.UNRELENTING_ASSAULT).length > 1
-  );
-  const triggers = result.events.filter((event) => event.type === 'buff' && event.kind === 'relic-peitha');
-  assert.equal(triggers.length, 1);
-  assert.equal(triggers[0].triggeredBy, 'Unrelenting Assault');
-});

@@ -48,6 +48,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.SYMBOL_OF_BLADES]: {
+    shadowstepSkill: true,
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
     castTimeMs: 560,
@@ -123,6 +124,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.ADVANCING_STRIKE]: {
+    shadowstepSkill: true,
     castTimeMs: 520,
     // The dash lands two strikes before its recovery ends.
     effects: [

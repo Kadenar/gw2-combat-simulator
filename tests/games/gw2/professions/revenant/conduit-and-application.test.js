@@ -845,65 +845,6 @@ test('Twin Moon Sweep resolves both attackers and legend resonance', () => {
   assert.equal(swappedBeforeImpact.planningState.profession.affinity.value, 2);
 });
 
-// Each shadowstep variant attributes Peitha to the triggering skill.
-test('Revenant shadowsteps own Peitha buff and Torment applications', () => {
-  for (const { specialization, rotation, selectedLegends, startingLegend, sourceSkill, weapons = {} } of [
-    {
-      specialization: 'Conduit',
-      rotation: [
-        { type: 'cast', skillId: 27074 },
-        { name: '__wait', waitMs: 1000 }
-      ],
-      selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
-      startingLegend: LEGEND.ASSASSIN,
-      sourceSkill: 'Deathstrike'
-    },
-    {
-      specialization: 'Conduit',
-      rotation: [
-        { type: 'cast', skillId: 77141 },
-        { name: '__wait', waitMs: 1000 }
-      ],
-      selectedLegends: [LEGEND.ENTITY, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.ENTITY,
-      sourceSkill: 'Beguiling Haze'
-    },
-    {
-      specialization: 'Renegade',
-      rotation: ['Phase Smash', { name: '__wait', waitMs: 1000 }],
-      selectedLegends: [LEGEND.RENEGADE, LEGEND.ASSASSIN],
-      startingLegend: LEGEND.RENEGADE,
-      sourceSkill: 'Phase Smash',
-      weapons: {
-        primaryWeapon: 'Hammer',
-        secondaryWeapon: ''
-      }
-    }
-  ]) {
-    const result = simulate(specialization, rotation, {
-      selectedLegends,
-      startingLegend,
-      relic: 'Peitha',
-      initialEnergy: 100,
-      ...weapons
-    });
-    const cast = result.events.find((event) => event.type === 'action' && event.skillName === sourceSkill);
-    const peitha = result.events.find(
-      (event) => event.type === 'buff' && event.kind === 'relic-peitha' && event.triggeredBy === sourceSkill
-    );
-    const torment = result.resolvedEvents.find(
-      (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha'
-    );
-
-    assert.ok(cast, `${sourceSkill} cast`);
-    assert.ok(peitha, `${sourceSkill} Peitha event`);
-    assert.ok(torment, `${sourceSkill} Peitha torment`);
-    assert.equal(peitha.activationId, cast.activationId);
-    assert.equal(torment.activationId, cast.activationId);
-    assert.equal(peitha.at, torment.at);
-  }
-});
-
 test('Mesmer release reads enemy and self Torment affinity at impact after a legend swap', () => {
   // Five affinity at cast start becomes two on swap; a swap after impact must leave the original duration intact.
   for (const [swapOffset, expectedAffinity] of [

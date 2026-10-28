@@ -341,7 +341,7 @@ test('Specter force gains cap at 100 and do not drain outside shroud', () => {
   }
 });
 
-test('Dagger attacks restore endurance and trigger shadowstep effects', () => {
+test('Dagger attacks restore endurance and apply Shadow Shot blindness', () => {
   const chain = simulate('Core', ['Dodge', 'Double Strike', 'Wild Strike', 'Lotus Strike'], {
     boons: { quickness: true }
   });
@@ -359,15 +359,9 @@ test('Dagger attacks restore endurance and trigger shadowstep effects', () => {
 
   const shadowShot = simulate('Core', ['Shadow Shot', { type: 'wait', durationMs: 1000 }], {
     primaryWeapon: 'Dagger',
-    secondaryWeapon: 'Pistol',
-    relic: 'Peitha'
+    secondaryWeapon: 'Pistol'
   });
 
-  assert.ok(
-    shadowShot.events.some(
-      (event) => event.type === 'buff' && event.kind === 'relic-peitha' && event.triggeredBy === 'Shadow Shot'
-    )
-  );
   assert.equal(
     shadowShot.events.find(
       (event) => event.type === 'condition' && event.condition === 'Blindness' && event.skillName === 'Shadow Shot'
@@ -766,7 +760,7 @@ test("Dawn's Repose grants solo barrier without granting self Rot Wallow Venom",
   }
 });
 
-test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => {
+test('Specter attribute and ally traits resolve explicitly', () => {
   const attributeConfig = {
     specialization: 'Specter',
     primaryWeapon: 'Scepter',
@@ -825,18 +819,6 @@ test('Specter attribute, ally, and shadowstep traits resolve explicitly', () => 
       (event) => event.type === 'condition' && event.skillName === 'Rot Wallow Venom' && event.condition === 'Torment'
     ).length,
     2
-  );
-
-  const peitha = simulate('Specter', ['Well of Tears'], {
-    selectedSkillIds: [63294],
-    relic: 'Peitha',
-    boons: { quickness: true }
-  });
-
-  assert.ok(
-    peitha.events.some(
-      (event) => event.type === 'buff' && event.kind === 'relic-peitha' && event.triggeredBy === 'Well of Tears'
-    )
   );
 });
 

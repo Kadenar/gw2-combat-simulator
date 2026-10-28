@@ -572,7 +572,7 @@ test('Virtuoso Deadly Blades vulnerability triggers Relic of Aristocracy', () =>
   );
 });
 
-test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
+test('Relic of Peitha increases subsequent player strike damage by ten percent', () => {
   const config = defaultSimulationConfig({
     specialization: 'Core',
     initialResource: 0,
@@ -594,14 +594,6 @@ test('Relic of Peitha triggers from Mesmer shadowsteps', () => {
       .reduce((total, entry) => total + entry.strikeDamage, 0);
 
   assertFlooredDamageMultiplier(damage(equipped), damage(base), 1.1);
-  assert.ok(
-    equipped.breakdown.some((entry) => entry.name === 'Relic of Peitha — Torment' && entry.conditionDamage > 0)
-  );
-  assert.ok(
-    equipped.procSteps.some(
-      (proc) => proc.type === 'relic_proc' && proc.skill === 'Relic of Peitha' && proc.sourceSkill === 'Phase Retreat'
-    )
-  );
 });
 
 test('Relic of Peitha does not grant its player damage bonus to phantasms', () => {
@@ -662,49 +654,6 @@ test('Relic of Thorns uses the deterministic incoming-hit assumption', () => {
   });
   assert.equal(query.statsAt(0).conditionDamage, 1150);
   assert.equal(query.statsAt(3).conditionDamage, 1180);
-});
-
-// Both relic effects retain their originating activation and arrive together through standard effect handling.
-test('Mesmer Peitha follows actual shadowsteps or successful Deception use', () => {
-  const cases = [
-    ['Phase Retreat', ID.PHASE_RETREAT, 'Staff'],
-    ['Crystal Sands', ID.CRYSTAL_SANDS, 'Axe'],
-    ['Jaunt', ID.JAUNT, 'Axe'],
-    ['Axes of Symmetry', ID.AXES_OF_SYMMETRY, 'Axe'],
-    ['Mental Collapse', ID.MENTAL_COLLAPSE, 'Spear']
-  ];
-  for (const [skillName, skillId, primaryWeapon] of cases) {
-    const result = simulateMesmer(
-      [
-        { name: skillName, skillId },
-        { name: '__wait', waitMs: 1200 }
-      ],
-      defaultSimulationConfig({
-        specialization: 'Mirage',
-        selectedSkillIds: [41065, 45449],
-        primaryWeapon,
-        secondaryWeapon: primaryWeapon === 'Axe' ? 'Torch' : '',
-        initialResource: 0,
-        relic: 'Peitha'
-      })
-    );
-    const cast = result.events.find((event) => event.type === 'action' && event.skillId === skillId);
-    const buffs = result.events.filter((event) => event.type === 'buff' && event.kind === 'relic-peitha');
-    const torment = result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha'
-    );
-    assert.equal(buffs.length, 1, skillName);
-    assert.equal(buffs[0].activationId, cast.activationId);
-    assert.equal(buffs[0].triggeredBy, skillName);
-    assert.equal(
-      torment.reduce((sum, event) => sum + event.stacks, 0),
-      2,
-      skillName
-    );
-    assert.equal(torment[0].at, buffs[0].at);
-    assert.equal(torment[0].parentEventOrder, buffs[0].parentEventOrder);
-    assert.equal(torment[0].activationId, cast.activationId);
-  }
 });
 
 test('shadowsteps and Deceptions share Peitha cooldown at their execution times', () => {

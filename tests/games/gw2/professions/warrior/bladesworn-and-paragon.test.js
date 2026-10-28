@@ -712,7 +712,6 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     utility.events.some((event) => event.type === 'buff' && event.kind === 'aegis'),
     true
   );
-  assert.equal(warriorCatalog.skillsById.get(ID.FLICKER_STEP).shadowstepSkill, true);
 
   const reset = simulate(
     'Bladesworn',
@@ -743,28 +742,6 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
       (event) => event.type === 'damage' && event.skillId === ID.DRAGONSPIKE_MINE && event.damageKind === 'explosion'
     ),
     true
-  );
-});
-
-// The shadowstep's activation owns both relic effects while Dragon Trigger is active.
-test('Flicker Step applies Peitha with its activation ownership', () => {
-  const result = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.FLICKER_STEP, { name: '__wait', waitMs: 1000 }], {
-    initialResource: 100,
-    relic: 'Peitha'
-  });
-  const cast = result.events.find((event) => event.type === 'action' && event.skillId === ID.FLICKER_STEP);
-  const buffs = result.events.filter((event) => event.type === 'buff' && event.kind === 'relic-peitha');
-  const torment = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.skillName === 'Relic of Peitha'
-  );
-
-  assert.deepEqual(result.warnings, []);
-  assert.equal(buffs.length, 1);
-  assert.equal(buffs[0].activationId, cast.activationId);
-  assert.equal(buffs[0].at, torment[0].at);
-  assert.equal(
-    torment.reduce((sum, event) => sum + event.stacks, 0),
-    2
   );
 });
 

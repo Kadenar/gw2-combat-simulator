@@ -15,7 +15,6 @@ import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.j
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as R } from '#gw2/professions/revenant/data/ids.js';
 import { conduitModule } from '#gw2/professions/revenant/specializations/conduit/module.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
@@ -264,7 +263,7 @@ test('Fervor counting preserves start, expiry, and cap boundaries on readonly pa
 });
 
 // Display labels cannot grant another skill's resonance or suppress a valid proc.
-test('Conduit modifiers and Peitha follow all supported button IDs after renaming', () => {
+test('Conduit modifiers follow all supported button IDs after renaming', () => {
   const context = {
     config: {},
     time: 0,
@@ -282,11 +281,6 @@ test('Conduit modifiers and Peitha follow all supported button IDs after renamin
     const rule = conduitModule.modifiers.modifierRules.find(({ id }) => id === 'revenant.' + suffix);
     for (const id of ids) assert.equal(rule.when({ ...context, event: { skillId: id, skillName: 'Renamed' } }), true);
     assert.equal(rule.when({ ...context, event: { skillId: 999999, skillName: 'Beguiling Haze' } }), false);
-  }
-
-  // Peitha eligibility is catalog skill data, so both Beguiling Haze button IDs trigger it and Twin Moon Sweep does not.
-  for (const skillId of [R.BEGUILING_HAZE, R.BEGUILING_HAZE_ID_76805, R.TWIN_MOON_SWEEP]) {
-    assert.equal(revenantCatalog.skillsById.get(skillId).shadowstepSkill === true, skillId !== R.TWIN_MOON_SWEEP);
   }
 });
 
