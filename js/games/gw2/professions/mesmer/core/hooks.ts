@@ -1,6 +1,6 @@
+import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -14,12 +14,6 @@ import {
   captureMesmerClarity,
   grantMesmerClarity
 } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
-import {
-  mesmerConditionApplied,
-  mesmerControlAccepted,
-  mesmerCritical,
-  mesmerStrikeResolved
-} from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import {
   armMesmerSkillFlip,
   exhaustMesmerMantra,
@@ -37,6 +31,12 @@ import {
   signetIllusionsPassive
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
 import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
+import {
+  mesmerConditionApplied,
+  mesmerControlAccepted,
+  mesmerCritical,
+  mesmerStrikeResolved
+} from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';

@@ -1,19 +1,20 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
-import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
-import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
-import { willbenderBuffPolicies } from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/firebrand/presentation.js';
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
+import { willbenderBuffPolicies } from '#gw2/professions/guardian/specializations/willbender/effect-state.js';
+import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
 import { lethalTempoParameters } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 
 const firebrandUi = bindFirebrandUi(guardianCatalog);
 

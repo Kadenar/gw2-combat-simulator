@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { AURA } from '#gw2/platform/constants.js';
-import { normalizeEffect } from '#gw2/platform/effects/validation.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { normalizeEffect } from '#gw2/platform/effects/validation.js';
 
 // Supported aura declarations retain the granting activation and parent when becoming runtime events.
 test('aura effects materialize with their payload and causal ownership', () => {

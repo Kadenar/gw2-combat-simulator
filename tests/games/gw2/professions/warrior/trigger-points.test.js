@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { firstBurstHit } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { burstCompleted, focusReset } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Activation ownership belongs to the mechanic, even when no trait listener is selected.
 test('first surviving burst hit claims by activation identity before firing listeners', () => {

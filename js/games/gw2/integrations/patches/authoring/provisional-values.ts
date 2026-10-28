@@ -1,5 +1,5 @@
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type { EffectPatch, ProvisionalParameter } from '#gw2/integrations/patches/authoring/patches.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 /** Replace tuning for the same selector while preserving its other authored fields and unrelated effect edits. */
 export function replaceProvisionalEffect(

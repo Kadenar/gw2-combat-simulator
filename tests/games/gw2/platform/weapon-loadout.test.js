@@ -1,15 +1,16 @@
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import {
   gw2ActivePrimaryWeapon,
   gw2ConfiguredWeaponSet,
   gw2PrimaryWeapon
 } from '#gw2/platform/equipment/weapons/loadout.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Equipment policy must survive native-family composition and gate headless casts without presentation hooks.
 test('profession weapon eligibility is shared with headless simulation', () => {

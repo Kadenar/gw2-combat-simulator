@@ -1,7 +1,7 @@
 import { LatestWorkerQueue } from '#browser/game/latest-worker-queue.js';
+import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { analysisViewIsActive } from '#browser/shell/result-view.js';
 
 interface BaselineJob {
   readonly revision: number;

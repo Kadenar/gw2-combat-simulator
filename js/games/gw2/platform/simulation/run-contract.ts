@@ -1,14 +1,14 @@
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeDriver } from '#gw2/platform/execution/driver-contract.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2SimulationOptions } from '#gw2/platform/simulation/options.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
+import type { ObservationPolicy } from '#kernel/execution/observation.js';
 
 /** Bound producers share one initialized capability; callbacks never depend on registration order. */
 export interface RuntimeProducers {

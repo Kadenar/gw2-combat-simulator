@@ -1,7 +1,7 @@
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
 
 export function createDefaultConfig() {
   return {

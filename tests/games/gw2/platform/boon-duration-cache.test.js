@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 

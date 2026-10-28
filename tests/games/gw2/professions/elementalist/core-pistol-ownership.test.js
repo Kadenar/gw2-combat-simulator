@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 

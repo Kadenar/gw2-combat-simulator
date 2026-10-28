@@ -1,11 +1,12 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { createRuntimeEndurance } from '#gw2/platform/simulation/runtime-resources.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // The pilot owns its hooks directly; none of the production scheduler/resolver state factories are installed.
 const catalog = createCanonicalCatalog({

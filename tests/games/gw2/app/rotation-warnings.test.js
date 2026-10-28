@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { rotationWarningItems } from '#gw2/app/rotation/warnings.js';
 import { locateDiagnostics } from '#gw2/platform/results/diagnostics.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';

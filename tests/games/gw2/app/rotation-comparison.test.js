@@ -1,23 +1,23 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
+import { manifestRotationMatchesBuild } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import {
   beginRotationComparison,
-  queueRotationReference,
+  failRotationReference,
   publishRotationReference,
-  failRotationReference
+  queueRotationReference
 } from '#gw2/app/rotation/comparison-state.js';
-import { manifestRotationMatchesBuild } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import {
   rotationComparisonMetrics,
   rotationComparisonMetricsFromSeries,
   rotationComparisonTimeMs
 } from '#gw2/app/rotation/comparison.js';
 import { authoredStepIndexesAtPreviewTime, rotationPreviewSchedulerTimeMs } from '#gw2/app/rotation/timeline/view.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 
 function result(id, dps = 100, totalDamage = 400, duration = 4, resolvedEvents = []) {
   return {

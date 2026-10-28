@@ -1,6 +1,6 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface AmalgamState {

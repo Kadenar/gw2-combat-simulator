@@ -1,7 +1,7 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Only the selected elite supplies its effect policies, using the same caps as its mechanics. */
 export function luminaryBuffPolicies(): BuffStatePolicy[] {

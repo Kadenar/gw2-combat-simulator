@@ -1,16 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
+
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { ANTIQUARY_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/antiquary/mechanics/thieves-guild.js';
 import { DAREDEVIL_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/daredevil/mechanics/thieves-guild.js';
 import { DEADEYE_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
 import {
-  SPECTER_THIEVES_GUILD_ACTOR,
-  guildAttackConditions
+  guildAttackConditions,
+  SPECTER_THIEVES_GUILD_ACTOR
 } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
-import { ANTIQUARY_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/antiquary/mechanics/thieves-guild.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const actors = {

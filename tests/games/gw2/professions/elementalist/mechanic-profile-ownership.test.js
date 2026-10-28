@@ -1,25 +1,26 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
+import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
+import { reserveElementalistRecharge } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
+import {
+  beginElementalistSpearCast,
+  completeElementalistSpearProgression,
+  empowerElementalistSpearPacket,
+  openElementalistEtching
+} from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
+import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import {
-  beginElementalistSpearCast,
-  empowerElementalistSpearPacket,
-  openElementalistEtching,
-  completeElementalistSpearProgression
-} from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
-import { reserveElementalistRecharge } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 

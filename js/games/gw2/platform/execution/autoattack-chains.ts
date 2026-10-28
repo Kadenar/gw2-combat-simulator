@@ -3,6 +3,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { resolveAutoattackChainStep } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+
 /**
  * GW2-wide runtime ownership for autoattack-chain availability and state.
  * Native professions only declare narrow interruption overrides and optional

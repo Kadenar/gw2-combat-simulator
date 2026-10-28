@@ -3,16 +3,16 @@ import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { activeRevenantUpkeep, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import { revenantFacetParents, revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import { facetConsumed } from '#gw2/professions/revenant/specializations/herald/mechanics/trigger-points.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { activeRevenantUpkeep, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import { revenantFacetParents, revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import { facetConsumed } from '#gw2/professions/revenant/specializations/herald/mechanics/trigger-points.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 
 export const FACET_PULSE = 'revenant.herald-facet-pulse';
 

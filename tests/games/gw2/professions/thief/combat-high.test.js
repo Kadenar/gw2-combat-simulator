@@ -1,13 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { antiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { antiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const config = { specialization: 'Antiquary', selectedTraitIds: [TRAIT.COMBAT_HIGH] };

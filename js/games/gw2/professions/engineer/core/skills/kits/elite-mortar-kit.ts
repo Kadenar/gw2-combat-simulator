@@ -1,7 +1,7 @@
-import { COMBO_FIELD, ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 /** Core Engineer Elite Mortar Kit skill mechanics. */
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Elite Mortar Kit. */
 export const ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({

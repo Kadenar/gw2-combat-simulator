@@ -1,15 +1,15 @@
+import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
 import {
   partitionRandomDistributionTrials,
   randomDistributionWorkerCount,
   summarizeRandomDistributionOutcomes
 } from '#gw2/app/simulation/random-distribution/random-distribution.js';
-import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {
   RandomDistributionOutcome,
   RandomDistributionProgress,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 type RandomDistributionWorkerMessage = GameWorkerResponseEnvelope &

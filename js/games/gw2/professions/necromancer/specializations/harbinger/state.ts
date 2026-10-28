@@ -1,13 +1,13 @@
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
-import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { boundedInteger } from '#kernel/core/numeric.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import { cloneStateFields, defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
 

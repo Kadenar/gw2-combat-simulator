@@ -1,5 +1,5 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -9,8 +9,8 @@ import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/tri
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   VINDICATOR_AIRBORNE_MS,
-  VINDICATOR_DODGE_MS,
-  VINDICATOR_DODGE_INPUT
+  VINDICATOR_DODGE_INPUT,
+  VINDICATOR_DODGE_MS
 } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import { vindicatorBuffPolicies } from '#gw2/professions/revenant/specializations/vindicator/effect-state.js';
 import {
@@ -19,9 +19,9 @@ import {
   vindicatorLanded
 } from '#gw2/professions/revenant/specializations/vindicator/mechanics/trigger-points.js';
 import {
-  VINDICATOR_LANDING_TASK,
   scheduleLanding,
-  selectedDodge
+  selectedDodge,
+  VINDICATOR_LANDING_TASK
 } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import {

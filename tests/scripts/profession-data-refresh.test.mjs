@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { generatorPreload, importGeneratorSource, mockGeneratorFiles } from '../helpers/generator-fixtures.mjs';
-import { writeGeneratedFiles } from '../../scripts/data/lib/generator-utils.mjs';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+
+import { writeGeneratedFiles } from '../../scripts/data/lib/generator-utils.mjs';
+import { generatorPreload, importGeneratorSource, mockGeneratorFiles } from '../helpers/generator-fixtures.mjs';
 
 test('refresh imports are inert and each invocation completes the profession pipeline in order', async (context) => {
   const { writes, published, logs } = mockGeneratorFiles(context);

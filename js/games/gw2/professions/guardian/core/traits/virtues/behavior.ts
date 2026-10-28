@@ -4,7 +4,7 @@ import type { SelectedContentContext } from '#gw2/platform/profession-definition
 import { balanceNumberFromContext, balanceProfileNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianResolverContext, GuardianVirtue, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { GuardianResolverContext, GuardianRuntime, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
 /** Both emission paths read one trait multiplier without applying ordinary boon-duration scaling twice. */
 export function guardianResolutionMultiplier(context: SelectedContentContext): number {

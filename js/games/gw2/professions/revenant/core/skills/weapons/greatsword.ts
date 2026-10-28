@@ -1,17 +1,17 @@
+/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.MIST_SWING]: {

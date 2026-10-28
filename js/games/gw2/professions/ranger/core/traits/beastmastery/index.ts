@@ -1,20 +1,16 @@
-import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
-
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
-import { WEAPON, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
+import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
-
+import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { compileProfessionRules, onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusFromContext,
   balanceNumberFromContext,
@@ -24,6 +20,8 @@ import {
   requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { rangerProfileEffectRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import {
   castCompleted,
   commandApplied,
@@ -31,10 +29,9 @@ import {
   mergedCommandApplied,
   strike
 } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { rangerProfileEffectRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { activeBuff, beastmodeActive, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type {
   RangerResolverContext,
   RangerRuntime,

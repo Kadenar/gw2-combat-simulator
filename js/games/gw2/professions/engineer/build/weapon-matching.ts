@@ -1,8 +1,8 @@
 import { WEAPON } from '#gw2/platform/constants.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { NON_HOLOSMITH_SWORD_SKILL_IDS } from '#gw2/professions/engineer/data/module-data.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { NON_HOLOSMITH_SWORD_SKILL_IDS } from '#gw2/professions/engineer/data/module-data.js';
 
 /** Selects the active sword identity at the Engineer family boundary. */
 export function engineerWeaponSkillMatchesSet(

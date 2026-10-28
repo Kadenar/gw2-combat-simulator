@@ -1,22 +1,21 @@
-import { RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import {
-  fromProfile,
   fromModifier,
-  tooltipFactorChange,
-  tooltipSeconds,
+  fromProfile,
+  fromSkill,
   outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
-  tooltipPercent,
   simulationEffectFacts,
-  type ProfessionTooltips,
+  skillTooltip,
+  tooltipFactorChange,
+  tooltipPercent,
+  tooltipSeconds,
+  traitTooltip,
   type DescribeSimulationTooltip,
-  fromSkill
+  type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 const deadeyesMarkTooltip: DescribeSimulationTooltip = skillTooltip(
   'Mark the target, trigger stealing traits, and grant the configured Deadeye stolen skill. Marked initiative attacks build malice on their first hit, with additional gain from critical hits. Remarking preserves existing malice; Malicious Intent adds its grant.',

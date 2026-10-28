@@ -1,19 +1,19 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import { elementalistMightStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks, targetConditionActive, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { activeBuffStacks, boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusNumber,
   balanceNumberFromContext,
@@ -22,11 +22,13 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import {
   elementalistAnnouncement,
   elementalistEventSkill
 } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { elementalistMightStacks } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import {
   activeElementalistBuffs,
   refreshElementalistBuffs
@@ -41,6 +43,7 @@ import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import {
   evokerCastCompleted,
   evokerCastSettled,
@@ -51,21 +54,16 @@ import {
   type EvokerEvent
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import {
+  commitRechargeDuration,
+  specializedElementsAvailability
+} from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { familiarBlessingName } from '#gw2/professions/elementalist/specializations/evoker/traits/familiar-blessing.js';
 import type {
   ElementalistModifierContext,
   ElementalistRuntime,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-
-import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import {
-  commitRechargeDuration,
-  specializedElementsAvailability
-} from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 
 const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',

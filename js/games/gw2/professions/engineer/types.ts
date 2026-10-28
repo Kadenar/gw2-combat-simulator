@@ -1,15 +1,13 @@
-import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/catalog-fields.js';
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-
+import type { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/catalog-fields.js';
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';

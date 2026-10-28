@@ -1,9 +1,9 @@
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import { applyAttributeContributions, attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2AttributeContext, Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { selectedFirearmsDurationBonuses } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';

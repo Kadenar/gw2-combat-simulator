@@ -1,10 +1,10 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import {
   buildMesmerPacket,

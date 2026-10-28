@@ -1,10 +1,10 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -12,6 +12,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
@@ -34,7 +35,6 @@ import {
 } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/trigger-points.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Psychic Blades owns the specialization's baseline blade capacity. */
 const psychicBlades = defineTrait<MesmerSkill>({

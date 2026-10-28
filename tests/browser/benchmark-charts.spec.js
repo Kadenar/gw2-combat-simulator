@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openDashboard, selectProfessions } from '#tests/helpers/browser-benchmarks.js';
 
 // Row inspection and point inspection stay linked through sorting and scrolling without moving the page.

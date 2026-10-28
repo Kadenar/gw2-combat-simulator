@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfessionModifiers } from '#tests/fixtures/profession.js';
 
 const packet = (sourceId, at) => ({

@@ -1,11 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { paletteAvailability } from '#gw2/app/rotation/palette/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
-import { professionRegistry } from '#gw2/profession-registry.js';
+import { paletteAvailability } from '#gw2/app/rotation/palette/model.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 test('shared eligibility precedes profession filters and cast state changes', () => {
   let stateChecks = 0;

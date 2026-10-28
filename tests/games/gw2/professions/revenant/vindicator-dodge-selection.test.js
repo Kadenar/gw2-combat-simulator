@@ -1,11 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { loadBuild } from '#gw2/app/build/state/persistence.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
-import { revenantAppAdapter as adapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { revenantAppAdapter as adapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const profession = adapter.profession;

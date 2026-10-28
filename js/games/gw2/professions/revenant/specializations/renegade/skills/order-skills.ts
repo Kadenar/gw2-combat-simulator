@@ -1,10 +1,10 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Adds protection only for the selected enhancement, retaining the order's pulse cadence. */
 const boldReversalOrderEffects: NonNullable<NonNullable<Skill['effectVariants']>[number]['transform']> = (

@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+
 import { skillEffectKey } from '#gw2/platform/effects/validation.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cast = (name) => guardianCatalog.skills.find((candidate) => candidate.name === name).id;

@@ -1,17 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
-import { activeChargeCount, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
-import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { activeChargeCount, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;

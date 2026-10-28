@@ -1,18 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { catalystBuffPolicies } from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { inertContainer } from '#tests/helpers/dom.js';
-
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { paletteView } from '#gw2/app/rotation/palette/model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
+import { paletteView } from '#gw2/app/rotation/palette/model.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_JADE_SPHERE_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { catalystBuffPolicies } from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { inertContainer } from '#tests/helpers/dom.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 
 const sphereIds = Object.values(ELEMENTALIST_JADE_SPHERE_SKILL_IDS);
 const sphereNames = [

@@ -1,13 +1,13 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Harbinger elixir skill fragments.
  * Impact hooks read skill-owned Blight gain for both impact variants.
  */
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Supplies Harbinger elixir fragments to specialization composition. */
 export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

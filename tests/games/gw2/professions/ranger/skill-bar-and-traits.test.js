@@ -1,27 +1,25 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
 
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { inertContainer } from '#tests/helpers/dom.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
+import { activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-
 import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import { describe, test } from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Ranger adapter.
 const calculateAttributes = createCalculateAttributes(

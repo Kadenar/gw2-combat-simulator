@@ -1,4 +1,5 @@
 import type { AutoattackChainPosition, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+
 /**
  * Shared autoattack-chain helpers. Professions can either derive rooted
  * weapon-slot-1 chains from canonical catalog metadata or provide explicit

@@ -1,11 +1,11 @@
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 /** Owns Arcane Echo's window and the later weapon cast that consumes it. */
-import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistSkill, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Fixed replacement work is shared by runtime and tooltip; the skill owns only the echo window. */

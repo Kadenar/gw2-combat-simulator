@@ -1,10 +1,10 @@
-import { ACTOR, CONTROL, COMBO_FINISHER, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 

@@ -1,11 +1,11 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
@@ -14,11 +14,10 @@ import {
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
-  requireSkillFromContext,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   amalgamStruck,
@@ -29,6 +28,7 @@ import {
   amalgamMorphed,
   type AmalgamMorph
 } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
+import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
 import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';

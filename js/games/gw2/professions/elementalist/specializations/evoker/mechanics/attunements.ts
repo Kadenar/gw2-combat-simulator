@@ -1,17 +1,3 @@
-import { ELEMENTALIST_TRAIT_IDS as EVOKER_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { attunementReentered } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
-import {
-  targetAttunement,
-  type ElementalistAttunementTraitTrigger
-} from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-
 /**
  * Evoker attunement behaviour layered over the Core Elementalist system.
  *
@@ -21,18 +7,34 @@ import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/el
  * is disabled - fire the entry effects from empowered familiar casts without any
  * attunement actually changing.
  */
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
   elementalistAttunementRechargeDuration,
-  onAttunementComplete
+  onAttunementComplete,
+  targetAttunement,
+  type ElementalistAttunementTraitTrigger
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { ELEMENTALIST_ATTUNEMENTS, isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { ELEMENTALIST_ATTUNEMENT_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { attunementReentered } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import {
+  ELEMENTALIST_ATTUNEMENTS,
+  isElementalistAttunement,
+  type ElementalistAttunement
+} from '#gw2/professions/elementalist/core/state.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_TRAIT_IDS as EVOKER_TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import { type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import {
   consumeEvokerAttunementTraitCooldown,
   evocationAllowsAttunementTrait
 } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Runs Core's attunement completion with Evoker's proc policy attached, and

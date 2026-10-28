@@ -1,6 +1,3 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -9,12 +6,15 @@ import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/in
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { event as evtcEvent, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { EVTC_FIXTURE_PLAYER as PLAYER, event as evtcEvent, log } from '#tests/helpers/evtc-fixture.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const fixtureSkill = {
   id: 1_000,

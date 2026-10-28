@@ -1,7 +1,7 @@
 import {
   fromProfile,
-  profileFact,
   outsideScopeTooltip,
+  profileFact,
   tooltipDecimal,
   tooltipFactorChange,
   tooltipPercent,
@@ -10,9 +10,9 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { FLAME_EXPULSION_DELAY_SECONDS } from '#gw2/professions/elementalist/core/traits/fire/attunement-transition.js';
 import { percentagePoints } from '#gw2/professions/elementalist/app/tooltips/shared.js';
+import { FLAME_EXPULSION_DELAY_SECONDS } from '#gw2/professions/elementalist/core/traits/fire/attunement-transition.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Describe fire tooltips from the selected balance data. */
 export const elementalistFireTooltips = {

@@ -1,17 +1,16 @@
-import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { ACTOR, CONTROL, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
-
-import { packAlphaPetRecharge } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 /**
  * Owns Core Ranger pet skill fragments for the Fanged Iboga family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, COMBO_FIELD, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { packAlphaPetRecharge } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

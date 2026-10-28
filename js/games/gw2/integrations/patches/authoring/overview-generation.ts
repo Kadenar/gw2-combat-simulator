@@ -1,15 +1,15 @@
-import type { NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
-import { SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { PATCHABLE_EFFECT_NUMERIC_FIELDS } from '#gw2/integrations/patches/authoring/fields.js';
 import type { NativePatchAuthoringMetadata } from '#gw2/integrations/patches/authoring/module-types.js';
+import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import type {
   EffectPatch,
   ModifierRulePatchEdit,
   ProfessionPatchPreview,
   SkillPatchEdit
 } from '#gw2/integrations/patches/authoring/patches.js';
-import { PATCHABLE_EFFECT_NUMERIC_FIELDS } from '#gw2/integrations/patches/authoring/fields.js';
-import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
+import { SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 
 // Presentation entries stay separate from the structured edits saved and consumed by the runtime.
 export interface PatchOverviewEntry {

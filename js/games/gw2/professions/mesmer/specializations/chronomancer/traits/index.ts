@@ -1,8 +1,12 @@
-import { ACTOR, RECIPIENT, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { gw2EventActorType, isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
@@ -17,19 +21,11 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-
-import { gw2EventActorType, isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { MesmerEventExtra } from '#gw2/professions/mesmer/data/types.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Danger Time retains its active profile, selection, and original execution boundary. */
 const dangerTime = defineTrait<MesmerSkill>({

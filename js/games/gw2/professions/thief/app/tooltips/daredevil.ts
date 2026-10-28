@@ -1,15 +1,14 @@
 import {
   fromProfile,
-  tooltipFactorChange,
-  tooltipSeconds,
+  fromSkill,
   outsideScopeTooltip,
-  traitTooltip,
   skillTooltip,
+  tooltipFactorChange,
   tooltipPercent,
-  type ProfessionTooltips,
-  fromSkill
+  tooltipSeconds,
+  traitTooltip,
+  type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Describe daredevil tooltips from the selected balance data. */

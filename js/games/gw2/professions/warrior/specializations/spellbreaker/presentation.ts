@@ -1,10 +1,10 @@
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import {
   formatSecondsRemaining,
   warriorAdrenalineResourceViews,
@@ -13,9 +13,9 @@ import {
   warriorSnapshotAt,
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import type { SpellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
 

@@ -1,4 +1,3 @@
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceNumberFromContext,
@@ -6,6 +5,7 @@ import {
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
 
 /** Traits choose capacity, initial default, and cadence; the resource controller owns page accounting. */

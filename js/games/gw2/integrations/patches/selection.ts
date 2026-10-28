@@ -1,7 +1,7 @@
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { CURRENT_PATCH_ID } from '#gw2/integrations/patches/authoring/patches.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 /** Serializable choice of game data; experimental values belong only to the preview session. */
 export interface PatchSelection {

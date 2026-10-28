@@ -1,16 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/revenant/build/context.js';
-import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
-import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
-import { REVENANT_TRAIT_IDS as TRAIT, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { VINDICATOR_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/revenant/specializations/vindicator/rework/ids.js';
-import { selectedTraits, missingPatchTraits } from '#gw2/professions/shared/trait-data.js';
+
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
+import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
+import { createBuildContext, profession, toApplicationBuild } from '#gw2/professions/revenant/build/context.js';
+import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
+import { VINDICATOR_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/revenant/specializations/vindicator/rework/ids.js';
+import { missingPatchTraits, selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const patchId = profession.preview.id;

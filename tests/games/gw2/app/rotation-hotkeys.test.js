@@ -2,32 +2,30 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  activeRotationMouseHotkeyAction,
   activeRotationHotkeyAction,
+  activeRotationMouseHotkeyAction,
   formatRotationHotkeyBadge,
+  loadRotationHotkeyBindings,
+  loadRotationHotkeysEnabled,
+  ROTATION_HOTKEY_ENABLED_STORAGE_KEY,
+  ROTATION_HOTKEY_STORAGE_KEY,
   rotationHotkeyActionForSkillName,
+  rotationHotkeyStatusLabel,
   rotationLoadoutHotkeyActions,
-  rotationUtilityHotkeyAction
+  rotationUtilityHotkeyAction,
+  saveRotationHotkeyBindings,
+  saveRotationHotkeysEnabled
 } from '#gw2/app/rotation/hotkeys.js';
+import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 import {
   defaultInputBindings,
   duplicateInputBindings,
   formatInputBinding,
-  normalizeInputBindings,
-  inputControlForBinding
+  inputControlForBinding,
+  normalizeInputBindings
 } from '#gw2/input/bindings.js';
-import { inputControlForSkillSlot } from '#gw2/platform/skills/input-controls.js';
-import {
-  ROTATION_HOTKEY_ENABLED_STORAGE_KEY,
-  ROTATION_HOTKEY_STORAGE_KEY,
-  loadRotationHotkeyBindings,
-  loadRotationHotkeysEnabled,
-  rotationHotkeyStatusLabel,
-  saveRotationHotkeyBindings,
-  saveRotationHotkeysEnabled
-} from '#gw2/app/rotation/hotkeys.js';
 import { gw2KeyboardCode, gw2MouseCode, parseGw2HotkeyBindingsXml } from '#gw2/integrations/keybinds/parser.js';
-import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
+import { inputControlForSkillSlot } from '#gw2/platform/skills/input-controls.js';
 
 test('rotation hotkeys default to the Guild Wars 2 skill-bar keys', () => {
   assert.deepEqual(defaultInputBindings(), {

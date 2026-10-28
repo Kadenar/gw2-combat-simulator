@@ -1,6 +1,6 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { spendBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';

@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runMesmer, createDefaultConfig } from '#tests/helpers/mesmer-simulation.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { MESMER_TRAIT_IDS as TRAIT, MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
-import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Role changes must affect both catalog selection and runtime equipment checks without modifying live skills.
 test('preview swaps Disenchanter and Warden weapon and utility placement', () => {

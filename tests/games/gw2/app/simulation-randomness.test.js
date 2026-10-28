@@ -1,16 +1,7 @@
-import { loadBuildContext } from '#gw2/build-context/load.js';
-
-const contexts = new Map(
-  await Promise.all(['engineer', 'necromancer'].map(async (id) => [id, await loadBuildContext(id)]))
-);
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import { getBuildExportPayload } from '#gw2/app/import-export/files.js';
-import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import {
   calculateRandomDistribution,
   calculateRandomDistributionOutcomes,
@@ -20,28 +11,37 @@ import {
   summarizeRandomDistribution,
   summarizeRandomDistributionOutcomes
 } from '#gw2/app/simulation/random-distribution/random-distribution.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { loadBuildContext } from '#gw2/build-context/load.js';
+import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
-import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createNecromancerBuildDefaults, migrateNecromancerBuild } from '#gw2/professions/necromancer/build/build.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+
+const contexts = new Map(
+  await Promise.all(['engineer', 'necromancer'].map(async (id) => [id, await loadBuildContext(id)]))
+);
 
 // Seeded Necromancer reactions run on the same live owner as the triggering hit.
 const simulateNecromancer = ({ config, rotation }) =>

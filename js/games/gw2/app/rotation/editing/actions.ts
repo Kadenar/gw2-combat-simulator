@@ -1,10 +1,10 @@
 import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
+import type { RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { createSkillSelectionContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 type SkillIdSelector = (skillId: SkillId) => SkillId;

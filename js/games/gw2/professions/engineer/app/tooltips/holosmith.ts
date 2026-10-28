@@ -1,33 +1,33 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { BOON } from '#gw2/platform/constants.js';
 import {
   fromProfile,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
   profileFact,
+  simulationEffectFacts,
   skillFact,
-  tooltipPercent,
+  skillTooltip,
   tooltipDecimal,
   tooltipNumber,
+  tooltipPercent,
   tooltipProfile,
-  simulationEffectFacts,
-  type ProfessionTooltips,
-  type DescribeSimulationTooltip
+  tooltipSeconds,
+  traitTooltip,
+  type DescribeSimulationTooltip,
+  type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
-import { PHOTONIC_BLAST_DELAY_SECONDS } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
-  heatTiers,
-  heatStrikeFacts,
   armFlipTooltip,
-  gleamSaberTooltip
+  gleamSaberTooltip,
+  heatStrikeFacts,
+  heatTiers
 } from '#gw2/professions/engineer/app/tooltips/shared.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
+import { PHOTONIC_BLAST_DELAY_SECONDS } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 
 /** Heat variants describe mutually exclusive packets without evaluating a live combat context. */
 function heatPacketTooltip(skillId: SkillId, description: string, field = false): DescribeSimulationTooltip {

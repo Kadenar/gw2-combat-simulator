@@ -1,4 +1,3 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 // Shared driver for the per-profession benchmark suites in this folder.
 //
 // Each profession has its own `<profession>.test.js` file so a drift or crash
@@ -7,11 +6,11 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 // a profession's `data/gw2/builds/<profession>/manifest.json`, loads every saved build
 // and rotation through the shared app shell, and verifies warning-free, stable
 // DPS results without pinning rotation composition or EVTC details.
-
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import { loadBuildContext } from '#gw2/build-context/load.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const repoUrl = (path) => new URL(`../../../../../${path}`, import.meta.url);

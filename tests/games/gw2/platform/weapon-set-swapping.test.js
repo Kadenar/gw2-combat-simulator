@@ -1,13 +1,14 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { professionRegistry } from '#gw2/profession-registry.js';
+
+import { weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { ELEMENTALIST_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
-import { weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const swap = { type: 'cast', skillId: SHARED_SKILL_IDS.SWAP_WEAPONS };
 const combat = { type: 'combat-start' };

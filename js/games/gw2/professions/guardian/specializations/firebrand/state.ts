@@ -1,13 +1,13 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createDiscreteResourceClock, type DiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
-import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
-import { clamp } from '#kernel/core/numeric.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 export interface GuardianFirebrandState {
   activeTome: string;

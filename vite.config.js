@@ -2,6 +2,7 @@ import { createReadStream, readFileSync } from 'node:fs';
 import { cp, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { defineConfig } from 'vite';
+
 import { benchmarkPreviews } from './scripts/build/benchmark-previews.mjs';
 
 // Serve and copy runtime data only at the game-owned paths declared in the manifest.

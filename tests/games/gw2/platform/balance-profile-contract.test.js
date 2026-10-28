@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
   balanceNumberFromContext,
@@ -13,9 +12,11 @@ import {
   balanceProfileNumber,
   effectNumber,
   requireBalanceProfileFromContext,
-  requireSkillFromContext,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
 const first = { type: 'condition', name: 'First', condition: 'Burning', stacks: 1, duration: 2 };
 const second = { type: 'condition', name: 'Second', condition: 'Bleeding', stacks: 2, duration: 3 };

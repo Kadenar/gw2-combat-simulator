@@ -1,20 +1,21 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { professionTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { createProfessionFamilyUi, uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
-import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
-import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
+import { elementalistAttunementResourceAnchor } from '#gw2/professions/elementalist/family-presentation.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
+import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
 import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
-import { elementalistAttunementResourceAnchor } from '#gw2/professions/elementalist/family-presentation.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
-import { professionTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
 
 // Presentation owners share the composer's precedence, including its fallback after trimming the selected name.
 test('presentation selection resolves direct and config inputs consistently', () => {

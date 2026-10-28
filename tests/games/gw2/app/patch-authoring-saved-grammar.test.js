@@ -1,10 +1,6 @@
-import { SHARED_PROFILE_FIELDS } from '#gw2/platform/skills/profile-fields.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+
 import {
   acceptSavedDraft,
   editorState,
@@ -13,6 +9,11 @@ import {
   toggleEffect
 } from '#gw2/integrations/patches/app/editor-state.js';
 import { bindPatchAuthoringView, renderPatchAuthoring } from '#gw2/integrations/patches/app/render.js';
+import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { SHARED_PROFILE_FIELDS } from '#gw2/platform/skills/profile-fields.js';
 
 // Exercise accepted saved grammar through loading, rendering, editing, and runtime application on tiny declarations.
 for (const section of ['skills', 'balanceProfiles']) {

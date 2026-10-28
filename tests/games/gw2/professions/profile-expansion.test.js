@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { ENGINEER_TRAIT_IDS as ENGINEER, ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const wait = { type: 'wait', durationMs: 2000 };
 const conduit = {

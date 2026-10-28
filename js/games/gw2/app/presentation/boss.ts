@@ -1,9 +1,9 @@
-import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
-import { encounterPhasePlan, encounterExecutionPhases } from '#gw2/app/boss-scenarios/phases.js';
 import { encounterAnalysisPhases, encounterDpsSnapshots } from '#gw2/app/boss-scenarios/analysis-model.js';
 import { mountEncounterAnalysis } from '#gw2/app/boss-scenarios/analysis-view.js';
-import { encounterTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
+import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
+import { encounterExecutionPhases, encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
 import { presentationMetrics, type WorkspacePresentation } from '#gw2/app/presentation/model.js';
+import { encounterTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
 
 /** Boss presentation owns phase interpretation and excludes Golem health assumptions and patch comparison. */
 export function createBossPresentation(scenario: BossScenarioDraft): WorkspacePresentation {

@@ -1,37 +1,40 @@
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { COMBO_FINISHER, ACTOR, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
+/**
+ * Owns Holosmith sword skill fragments and heat-aware sword variants.
+ * Sword cast behavior shared with Core lives in `core/hooks.ts`.
+ */
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import {
-  requireSkillFromContext,
-  requireEffect,
-  skillNumber,
-  effectNumber
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { EngineerResolverContext, EngineerRuntime } from '#gw2/professions/engineer/types.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import {
+  effectNumber,
+  requireEffect,
+  requireSkillFromContext,
+  skillNumber
+} from '#gw2/platform/skills/balance-profiles.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import {
   holosmithEventMetadata,
   holosmithHeatTier,
   snapshotHolosmithHeat
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-/**
- * Owns Holosmith sword skill fragments and heat-aware sword variants.
- * Sword cast behavior shared with Core lives in `core/hooks.ts`.
- */
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type {
   HolosmithSkill,
   HolosmithSkillFragment
 } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import type {
+  EngineerResolverContext,
+  EngineerRuntime,
+  EngineerRuntimeState
+} from '#gw2/professions/engineer/types.js';
 
 // Only these sword autoattacks use the shared default heat factors.
 const swordHeatFactors = { highStrikeFactor: 1.2, enhancedStrikeFactor: 1.3 };

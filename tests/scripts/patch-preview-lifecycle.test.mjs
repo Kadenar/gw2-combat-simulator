@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import test from 'node:test';
+
 import {
   assertPromotionReady,
   reworkChecklist,

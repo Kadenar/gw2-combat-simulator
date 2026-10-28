@@ -1,9 +1,9 @@
+import { isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import type { ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
-import { isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 
 /** Owned pet animations locate Ranger commands before delayed player markers; Soulbeast retains merged-player evidence. */

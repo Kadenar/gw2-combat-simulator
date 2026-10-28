@@ -1,6 +1,6 @@
-import { ACTOR, RECIPIENT, CONDITION, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
   elementalistBuffRequest,
@@ -16,10 +16,10 @@ import {
   FIRE_ELEMENTAL_EVTC_PROFILE
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import {
-  elementalRuntimeProfile,
-  type ElementalKind,
   activeElemental,
-  elementalistElementalCompanionId
+  elementalistElementalCompanionId,
+  elementalRuntimeProfile,
+  type ElementalKind
 } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';

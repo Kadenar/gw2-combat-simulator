@@ -1,19 +1,20 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { ELEMENTALIST_TRAIT_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { MESMER_TRAIT_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { ELEMENTALIST_TRAIT_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
-import { MESMER_TRAIT_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import {
   createObservedProfessionSimulator,
-  observeGw2Runtime,
-  observedRuntime
+  observedRuntime,
+  observeGw2Runtime
 } from '#tests/helpers/observed-runtime.js';
 
 /** Empty native runs exercise selected hook composition without depending on a rotation or damage formula. */

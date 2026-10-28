@@ -1,17 +1,16 @@
-import { ambushSkill } from '#gw2/professions/mesmer/specializations/mirage/skills/ambush.js';
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { DODGE_ICON } from '#gw2/platform/skills/shared-actions.js';
-import { WEAPON, ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Mirage axe, slot-skill, ambush, and simulator-action catalog data.
  * Mirage Cloak, mirror, and ambush runtime behavior lives under `mechanics/`.
  */
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-
+import { DODGE_ICON } from '#gw2/platform/skills/shared-actions.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { ambushSkill } from '#gw2/professions/mesmer/specializations/mirage/skills/ambush.js';
 import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
 export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({

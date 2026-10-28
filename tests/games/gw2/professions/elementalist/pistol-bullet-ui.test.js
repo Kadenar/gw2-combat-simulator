@@ -1,13 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { inertContainer } from '#tests/helpers/dom.js';
-
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { inertContainer } from '#tests/helpers/dom.js';
+import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 
 function createPistolApp() {
   const build = elementalistAppAdapter.toApplicationBuild({

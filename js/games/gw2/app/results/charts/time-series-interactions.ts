@@ -1,6 +1,6 @@
+import { chartValueAt, type ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { escapeHtml } from '#ui/shared/html.js';
-import { chartValueAt, type ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
 
 export interface InteractiveChartPanel {
   readonly kind: string;

@@ -1,23 +1,25 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { overflowingThirst } from '#gw2/professions/necromancer/core/traits/blood-magic/index.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
-import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { triggerShatteringStone } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
-import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
+import {
+  applyShatteringStoneBuff,
+  triggerShatteringStone
+} from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { solarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
 import { necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
+import { overflowingThirst } from '#gw2/professions/necromancer/core/traits/blood-magic/index.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
-import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import {
   handleRangerSharpeningStone,
   triggerSharpeningStone
@@ -30,15 +32,16 @@ import { handleRangerBloodThirst } from '#gw2/professions/ranger/core/skills/wea
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { reactToSoulbeastDamage } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Real state owners and catalogs isolate grant contracts without relying on saved rotation packets.
 function contextFor(profession, specialization, selectedTraitIds = []) {

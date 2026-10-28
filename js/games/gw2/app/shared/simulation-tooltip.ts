@@ -1,17 +1,17 @@
-import { RECIPIENT, ACTOR, COMBO_FINISHER, BOON } from '#gw2/platform/constants.js';
-import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
-import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { ACTOR, BOON, COMBO_FINISHER, RECIPIENT } from '#gw2/platform/constants.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import {
   attributeBonusNumber,
-  requireBalanceProfileFromContext,
   balanceNumberFromContext,
+  requireBalanceProfileFromContext,
   skillNumberFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 
 export interface SimulationTooltip {
   readonly description: string;

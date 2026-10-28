@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
-import { importGeneratorSource, mockGeneratorFiles } from '../helpers/generator-fixtures.mjs';
 import test from 'node:test';
-import { updateRangerData } from '../../scripts/data/update-ranger-data.mjs';
+
+import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/integrations/chat-code/palette-data.js';
+
+import { UNDERWATER_ONLY_SKILL_IDS } from '../../js/games/gw2/platform/skills/underwater-skill-ids.ts';
 import { generateWarriorData } from '../../scripts/data/generate-warrior-data.mjs';
 import { fetchManyGw2 } from '../../scripts/data/lib/gw2-profession-snapshot.mjs';
 import { terrestrialPaletteEntries } from '../../scripts/data/update-build-template-data.mjs';
-import { UNDERWATER_ONLY_SKILL_IDS } from '../../js/games/gw2/platform/skills/underwater-skill-ids.ts';
-import { GW2_BUILD_TEMPLATE_PROFESSIONS } from '#gw2/integrations/chat-code/palette-data.js';
+import { updateRangerData } from '../../scripts/data/update-ranger-data.mjs';
+import { importGeneratorSource, mockGeneratorFiles } from '../helpers/generator-fixtures.mjs';
 
 test('every profession filters underwater palettes while retaining land entries', () => {
   // Apply the same boundary to generated output and checked-in data, including skills with missing API flags.

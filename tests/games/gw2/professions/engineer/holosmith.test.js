@@ -1,20 +1,20 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { holosmithSkillStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
 import { createHolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],

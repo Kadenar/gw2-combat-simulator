@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openDashboard } from '#tests/helpers/browser-benchmarks.js';
 
 // Home-page users can reach the all-profession tool directly, including in an embedded host.

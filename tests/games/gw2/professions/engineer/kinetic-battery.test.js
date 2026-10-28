@@ -1,11 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(engineerProfession, {

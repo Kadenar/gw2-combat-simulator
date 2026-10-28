@@ -1,12 +1,13 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 

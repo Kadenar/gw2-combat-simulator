@@ -1,14 +1,14 @@
-import { COMBO_FINISHER, STATUS, CONTROL, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Elementalist conjured-bundle weapon skill fragments.
  *
  * The table contains Frost Bow, Lightning Hammer, and Fiery Greatsword packet data only.
  * Equip, pickup, and recharge state lives in `core/mechanics/conjures.ts`.
  */
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Skill-id → fragment table for the conjured-bundle weapon skills.

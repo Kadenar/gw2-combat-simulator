@@ -1,11 +1,3 @@
-import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
-import { requireSkillAction, type ActionContext, type SideEffectAction } from '#gw2/platform/effects/actions.js';
-import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import {
-  evokerCastCompleted,
-  familiarSettled
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 /**
  * Familiar cast lifecycle - the heart of the Evoker specialization.
  *
@@ -17,7 +9,12 @@ import {
  * (Prowess, Blessing, Galvanic Enchantment, Specialized Elements) and the Evoker
  * meditation payloads.
  */
-import { GW2_QUICKNESS_ACTION_RATE, castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction, type ActionContext, type SideEffectAction } from '#gw2/platform/effects/actions.js';
+import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import { castRelativeEffectTimingScale, GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
@@ -30,6 +27,10 @@ import {
   grantWeaponSkillCharges,
   weaponSkillChargeGain
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
+import {
+  evokerCastCompleted,
+  familiarSettled
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { settleBasicFamiliar } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type {
@@ -37,7 +38,6 @@ import type {
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 // Replay all four empowered familiar effects with their native F5 strength so balance patches propagate here.
 export function releaseElementalProcession(

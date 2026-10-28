@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { ELEMENTALIST_STATE_IDS as STATE } from '#gw2/professions/elementalist/state-ids.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import { ELEMENTALIST_STATE_IDS as STATE } from '#gw2/professions/elementalist/state-ids.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 
 // Conflicting names outside the owning slice must not affect the public observation.

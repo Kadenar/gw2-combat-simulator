@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
 import {
   activationCombatStartRelation,
   suggestedActivationInterruptMs,
@@ -8,30 +10,29 @@ import {
 } from '#gw2/app/rotation/editing/activation-editor.js';
 import { bindPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import { paletteGroupHtml, paletteSkillHtml, virtualPaletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
-import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
+import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/interactions.js';
 import {
   formatTimelineDuration,
   formatTimelineSkillTooltip,
-  rotationEntryName,
   mechanicResourceSpends,
+  rotationEntryName,
+  rotationSkillHighlightKey,
+  targetHealthTimelineMarkers,
   timelineDeadTimeMarkers,
   timelineImpactOffsets,
   timelineSkillCastOrdinals,
   timelineStepsWithChargeFills,
   timelineTargetImpactDetails,
   timelineWeaponRowGroups,
-  timelineWeaponRows,
-  rotationSkillHighlightKey,
-  targetHealthTimelineMarkers
+  timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
-import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/interactions.js';
-import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // GW2 rotation views preserve editing, palette interactions, and timeline presentation.
 test('activation editor suggests and validates manual interruption times', () => {

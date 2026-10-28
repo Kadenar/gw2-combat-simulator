@@ -1,4 +1,3 @@
-import { WEAPON, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /**
  * Dagger weapon-skill mechanics owned by the Weaver module.
  *
@@ -10,10 +9,10 @@ import { WEAPON, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#
  * Declarative data only - no handler logic lives here. Effect offsets are
  * authored against castTimeMs and follow runtime skill variants through the shared scheduler policy.
  */
-
+import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * The six dagger dual attacks, keyed by skill id and merged into

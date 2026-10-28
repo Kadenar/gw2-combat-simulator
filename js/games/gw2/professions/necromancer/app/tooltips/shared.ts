@@ -1,5 +1,3 @@
-import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
-import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import {
   profileFact,
   skillTooltip,
@@ -8,6 +6,8 @@ import {
   tooltipSeconds,
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Share tooltip formatting and descriptions used by multiple profession owners. */
 

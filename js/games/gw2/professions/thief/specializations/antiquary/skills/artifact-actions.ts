@@ -1,21 +1,23 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { CONDITION } from '#gw2/platform/constants.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { activeChargeGrants, appendChargeGrant, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { CONDITION } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
   allArtifactChoices,
-  completeSkrittSwipe,
   artifactSlotsUsed,
+  completeSkrittSwipe,
   spendArtifact
 } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
+import {
+  artifactActivated,
+  artifactCompleted
+} from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
 import {
   coinInitiative,
   startDoubleEdge,
@@ -23,16 +25,14 @@ import {
 } from '#gw2/professions/thief/specializations/antiquary/skills/double-edge.js';
 import { startForgedSurfer } from '#gw2/professions/thief/specializations/antiquary/skills/forged-surfer.js';
 import { completeSkrittScuffle } from '#gw2/professions/thief/specializations/antiquary/skills/skritt-scuffle.js';
+import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import {
-  artifactActivated,
-  artifactCompleted
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
 import {
   artifactWindowDuration,
   meticulousKryptisDuration
 } from '#gw2/professions/thief/specializations/antiquary/traits/meticulous-custodian.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** This skill family owns its actions; hooks retain registration and cross-owner ordering. */
 export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> =

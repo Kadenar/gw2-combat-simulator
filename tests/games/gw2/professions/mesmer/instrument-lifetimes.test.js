@@ -1,9 +1,8 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
@@ -13,15 +12,17 @@ import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-reso
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
-import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { luteModifiers } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
+import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
+import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { fortissimo } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Keep real profiles and instrument handlers while isolating windows from cast speed, random damage, and cooldowns.
 function instrumentContext(traits = [TRAIT.FORTISSIMO]) {

@@ -1,4 +1,6 @@
-import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { criticalChanceTooltip, rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -6,10 +8,9 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Template rendering needs the selected catalog both before simulation and when replaying aura stacks.
 test('Catalyst snapshots use the active balance catalog before and after simulation', () => {

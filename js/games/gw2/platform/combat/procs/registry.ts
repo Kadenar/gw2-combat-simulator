@@ -1,9 +1,9 @@
+import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
-import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
-import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 /** Proc deadlines read only the live clock, selected balance data, and received recharge rates. */
 export interface ProcRegistryContext {

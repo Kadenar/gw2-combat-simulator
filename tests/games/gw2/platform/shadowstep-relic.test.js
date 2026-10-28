@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { GUARDIAN_SKILL_IDS as G } from '#gw2/professions/guardian/data/ids.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { MESMER_SKILL_IDS as M } from '#gw2/professions/mesmer/data/ids.js';
-import { REVENANT_SKILL_IDS as R, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as R } from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { THIEF_SKILL_IDS as T } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { WARRIOR_SKILL_IDS as W } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });

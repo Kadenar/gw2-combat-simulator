@@ -1,18 +1,18 @@
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
+/**
+ * Profession UI composition. Combines Core, active-specialization, and family
+ * UI slices without leaking runtime ownership policy into the application.
+ */
+import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamageConfigPatch,
   SkillDamagePreviewPreparation
 } from '#gw2/platform/profession-presentation/skill-damage.js';
-/**
- * Profession UI composition. Combines Core, active-specialization, and family
- * UI slices without leaking runtime ownership policy into the application.
- */
-import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type {
+  ProfessionCatalogContext,
   ProfessionChargeReleaseContext,
   ProfessionEventLogContext,
   ProfessionPaletteActionIdentity,

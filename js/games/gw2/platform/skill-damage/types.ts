@@ -1,8 +1,9 @@
-import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { CastCommand } from '#gw2/platform/builds/rotation.js';
+import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+
 /** Serializable skill damage preview contracts shared by the application, its worker, and the evaluator. */
 
 /** Damage state for one occurrence; no cast eligibility or trigger-history fields cross this boundary. */

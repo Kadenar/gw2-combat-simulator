@@ -1,11 +1,12 @@
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
-import { resolvedActionIdentity } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/reconstruct.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
+import { resolvedActionIdentity } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
 import { event, log } from '#tests/helpers/evtc-fixture.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 // Projection preserves resolved identity and the source clock, leaving evidence ownership to each adapter.
 test('action summaries preserve catalog, canonical, and unmatched identities', () => {

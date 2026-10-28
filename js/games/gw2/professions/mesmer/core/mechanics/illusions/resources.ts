@@ -1,13 +1,12 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { MesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/types.js';
 import type {
   MesmerPhantasmEffectController,
-  MesmerPhantasmExecution
+  MesmerPhantasmExecution,
+  MesmerQueueResources
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import type { MesmerQueueResources } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/types.js';
 
 interface DirectSkillResourceOptions {
   readonly resourceDefinition: MesmerResourceDefinition;

@@ -1,8 +1,8 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { purgeTimedState } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
 
 import { hasConfigurableDoubleEdgeOutcome } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { dispatchPaletteActivation, resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
-import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
+import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
 
 // Builds only the app surface used by palette activation so each branch stays isolated.
 function activationApp(skills) {

@@ -1,15 +1,15 @@
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
-import type { RotationComparisonState, ComparisonWindowMode } from '#gw2/app/rotation/comparison-state.js';
-import { analyzeRotationInsights } from '#gw2/app/rotation/insights/rotation-insights.js';
+import { effectName } from '#gw2/app/results/model.js';
+import type { ComparisonWindowMode, RotationComparisonState } from '#gw2/app/rotation/comparison-state.js';
 import type {
+  ComparisonMetric,
   RotationFinding,
-  RotationInsights,
-  ComparisonMetric
+  RotationInsights
 } from '#gw2/app/rotation/insights/rotation-insights-types.js';
+import { analyzeRotationInsights } from '#gw2/app/rotation/insights/rotation-insights.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
-import { effectName } from '#gw2/app/results/model.js';
 
 function text<K extends keyof HTMLElementTagNameMap>(tag: K, value: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);

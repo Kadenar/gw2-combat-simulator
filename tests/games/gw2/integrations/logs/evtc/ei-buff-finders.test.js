@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
+
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 
 // Keep these finder checks independent of simulator loadouts: only recorded buff evidence identifies the cast.
 function find(profession, specialization, modern, events) {

@@ -1,7 +1,8 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { RANGER_TRAIT_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { THIEF_TRAIT_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';

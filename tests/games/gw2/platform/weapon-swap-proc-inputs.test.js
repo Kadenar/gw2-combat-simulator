@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Distinct weapon attributes and sigils expose accidental reuse of either entire weapon set during a swap proc.
 function swapFixture({ family, specialization, weapons, trait, incomingForce, startingWeaponSet = 1 }) {

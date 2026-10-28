@@ -1,14 +1,14 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import { SIGIL_BY_ID, SIGIL_IDS, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
-import { SIGIL_IDS, SIGIL_PROCS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import { createSigilConditionEvent, createSigilDamagePayload } from '#gw2/platform/equipment/sigils/proc-events.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { Gw2SigilProc, Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 import { SEVERANCE_BUFF_POLICY } from '#gw2/platform/equipment/sigils/severance.js';
-import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
+import type { Gw2SigilProc, Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 const procs = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;

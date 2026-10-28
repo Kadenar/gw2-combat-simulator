@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 

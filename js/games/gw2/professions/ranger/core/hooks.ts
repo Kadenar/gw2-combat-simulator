@@ -1,23 +1,13 @@
-import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { ACTOR } from '#gw2/platform/constants.js';
-import { createStealthLifecycle, endStealth, stealthActive } from '#gw2/platform/combat/stealth.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
+import { createStealthLifecycle, endStealth, stealthActive } from '#gw2/platform/combat/stealth.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerBuffPolicies } from '#gw2/professions/ranger/core/effect-state.js';
+import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
-import {
-  rangerInitialized,
-  beastSkillUsed,
-  buffApplied,
-  castCompleted,
-  criticalResolved,
-  dodged,
-  petSwapped,
-  weaponSwapped
-} from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isRangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import {
@@ -29,6 +19,16 @@ import {
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { isBeastSkill } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
+import {
+  beastSkillUsed,
+  buffApplied,
+  castCompleted,
+  criticalResolved,
+  dodged,
+  petSwapped,
+  rangerInitialized,
+  weaponSwapped
+} from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { petSwapLifecycle } from '#gw2/professions/ranger/core/skills/actions.js';
 import { armPetSharpenSpines, consumePetSharpenSpines } from '#gw2/professions/ranger/core/skills/pets/bristleback.js';
 import { armParalyzingVenom, consumeParalyzingVenom } from '#gw2/professions/ranger/core/skills/pets/spider.js';

@@ -1,5 +1,3 @@
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -9,12 +7,14 @@ import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import { isDpsReportData, parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { dpsReportId, dpsReportJsonUrl, fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import {
   LOG_OPENER_WARNING,
   MUSHROOM_KINGS_BLESSING_NAME,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
 } from '#gw2/integrations/logs/shared/rotation/model.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 

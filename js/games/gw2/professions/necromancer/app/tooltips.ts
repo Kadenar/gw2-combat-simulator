@@ -1,9 +1,9 @@
 import type { ProfessionTooltips } from '#gw2/app/shared/simulation-tooltip.js';
 import { necromancerCoreTooltips } from '#gw2/professions/necromancer/app/tooltips/core.js';
-import { reaperTooltips } from '#gw2/professions/necromancer/app/tooltips/reaper.js';
-import { scourgeTooltips } from '#gw2/professions/necromancer/app/tooltips/scourge.js';
 import { harbingerTooltips } from '#gw2/professions/necromancer/app/tooltips/harbinger.js';
+import { reaperTooltips } from '#gw2/professions/necromancer/app/tooltips/reaper.js';
 import { ritualistTooltips } from '#gw2/professions/necromancer/app/tooltips/ritualist.js';
+import { scourgeTooltips } from '#gw2/professions/necromancer/app/tooltips/scourge.js';
 
 /** Combine owner-local descriptions while keeping presentation separate from runtime behavior. */
 export const necromancerTooltips: ProfessionTooltips = {

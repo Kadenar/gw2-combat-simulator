@@ -6,9 +6,9 @@ import {
   tempestLightningJoltLifecycle
 } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import {
-  startTempestOverload,
   completeTempestOverload,
   observeTempestAttunement,
+  startTempestOverload,
   tempestOverloadLifecycle
 } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overloads.js';
 import {

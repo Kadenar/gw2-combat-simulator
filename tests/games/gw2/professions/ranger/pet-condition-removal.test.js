@@ -1,3 +1,6 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
@@ -8,8 +11,6 @@ import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 for (const output of ['score', 'detailed']) {
   test(`pet retirement cancels independent conditions immediately with output=${output}`, () => {

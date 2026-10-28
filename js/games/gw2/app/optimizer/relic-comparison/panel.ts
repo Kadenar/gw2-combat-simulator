@@ -1,11 +1,11 @@
-import type { ProfessionAppState } from '#gw2/app/types.js';
 import { bindRelicComparisonChartHover, relicComparisonChartSvg } from '#gw2/app/optimizer/relic-comparison/chart.js';
 import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
-import { groupedOptionsHtml } from '#ui/shared/select-options.js';
-import { escapeHtml } from '#ui/shared/html.js';
-import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
-import { enhanceDetailedSelect } from '#gw2/app/shared/equipment/picker.js';
 import { relicOptionLabel } from '#gw2/app/shared/equipment/labels.js';
+import { enhanceDetailedSelect } from '#gw2/app/shared/equipment/picker.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
+import { escapeHtml } from '#ui/shared/html.js';
+import { groupedOptionsHtml } from '#ui/shared/select-options.js';
 
 export interface RelicComparisonPanelModel {
   readonly relicComparison?: RelicComparisonModel | null;

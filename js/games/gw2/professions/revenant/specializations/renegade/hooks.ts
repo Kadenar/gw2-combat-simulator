@@ -3,8 +3,8 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
+import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import {
@@ -12,14 +12,14 @@ import {
   renegadeEffectStates
 } from '#gw2/professions/revenant/specializations/renegade/effect-state.js';
 import {
+  activeKallasFervorStacks,
+  bandTogetherReady
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import {
   renegadeBoonApplied,
   renegadeCastCompleted,
   renegadeStruck
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/trigger-points.js';
-import {
-  activeKallasFervorStacks,
-  bandTogetherReady
-} from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { heroicCommand } from '#gw2/professions/revenant/specializations/renegade/skills/heroic-command.js';
 import {
   grantSoulcleaveAllies,
@@ -34,8 +34,8 @@ import {
 } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import {
-  fervorProfile,
-  fervorMaximumStacks
+  fervorMaximumStacks,
+  fervorProfile
 } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 

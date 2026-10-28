@@ -1,11 +1,11 @@
-import { COMBO_FIELD, CONTROL, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Porcine family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { COMBO_FIELD, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 export const SOULBEAST_PORCINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

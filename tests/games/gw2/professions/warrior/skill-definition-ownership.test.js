@@ -1,12 +1,13 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { signetAttributeEffects } from '#gw2/professions/warrior/core/skills/slot-skills.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Change the live pool after the shared reservation but before variant selection to expose accidental resampling.
 test('tier variants use the captured spend after the live adrenaline pool changes', () => {

@@ -1,6 +1,6 @@
 /** Keep Engineer public projections and derived-condition flags closed to unknown fields. */
-import type { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import type { buildEngineerCondition } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import type { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 
 type Assert<T extends true> = T;

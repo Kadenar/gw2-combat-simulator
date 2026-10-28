@@ -1,16 +1,17 @@
-import {
-  onTriggerPoint,
-  compileTriggerPoints,
-  compileProfessionRules,
-  compileRechargeRules
-} from '#gw2/platform/profession-definition/trigger-rules.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import {
+  compileProfessionRules,
+  compileRechargeRules,
+  compileTriggerPoints,
+  onTriggerPoint
+} from '#gw2/platform/profession-definition/trigger-rules.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const strike = {
   id: 1,

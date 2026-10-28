@@ -1,12 +1,13 @@
-import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
-import { formatResultTimelineTime, formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { skillDamageIdentityKey } from '#gw2/app/results/skill-breakdown.js';
+import { formatResultTimelineTime, formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 
 const PLAYER_AUDIENCE = Object.freeze({
   includesSelf: true,

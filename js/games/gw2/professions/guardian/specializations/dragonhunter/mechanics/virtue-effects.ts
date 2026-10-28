@@ -1,16 +1,16 @@
-import { ACTOR, CONDITION, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
-  skillNumber,
   effectNumber,
+  requireEffect,
   requireSkillFromContext,
-  requireEffect
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {

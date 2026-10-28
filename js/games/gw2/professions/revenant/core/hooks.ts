@@ -1,38 +1,37 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
+import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { revenantBuffPolicies, revenantEffectStates } from '#gw2/professions/revenant/core/effect-state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { revenantAvailability } from '#gw2/professions/revenant/core/mechanics/availability.js';
 import { consumeBattleScar, emitBattleScar } from '#gw2/professions/revenant/core/mechanics/battle-scars.js';
+import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
+import { swapLegend } from '#gw2/professions/revenant/core/mechanics/legends.js';
+import { revenantEndurance, revenantEnergy } from '#gw2/professions/revenant/core/mechanics/resources.js';
 import {
-  revenantStruck,
   battleScarConsumed,
   revenantConditionApplied,
   revenantLifecycleAnchored,
+  revenantStruck,
   revenantWeaponSwapped
 } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
-import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
-import { revenantEndurance, revenantEnergy } from '#gw2/professions/revenant/core/mechanics/resources.js';
-import {
-  activateRevenantUpkeep,
-  reserveRevenantUpkeep,
-  cancelRevenantUpkeep,
-  releaseRevenantUpkeep,
-  REVENANT_ENERGY_DEPLETED,
-  starveRevenantUpkeeps,
-  upkeepRelease
-} from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
   REVENANT_UPKEEP_PULSE,
   revenantUpkeepPulse,
   scheduleRevenantUpkeepPulses
 } from '#gw2/professions/revenant/core/mechanics/upkeep-pulses.js';
-import { revenantAvailability } from '#gw2/professions/revenant/core/mechanics/availability.js';
-import { swapLegend } from '#gw2/professions/revenant/core/mechanics/legends.js';
+import {
+  activateRevenantUpkeep,
+  cancelRevenantUpkeep,
+  releaseRevenantUpkeep,
+  reserveRevenantUpkeep,
+  REVENANT_ENERGY_DEPLETED,
+  starveRevenantUpkeeps,
+  upkeepRelease
+} from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import {
   enchantedDaggers,
   enchantedDaggersLifecycle,
@@ -42,10 +41,11 @@ import { empowerRevenantEmbrace, startRevenantEmbrace } from '#gw2/professions/r
 import { greatswordLifecycle } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import { scepterLifecycle } from '#gw2/professions/revenant/core/skills/weapons/scepter.js';
 import { spearLifecycle } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
+import { revenantLifeSiphonBonus } from '#gw2/professions/revenant/core/traits/invocation/queries.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
-import type { RevenantRuntimeState, RevenantSkill, RevenantResolverContext } from '#gw2/professions/revenant/types.js';
+import type { RevenantResolverContext, RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Core hooks: Energy, upkeeps, legends, weapon follow-ups, and actual hit/application trait reactions. */
 

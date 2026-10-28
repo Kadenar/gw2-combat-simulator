@@ -1,14 +1,13 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { expireCharges, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
-import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { skillFlipVisible, type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface GuardianCoreState {

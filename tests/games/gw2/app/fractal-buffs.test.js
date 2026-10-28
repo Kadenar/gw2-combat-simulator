@@ -1,25 +1,26 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
+import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import {
+  createOptimizerBuildContext,
   DEFAULT_FRACTAL_BUFFS,
   fractalAttributes,
-  validateFractalBuffs,
-  createOptimizerBuildContext,
-  optimizerBuildContextFactory
+  optimizerBuildContextFactory,
+  validateFractalBuffs
 } from '#gw2/app/optimizer/gear/fractal-buffs.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
 import {
+  applyOptimizerCandidate,
   captureGearOptimizerRequest,
   createOptimizerEvaluator,
   optimizerEquipment,
   optimizerScore,
-  verifyOptimizerScore,
-  applyOptimizerCandidate
+  verifyOptimizerScore
 } from '#gw2/app/optimizer/gear/search.js';
-import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
-import { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 
 const enabled = { ...DEFAULT_FRACTAL_BUFFS, enabled: true };
 const warrior = await loadOptimizerContext('warrior');

@@ -1,9 +1,9 @@
-import { SPELLBREAKER_TRAIT_SKILLS } from '#gw2/professions/warrior/specializations/spellbreaker/skills/trait-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { spellbreakerHooks } from '#gw2/professions/warrior/specializations/spellbreaker/hooks.js';
 import { spellbreakerUi } from '#gw2/professions/warrior/specializations/spellbreaker/presentation.js';
 import { SPELLBREAKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/spellbreaker/skills/index.js';
+import { SPELLBREAKER_TRAIT_SKILLS } from '#gw2/professions/warrior/specializations/spellbreaker/skills/trait-skills.js';
 import {
   projectSpellbreakerPlanningState,
   spellbreakerState

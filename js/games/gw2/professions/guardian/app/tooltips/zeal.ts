@@ -1,5 +1,3 @@
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -9,9 +7,11 @@ import {
   tooltipNumber,
   tooltipPercent,
   tooltipSeconds,
+  traitSkillTooltip,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 /** Describe zeal tooltips from the selected balance data. */

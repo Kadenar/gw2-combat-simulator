@@ -1,7 +1,7 @@
 import { WEAPON } from '#gw2/platform/constants.js';
-import { GUARDIAN_SKILL_IDS as SKILL } from '#gw2/professions/guardian/data/ids.js';
 import { normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { GUARDIAN_SKILL_IDS as SKILL } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianCanonicalBuild } from '#gw2/professions/guardian/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';

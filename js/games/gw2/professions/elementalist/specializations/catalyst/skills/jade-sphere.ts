@@ -1,23 +1,25 @@
-import { ELEMENTALIST_TRAIT_IDS as CATALYST_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { RECIPIENT, COMBO_FIELD, ACTOR, BOON } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, COMBO_FIELD, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import { type AvailabilityResult, denyCast } from '#gw2/platform/execution/availability.js';
+import { denyCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_TRAIT_IDS as CATALYST_TRAIT,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
 import { sphereDeployed } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applySphereSpecialistDurations } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type {
+  ElementalistRuntime,
   ElementalistRuntimeState,
-  ElementalistSkill,
-  ElementalistRuntime
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
 const JADE_SPHERE_TICKS = Object.freeze([0, 1000, 2000, 3000, 4000, 5000]);

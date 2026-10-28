@@ -1,17 +1,17 @@
-import { bindBuildTemplateImportDialog } from '#gw2/app/import-export/build-template-import-dialog.js';
-import { renderAssumptions } from '#gw2/app/build/panels/assumptions.js';
-import { renderAttributes } from '#gw2/app/build/panels/attributes.js';
-import { renderSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
-import { renderGear } from '#gw2/app/build/panels/gear.js';
+import type { BuildEditor } from '#browser/shell/types.js';
 import { initBuildTemplates } from '#gw2/app/build/library/controller.js';
 import { updateTemplateSelection } from '#gw2/app/build/library/view.js';
+import { renderAssumptions } from '#gw2/app/build/panels/assumptions.js';
+import { renderAttributes } from '#gw2/app/build/panels/attributes.js';
+import { renderGear } from '#gw2/app/build/panels/gear.js';
+import { mountProcRateOverrides } from '#gw2/app/build/panels/proc-rates.js';
+import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
+import { renderSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
 import { renderTraits } from '#gw2/app/build/panels/traits.js';
-import { mountProcRateOverrides } from '#gw2/app/build/panels/proc-rates.js';
-import { mountRotationDisplayControls } from '#gw2/app/rotation/timeline/display-controls.js';
-import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
+import { bindBuildTemplateImportDialog } from '#gw2/app/import-export/build-template-import-dialog.js';
 import { mountPreviewAssumptions } from '#gw2/app/patch-preview/assumptions.js';
-import type { BuildEditor } from '#browser/shell/types.js';
+import { mountRotationDisplayControls } from '#gw2/app/rotation/timeline/display-controls.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Supplies the existing GW2 editor sections through the game-neutral contribution contract. */

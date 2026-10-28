@@ -1,9 +1,9 @@
-import { professionRegistry } from '#gw2/profession-registry.js';
 import { templateCategory } from '#gw2/app/build/library/model.js';
-import { escapeHtml as html } from '#ui/shared/html.js';
-import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import type { Benchmark } from '#gw2/app/page/benchmarks.js';
+import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+import { escapeHtml as html } from '#ui/shared/html.js';
 
 interface MeasuredPatchBenchmark {
   readonly build: Benchmark;

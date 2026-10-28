@@ -1,13 +1,13 @@
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
   fromProfile,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
-  tooltipPercent,
   tooltipDecimal,
   tooltipNumber,
+  tooltipPercent,
   tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';

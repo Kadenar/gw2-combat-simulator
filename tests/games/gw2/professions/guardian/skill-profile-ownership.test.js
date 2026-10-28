@@ -1,11 +1,12 @@
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
-import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { guardianPassiveAttributes } from '#gw2/professions/guardian/core/skills/attribute-passives.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';

@@ -2,6 +2,7 @@
  * Composes owner-local Core Revenant skill catalogs without owning runtime behavior.
  * Balance profiles and execution live in sibling owner modules.
  */
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { REVENANT_CORE_EXTRA_SKILLS } from '#gw2/professions/revenant/core/skills/actions.js';
 import { REVENANT_LEGEND_CALL_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
 import { REVENANT_ASSASSIN_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legends/assassin.js';
@@ -20,7 +21,6 @@ import { REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS } from '#gw2/professions/reve
 import { REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/spear.js';
 import { REVENANT_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/staff.js';
 import { REVENANT_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/sword.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Preserves the original catalog precedence while each skill family owns its fragments. */
 export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

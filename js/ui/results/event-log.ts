@@ -1,6 +1,6 @@
 /** Renders and exports generic event-log rows without simulation-specific knowledge. */
-import { escapeHtml } from '#ui/shared/html.js';
 import { timeKey } from '#kernel/core/clock.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 export interface EventLogDescriptor {
   readonly type: string;

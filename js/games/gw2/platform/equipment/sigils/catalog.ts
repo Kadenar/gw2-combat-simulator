@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 /** Owns selectable sigil names and groupings derived from the sigil table. */
+import { CONDITION } from '#gw2/platform/constants.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 
 export const SIGIL_NAMES: readonly string[] = Object.keys(SIGIL_DATA).sort((left, right) => left.localeCompare(right));

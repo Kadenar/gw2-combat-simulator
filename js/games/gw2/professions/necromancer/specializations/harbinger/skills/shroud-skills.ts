@@ -1,9 +1,8 @@
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { CONTROL, ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { doomApproachesDarkBarrage } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
 
 /** Supplies Harbinger Shroud fragments to specialization composition. */

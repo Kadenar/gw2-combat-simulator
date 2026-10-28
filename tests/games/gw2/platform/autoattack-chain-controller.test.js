@@ -1,12 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { autoattackChainSkillAvailable, resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const skill = (id, name, extra = {}) => ({
   id,

@@ -1,10 +1,9 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import {
+  bleedingDuration,
+  countPairedApplications,
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,
   EVTC_DURATION_TOLERANCE_MS,
-  bleedingDuration,
-  countPairedApplications,
   expectedConditionDurationsMs,
   hasSelectedTrait,
   isConditionApplication,
@@ -14,6 +13,7 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 import { EVTC_ACTIVATION, EVTC_STATE_CHANGE, type ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { attributeBonusNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';

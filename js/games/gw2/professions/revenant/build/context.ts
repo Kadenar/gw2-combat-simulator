@@ -1,8 +1,8 @@
+import { bindBuildContext } from '#gw2/build-context/create.js';
+import type { BoundProfession } from '#gw2/build-context/types.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { resolveRevenantSkillLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import type { BoundProfession } from '#gw2/build-context/types.js';
-import { bindBuildContext } from '#gw2/build-context/create.js';
-import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
 

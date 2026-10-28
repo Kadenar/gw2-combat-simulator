@@ -1,12 +1,13 @@
-import { enteredCombat } from '#tests/helpers/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
+
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
+import { enteredCombat } from '#tests/helpers/engagement.js';
 
 // The real acceptance boundary reuses one context, reads replaced state, and keeps cached patch selections per run.
 test('cast labels receive live profession data and the selected skill in combat and isolated runs', () => {

@@ -1,9 +1,9 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { selectedMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 
 /** Choose this command row in its existing priority order, retaining the first option for an empty selection. */
 export function mechArmsCommand(traits: EngineerConfig | ReadonlySet<SkillId>): SkillId {

@@ -1,10 +1,8 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
+import type { ConditionEffect, StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
-
-import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerClone {
   id: number;

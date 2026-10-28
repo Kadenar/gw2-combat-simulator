@@ -1,9 +1,9 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professions/mesmer/core/presentation.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
+import { mesmerMechanicPaletteGroups, mesmerResourceViews } from '#gw2/professions/mesmer/core/presentation.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 const VIRTUOSO_MECHANIC_SKILLS = Object.freeze([
   ID.BLADESONG_HARMONY,

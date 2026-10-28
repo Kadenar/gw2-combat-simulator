@@ -1,12 +1,12 @@
 import {
   fromProfile,
-  profileFact,
-  tooltipFactorChange,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
+  profileFact,
   skillTooltip,
+  tooltipFactorChange,
   tooltipPercent,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { INITIATIVE } from '#gw2/professions/thief/core/mechanics/resources.js';

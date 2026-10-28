@@ -1,16 +1,4 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR, RECIPIENT, COMBO_FIELD, CONTROL, WEAPON, BOON } from '#gw2/platform/constants.js';
-import { strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
-import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
-import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
-import {
-  skillNumber,
-  effectNumber,
-  requireSkillFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+/** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import {
   activeChargeCount,
@@ -18,15 +6,25 @@ import {
   grantCharges,
   type ChargeGrant
 } from '#gw2/platform/combat/resources/charges.js';
-import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
-
+import { ACTOR, BOON, COMBO_FIELD, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { impactEffects, strikeEffectCoefficient, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
+import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
-/** Canonical Core guardian skill fragments grouped by their GW2 owner. */
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import {
+  effectNumber,
+  requireEffect,
+  requireSkillFromContext,
+  skillNumber
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 const consumedCharges = new WeakMap<RuntimeCast<GuardianSkill>, ChargeGrant>();
 

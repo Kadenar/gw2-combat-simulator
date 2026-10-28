@@ -1,3 +1,9 @@
+import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
+import { NECROMANCER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/necromancer/data/necromancer-supplemental-skills.js';
+import { TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import {
   createFlipParentMap,
@@ -6,12 +12,6 @@ import {
   normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
-import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/necromancer/data/necromancer-api-metadata.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { NECROMANCER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/necromancer/data/necromancer-supplemental-skills.js';
-import { TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 
 const STATIC_REPLACEMENT_PAIRS = new Set<string>([
   `${ID.LIFE_BLAST}:${ID.DHUUMFIRE_BLAST}`,

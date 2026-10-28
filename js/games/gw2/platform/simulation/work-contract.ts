@@ -1,6 +1,6 @@
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { QueuedEvent } from '#kernel/events/queue.js';
 

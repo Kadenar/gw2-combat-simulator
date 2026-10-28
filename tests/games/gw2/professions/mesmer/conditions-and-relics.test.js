@@ -1,14 +1,15 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Mesmer conditions and relic interactions retain skill, trait, and illusion behavior.
 test('condition-bearing clone autoattacks apply their damaging conditions', () => {

@@ -1,22 +1,21 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
+import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import {
+  RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
+  rangerSpearStealthAvailable
+} from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 import {
   isRangerHammerVariant,
   rangerHammerSkillIds,
   rangerHammerUsesBuildSelection
 } from '#gw2/professions/ranger/data/hammer-variants.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
-
-import {
-  RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
-  rangerSpearStealthAvailable
-} from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Enforce endurance, pet ownership, selected hammer variants, and timed weapon
 // flips before allowing a core Ranger cast; shared code owns chain ordering.

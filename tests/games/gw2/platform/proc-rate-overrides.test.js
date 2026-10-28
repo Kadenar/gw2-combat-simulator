@@ -1,15 +1,16 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
+import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
-import { validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
-import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 // Converted cases explicitly use live execution, including Core traits under elite specializations.
 const runRuntime = ({ profession, config, rotation, observationPolicy }) =>

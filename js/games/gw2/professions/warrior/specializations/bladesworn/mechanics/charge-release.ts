@@ -1,7 +1,9 @@
-import { DRAGON_TRIGGER_ENTRY_RESOURCE_REASON } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { ENTER_DRAGON_TRIGGER_REASON } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import type { ProfessionChargeReleaseContext } from '#gw2/platform/profession-presentation/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import {
+  DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
+  ENTER_DRAGON_TRIGGER_REASON
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 
 /** Release choices are actual independent prefix runs, including their pending effects, cooldowns, and charge stalls. */
 export function dragonChargeReleaseProjection({ skill, preview }: ProfessionChargeReleaseContext) {

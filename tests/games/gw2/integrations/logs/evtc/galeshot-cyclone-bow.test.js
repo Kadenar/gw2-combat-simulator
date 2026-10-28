@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { galeshotCycloneBowActions } from '#gw2/integrations/logs/evtc/rotation/professions/galeshot.js';
+
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { galeshotCycloneBowActions } from '#gw2/integrations/logs/evtc/rotation/professions/galeshot.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 

@@ -1,21 +1,23 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import {
+  createObservedProfessionSimulator,
+  observedRuntime,
+  planningFixture
+} from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Attribute assertions use the same calculator composed into the Guardian adapter.
 const calculateGuardianAttributes = createCalculateAttributes(

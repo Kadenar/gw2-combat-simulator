@@ -1,21 +1,19 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { barrierBoonAudience } from '#gw2/platform/combat/barrier.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
   defineTrait,
   traitAttributeEffects,
   traitSkillReplacement
 } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusNumber,
   balanceNumberFromContext,
@@ -24,6 +22,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
   scourgeConditionApplied,

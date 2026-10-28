@@ -1,12 +1,10 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
   balanceNumberFromContext,
   requireBalanceProfileFromContext,
@@ -14,7 +12,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
-import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export const DETONATE = 'warrior.king-of-fires-detonate';
 

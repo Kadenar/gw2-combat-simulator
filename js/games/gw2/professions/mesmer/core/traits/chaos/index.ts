@@ -1,11 +1,13 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
-import { WEAPON, ACTOR, AURA, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, AURA, BOON, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -16,13 +18,11 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { mesmerControlAccepted, mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import {
   mesmerProfessionActionCommitted,
   mesmerShatterResolved
 } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
-import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { mesmerControlAccepted, mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';

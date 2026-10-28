@@ -1,6 +1,3 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { RAZORCLAW_PROC_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import {
   activeChargeCount,
@@ -8,16 +5,19 @@ import {
   grantCharges,
   type ChargeGrant
 } from '#gw2/platform/combat/resources/charges.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { RAZORCLAW_PROC_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 

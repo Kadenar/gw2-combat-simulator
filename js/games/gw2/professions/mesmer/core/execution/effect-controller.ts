@@ -1,22 +1,21 @@
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /**
  * Owns the ordered Core Mesmer effect-controller pipeline used by replacing handlers.
  * Packet emission and stateful effects remain in their focused sibling modules.
  */
-import { schedulePhantasmConversions } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
-import { createPhantasmEffectController } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
-import { createSkillDamageController } from '#gw2/professions/mesmer/core/execution/packet-emission.js';
 import type {
   MesmerExceptionalProfileOptions,
   MesmerSkillEffectController
 } from '#gw2/professions/mesmer/core/execution/effect-types.js';
-
+import { createSkillDamageController } from '#gw2/professions/mesmer/core/execution/packet-emission.js';
+import { createPhantasmEffectController } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
+import { schedulePhantasmConversions } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
 import type {
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy,
   MesmerQueueResources
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerConditionEffect, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 interface SkillEffectControllerOptions {
   readonly state: MesmerRuntime;

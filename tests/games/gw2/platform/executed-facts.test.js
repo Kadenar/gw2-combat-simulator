@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 
 // Gameplay history remains available independently of reporting, with recording granted separately from querying.

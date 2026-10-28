@@ -1,8 +1,8 @@
-import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
-import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
-import type { BoundProfession } from '#gw2/build-context/types.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
+import type { BoundProfession } from '#gw2/build-context/types.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
+import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
+import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
 

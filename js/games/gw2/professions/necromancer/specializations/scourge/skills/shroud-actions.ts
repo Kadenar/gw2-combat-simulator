@@ -1,13 +1,13 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { skillNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,

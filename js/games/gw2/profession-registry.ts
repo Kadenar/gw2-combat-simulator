@@ -1,5 +1,3 @@
-import { PROFESSION_IDENTITIES } from '#gw2/profession-identities.js';
-import type { BuildContextModule } from '#gw2/build-context/types.js';
 /**
  * Lazy profession manifest shared by browser pages, simulation workers, and tooling.
  *
@@ -8,9 +6,10 @@ import type { BuildContextModule } from '#gw2/build-context/types.js';
  * profession implementation. Engine sources, headless build contexts, and
  * browser app adapters have separate lazy entry points.
  */
-
 import type { Gw2AppAdapter } from '#gw2/app/types.js';
+import type { BuildContextModule } from '#gw2/build-context/types.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
+import { PROFESSION_IDENTITIES } from '#gw2/profession-identities.js';
 
 // Preserve native composition metadata so engine consumers can apply previews without loading an app adapter.
 type RegisteredProfession = NativeProfessionContract<readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]]>;

@@ -1,9 +1,9 @@
-import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';

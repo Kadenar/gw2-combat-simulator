@@ -1,6 +1,6 @@
-import { RANGER_UNTAMED_PROFILE_FIELDS } from '#gw2/professions/ranger/specializations/untamed/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
+import { RANGER_UNTAMED_PROFILE_FIELDS } from '#gw2/professions/ranger/specializations/untamed/catalog-fields.js';
 import { untamedHooks } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
 import { bindUntamedUi } from '#gw2/professions/ranger/specializations/untamed/presentation.js';
 import { UNTAMED_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/untamed/skills/index.js';

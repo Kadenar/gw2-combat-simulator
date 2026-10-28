@@ -1,4 +1,3 @@
-import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
@@ -8,11 +7,13 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
-  requireBalanceProfileFromContext
+  requireBalanceProfileFromContext,
+  requireSkillFromContext,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
-import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import {

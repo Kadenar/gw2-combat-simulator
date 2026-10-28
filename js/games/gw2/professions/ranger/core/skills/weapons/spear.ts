@@ -1,16 +1,16 @@
-import { COMBO_FINISHER, STATUS, WEAPON, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { endStealth } from '#gw2/platform/combat/stealth.js';
+/** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { RangerSkill, RangerRuntime, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
+import { endStealth } from '#gw2/platform/combat/stealth.js';
+import { BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, STATUS, WEAPON } from '#gw2/platform/constants.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
-/** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.

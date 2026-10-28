@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import {
@@ -12,10 +13,10 @@ import {
   consumeElectricEnchantment,
   grantElectricEnchantments
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { evokerCastCompleted } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const config = { specialization: 'Evoker', selectedTraitIds: [] };
 const native = elementalistProfession.runtimeFor(config);

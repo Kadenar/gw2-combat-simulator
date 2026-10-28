@@ -1,9 +1,9 @@
-import { canonicalTime } from '#kernel/core/clock.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 const SCEPTER_CHAIN_EXPIRY_TASK = 'mesmer.scepter-chain-expire';
 // Manual test 20261023-163612 retains the chain 2.760s after completion and resets by 2.880s.

@@ -1,19 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
-import { canonicalTime } from '#kernel/core/clock.js';
 import test from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
+
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-
-import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Trait-owned scheduling must keep honoring balance edits for both the disable proc and delayed wave.
 test('Syncopate reads patched damage from its trait profile', () => {

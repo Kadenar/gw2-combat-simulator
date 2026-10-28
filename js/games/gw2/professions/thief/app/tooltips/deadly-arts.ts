@@ -1,9 +1,9 @@
 import {
   fromProfile,
   tooltipFactorChange,
+  tooltipPercent,
   tooltipSeconds,
   traitTooltip,
-  tooltipPercent,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';

@@ -1,14 +1,13 @@
-import { ACTOR, AURA, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { ACTOR, AURA, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import {
   balanceNumberFromContext,
@@ -22,9 +21,9 @@ import {
 } from '#gw2/professions/warrior/specializations/berserker/mechanics/berserk.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import {
-  DETONATE,
   active,
   armAura,
+  DETONATE,
   detonate,
   isBerserkerSkill
 } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';

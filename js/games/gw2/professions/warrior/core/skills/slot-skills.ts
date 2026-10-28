@@ -1,18 +1,18 @@
-import { COMBO_FINISHER, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
-import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { ownerAttributeEffects, passiveSkillAttributes } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
-import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
-import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
+import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 

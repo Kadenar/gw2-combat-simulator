@@ -1,14 +1,15 @@
-import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { StableEventQueue } from '#kernel/events/queue.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+
 import {
-  createResourceClock,
   createDiscreteResourceClock,
+  createResourceClock,
   resourceAnchor
 } from '#gw2/platform/combat/resources/clock.js';
+import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 
 // Settle each observed clock through the production resource controller.
 function advance(runtime, at) {

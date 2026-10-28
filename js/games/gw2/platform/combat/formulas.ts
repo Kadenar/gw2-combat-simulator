@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2ResolvedStats, Gw2Stats } from '#gw2/platform/attributes/stats.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 // Stateless GW2 strike and condition damage formulas, plus the precision, ferocity, and expertise percentage

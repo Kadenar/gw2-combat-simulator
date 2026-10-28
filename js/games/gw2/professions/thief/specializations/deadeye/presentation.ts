@@ -1,21 +1,20 @@
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamagePreviewPreparation,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
   const paletteTraits = context.traits;

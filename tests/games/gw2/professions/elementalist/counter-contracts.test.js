@@ -1,4 +1,6 @@
-import { evokerEntryObserved } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { expireElementalistState } from '#gw2/professions/elementalist/core/mechanics/expiry.js';
 import {
@@ -6,19 +8,18 @@ import {
   consumeElementalistEtching,
   openElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { evokerEntryObserved } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 test('Bountiful Power resets at the cap and preserves progress earned by nested reward reactions', () => {
   // An oversized grant earns one reward; progress from a nested application belongs to the new cycle.

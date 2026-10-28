@@ -1,19 +1,19 @@
+import type { ComboEvent } from '#gw2/platform/combos/types.js';
+import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import {
-  STATUS,
+  AURA,
+  BOON,
   COMBO_FIELD,
   COMBO_FINISHER,
-  AURA,
+  CONDITION,
   CONTROL,
   RECIPIENT,
-  BOON,
-  CONDITION,
+  STATUS,
   type ComboFieldType,
   type ComboFinisherType
 } from '#gw2/platform/constants.js';
-import type { ComboEvent } from '#gw2/platform/combos/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 
 const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
   // Combo conditions share the finisher's damage row even when its cast uses a variant name.

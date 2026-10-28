@@ -1,15 +1,15 @@
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Brawler relic rules. */
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import {
+  compareTimelineEvents,
   defineRelic,
   recordTimedBuffProc,
-  timedStrikeBuff,
-  compareTimelineEvents
+  timedStrikeBuff
 } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const brawler = defineRelic({

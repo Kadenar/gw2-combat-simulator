@@ -1,11 +1,12 @@
+import type { Gw2AttributeInputs } from '#gw2/platform/attributes/types.js';
 import type { Gw2SelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
-import type { Gw2AttributeInputs } from '#gw2/platform/attributes/types.js';
 import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
+
 /** The validated run configuration: build stats, equipment, target and boon assumptions, and selected content. */
 
 export interface Gw2Config {

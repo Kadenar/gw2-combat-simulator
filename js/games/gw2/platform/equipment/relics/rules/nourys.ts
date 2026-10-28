@@ -1,9 +1,8 @@
-import { timeKey } from '#kernel/core/clock.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 /** Nourys relic rules. */
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { defineRelic, explicitCombatStartTime } from '#gw2/platform/equipment/relics/rules/shared.js';
-
-import type { Gw2RelicState, Gw2RelicRuntimeContext } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicRuntimeContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import { timeKey } from '#kernel/core/clock.js';
 
 const NOURYS_STACK_INTERVAL = 3;
 const NOURYS_STACKS_NEEDED = 10;

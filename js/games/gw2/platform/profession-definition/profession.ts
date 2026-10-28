@@ -4,35 +4,57 @@ import {
   attributeContext
 } from '#gw2/platform/attributes/evaluation.js';
 import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-
-import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
-import { validateCatalogActionHandlers } from '#gw2/platform/effects/action-declarations.js';
-import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
-import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type {
   Gw2AttributeContext,
   Gw2AttributeContributionCalculator,
   Gw2AttributeContributions
 } from '#gw2/platform/attributes/types.js';
+import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import { validateCatalogActionHandlers } from '#gw2/platform/effects/action-declarations.js';
+import { validateAutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
 import {
   denyCast,
   selectedSlotSkillAvailability,
   weaponSetSwapAvailability
 } from '#gw2/platform/execution/availability.js';
+import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
 import {
-  MODIFIER_HOOK_NAMES,
+  assembleNativeRuntimeCatalog,
+  getNativeCatalogAssembly
+} from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import {
   assertDefinition,
   assertModifierDefinition,
-  defineProfession
+  defineProfession,
+  MODIFIER_HOOK_NAMES
 } from '#gw2/platform/profession-definition/compile-contract.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type {
+  AnyNativeModule,
+  NativeModule,
+  NativeModuleDefinition,
+  NativeProfessionContract,
+  NativeProfessionDefinition,
+  NativeProfessionRuntimeState
+} from '#gw2/platform/profession-definition/module-types.js';
 import type {
   ProfessionRuntimeOptions,
   RuntimeProfession
 } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composePlanningState } from '#gw2/platform/profession-definition/state.js';
+import { defineTrait, prepareTraitAttributes } from '#gw2/platform/profession-definition/traits.js';
+import {
+  assertTraitTrigger,
+  compileProfessionRules,
+  compileTriggerPoints,
+  validateTriggerPoints
+} from '#gw2/platform/profession-definition/trigger-rules.js';
 import type {
   NormalizedProfessionContract,
   ProfessionConfig,
@@ -43,34 +65,9 @@ import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { validateAutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
-import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
-import {
-  assembleNativeRuntimeCatalog,
-  getNativeCatalogAssembly
-} from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import type {
-  AnyNativeModule,
-  NativeModule,
-  NativeModuleDefinition,
-  NativeProfessionContract,
-  NativeProfessionDefinition,
-  NativeProfessionRuntimeState
-} from '#gw2/platform/profession-definition/module-types.js';
-import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { defineTrait, prepareTraitAttributes } from '#gw2/platform/profession-definition/traits.js';
-import {
-  assertTraitTrigger,
-  compileProfessionRules,
-  compileTriggerPoints,
-  validateTriggerPoints
-} from '#gw2/platform/profession-definition/trigger-rules.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
-import { composePlanningState } from '#gw2/platform/profession-definition/state.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ResourcePolicies & { readonly endurance?: EndurancePolicy };

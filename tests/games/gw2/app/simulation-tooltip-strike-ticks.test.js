@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { describeSimulationSkill, simulationEffectFacts } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 
 // Signet's flat formula lives on its ticks, so presentation must follow the selected packets rather than their zero coefficient.
 test('Signet of Vampirism tooltip exposes the selected per-tick damage formula', () => {

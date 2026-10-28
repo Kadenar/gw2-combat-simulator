@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
-import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,
   validateWarriorBuild
 } from '#gw2/professions/warrior/build/build.js';
+import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
 
 // Saved holds survive canonical loading; zero means the ordinary release and invalid timing stays visible.
 test('Dragon Slash release delays survive saved-build loading and clear at zero', () => {

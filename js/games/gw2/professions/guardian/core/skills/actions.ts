@@ -1,10 +1,8 @@
-import { createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
-
 /**
  * Owns synthetic Core Guardian actions that do not come from the GW2 skill catalog.
  * Runtime behavior remains with the platform weapon-swap handler.
  */
-
+import { createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Supplies the frozen synthetic-action catalog to Core module composition. */

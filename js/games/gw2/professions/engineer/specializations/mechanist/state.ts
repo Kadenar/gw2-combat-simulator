@@ -1,12 +1,14 @@
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
-import { mechArmsCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
-import { mechCoreCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+import {
+  mechArmsCommand,
+  mechCoreCommand
+} from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
 import { mechFrameCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
-import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 interface EngineerMechState {

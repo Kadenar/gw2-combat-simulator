@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
-import { antiquaryChakShieldActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
+
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { antiquaryChakShieldActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 
 // Owned placement plus a fresh refund grant proves an instant shield without relying on every optional visual.
 function shieldEvidence() {

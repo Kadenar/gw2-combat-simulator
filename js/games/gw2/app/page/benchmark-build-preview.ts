@@ -1,10 +1,10 @@
-import { escapeHtml as html } from '#ui/shared/html.js';
 import {
   benchmarkPreviewPath,
   validateBenchmarkPreview,
   type PreviewIcon
 } from '#gw2/app/page/benchmark-preview-data.js';
 import type { Benchmark } from '#gw2/app/page/benchmarks.js';
+import { escapeHtml as html } from '#ui/shared/html.js';
 
 const previews = new Map<string, Promise<string>>();
 

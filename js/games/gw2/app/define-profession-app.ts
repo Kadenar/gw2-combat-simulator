@@ -1,4 +1,3 @@
-import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { gw2BuildEditor } from '#gw2/app/build/editor.js';
 import type {
   ProfessionDefaultOffhand,
@@ -10,20 +9,19 @@ import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
 import { renderRotationBuilder } from '#gw2/app/rotation/builder.js';
 import {
-  resolveTooltips,
   describeSimulationSkill,
   describeSimulationTrait,
+  resolveTooltips,
   type SimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.js';
-
+import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-
 import type { CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /**

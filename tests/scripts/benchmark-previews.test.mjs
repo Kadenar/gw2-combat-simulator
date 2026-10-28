@@ -4,10 +4,12 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { benchmarkPreviews, createPreviewGenerator } from '../../scripts/build/benchmark-previews.mjs';
-import { professionRegistry } from '#gw2/profession-registry.js';
-import { readBenchmarks } from '#gw2/app/page/benchmarks.js';
+
 import { benchmarkPreviewPath, validateBenchmarkPreview } from '#gw2/app/page/benchmark-preview-data.js';
+import { readBenchmarks } from '#gw2/app/page/benchmarks.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+
+import { benchmarkPreviews, createPreviewGenerator } from '../../scripts/build/benchmark-previews.mjs';
 
 // Every listed benchmark, including outdated entries and shared build files, must have a deployable preview.
 test('preview generation covers the manifests using source modules', async () => {

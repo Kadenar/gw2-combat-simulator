@@ -1,17 +1,18 @@
-import { ELEMENTALIST_EVOKER_PROFILE_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
+import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
+import {
+  ELEMENTALIST_EVOKER_PROFILE_FIELDS,
+  EVOKER_SKILL_FIELDS
+} from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
+import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
+import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
 import {
   EVOKER_FAMILIAR_SKILL_MECHANICS,
   zapModifiers
 } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
-import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
-import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
-
-import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
 import { EVOKER_MEDITATION_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/meditation-skills.js';
 import { evokerState, projectEvokerPlanningState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { evokerTraits } from '#gw2/professions/elementalist/specializations/evoker/traits/index.js';
-import { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
 
 /**
  * The Evoker elite specialization module: catalog contributions (skill

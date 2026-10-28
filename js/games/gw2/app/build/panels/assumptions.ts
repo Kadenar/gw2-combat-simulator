@@ -1,25 +1,24 @@
-import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { optionHtml } from '#ui/shared/select-options.js';
-import { escapeHtml as esc } from '#ui/shared/html.js';
-import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
-import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
-import { isSimulationRandomnessControl } from '#gw2/platform/builds/randomness-assumptions.js';
 import {
   normalizeTargetArmor,
   STACKING_TARGET_CONDITIONS,
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
 } from '#gw2/app/build/panels/metadata.js';
-import { requiredInput, requiredSelect } from '#ui/shared/dom.js';
-
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
+import { isSimulationRandomnessControl } from '#gw2/platform/builds/randomness-assumptions.js';
 import type {
   ProfessionAssumptionControl,
   ProfessionAssumptionOption,
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { requiredInput, requiredSelect } from '#ui/shared/dom.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
+import { optionHtml } from '#ui/shared/select-options.js';
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
   [boonKey(BOON.FURY), BOON.FURY],

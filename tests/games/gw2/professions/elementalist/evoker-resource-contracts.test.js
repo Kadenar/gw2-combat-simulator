@@ -1,17 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { availability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
+import { availability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
+import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 /** Each invocation owns its patched catalog so policies must select capacity before any familiar initialization. */
 function run(rotation = [], overrides = {}, profiles = {}, skills = {}) {

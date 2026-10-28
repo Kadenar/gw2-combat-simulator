@@ -1,14 +1,14 @@
-import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
-import { boonKey, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Trait IDs own balance lookup and emission so patches and runtime share the same trait definition.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
@@ -19,11 +19,11 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import {
   facetConsumed,
   heraldUpkeepSettled
 } from '#gw2/professions/revenant/specializations/herald/mechanics/trigger-points.js';
-import { scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { draconicEchoActive } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';

@@ -1,17 +1,18 @@
-import { RECIPIENT, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { conditionEffectTicks, impactEffects } from '#gw2/platform/effects/authoring.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import {
   affinity,
   effectiveConduitAffinity
 } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Capture equipped-legend eligibility at acceptance; full affinity unlocks every Dervish component. */
 const releaseLegend = (legend: string) => (runtime: MechanicQueriesOf<RevenantRuntime>) =>
@@ -261,4 +262,3 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     effectVariants: [{ when: () => true, transform: releaseEffects }]
   }
 });
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';

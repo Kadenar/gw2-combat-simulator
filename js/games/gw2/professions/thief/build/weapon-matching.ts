@@ -1,8 +1,8 @@
 import { WEAPON } from '#gw2/platform/constants.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
-import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import type { ThiefSkill, ThiefPlanningState, ThiefWeaponMatcherContext } from '#gw2/professions/thief/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
+import type { ThiefPlanningState, ThiefSkill, ThiefWeaponMatcherContext } from '#gw2/professions/thief/types.js';
 
 /**
  * A palette that supplies its projected profession state shows only the rifle-stance and spear-chain variant occupying

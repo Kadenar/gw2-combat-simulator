@@ -1,19 +1,20 @@
-import { skillActions } from '#gw2/platform/effects/actions.js';
+import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
-import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
 import {
   validateActionIds,
   validateEffectReactions,
   validateSideEffectAction
 } from '#gw2/platform/effects/action-validation.js';
+import { skillActions } from '#gw2/platform/effects/actions.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
-import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
-import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
 import { validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
+import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
 import { catalogSkillFields, SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
+
 /** Validate skill declarations and cross-catalog references before runtime selection. */
 
 const RECHARGE_ANCHORS = new Set(['castStart', 'castEnd']);

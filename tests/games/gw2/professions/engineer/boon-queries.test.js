@@ -1,11 +1,11 @@
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { activeBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { activeBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 // No Scope must keep its ferocity bonus through the whole live Fury pool.
 test('Engineer No Scope survives overlapping Fury packet expiries', () => {

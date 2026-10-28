@@ -1,10 +1,9 @@
-import type { SimulationActorType, ComboFieldType, ComboFinisherType } from '#gw2/platform/constants.js';
-import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { ComboFieldSelectionAnchor } from '#gw2/platform/combos/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
+import type { ComboFieldType, ComboFinisherType, SimulationActorType } from '#gw2/platform/constants.js';
+import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 /**

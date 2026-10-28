@@ -1,12 +1,12 @@
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import {
   buildMesmerConditions,
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import { cloneShatterConfusion, cloneShatterTier } from '#gw2/professions/mesmer/core/mechanics/shatter-projection.js';
 import type {
   MesmerShatterResolverRequest,

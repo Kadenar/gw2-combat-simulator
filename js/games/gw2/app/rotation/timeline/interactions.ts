@@ -1,5 +1,5 @@
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { ProfessionRotationDragState } from '#gw2/app/rotation/editing/state.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 
 export interface TimelineInteractionOptions {
   readonly rotation: RotationCommand[];

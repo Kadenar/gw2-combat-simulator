@@ -1,6 +1,6 @@
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
-import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
+import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 
 /** Clone ambush boons retain their caster identity and share spare recipient slots with living clones. */
 export function buildMirageCloneBoon(

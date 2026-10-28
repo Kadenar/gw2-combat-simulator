@@ -1,9 +1,3 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 /**
  * Owns Core hammer orb state, availability, and consumption.
  *
@@ -11,10 +5,16 @@ import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mec
  * consumption that spends them, plus the queries availability uses to gate both.
  * Hammer skill effects, including Grand Finale's projectiles, live in `skills/weapons/hammer.ts`.
  */
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
+import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   type ElementalistAttunement,

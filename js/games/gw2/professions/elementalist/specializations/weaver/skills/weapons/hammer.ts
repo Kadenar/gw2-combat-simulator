@@ -1,4 +1,3 @@
-import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Hammer weapon-skill mechanics owned by the Weaver module.
  *
@@ -10,10 +9,10 @@ import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
  * Each definition declares its two-orb grant. Shared mechanics retain lifetime
  * refresh, modifier reads, and the active-orb availability gate.
  */
-
+import { CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * The six Dual Orbits fragments, keyed by skill id and merged into

@@ -1,19 +1,18 @@
-import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
-import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
-import { skillTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
-import { escapeHtml as esc } from '#ui/shared/html.js';
 import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
-
+import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
+import { skillTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
+import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import type {
   ProfessionSkillBarGroup,
   ProfessionSkillBarSelectionOption
 } from '#gw2/platform/profession-presentation/types.js';
-import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
-import { requiredElement } from '#ui/shared/dom.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { requiredElement } from '#ui/shared/dom.js';
+import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 /** Resolves the armed member of a selected skill's flip chain for display. */
 export function skillBarDisplaySkill(

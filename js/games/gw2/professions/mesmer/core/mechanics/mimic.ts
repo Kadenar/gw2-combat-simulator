@@ -1,13 +1,13 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Successful completion claims the current grant against the utility's start, including exact expiry. */
 export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {

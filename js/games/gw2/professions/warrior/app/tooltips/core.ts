@@ -1,8 +1,7 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import {
   fromSkill,
-  skillFact,
   simulationEffectFacts,
+  skillFact,
   skillTooltip,
   tooltipDecimal,
   tooltipNumber,
@@ -10,15 +9,16 @@ import {
   tooltipSeconds,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { warriorArmsTooltips } from '#gw2/professions/warrior/app/tooltips/arms.js';
+import { warriorDefenseTooltips } from '#gw2/professions/warrior/app/tooltips/defense.js';
+import { warriorDisciplineTooltips } from '#gw2/professions/warrior/app/tooltips/discipline.js';
 import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js';
 import { warriorStrengthTooltips } from '#gw2/professions/warrior/app/tooltips/strength.js';
 import { warriorTacticsTooltips } from '#gw2/professions/warrior/app/tooltips/tactics.js';
-import { warriorDefenseTooltips } from '#gw2/professions/warrior/app/tooltips/defense.js';
-import { warriorArmsTooltips } from '#gw2/professions/warrior/app/tooltips/arms.js';
-import { warriorDisciplineTooltips } from '#gw2/professions/warrior/app/tooltips/discipline.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const warriorCoreTooltips = {

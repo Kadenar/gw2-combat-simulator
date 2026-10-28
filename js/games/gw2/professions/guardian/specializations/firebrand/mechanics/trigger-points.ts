@@ -1,10 +1,10 @@
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { FIREBRAND_REWORK_TRAIT_IDS } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
+import type { GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
 /** Rework extension point (firebrand-rework): refund rewards have no live listener and fire only on page grants. */
 export const swiftScholarPagesGranted = defineTriggerPoint<{ readonly cast: RuntimeCast<GuardianSkill> }>(

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
 
 /** Controlled transport verifies request ordering without running another simulation or browser. */

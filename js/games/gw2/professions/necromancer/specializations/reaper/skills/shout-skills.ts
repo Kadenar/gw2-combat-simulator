@@ -1,14 +1,14 @@
-import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
-import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 /**
  * Owns Reaper shout skill fragments.
  * Reaper Shroud skill fragments live in `shroud-skills.ts`.
  */
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Supplies Reaper shout fragments to specialization composition. */
 export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

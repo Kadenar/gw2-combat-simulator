@@ -1,9 +1,7 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-
-import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
-
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
+import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Only the selected elite contributes its buff caps and observations. */
 export function berserkerBuffPolicies(): BuffStatePolicy[] {

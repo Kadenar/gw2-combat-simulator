@@ -1,28 +1,27 @@
-import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { elementalistLoadoutIdentity } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
-import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 /**
  * Weapon- and attunement-facing cast state for Core Elementalist.
  *
  * Slot-skill selection across attunement variants, weapon-skill attunement gating,
  * and autoattack chain carryover across attunement swaps.
  */
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { AutoattackChainTransitionResult } from '#gw2/platform/execution/autoattack-chains.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as unavailable } from '#gw2/platform/execution/availability.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistSkill,
-  ElementalistRuntime,
-  ElementalistRuntimeState
-} from '#gw2/professions/elementalist/types.js';
-
-import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { elementalistLoadoutIdentity } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
+import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
+import type {
+  ElementalistRuntime,
+  ElementalistRuntimeState,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /** Slot-three flips reuse chain sequencing but cannot earn slot-one attunement carryover. */
 function isAttunementCarryoverChain(root: number): boolean {

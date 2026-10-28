@@ -1,8 +1,8 @@
 import { createGameWorkerEndpoint } from '#browser/game/worker-harness.js';
 import { calculateRandomDistributionOutcomes } from '#gw2/app/simulation/random-distribution/random-distribution.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { RandomDistributionJobRequest } from '#gw2/app/simulation/random-distribution/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 /**
  * The single request message this worker accepts. Cancellation and

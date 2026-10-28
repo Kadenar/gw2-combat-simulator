@@ -1,7 +1,15 @@
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { daredevilBuffPolicies } from '#gw2/professions/thief/specializations/daredevil/effect-state.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { storeThiefStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { daredevilBuffPolicies } from '#gw2/professions/thief/specializations/daredevil/effect-state.js';
+import { queueDodgePackets } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
 import {
   daredevilCastCompleted,
   daredevilCastStarted,
@@ -9,18 +17,6 @@ import {
   daredevilStruck,
   physicalSkillStarted
 } from '#gw2/professions/thief/specializations/daredevil/mechanics/trigger-points.js';
-import { queueDodgePackets } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
-
-import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-
-import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
-import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { storeThiefStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-
-import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const DAREDEVIL_COMPLETE = 'thief.daredevil-complete';

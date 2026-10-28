@@ -1,10 +1,10 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const forbiddenHorizonField = ['extends', 'Resolution', 'Horizon'].join('');
 

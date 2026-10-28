@@ -1,8 +1,7 @@
-import { ACTOR, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-
+import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -14,9 +13,9 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { guardianStruck, type GuardianStrike } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianRuntimeState } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { guardianStruck, type GuardianStrike } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
 import { justiceActivated, type JusticeActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';

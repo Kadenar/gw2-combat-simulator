@@ -4,20 +4,19 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-
+import type {
+  ProfessionEffectPresentation,
+  ProfessionEventLogDescriptor
+} from '#gw2/platform/profession-presentation/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import {
   mesmerMechanicPaletteGroups,
   mesmerResourceViews,
   mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
-import type {
-  ProfessionEffectPresentation,
-  ProfessionEventLogDescriptor
-} from '#gw2/platform/profession-presentation/types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const TROUBADOUR_MECHANIC_SKILLS = Object.freeze([

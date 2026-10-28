@@ -1,4 +1,4 @@
-import { RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 

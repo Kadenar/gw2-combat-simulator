@@ -1,3 +1,6 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { beforeElementalStrike } from '#gw2/professions/elementalist/core/mechanics/elementals/lifecycle.js';
 import { completeElementalistGlyphCast } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
@@ -11,8 +14,6 @@ import { armElementalLightningJolt } from '#gw2/professions/elementalist/special
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const glyph = elementalistCatalog.skillsById.get(25488);
 const summon = (runtime) => completeElementalistGlyphCast(runtime.mechanics, { effectiveEnd: runtime.time }, glyph);

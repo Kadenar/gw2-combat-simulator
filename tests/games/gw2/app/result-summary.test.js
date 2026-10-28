@@ -1,11 +1,12 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { comparisonResult } from '#gw2/app/page/benchmark-comparison/model.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { baseResultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
-import { comparisonResult } from '#gw2/app/page/benchmark-comparison/model.js';
-import { mountResultSummary, dismissResultMetricDetails } from '#gw2/app/results/summary-view.js';
+import { dismissResultMetricDetails, mountResultSummary } from '#gw2/app/results/summary-view.js';
 import { inertContainer } from '#tests/helpers/dom.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 
 test('target health breakpoints use cumulative damage and individual condition ticks', () => {
   const snapshots = targetHealthBreakpointSnapshots(

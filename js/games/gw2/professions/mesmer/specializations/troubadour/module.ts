@@ -1,8 +1,8 @@
-import { luteModifiers } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
+import { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/catalog-fields.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
-
+import { luteModifiers } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import {
   MESMER_TROUBADOUR_EXTRA_SKILLS,
@@ -13,7 +13,6 @@ import {
   troubadourState
 } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import { troubadourTraits } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
-import { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/catalog-fields.js';
 
 export const troubadourModule = defineNativeModule({
   id: 'Troubadour',

@@ -1,18 +1,16 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-
+import { analysisViewIsActive } from '#browser/shell/result-view.js';
+import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
-import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
 import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
-
 import {
-  DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
-  calculateRandomDistribution as calculateDistribution
+  calculateRandomDistribution as calculateDistribution,
+  DEFAULT_RANDOM_DISTRIBUTION_TRIALS
 } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import type {
   RandomDistributionJobRequest,
@@ -21,15 +19,14 @@ import type {
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-
+import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
-import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { clamp } from '#kernel/core/numeric.js';
-import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
 /** Coordinates browser analysis requests using the shared headless build calculation. */

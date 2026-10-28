@@ -1,33 +1,33 @@
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import type { ThiefConfig } from '#gw2/professions/thief/types.js';
-import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
-import type { RangerConfig } from '#gw2/professions/ranger/types.js';
-import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
-import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
-import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
-import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { Gw2AttributeSeed, Gw2CommonAttributeResult } from '#gw2/platform/attributes/types.js';
+import { createGw2SimulationConfig } from '#gw2/build-context/simulation-config.js';
+import type {
+  BuildAttributes,
+  BuildContextAttributeRules,
+  BuildContextDeclarations,
+  BuildContextFactory,
+  BuildContextProfession,
+  WeaponSet
+} from '#gw2/build-context/types.js';
 import { calculateCommonAttributes } from '#gw2/platform/attributes/calculation.js';
 import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
+import type { Gw2AttributeSeed, Gw2CommonAttributeResult } from '#gw2/platform/attributes/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
+import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
+import type { RangerConfig } from '#gw2/professions/ranger/types.js';
+import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes
 } from '#gw2/professions/shared/build-attributes.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type {
-  BuildAttributes,
-  BuildContextAttributeRules,
-  BuildContextFactory,
-  BuildContextProfession,
-  BuildContextDeclarations,
-  WeaponSet
-} from '#gw2/build-context/types.js';
-import { createGw2SimulationConfig } from '#gw2/build-context/simulation-config.js';
-import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 
 // Common equipment, target, patch, and assumption fields cannot be replaced by a profession contribution.
 type ProfessionConfigFields = Pick<

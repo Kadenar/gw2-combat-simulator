@@ -1,10 +1,10 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Reads configured sigil modifiers for a one-based weapon set without deciding which set is active. */
 export function gw2SigilSet(config: Gw2Config, weaponSet = 1): Gw2SigilSet {

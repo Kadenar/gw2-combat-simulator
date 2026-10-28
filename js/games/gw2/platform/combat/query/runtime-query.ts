@@ -1,15 +1,15 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import { isDurationStackingBoon, isStandardBoon, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { appliedEffectStacks, type EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { GW2_STANDARD_BOONS, isDurationStackingBoon, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { appliedEffectStacks, type EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
+import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import {
   CANONICAL_TARGET_CONDITIONS,
   canonicalTargetConditionName,
   targetHasCondition
 } from '#gw2/platform/combat/state/targets.js';
-import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
 
 interface SkillEventIdentity {

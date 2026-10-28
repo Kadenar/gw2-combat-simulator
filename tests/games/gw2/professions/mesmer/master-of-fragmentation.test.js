@@ -1,9 +1,10 @@
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 const wait = { name: '__wait', waitMs: 8000 };
 const selectedTraitIds = [TRAIT.MASTER_OF_FRAGMENTATION];

@@ -1,16 +1,16 @@
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
+import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
 import { templateBoon, templateCategory, templateSpecializations } from '#gw2/app/build/library/model.js';
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as MESMER_ID } from '#gw2/professions/mesmer/data/ids.js';
-import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
 
 function createApp() {
   return {

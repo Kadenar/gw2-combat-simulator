@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { importGeneratorSource, mockGeneratorFiles } from '../helpers/generator-fixtures.mjs';
-import { writeGeneratedFiles } from '../../scripts/data/lib/generator-utils.mjs';
 import { ESLint } from 'eslint';
 import { check, resolveConfig } from 'prettier';
-import { RANGER_PET_AUTHORED_SKILLS } from '../../scripts/data/ranger-pet-skills.mjs';
+
 import { generateRangerIds } from '../../scripts/data/generate-ranger-ids.mjs';
 import { fetchRangerPetSkills, generateRangerPetData } from '../../scripts/data/generate-ranger-pet-data.mjs';
 import { generateWarriorData } from '../../scripts/data/generate-warrior-data.mjs';
+import { writeGeneratedFiles } from '../../scripts/data/lib/generator-utils.mjs';
+import { RANGER_PET_AUTHORED_SKILLS } from '../../scripts/data/ranger-pet-skills.mjs';
+import { importGeneratorSource, mockGeneratorFiles } from '../helpers/generator-fixtures.mjs';
 
 // API-omitted records must come from authored inputs; the mocked endpoint rejects them.
 const API_REJECTED_PET_SKILL_IDS = new Set(RANGER_PET_AUTHORED_SKILLS.map((skill) => skill.id));

@@ -1,12 +1,11 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerPartyAudience } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
-
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
+import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 /** Doom Approaches turns the shroud control into Fear so condition duration and Fear reactions apply. */
 export function doomApproachesControl(runtime: NecromancerRuntime, effect: SkillEffect): SkillEffect {

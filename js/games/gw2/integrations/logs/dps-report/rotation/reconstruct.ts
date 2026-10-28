@@ -1,30 +1,3 @@
-import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
-import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
-import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
-import {
-  isMushroomKingsBlessing,
-  isWeaponStow,
-  LOG_OPENER_WARNING
-} from '#gw2/integrations/logs/shared/rotation/model.js';
-import {
-  actionKind,
-  createRotationSkillResolver,
-  findNamedRotationSkill,
-  normalizedName as normalized,
-  recordedActionSkill,
-  resolvedActionIdentity,
-  skillIdentity
-} from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import type { RotationCatalog } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import type { RotationActionStatus } from '#gw2/integrations/logs/shared/rotation/model.js';
-import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
-import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
-import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
-import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { DpsReportError } from '#gw2/integrations/logs/dps-report/errors.js';
 import type {
   DpsReportCast,
@@ -36,16 +9,43 @@ import type {
   DpsReportSkillMetadata,
   ParsedDpsReport
 } from '#gw2/integrations/logs/dps-report/types.js';
-import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
+import {
+  actionKind,
+  createRotationSkillResolver,
+  findNamedRotationSkill,
+  normalizedName as normalized,
+  recordedActionSkill,
+  resolvedActionIdentity,
+  skillIdentity
+} from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import type { RotationCatalog } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
+import {
+  isMushroomKingsBlessing,
+  isWeaponStow,
+  LOG_OPENER_WARNING
+} from '#gw2/integrations/logs/shared/rotation/model.js';
+import type { RotationActionStatus } from '#gw2/integrations/logs/shared/rotation/model.js';
 import type { RecordedLogAction, ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
-import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
+import { BLINK_OR_PHASE_RETREAT_ID } from '#gw2/integrations/logs/shared/rotation/professions/mesmer.js';
 import {
   SIGNET_OF_MIGHT_PASSIVE_ID,
   signetOfMightProcAt
 } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
-import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
+import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
+import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
+import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
+import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
-import { BLINK_OR_PHASE_RETREAT_ID } from '#gw2/integrations/logs/shared/rotation/professions/mesmer.js';
+import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
 
 /** Selects the player, phase, and build evidence used when reconstructing an imported rotation. */
 export interface DpsReportRotationOptions {

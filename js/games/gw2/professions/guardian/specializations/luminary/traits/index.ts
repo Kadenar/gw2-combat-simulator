@@ -1,15 +1,14 @@
-import { RECIPIENT, ACTOR, BOON, CONDITION, AURA } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, AURA, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
@@ -22,6 +21,7 @@ import { latestRadiantArmaments } from '#gw2/professions/guardian/core/mechanics
 import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import {
   lightAuraGranting,
   luminaryCastStarted,
@@ -33,10 +33,9 @@ import {
   type LuminaryCast,
   type RadiantVirtueArming
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
-import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 const AURA_DETONATE = 'guardian.luminary.aura-detonate';
 const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.RADIANT_COURAGE];

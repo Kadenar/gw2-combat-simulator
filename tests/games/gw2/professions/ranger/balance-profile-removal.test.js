@@ -1,22 +1,23 @@
-import { enteredCombat } from '#tests/helpers/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const wait = (durationMs) => ({ type: 'wait', durationMs });

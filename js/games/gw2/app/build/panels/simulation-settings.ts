@@ -1,11 +1,11 @@
+import { invalidateInactiveBuildTabs } from '#gw2/app/build/state/workspace.js';
+import { saveSimulationSettings } from '#gw2/app/simulation/settings.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import {
   normalizeTransitionDelays,
   TRANSITION_DELAY_KEYS,
   type TransitionDelays
 } from '#gw2/platform/execution/transition-lockouts.js';
-import { saveSimulationSettings } from '#gw2/app/simulation/settings.js';
-import { invalidateInactiveBuildTabs } from '#gw2/app/build/state/workspace.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Delay edits affect the active workspace and invalidate only its dependent build tabs. */
 export function mountSimulationSettings(app: ProfessionAppState, root: Document = document): void {

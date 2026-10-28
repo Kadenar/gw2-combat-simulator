@@ -1,14 +1,14 @@
-import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromProfile,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
+  traitSkillTooltip,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Describe spite tooltips from the selected balance data. */
 export const necromancerSpiteTooltips = {

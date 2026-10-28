@@ -1,10 +1,11 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(engineerProfession, {
   selectedSkillIds: [],

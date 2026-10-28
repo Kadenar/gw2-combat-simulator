@@ -1,13 +1,13 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
-  tooltipFactorChange,
   outsideScopeTooltip,
-  traitTooltip,
-  tooltipPercent,
   tooltipDecimal,
+  tooltipFactorChange,
+  tooltipPercent,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Describe domination tooltips from the selected balance data. */

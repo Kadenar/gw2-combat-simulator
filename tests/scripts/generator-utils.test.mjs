@@ -1,20 +1,21 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { mockGeneratorFiles } from '../helpers/generator-fixtures.mjs';
+
 import {
   committedIdentities,
-  generateProfessionIds,
-  writeGeneratedFiles,
   constantName,
   declarations,
+  generateProfessionIds,
   mapConcurrent,
   stableEntries,
-  traitIdentities
+  traitIdentities,
+  writeGeneratedFiles
 } from '../../scripts/data/lib/generator-utils.mjs';
+import { mockGeneratorFiles } from '../helpers/generator-fixtures.mjs';
 
 // Resolve the virtual identity file the way the generator does, so the tests pass from any working directory.
 const rangerIdsTarget = fileURLToPath(new URL('../../js/games/gw2/professions/ranger/data/ids.ts', import.meta.url));

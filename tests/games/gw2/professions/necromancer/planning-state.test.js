@@ -1,9 +1,10 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Public normalization must detach retained values without changing the actual resource owner.
 test('Necromancer planning projection normalizes resources without mutating live state', () => {

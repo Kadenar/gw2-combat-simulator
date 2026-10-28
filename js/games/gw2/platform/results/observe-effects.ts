@@ -1,27 +1,27 @@
-import { STATUS, RECIPIENT } from '#gw2/platform/constants.js';
 import {
-  GW2_STANDARD_BOONS,
-  standardBoonPresentation,
-  isStandardBoon,
   buffMatchesAudience,
+  GW2_STANDARD_BOONS,
+  isStandardBoon,
+  standardBoonPresentation,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
 import {
-  conditionApplicationExpiry,
-  conditionStackLimit,
-  permanentTargetConditionStacks,
-  canonicalTargetConditionName
-} from '#gw2/platform/combat/state/targets.js';
-import {
+  effectStateRevision,
   observeBuffState,
   type BuffStatePolicy,
-  type EffectState,
-  effectStateRevision
+  type EffectState
 } from '#gw2/platform/combat/effect-state.js';
+import {
+  canonicalTargetConditionName,
+  conditionApplicationExpiry,
+  conditionStackLimit,
+  permanentTargetConditionStacks
+} from '#gw2/platform/combat/state/targets.js';
+import { RECIPIENT, STATUS } from '#gw2/platform/constants.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 interface BuffObservation {
   readonly applications: readonly Gw2TimedBuffApplication[];

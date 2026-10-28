@@ -1,19 +1,19 @@
-import { RANGER_CORE_TRAIT_SKILLS } from '#gw2/professions/ranger/core/skills/trait-skills.js';
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import test from 'node:test';
-import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-import {
-  RANGER_CORE_EXTRA_SKILLS,
-  RANGER_CORE_BASE_SKILL_MECHANICS
-} from '#gw2/professions/ranger/core/skills/index.js';
 import { RANGER_CORE_ACTION_SKILLS } from '#gw2/professions/ranger/core/skills/actions.js';
+import {
+  RANGER_CORE_BASE_SKILL_MECHANICS,
+  RANGER_CORE_EXTRA_SKILLS
+} from '#gw2/professions/ranger/core/skills/index.js';
 import { RANGER_CORE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/index.js';
+import { RANGER_CORE_TRAIT_SKILLS } from '#gw2/professions/ranger/core/skills/trait-skills.js';
 import { RANGER_CORE_AXE_EXTRA_SKILLS } from '#gw2/professions/ranger/core/skills/weapons/axe.js';
 import { RANGER_CORE_SPEAR_EXTRA_SKILLS } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { SOULBEAST_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/index.js';
 import { SOULBEAST_BEASTMODE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/index.js';

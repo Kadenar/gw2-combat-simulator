@@ -1,23 +1,24 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS as ATTUNEMENT,
   ELEMENTALIST_TRAIT_IDS as E
 } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ENGINEER_TRAIT_IDS as G, ENGINEER_SKILL_IDS as GS } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { NECROMANCER_TRAIT_IDS as N } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { RANGER_TRAIT_IDS as R } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { THIEF_TRAIT_IDS as T, THIEF_SKILL_IDS as TS } from '#gw2/professions/thief/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const combat = { type: 'combat-start' };
 const wait = { type: 'wait', durationMs: 2000 };

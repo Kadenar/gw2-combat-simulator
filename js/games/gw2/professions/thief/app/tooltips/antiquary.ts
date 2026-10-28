@@ -1,26 +1,26 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import {
   fromProfile,
-  tooltipFactorChange,
-  tooltipSeconds,
-  outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
-  profileFact,
+  fromSkill,
   modifierFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipProfile,
+  outsideScopeTooltip,
+  profileFact,
   simulationEffectFacts,
-  type ProfessionTooltips,
-  type DescribeSimulationTooltip,
   skillFact,
-  fromSkill
+  skillTooltip,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
+  type DescribeSimulationTooltip,
+  type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Artifact windows supplement the native cast; charges apply to later attacks rather than adding immediate damage. */
 const artifactTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {

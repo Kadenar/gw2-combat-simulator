@@ -1,17 +1,20 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { BOON } from '#gw2/platform/constants.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { skillFlipVisible, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { conditionEffectTicks, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { skillFlipReady, skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/spear.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import {
+  createObservedProfessionSimulator,
+  observedRuntime,
+  planningFixture
+} from '#tests/helpers/observed-runtime.js';
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],

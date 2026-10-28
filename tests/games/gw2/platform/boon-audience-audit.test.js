@@ -1,23 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
+import { ENGINEER_TRAIT_IDS as ET } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { MESMER_SKILL_IDS as M, MESMER_TRAIT_IDS as MT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { RANGER_SKILL_IDS as R } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { THIEF_SKILL_IDS as T, THIEF_TRAIT_IDS as TT } from '#gw2/professions/thief/data/ids.js';
-import { ENGINEER_TRAIT_IDS as ET } from '#gw2/professions/engineer/data/ids.js';
-import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { REVENANT_LEGEND_IDS as L, REVENANT_TRAIT_IDS as VT } from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { THIEF_SKILL_IDS as T, THIEF_TRAIT_IDS as TT } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const families = {
   mesmer: mesmerProfession,

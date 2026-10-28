@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // JavaScript definitions must fail before obsolete or misspelled declarations can lose their formulas.
 test('profession normalization rejects unsupported modifier declarations', () => {

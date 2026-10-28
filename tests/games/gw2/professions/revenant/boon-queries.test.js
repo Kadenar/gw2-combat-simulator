@@ -1,4 +1,17 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { activeBoonStacks, buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
+import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/index.js';
+import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
 
 // Resolve baseline and adjusted Might together while leaving the source attributes immutable.
 function notorietyAttributes(context, attributes) {
@@ -6,23 +19,9 @@ function notorietyAttributes(context, attributes) {
   return applyMightAttributes(attributes, activeBoonStacks(context, 'might'), [notoriety.attributes(facts)]);
 }
 
-import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
-import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/index.js';
-import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
-import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
-
 const revenantCoreModifierRules = revenantCoreModule.modifiers.modifierRules;
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { renegadeModule } from '#gw2/professions/revenant/specializations/renegade/module.js';
 
 const renegadeModifierRules = renegadeModule.modifiers.modifierRules;
-import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 // Recipient metadata keeps player boons distinct from party-only and companion-only applications.
 function buff(kind, audience = { recipients: 'self' }, stacks = 1) {

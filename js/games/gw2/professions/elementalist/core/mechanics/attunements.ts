@@ -3,8 +3,8 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
-import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import {
   inFlightAutoattackCarryover,
   progressedAutoattackCarryover

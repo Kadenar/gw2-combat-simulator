@@ -1,17 +1,16 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
 import { holosmithHooks } from '#gw2/professions/engineer/specializations/holosmith/hooks.js';
 import type {
   HolosmithSkill,
   HolosmithSkillFragment
 } from '#gw2/professions/engineer/specializations/holosmith/types.js';
-import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;

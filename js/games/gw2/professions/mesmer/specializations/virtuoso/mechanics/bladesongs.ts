@@ -2,12 +2,12 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import {
   buildMesmerConditions,
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import type {
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit

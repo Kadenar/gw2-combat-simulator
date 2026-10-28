@@ -1,18 +1,19 @@
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
-  NECROMANCER_SKILL_IDS as NECRO_SKILL,
-  NECROMANCER_TRAIT_IDS as NECRO
-} from '#gw2/professions/necromancer/data/ids.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import {
-  GUARDIAN_SKILL_IDS as GUARDIAN_SKILL,
-  GUARDIAN_TRAIT_IDS as GUARDIAN
+  GUARDIAN_TRAIT_IDS as GUARDIAN,
+  GUARDIAN_SKILL_IDS as GUARDIAN_SKILL
 } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { RANGER_SKILL_IDS as RANGER_SKILL, RANGER_TRAIT_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
+import {
+  NECROMANCER_TRAIT_IDS as NECRO,
+  NECROMANCER_SKILL_IDS as NECRO_SKILL
+} from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { RANGER_TRAIT_IDS as RANGER, RANGER_SKILL_IDS as RANGER_SKILL } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { REVENANT_TRAIT_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';

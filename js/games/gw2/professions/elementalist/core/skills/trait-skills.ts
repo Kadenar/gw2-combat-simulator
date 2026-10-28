@@ -1,11 +1,11 @@
-import { ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns the patchable skills invoked by Evasive Arcana.
  * The trait selects the attunement; each skill owns its payload and recharge.
  */
+import { ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Proc ownership preserves trait recharge across rotation resets and excludes these skills from ordinary selection. */
 // Shared impact timing keeps companion payloads independent and in their authored order.

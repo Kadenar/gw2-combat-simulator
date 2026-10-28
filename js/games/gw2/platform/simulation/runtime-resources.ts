@@ -1,16 +1,12 @@
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import {
-  anchorResourceClock,
   advanceResource,
+  anchorResourceClock,
   resourceAt,
   resourceDepletionAt,
   resourceRecoveryReadyAt,
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
-import { type ResourceController, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { EnduranceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import {
   advanceEnduranceIntervals,
   createVigorWindowReader,
@@ -19,8 +15,12 @@ import {
   spendEndurance,
   vigorEnduranceIntervals
 } from '#gw2/platform/combat/resources/endurance.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
+import { type ResourceController, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { EnduranceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Run construction binds the profession's resource and endurance policies to the live runtime clock. */
 

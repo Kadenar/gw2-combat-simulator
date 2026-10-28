@@ -3,9 +3,9 @@
  * other priced skill waits for regeneration and pays its cost the same way everywhere.
  */
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Resolve fixed game rules or skill-owned tuning so admission and payment use the same amount. */
 function skillCostAmount(skill: Skill): number {

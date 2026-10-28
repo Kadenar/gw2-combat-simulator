@@ -1,10 +1,10 @@
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { nextNecromancerPassiveGain } from '#gw2/professions/necromancer/core/mechanics/passives.js';
-import type { NecromancerRuntime, NecromancerUiContext } from '#gw2/professions/necromancer/types.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { nextNecromancerPassiveGain } from '#gw2/professions/necromancer/core/mechanics/passives.js';
+import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import type { NecromancerRuntime, NecromancerUiContext } from '#gw2/professions/necromancer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Wake that ends a draining shroud once life force runs out; the Core hooks own its task handler. */

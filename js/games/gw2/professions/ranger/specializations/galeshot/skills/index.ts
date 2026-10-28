@@ -1,8 +1,8 @@
-import { CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 

@@ -1,20 +1,21 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { effectStateValue, observeBuffState } from '#gw2/platform/combat/effect-state.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
+import { gw2BuffApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Exercise the declared acceptance/completion phases independently of summon packet calibration.
 // Trait selection is fixed here because a build's traits never change once its runtime is in use.

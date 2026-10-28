@@ -1,8 +1,8 @@
 /** Keep public Elementalist state and native Weaver casts closed to unknown field names. */
-import type { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
-import type { schedulePrimordialStance } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
+import type { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import type { schedulePrimordialStance } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 import type { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { ELEMENTALIST_STATE_IDS as STATE } from '#gw2/professions/elementalist/state-ids.js';
 import type { ElementalistUiContext } from '#gw2/professions/elementalist/types.js';

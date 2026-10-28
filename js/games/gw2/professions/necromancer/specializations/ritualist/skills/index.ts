@@ -1,11 +1,3 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
-import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
-import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 /**
  * Ritualist skill mechanics owned by the Ritualist Necromancer module.
  *
@@ -13,8 +5,16 @@ import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
+import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {

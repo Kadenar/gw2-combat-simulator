@@ -1,15 +1,15 @@
-import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
   balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  balanceProfileNumber
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
+import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerRuntime, EngineerConfig } from '#gw2/professions/engineer/types.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
+import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import type { EngineerConfig, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 /** The selected trait owns capacity before initial heat is clamped. */
 export function enhancedCapacityMaximumHeat(config: EngineerConfig, balanceContext: unknown): number {

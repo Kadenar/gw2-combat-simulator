@@ -7,8 +7,8 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { percentagePoints } from '#gw2/professions/elementalist/app/tooltips/shared.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Describe earth tooltips from the selected balance data. */
 export const elementalistEarthTooltips = {

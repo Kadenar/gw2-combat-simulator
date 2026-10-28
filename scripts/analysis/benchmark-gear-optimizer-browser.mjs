@@ -1,6 +1,6 @@
 /** Measures real browser worker pools and cancellation on representative rotations; starts a private Vite server. */
 /* global window, document, requestAnimationFrame, cancelAnimationFrame */
-import { spawn, execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { cpus } from 'node:os';
 import { chromium } from '@playwright/test';

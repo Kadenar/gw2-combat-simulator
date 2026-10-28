@@ -1,15 +1,17 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
-import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
-import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { ChargeGrant, ChargePool } from '#gw2/platform/combat/resources/charges.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import {
   thiefInitiativeCapacity,
   thiefInitiativeRegenerationRate,
@@ -18,8 +20,6 @@ import {
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** One engine-owned axe capacity is shared by starting state, live acquisition and preview inputs. */
 export const MAXIMUM_SPINNING_AXES = 6;

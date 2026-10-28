@@ -1,6 +1,6 @@
 import type { SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { Skill, BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 
 export type ResourceGrantAction = Extract<SideEffectAction, { type: 'resourceGrant' }> & { readonly id: string };
 

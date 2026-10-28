@@ -1,15 +1,15 @@
-import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import type {
+  LogActionNormalizationContext,
+  LogActionNormalizer,
+  RecordedLogAction
+} from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import { reconstructConduitDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/conduit.js';
 import { reconstructRenegadeDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/renegade.js';
 import { reconstructVindicatorDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/vindicator.js';
-import type {
-  LogActionNormalizer,
-  LogActionNormalizationContext,
-  RecordedLogAction
-} from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { mergeCompositeActions, mergedActionStatus } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
+import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 
 const specializationReconstructors: ReadonlyMap<string, LogActionNormalizer> = new Map([
   ['conduit', reconstructConduitDpsReportActions],

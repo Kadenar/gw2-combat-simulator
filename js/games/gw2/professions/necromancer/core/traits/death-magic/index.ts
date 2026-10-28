@@ -1,21 +1,21 @@
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { addCarapace, deathCarapaceStacks } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import { necromancerConditionApplied } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { shroudEntering, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerRuntimeCoreState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
+import { necromancerConditionApplied } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
+import { addCarapace, deathCarapaceStacks } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerResolverContext,

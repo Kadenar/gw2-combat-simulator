@@ -1,8 +1,10 @@
-import { COMBO_FINISHER, STATUS, ACTOR, CONTROL, RECIPIENT, BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
+import { ACTOR, BOON, COMBO_FINISHER, CONTROL, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import { type SimulationEvent } from '#gw2/platform/events/events.js';
 import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
@@ -20,12 +22,12 @@ import { activeBoonStacks } from '#gw2/professions/engineer/core/mechanics/resol
 import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
-import { type EngineerResolverContext } from '#gw2/professions/engineer/types.js';
-
-import { EngineerSkill, type EngineerResolverEvent, type EngineerRuntime } from '#gw2/professions/engineer/types.js';
-
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import {
+  EngineerSkill,
+  type EngineerResolverContext,
+  type EngineerResolverEvent,
+  type EngineerRuntime
+} from '#gw2/professions/engineer/types.js';
 
 // Ex Machina (adept trait): Function Gyro gets a minimum of 2 ammo charges.
 

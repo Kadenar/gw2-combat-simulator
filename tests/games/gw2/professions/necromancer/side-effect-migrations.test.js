@@ -1,11 +1,12 @@
-import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Weeping Shots awards 1.5% per landed bullet, including later bullets when the first misses.
 test('Weeping Shots life force follows landed bullets and partial channels', () => {

@@ -1,8 +1,8 @@
-import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 /** Owns the relic-comparison contracts used by its runner, runtime adapter, and views. */
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface RelicComparisonRequest {
   readonly rotation: readonly RotationCommand[];

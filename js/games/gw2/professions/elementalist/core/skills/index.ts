@@ -9,6 +9,8 @@ import {
 } from '#gw2/professions/elementalist/core/skills/actions.js';
 import { ELEMENTALIST_CONJURE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/conjure-skills.js';
 import { ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS } from '#gw2/professions/elementalist/core/skills/elemental-skills.js';
+import { ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/profession-skills.js';
+import { ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/slot-skills.js';
 import { ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/trait-skills.js';
 import { ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/weapons/dagger.js';
 import { ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/weapons/focus.js';
@@ -19,8 +21,6 @@ import { ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS } from '#gw2/professions/elemen
 import { ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/weapons/staff.js';
 import { ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/weapons/sword.js';
 import { ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
-import { ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/profession-skills.js';
-import { ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/slot-skills.js';
 
 /**
  * Composes physical-weapon fragments with Core attunements, utilities, conjures, and synthetic actions.

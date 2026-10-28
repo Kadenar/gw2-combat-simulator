@@ -1,26 +1,26 @@
-import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
+import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
 import { mountInputActivity } from '#gw2/app/input-profile/results.js';
-import { mountResultSummary } from '#gw2/app/results/summary-view.js';
-import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
-import { mountModifierContributions, modifierContributionsHtml } from '#gw2/app/results/modifier-contributions-view.js';
-import { mountDamageBreakdown, type DamageBreakdownOptions } from '#gw2/app/results/breakdown/view.js';
+import { mountPreviewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
+import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import { SKILL_COLS, type DamageBreakdownModel } from '#gw2/app/results/breakdown/model.js';
+import { mountDamageBreakdown, type DamageBreakdownOptions } from '#gw2/app/results/breakdown/view.js';
 import { mountResultCharts, type ResultChartsModel } from '#gw2/app/results/charts/section-view.js';
 import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
-import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
-import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
+import { modifierContributionsHtml, mountModifierContributions } from '#gw2/app/results/modifier-contributions-view.js';
+import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
 import {
   ownerConditionBreakdown,
   skillBreakdownRows,
   skillDamageKeyByIdentity
 } from '#gw2/app/results/skill-breakdown.js';
-import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
-import { mountPreviewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
-import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
+import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import type { ResultIconRow } from '#gw2/app/results/skill-icons.js';
+import { mountResultSummary } from '#gw2/app/results/summary-view.js';
+import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
+import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
 
 const STANDARD_EFFECT_COLORS: Readonly<Record<string, string>> = {
   Bleeding: '#d84b4b',

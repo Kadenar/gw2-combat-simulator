@@ -1,12 +1,12 @@
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
+import { resultSummaryMetrics } from '#gw2/app/results/model.js';
+import type { ResultSummaryMetric } from '#gw2/app/results/summary-metrics.js';
+import type { ResultSummaryModel } from '#gw2/app/results/summary-view.js';
 import type { EncounterTimelineMarker } from '#gw2/app/rotation/timeline/encounter.js';
 import type { targetHealthTimelineMarkers, TimelineDeadTimeOptions } from '#gw2/app/rotation/timeline/model.js';
-import type { ResultSummaryModel } from '#gw2/app/results/summary-view.js';
-import type { ResultSummaryMetric } from '#gw2/app/results/summary-metrics.js';
-import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
+import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { SimulationExtensionViewModel, SimulationViewModel } from '#ui/results/simulation-view.js';
-import { resultSummaryMetrics } from '#gw2/app/results/model.js';
 
 /** Shared renderers consume observed markers and display values without interpreting workspace inputs. */
 export interface TimelinePresentation {

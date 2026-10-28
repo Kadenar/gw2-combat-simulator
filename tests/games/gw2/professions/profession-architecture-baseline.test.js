@@ -1,3 +1,6 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { elementalistNativeModules } from '#gw2/professions/elementalist/profession.js';
 import { engineerNativeModules } from '#gw2/professions/engineer/profession.js';
@@ -8,8 +11,6 @@ import { rangerNativeModules } from '#gw2/professions/ranger/profession.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/profession.js';
 import { thiefNativeModules } from '#gw2/professions/thief/profession.js';
 import { warriorNativeModules } from '#gw2/professions/warrior/profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const PROFESSION_MODULES = Object.freeze({
   elementalist: elementalistNativeModules,

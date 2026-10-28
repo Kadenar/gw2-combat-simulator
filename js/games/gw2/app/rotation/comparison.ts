@@ -1,17 +1,15 @@
-import { beginRotationComparison } from '#gw2/app/rotation/comparison-state.js';
-import { renderRotationInsights, openRotationInsights } from '#gw2/app/rotation/insights/rotation-insights-view.js';
 import { enterRotationFocus } from '#browser/shell/rotation-workspace.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
-import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { palettePlanningState } from '#gw2/app/rotation/context.js';
-import { applyTimelinePreviewHighlight, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
-import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
-
+import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { beginRotationComparison } from '#gw2/app/rotation/comparison-state.js';
+import { palettePlanningState } from '#gw2/app/rotation/context.js';
+import { openRotationInsights, renderRotationInsights } from '#gw2/app/rotation/insights/rotation-insights-view.js';
+import { applyTimelinePreviewHighlight, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 export interface RotationComparisonMetrics {
   readonly timeMs: number | null;

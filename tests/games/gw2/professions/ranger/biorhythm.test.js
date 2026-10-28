@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { BIORHYTHM, VOW_OF_THE_UNTAMED } from '#gw2/professions/ranger/specializations/untamed/effect-state.js';

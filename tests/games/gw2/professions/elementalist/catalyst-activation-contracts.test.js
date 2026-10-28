@@ -1,18 +1,19 @@
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { skillEffectKey } from '#gw2/platform/effects/validation.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { catalystCombatStarted } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import {
-  empoweringAuraStacks,
-  baseEmpowermentPassive
-} from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
 import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
+import {
+  baseEmpowermentPassive,
+  empoweringAuraStacks
+} from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';

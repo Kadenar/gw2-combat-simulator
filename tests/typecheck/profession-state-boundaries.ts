@@ -1,46 +1,45 @@
-import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
-import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import {
+  cloneStateFields,
   defineProfessionSpecializationState,
-  professionCoreState,
-  cloneStateFields
+  professionCoreState
 } from '#gw2/platform/profession-definition/state.js';
-import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import type { EngineerRuntime, EngineerPlanningState } from '#gw2/professions/engineer/types.js';
-import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
-import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { type GuardianCoreState, projectGuardianPlanningState } from '#gw2/professions/guardian/core/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-
-import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
-import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
-import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import type { VindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
-import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { WeaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import type { ElementalistRuntime, ElementalistPlanningState } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistPlanningState, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
+import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import type { EngineerPlanningState, EngineerRuntime } from '#gw2/professions/engineer/types.js';
+import { projectGuardianPlanningState, type GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
+import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import type { GuardianPlanningState } from '#gw2/professions/guardian/types.js';
 import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
-import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import type { GuardianPlanningState } from '#gw2/professions/guardian/types.js';
 import type { MesmerPlanningState } from '#gw2/professions/mesmer/types.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type { NecromancerPlanningState } from '#gw2/professions/necromancer/types.js';
+import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { RangerPlanningState } from '#gw2/professions/ranger/types.js';
+import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
+import type { VindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import type { RevenantPlanningState } from '#gw2/professions/revenant/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefPlanningState } from '#gw2/professions/thief/types.js';
+import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
+import type { BladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
+import type { ParagonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorPlanningState } from '#gw2/professions/warrior/types.js';
 
 type Assert<T extends true> = T;

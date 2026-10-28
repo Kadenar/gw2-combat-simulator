@@ -1,5 +1,5 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -13,8 +13,8 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import type {
   ElementalistRuntime,
-  ElementalistSkill,
-  ElementalistRuntimeState
+  ElementalistRuntimeState,
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
 /** A represented live elemental receives one replaceable charge tied to its current lifetime. */

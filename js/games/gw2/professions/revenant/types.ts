@@ -1,19 +1,18 @@
+import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { Gw2CanonicalBuild, Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { REVENANT_CORE_SKILL_FIELDS } from '#gw2/professions/revenant/core/catalog-fields.js';
 import type { RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import type { CONDUIT_SKILL_FIELDS } from '#gw2/professions/revenant/specializations/conduit/catalog-fields.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import type { VindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
-import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
-import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { CONDUIT_SKILL_FIELDS } from '#gw2/professions/revenant/specializations/conduit/catalog-fields.js';
-import type { REVENANT_CORE_SKILL_FIELDS } from '#gw2/professions/revenant/core/catalog-fields.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 /** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */

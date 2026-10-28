@@ -1,8 +1,8 @@
-import { WEAPON } from '#gw2/platform/constants.js';
 /** Combines shared weapon-family strength with profession-owned weapon availability. */
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
+import { WEAPON } from '#gw2/platform/constants.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
+import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 // ─── Weapon Data ──────────────────────────────────────────────────────────────
 // wielding: 'mh' = main-hand only, 'oh' = off-hand only,

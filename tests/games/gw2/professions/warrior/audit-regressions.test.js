@@ -1,22 +1,20 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import {
   createObservedProfessionSimulator,
-  observeGw2Runtime,
-  observedRuntime
+  observedRuntime,
+  observeGw2Runtime
 } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const simulate = createObservedProfessionSimulator(warriorProfession, {
   attributeInputs: baseAttributeInputs({

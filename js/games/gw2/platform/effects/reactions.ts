@@ -1,8 +1,8 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { type SideEffectAction } from '#gw2/platform/effects/actions.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 export type EffectReactionStage =

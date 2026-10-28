@@ -1,15 +1,16 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runThief } from '#tests/helpers/thief-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { createThiefBuildDefaults, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
-import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
+
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
+import { createThiefBuildDefaults, validateThiefBuild } from '#gw2/professions/thief/build/build.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const axeConfig = { primaryWeapon: 'Axe', secondaryWeapon: 'Pistol' };
 const returned = (result, type) =>

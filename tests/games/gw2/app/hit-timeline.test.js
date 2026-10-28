@@ -1,4 +1,3 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -6,6 +5,7 @@ import { groupSkillHits } from '#gw2/app/results/charts/hit-timeline-model.js';
 import { drawHitTimeline, mountHitTimeline } from '#gw2/app/results/charts/hit-timeline-view.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { inertContainer } from '#tests/helpers/dom.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 
 // Averaging changes the damage explanation, while critical labels still describe rolled proc outcomes.
 test('hit details explain averaged damage without replacing rolled critical outcomes', () => {

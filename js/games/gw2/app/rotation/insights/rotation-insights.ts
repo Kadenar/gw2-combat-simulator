@@ -1,11 +1,11 @@
 import type { ComparisonWindowMode } from '#gw2/app/rotation/comparison-state.js';
+import type {
+  ComparisonMetric,
+  RotationFinding,
+  RotationInsights
+} from '#gw2/app/rotation/insights/rotation-insights-types.js';
 import { rotationObservations } from '#gw2/app/rotation/insights/rotation-observations.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
-import type {
-  RotationFinding,
-  RotationInsights,
-  ComparisonMetric
-} from '#gw2/app/rotation/insights/rotation-insights-types.js';
 
 /** Materiality belongs to analysis, never combat configuration. Require absolute AND relative significance. */
 const INSIGHT_MATERIALITY = Object.freeze({

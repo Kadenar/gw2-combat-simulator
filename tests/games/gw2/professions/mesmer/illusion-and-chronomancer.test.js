@@ -1,5 +1,6 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import {
   formatConcurrentTimelineBadge,
@@ -7,16 +8,16 @@ import {
   mechanicResourceSpends
 } from '#gw2/app/rotation/timeline/model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { createDefaultConfig, runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 test('concurrent timeline badges show both delay and cast timestamp', () => {
   assert.equal(formatConcurrentTimelineBadge(100, '2.23s'), '⊙100ms\n2.23s');

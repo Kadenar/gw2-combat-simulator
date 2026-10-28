@@ -1,17 +1,17 @@
-import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { galeshotCycloneBowActions } from '#gw2/integrations/logs/evtc/rotation/professions/galeshot.js';
-import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
-import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { isBuffApply, isBuffRemoveAll } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
-import {
-  SIGNET_OF_MIGHT_PASSIVE_ID,
-  signetOfMightProcAt
-} from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
-import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { galeshotCycloneBowActions } from '#gw2/integrations/logs/evtc/rotation/professions/galeshot.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
+import {
+  SIGNET_OF_MIGHT_PASSIVE_ID,
+  signetOfMightProcAt
+} from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
 
 /** Resolves cloak sources from owned raw evidence; a cloak gain alone never proves a dodge. */
 function mesmerCloakActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {

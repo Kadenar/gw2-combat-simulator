@@ -1,17 +1,17 @@
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
 import {
+  createOptimizerResultGroups,
+  retainOptimizerGroup,
+  type OptimizerGroupedFilter,
+  type OptimizerResultGroups
+} from '#gw2/app/optimizer/gear/candidate-results.js';
+import {
   retainOptimizerCandidate,
   type GearOptimizerRequest,
   type OptimizerCandidate,
   type OptimizerScore
 } from '#gw2/app/optimizer/gear/search.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import {
-  createOptimizerResultGroups,
-  retainOptimizerGroup,
-  type OptimizerResultGroups,
-  type OptimizerGroupedFilter
-} from '#gw2/app/optimizer/gear/candidate-results.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 export const MAX_OPTIMIZER_WORKERS = 4;

@@ -1,12 +1,10 @@
-import { canonicalTime } from '#kernel/core/clock.js';
-
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-
 import type { AutoattackChainTransitionResult } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export const THIEF_SCEPTER_CHAIN_EXPIRY = 'thief.scepter-chain-expire';
 

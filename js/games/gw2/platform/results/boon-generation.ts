@@ -1,23 +1,23 @@
-import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import {
-  boonKey,
   advanceDurationStack,
+  applyBoonExtension,
+  boonKey,
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
   normalizeBoonDuration,
   recordBuffApplication,
   remainingDurationStackSeconds,
-  applyBoonExtension,
-  type Gw2TimedBuffApplication,
-  standardBoonPresentation
+  standardBoonPresentation,
+  type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { observeBuffState } from '#gw2/platform/combat/effect-state.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 
 // Reporting projects party grants onto a full subgroup without changing combat assumptions or events.
 export const PRESENTATION_ALLIED_PLAYER_COUNT = 4;

@@ -1,11 +1,11 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import {
-  skillNumber,
-  requireSkillFromContext,
   effectNumber,
   requireBalanceProfileFromContext,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';

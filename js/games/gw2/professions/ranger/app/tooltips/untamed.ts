@@ -1,17 +1,17 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
   profileFact,
+  simulationEffectFacts,
+  skillTooltip,
   tooltipPercent,
   tooltipProfile,
-  simulationEffectFacts,
+  tooltipSeconds,
+  traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 

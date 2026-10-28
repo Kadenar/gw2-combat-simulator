@@ -1,8 +1,8 @@
+import type { AnalyzedInputAction, InputAnalysis, InputReach } from '#gw2/input/analysis.js';
 import { INPUT_MODIFIER_CODES, parseInputBinding } from '#gw2/input/bindings.js';
-import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
-import type { AnalyzedInputAction, InputReach, InputAnalysis } from '#gw2/input/analysis.js';
-import type { InputWindow } from '#gw2/platform/results/input-windows.js';
 import type { InputTrace } from '#gw2/platform/results/input-trace.js';
+import type { InputWindow } from '#gw2/platform/results/input-windows.js';
+import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 
 export interface InputKeyRow {
   binding: string;

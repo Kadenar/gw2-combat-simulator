@@ -1,19 +1,23 @@
-import { RECIPIENT, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+/** Owns Legendary Demon Stance skill fragments and its Unyielding Impact follow-up. */
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
+import {
+  conditionEffectTicks,
+  effectFirstAtMs,
+  impactEffects,
+  strikeEffectCoefficient
+} from '#gw2/platform/effects/authoring.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { conditionEffectTicks, effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-/** Owns Legendary Demon Stance skill fragments and its Unyielding Impact follow-up. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { FOOD_DATA, FOOD_GROUPS, FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
 import {
   UTILITY_DATA,
   UTILITY_GROUPS,
   UTILITY_NAMES,
-  UTILITY_STRIKE_DAMAGE_BONUSES,
-  UTILITY_STAT_DATA
+  UTILITY_STAT_DATA,
+  UTILITY_STRIKE_DAMAGE_BONUSES
 } from '#gw2/platform/equipment/consumables/utilities.js';
 
 test('food exports retain a complete flat lookup and grouped display list', () => {

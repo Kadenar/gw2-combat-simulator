@@ -1,10 +1,10 @@
-import { rankedInputWindows, type InputWindow } from '#gw2/platform/results/input-windows.js';
+import { inputKeyModifier, parseInputBinding } from '#gw2/input/bindings.js';
 import { INPUT_KEY_POSITIONS } from '#gw2/input/keyboard-layout.js';
-import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
-import { parseInputBinding, inputKeyModifier } from '#gw2/input/bindings.js';
 import { validateInputProfile, type InputProfile } from '#gw2/input/profile.js';
 import type { InputAction } from '#gw2/platform/execution/input-controls.js';
 import type { InputTrace } from '#gw2/platform/results/input-trace.js';
+import { rankedInputWindows, type InputWindow } from '#gw2/platform/results/input-windows.js';
+import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 
 export type InputReach = 'near' | 'stretch' | 'far';
 

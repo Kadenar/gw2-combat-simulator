@@ -1,19 +1,7 @@
-import { normalizeRotation, validateRotationCommand } from '#gw2/platform/builds/rotation.js';
-import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
-import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
-import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
-import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
-import { RELIC_NAMES, PRECAST_RELIC_NAMES, normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
-import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
-import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
-import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
-import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
 import { normalizeCommonAssumptions, validateCommonAssumptions } from '#gw2/platform/builds/assumptions.js';
-import { canEquipWeaponSigil, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-
+import { normalizeRotation, validateRotationCommand } from '#gw2/platform/builds/rotation.js';
 import type {
-  Gw2CanonicalBuild,
+  BuildValidationResult,
   Gw2BuildCodec,
   Gw2BuildCodecOptions,
   Gw2BuildExtraFieldDescriptor,
@@ -21,9 +9,20 @@ import type {
   Gw2BuildInfusion,
   Gw2BuildSpecialization,
   Gw2BuildValidationOptions,
+  Gw2CanonicalBuild,
   UnvalidatedBuildRecord
 } from '#gw2/platform/builds/types.js';
-import type { BuildValidationResult } from '#gw2/platform/builds/types.js';
+import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
+import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
+import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { normalizePrecastRelics, PRECAST_RELIC_NAMES, RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
+import { canEquipWeaponSigil, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { boundedInteger, boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
 
 const SLOT_TYPES = Object.freeze({

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { benchmarkBuildPreview } from '#gw2/app/page/benchmark-build-preview.js';
 import { benchmarkPreviewPath, validateBenchmarkPreview } from '#gw2/app/page/benchmark-preview-data.js';
 import { createBenchmarkPreview } from '#gw2/app/page/benchmark-preview-generation.js';

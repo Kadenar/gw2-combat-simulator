@@ -1,8 +1,8 @@
-import { standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import { buildTimeSeries, type ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
 import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
-import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
+import { standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import type {
   ProfessionChartApplication,
   ProfessionEffectPresentation

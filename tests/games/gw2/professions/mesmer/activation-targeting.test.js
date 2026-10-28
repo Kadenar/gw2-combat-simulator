@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Delayed precasts must cross Combat Start without postponing clone conversion or delaying on-hit traits twice.
 test('Phantasmal Mage targeting moves hostile applications across Combat Start while retaining resources', () => {

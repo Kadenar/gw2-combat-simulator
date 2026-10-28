@@ -1,16 +1,16 @@
-import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromProfile,
   outsideScopeTooltip,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
+  traitSkillTooltip,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 /** Describe spellbreaker tooltips from the selected balance data. */
 export const spellbreakerTooltips = {

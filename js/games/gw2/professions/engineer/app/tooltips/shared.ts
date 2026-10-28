@@ -1,15 +1,15 @@
 import {
-  tooltipFactorChange,
-  skillTooltip,
   skillFact,
+  skillTooltip,
+  tooltipFactorChange,
   tooltipNumber,
   tooltipProfile,
   type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
-import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 
 /** Share tooltip formatting and descriptions used by multiple profession owners. */
 

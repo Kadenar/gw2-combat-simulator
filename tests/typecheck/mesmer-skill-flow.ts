@@ -1,13 +1,13 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
 import { harmonize, syncopate } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;

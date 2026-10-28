@@ -1,9 +1,9 @@
-import { hasActionEffects } from '#gw2/platform/effects/actions.js';
-import { patchableNumericFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 /** Owns editable-field metadata and sanitized authoring references without applying patches. */
-import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
+import { hasActionEffects } from '#gw2/platform/effects/actions.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { patchableNumericFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 
 // Effect and profile timing internals stay out of authoring references; skill fields declare their own visibility.
 const EFFECT_RUNTIME_ONLY_NUMERIC_FIELDS = [

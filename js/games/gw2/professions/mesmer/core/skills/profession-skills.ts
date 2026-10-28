@@ -1,9 +1,9 @@
-import { shatterSkill } from '#gw2/professions/mesmer/core/skills/shatter.js';
-import { CONTROL, ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
+import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { shatterSkill } from '#gw2/professions/mesmer/core/skills/shatter.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export const MESMER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
   [ID.CRY_OF_FRUSTRATION]: {

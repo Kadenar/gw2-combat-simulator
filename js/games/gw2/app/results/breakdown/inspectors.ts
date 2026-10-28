@@ -1,9 +1,9 @@
-import { escapeHtml } from '#ui/shared/html.js';
-import { resultNumber as number } from '#gw2/app/results/formatting.js';
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
+import type { DamageBreakdownModel } from '#gw2/app/results/breakdown/model.js';
 import { mountHitTimeline } from '#gw2/app/results/charts/hit-timeline-view.js';
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
-import type { DamageBreakdownModel } from '#gw2/app/results/breakdown/model.js';
+import { resultNumber as number } from '#gw2/app/results/formatting.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 /** Rebuilds the selected row's inspector after sorting, preserving its selected identity and proc attribution. */
 export function renderSkillInspector(

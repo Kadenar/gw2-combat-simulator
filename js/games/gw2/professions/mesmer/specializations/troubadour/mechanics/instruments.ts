@@ -1,4 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
@@ -14,16 +15,17 @@ import {
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerProfessionActionCommitted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatterTraitHit } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { cloneShatterMaterialized } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
 import {
   masterOfFragmentationCrescendo,
   triggerMaimTheDisillusioned
 } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerSelectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-projection.js';
-import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import {
   troubadourCrescendoResolved,
   troubadourInstrumentAnnounced,
@@ -32,15 +34,13 @@ import {
   troubadourInstrumentControl,
   troubadourInstrumentStrike
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import {
   activeTroubadourInstrumentsAt,
   troubadourState
 } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { mesmerProfessionActionCommitted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 
 /** Resolve selected instrument tuning for the performance handlers that consume it. */
 function mesmerInstruments(context: MesmerRuntime) {

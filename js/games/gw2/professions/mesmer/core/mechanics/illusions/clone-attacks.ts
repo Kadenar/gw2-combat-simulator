@@ -1,18 +1,17 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import {
-  buildMesmerStrikes,
-  mesmerPacketOwner,
-  buildMesmerConditions
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-
 import type {
   MesmerClone,
   MesmerCloneAttack,
   MesmerCloneAttackScheduler,
   MesmerCloneAttackStep
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import {
+  buildMesmerConditions,
+  buildMesmerStrikes,
+  mesmerPacketOwner
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 interface CloneAttackSchedulerOptions {
   readonly state: MesmerRuntime;

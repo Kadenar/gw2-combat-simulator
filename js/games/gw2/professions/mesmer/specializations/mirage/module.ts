@@ -1,5 +1,6 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
+import { MIRAGE_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/mirage/catalog-fields.js';
 import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
 import { mirageUi } from '#gw2/professions/mesmer/specializations/mirage/presentation.js';
 import {
@@ -8,7 +9,6 @@ import {
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { mirageState, projectMiragePlanningState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import { mirageTraits } from '#gw2/professions/mesmer/specializations/mirage/traits/index.js';
-import { MIRAGE_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/mirage/catalog-fields.js';
 
 export const mirageModule = defineNativeModule({
   id: 'Mirage',

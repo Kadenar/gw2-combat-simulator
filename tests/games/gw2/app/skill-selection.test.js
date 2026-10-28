@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { normalizeSelectedSkills } from '#gw2/app/build/state/skill-selection.js';
 
 // Repairing an earlier slot must not consume a valid selection reserved by a later slot.

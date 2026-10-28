@@ -1,33 +1,34 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import {
   displayedSkillTiles,
   displayedWeaponSkills,
   paletteActionSkills,
-  weaponSkills,
-  weaponPaletteRows
+  weaponPaletteRows,
+  weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
-import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
 import { weaponPaletteSectionHtml, weaponPaletteStackHtml } from '#gw2/app/rotation/palette/view.js';
 import { ACTION_ICONS, resolveProcIcon } from '#gw2/app/shared/icons.js';
-import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
-import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
+import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 test('Mesmer and Guardian palettes show only equipped weapon-set rows', () => {
   const appFor = (profession, build) => ({

@@ -1,22 +1,21 @@
-import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
-import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import {
   boonKey,
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { playerHealthFraction, skillForEvent, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusFromContext,
   balanceNumberFromContext,
@@ -27,7 +26,6 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-
 import {
   signetCompleted,
   stealthAttackCompleted,
@@ -35,6 +33,7 @@ import {
   type ThiefStrike
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
+import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 

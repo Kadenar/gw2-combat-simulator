@@ -1,23 +1,23 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { attributeSourcePool, baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
+import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import { test } from 'node:test';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const baseConfig = Object.freeze({

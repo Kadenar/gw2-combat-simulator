@@ -1,17 +1,17 @@
-import { RECIPIENT, ACTOR } from '#gw2/platform/constants.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { activeChargeCount, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import {
-  skillNumber,
-  effectNumber,
-  requireSkillFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import {
+  effectNumber,
+  requireEffect,
+  requireSkillFromContext,
+  skillNumber
+} from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
   ritualistResolverEventReactions,

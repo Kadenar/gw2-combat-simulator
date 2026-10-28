@@ -1,25 +1,25 @@
-import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { createRotationItem } from '#gw2/app/rotation/editing/actions.js';
-import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
-import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
-import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createRotationItem } from '#gw2/app/rotation/editing/actions.js';
+import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import {
   createMesmerBuildDefaults,
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
 import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
-import { MESMER_CORE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/index.js';
+import {
+  MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
+  MESMER_CORE_SKILL_MECHANICS
+} from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
 import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import {
   MESMER_CHRONOMANCER_EXTRA_SKILLS,
@@ -40,6 +40,8 @@ import {
   MESMER_VIRTUOSO_SHATTERS,
   MESMER_VIRTUOSO_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 
 const MECHANIC_SKILLS = Object.freeze({
   Core: Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]),

@@ -1,8 +1,9 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 test('retired clone packets cannot grant accepted critical conditions', () => {
   // Cancellation happens before impact; the surviving owner's sampled hit alone can trigger Sharper Images.

@@ -1,26 +1,27 @@
-import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
+import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
 import {
-  normalizeRotationVisibility,
-  readStoredTimelineOverlayVisibility,
-  storeTimelineOverlayVisibility,
   normalizeRotationTimelineSize,
+  normalizeRotationVisibility,
+  readStoredRotationProcOverlayVisibility,
+  readStoredTimelineOverlayVisibility,
   ROTATION_DEAD_TIME_STORAGE_KEY,
+  ROTATION_PROC_OVERLAY_STORAGE_KEYS,
+  ROTATION_TIMELINE_SIZE_OPTIONS,
   rotationDeadTimeVisibility,
   setRotationDeadTimeVisibility,
-  ROTATION_TIMELINE_SIZE_OPTIONS,
-  readStoredRotationProcOverlayVisibility,
-  ROTATION_PROC_OVERLAY_STORAGE_KEYS,
-  storeRotationProcOverlayVisibility
+  storeRotationProcOverlayVisibility,
+  storeTimelineOverlayVisibility
 } from '#gw2/app/rotation/timeline/preferences.js';
-import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
-import { reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
+import { reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // Interrupted packet casts turn red only without damage; committed non-damaging effects keep normal styling.
 test('timeline marks failed zero-damage casts without marking committed buffs as cancelled', () => {

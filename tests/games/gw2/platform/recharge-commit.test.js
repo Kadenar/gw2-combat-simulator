@@ -1,13 +1,13 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Persistent queries cannot consume one-shot benefits; reservation spends them once on an eligible cast.

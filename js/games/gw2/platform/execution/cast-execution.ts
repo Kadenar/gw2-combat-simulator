@@ -1,8 +1,9 @@
-import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import type { CastCommand } from '#gw2/platform/builds/rotation.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { activationInputKind } from '#gw2/platform/skills/autoattack-chain-index.js';
-import { resolveInputControl } from '#gw2/platform/execution/input-controls.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
@@ -13,25 +14,23 @@ import {
   autoattackChainAvailability,
   resetAutoattackChains
 } from '#gw2/platform/execution/autoattack-chains.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
-  selectSkillEffects,
   cancelledBeforeEffectCommit,
   cancelledBeforeInterruptCommit,
-  interruptCommitCutoffs
+  interruptCommitCutoffs,
+  selectSkillEffects
 } from '#gw2/platform/execution/cast-effects.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import {
   castWasInterrupted,
   retainsInterruptedCastLockout,
   scaleCastBoundTiming,
-  summonQuicknessCastTimeMs,
-  skillTaskAt
+  skillTaskAt,
+  summonQuicknessCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
-import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { resolveInputControl } from '#gw2/platform/execution/input-controls.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import type { CastCommand } from '#gw2/platform/builds/rotation.js';
 import {
   createCastDetailContext,
   createRechargeStartContext
@@ -40,6 +39,7 @@ import type { RuntimeProfession } from '#gw2/platform/profession-definition/runt
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';
+import { activationInputKind } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 

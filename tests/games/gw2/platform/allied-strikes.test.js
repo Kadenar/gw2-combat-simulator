@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
+
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
+import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // A controllable clock isolates grant consumption and cadence from damage formulas and reporting.
 function fixture({ explicit = true, rate = 2 } = {}) {

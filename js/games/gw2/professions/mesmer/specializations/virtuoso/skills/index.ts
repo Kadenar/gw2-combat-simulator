@@ -1,8 +1,15 @@
-import { shatterSkill } from '#gw2/professions/mesmer/core/skills/shatter.js';
-import { ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
-import { bladecallEffects } from '#gw2/professions/mesmer/core/skills/weapons/bladecall.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+/**
+ * Owns Virtuoso dagger, slot-skill, and bladesong catalog fragments.
+ * Blade storage and bladesong runtime behavior lives under `mechanics/`.
+ */
+import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { shatterSkill } from '#gw2/professions/mesmer/core/skills/shatter.js';
+import { bladecallEffects } from '#gw2/professions/mesmer/core/skills/weapons/bladecall.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /**
  * Builds each blade tier's timed packets from its total strike coefficient.
@@ -14,14 +21,6 @@ function bladePacketTiers(coefficients: readonly number[], atMs: readonly number
     atMs.slice(0, spent).map((packetAtMs) => ({ atMs: packetAtMs, coefficient: coefficient / spent }))
   );
 }
-
-/**
- * Owns Virtuoso dagger, slot-skill, and bladesong catalog fragments.
- * Blade storage and bladesong runtime behavior lives under `mechanics/`.
- */
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({
   [ID.BLADECALL]: {

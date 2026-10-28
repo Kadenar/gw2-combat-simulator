@@ -1,9 +1,7 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromSkill,
-  skillFact,
   simulationEffectFacts,
+  skillFact,
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
@@ -11,14 +9,16 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { virtueTooltip } from '#gw2/professions/guardian/app/tooltips/shared.js';
-import { guardianZealTooltips } from '#gw2/professions/guardian/app/tooltips/zeal.js';
-import { guardianRadianceTooltips } from '#gw2/professions/guardian/app/tooltips/radiance.js';
-import { guardianValorTooltips } from '#gw2/professions/guardian/app/tooltips/valor.js';
 import { guardianHonorTooltips } from '#gw2/professions/guardian/app/tooltips/honor.js';
+import { guardianRadianceTooltips } from '#gw2/professions/guardian/app/tooltips/radiance.js';
+import { virtueTooltip } from '#gw2/professions/guardian/app/tooltips/shared.js';
+import { guardianValorTooltips } from '#gw2/professions/guardian/app/tooltips/valor.js';
 import { guardianVirtuesTooltips } from '#gw2/professions/guardian/app/tooltips/virtues.js';
+import { guardianZealTooltips } from '#gw2/professions/guardian/app/tooltips/zeal.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 const renewedFocusTooltip: DescribeSimulationTooltip = skillTooltip(
   'Complete the channel to refresh virtue recharges, restore virtue ammunition, and ready virtue passives. Invulnerability is outside combat simulation scope.'

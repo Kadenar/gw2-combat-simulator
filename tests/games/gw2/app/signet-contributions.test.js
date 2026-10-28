@@ -1,15 +1,16 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { modifierComparisonRequest, modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { modifierComparisonRequest, modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const signets = {
   elementalist: [['Signet of Fire', 'precision']],

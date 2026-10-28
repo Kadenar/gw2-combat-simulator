@@ -1,23 +1,23 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
-import { conditionApplicationExpiry } from '#gw2/platform/combat/state/targets.js';
-import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
-import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
 import { liveBoonSnapshot } from '#gw2/platform/combat/query/effect-stacks.js';
+import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import {
-  targetHealthLoss,
+  remainingTargetHealthBelow,
   remainingTargetHealthFraction,
-  remainingTargetHealthBelow
+  targetHealthLoss
 } from '#gw2/platform/combat/state/target-health.js';
-import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { conditionApplicationExpiry } from '#gw2/platform/combat/state/targets.js';
 import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Combat capabilities granted to mechanics: shared-state queries plus phase-preserving mutation requests. */
 export interface MechanicCombatServices {

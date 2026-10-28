@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';

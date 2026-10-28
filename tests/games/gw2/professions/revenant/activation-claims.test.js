@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runRevenant, revenantHit } from '#tests/helpers/revenant-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
+
+import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import {
-  REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 // Facet actions and the common completion observer must share the same claim, even across detached cast objects.
 test('Revenant completion paths grant one reward per activation and isolate runs', () => {

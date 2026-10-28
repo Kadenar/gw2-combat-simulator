@@ -1,5 +1,5 @@
-import { createProcRegistry, type ProcRegistryContext } from '#gw2/platform/combat/procs/registry.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { createProcRegistry, type ProcRegistryContext } from '#gw2/platform/combat/procs/registry.js';
 
 // A proc owner needs no resolver stores, event queues, or reporting services to claim a deadline.
 const procContext: ProcRegistryContext = {

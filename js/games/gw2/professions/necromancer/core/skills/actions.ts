@@ -1,12 +1,11 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
-
 /**
  * Owns synthetic Core Necromancer actions that do not come from the GW2 skill catalog.
  * Runtime behavior remains in the platform weapon-swap and Core shroud mechanic owners.
  */
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 const extraSkills: Skill[] = [
   // Consumed shards invoke this canonical payload without adding a player activation.

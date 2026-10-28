@@ -1,13 +1,14 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runNative } from '#tests/helpers/elementalist-simulation.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
+import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import { runNative } from '#tests/helpers/elementalist-simulation.js';
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 
 const hammerOptions = {
   lines: [['Fire'], ['Air'], ['Arcane']],

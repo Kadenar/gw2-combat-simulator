@@ -1,4 +1,3 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
@@ -9,13 +8,14 @@ import {
   missesTarget
 } from '#gw2/platform/combat/state/targets.js';
 import { fieldDescriptors, finisherDescriptors } from '#gw2/platform/combos/descriptors.js';
-import { prepareGw2ComboEvent } from '#gw2/platform/combos/validation.js';
 import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
+import { prepareGw2ComboEvent } from '#gw2/platform/combos/validation.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { type AnnouncementEmission, type EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
-import { weaponStrengthProfileIdForEvent } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { PacketIdentity } from '#gw2/platform/events/identity.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   createEffectOwnershipContext,
   createSelectedContentContext
@@ -27,7 +27,7 @@ import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-han
 import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { weaponStrengthProfileIdForEvent } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { RuntimeWork, WorkInput } from '#gw2/platform/simulation/work-contract.js';

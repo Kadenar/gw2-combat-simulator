@@ -1,18 +1,19 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
+import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
+import { gw2RechargeRate } from '#gw2/platform/combat/recharge.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
+import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
-import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
-import { gw2RechargeRate } from '#gw2/platform/combat/recharge.js';
-import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Neither exit rewinds chain progress, restores a completed chain, or erases a chain started during Split.
 test('manual and automatic Continuum exits leave autoattack chains at their live step', () => {

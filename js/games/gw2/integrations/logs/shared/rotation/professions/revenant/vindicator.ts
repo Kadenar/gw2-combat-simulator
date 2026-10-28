@@ -1,9 +1,9 @@
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import { VINDICATOR_AIRBORNE_MS, VINDICATOR_DODGE_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import type {
   LogActionNormalizationContext,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { VINDICATOR_AIRBORNE_MS, VINDICATOR_DODGE_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 
 const DEATH_DROP_IDS = new Set([62693, 62730]);
 // This is a raw animation identity in logs, not a separately executable simulator skill.

@@ -1,6 +1,7 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';

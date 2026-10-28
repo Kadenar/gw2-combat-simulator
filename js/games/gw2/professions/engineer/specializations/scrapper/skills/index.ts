@@ -1,12 +1,12 @@
-import { COMBO_FIELD, RECIPIENT, ACTOR, CONTROL, BOON } from '#gw2/platform/constants.js';
 /**
  * Scrapper Engineer skill mechanics.
  *
  * Weapon skills remain Core-owned because Weaponmaster Training makes the
  * physical weapon families profession-wide.
  */
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { ACTOR, BOON, COMBO_FIELD, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 export const SCRAPPER_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
   [ID.RECONSTRUCTION_FIELD]: {

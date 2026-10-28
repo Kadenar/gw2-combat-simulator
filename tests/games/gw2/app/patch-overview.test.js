@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
-import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+
 import {
   acceptSavedDraft,
   editorState,
@@ -11,8 +9,12 @@ import {
   prepareEditorStateForRender,
   setNumericEdit
 } from '#gw2/integrations/patches/app/editor-state.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
+import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+
 import {
   serializeActivePatchPreview,
   validateAuthoringPreview

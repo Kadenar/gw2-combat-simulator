@@ -1,21 +1,21 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
-import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import {
-  REVENANT_MAXIMUM_ENERGY,
-  REVENANT_PRECOMBAT_ENERGY_CEILING,
-  REVENANT_ENERGY_REGENERATION,
-  revenantStartingEnergy
-} from '#gw2/professions/revenant/core/resource-values.js';
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import {
+  REVENANT_ENERGY_REGENERATION,
+  REVENANT_MAXIMUM_ENERGY,
+  REVENANT_PRECOMBAT_ENERGY_CEILING,
+  revenantStartingEnergy
+} from '#gw2/professions/revenant/core/resource-values.js';
+import { normalizeRevenantLegendIds } from '#gw2/professions/revenant/data/legends.js';
+import type { RevenantConfig } from '#gw2/professions/revenant/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface RevenantUpkeepState {

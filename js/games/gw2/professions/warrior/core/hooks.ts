@@ -1,14 +1,14 @@
-import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ACTOR, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { applySideEffect, sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
@@ -37,7 +37,6 @@ import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/h
 import { counterblowLifecycle } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
 import { swordFlipLifecycle } from '#gw2/professions/warrior/core/skills/weapons/sword.js';
 import { resolveWarriorDualWieldSkill } from '#gw2/professions/warrior/data/dual-wielding.js';
-
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';

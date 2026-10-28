@@ -1,21 +1,21 @@
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
-import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamagePreviewPreparation,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
+  ProfessionCatalogContext,
   ProfessionEventLogDescriptor,
   ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiState,
   hasActiveTrait,
   uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { HOLOSMITH_FORGE_TOGGLE_SKILL_IDS } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { enhancedCapacityMaximumHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';

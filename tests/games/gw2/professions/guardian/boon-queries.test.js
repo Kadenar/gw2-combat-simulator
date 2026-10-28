@@ -1,15 +1,15 @@
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Build real recipient metadata so player queries can distinguish shared, ally-only, and companion-only applications.
 function buff(kind, audience = { recipients: 'self' }) {

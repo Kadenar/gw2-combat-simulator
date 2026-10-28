@@ -1,13 +1,14 @@
-import { CONTROL } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { CONTROL } from '#gw2/platform/constants.js';
 import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 

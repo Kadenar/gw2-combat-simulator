@@ -1,9 +1,9 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { RELIC_BY_ID, RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 /** Resolved interrupts share Severance's control trigger; each proc adds five independent, unmodified damage ticks. */
 export const agony = defineRelic({

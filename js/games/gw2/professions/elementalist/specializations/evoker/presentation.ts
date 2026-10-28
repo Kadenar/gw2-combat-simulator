@@ -6,40 +6,41 @@
  * the rotation snapshot. Reads a projected UI-side state record rather than live
  * simulation state, falling back to build defaults before a run exists.
  */
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import type {
-  ElementalistSkill,
-  ElementalistUiContext,
-  ElementalistUiSlice
-} from '#gw2/professions/elementalist/types.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   SkillDamagePreviewContext,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
+  ProfessionCatalogContext,
   ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionSkillBarSelectionChange,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import { ELEMENTALIST_FAMILIAR_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
+import {
+  ELEMENTALIST_FAMILIAR_SKILL_IDS,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
+import type {
+  ElementalistSkill,
+  ElementalistUiContext,
+  ElementalistUiSlice
+} from '#gw2/professions/elementalist/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 // the projected state record is absent until a simulation has produced one
 function uiState(

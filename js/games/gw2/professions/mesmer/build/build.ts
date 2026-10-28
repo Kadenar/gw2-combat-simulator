@@ -1,8 +1,8 @@
 import { WEAPON } from '#gw2/platform/constants.js';
-import { MESMER_SKILL_IDS as SKILL } from '#gw2/professions/mesmer/data/ids.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { MESMER_SKILL_IDS as SKILL } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerCanonicalBuild } from '#gw2/professions/mesmer/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';

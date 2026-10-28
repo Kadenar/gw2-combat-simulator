@@ -1,19 +1,20 @@
-import { attributeBonusNumber, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineFields, numberField, patchableNumericFields } from '#gw2/platform/skills/field-specs.js';
-import { professionProfileFields, SHARED_PROFILE_FIELDS } from '#gw2/platform/skills/profile-fields.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+
 import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
-import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import {
   balanceProfileAuthoringReference,
   balanceProfileNumericFieldTier
 } from '#gw2/integrations/patches/authoring/fields.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { attributeBonusNumber, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { defineFields, numberField, patchableNumericFields } from '#gw2/platform/skills/field-specs.js';
+import { professionProfileFields, SHARED_PROFILE_FIELDS } from '#gw2/platform/skills/profile-fields.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 // Profiles enforce the selected registry on both authored values and overlays, without accepting retired targets.
 test('profile declarations enforce ownership, numeric bounds, and grouped attributes', () => {

@@ -1,10 +1,10 @@
-import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   profileFact,
   simulationEffectFacts,
   tooltipPercent,
   tooltipProfile,
   tooltipSeconds,
+  traitSkillTooltip,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFile, readdir } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import test from 'node:test';
+
 import { SPECIALIZATION_BACKGROUNDS } from '#gw2/app/shared/specialization-backgrounds.js';
 
 const root = new URL('../../', import.meta.url);

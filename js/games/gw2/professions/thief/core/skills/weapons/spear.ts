@@ -1,14 +1,14 @@
-import { ACTOR, STATUS, CONTROL, WEAPON, CONDITION } from '#gw2/platform/constants.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 // EVTC-measured Quickness timings keep spear casts aligned with their observed cast-lane occupancy.
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.

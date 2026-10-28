@@ -1,7 +1,7 @@
-import { WingmanError } from '#gw2/integrations/logs/wingman/errors.js';
-import { normalizeWingmanReport } from '#gw2/integrations/logs/wingman/normalize.js';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import type { ParsedDpsReport } from '#gw2/integrations/logs/dps-report/types.js';
+import { WingmanError } from '#gw2/integrations/logs/wingman/errors.js';
+import { normalizeWingmanReport } from '#gw2/integrations/logs/wingman/normalize.js';
 
 const WINGMAN_HOST = /(?:^|\.)gw2wingman\.nevermindcreations\.de$/i;
 const LOG_ID = /^[A-Za-z0-9][A-Za-z0-9_.-]*$/;

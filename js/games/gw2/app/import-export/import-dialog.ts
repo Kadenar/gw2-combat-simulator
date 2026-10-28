@@ -1,9 +1,8 @@
 // Shared structure and behavior for the build file and rotation import dialogs.
 
 import { captureBuildDestination } from '#gw2/app/build/state/workspace.js';
-import { ensureDocumentStyles } from '#ui/shared/dom.js';
-
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { ensureDocumentStyles } from '#ui/shared/dom.js';
 
 const IMPORT_DIALOG_STYLES = `
     /* Class display rules would otherwise override the hidden attribute on grid lists and fieldsets. */

@@ -1,11 +1,11 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 // Reset refills the selected adrenaline cap but is never a Flow reward or a Dragon Trigger charge grant.

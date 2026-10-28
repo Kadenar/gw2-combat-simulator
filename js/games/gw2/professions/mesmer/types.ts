@@ -1,12 +1,11 @@
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { StrikeEffect } from '#gw2/platform/effects/types.js';
-import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { ConditionEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { AmmoObservation } from '#gw2/platform/execution/cooldown-contracts.js';
+import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type {
   MesmerShatterResolution,
@@ -14,13 +13,11 @@ import type {
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
-
-import type { ConditionEffect } from '#gw2/platform/effects/types.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerRuntimeState {
   core: MesmerCoreState;

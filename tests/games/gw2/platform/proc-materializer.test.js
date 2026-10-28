@@ -1,18 +1,18 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
+import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
-import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
-import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 
 test('critical sigil decisions use sampled outcomes and strict deadlines without mutating inputs', () => {
   const hit = { type: 'damage', at: 2, source: 'fixture', sourceId: 1, actorType: 'player', coefficient: 1 };

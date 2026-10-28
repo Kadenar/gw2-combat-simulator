@@ -8,8 +8,8 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 /** Describe virtues tooltips from the selected balance data. */
 export const guardianVirtuesTooltips = {

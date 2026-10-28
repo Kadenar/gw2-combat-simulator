@@ -1,28 +1,30 @@
-import { WEAPON, CONDITION, BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type {
   ProfessionEffectPresentation,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
-import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import {
+  GUARDIAN_SKILL_IDS,
+  GUARDIAN_TRAIT_IDS,
+  GUARDIAN_SKILL_IDS as ID
+} from '#gw2/professions/guardian/data/ids.js';
 import type {
-  GuardianSkill,
   GuardianPlanningState,
+  GuardianSkill,
   GuardianUiContext,
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Simulation time (seconds) of the rotation point being inspected. */

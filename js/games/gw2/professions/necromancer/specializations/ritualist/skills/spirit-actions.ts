@@ -1,16 +1,15 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { CONTROL } from '#gw2/platform/constants.js';
-import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  skillNumber,
   effectNumber,
+  requireEffect,
   requireSkillFromContext,
-  requireEffect
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -18,6 +17,7 @@ import {
   attribution,
   spiritFields
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
+import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
 import {
   canActivateRitualistSpirit,
   markRitualistSpiritBusy,

@@ -1,6 +1,6 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile, isTraitEffect } from '#gw2/platform/profession-definition/trait-emission.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';

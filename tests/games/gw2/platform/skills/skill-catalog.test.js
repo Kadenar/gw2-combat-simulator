@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { numberField } from '#gw2/platform/skills/field-specs.js';
+
 import {
   deriveAutoattackChains,
   indexAutoattackChains,
   resolveAutoattackChainStep
 } from '#gw2/platform/skills/autoattack-chain-index.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { numberField } from '#gw2/platform/skills/field-specs.js';
 
 test('fixed costs validate nonnegative finite amounts and reject competing selectors', () => {
   // A fixed game rule must resolve unambiguously before a runtime can admit or spend it.

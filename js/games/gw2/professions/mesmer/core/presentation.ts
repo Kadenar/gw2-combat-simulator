@@ -1,11 +1,10 @@
-import { BOON } from '#gw2/platform/constants.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import { BOON } from '#gw2/platform/constants.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
+import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
@@ -13,18 +12,18 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
-import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   MesmerResolverEvent,
   MesmerUiContext,
   MesmerUiSlice,
   MesmerUiState
 } from '#gw2/professions/mesmer/types.js';
-import { clamp } from '#kernel/core/numeric.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 interface MesmerUiResourceDefinition {
   readonly id: 'blades' | 'notes' | 'clones';

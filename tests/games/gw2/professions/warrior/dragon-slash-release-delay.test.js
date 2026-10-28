@@ -1,10 +1,11 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Minimal charge scenarios isolate holds from saved rotations, weapon rolls, and benchmark damage.
 const combat = { type: 'combat-start' };

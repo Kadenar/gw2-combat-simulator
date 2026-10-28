@@ -1,4 +1,3 @@
-import { ACTOR, AURA, WEAPON, STATUS, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Spear weapon-skill mechanics owned by the Weaver module.
  *
@@ -10,12 +9,12 @@ import { ACTOR, AURA, WEAPON, STATUS, COMBO_FINISHER, BOON, CONDITION } from '#g
  * Each instant activation grants its self benefits and arms a five-second buff.
  * The additional strike and its conditions resolve on the next player strike.
  */
-
+import { ACTOR, AURA, BOON, COMBO_FINISHER, CONDITION, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Stable buff identities keep six independently armed follow-ups separate. */

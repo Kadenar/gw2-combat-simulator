@@ -1,25 +1,26 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runNative, runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
-import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
-import { pickUpConjure, captureConjurePickup } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
-import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
-import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
-import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
+import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
+import { captureConjurePickup, pickUpConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
+import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
+import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Specific weapon-state denials must survive competing bundle restrictions and preserve retry deadlines.
 test('Rock Barrier availability precedes weapon-bar restrictions and retains its expiry retry', () => {

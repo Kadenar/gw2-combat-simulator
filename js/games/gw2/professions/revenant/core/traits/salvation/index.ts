@@ -1,4 +1,4 @@
-import { RECIPIENT, ACTOR, BOON } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';

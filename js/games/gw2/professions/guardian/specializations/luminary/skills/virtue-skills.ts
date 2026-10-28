@@ -1,13 +1,13 @@
-import { RECIPIENT, BOON, AURA } from '#gw2/platform/constants.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { AURA, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
-import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import { radiantVirtueArmed } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
+import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /**
  * Owns Luminary Radiant Virtue skill fragments.

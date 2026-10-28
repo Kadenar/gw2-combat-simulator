@@ -1,19 +1,17 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
-  tooltipFactorChange,
-  tooltipSeconds,
   modifierFact,
-  tooltipPercent,
   simulationEffectFacts,
-  type DescribeSimulationTooltip,
-  skillFact
+  skillFact,
+  tooltipFactorChange,
+  tooltipPercent,
+  tooltipSeconds,
+  type DescribeSimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
-
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { TooltipFact } from '#gw2/platform/skills/types.js';
 import { BACKSTAB_DEFIANT_MULTIPLIER } from '#gw2/professions/thief/core/skills/weapons/dagger.js';
-
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-import type { TooltipFact } from '#gw2/platform/skills/types.js';
 
 /** Share tooltip formatting and descriptions used by multiple profession owners. */
 

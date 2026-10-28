@@ -1,11 +1,11 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
-import { draconicEcho } from '#gw2/professions/revenant/specializations/herald/traits/index.js';
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
+import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { createRevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
@@ -16,11 +16,12 @@ import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/p
 import { heraldAttributes } from '#gw2/professions/revenant/specializations/herald/attributes.js';
 import { heraldModule } from '#gw2/professions/revenant/specializations/herald/module.js';
 import { createHeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
+import { draconicEcho } from '#gw2/professions/revenant/specializations/herald/traits/index.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const heraldPassiveModifierRules = heraldModule.modifiers.modifierRules.filter((rule) =>
   rule.id.startsWith('revenant.draconic-echo-')

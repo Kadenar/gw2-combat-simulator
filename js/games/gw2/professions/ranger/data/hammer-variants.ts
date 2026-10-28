@@ -2,10 +2,10 @@
  * Owns profession-wide Hammer variant selection and normalization.
  * Hammer skill fragments remain in `skills/weapons/hammer.ts`.
  */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerConfig, RangerPlanningState } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 

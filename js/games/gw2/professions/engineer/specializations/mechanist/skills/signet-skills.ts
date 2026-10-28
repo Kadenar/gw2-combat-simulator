@@ -1,18 +1,18 @@
-import { COMBO_FIELD, ACTOR, CONTROL, CONDITION } from '#gw2/platform/constants.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
-import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 /**
  * Owns Mechanist signet skills and their trait-dependent passives, using the selected trait's canonical balance.
  * Mech commands and autonomous attack identities live in their named catalogs.
  */
+import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { ACTOR, COMBO_FIELD, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { MechanistSkill } from '#gw2/professions/engineer/specializations/mechanist/types.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
+import type { MechanistSkill } from '#gw2/professions/engineer/specializations/mechanist/types.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Supplies Mechanist signet fragments to specialization composition. */
 export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, Partial<MechanistSkill>>> = Object.freeze({

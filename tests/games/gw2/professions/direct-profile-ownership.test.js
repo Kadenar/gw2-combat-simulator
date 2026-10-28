@@ -1,29 +1,30 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
+import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { createMirageActionController } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
+import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
+import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
+import { grantNecromancerSoulShards } from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
+import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 import {
   NECROMANCER_SKILL_IDS as NECRO,
   NECROMANCER_TRAIT_IDS as TRAIT
 } from '#gw2/professions/necromancer/data/ids.js';
-import { grantNecromancerSoulShards } from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
-import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
-import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
-import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
-import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
-import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
-import { createMirageActionController } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const preview = (family, profession, edits) =>

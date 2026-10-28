@@ -1,16 +1,15 @@
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import test from 'node:test';
-import { assertComposedCatalog } from '#tests/helpers/skill-mechanics.js';
 
 import { SKILLS as ELEMENTALIST_SKILLS } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
-import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS
 } from '#gw2/professions/engineer/core/skills/index.js';
 import { ENGINEER_TRAIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/trait-skills.js';
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { AMALGAM_EVOLVED_STATE_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import { AMALGAM_PROTOCOL_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
@@ -24,6 +23,7 @@ import { MECHANIST_MECH_COMMAND_SKILL_MECHANICS } from '#gw2/professions/enginee
 import { MECHANIST_SIGNET_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
+import { assertComposedCatalog } from '#tests/helpers/skill-mechanics.js';
 
 const KIT_SLUGS = new Map([
   [ENGINEER_SKILL_IDS.MED_KIT, 'med-kit'],

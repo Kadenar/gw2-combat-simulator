@@ -1,4 +1,9 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import {
   applyBoonExtension,
   boonIntervalsFromWindows,
@@ -7,9 +12,8 @@ import {
   remainingDurationStackSeconds,
   timedBuffApplicationsAt
 } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -17,8 +21,6 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { REVENANT_LEGEND_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -29,8 +31,7 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Exercise real extension handlers and both phases with minimal duration/resource contracts.
 const self = {

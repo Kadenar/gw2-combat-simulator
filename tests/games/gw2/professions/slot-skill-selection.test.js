@@ -1,14 +1,15 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 const config = {
   specialization: 'Core',

@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CONTROL, ACTOR, WEAPON } from '#gw2/platform/constants.js';
+
+import { ACTOR, CONTROL, WEAPON } from '#gw2/platform/constants.js';
+import { ELEMENTALIST_TRAIT_IDS as ELEMENTALIST_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { ELEMENTALIST_TRAIT_IDS as ELEMENTALIST_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 const wait = { type: 'wait', durationMs: 3000 };
 const config = { relic: 'Claw', target: { defiant: true, armor: 2597, conditions: {} } };

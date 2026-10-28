@@ -1,5 +1,8 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -8,8 +11,6 @@ import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Catalog edits must change both autonomous and commanded recharge, including the selected trait multiplier.
 test('natural pet recharge uses the active skill catalog on both execution paths', () => {

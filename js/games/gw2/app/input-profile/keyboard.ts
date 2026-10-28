@@ -1,7 +1,7 @@
-import { formatInputBinding } from '#gw2/input/bindings.js';
-import { inputKeyReach } from '#gw2/input/analysis.js';
-import { INPUT_KEY_LAYOUT } from '#gw2/input/keyboard-layout.js';
 import type { InputKeyUsage } from '#gw2/app/input-profile/summary.js';
+import { inputKeyReach } from '#gw2/input/analysis.js';
+import { formatInputBinding } from '#gw2/input/bindings.js';
+import { INPUT_KEY_LAYOUT } from '#gw2/input/keyboard-layout.js';
 import { escapeHtml as html } from '#ui/shared/html.js';
 
 interface DrawnKey {

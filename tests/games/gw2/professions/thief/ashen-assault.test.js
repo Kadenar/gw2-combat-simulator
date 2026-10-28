@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runThief } from '#tests/helpers/thief-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Synthetic packets isolate cancellation, hit ownership, and the all-strikes refund without calibrating native timing.
 for (const [skillId, specialization] of [

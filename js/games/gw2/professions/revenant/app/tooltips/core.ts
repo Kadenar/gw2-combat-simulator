@@ -10,18 +10,18 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import {
-  vindicatorDodgeTooltip,
-  variantEffects,
-  upkeepTooltip,
-  upkeepReleaseTooltip
-} from '#gw2/professions/revenant/app/tooltips/shared.js';
+import { revenantCorruptionTooltips } from '#gw2/professions/revenant/app/tooltips/corruption.js';
+import { revenantDevastationTooltips } from '#gw2/professions/revenant/app/tooltips/devastation.js';
 import { revenantInvocationTooltips } from '#gw2/professions/revenant/app/tooltips/invocation.js';
 import { revenantRetributionTooltips } from '#gw2/professions/revenant/app/tooltips/retribution.js';
 import { revenantSalvationTooltips } from '#gw2/professions/revenant/app/tooltips/salvation.js';
-import { revenantCorruptionTooltips } from '#gw2/professions/revenant/app/tooltips/corruption.js';
-import { revenantDevastationTooltips } from '#gw2/professions/revenant/app/tooltips/devastation.js';
+import {
+  upkeepReleaseTooltip,
+  upkeepTooltip,
+  variantEffects,
+  vindicatorDodgeTooltip
+} from '#gw2/professions/revenant/app/tooltips/shared.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
   'Switch weapon sets. At maximum Crushing Abyss, swapping to a different weapon loadout consumes the stacks and triggers Abyssal Raze. The triggered strike uses its base coefficient and retains the stack-scaled torment.'

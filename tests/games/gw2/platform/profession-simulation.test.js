@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 // A minimal native owner isolates fixture setup and queue ordering from authored profession behavior.
 function fixtureProfession() {

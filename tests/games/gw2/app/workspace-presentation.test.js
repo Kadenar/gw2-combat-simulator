@@ -1,7 +1,8 @@
-import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 
 test('empty rotations keep placeholder DPS metrics grouped with the builder', () => {
   const results = {

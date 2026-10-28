@@ -12,23 +12,23 @@
  * Mesmer notes and Revenant affinity emblems. Pip capacity is also exposed so
  * density can follow the resource shape without specialization selectors.
  */
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
-import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
-import type {
-  ProfessionResourceView,
-  ProfessionResourceViewContext
-} from '#gw2/platform/profession-presentation/types.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
-import { escapeHtml as esc } from '#ui/shared/html.js';
 import {
   activeSpecialization,
   palettePlanningState,
   paletteProfessionState,
   professionPlanningState
 } from '#gw2/app/rotation/context.js';
-import { boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
+import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
+import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
+import type {
+  ProfessionCatalogContext,
+  ProfessionResourceView,
+  ProfessionResourceViewContext
+} from '#gw2/platform/profession-presentation/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 export interface PaletteResourceView {
   readonly id: string;

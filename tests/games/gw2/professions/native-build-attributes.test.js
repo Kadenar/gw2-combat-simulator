@@ -1,28 +1,24 @@
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { resolveAttributeEffects } from '#gw2/platform/attributes/calculation.js';
-import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
+import { baseAttributeInputs, equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
-
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
-
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
-
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 
 const calculateGuardianAttributes = createCalculateAttributes(
   createProfessionBuildAttributeRules(guardianCatalog),

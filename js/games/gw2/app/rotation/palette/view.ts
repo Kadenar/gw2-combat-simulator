@@ -1,8 +1,6 @@
 /** Composes palette markup from projected state and binds the current rendered controls. */
-import { escapeHtml as esc } from '#ui/shared/html.js';
-import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
-import { bindAppPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
+import { bindAppPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import {
   createPaletteContext,
   displayedWeaponSkills,
@@ -16,9 +14,10 @@ import {
   type RenderedPaletteGroup
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
+import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import { COMBAT_START_ICON, COOLDOWN_RESET_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
-import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
+import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {
   ProfessionPaletteContext,
@@ -28,6 +27,7 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   const ammo = view.ammo;

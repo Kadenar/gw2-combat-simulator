@@ -1,6 +1,6 @@
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type { Gw2Build, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 

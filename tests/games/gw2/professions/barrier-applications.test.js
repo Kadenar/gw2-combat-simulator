@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { ENGINEER_TRAIT_IDS as E } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { NECROMANCER_TRAIT_IDS as N, NECROMANCER_SKILL_IDS as SKILL } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { ENGINEER_TRAIT_IDS as E } from '#gw2/professions/engineer/data/ids.js';
-import { NECROMANCER_TRAIT_IDS as N, NECROMANCER_SKILL_IDS as SKILL } from '#gw2/professions/necromancer/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const wait = { type: 'wait', durationMs: 5000 };
 const cases = [

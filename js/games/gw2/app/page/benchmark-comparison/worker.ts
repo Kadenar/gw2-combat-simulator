@@ -1,5 +1,5 @@
-import type { Benchmark } from '#gw2/app/page/benchmarks.js';
 import type { ComparisonRequest } from '#gw2/app/page/benchmark-comparison/model.js';
+import type { Benchmark } from '#gw2/app/page/benchmarks.js';
 
 const prepared = new Map<string, ComparisonRequest>();
 

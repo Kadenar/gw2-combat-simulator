@@ -1,5 +1,10 @@
 import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import {
+  optimizerEquivalenceKey,
+  scoreOptimizerRange,
+  type OptimizerRangeProgress
+} from '#gw2/app/optimizer/gear/search-space.js';
+import {
   assignOptimizerChoice,
   createOptimizerEvaluator,
   createOptimizerSpace,
@@ -9,11 +14,6 @@ import {
   type OptimizerCandidate,
   type OptimizerEquipment
 } from '#gw2/app/optimizer/gear/search.js';
-import {
-  optimizerEquivalenceKey,
-  scoreOptimizerRange,
-  type OptimizerRangeProgress
-} from '#gw2/app/optimizer/gear/search-space.js';
 
 export const OPTIMIZER_SEARCH_BUDGET = 2048;
 const ROUND_SIZE = 256;

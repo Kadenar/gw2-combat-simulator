@@ -1,16 +1,16 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
-  tooltipFactorChange,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
   profileFact,
+  simulationEffectFacts,
+  tooltipFactorChange,
   tooltipPercent,
   tooltipProfile,
-  simulationEffectFacts,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Describe critical strikes tooltips from the selected balance data. */

@@ -4,8 +4,8 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { stealAccepted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { stealAccepted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import {

@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  selectedSkillIdsFromSlots,
-  selectedSkillIdSet,
-  prepareSelectedSkillLoadout
-} from '#gw2/platform/builds/selected-skills.js';
-import { selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
-import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
+
 import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
+import {
+  prepareSelectedSkillLoadout,
+  selectedSkillIdSet,
+  selectedSkillIdsFromSlots
+} from '#gw2/platform/builds/selected-skills.js';
+import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
+import { selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
 
 const first = { id: 1, name: 'Shared name', type: 'Utility' };
 const second = { id: '1', name: 'Shared name', type: 'Utility' };

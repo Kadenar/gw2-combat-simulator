@@ -1,17 +1,17 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { clamp } from '#kernel/core/numeric.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
 /**
  * Shared cooldown and ammo-charge recharge state machine. Owns the common
  * between-cast lockout and charge bookkeeping (recharge timers, charge
  * depletion, recharge reduction) so professions only override maximum ammo and
  * recharge duration instead of reimplementing the mechanics.
  */
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { AmmoState, CooldownController, RechargeCheckpoint } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 interface CooldownControllerOptions {
   readonly clock: { readonly time: number };

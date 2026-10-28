@@ -1,8 +1,7 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import {
+  bleedingDuration,
   EVTC_BLEEDING_SKILL_ID,
   EVTC_CRITICAL_RESULT,
-  bleedingDuration,
   expectedConditionDurationsMs,
   hasSelectedTrait,
   isOutgoingStrike,
@@ -12,6 +11,7 @@ import {
   traitBalanceProfile
 } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import {
   attributeBonusNumber,

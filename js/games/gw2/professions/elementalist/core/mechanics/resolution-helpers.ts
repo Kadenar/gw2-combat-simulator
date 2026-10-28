@@ -1,6 +1,5 @@
-import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 /** Shared resolver-side state, attribution, boon, and condition helpers for Elementalist behavior. */
-
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 
 /** Returns active resolver-side applications of one buff kind at a timestamp. */

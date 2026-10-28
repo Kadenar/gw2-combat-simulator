@@ -5,8 +5,8 @@ import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindi
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { VINDICATOR_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
 import {
-  vindicatorState,
-  projectVindicatorPlanningState
+  projectVindicatorPlanningState,
+  vindicatorState
 } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { traitDefinitions } from '#gw2/professions/revenant/specializations/vindicator/traits/index.js';
 

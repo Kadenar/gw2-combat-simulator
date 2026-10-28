@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { RELIC_GROUPS, RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 

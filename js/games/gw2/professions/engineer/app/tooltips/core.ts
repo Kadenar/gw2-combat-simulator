@@ -1,24 +1,24 @@
+import {
+  simulationEffectFacts,
+  skillFact,
+  skillTooltip,
+  tooltipNumber,
+  tooltipSeconds,
+  type DescribeSimulationTooltip,
+  type ProfessionTooltips
+} from '#gw2/app/shared/simulation-tooltip.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { CONTROL, CONDITION } from '#gw2/platform/constants.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import {
-  tooltipSeconds,
-  skillTooltip,
-  skillFact,
-  tooltipNumber,
-  simulationEffectFacts,
-  type ProfessionTooltips,
-  type DescribeSimulationTooltip
-} from '#gw2/app/shared/simulation-tooltip.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { armFlipTooltip, gleamSaberTooltip } from '#gw2/professions/engineer/app/tooltips/shared.js';
-import { engineerExplosivesTooltips } from '#gw2/professions/engineer/app/tooltips/explosives.js';
-import { engineerToolsTooltips } from '#gw2/professions/engineer/app/tooltips/tools.js';
 import { engineerAlchemyTooltips } from '#gw2/professions/engineer/app/tooltips/alchemy.js';
+import { engineerExplosivesTooltips } from '#gw2/professions/engineer/app/tooltips/explosives.js';
 import { engineerFirearmsTooltips } from '#gw2/professions/engineer/app/tooltips/firearms.js';
 import { engineerInventionsTooltips } from '#gw2/professions/engineer/app/tooltips/inventions.js';
+import { armFlipTooltip, gleamSaberTooltip } from '#gw2/professions/engineer/app/tooltips/shared.js';
+import { engineerToolsTooltips } from '#gw2/professions/engineer/app/tooltips/tools.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 const kitEquipTooltip: DescribeSimulationTooltip = skillTooltip(
   'Equip this kit, replacing the weapon bar. Kit transitions trigger supported swap and kit-equip traits.'

@@ -1,5 +1,5 @@
-import { type SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
 /** Warrior flip expiry values and release rows retain their actual contracts. */
+import { type SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import type { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 

@@ -1,17 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { barrierEnginePassive } from '#gw2/professions/engineer/specializations/mechanist/traits/index.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
-import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import { mechanistCombatReady } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import { mechanistCombatReady } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
+import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import { barrierEnginePassive } from '#gw2/professions/engineer/specializations/mechanist/traits/index.js';
+import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
 const cast = (name) => ({
   type: 'cast',

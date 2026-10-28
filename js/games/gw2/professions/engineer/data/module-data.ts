@@ -1,3 +1,8 @@
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer-api-metadata.js';
+import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { TRAITS } from '#gw2/professions/engineer/data/traits-data.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import {
   createFlipParentMap,
@@ -5,11 +10,6 @@ import {
   defineProfessionWeapons,
   normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
-import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/engineer/data/engineer-api-metadata.js';
-import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { TRAITS } from '#gw2/professions/engineer/data/traits-data.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
   ID.CLEANSING_BURST,

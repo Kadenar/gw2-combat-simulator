@@ -1,27 +1,27 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  fromSkill,
   fromModifier,
+  fromSkill,
+  modifierFact,
+  simulationEffectFacts,
+  skillFact,
+  skillTooltip,
+  tooltipDecimal,
   tooltipFactorChange,
   tooltipSeconds,
-  skillTooltip,
-  skillFact,
-  modifierFact,
-  tooltipDecimal,
-  simulationEffectFacts,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { rangerBeastmasteryTooltips } from '#gw2/professions/ranger/app/tooltips/beastmastery.js';
 import { rangerMarksmanshipTooltips } from '#gw2/professions/ranger/app/tooltips/marksmanship.js';
 import { rangerNatureMagicTooltips } from '#gw2/professions/ranger/app/tooltips/nature-magic.js';
 import { rangerSkirmishingTooltips } from '#gw2/professions/ranger/app/tooltips/skirmishing.js';
-import { rangerBeastmasteryTooltips } from '#gw2/professions/ranger/app/tooltips/beastmastery.js';
 import { rangerWildernessSurvivalTooltips } from '#gw2/professions/ranger/app/tooltips/wilderness-survival.js';
+import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 /** Spirit prose describes its slam marker; ordinary boon and combo facts still come from the selected catalog. */
 function spiritTooltip(description: string): DescribeSimulationTooltip {

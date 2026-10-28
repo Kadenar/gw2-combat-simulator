@@ -1,18 +1,18 @@
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
 import { baseBreakdownName } from '#gw2/app/results/skill-breakdown.js';
+import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import {
   ACTION_ICONS,
-  MODIFIER_EFFECT_ICONS,
-  RESULT_PROC_NAMES,
   catalogSkillIcon,
+  MODIFIER_EFFECT_ICONS,
   resolveProcIcon,
-  resolveRelicIcon
+  resolveRelicIcon,
+  RESULT_PROC_NAMES
 } from '#gw2/app/shared/icons.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export interface ResultIconRow {
   readonly name: string;

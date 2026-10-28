@@ -1,12 +1,12 @@
-import { bindInputCapture } from '#gw2/app/shared/input-binding-capture.js';
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
-import { ensureInputProfileStyles } from '#gw2/app/input-profile/styles.js';
-import { escapeHtml as html } from '#ui/shared/html.js';
-import { INPUT_CONTROLS, defaultInputBindings, formatInputBinding } from '#gw2/input/bindings.js';
-import { type InputControlId } from '#gw2/platform/skills/input-controls.js';
-import { createInputProfile, validateInputProfile, type InputProfile } from '#gw2/input/profile.js';
 import { activeInputProfile, saveInputProfile } from '#gw2/app/input-profile/store.js';
+import { ensureInputProfileStyles } from '#gw2/app/input-profile/styles.js';
 import { loadRotationHotkeyBindings } from '#gw2/app/rotation/hotkeys.js';
+import { bindInputCapture } from '#gw2/app/shared/input-binding-capture.js';
+import { defaultInputBindings, formatInputBinding, INPUT_CONTROLS } from '#gw2/input/bindings.js';
+import { createInputProfile, validateInputProfile, type InputProfile } from '#gw2/input/profile.js';
+import { type InputControlId } from '#gw2/platform/skills/input-controls.js';
+import { escapeHtml as html } from '#ui/shared/html.js';
 
 /** Edit snapshots in a draft; saving rescans observers without altering editor bindings or combat state. */
 export function showInputProfileDialog(document: Document): void {

@@ -1,30 +1,28 @@
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import {
-  COMBO_FIELD,
-  RECIPIENT,
-  COMBO_FINISHER,
   ACTOR,
   AURA,
-  CONTROL,
-  WEAPON,
   BOON,
-  CONDITION
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  CONDITION,
+  CONTROL,
+  RECIPIENT,
+  WEAPON
 } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-
-import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { impactEffects, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs, scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
-
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /**
  * Owns Radiant Forge weapon fragments.

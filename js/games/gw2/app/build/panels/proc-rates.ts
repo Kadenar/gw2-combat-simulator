@@ -1,5 +1,5 @@
-import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 
 interface ProcRateControl {
   readonly id: string;

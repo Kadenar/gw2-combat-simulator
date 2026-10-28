@@ -1,14 +1,14 @@
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience } from '#gw2/platform/events/events.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
-  skillNumber,
   effectNumber,
+  requireEffect,
   requireSkillFromContext,
-  requireEffect
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';

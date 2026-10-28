@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
+import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 /** Bind the real trait listeners to isolated per-run state and the shared emission service. */
 function fixture(selected, capture = captureEffectEmissions()) {

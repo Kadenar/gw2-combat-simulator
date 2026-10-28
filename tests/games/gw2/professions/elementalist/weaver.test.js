@@ -1,25 +1,25 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import {
   skillBreakdownRows,
   skillDamageIdentityKey,
   skillDamageKeyByIdentity
 } from '#gw2/app/results/skill-breakdown.js';
-import { runNative } from '#tests/helpers/elementalist-simulation.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import {
-  schedulePrimordialStance,
-  primordialStancePulse
+  primordialStancePulse,
+  schedulePrimordialStance
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 test('Elements of Rage requires attuning to a double element rather than starting in one', () => {
   // Initial equipment state cannot grant a transition reward; explicit preparation swaps can.

@@ -1,12 +1,13 @@
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
+import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Complete callbacks keep these tests about declaration admission rather than live resource tuning.
 const energy = {

@@ -4,9 +4,9 @@ import {
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
+import { mesmerWeaponSkillMatchesSet } from '#gw2/professions/mesmer/build/weapon-matching.js';
 import { mesmerNativeModules } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerWeaponSkillMatchesSet } from '#gw2/professions/mesmer/build/weapon-matching.js';
 
 export { mesmerCatalog, mesmerNativeModules } from '#gw2/professions/mesmer/catalog.js';
 

@@ -1,7 +1,9 @@
-import { professionProfileFields } from '#gw2/platform/skills/profile-fields.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { prepareCatalogActionRequirements } from '#gw2/platform/effects/action-declarations.js';
+import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/skills/autoattack-chain-index.js';
+import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { professionProfileFields } from '#gw2/platform/skills/profile-fields.js';
+import { professionSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type {
   AutoattackChainPosition,
   BalanceProfile,
@@ -11,8 +13,6 @@ import type {
   SkillId
 } from '#gw2/platform/skills/types.js';
 import { normalizeSkill, validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
-import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
-import { professionSkillFields } from '#gw2/platform/skills/shared-fields.js';
 
 /**
  * Canonical catalog assembly for profession-neutral skill metadata. This is the

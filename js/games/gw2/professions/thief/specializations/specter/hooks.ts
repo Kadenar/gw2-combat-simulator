@@ -1,10 +1,10 @@
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterBuffPolicies } from '#gw2/professions/thief/specializations/specter/effect-state.js';
 import {
-  SHADOW_DEPLETED,
   setShadowShroud,
+  SHADOW_DEPLETED,
   shadowDepleted,
   shadowForce,
   specterAvailability

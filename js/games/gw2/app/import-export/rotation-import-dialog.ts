@@ -1,13 +1,6 @@
-import type { RotationReferenceDescriptor } from '#gw2/app/rotation/comparison-state.js';
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
+import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 import { readJsonFile } from '#gw2/app/import-export/files.js';
-import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
-import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/import-export/logs/evtc-rotation-import.js';
-import {
-  readDpsReportRotationData,
-  readDpsReportRotationUrl,
-  readWingmanRotationUrl
-} from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
 import {
   bindImportFileSources,
   createImportPreviewController,
@@ -16,18 +9,24 @@ import {
   renderImportNotices,
   requiredDialogPart
 } from '#gw2/app/import-export/import-dialog.js';
+import {
+  readDpsReportRotationData,
+  readDpsReportRotationUrl,
+  readWingmanRotationUrl
+} from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
+import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/import-export/logs/evtc-rotation-import.js';
+import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
+import type { RotationReferenceDescriptor } from '#gw2/app/rotation/comparison-state.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
 import { isWingmanUrl } from '#gw2/integrations/logs/wingman/url.js';
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
-import { ensureDocumentStyles } from '#ui/shared/dom.js';
-import { errorMessage } from '#ui/shared/errors.js';
-
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
-import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
+import { ensureDocumentStyles } from '#ui/shared/dom.js';
+import { errorMessage } from '#ui/shared/errors.js';
 
 const ROTATION_IMPORT_ACCEPT = '.json,.evtc,.evtc.zip,.zevtc,application/json,application/zip';
 type RotationImportDestination = 'current' | 'reference';

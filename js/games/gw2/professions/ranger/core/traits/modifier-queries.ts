@@ -1,7 +1,7 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, countActiveBoons, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { isPetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerMerged, type RangerCoreState } from '#gw2/professions/ranger/core/state.js';

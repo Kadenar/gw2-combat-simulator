@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import {
-  activeChargeGrants,
   activeChargeCount,
+  activeChargeGrants,
   consumeCharge,
   consumeChargeBatch,
   expireCharges,
-  grantCharges,
-  grantChargePool
+  grantChargePool,
+  grantCharges
 } from '#gw2/platform/combat/resources/charges.js';
 import { advanceDiscreteResource, resourceValueAt } from '#gw2/platform/combat/resources/clock.js';
 

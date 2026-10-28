@@ -1,18 +1,18 @@
-import { WEAPON } from '#gw2/platform/constants.js';
-import {
-  AMALGAM_MORPH_KIND_BY_SKILL_ID,
-  resolveAmalgamSkillId,
-  DEFAULT_AMALGAM_MORPHS,
-  normalizeAmalgamMorphs,
-  validAmalgamMorphs
-} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import { ENGINEER_SKILL_IDS as SKILL } from '#gw2/professions/engineer/data/ids.js';
-import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
-import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import { WEAPON } from '#gw2/platform/constants.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { ENGINEER_SKILL_IDS as SKILL } from '#gw2/professions/engineer/data/ids.js';
+import {
+  AMALGAM_MORPH_KIND_BY_SKILL_ID,
+  DEFAULT_AMALGAM_MORPHS,
+  normalizeAmalgamMorphs,
+  resolveAmalgamSkillId,
+  validAmalgamMorphs
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';

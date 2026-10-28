@@ -1,8 +1,8 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import {
-  applyRuntimeSigilStrike,
   applyRuntimeSigils,
+  applyRuntimeSigilStrike,
   type SigilRuntimeContext
 } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createRotationDriver } from '#gw2/platform/execution/rotation-driver.js';

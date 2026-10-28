@@ -1,8 +1,8 @@
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Shared accessors keep per-run capability shapes stable while following live owner state. */
 class MechanicQueries<T extends object, TSkill extends Skill> implements MechanicQueryContext<T, TSkill> {

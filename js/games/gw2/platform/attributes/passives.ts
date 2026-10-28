@@ -1,5 +1,5 @@
-import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
+import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillAttributeKey, SkillId } from '#gw2/platform/skills/types.js';

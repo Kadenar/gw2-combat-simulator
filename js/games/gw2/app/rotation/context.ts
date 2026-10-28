@@ -1,8 +1,8 @@
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 /** Shared projection fields consumed by rotation views; professions own the remaining state. */
 export interface RotationProfessionState {

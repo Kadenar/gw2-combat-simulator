@@ -1,18 +1,17 @@
-import { CONTROL, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
-import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
+import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const NATURES_STRENGTH = 'natures-strength';
 const FORCE_OF_NATURE = 'force-of-nature';

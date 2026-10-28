@@ -1,16 +1,16 @@
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 import type { BuildContextProfession } from '#gw2/build-context/types.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-definition/module-types.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 
 type Assert<T extends true> = T;
 type Equal<TLeft, TRight> = (<T>() => T extends TLeft ? 1 : 2) extends <T>() => T extends TRight ? 1 : 2 ? true : false;

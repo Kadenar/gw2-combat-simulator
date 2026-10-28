@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 
 // Pending intent follows command progression without reserving a lane, changing readiness, or exposing command controls.

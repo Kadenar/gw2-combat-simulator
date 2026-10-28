@@ -1,5 +1,5 @@
-import { attributeFields } from '#gw2/platform/skills/attribute-fields.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
+import { attributeFields } from '#gw2/platform/skills/attribute-fields.js';
 import {
   assertFieldGroups,
   combineFields,

@@ -1,12 +1,13 @@
-import { lethalTempo } from '#gw2/professions/guardian/specializations/willbender/traits/index.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   activeLethalTempo,
   lethalTempoParameters
 } from '#gw2/professions/guardian/specializations/willbender/traits/behavior.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { lethalTempo } from '#gw2/professions/guardian/specializations/willbender/traits/index.js';
 
 test('Lethal Tempo uses patched caps and trait windows without sharing phase state', () => {
   // Minimal trait profiles still cross the same construction boundary as selected catalogs.

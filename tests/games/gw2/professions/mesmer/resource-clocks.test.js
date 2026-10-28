@@ -1,5 +1,6 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
@@ -9,11 +10,11 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Exercise the real policies and reward owner without damage or cast-speed dependencies.
 function fixture(specialization, initialResource) {

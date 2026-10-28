@@ -1,19 +1,23 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import { GUARDIAN_SKILL_IDS as GUARDIAN, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observedRuntime,
+  observeGw2Runtime
+} from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { GUARDIAN_SKILL_IDS as GUARDIAN, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
-import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 
 // Apply fixture tuning and state through the real profession lifecycle, retaining native task/reaction dispatch.
 function migratedSkillRun(profession, config, rotation, { catalog = (value) => value, initialize = () => {} } = {}) {

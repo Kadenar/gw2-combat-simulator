@@ -1,5 +1,4 @@
 import { normalizedName as normalized } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-
 import type {
   LogActionNormalizationContext,
   RecordedLogAction

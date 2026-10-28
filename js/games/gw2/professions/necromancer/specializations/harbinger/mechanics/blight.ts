@@ -1,5 +1,4 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -11,8 +10,8 @@ import {
 } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/trigger-points.js';
 import {
   addBlight,
-  harbingerBlightMaximum,
   consumeBlight,
+  harbingerBlightMaximum,
   harbingerState,
   purgeHarbingerTimedState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
@@ -22,6 +21,7 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 const BLIGHT = 'harbinger.blight-clock';
 

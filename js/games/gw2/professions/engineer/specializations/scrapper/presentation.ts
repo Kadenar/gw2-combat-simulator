@@ -1,11 +1,11 @@
-import { STATUS, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON, STATUS } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { engineerToolbeltSkillIds, uniqueSkillIds } from '#gw2/professions/engineer/core/presentation.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerSkill, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 // First 4 toolbelt slots + Function Gyro as the F5 mechanic skill.
 function scrapperProfessionSkills(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, context: EngineerUiContext) {

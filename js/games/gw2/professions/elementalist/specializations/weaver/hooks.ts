@@ -7,8 +7,6 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { weaverBuffPolicies } from '#gw2/professions/elementalist/specializations/weaver/effect-state.js';
 import { weaverAttunementLifecycle } from '#gw2/professions/elementalist/specializations/weaver/mechanics/attunements.js';
 import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
-import { weaverPistolLifecycle } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/pistol.js';
-import { weaverSpearLifecycle } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
 import {
   primordialStancePulse,
   schedulePrimordialStance
@@ -23,6 +21,8 @@ import {
   applyFerventStance,
   ferventStanceLifecycle
 } from '#gw2/professions/elementalist/specializations/weaver/skills/slot-skills.js';
+import { weaverPistolLifecycle } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/pistol.js';
+import { weaverSpearLifecycle } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Wire hand transitions and stance owners; completion traits precede the Fervent Stance reward. */

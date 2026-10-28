@@ -1,6 +1,6 @@
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { skillNumberFromContext, skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkillFromContext, skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { pilferArtifacts } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { canonicalTime } from '#kernel/core/clock.js';

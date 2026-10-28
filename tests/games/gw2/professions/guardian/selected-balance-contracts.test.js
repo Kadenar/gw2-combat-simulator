@@ -1,14 +1,15 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
-import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+
+import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 
 // Skill patches must feed both execution and facts after moving conditional payloads out of profiles.

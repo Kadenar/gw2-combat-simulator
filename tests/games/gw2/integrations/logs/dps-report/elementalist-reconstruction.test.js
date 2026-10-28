@@ -1,17 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 

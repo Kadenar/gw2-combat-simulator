@@ -1,26 +1,26 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
-import type { EffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
-import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/events/events.js';
-import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
-import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import {
   conditionApplicationDuration,
   type Gw2ConditionDurationTrace
 } from '#gw2/platform/combat-calculation/combat-query.js';
+import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
+import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
+import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2RuntimeConditionEntry } from '#gw2/platform/combat/state/targets.js';
 import {
   conditionStackLimit,
   createPermanentTargetConditionStacks,
-  runtimeTargetConditionStacks,
-  GW2_DAMAGING_CONDITIONS
+  GW2_DAMAGING_CONDITIONS,
+  runtimeTargetConditionStacks
 } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import type { EffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
+import type { Gw2ConditionCalculation, SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ConditionWorkEvent, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
-import { canonicalEvent } from '#kernel/events/queue.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
+import { canonicalEvent } from '#kernel/events/queue.js';
 
 interface CreateGw2ConditionResolutionOptions {
   readonly expansionBudget: EffectExpansionBudget;

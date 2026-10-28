@@ -1,14 +1,14 @@
-import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Helpers shared by more than one relic rule module. */
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import type { Gw2RelicContext, Gw2RelicRule, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { Gw2RelicState, Gw2RelicContext, Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 
 interface TimedBuffProcOptions {
   readonly relicId: number;

@@ -1,14 +1,15 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerSelectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-projection.js';
-import { mesmerSelectedAmbush } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush.js';
+import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { mesmerSelectedAmbush } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush.js';
+import { mesmerSelectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-projection.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Intrinsic skills have one patch owner; fixed clone capacity needs no balance profile.

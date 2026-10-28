@@ -1,11 +1,11 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
+import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 
 // Observe the supplied orb state at combat start to exercise palette availability.
 function createHammerApp(hammerOrbs) {

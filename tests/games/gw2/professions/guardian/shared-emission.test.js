@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Computed and authored grants use the same live profession duration policy, while copied durations stay fixed.

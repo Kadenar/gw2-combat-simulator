@@ -1,27 +1,27 @@
-import type { PatchSelection } from '#gw2/integrations/patches/selection.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
-import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
-import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
-import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
-import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
-import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
-import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
-import { canEquipWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
-import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
 import {
   createOptimizerBuildContext,
   validateFractalBuffs,
   type FractalBuffs
 } from '#gw2/app/optimizer/gear/fractal-buffs.js';
+import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { PatchSelection } from '#gw2/integrations/patches/selection.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
+import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
+import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
+import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
+import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
+import { canEquipWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
 export interface GearOptimizerSelections {
   fractal?: FractalBuffs;

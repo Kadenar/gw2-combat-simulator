@@ -1,10 +1,10 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** The four elements, in the canonical order every attunement loop iterates. */

@@ -1,41 +1,3 @@
-import { hasActionEffects, skillActions } from '#gw2/platform/effects/actions.js';
-import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import {
-  castResourceGrants,
-  effectResourceGrants,
-  resourceGrantNumericFields,
-  type ResourceGrantAction
-} from '#gw2/platform/effects/resource-grants.js';
-import { escapeHtml } from '#ui/shared/html.js';
-import type {
-  NativePatchAuthoringMetadata,
-  NativePatchAuthoringBalanceProfile,
-  NativePatchAuthoringModifierRule,
-  NativePatchAuthoringModule,
-  NativePatchAuthoringSkill
-} from '#gw2/integrations/patches/authoring/module-types.js';
-import {
-  type EffectPatch,
-  type ModifierRulePatchEdit,
-  type PatchPreview,
-  type SkillPatchEdit
-} from '#gw2/integrations/patches/authoring/patches.js';
-import {
-  PATCHABLE_EFFECT_NUMERIC_FIELDS,
-  effectNumericFieldIsPatchable,
-  balanceProfileEffectNumericFieldTier,
-  balanceProfileNumericFieldTier
-} from '#gw2/integrations/patches/authoring/fields.js';
-import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
-import {
-  compactPatchPreview,
-  effectDetail,
-  groupPatchAuthoringSkills,
-  authoringNumericFieldLabel,
-  numericEditValue,
-  patchSearchText
-} from '#gw2/integrations/patches/app/model.js';
 import {
   addEffect,
   balanceProfileEdit,
@@ -52,12 +14,12 @@ import {
   overviewForProfession,
   prepareEditorStateForRender,
   removeAddedEffect,
+  selectedModule,
+  selectedProfession,
   selectModule,
   selectProfession,
   selectProfile,
   selectSkill,
-  selectedModule,
-  selectedProfession,
   setAddedEffect,
   setEditorStatus,
   setNumericEdit,
@@ -67,6 +29,44 @@ import {
   type AuthoringSection,
   type TraitAuthoringView
 } from '#gw2/integrations/patches/app/editor-state.js';
+import {
+  authoringNumericFieldLabel,
+  compactPatchPreview,
+  effectDetail,
+  groupPatchAuthoringSkills,
+  numericEditValue,
+  patchSearchText
+} from '#gw2/integrations/patches/app/model.js';
+import {
+  balanceProfileEffectNumericFieldTier,
+  balanceProfileNumericFieldTier,
+  effectNumericFieldIsPatchable,
+  PATCHABLE_EFFECT_NUMERIC_FIELDS
+} from '#gw2/integrations/patches/authoring/fields.js';
+import type {
+  NativePatchAuthoringBalanceProfile,
+  NativePatchAuthoringMetadata,
+  NativePatchAuthoringModifierRule,
+  NativePatchAuthoringModule,
+  NativePatchAuthoringSkill
+} from '#gw2/integrations/patches/authoring/module-types.js';
+import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
+import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
+import {
+  type EffectPatch,
+  type ModifierRulePatchEdit,
+  type PatchPreview,
+  type SkillPatchEdit
+} from '#gw2/integrations/patches/authoring/patches.js';
+import { hasActionEffects, skillActions } from '#gw2/platform/effects/actions.js';
+import {
+  castResourceGrants,
+  effectResourceGrants,
+  resourceGrantNumericFields,
+  type ResourceGrantAction
+} from '#gw2/platform/effects/resource-grants.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 let app: HTMLElement;
 

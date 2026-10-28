@@ -5,23 +5,21 @@
  * union that pairs core state with exactly one specialization's state, and the
  * Elementalist-flavored context/event types every module's handlers are written against.
  */
-import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
-import type { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';
-import type { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
-
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-
-import type { ElementalistCanonicalBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { ElementalistCanonicalBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import type { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import type { TempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
-import type { WeaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import type { EVOKER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
 import type { EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import type { TempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
+import type { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';
+import type { WeaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 /**

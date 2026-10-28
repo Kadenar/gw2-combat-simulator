@@ -1,15 +1,16 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import {
   createObservedProfessionSimulator,
@@ -17,8 +18,6 @@ import {
   projectObservedState
 } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const guardianCoreUi = bindGuardianCoreUi(guardianCatalog);
 

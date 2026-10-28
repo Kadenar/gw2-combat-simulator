@@ -1,12 +1,13 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
+
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
 
 test('event log CSV escapes cells', () => {
   const rows = [{ at: 0, type: 'action', description: 'CAST Quote "skill"' }];

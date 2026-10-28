@@ -1,15 +1,15 @@
-import {
-  rotationDeadTimeVisibility,
-  readStoredTimelineOverlayVisibility,
-  storeTimelineOverlayVisibility,
-  setRotationDeadTimeVisibility,
-  rotationTransitionDelayVisibility,
-  setRotationTransitionDelayVisibility,
-  storeRotationProcOverlayVisibility
-} from '#gw2/app/rotation/timeline/preferences.js';
 import { activeSpecialization } from '#gw2/app/rotation/context.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
+import {
+  readStoredTimelineOverlayVisibility,
+  rotationDeadTimeVisibility,
+  rotationTransitionDelayVisibility,
+  setRotationDeadTimeVisibility,
+  setRotationTransitionDelayVisibility,
+  storeRotationProcOverlayVisibility,
+  storeTimelineOverlayVisibility
+} from '#gw2/app/rotation/timeline/preferences.js';
 import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 const sectionOpenByApp = new WeakMap<ProfessionAppState, boolean>();
 

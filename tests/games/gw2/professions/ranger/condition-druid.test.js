@@ -1,18 +1,20 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { criticalResolved } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const baseConfig = Object.freeze({
   initialAstralForce: 100,
@@ -780,4 +782,3 @@ test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () 
     [[0, 1], [2, 3], [4]]
   );
 });
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';

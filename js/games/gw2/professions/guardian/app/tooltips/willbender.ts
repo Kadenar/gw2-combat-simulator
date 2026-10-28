@@ -1,5 +1,3 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -13,6 +11,8 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 const willbenderVirtueTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {

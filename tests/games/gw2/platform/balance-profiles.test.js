@@ -1,4 +1,3 @@
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -8,6 +7,7 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
 test('balance-profile lookup supports every runtime context shape and preserves precedence', () => {
   const profile = (name) => ({ id: 101, name });

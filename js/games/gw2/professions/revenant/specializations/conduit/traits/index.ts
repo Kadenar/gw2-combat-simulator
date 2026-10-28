@@ -1,9 +1,9 @@
 // Trait IDs own balance lookup and emission so patches and runtime share the same trait definition.
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeBonuses } from '#gw2/platform/profession-definition/traits.js';
@@ -28,10 +28,6 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { energyCostAccepted } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-gains.js';
 import { affinityGranted, gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
-import {
-  entityBoonCompleted,
-  entityCastCompleted
-} from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
 import { scheduleFormExpiry } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import {
   conduitLegendReset,
@@ -39,6 +35,10 @@ import {
   cosmicWisdomEntered,
   cosmicWisdomEntering
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
+import {
+  entityBoonCompleted,
+  entityCastCompleted
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';

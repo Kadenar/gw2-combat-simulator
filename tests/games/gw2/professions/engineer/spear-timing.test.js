@@ -1,18 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { skillFlipReady, armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { engineerSpearLifecycle } from '#gw2/professions/engineer/core/mechanics/spear.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
+import { armSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { engineerSpearLifecycle } from '#gw2/professions/engineer/core/mechanics/spear.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(engineerProfession, {
   primaryWeapon: 'Spear',

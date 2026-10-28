@@ -1,10 +1,10 @@
-import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
-import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
-import { loadBuildContext } from '#gw2/build-context/load.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import type { Benchmark } from '#gw2/app/page/benchmarks.js';
-import type { BuildContextModule } from '#gw2/build-context/types.js';
 import type { ComparisonRequest } from '#gw2/app/page/benchmark-comparison/model.js';
+import type { Benchmark } from '#gw2/app/page/benchmarks.js';
+import { loadBuildContext } from '#gw2/build-context/load.js';
+import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
+import type { BuildContextModule } from '#gw2/build-context/types.js';
+import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 /** Use the same canonical build codec and attribute/configuration pipeline as the workspace and preset checks. */
 export function prepareComparisonRequest(

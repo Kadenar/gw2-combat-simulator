@@ -1,14 +1,7 @@
-import { THIEF_CORE_PROFILE_FIELDS } from '#gw2/professions/thief/core/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
-import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
-import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
-import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
-import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
-import { SPECIALIZATIONS } from '#gw2/professions/thief/data/thief-api-metadata.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
+import { THIEF_CORE_PROFILE_FIELDS, THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/catalog-fields.js';
 import { thiefCoreReworkHooks } from '#gw2/professions/thief/core/rework/hooks.js';
+import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
 import { thiefCoreReworkUi } from '#gw2/professions/thief/core/rework/presentation.js';
 import {
   createThiefCoreReworkState,
@@ -16,7 +9,13 @@ import {
 } from '#gw2/professions/thief/core/rework/state.js';
 import { acrobaticsReworkTraits } from '#gw2/professions/thief/core/rework/traits/acrobatics.js';
 import { twinFangsRework } from '#gw2/professions/thief/core/rework/traits/critical-strikes.js';
-import { THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/catalog-fields.js';
+import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
+import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
+import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
+import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
+import { SPECIALIZATIONS } from '#gw2/professions/thief/data/thief-api-metadata.js';
 
 // The rework replaces Core as a unit, so it declares the same Thief Core skill fields.
 const data = createThiefModuleData('Core', {

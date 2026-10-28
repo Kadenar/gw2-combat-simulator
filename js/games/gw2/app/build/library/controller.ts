@@ -1,25 +1,25 @@
-import { escapeHtml as esc } from '#ui/shared/html.js';
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
-import { fetchJsonAsset } from '#gw2/integrations/assets.js';
-import { deleteMyBuild, loadMyBuilds, myBuildsStorageKey, saveMyBuild } from '#gw2/app/build/library/storage.js';
 import { loadMyBuildEntry, loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
 import {
-  templateSpecializations,
-  isTemplateFilter,
   isTemplateBoonFilter,
-  type TemplateFilter,
-  type TemplateBoonFilter
+  isTemplateFilter,
+  templateSpecializations,
+  type TemplateBoonFilter,
+  type TemplateFilter
 } from '#gw2/app/build/library/model.js';
+import { deleteMyBuild, loadMyBuilds, myBuildsStorageKey, saveMyBuild } from '#gw2/app/build/library/storage.js';
 import {
+  applyTemplateFilter,
+  closeTemplateMenus,
   createBuildLibraryView,
   renderMyBuilds,
-  applyTemplateFilter,
   showBuildLibraryView,
-  closeTemplateMenus,
   updateTemplateSelection
 } from '#gw2/app/build/library/view.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { BuildTemplateSection } from '#gw2/app/build/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { fetchJsonAsset } from '#gw2/integrations/assets.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 /** Connects catalog loading and library interactions to their view, storage, and build actions. */
 export async function initBuildTemplates(app: ProfessionAppState): Promise<void> {

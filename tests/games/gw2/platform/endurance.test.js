@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { boonIntervalsFromWindows, prepareBoonWindows } from '#gw2/platform/combat/boons.js';
 
+import { boonIntervalsFromWindows, prepareBoonWindows } from '#gw2/platform/combat/boons.js';
 import {
   advanceEndurance,
   advanceEnduranceIntervals,
   createVigorWindowReader,
   enduranceIntervalsReadyAt,
-  vigorEnduranceIntervals,
   grantEndurance,
-  spendEndurance
+  spendEndurance,
+  vigorEnduranceIntervals
 } from '#gw2/platform/combat/resources/endurance.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 
 // Test clocks carry capacity and their settled rate alongside the balance.
 const clock = (value, updatedAt = 0, maximum = 100, rate = 0) => ({ value, maximum, updatedAt, rate });

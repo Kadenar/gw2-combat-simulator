@@ -1,18 +1,18 @@
-import { BOON } from '#gw2/platform/constants.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { createScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
 import { kineticAccelerators } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { createScrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Scrapper contracts cover trait procs, combo boons, and gyro fields.
 const baseConfig = Object.freeze({

@@ -1,11 +1,11 @@
-import { validateEffectReactions } from '#gw2/platform/effects/action-validation.js';
 import { hasImmutableLiteralReactions } from '#gw2/platform/effects/action-declarations.js';
+import { validateEffectReactions } from '#gw2/platform/effects/action-validation.js';
 import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { EffectReaction, EffectReactionStage, ResolvedEffectTrigger } from '#gw2/platform/effects/reactions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 /** Resolution selects reactions; the composition root supplies action validation and mutation capabilities. */

@@ -1,10 +1,9 @@
+import { passiveSkillAttributes } from '#gw2/platform/attributes/passives.js';
+import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-
-import { passiveSkillAttributes } from '#gw2/platform/attributes/passives.js';
-import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 /** Selected skill passives use the same readiness and tuning for build previews and live attribute queries. */

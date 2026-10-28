@@ -1,6 +1,3 @@
-import { effectNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-
-import { strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 /**
  * Ritualist spirits, spirit actives, and innervations.
  *
@@ -9,12 +6,12 @@ import { strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
  * Summon Spirits schedules each spirit's distinct follow-up instead of
  * collapsing them into the player cast.
  */
-
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
-
-import { spiritAttackEffects } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
+import { strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import type { StrikeEffect } from '#gw2/platform/effects/types.js';
+import { effectNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { spiritAttackEffects } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
+import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 /** Canonical spirit attack and lifetime data shared by scheduling and active skills. */
 export interface SpiritDefinition {

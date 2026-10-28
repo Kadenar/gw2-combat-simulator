@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openSimulator } from '#tests/helpers/browser-workspace.js';
 
 // A bound side mouse button adds its skill without also committing the browser's history action on release.

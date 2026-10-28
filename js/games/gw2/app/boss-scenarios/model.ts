@@ -1,10 +1,10 @@
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { CatalogLookup } from '#gw2/platform/skills/types.js';
-import { validateRotationCommand } from '#gw2/platform/builds/rotation.js';
-import { ENCOUNTER_TEMPLATES, encounterHealth, encounterDifficulties } from '#gw2/app/boss-scenarios/catalog.js';
+import { ENCOUNTER_TEMPLATES, encounterDifficulties, encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
 import { encounterPhasePlan, type EncounterDifficulty } from '#gw2/app/boss-scenarios/phases.js';
 import { defaultSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
+import { validateRotationCommand } from '#gw2/platform/builds/rotation.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/execution/transition-lockouts.js';
+import type { CatalogLookup } from '#gw2/platform/skills/types.js';
 
 // Workspace-owned simulation settings use a separate document and storage version.
 export const BOSS_SCENARIO_VERSION = 4;

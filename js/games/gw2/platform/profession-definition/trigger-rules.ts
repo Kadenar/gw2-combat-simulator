@@ -1,22 +1,22 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { ProfessionRuntimeOptions } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import { type ResourceGrantAmount } from '#gw2/platform/effects/actions.js';
-import { isTriggerPoint, type TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { ProfessionRuntimeOptions } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   emitTraitProfile,
   invokeTraitSkill,
   type TraitAttribution
 } from '#gw2/platform/profession-definition/trait-emission.js';
+import { isTriggerPoint, type TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface RechargeRule<T extends object, TSkill extends Skill = Skill> {
   readonly trait?: SkillId;

@@ -1,19 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { grenadier } from '#gw2/professions/engineer/core/traits/explosives/index.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const barrageId = ID.LESSER_GRENADE_BARRAGE;

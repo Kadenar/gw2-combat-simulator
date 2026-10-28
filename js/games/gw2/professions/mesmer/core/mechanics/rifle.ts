@@ -1,11 +1,11 @@
-import { ACTOR, COMBO_FINISHER } from '#gw2/platform/constants.js';
-import { expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Resolves Inspiring Imagery's mutually exclusive boon expiry and offensive detonation. */
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { ACTOR, COMBO_FINISHER } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Bind the blast to this image and end its field immediately after the detonation interaction. */

@@ -1,11 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
 
 // Small real balances keep their cooling owner, and only a full bar triggers the overheat transition.
 test('Holosmith does not discard small heat or overheat below capacity', () => {

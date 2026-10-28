@@ -1,19 +1,19 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/ranger/data/ranger-api-metadata.js';
+import { RANGER_PET_SKILLS, RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { RANGER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/ranger/data/ranger-supplemental-skills.js';
+import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
+import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
   defineProfessionWeapons,
   normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
-import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/ranger/data/ranger-api-metadata.js';
-import { RANGER_PETS, RANGER_PET_SKILLS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { RANGER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/ranger/data/ranger-supplemental-skills.js';
-import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
-import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
-import { isRangerHammerVariant } from '#gw2/professions/ranger/data/hammer-variants.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const petSkillIds = new Set<SkillId>(RANGER_PET_SKILLS.map((skill) => skill.id));
 const apiSkills = SKILLS;

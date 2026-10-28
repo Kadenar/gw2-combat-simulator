@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openSimulator } from '#tests/helpers/browser-workspace.js';
 
 test('empty and authored rotations keep a usable timeline and an open event log is not clipped', async ({ page }) => {

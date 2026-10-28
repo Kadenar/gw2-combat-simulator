@@ -1,7 +1,8 @@
-import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
-import { modernAnimationActions, legacyActivationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
 import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
+import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
+import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
+import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   EVTC_STATE_CHANGE,
   type EvtcRotationPlayer,
@@ -9,9 +10,7 @@ import {
   type ParsedEvtcAgent,
   type ParsedEvtcEvent
 } from '#gw2/integrations/logs/evtc/types.js';
-
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
-import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 
 export interface EvtcPlayerEvidence {
   readonly agent: ParsedEvtcAgent;

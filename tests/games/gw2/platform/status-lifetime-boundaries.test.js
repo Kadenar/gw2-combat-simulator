@@ -1,6 +1,6 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { enteredCombat } from '#tests/helpers/engagement.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
 import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -11,11 +11,11 @@ import {
   applyShatteringIce
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
 import { grantCatalystElementalEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
-import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import {
-  grantElectricEnchantments,
-  consumeElectricEnchantment
+  consumeElectricEnchantment,
+  grantElectricEnchantments
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
+import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 import { applyWeaveSelfAttunement } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
@@ -31,15 +31,16 @@ import { RANGER_SKILL_IDS as RI } from '#gw2/professions/ranger/data/ids.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
 import { REVENANT_TRAIT_IDS as RT } from '#gw2/professions/revenant/data/ids.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const galeshotUi = bindGaleshotUi(rangerCatalog);
 

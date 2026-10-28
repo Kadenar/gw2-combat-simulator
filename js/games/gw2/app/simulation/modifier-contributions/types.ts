@@ -1,8 +1,8 @@
 /** Owns the modifiers contracts used by its runner, runtime adapter, and views. */
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { ProfessionModifier } from '#gw2/build-context/types.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface ProfessionModifierComparison {
   readonly modifier: ProfessionModifier;

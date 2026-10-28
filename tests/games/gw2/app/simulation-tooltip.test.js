@@ -1,12 +1,6 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
-import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import {
@@ -19,15 +13,20 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { createNecromancerBuildDefaults, toApplicationBuild } from '#gw2/professions/necromancer/build/build.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Removing any spirit strike must leave surviving summon and coordinated attacks in their original tooltip groups.
 test('Ritualist tooltip packet roles survive canonical skill and action removals', () => {

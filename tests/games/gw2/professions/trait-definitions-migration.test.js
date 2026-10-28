@@ -1,15 +1,15 @@
-import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import {
   ENGINEER_TRAIT_IDS as ENGINEER,
@@ -27,9 +27,8 @@ import { MESMER_TRAIT_IDS as MESMER, MESMER_SKILL_IDS as MESMER_SKILLS } from '#
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { WARRIOR_TRAIT_IDS as WARRIOR } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Patch the real registered owners so fixtures cannot hide duplicate or disconnected authoring declarations.
 function patched(profession, edit) {

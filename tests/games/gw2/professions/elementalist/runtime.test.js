@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
 import {
-  grantWeaponSkillCharges,
-  flushPendingWeaponChargeGains
+  flushPendingWeaponChargeGains,
+  grantWeaponSkillCharges
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Queuing a hostile packet cannot fund a sphere; only the accepted impact earns energy.
 test('Catalyst energy ignores missed packets and arrives at the accepted impact', () => {

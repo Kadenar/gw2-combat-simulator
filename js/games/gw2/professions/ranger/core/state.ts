@@ -1,15 +1,16 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import {
-  readProfessionCoreState,
-  readProfessionSpecializationState,
-  cloneStateFields
-} from '#gw2/platform/profession-definition/state.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
+import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import {
+  cloneStateFields,
+  readProfessionCoreState,
+  readProfessionSpecializationState
+} from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   createRangerActorProcState,
@@ -20,7 +21,6 @@ import {
   rangerPetInstanceId,
   type RangerPetState
 } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';

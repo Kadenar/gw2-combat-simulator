@@ -1,12 +1,14 @@
-import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
-import type { BuildContextAttributeRules } from '#gw2/build-context/types.js';
-import type { BuildContextProfession } from '#gw2/build-context/types.js';
-import { createBuildContext, toApplicationBuild } from '#gw2/professions/engineer/build/context.js';
-import { toApplicationBuild as thiefBuild } from '#gw2/professions/thief/build/context.js';
+import type {
+  BuildContextAttributeRules,
+  BuildContextInput,
+  BuildContextProfession
+} from '#gw2/build-context/types.js';
+import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import type { BuildContextInput } from '#gw2/build-context/types.js';
+import { createBuildContext, toApplicationBuild } from '#gw2/professions/engineer/build/context.js';
 import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
+import { toApplicationBuild as thiefBuild } from '#gw2/professions/thief/build/context.js';
 
 const build = toApplicationBuild({});
 const input: BuildContextInput<EngineerCanonicalBuild> = {

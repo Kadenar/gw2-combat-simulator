@@ -1,4 +1,5 @@
 import { canonicalTime } from '#kernel/core/clock.js';
+
 /**
  * Resolver observation-window policy. Normalizes the caller-owned policy
  * (`rotation`, `tail`, or `absolute`) and, once the rotation timeline is known,

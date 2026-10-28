@@ -1,30 +1,30 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { CONTROL, ACTOR, WEAPON, RECIPIENT, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
-import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
+import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import {
   buildEngineerCondition,
   buildEngineerStrike
 } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type {
   EngineerResolverContext,
   EngineerResolverEvent,
   EngineerRuntime,
-  EngineerSkill,
-  EngineerRuntimeState
+  EngineerRuntimeState,
+  EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
-import { requireSkillFromContext, requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Skill declarations select each spear mutation; handlers retain lifetime ownership and release-time snapshots. */
 const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers'] = {

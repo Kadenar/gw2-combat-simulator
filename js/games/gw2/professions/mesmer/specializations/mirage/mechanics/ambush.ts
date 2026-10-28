@@ -1,8 +1,8 @@
 import { CONDITION } from '#gw2/platform/constants.js';
-import { requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
+import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
+import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
 // Merge Mirage skill status effects into the base skill while preserving

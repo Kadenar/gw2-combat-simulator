@@ -1,6 +1,6 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
-import { type AvailabilityResult, denySkillCast, retryCast } from '#gw2/platform/execution/availability.js';
+import { denySkillCast, retryCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';

@@ -1,14 +1,14 @@
+import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
+import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { ACTOR } from '#gw2/platform/constants.js';
+import type { RuntimeDriver } from '#gw2/platform/execution/driver-contract.js';
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import {
   createSkillSelectionContext,
   type TraitSelectionContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
-import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
-import type { RuntimeDriver } from '#gw2/platform/execution/driver-contract.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
 /** Rotation commands enter through equipment, resource, and timing gates at each live boundary. */
 export function createRotationDriver<T extends object>(

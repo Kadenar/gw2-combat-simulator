@@ -1,17 +1,18 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { serratedSteel, noScope, incendiaryPowder } from '#gw2/professions/engineer/core/traits/firearms/index.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { incendiaryPowder, noScope, serratedSteel } from '#gw2/professions/engineer/core/traits/firearms/index.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const critical = { hitContext: { critical: { chance: 1, didCrit: true } } };
 // Player procs run through their compiled strike triggers; mech procs through the Mechanist mech strike point.

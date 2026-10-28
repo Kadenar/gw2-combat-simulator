@@ -1,13 +1,12 @@
-import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 /**
  * Tempest UI contract: groups the four overloads on the rotation palette, and
  * previews overload availability so the editor can grey out casts the scheduler would reject.
  */
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
-
 import { ELEMENTALIST_OVERLOAD_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 /** Show only buffs already granted at the cursor, retaining Aria's aura-driven extensions. */
 function tempestStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {

@@ -1,7 +1,7 @@
-import { RECIPIENT, WEAPON, BOON } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { BOON, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
@@ -12,8 +12,8 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { thiefCastCompleted, type ThiefCastCompletion } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
+import { thiefCastCompleted, type ThiefCastCompletion } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Every accepted dodge grants self Might immediately, including selected dodge variants. */

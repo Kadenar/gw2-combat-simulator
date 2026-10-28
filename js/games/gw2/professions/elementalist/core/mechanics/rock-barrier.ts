@@ -1,19 +1,19 @@
-import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { geomancersTrainingRechargeRule } from '#gw2/professions/elementalist/core/traits/earth/index.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
+import { geomancersTrainingRechargeRule } from '#gw2/professions/elementalist/core/traits/earth/index.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import type {
   ElementalistRuntime,
   ElementalistRuntimeState,
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 // Held recharge bypasses cast admission, so reuse the Earth trait's declaration without spending next-cast grants.
 const rockBarrierTrainingRecharge = compileRechargeRules<ElementalistRuntimeState, ElementalistSkill>([

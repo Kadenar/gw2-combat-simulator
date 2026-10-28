@@ -1,12 +1,12 @@
+import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { cloneStateFields, defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import {
   createDragonTriggerState,
   type DragonTriggerState
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger-state.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
-import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface BladeswornState extends DragonTriggerState {
   flow: ResourceClock;

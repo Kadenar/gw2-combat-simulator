@@ -1,7 +1,7 @@
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { Skill, SkillTask } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { Skill, SkillTask } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Quickness increases action rate by 50%, so duration is divided by 1.5. */

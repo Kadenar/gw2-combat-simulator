@@ -1,15 +1,15 @@
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant-api-metadata.js';
+import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
+import { TRAITS } from '#gw2/professions/revenant/data/traits-data.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
   defineProfessionWeapons
 } from '#gw2/professions/shared/catalog-data.js';
-import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant-api-metadata.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
-import { TRAITS } from '#gw2/professions/revenant/data/traits-data.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 
 const generatedSource = SKILLS.filter((skill) => skill.id !== ID.DUELISTS_PREPARATION).map((skill) => ({
   ...skill,

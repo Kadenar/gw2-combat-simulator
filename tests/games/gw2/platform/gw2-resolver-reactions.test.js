@@ -1,16 +1,16 @@
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { StableEventQueue } from '#kernel/events/queue.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
 import { createGw2ResolverReactionRegistry, GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
-import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 test('GW2 resolver registry orders notifications stably and discards their results', () => {

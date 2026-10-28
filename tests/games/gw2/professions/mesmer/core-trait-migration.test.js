@@ -1,6 +1,8 @@
-import { mesmerControlAccepted, mesmerCritical } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { mesmerControlAccepted, mesmerCritical } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { createMesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -9,8 +11,7 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Critical trait handlers read selected traits and patched profiles from the same live runtime as the proc registry.
 test('Master Fencer only claims its strict ICD on a sampled critical hit', () => {

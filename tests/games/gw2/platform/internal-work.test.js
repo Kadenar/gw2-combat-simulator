@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { StableEventQueue } from '#kernel/events/queue.js';
+
 import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
-import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
+import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
 import { isRuntimeWork } from '#gw2/platform/simulation/work-contract.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 
 // Internal handlers use detached data on the common heap, with explicit lifetime cancellation and cast attribution.
 test('internal work validates its boundary and dispatches renewed owners without reviving stale work', () => {

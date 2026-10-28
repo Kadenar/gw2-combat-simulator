@@ -1,15 +1,16 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+
 import { timelineDeadTimeMarkers, timelineTransitionDelayMarkers } from '#gw2/app/rotation/timeline/model.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Small casts isolate input scheduling from profession damage or saved-rotation timing.
 const catalog = createCanonicalCatalog({

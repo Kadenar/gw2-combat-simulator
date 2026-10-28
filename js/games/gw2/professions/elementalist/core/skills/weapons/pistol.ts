@@ -1,42 +1,3 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { WEAPON, COMBO_FINISHER, COMBO_FIELD, ACTOR, AURA, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type {
-  ElementalistRuntime,
-  ElementalistRuntimeState,
-  ElementalistSkill,
-  ElementalistResolverContext
-} from '#gw2/professions/elementalist/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import {
-  skillNumber,
-  skillNumberFromContext,
-  requireSkillFromContext,
-  effectNumber,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
-import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
-import {
-  elementalistBuffEffectRequest,
-  elementalistConditionEffectRequest,
-  skillWeapon
-} from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import {
-  allPistolBulletsLoaded,
-  hasPistolBullet,
-  pistolBulletSideEffectHandlers,
-  spendAllPistolBullets
-} from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
-import { type AvailabilityResult, denySkillCast } from '#gw2/platform/execution/availability.js';
-import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 /**
  * Pistol weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -45,10 +6,48 @@ import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains
  * elemental bullet. Shared bullet bookkeeping lives in `core/mechanics/pistol-bullets.ts`;
  * this module owns the enhanced payloads and cross-cast pistol rewards.
  */
-
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { ACTOR, AURA, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import {
+  effectNumber,
+  requireEffect,
+  requireSkillFromContext,
+  skillNumber,
+  skillNumberFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import {
+  elementalistBuffEffectRequest,
+  elementalistConditionEffectRequest,
+  skillWeapon
+} from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import {
+  allPistolBulletsLoaded,
+  hasPistolBullet,
+  pistolBulletSideEffectHandlers,
+  spendAllPistolBullets
+} from '#gw2/professions/elementalist/core/mechanics/pistol-bullets.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type {
+  ElementalistResolverContext,
+  ElementalistRuntime,
+  ElementalistRuntimeState,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 // Frigid Flurry fires five shots at these offsets, each an independent Bleeding stack and Projectile finisher.
 const FRIGID_FLURRY_SHOT_OFFSETS_MS = [280, 440, 640, 800, 960];

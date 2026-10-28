@@ -1,4 +1,3 @@
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -10,8 +9,9 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { virtueTooltip } from '#gw2/professions/guardian/app/tooltips/shared.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 const dragonhunterJusticeTooltip: DescribeSimulationTooltip = skillTooltip(
   "Strike and tether your target, applying recurring Burning while the tether remains active. Hunter's Verdict ends the tether early; Big Game Hunter extends it.",

@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   createCastDetailContext,
   createMaximumAmmoContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 // A selected catalog owns missing-data errors even when a different run has a matching live profile.
 test('ammunition profile lookup never borrows content from another context', () => {

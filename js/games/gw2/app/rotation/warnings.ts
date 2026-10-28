@@ -1,14 +1,14 @@
-import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
-import { mountRotationWarnings, type RotationWarning } from '#ui/rotation/warnings.js';
-import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';
-import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
 import {
   createPaletteContext,
   projectPalette,
   rotationSelectedSlotSkills,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
+import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
+import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import { mountRotationWarnings, type RotationWarning } from '#ui/rotation/warnings.js';
 
 export interface LocatedRotationWarning extends RotationWarning {
   readonly rotationIndex?: number;

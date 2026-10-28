@@ -1,27 +1,27 @@
-import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   fromProfile,
-  tooltipFactorChange,
-  tooltipSeconds,
-  outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
-  profileFact,
-  skillFact,
   modifierFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipNumber,
-  tooltipProfile,
+  outsideScopeTooltip,
+  profileFact,
   simulationEffectFacts,
-  type ProfessionTooltips,
-  type DescribeSimulationTooltip
+  skillFact,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipNumber,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
+  type DescribeSimulationTooltip,
+  type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { TooltipFact, SkillId } from '#gw2/platform/skills/types.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
 
 /** Strain wording records the state transition; numerical durations and proc packets stay with their simulation owners. */
 function strainFacts(

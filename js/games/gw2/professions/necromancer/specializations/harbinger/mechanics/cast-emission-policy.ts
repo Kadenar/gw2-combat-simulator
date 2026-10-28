@@ -1,5 +1,5 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';

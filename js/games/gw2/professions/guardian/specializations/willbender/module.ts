@@ -3,12 +3,12 @@ import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-
 import { willbenderHooks } from '#gw2/professions/guardian/specializations/willbender/hooks.js';
 import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import {
-  WILLBENDER_SKILL_MECHANICS,
-  WILLBENDER_EXTRA_SKILLS
+  WILLBENDER_EXTRA_SKILLS,
+  WILLBENDER_SKILL_MECHANICS
 } from '#gw2/professions/guardian/specializations/willbender/skills/index.js';
 import {
-  willbenderState,
-  projectWillbenderPlanningState
+  projectWillbenderPlanningState,
+  willbenderState
 } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderTraits } from '#gw2/professions/guardian/specializations/willbender/traits/index.js';
 

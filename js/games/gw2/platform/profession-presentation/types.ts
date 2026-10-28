@@ -1,6 +1,11 @@
+/** Defines application presentation callbacks independently of the executable profession runtime. */
+import type { CastCommand, RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
+import type { Gw2BuildResources, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type {
   PreviewControl,
   ProfessionAttributePreviewContext,
@@ -13,14 +18,8 @@ import type {
   SkillDamagePreviewPreparation,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
-/** Defines application presentation callbacks independently of the executable profession runtime. */
-import type { Gw2BuildResources, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { CastCommand, RotationCommand } from '#gw2/platform/builds/rotation.js';
-import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
-
 import type { EffectSource } from '#gw2/platform/results/effect-report.js';
-import type { Gw2SimulationPlanningState, Gw2SimulationResult, Gw2ProcStep } from '#gw2/platform/results/types.js';
+import type { Gw2ProcStep, Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Profession-owned application identity; shared charts align and clip its simulation timestamp. */

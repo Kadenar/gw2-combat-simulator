@@ -1,15 +1,16 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const baseConfig = Object.freeze({
   attributeInputs: baseAttributeInputs({

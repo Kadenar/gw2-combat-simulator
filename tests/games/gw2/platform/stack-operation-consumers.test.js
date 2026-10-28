@@ -1,22 +1,21 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { landThiefAxe } from '#gw2/professions/thief/core/mechanics/axes.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
+
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { landThiefAxe } from '#gw2/professions/thief/core/mechanics/axes.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { observedRuntime, observeGw2Runtime, projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 test('axe materialization replaces the oldest grant without mutating earlier state or snapshots', () => {
   const prior = Object.freeze([1, 30, 31, 32, 33, 34, 35].map((expiresAt) => ({ skillId: 71967, expiresAt })));

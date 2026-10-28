@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { ammoDisplayView } from '#ui/rotation/ammo-display.js';
 
 test('ammo display exposes filled and spent charge pips', () => {

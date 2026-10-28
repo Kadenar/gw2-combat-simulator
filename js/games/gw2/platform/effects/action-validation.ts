@@ -1,8 +1,8 @@
-import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
-import { ACTOR } from '#gw2/platform/constants.js';
 import { RESOURCE_KEYS, type ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { isCustomSideEffectAction, type SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Validate literal and selected-profile amounts without coercion before a declaration can mutate runtime state. */

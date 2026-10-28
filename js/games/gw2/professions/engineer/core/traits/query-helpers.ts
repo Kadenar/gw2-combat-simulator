@@ -6,8 +6,8 @@ import {
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { EngineerSimulationEvent } from '#gw2/professions/engineer/types.js';
 import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
+import type { EngineerSimulationEvent } from '#gw2/professions/engineer/types.js';
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */
 export function engineerEvent(context: Gw2ModifierContext): EngineerSimulationEvent | undefined {

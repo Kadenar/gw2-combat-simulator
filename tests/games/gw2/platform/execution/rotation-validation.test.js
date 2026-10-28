@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { createWarriorBuildDefaults, validateWarriorBuild } from '#gw2/professions/warrior/build/build.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 const build = createWarriorBuildDefaults();
 const slash = { type: 'cast', skillId: ID.DRAGON_SLASH_FORCE };

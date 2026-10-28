@@ -1,11 +1,11 @@
-import { RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Soulbeast merged-pet skill fragments for the Archetype family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 // ponytail: approximate channel pulses on the nominal cast timeline until merged-skill measurements are available.
 const PRIMAL_CRY_PULSES_MS = [160, 520, 840];

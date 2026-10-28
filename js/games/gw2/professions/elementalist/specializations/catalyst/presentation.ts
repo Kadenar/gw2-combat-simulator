@@ -1,16 +1,15 @@
-import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   ELEMENTALIST_JADE_SPHERE_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS,
@@ -18,6 +17,7 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { type CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const CATALYST_SPHERE_SKILL_IDS = Object.freeze(Object.values(ELEMENTALIST_JADE_SPHERE_SKILL_IDS));

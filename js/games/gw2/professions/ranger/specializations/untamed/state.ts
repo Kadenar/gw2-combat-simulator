@@ -1,7 +1,7 @@
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import { cloneStateFields, defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 

@@ -1,19 +1,20 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { elementalistBuffEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { elementalistProfession, elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
+import { elementalistBuffEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 

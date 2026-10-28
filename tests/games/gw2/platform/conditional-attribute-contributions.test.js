@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { attributeContext, resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { attributeSeed, baseAttributeInputs, equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
 const families = {};
 for (const name of ['elementalist', 'engineer', 'guardian', 'necromancer', 'ranger', 'revenant', 'thief', 'warrior']) {

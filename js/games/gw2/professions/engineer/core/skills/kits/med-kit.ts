@@ -1,7 +1,7 @@
-import { COMBO_FIELD, COMBO_FINISHER, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 /** Core Engineer Med Kit skill mechanics. */
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { BOON, COMBO_FIELD, COMBO_FINISHER, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Med Kit. */
 export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({

@@ -1,8 +1,8 @@
-import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export interface OwnerConditionDamage {
   readonly ownerKey: string;

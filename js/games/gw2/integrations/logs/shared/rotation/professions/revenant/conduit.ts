@@ -1,9 +1,8 @@
-import { normalizeConduitHazeActions } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
-
 import type {
   LogActionNormalizationContext,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { normalizeConduitHazeActions } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
 
 const GENERATED_SIGNAL_IDS = new Set([76818, 77116]);
 

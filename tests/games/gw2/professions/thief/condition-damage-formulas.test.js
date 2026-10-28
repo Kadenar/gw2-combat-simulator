@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';

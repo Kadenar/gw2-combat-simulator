@@ -1,20 +1,20 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { CONTROL } from '#gw2/platform/constants.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { CONTROL } from '#gw2/platform/constants.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import { assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import test from 'node:test';
-import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
   rangerAttackOfOpportunityModifier,
   reactToRangerGreatswordDamage
 } from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Greatsword',

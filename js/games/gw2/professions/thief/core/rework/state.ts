@@ -1,9 +1,9 @@
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { createThiefCoreState, type ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface ThiefCoreReworkState extends ThiefCoreState {
   /** Refreshing mobility leaves one pending attack reward, never accumulated charges. */

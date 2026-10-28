@@ -1,15 +1,3 @@
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { elementalistBuffRequest, elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
-import { elementalistConditionEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
-import { ACTOR, CONTROL, WEAPON, COMBO_FINISHER, BOON, CONDITION, AURA, STATUS } from '#gw2/platform/constants.js';
-import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /**
  * Pistol weapon-skill mechanics owned by the Weaver module.
  *
@@ -20,10 +8,20 @@ import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/s
  *
  * Definitions select the enhanced payloads and declare the final shared bullet settlement.
  */
-
+import { ACTOR, AURA, BOON, COMBO_FINISHER, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { elementalistBuffRequest, elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
+import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import { elementalistConditionEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { weaverDualAttunements } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
  * The six pistol dual attacks, keyed by skill id and merged into

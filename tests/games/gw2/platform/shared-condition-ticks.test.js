@@ -1,19 +1,20 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { targetConditionActive, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import {
-  canonicalTargetConditionName,
   CANONICAL_TARGET_CONDITIONS,
+  canonicalTargetConditionName,
   conditionStackLimit,
   isDamagingCondition
 } from '#gw2/platform/combat/state/targets.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { targetConditionActive, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
-import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Derive paid lifetime from reported payouts so tests protect accounting without a runtime-only accumulator.
 const paidStackSeconds = (application) =>

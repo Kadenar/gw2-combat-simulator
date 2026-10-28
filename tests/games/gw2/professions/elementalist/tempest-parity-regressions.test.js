@@ -1,18 +1,17 @@
-import { runNative } from '#tests/helpers/elementalist-simulation.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import {
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_OVERLOAD_SKILL_IDS
-} from '#gw2/professions/elementalist/data/ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_OVERLOAD_SKILL_IDS,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { tempestHooks } from '#gw2/professions/elementalist/specializations/tempest/hooks.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Overload and attunement hold the same remaining work as actual Alacrity applications change.
 test('Tempest attunement lockouts keep overload recharge unchanged by temporary Alacrity', () => {

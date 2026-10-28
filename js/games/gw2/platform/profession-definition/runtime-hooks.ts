@@ -1,8 +1,8 @@
 import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { composeGw2Reactions } from '#gw2/platform/resolver/reaction-registry.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Only this explicit contribution surface is accepted; catalog/formula ownership stays in native compilation. */
 export type RuntimeHooks<State extends object, TSkill extends Skill = Skill> = Partial<

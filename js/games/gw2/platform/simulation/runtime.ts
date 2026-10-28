@@ -1,71 +1,71 @@
-import { createEncounter, initialEncounterTarget } from '#gw2/platform/combat/state/encounter.js';
-import { ACTOR } from '#gw2/platform/constants.js';
-import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
-import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
-import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
-import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
-import { validateCatalogResourceGrants } from '#gw2/platform/effects/action-declarations.js';
-import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
-import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
+import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
+import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import {
   RESOURCE_KEYS,
   validateResourcePolicies,
   type ResourceKey
 } from '#gw2/platform/combat/resources/resource-policy.js';
+import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
+import { createEncounter, initialEncounterTarget } from '#gw2/platform/combat/state/encounter.js';
 import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { permanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import { validateCatalogResourceGrants } from '#gw2/platform/effects/action-declarations.js';
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
+import { type EffectReactionStage } from '#gw2/platform/effects/reactions.js';
+import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/runtime.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
-import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { createCastExecution } from '#gw2/platform/execution/cast-execution.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import type { RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
 import {
   armSkillFlip,
   consumeSkillFlip,
   expireSkillFlip,
   type SkillFlipWindows
 } from '#gw2/platform/execution/skill-flips.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/runtime.js';
-import { createCastExecution } from '#gw2/platform/execution/cast-execution.js';
-import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
 import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createEffectDelivery } from '#gw2/platform/resolver/effect-delivery.js';
+import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
+import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import { projectRuntimeResult } from '#gw2/platform/results/project-runtime.js';
-import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
+import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { createMechanicContext, createMechanicQueryContext } from '#gw2/platform/simulation/bind-mechanic-context.js';
-import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
-import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
-import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
-import { type EffectReactionStage } from '#gw2/platform/effects/reactions.js';
+import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
 import type {
   DamageRuntimeOptions,
   DamageRuntimeResult,
   RuntimeExecution,
   RuntimeOptions
 } from '#gw2/platform/simulation/run-contract.js';
-import type { RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
-import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
-import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
+import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { isRuntimeWork, type RuntimeQueueEntry, type RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
-import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { normalizeObservationPolicy } from '#kernel/execution/observation.js';
 

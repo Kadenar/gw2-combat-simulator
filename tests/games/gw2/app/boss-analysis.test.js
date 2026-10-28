@@ -1,14 +1,15 @@
-import { layoutChartMarkerLabels } from '#gw2/app/results/charts/marker-layout.js';
-import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { encounterAnalysisPhases, encounterDpsSnapshots } from '#gw2/app/boss-scenarios/analysis-model.js';
 import { mountEncounterAnalysis } from '#gw2/app/boss-scenarios/analysis-view.js';
-import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
-import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
-import { buildPhaseDpsSeries, buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
-import { inertContainer } from '#tests/helpers/dom.js';
 import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
+import { layoutChartMarkerLabels } from '#gw2/app/results/charts/marker-layout.js';
+import { buildPhaseDpsSeries, buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
+import { mountResultSummary } from '#gw2/app/results/summary-view.js';
+import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 
 const definitions = [
   { id: 'boss', label: '100% to 50%' },

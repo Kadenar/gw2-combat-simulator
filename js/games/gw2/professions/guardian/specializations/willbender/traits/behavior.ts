@@ -1,20 +1,18 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   balanceNumberFromContext,
   effectNumber,
   requireBalanceProfileFromContext,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import type { GuardianVirtue, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Decodes the selected grant, lifetime, and live cap for a single Tempo trigger. */

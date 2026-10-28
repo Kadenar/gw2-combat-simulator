@@ -1,8 +1,9 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfessionModifiers } from '#tests/fixtures/profession.js';
 
 // Every reported packet carries an identity, and reactions name the event whose handling created them.

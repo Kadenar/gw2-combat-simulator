@@ -1,16 +1,17 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import {
-  buildTimeSeries,
+  buildContributionDamageSeries,
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
   buildRollingDpsSeries,
-  buildContributionDamageSeries,
+  buildTimeSeries,
   chartAxisMaximum,
   chartValueAt
 } from '#gw2/app/results/charts/time-series-model.js';
 import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 
 // GW2 results preserve chart projections, result controls, and escaped event-log rendering.
 test('shared chart lookup and series cover damage timing and configurable effects', () => {

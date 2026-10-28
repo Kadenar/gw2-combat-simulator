@@ -1,42 +1,42 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import {
+  elementalistElementalAttackTasks,
   interruptCurrentAction,
-  startSingleImpactAttack,
   startFlameBarrage,
-  startStomp,
-  elementalistElementalAttackTasks
+  startSingleImpactAttack,
+  startStomp
 } from '#gw2/professions/elementalist/core/mechanics/elementals/attacks.js';
 import {
-  retireElemental,
-  ELEMENTAL_TASK_OWNER
+  ELEMENTAL_TASK_OWNER,
+  retireElemental
 } from '#gw2/professions/elementalist/core/mechanics/elementals/lifecycle.js';
 import {
   EARTH_ELEMENTAL_EVTC_PROFILE,
   FIRE_ELEMENTAL_EVTC_PROFILE
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import {
-  FLAME_BARRAGE_ID,
-  STOMP_ID,
-  type ElementalKind,
   activeElemental,
-  selectedElemental,
   elementalForGlyphId,
-  glyphSkillForElement
+  FLAME_BARRAGE_ID,
+  glyphSkillForElement,
+  selectedElemental,
+  STOMP_ID,
+  type ElementalKind
 } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistRuntime,
-  ElementalistSkill,
-  ElementalistRuntimeState
+  ElementalistRuntimeState,
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 // Actor step: picks the next autonomous attack. Prefers the secondary attack
 // (Flame Burst / Enervating Punch) whenever its cooldown is ready, else the auto.

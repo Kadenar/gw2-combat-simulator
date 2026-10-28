@@ -1,19 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { observeGw2Runtime, observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { renderPaletteMarkup } from '#tests/helpers/palette.js';
-import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { paletteAvailability, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { displayedSkillTiles, paletteAvailability, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { observedRuntime, observeGw2Runtime, planningFixture } from '#tests/helpers/observed-runtime.js';
+import { renderPaletteMarkup } from '#tests/helpers/palette.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 function projectionApp(

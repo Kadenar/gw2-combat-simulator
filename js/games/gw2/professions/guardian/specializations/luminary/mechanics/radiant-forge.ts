@@ -1,5 +1,6 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
@@ -8,8 +9,7 @@ import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-fl
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
+import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { radiantWeaponEquipped } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';

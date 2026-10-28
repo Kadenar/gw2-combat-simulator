@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mountResultSummary } from '#gw2/app/results/summary-view.js';
-import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
-import { mountModifierContributions } from '#gw2/app/results/modifier-contributions-view.js';
+
+import { nextResultSortState, SKILL_COLS, sortResultRows } from '#gw2/app/results/breakdown/model.js';
 import { mountDamageBreakdown } from '#gw2/app/results/breakdown/view.js';
-import { SKILL_COLS, nextResultSortState, sortResultRows } from '#gw2/app/results/breakdown/model.js';
+import { mountModifierContributions } from '#gw2/app/results/modifier-contributions-view.js';
+import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
+import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 
 // Both breakdowns share total damage as their denominator, including entity and environment rows.

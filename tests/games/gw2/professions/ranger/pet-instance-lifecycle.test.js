@@ -1,10 +1,11 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Exercise real recipient application and whole-instance replacement without depending on native attack schedules.
 function grant(runtime, kind, companionId) {

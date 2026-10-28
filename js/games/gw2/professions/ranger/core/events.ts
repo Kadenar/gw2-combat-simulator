@@ -1,10 +1,10 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
+import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 
 /** Cast and trait effects supply their own attribution; pet ownership is captured by the pet producer. */

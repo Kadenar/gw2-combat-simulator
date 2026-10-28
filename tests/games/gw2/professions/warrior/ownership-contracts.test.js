@@ -1,5 +1,8 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { berserkersPower } from '#gw2/professions/warrior/core/traits/strength/index.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -7,8 +10,6 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { fierceAsFire as fierceAsFireTrait } from '#gw2/professions/warrior/specializations/bladesworn/traits/index.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const patchId = 'warrior-ownership';
 const preview = (patch) =>

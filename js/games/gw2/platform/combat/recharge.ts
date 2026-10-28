@@ -1,6 +1,6 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import { boonIntervalsFromWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Remaining base-recharge seconds anchored to a timestamp, independent of the current recharge rate. */

@@ -1,19 +1,19 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { readAttributePreviewValues, renderAttributeStats } from '#gw2/app/build/panels/attributes.js';
-import { getProfessionEntry } from '#gw2/profession-registry.js';
-import { escapeHtml } from '#ui/shared/html.js';
-import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
-import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/app/shared/equipment/icons.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { optimizerEquipmentIdentity } from '#gw2/app/optimizer/gear/candidate-results.js';
+import { optimizerBuildContextFactory } from '#gw2/app/optimizer/gear/fractal-buffs.js';
 import {
   isOptimizerRequestCurrent,
   type GearOptimizerRequest,
   type OptimizerCandidate
 } from '#gw2/app/optimizer/gear/search.js';
-import { optimizerEquipmentIdentity } from '#gw2/app/optimizer/gear/candidate-results.js';
+import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import { optimizerBuildContextFactory } from '#gw2/app/optimizer/gear/fractal-buffs.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
+import { getProfessionEntry } from '#gw2/profession-registry.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 /** Show current gear by default, or inspect a captured candidate without equipping or saving it. */
 export function renderOptimizerPreview(

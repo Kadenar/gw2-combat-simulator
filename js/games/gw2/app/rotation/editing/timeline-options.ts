@@ -11,7 +11,6 @@ import {
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '#gw2/app/rotation/editing/operations.js';
 import { resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
-import { COMBAT_START_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import type { TimelineInteractionOptions } from '#gw2/app/rotation/timeline/interactions.js';
 import {
   currentTimelineResults,
@@ -19,10 +18,11 @@ import {
   timelineItem,
   timelineTargetImpactDetails
 } from '#gw2/app/rotation/timeline/model.js';
+import { COMBAT_START_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 
 /** Uses the simulated duration when available so runtime instant-cast conversions get the correct editor mode. */

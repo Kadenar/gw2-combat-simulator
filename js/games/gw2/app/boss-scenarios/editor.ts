@@ -1,5 +1,5 @@
-import { createBuildTab, saveBuildWorkspace, type BuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
+import { createBuildTab, saveBuildWorkspace, type BuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Each encounter uses the existing build and rotation editor once, with one continuous history. */

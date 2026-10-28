@@ -1,16 +1,17 @@
-import { requireSkillAction, skillActionEffects } from '#gw2/platform/effects/actions.js';
-import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { validateResourceGrantSupport } from '#gw2/platform/effects/action-validation.js';
+import { requireSkillAction, skillActionEffects } from '#gw2/platform/effects/actions.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const grant = (amount) => ({ type: 'resourceGrant', resource: 'energy', amount });
 const reaction = (doAction = grant(1), extra = {}) => ({

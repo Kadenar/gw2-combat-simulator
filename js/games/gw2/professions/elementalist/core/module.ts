@@ -1,8 +1,11 @@
-import { ELEMENTALIST_CORE_PROFILE_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import {
+  ELEMENTALIST_CORE_PROFILE_FIELDS,
+  ELEMENTALIST_CORE_SKILL_FIELDS
+} from '#gw2/professions/elementalist/core/catalog-fields.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
-import { hammerOrbModifiers } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { frostBowDurationModifier } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
+import { hammerOrbModifiers } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
 import {
@@ -15,7 +18,6 @@ import {
 } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistCoreTraits } from '#gw2/professions/elementalist/core/traits/index.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
-import { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
 
 /**
  * Core Elementalist module: binds the shared attunement/endurance state, its

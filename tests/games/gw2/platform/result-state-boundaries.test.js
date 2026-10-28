@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+
 import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/combat-result.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Separate phase counters expose accidental state mixing without relying on a saved rotation.
 const profession = defineTestProfession({

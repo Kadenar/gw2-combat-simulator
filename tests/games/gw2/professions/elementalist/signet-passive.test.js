@@ -1,11 +1,12 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
 // Sample live precision across activation and recovery so the passive cannot drift from the shared cooldown owner.
 test('Signet of Fire precision follows recharge and resets unless Written in Stone preserves it', () => {

@@ -1,4 +1,3 @@
-import { WEAPON, COMBO_FINISHER, COMBO_FIELD, STATUS, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /**
  * Spear weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -11,10 +10,10 @@ import { WEAPON, COMBO_FINISHER, COMBO_FIELD, STATUS, BOON, CONDITION, CONTROL }
  * `core/execution/index.ts`, the chain/stage gating lives in
  * `core/mechanics/availability.ts`, and the table is merged in by `core/skills/index.ts`.
  */
-
+import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Skill-id keyed fragments the catalog layers over the raw spear skill records so the

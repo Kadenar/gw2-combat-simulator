@@ -1,16 +1,16 @@
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
+import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
+import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
   defineProfessionWeapons,
   normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
-import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
-import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { TRAITS } from '#gw2/professions/mesmer/data/traits-data.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 
 const allSkills: readonly MesmerSkill[] = [...SKILLS, ...MESMER_SUPPLEMENTAL_SKILLS];
 

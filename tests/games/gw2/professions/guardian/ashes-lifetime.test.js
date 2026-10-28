@@ -1,16 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
-import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
-import { swiftScholarPagesGranted } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
-import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
+import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
+import { swiftScholarPagesGranted } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
+import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 

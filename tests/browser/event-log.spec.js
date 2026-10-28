@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { expect, test } from '@playwright/test';
 
 // Exercise the real worker, matching-input export, and session-only toggle from the event log.
 test('damage capture reruns the baseline and exports its calculations without persisting the toggle', async ({

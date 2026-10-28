@@ -1,4 +1,4 @@
-import { WEAPON, ACTOR, COMBO_FINISHER } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FINISHER, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 

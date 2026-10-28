@@ -1,8 +1,7 @@
-import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
-
-import { requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';

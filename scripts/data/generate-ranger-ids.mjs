@@ -1,5 +1,5 @@
-import { RANGER_PET_SKILL_KEYS } from './ranger-pet-skills.mjs';
 import { generateProfessionIds } from './lib/generator-utils.mjs';
+import { RANGER_PET_SKILL_KEYS } from './ranger-pet-skills.mjs';
 
 // Synthetic actions and supported variants absent from both API and supplemental records.
 const FIXED_SKILLS = [

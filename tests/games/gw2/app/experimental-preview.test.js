@@ -1,24 +1,25 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { previewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
+
+import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import {
   canonicalAssumptionValue,
   displayAssumptionValue,
   previewAssumptionCounts,
   previewAssumptionGroups
 } from '#gw2/app/patch-preview/assumptions-model.js';
+import { previewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
 import { renderPatchComparison } from '#gw2/app/patch-preview/view.js';
-import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { replaceProvisionalEffect } from '#gw2/integrations/patches/authoring/provisional-values.js';
-import { guardianAppAdapter as adapter } from '#gw2/professions/guardian/app/app-definition.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
-import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { grenadier } from '#gw2/professions/engineer/core/traits/explosives/index.js';
 import { engineerExplosivesTooltips } from '#gw2/professions/engineer/app/tooltips/explosives.js';
-import { FIREBRAND_REWORK_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
+import { grenadier } from '#gw2/professions/engineer/core/traits/explosives/index.js';
+import { guardianAppAdapter as adapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { GUARDIAN_SKILL_IDS as SKILL } from '#gw2/professions/guardian/data/ids.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { FIREBRAND_REWORK_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 
 const profession = adapter.profession;
 const preview = profession.preview;

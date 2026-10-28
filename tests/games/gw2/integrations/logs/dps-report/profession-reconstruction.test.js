@@ -1,23 +1,23 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import {
-  MESMER_TRAIT_IDS as MESMER_TRAIT,
-  MESMER_SKILL_IDS as MESMER_SKILL
+  MESMER_SKILL_IDS as MESMER_SKILL,
+  MESMER_TRAIT_IDS as MESMER_TRAIT
 } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
-import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 

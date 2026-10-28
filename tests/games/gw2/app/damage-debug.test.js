@@ -1,8 +1,9 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline/baseline-simulation.js';
+
 import { damageDebugPayload } from '#gw2/app/results/damage-debug.js';
+import { calculateBaselineSimulation } from '#gw2/app/simulation/baseline/baseline-simulation.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 

@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import { catalogSkillIcon, resolveProcIcon, resolveRelicIcon } from '#gw2/app/shared/icons.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
-import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 
 // Cached artwork keeps catalog order and follows the selected catalog when a patch or profession changes.
 test('skill artwork preserves first matches and remains isolated between catalogs', () => {

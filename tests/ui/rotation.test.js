@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { inertContainer } from '#tests/helpers/dom.js';
 import { validateDurationMs } from '#ui/rotation/editing/duration-editor.js';
 import { positionFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
 import {
@@ -8,7 +10,6 @@ import {
   rotationTimelineEntryHtml
 } from '#ui/rotation/insertion-cursor.js';
 import { mountRotationWarnings } from '#ui/rotation/warnings.js';
-import { inertContainer } from '#tests/helpers/dom.js';
 
 // Game-neutral rotation controls validate input and render accessible, escaped markup.
 test('floating editors flip and clamp beside connected anchors', () => {

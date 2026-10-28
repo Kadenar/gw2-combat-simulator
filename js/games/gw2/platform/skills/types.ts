@@ -1,12 +1,12 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
-import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
 
 /**
  * Catalog skill, balance-profile, task, and lookup schemas so authored skill data stays independent of runtime

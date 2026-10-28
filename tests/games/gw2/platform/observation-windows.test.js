@@ -1,12 +1,13 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { testProfession } from '#tests/fixtures/profession.js';
 import { observationEndTime } from '#kernel/execution/observation.js';
+import { testProfession } from '#tests/fixtures/profession.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Absolute horizons must agree with the kernel for waits and cast completion in both reporting modes.
 test('absolute observation uses exact canonical rotation boundaries', () => {

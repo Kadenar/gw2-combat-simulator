@@ -1,17 +1,17 @@
+import type { NativePatchAuthoringContract } from '#gw2/integrations/patches/authoring/module-types.js';
+import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
-import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type {
   Gw2AttributeContributionCalculator,
   Gw2FinalizedAttributeResult
 } from '#gw2/platform/attributes/types.js';
 import type { ResolvedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
+import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import type { CatalogEntity, SkillId } from '#gw2/platform/skills/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { AnyNativeModule } from '#gw2/platform/profession-definition/module-types.js';
-import type { NativePatchAuthoringContract } from '#gw2/integrations/patches/authoring/module-types.js';
-import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { CatalogEntity, SkillId } from '#gw2/platform/skills/types.js';
 
 export type WeaponSet = 1 | 2;
 

@@ -1,12 +1,8 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -14,8 +10,12 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 
 test('planning projections omit private mechanic state while retaining visible observations', () => {
   // Availability is observed in the runtime; presentation does not need its internal counters, costs, or schedules.

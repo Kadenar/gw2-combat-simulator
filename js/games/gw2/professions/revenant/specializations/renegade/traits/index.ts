@@ -1,23 +1,19 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ACTOR, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
-import {
-  revenantRuntimeCoreState,
-  revenantRuntimeSpecializationState
-} from '#gw2/professions/revenant/core/state-queries.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeBonuses } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
@@ -26,20 +22,24 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { invocationFervorGranted } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
-  renegadeBoonApplied,
-  renegadeCastCompleted,
-  renegadeStruck
-} from '#gw2/professions/revenant/specializations/renegade/mechanics/trigger-points.js';
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState
+} from '#gw2/professions/revenant/core/state-queries.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   activeKallasFervorStacks,
   bandTogetherReady,
   grantKallasFervor
 } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import {
+  renegadeBoonApplied,
+  renegadeCastCompleted,
+  renegadeStruck
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/trigger-points.js';
 import { warbandCompleted } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { fervorMaximumStacks } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns All for One tuning and behavior at its established execution boundaries. */
 const allForOne = defineTrait({

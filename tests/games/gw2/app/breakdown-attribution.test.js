@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { buildChartSeries } from '#gw2/app/results/model.js';
 import {
   ownerConditionBreakdown,
   skillBreakdownRows,
@@ -7,11 +9,10 @@ import {
   skillDamageKeyByIdentity
 } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
+import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { RANGER_SKILL_IDS as RANGER_SKILL } from '#gw2/professions/ranger/data/ids.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { RANGER_SKILL_IDS as RANGER_SKILL } from '#gw2/professions/ranger/data/ids.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
-import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 // The condition composition uses resolved payouts, isolates owners, and shares the report's observation window.
 test('condition contributions combine skills within player and named entity ownership', () => {

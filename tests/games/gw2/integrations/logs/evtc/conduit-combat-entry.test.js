@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
-import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
-import { runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
+import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 /** A clipped teleport and a complete two-part opener must enter combat on the same owned impact. */
 function hazeOpener({ launch = false, hitSource = PLAYER, combatAt = 1203 } = {}) {

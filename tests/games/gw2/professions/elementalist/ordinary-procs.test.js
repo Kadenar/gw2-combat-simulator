@@ -1,3 +1,6 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import {
   controlAccepted,
   elementalistCastCompleted,
@@ -15,8 +18,6 @@ import { evokerState } from '#gw2/professions/elementalist/specializations/evoke
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const skill = { id: 1, name: 'Fixture Heal', type: 'Heal' };
 const castFor = (context, skill) => ({

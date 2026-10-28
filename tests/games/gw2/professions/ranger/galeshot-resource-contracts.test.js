@@ -1,18 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
   galeshotControlAccepted,
   missileResolved,
   scheduleWindForce
 } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const state = (result) => galeshotState.from(observedRuntime(result));

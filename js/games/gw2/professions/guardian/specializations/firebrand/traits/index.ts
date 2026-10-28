@@ -1,49 +1,44 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
-import { RECIPIENT, ACTOR, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-
-import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
-
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-
-import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
-
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
+  effectNumber,
   requireBalanceProfileFromContext,
-  requireEffect,
-  effectNumber
+  requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
+import {
+  grantAshes,
+  resolveAshesGrantData
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import {
   finalMantraChargeUsed,
   firebrandBuffApplied,
   firebrandControlAccepted,
   firebrandStruck,
+  swiftScholarPagesGranted,
   tomeOpened,
   tomeStowed,
-  swiftScholarPagesGranted,
   type FinalMantraCharge,
   type FirebrandBuffApplication,
   type FirebrandControl,
   type FirebrandStrike,
   type TomeOpening
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
-import {
-  grantAshes,
-  resolveAshesGrantData
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
-
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /** Derived trait effects inherit attribution and causality, never the triggering buff's recipients or duration. */
 function attribution(event: Gw2ResolverEvent) {

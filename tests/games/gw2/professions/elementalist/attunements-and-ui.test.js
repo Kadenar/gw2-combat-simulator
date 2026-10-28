@@ -1,16 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { paletteSkillView, weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
+import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { FIRE_ELEMENTAL_EVTC_PROFILE } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
-import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import {
   createNativeApp,
@@ -20,8 +22,7 @@ import {
 } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 test('Fresh Air keeps only future strike wakes for selected builds', () => {
   // Wakes are candidates, including cancellable strikes; only resolved criticals reset recharge.

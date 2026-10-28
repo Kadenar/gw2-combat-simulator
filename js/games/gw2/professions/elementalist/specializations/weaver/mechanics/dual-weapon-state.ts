@@ -1,18 +1,18 @@
-import { HAMMER_ORB_REUSE_DELAY } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
-import { WEAPON } from '#gw2/platform/constants.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Owns shared Weaver hand availability and hammer orb restrictions.
  * The cataloged weapon fragments live in
  * `skills/weapons/hammer.ts`.
  */
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { WEAPON } from '#gw2/platform/constants.js';
 import { denyCast, retryCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { HAMMER_ORB_REUSE_DELAY } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {

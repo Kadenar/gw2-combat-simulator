@@ -1,5 +1,5 @@
+import { signedFixed, signedInteger } from '#gw2/app/results/formatting.js';
 import { escapeHtml } from '#ui/shared/html.js';
-import { signedInteger, signedFixed } from '#gw2/app/results/formatting.js';
 
 export interface ResultContribution {
   readonly name: string;

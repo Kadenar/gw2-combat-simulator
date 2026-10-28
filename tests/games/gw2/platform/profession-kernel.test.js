@@ -1,16 +1,17 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { withSkill, withProfile } from '#tests/helpers/catalog-overrides.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
-import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { testProfessionModifiers } from '#tests/fixtures/profession.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+
 import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
+import { weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { numberField } from '#gw2/platform/skills/field-specs.js';
+import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 
 // Shared runtime contracts that profession mechanics build on: procedural emission, follow-up windows, declared
 // costs, and authored skill tasks. Each scenario uses a minimal fixture profession rather than a saved rotation.

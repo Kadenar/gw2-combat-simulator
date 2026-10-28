@@ -1,17 +1,16 @@
-import { RECIPIENT, COMBO_FIELD, COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import type { ElementalistModifierContext } from '#gw2/professions/elementalist/types.js';
 /**
  * Owns Evoker familiar basic and empowered skill fragments.
  * Owns their patchable timing, replacement cancellation, tier selection, and basic-to-empowered conversion.
  */
+import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
@@ -23,7 +22,11 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
 import { emitResource } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistModifierContext,
+  ElementalistRuntime,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /**
  * Simulator-owned skill definitions merged over the API catalog for Evoker.

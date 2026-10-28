@@ -1,11 +1,12 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { calculateCommonAttributes, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
-import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 // The same persistent bonus must reach both combat sets, derived stats, conversions, and modifier comparisons.
 for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {

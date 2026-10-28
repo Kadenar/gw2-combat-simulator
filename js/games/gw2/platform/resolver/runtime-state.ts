@@ -1,17 +1,22 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import { createCombatEngagement, type CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
-import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
-import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat-calculation/combat-query.js';
+import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
+import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
+import { createCombatEngagement, type CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
+import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/resolution.js';
 import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import { createSigilRuntimeState } from '#gw2/platform/equipment/sigils/runtime.js';
 import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ConditionResolution, Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
+import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import type {
   Gw2ConditionBreakdownEntry,
   Gw2EnvironmentConditionBreakdownEntry,
@@ -20,17 +25,12 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverStage
 } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
 import type { ProcStepObserver } from '#gw2/platform/results/proc-steps.js';
-import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
-import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
-import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 
 /**
  * Creates the mutable state for the full GW2 timeline resolver.

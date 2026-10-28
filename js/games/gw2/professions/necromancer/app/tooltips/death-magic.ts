@@ -6,8 +6,8 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
+import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Describe death magic tooltips from the selected balance data. */
 export const necromancerDeathMagicTooltips = {

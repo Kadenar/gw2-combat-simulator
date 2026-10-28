@@ -1,19 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
+import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { RANGER_TRAIT_IDS, RANGER_SKILL_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { RANGER_SKILL_IDS, RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { REVENANT_LEGEND_IDS } from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const cases = [
   [guardianProfession, { specialization: 'Firebrand' }, 'Epilogue: Ashes of the Just'],

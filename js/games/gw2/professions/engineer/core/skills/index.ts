@@ -5,16 +5,15 @@
  * physical weapon families profession-wide.
  */
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { ENGINEER_MED_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/med-kit.js';
-import { ENGINEER_GRENADE_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/grenade-kit.js';
 import { ENGINEER_BOMB_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/bomb-kit.js';
-import { ENGINEER_FLAMETHROWER_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
-import { ENGINEER_ELIXIR_GUN_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/elixir-gun.js';
 import { ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/elite-mortar-kit.js';
-
-import { ENGINEER_TRAIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/trait-skills.js';
+import { ENGINEER_ELIXIR_GUN_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/elixir-gun.js';
+import { ENGINEER_FLAMETHROWER_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
+import { ENGINEER_GRENADE_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/grenade-kit.js';
+import { ENGINEER_MED_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/med-kit.js';
 import { ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/profession-skills.js';
 import { ENGINEER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/slot-skills.js';
+import { ENGINEER_TRAIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/trait-skills.js';
 import { ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/weapons/hammer.js';
 import { ENGINEER_WEAPONS_MACE_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/weapons/mace.js';
 import { ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/weapons/pistol.js';

@@ -1,12 +1,12 @@
-import { COMBO_FINISHER } from '#gw2/platform/constants.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { fieldDescriptors, finisherDescriptors, fieldAt } from '#gw2/platform/combos/descriptors.js';
 import { comboCombatMetadata } from '#gw2/platform/combos/definitions.js';
+import { fieldAt, fieldDescriptors, finisherDescriptors } from '#gw2/platform/combos/descriptors.js';
 import { isComboFieldActiveAt, selectComboFieldForFinisher } from '#gw2/platform/combos/resolution.js';
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { COMBO_FINISHER } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Automatically select fields at execution time only for opted-in finishers; preserve explicit field IDs. */
 export function bindRuntimeCombo(runtime: Gw2Runtime, event: Gw2ResolverEvent): Gw2ResolverEvent {

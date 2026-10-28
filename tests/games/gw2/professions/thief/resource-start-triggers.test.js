@@ -1,10 +1,11 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runThief } from '#tests/helpers/thief-simulation.js';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Cast one lengthened skill with and without the trait; the difference in the pool is the trait's own reward, read
 // from an overridden profile so the test also proves the selected profile is honored.

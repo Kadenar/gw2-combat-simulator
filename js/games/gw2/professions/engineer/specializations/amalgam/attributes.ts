@@ -1,9 +1,9 @@
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
 import { evolveAttributeFactor } from '#gw2/professions/engineer/specializations/amalgam/traits/index.js';
 

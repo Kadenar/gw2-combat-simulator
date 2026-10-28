@@ -1,17 +1,19 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 import {
   createNativeApp,
   resolvedAndScheduledEvents,
@@ -19,10 +21,6 @@ import {
   runNative
 } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-
-import { inertContainer } from '#tests/helpers/dom.js';
 
 // Shared expansion preserves completion attribution while honoring authored offsets and repeated boon grants.
 test('Gale Song and Bolstered Elements expand their selected boon profile at completion', () => {

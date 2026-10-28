@@ -1,13 +1,12 @@
-import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { ACTOR, COMBO_FINISHER, COMBO_FIELD, CONTROL, CONDITION } from '#gw2/platform/constants.js';
-import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
  * Owns Reaper Shroud entry, exit, and weapon skill fragments.
  * Shroud attribute modifiers live in `modifiers.ts`; shroud state and reactions live in `hooks.ts` and `mechanics/shroud-effects.ts`.
  */
+import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Supplies Reaper Shroud fragments to specialization composition. */
 export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

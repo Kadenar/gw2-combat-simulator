@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 
 const justices = [

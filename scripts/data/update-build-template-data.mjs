@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import { UNDERWATER_ONLY_SKILL_IDS } from '../../js/games/gw2/platform/skills/underwater-skill-ids.ts';
 
 const API_URL = 'https://api.guildwars2.com/v2/professions?ids=all&v=latest&lang=en';

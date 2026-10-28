@@ -1,5 +1,8 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   ELEMENTALIST_TRAIT_IDS as ELEMENTALIST,
   ELEMENTALIST_SKILL_IDS as ELEMENTALIST_SKILL
@@ -14,9 +17,7 @@ import { GUARDIAN_TRAIT_IDS as GUARDIAN } from '#gw2/professions/guardian/data/i
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { REVENANT_TRAIT_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Minimal actual strikes verify each migrated declaration's guard and its live profile payload.
 for (const [name, profession, specialization, trait, profile, effect, fields] of [

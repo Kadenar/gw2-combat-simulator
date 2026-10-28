@@ -1,11 +1,12 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { barrierBoonRecipients } from '#gw2/platform/combat/barrier.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { barrierBoonRecipients } from '#gw2/platform/combat/barrier.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
@@ -15,23 +16,20 @@ import {
 import { mechStruck, type MechStrike } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
-  isEngineerMechEvent,
-  isEngineerMechCommand
+  isEngineerMechCommand,
+  isEngineerMechEvent
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import {
   mechanistCastCompleted,
   mechanistCombatReady,
   type MechanistCastCompletion
 } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
-import { MECH_BASE_ATTRIBUTES } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import { MECHANIST_MECH_ATTACK_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/mech-attack-skills.js';
-import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-
 import { overclockPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
+import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import { MECH_BASE_ATTRIBUTES } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Owns Jade Cannons command selection and existing trait behavior. */
 const jadeCannons = defineTrait({

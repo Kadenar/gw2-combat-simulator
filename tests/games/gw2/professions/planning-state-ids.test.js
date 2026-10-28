@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { professionRegistry } from '#gw2/profession-registry.js';
+
 import { SHARED_STATE_IDS } from '#gw2/platform/results/state-ids.js';
-import { PROFESSION_STATE_IDS } from '#gw2/professions/state-ids.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { ELEMENTALIST_STATE_IDS } from '#gw2/professions/elementalist/state-ids.js';
 import { ENGINEER_STATE_IDS } from '#gw2/professions/engineer/state-ids.js';
 import { GUARDIAN_STATE_IDS } from '#gw2/professions/guardian/state-ids.js';
@@ -10,6 +10,7 @@ import { MESMER_STATE_IDS } from '#gw2/professions/mesmer/state-ids.js';
 import { NECROMANCER_STATE_IDS } from '#gw2/professions/necromancer/state-ids.js';
 import { RANGER_STATE_IDS } from '#gw2/professions/ranger/state-ids.js';
 import { REVENANT_STATE_IDS } from '#gw2/professions/revenant/state-ids.js';
+import { PROFESSION_STATE_IDS } from '#gw2/professions/state-ids.js';
 import { THIEF_STATE_IDS } from '#gw2/professions/thief/state-ids.js';
 import { WARRIOR_STATE_IDS } from '#gw2/professions/warrior/state-ids.js';
 

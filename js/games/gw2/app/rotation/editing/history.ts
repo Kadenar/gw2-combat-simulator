@@ -1,6 +1,6 @@
 import type { RotationHistory } from '#gw2/app/rotation/editing/state.js';
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 
 /**
  * Undo/redo history for the rotation timeline.

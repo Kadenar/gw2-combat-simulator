@@ -1,11 +1,12 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runThief } from '#tests/helpers/thief-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Variant selection snapshots the chain before completion, but transforms the live, independently editable packets.
 test('Falling Spider empowers only the accepted predecessor and preserves effect and tick edits', () => {

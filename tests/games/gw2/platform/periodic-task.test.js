@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { StableEventQueue } from '#kernel/events/queue.js';
+
 import { createPeriodicTaskState, definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 
 // Use the production queue for cancellation and ordering; each fixture has independent passive state.
 function fixture(options = {}) {

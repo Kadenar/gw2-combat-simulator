@@ -1,11 +1,11 @@
-import { ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns user-issued mech command skill fragments.
  * Persistent mech state and autonomous behavior remain under `mechanics/mech.ts`.
  */
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 // F1-F3 commands execute on the mech's own serial cast lane so their animations
 // can overlap the engineer without allowing non-instant mech commands to overlap.

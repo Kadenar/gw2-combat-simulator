@@ -1,16 +1,15 @@
 import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
-import { CONDITION, BOON } from '#gw2/platform/constants.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import type { BuildContextFactory } from '#gw2/build-context/types.js';
-import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
-import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
-import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
+import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
 import type { ProfessionAppState, ProfessionRuntimeOptions } from '#gw2/app/types.js';
+import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
+import type { BuildContextFactory, ProfessionModifier } from '#gw2/build-context/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
-import type { ProfessionModifier } from '#gw2/build-context/types.js';
 
 /** Enumerates equipped effects and active assumptions for one-at-a-time removal comparisons. */
 function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {

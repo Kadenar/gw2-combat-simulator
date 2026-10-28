@@ -1,3 +1,4 @@
+import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
@@ -5,11 +6,10 @@ import {
   normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
+import { TRAITS } from '#gw2/professions/warrior/data/traits-data.js';
 import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/warrior/data/warrior-api-metadata.js';
 import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
-import { TRAITS } from '#gw2/professions/warrior/data/traits-data.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
-import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 
 const allSkills: readonly WarriorSkill[] = Object.freeze([
   ...SKILLS.filter((skill) => !/^\(\(/.test(skill.name || '')),

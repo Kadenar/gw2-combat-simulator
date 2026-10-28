@@ -1,9 +1,9 @@
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 test('Soulbeast spear diagnostic import loads and simulates with the requested equipment', async () => {

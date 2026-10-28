@@ -1,15 +1,15 @@
-import { WEAPON } from '#gw2/platform/constants.js';
-import { THIEF_SKILL_IDS as SKILL } from '#gw2/professions/thief/data/ids.js';
-import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
-import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
-import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createProfessionBuildCodec, createProfessionAssumptionDefaults } from '#gw2/professions/shared/build-codec.js';
 import { createProfessionAssumptionControls } from '#gw2/platform/builds/assumptions.js';
-import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
-import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
-import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
+import { WEAPON } from '#gw2/platform/constants.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import { createProfessionAssumptionDefaults, createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
+import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
+import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
+import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
+import { THIEF_SKILL_IDS as SKILL } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
 
 /**
  * Thief persisted-build definition.

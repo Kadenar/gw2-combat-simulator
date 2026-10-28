@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { bootstrapGameApp } from '#browser/bootstrap.js';
 import { defineGameRegistry, loadGameContent } from '#browser/game/registry.js';
 import { loadGameWorkerDriver } from '#browser/game/worker-driver.js';

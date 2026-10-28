@@ -1,6 +1,6 @@
-import { PROFESSION_IDENTITIES } from '#gw2/profession-identities.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { PROFESSION_IDENTITIES } from '#gw2/profession-identities.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST_ID } from '#gw2/professions/elementalist/data/ids.js';
 
 export interface RotationActionIdentity {

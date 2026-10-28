@@ -8,13 +8,13 @@
  * completion grants, and impact reactions throughout the simulation.
  */
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
-import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Per-simulation Evoker state carried across every cast, deadline, and accepted impact. */

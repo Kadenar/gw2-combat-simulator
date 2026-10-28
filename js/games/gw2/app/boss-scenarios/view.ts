@@ -1,13 +1,6 @@
 import { encounterAnalysisPhases, encounterDpsSnapshots } from '#gw2/app/boss-scenarios/analysis-model.js';
-import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
-import { createEncounter, type EncounterResult } from '#gw2/platform/combat/state/encounter.js';
-import { scenarioSimulation, ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
-import { mountResultSummary } from '#gw2/app/results/summary-view.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
-import { escapeHtml as h } from '#ui/shared/html.js';
-import { downloadJson } from '#gw2/app/import-export/files.js';
-import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
-import { ENCOUNTER_TEMPLATES, encounterHealth, encounterDifficulties } from '#gw2/app/boss-scenarios/catalog.js';
+import { ENCOUNTER_TEMPLATES, encounterDifficulties, encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
+import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
 import {
   createBossScenario,
   parseBossScenario,
@@ -16,11 +9,18 @@ import {
   type BossScenarioDraft
 } from '#gw2/app/boss-scenarios/model.js';
 import {
-  encounterPhasePlan,
   encounterExecutionPhases,
+  encounterPhasePlan,
   type EncounterDifficulty
 } from '#gw2/app/boss-scenarios/phases.js';
-import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
+import { ENCOUNTER_RESULT_EVENT, scenarioSimulation } from '#gw2/app/boss-scenarios/simulation.js';
+import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
+import { downloadJson } from '#gw2/app/import-export/files.js';
+import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
+import { mountResultSummary } from '#gw2/app/results/summary-view.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { createEncounter, type EncounterResult } from '#gw2/platform/combat/state/encounter.js';
+import { escapeHtml as h } from '#ui/shared/html.js';
 
 const modeNames = { normal: 'Normal', challenge: 'Challenge', legendary: 'Legendary challenge' };
 const format = (value: number | null): string => (value === null ? 'Unavailable' : value.toLocaleString('en-US'));

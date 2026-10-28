@@ -1,15 +1,16 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+
+import { cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { effectResourceGrants } from '#gw2/platform/effects/resource-grants.js';
 import { validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const base = {

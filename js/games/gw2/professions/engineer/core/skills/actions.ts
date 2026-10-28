@@ -1,10 +1,8 @@
-import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
-
 /**
  * Owns synthetic Core Engineer actions that do not come from the GW2 skill catalog.
  * Runtime behavior remains in the named skill or mechanic handler owners.
  */
-
+import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import { ENGINEER_ELITE_MORTAR_KIT_EXTRA_SKILLS } from '#gw2/professions/engineer/core/skills/kits/elite-mortar-kit.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 

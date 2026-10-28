@@ -1,11 +1,10 @@
+import type { ProfessionSpecialization } from '#gw2/app/build/types.js';
 import { SPECIALIZATION_BACKGROUNDS } from '#gw2/app/shared/specialization-backgrounds.js';
 import { traitTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
-import { escapeHtml as esc } from '#ui/shared/html.js';
-import { missingPatchTraits, relaidPatchId, traitPositions } from '#gw2/professions/shared/trait-data.js';
-
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { ProfessionSpecialization } from '#gw2/app/build/types.js';
 import type { Gw2BuildSpecialization } from '#gw2/platform/builds/types.js';
+import { missingPatchTraits, relaidPatchId, traitPositions } from '#gw2/professions/shared/trait-data.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 /** Clamps every persisted starting resource after a specialization changes its available resource views. */
 export function clampStartingResourceValues(app: ProfessionAppState, specialization: string): void {

@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import { TARGET_CONDITION_GROUPS } from '#gw2/app/build/panels/metadata.js';
-import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
+import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 

@@ -1,23 +1,19 @@
-import type { RITUALIST_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/ritualist/catalog-fields.js';
-import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-
-import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-
+import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { NECROMANCER_CORE_SKILL_FIELDS } from '#gw2/professions/necromancer/core/catalog-fields.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import type { HARBINGER_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/harbinger/catalog-fields.js';
 import type { HarbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type { ReaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
+import type { RITUALIST_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/ritualist/catalog-fields.js';
 import type { RitualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
-import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { NECROMANCER_CORE_SKILL_FIELDS } from '#gw2/professions/necromancer/core/catalog-fields.js';
-import type { HARBINGER_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/harbinger/catalog-fields.js';
 import type { SCOURGE_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/scourge/catalog-fields.js';
+import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 interface NecromancerBuild extends Gw2Build {

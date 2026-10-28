@@ -1,9 +1,10 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
+
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(thiefProfession, {

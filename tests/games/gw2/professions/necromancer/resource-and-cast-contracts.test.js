@@ -1,24 +1,23 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 
+import { buildChartSeries } from '#gw2/app/results/model.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-
-import {
-  createObservedProfessionSimulator,
-  observeGw2Runtime,
-  observedRuntime
-} from '#tests/helpers/observed-runtime.js';
+import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
 import {
   addBlight,
   consumeBlight,
   purgeHarbingerTimedState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
-import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
+import {
+  createObservedProfessionSimulator,
+  observedRuntime,
+  observeGw2Runtime
+} from '#tests/helpers/observed-runtime.js';
 
 const harbingerUi = bindHarbingerUi(necromancerCatalog);
 

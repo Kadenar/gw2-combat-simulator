@@ -1,26 +1,27 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import {
-  GUARDIAN_SKILL_IDS as GUARDIAN,
-  GUARDIAN_TRAIT_IDS as GUARDIAN_TRAIT
-} from '#gw2/professions/guardian/data/ids.js';
 import {
   ENGINEER_SKILL_IDS as ENGINEER,
   ENGINEER_TRAIT_IDS as ENGINEER_TRAIT
 } from '#gw2/professions/engineer/data/ids.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import {
+  GUARDIAN_SKILL_IDS as GUARDIAN,
+  GUARDIAN_TRAIT_IDS as GUARDIAN_TRAIT
+} from '#gw2/professions/guardian/data/ids.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import {
   NECROMANCER_SKILL_IDS as NECROMANCER,
   NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT
 } from '#gw2/professions/necromancer/data/ids.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { RANGER_SKILL_IDS as RANGER, RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const cases = [
   {

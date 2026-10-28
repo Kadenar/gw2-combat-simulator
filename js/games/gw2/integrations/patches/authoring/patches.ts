@@ -1,17 +1,19 @@
-import { hasActionEffects, skillActions } from '#gw2/platform/effects/actions.js';
+import {
+  effectNumericFieldIsPatchable,
+  PATCHABLE_EFFECT_NUMERIC_FIELDS
+} from '#gw2/integrations/patches/authoring/fields.js';
+import { cloneCatalogData, deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
+import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
 import { validateActionIds } from '#gw2/platform/effects/action-validation.js';
+import { hasActionEffects, skillActions } from '#gw2/platform/effects/actions.js';
 import {
-  PATCHABLE_EFFECT_NUMERIC_FIELDS,
-  effectNumericFieldIsPatchable
-} from '#gw2/integrations/patches/authoring/fields.js';
-import { deepFreeze, cloneCatalogData } from '#gw2/integrations/patches/authoring/immutable.js';
-import { normalizeSkillEffects, requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
-import { validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
-import { validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
-import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
-import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
-import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+  castResourceGrants,
+  effectResourceGrants,
+  resourceGrantNumericFields,
+  type ResourceGrantAction
+} from '#gw2/platform/effects/resource-grants.js';
 import type {
   ConditionEffect,
   ConditionTick,
@@ -19,13 +21,11 @@ import type {
   StrikeEffect,
   StrikeTick
 } from '#gw2/platform/effects/types.js';
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import {
-  castResourceGrants,
-  effectResourceGrants,
-  resourceGrantNumericFields,
-  type ResourceGrantAction
-} from '#gw2/platform/effects/resource-grants.js';
+import { normalizeSkillEffects, requireBalanceNumber, skillEffectKey } from '#gw2/platform/effects/validation.js';
+import { validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
+import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
 
 /** Stable action ids address numeric reward tuning without exposing reaction order or executable predicates. */
 export type ResourceGrantEdits = Readonly<Record<string, Readonly<Record<string, NumEdit>>>>;

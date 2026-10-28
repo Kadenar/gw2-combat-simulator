@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { professionRegistry } from '#gw2/profession-registry.js';
+
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 
 // Metadata must describe the real catalogs, so new or renamed elites cannot silently disappear from log imports.
 test('log profile identities cover registered professions and their implemented elite catalogs', async () => {

@@ -1,9 +1,9 @@
 import type { ResourceGrantRecipe } from '#gw2/platform/effects/actions.js';
 import type { ResourceGrantAction } from '#gw2/platform/effects/resource-grants.js';
 import { castResourceGrants, effectResourceGrants } from '#gw2/platform/effects/resource-grants.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { Skill, BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import { necromancerLifeForceAmount } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 

@@ -1,11 +1,11 @@
-import { traitBalanceProfiles } from '#gw2/platform/profession-definition/traits.js';
-import { createCanonicalCatalog, type AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
-import { toEntries } from '#kernel/core/collections.js';
-import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
-import type { AnyNativeModule, NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
+import type { AnyNativeModule, NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
+import { traitBalanceProfiles } from '#gw2/platform/profession-definition/traits.js';
+import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
+import { createCanonicalCatalog, type AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
 import { combineFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { toEntries } from '#kernel/core/collections.js';
 
 /** Selects a module from shared input using the same catalog fields as its output. */
 export interface NativeModuleDataSelection<TSkill extends Skill = Skill> extends NativeModuleCatalogData<TSkill> {

@@ -1,13 +1,12 @@
+import type { AuraEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
-import type { AuraEffect } from '#gw2/platform/effects/types.js';
-import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;

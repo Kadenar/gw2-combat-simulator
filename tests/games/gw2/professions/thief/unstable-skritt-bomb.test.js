@@ -1,10 +1,11 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runThief } from '#tests/helpers/thief-simulation.js';
+
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { pilferArtifacts } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const config = { specialization: 'Antiquary', selectedSkillIds: [ID.SKRITT_SCUFFLE] };
 const bombReady = (result) => result.planningState.availability[ID.UNSTABLE_SKRITT_BOMB].ready;

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 test('Adrenaline Rush grants adrenaline without damage or on-hit resource gains', () => {
   // The utility grant must remain independent of target contact and respect the adrenaline cap.

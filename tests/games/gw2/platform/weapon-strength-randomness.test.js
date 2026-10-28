@@ -1,26 +1,26 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import {
-  resolvedWeaponStrength,
-  weaponStrengthProfileIdForEvent
-} from '#gw2/platform/resolver/weapon-strength-resolution.js';
-import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { normalizeEffect } from '#gw2/platform/effects/validation.js';
-import { assertSimulationEvent } from '#gw2/platform/events/events.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { normalizeEffect } from '#gw2/platform/effects/validation.js';
+import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
 import {
-  WEAPON_STRENGTH_PROFILES,
   sampleWeaponStrength,
+  WEAPON_STRENGTH_PROFILES,
   weaponStrengthMidpoint,
   weaponStrengthProfile,
   weaponStrengthProfileForName
 } from '#gw2/platform/equipment/weapons/strength.js';
+import { assertSimulationEvent } from '#gw2/platform/events/events.js';
+import {
+  resolvedWeaponStrength,
+  weaponStrengthProfileIdForEvent
+} from '#gw2/platform/resolver/weapon-strength-resolution.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const EXPECTED_PROFILES = Object.freeze({
   'weapon.axe': [900, 1100, 1000],

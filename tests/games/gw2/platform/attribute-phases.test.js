@@ -1,10 +1,7 @@
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
-
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import {
   applyAttributeContributions,
   applyFinalConditionAttributes,
@@ -12,9 +9,11 @@ import {
   attributeContext,
   resolveAttributeContributions
 } from '#gw2/platform/attributes/evaluation.js';
-import { attributeSeed, baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { attributeSeed, baseAttributeInputs, equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { createWarriorBuildDefaults } from '#gw2/professions/warrior/build/build.js';
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 
 const families = {};
 for (const name of ['elementalist', 'engineer', 'guardian', 'mesmer', 'ranger', 'revenant', 'thief', 'warrior'])

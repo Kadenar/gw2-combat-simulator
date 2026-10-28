@@ -1,13 +1,13 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerCatalog as rangerTraitCatalog } from '#gw2/professions/ranger/catalog.js';
-import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { rangerCatalog as rangerTraitCatalog } from '#gw2/professions/ranger/catalog.js';
+import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
+import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';

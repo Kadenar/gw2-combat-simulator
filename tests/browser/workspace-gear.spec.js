@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { mockGw2Icons } from '../helpers/browser-icons.js';
 
 // Artwork tracks specialization changes and returns to the core profession when no elite is equipped.

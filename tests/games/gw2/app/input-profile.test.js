@@ -1,17 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createInputProfile, validateInputProfile, InputProfileError } from '#gw2/input/profile.js';
-import { normalizeInputBindings, parseInputBinding, inputBindingForKey, INPUT_CONTROLS } from '#gw2/input/bindings.js';
-import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
+
+import { mountInputActivity } from '#gw2/app/input-profile/results.js';
 import {
   activeInputProfile,
+  INPUT_PROFILE_STORAGE_KEY,
   readInputProfile,
   saveInputProfile,
-  subscribeInputProfile,
-  INPUT_PROFILE_STORAGE_KEY
+  subscribeInputProfile
 } from '#gw2/app/input-profile/store.js';
+import { INPUT_CONTROLS, inputBindingForKey, normalizeInputBindings, parseInputBinding } from '#gw2/input/bindings.js';
+import { createInputProfile, InputProfileError, validateInputProfile } from '#gw2/input/profile.js';
 import { parseGw2HotkeyBindingsXml } from '#gw2/integrations/keybinds/parser.js';
-import { mountInputActivity } from '#gw2/app/input-profile/results.js';
+import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 
 // One local binding snapshot stays independent of the editor and of caller mutations.
 test('the current setup persists as a detached snapshot and rejects malformed data', () => {

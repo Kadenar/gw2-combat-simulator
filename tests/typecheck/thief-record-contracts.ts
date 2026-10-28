@@ -1,7 +1,7 @@
 /** Thief live state and specialization queries expose only their declared fields. */
 import type { InternalWork } from '#gw2/platform/simulation/work-contract.js';
-import type { ThiefRuntimeState } from '#gw2/professions/thief/types.js';
 import type { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
+import type { ThiefRuntimeState } from '#gw2/professions/thief/types.js';
 
 type Assert<T extends true> = T;
 

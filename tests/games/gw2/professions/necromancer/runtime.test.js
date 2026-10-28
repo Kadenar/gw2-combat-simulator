@@ -1,20 +1,21 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
-import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { summonNecromancerMinion } from '#gw2/professions/necromancer/core/mechanics/minions.js';
-import { addSoulShards } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { summonNecromancerMinion } from '#gw2/professions/necromancer/core/mechanics/minions.js';
+import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
+import { addSoulShards } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const base = {
   specialization: 'Reaper',

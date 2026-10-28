@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { spendAntiquaryInitiative } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
+
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { runThief } from '#tests/helpers/thief-simulation.js';
+import { spendAntiquaryInitiative } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Exercise the real shield grant, then isolate spending from regeneration to check finite refund entitlement.
 test('Chak Shield refunds three paid weapon uses and preserves charges for free or nonweapon inputs', () => {

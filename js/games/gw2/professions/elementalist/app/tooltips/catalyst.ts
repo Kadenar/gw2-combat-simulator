@@ -1,10 +1,9 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
-  fromProfile,
   fromModifier,
+  fromProfile,
   outsideScopeTooltip,
-  skillFact,
   simulationEffectFacts,
+  skillFact,
   skillTooltip,
   tooltipFactorChange,
   tooltipPercent,
@@ -12,6 +11,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   ELEMENTALIST_JADE_SPHERE_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID,

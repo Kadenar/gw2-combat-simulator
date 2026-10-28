@@ -1,9 +1,9 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { criticalChanceEventAt } from '#gw2/platform/results/result-queries.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { criticalChanceEventAt } from '#gw2/platform/results/result-queries.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 
 // Report queries share committed effect history and half-open lifetimes with combat queries.
 test('effect histories isolate self grants and retain older overlapping grants', () => {

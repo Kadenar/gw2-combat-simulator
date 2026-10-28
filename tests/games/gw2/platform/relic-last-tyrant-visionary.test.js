@@ -1,28 +1,28 @@
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
-import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
-import { comboDefinition } from '#gw2/platform/combos/definitions.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { selectSkillEffects } from '#gw2/platform/execution/cast-effects.js';
-import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
-import { elementalistConditionEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
-import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { comboDefinition } from '#gw2/platform/combos/definitions.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { selectSkillEffects } from '#gw2/platform/execution/cast-effects.js';
+import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
+import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
+import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { elementalistConditionEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 // A procedural proc may attribute its packet to a different skill while retaining its actual payload owner.
 test('condition action payload ownership is independent of its attributed source', () => {

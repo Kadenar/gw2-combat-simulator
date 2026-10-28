@@ -8,7 +8,7 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import { focusReset } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Both sides share the already committed recharge and notify equipment without changing the configured weapon set. */
 export function swapGunsaber(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, active: boolean): void {

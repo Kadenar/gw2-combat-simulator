@@ -1,14 +1,13 @@
-import type { SimulationActorType } from '#gw2/platform/constants.js';
-import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import type { Gw2DamageCalculation } from '#gw2/platform/events/events.js';
-import { expectedCritMultiplier, strikeDamage } from '#gw2/platform/combat/formulas.js';
-import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2CriticalResult } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
+import type { Gw2CriticalResult } from '#gw2/platform/combat-calculation/combat-query.js';
+import { expectedCritMultiplier, STANDARD_TARGET_ARMOR, strikeDamage } from '#gw2/platform/combat/formulas.js';
+import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import type { SimulationActorType } from '#gw2/platform/constants.js';
 import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/weapons/types.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import type { Gw2DamageCalculation } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 

@@ -1,17 +1,5 @@
-import { requireSkillAction, type CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
-import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { AlliedStrikeOpportunity } from '#gw2/platform/combat/state/allied-strikes.js';
-import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { GuardianResolverContext, GuardianResolverEvent } from '#gw2/professions/guardian/types.js';
-import {
-  resolveAshes,
-  type AshesSelection,
-  type ResolvedAshes
-} from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import {
   activeChargeCount,
   consumeCharge,
@@ -19,17 +7,33 @@ import {
   grantCharges,
   type ChargeGrant
 } from '#gw2/platform/combat/resources/charges.js';
-import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { AlliedStrikeOpportunity } from '#gw2/platform/combat/state/allied-strikes.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction, type CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { GuardianSkill, GuardianRuntime, GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import {
+  resolveAshes,
+  type AshesSelection,
+  type ResolvedAshes
+} from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import type {
+  GuardianResolverContext,
+  GuardianResolverEvent,
+  GuardianRuntime,
+  GuardianRuntimeState,
+  GuardianSkill
+} from '#gw2/professions/guardian/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 const ASHES = 'guardian.firebrand.ashes';
 

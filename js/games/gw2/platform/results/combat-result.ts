@@ -1,11 +1,11 @@
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
+import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { cloneData } from '#kernel/core/clone.js';
-import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
 
 /** Derives numeric windows and totals directly from completed combat state in either execution path. */
 export function buildSimulationScore(ctx: Gw2ResolverRuntime, rotationEndTime: number): Gw2SimulationScore {

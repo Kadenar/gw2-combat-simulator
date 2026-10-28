@@ -1,8 +1,9 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { runNative, runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
 // Drive recovery with accepted applications and actual clock advances; queued grants cannot predict endurance.
 const vigor = (at, duration, extra = {}) => ({

@@ -1,22 +1,23 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { mesmerBuffPolicies } from '#gw2/professions/mesmer/core/effect-state.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { eventLogCsv } from '#ui/results/event-log.js';
+
 import { nextResultSortState, sortResultRows } from '#gw2/app/results/breakdown/model.js';
+import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';
 import { professionTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
-import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { rotationWarningItems } from '#gw2/app/rotation/warnings.js';
+import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { mesmerBuffPolicies } from '#gw2/professions/mesmer/core/effect-state.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { eventLogCsv } from '#ui/results/event-log.js';
 
 const PLAYER_RESOLVED_AUDIENCE = Object.freeze({
   includesSelf: true,

@@ -1,11 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { runRevenant } from '#tests/helpers/revenant-simulation.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 // Initial selection, swaps, and preview preparation must expose the live legend through the shared loadout contract.
 function assertLoadout(config, profession, projected) {

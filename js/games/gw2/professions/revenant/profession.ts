@@ -1,13 +1,13 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   createRevenantBuildDefaults,
   migrateRevenantBuild,
   validateRevenantBuild
 } from '#gw2/professions/revenant/build/build.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/catalog.js';
-import { vindicatorReworkModule } from '#gw2/professions/revenant/specializations/vindicator/rework/module.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { vindicatorReworkModule } from '#gw2/professions/revenant/specializations/vindicator/rework/module.js';
 
 export { revenantCatalog, revenantNativeModules } from '#gw2/professions/revenant/catalog.js';
 

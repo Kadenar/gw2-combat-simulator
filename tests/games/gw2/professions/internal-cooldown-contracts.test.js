@@ -1,12 +1,10 @@
-import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
-import {
-  necromancerStrike,
-  necromancerConditionApplied
-} from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
-import { scourgeConditionApplied } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -15,27 +13,31 @@ import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.j
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { viciousEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 import { hematicFocus } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { reactToAshesHit } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { mesmerControlAccepted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { NECROMANCER_TRAIT_IDS, NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import {
+  necromancerConditionApplied,
+  necromancerStrike
+} from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { scourgeConditionApplied } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import {
+  handleSharedStanceHit,
   reactToSoulbeastBuff,
-  reactToSoulbeastDamage,
-  handleSharedStanceHit
+  reactToSoulbeastDamage
 } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { createSoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { REVENANT_LEGEND_IDS, REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
@@ -46,11 +48,10 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const READY_AT = 1;
 const AFTER_READY_AT = 1.001;

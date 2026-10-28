@@ -1,23 +1,21 @@
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import {
-  buildMesmerStrikes,
-  mesmerPacketOwner,
-  buildMesmerConditions
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Emits phantasm-cast packets and tracks their eligible sword hits.
  * Effect ordering lives in `effect-controller.ts`; persistent illusion behavior lives under `mechanics/illusions/`.
  */
-
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { castRelativeEffectTimingScale } from '#gw2/platform/execution/cast-timing.js';
 import type {
   MesmerPhantasmEffectController,
   MesmerPhantasmExecution
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-
+import {
+  buildMesmerConditions,
+  buildMesmerStrikes,
+  mesmerPacketOwner
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 interface MesmerSkillDamageController {
   schedule(

@@ -1,5 +1,5 @@
-import { requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
+import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';

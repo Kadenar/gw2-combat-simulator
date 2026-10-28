@@ -1,5 +1,5 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { isFlatLifeStealPacket } from '#gw2/platform/effects/packet-builders.js';
 import { leadAttacksSiphonMultiplier } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';

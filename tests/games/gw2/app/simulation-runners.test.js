@@ -1,18 +1,18 @@
-import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
-import { createBossScenario } from '#gw2/app/boss-scenarios/model.js';
-import { calculateContributionBatch } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
-import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { createBossScenario } from '#gw2/app/boss-scenarios/model.js';
 import { createBuildTab } from '#gw2/app/build/state/workspace.js';
-import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
-import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
-import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
+import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
+import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
+import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
+import { calculateContributionBatch } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
+import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];

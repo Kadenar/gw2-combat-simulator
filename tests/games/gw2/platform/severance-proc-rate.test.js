@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
+
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
+import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
-import { enteredCombat } from '#tests/helpers/engagement.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { enteredCombat } from '#tests/helpers/engagement.js';
 
 const cooldownKey = `sigil.${SIGIL_IDS.SEVERANCE}`;
 

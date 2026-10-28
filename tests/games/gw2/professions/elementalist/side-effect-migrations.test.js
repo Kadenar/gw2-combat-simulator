@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Live skill fields remain the one amount source; eligibility is commitment, and the shared pool still caps rewards.
 test('Elementalist endurance declarations retain patched amounts and committed-cast eligibility', () => {

@@ -1,14 +1,14 @@
-import { GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation, boonKey } from '#gw2/platform/combat/boons.js';
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { boonKey, GW2_STANDARD_BOONS, isStandardBoon, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import {
-  canonicalTargetConditionName,
   CANONICAL_TARGET_CONDITIONS,
+  canonicalTargetConditionName,
   GW2_DAMAGING_CONDITIONS,
   isDamagingCondition
 } from '#gw2/platform/combat/state/targets.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 
 // Saved UI settings and emitted skill conditions must resolve to one Blindness condition.
 test('Blindness is the canonical blind condition', () => {

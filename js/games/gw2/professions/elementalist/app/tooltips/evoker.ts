@@ -1,12 +1,9 @@
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   fromProfile,
-  skillFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
+  skillFact,
   skillTooltip,
   tooltipFactorChange,
   tooltipPercent,
@@ -14,13 +11,9 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import {
-  elementalProcessionEffects,
-  IGNITE_TIERS,
-  igniteTierEffect,
-  projectIgniteEffects
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
-import { familiarBlessingEffects } from '#gw2/professions/elementalist/specializations/evoker/traits/familiar-blessing.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -29,6 +22,13 @@ import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
+import {
+  elementalProcessionEffects,
+  IGNITE_TIERS,
+  igniteTierEffect,
+  projectIgniteEffects
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
+import { familiarBlessingEffects } from '#gw2/professions/elementalist/specializations/evoker/traits/familiar-blessing.js';
 
 /** Describe evoker tooltips from the selected balance data. */
 export const evokerTooltips = {

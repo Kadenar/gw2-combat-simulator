@@ -1,11 +1,11 @@
-import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /**
  * Owns Mechanist autonomous, triggered, and supplemental mech attack identities.
  * User-issued mech commands and their cast-lane rules live in `mech-command-skills.ts`.
  */
+import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Measured basic animations and pre-aftercast impacts use explicit base/Quickness timings for replay and autonomous attacks. */
 export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({

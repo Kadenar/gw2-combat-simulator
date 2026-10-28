@@ -1,23 +1,22 @@
-import {
-  WEAPON,
-  COMBO_FIELD,
-  COMBO_FINISHER,
-  AURA,
-  RECIPIENT,
-  BOON,
-  CONDITION,
-  CONTROL
-} from '#gw2/platform/constants.js';
 /**
  * Dagger weapon-skill mechanics owned by the Core Elementalist module.
  *
  * Covers slots 1-5 in all four attunements, including the Frost/Shocking aura
  * flipover pairs that swap between granting an aura and transmuting it.
  */
-
+import {
+  AURA,
+  BOON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  CONDITION,
+  CONTROL,
+  RECIPIENT,
+  WEAPON
+} from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.
 const DRAKES_BREATH_TICK_OFFSETS_MS = [520, 760, 1000, 1240] as const;

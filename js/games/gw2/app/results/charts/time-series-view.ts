@@ -1,20 +1,20 @@
 import { layoutChartMarkerLabels } from '#gw2/app/results/charts/marker-layout.js';
-import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
-import { escapeHtml } from '#ui/shared/html.js';
-import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
-import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/platform/results/boon-generation.js';
+import { bindTimeSeriesInteractions } from '#gw2/app/results/charts/time-series-interactions.js';
 import {
-  buildPhaseDpsSeries,
   buildContributionDamageSeries,
-  chartAxisMaximum,
-  buildRollingDpsSeries,
+  buildPhaseDpsSeries,
   buildPhaseEffectSeries,
-  type ChartEncounterPhase,
+  buildRollingDpsSeries,
+  chartAxisMaximum,
   type ChartEffectType,
+  type ChartEncounterPhase,
   type ChartPoint,
   type ChartSeries
 } from '#gw2/app/results/charts/time-series-model.js';
-import { bindTimeSeriesInteractions } from '#gw2/app/results/charts/time-series-interactions.js';
+import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
+import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/platform/results/boon-generation.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 // Mounts chart data as interactive DOM and canvas output without owning simulation transforms.
 export interface ChartHealthBreakpoint {

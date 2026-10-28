@@ -1,9 +1,9 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Register Catalyst's effect rules only when its module is selected. */
 export function catalystBuffPolicies(context: unknown): BuffStatePolicy[] {

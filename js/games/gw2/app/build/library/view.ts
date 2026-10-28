@@ -1,17 +1,17 @@
-import { escapeHtml as esc } from '#ui/shared/html.js';
-import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { MyBuild } from '#gw2/app/build/library/storage.js';
 import {
   buildSignature,
-  templateCategory,
-  templateBoon,
-  templateTileContent,
-  TEMPLATE_FILTERS,
   TEMPLATE_BOON_FILTERS,
-  type TemplateFilter,
-  type TemplateBoonFilter
+  TEMPLATE_FILTERS,
+  templateBoon,
+  templateCategory,
+  templateTileContent,
+  type TemplateBoonFilter,
+  type TemplateFilter
 } from '#gw2/app/build/library/model.js';
+import type { MyBuild } from '#gw2/app/build/library/storage.js';
+import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 /** Renders library controls and feedback; loading and persistence stay with the feature's actions and controller. */
 export function templateSnowCrowsLink(preset: Pick<BuildTemplatePreset, 'snowCrowsUrl'>): string {

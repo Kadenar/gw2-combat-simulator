@@ -1,7 +1,7 @@
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 // Preserve test shorthand: numbers are waits, names are casts, and explicit commands pass through.
 function canonicalRotation(rotation) {

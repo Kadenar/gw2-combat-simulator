@@ -1,29 +1,29 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { applyBoonExtension, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { applyBoonExtension, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { reactThiefCoreDamage } from '#gw2/professions/thief/core/hooks.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { reactThiefCoreDamage, thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
+import { thiefConditionApplied, thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { createThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { thiefConditionApplied, thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 

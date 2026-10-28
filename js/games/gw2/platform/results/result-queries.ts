@@ -1,8 +1,8 @@
-import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { Gw2SimulationResult, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { gw2EventActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 /**
  * Finds a player strike or player-owned derived effect whose resolved critical chance

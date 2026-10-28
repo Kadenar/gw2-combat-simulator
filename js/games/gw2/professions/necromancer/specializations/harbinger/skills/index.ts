@@ -2,9 +2,9 @@
  * Composes the Harbinger elixir and shroud skill catalogs.
  * Family-specific skill fragments remain in their named catalog owners.
  */
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { HARBINGER_ELIXIR_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/elixir-skills.js';
 import { HARBINGER_SHROUD_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/shroud-skills.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Supplies the composed Harbinger skill catalog without owning family-specific fragments. */
 export const HARBINGER_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

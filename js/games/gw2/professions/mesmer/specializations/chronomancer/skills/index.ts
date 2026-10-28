@@ -1,14 +1,13 @@
-import { shatterSkill } from '#gw2/professions/mesmer/core/skills/shatter.js';
-import { COMBO_FIELD, RECIPIENT, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 /**
  * Owns Chronomancer well, profession-skill, and Continuum action catalog data.
  * Continuum Split, Time Bomb, and shatter behavior live under `mechanics/` and `traits/`.
  */
+import { ACTOR, BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-
+import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { shatterSkill } from '#gw2/professions/mesmer/core/skills/shatter.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<MesmerSkill>>> = Object.freeze({

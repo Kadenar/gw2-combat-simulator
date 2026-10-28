@@ -1,11 +1,12 @@
-import { selectedTraits, traitPositions, missingPatchTraits } from '#gw2/professions/shared/trait-data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { selectSpecialization, toggleMajorTrait } from '#gw2/app/build/panels/traits.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { professionOptions } from '#gw2/profession-registry.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { missingPatchTraits, selectedTraits, traitPositions } from '#gw2/professions/shared/trait-data.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
-import { selectSpecialization, toggleMajorTrait } from '#gw2/app/build/panels/traits.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // A preview may choose different traits without moving their slots; editing those choices must preserve Live.
 test('explicit preview traits resolve and edit independently on unchanged layouts', async () => {

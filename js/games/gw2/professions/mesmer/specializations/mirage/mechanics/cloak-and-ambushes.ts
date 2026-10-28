@@ -1,17 +1,30 @@
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+/** Mirage-owned cloak, ambush, and deception behavior. */
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import {
+  balanceNumberFromContext,
+  requireEffect,
+  requireSkillFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { MesmerClone, MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import {
   buildMesmerConditions,
   buildMesmerPacket,
   buildMesmerStrikes,
   mesmerPacketOwner
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/data/module-data.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { buildMirageCloneBoon } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
 import {
   mirageAmbushAccepted,
@@ -20,28 +33,12 @@ import {
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-/** Mirage-owned cloak, ambush, and deception behavior. */
-import {
-  balanceNumberFromContext,
-  requireSkillFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { MesmerClone, MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type {
   MesmerMirageCloakOptions,
   MesmerMirageController
 } from '#gw2/professions/mesmer/specializations/mirage/types.js';
-import type { MesmerActivePrimaryWeapon, MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
-
-import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/data/module-data.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerActivePrimaryWeapon, MesmerAmbushAttack, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 
 interface MirageActionControllerOptions {
   readonly state: MesmerRuntime;

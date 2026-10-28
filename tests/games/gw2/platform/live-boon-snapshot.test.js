@@ -1,7 +1,8 @@
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 
 // Record only executed grants so each query observes its exact position in same-time event ordering.

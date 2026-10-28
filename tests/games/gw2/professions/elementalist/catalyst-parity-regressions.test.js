@@ -1,22 +1,27 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { applyCatalystResolvedDamage } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
-import { relentlessFireModifiers } from '#gw2/professions/elementalist/specializations/catalyst/skills/augment-skills.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
+import { relentlessFireModifiers } from '#gw2/professions/elementalist/specializations/catalyst/skills/augment-skills.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import {
+  applyCatalystEmpowerment,
+  catalystAttributePool,
+  elementalEmpowermentAttributes
+} from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { baseEmpowermentPassive } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
-import { applyCatalystEmpowerment } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import {
   createNativeApp,
   resolvedAndScheduledEvents,
@@ -24,8 +29,6 @@ import {
   runNative
 } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 test('Catalyst baseline renewal rejects intervals that cannot advance the clock before emitting work', () => {
   // Invalid tuning must fail at the mechanic, rather than enqueue a same-time renewal loop.

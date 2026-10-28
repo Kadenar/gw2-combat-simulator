@@ -1,13 +1,14 @@
-import { BOON } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 
 // Reuse and mutate one build to catch stale cached landings after a trait selection changes.
 test('Vindicator dodge tooltips show only the selected landing and trait descriptions', () => {

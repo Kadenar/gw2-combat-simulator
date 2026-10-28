@@ -1,17 +1,17 @@
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
-import { VINDICATOR_DODGE_INPUT } from '#gw2/professions/revenant/data/vindicator-dodge.js';
-import { SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant-api-metadata.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
+import { SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant-api-metadata.js';
+import { VINDICATOR_DODGE_INPUT } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import { VINDICATOR_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
-import {
-  vindicatorState,
-  projectVindicatorPlanningState
-} from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { VINDICATOR_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/revenant/specializations/vindicator/rework/ids.js';
 import { vindicatorReworkTraits } from '#gw2/professions/revenant/specializations/vindicator/rework/traits.js';
+import { VINDICATOR_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
+import {
+  projectVindicatorPlanningState,
+  vindicatorState
+} from '#gw2/professions/revenant/specializations/vindicator/state.js';
 
 const live = SPECIALIZATIONS.find((specialization) => specialization.name === 'Vindicator')!;
 

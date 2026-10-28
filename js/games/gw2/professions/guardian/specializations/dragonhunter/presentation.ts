@@ -1,7 +1,6 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
   formatSecondsRemaining,
@@ -9,8 +8,9 @@ import {
   guardianUiSkillIds,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { GuardianUiContext, GuardianUiSlice, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
+import type { GuardianSkill, GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const VIRTUE_IDS = Object.freeze([

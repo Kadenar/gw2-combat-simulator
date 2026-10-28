@@ -1,9 +1,9 @@
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
+import type { Gw2EventQueue } from '#gw2/platform/resolver/types.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
 import { isRuntimeWork, type InternalWork, type RuntimeQueueEntry } from '#gw2/platform/simulation/work-contract.js';
-import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
-import type { Gw2EventQueue } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 // Concrete work types retain their payload correlation across the validated creation boundary.
 type Work = InternalWork<'complete', { reservationId: string }> | InternalWork<'grant', { amount: number }>;

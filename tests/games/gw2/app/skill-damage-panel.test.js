@@ -1,8 +1,9 @@
-import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { receiveSkillDamage, renderSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
+import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.js';
 

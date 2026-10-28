@@ -1,6 +1,6 @@
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { ElementalistCastCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /** A deployed sphere grants its selected trait payload before authored sphere packets are materialized. */

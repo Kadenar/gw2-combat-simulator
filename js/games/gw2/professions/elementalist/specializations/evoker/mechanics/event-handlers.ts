@@ -1,16 +1,16 @@
+/** Evoker trait and enchantment reactions consume actual transitions and accepted impacts. */
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { elementalistBuffEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
+import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import {
   evokerEntryObserved,
   evokerEventAccepted
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
-/** Evoker trait and enchantment reactions consume actual transitions and accepted impacts. */
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { skillNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { elementalistBuffEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 

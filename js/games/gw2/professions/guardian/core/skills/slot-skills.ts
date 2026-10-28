@@ -1,4 +1,4 @@
-import { RECIPIENT, COMBO_FIELD, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+import { BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

@@ -1,9 +1,9 @@
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { RevenantEnergyCostInput, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import type { RevenantEnergyCostInput, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Only these canonical Demon skills use Mesmer form costs; other skills retain their native costs. */
 const MESMER_FORM_COSTS: ReadonlySet<SkillId> = new Set([

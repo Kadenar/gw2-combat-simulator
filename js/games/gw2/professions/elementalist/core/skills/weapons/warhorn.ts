@@ -1,21 +1,3 @@
-import {
-  AURA,
-  WEAPON,
-  COMBO_FIELD,
-  COMBO_FINISHER,
-  RECIPIENT,
-  STATUS,
-  ACTOR,
-  BOON,
-  CONDITION,
-  CONTROL
-} from '#gw2/platform/constants.js';
-import {
-  boonKey,
-  buffMatchesAudience,
-  durationStackingBoonCapSeconds,
-  remainingDurationStackSeconds
-} from '#gw2/platform/combat/boons.js';
 /**
  * Warhorn weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -24,15 +6,32 @@ import {
  * offset tables and land well after the cast ends. Declarative data merged into the Core
  * skill catalog by `core/skills/index.ts`.
  */
-
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import {
+  boonKey,
+  buffMatchesAudience,
+  durationStackingBoonCapSeconds,
+  remainingDurationStackSeconds
+} from '#gw2/platform/combat/boons.js';
+import {
+  ACTOR,
+  AURA,
+  BOON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  CONDITION,
+  CONTROL,
+  RECIPIENT,
+  STATUS,
+  WEAPON
+} from '#gw2/platform/constants.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
-import { isTimeInWindow } from '#kernel/core/clock.js';
-import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { isTimeInWindow } from '#kernel/core/clock.js';
 
 // Layers keep same-time Vulnerability behind its matching Lightning Orb strike while retaining multi-tick effects.
 const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [

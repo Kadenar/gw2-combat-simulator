@@ -1,10 +1,10 @@
-import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import {
   buildRelicComparisonModel,
   relicDamageSummary,
   type RelicComparisonModel
 } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RelicComparisonCalculationRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
+import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 

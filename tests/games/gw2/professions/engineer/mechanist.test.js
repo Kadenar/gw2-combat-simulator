@@ -1,18 +1,19 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { createCompanionEffects } from '#gw2/platform/combat/state/companion.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import { describe, test } from 'node:test';
 
 const mechanistRechargeWork = engineerProfession.runtimeFor({ specialization: 'Mechanist' }).rechargeWork;
 

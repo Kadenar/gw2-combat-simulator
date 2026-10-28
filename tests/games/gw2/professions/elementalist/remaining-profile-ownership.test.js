@@ -1,23 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+
+import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
+import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import {
-  applyShatteringIce,
-  applyCatalystResolvedDamage
+  applyCatalystResolvedDamage,
+  applyShatteringIce
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/reactions.js';
+import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applyCalcifyProtection } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 

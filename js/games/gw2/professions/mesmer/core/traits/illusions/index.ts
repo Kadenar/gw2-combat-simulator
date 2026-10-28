@@ -1,8 +1,8 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { ConditionEffect, StrikeTick } from '#gw2/platform/effects/types.js';
@@ -16,17 +16,17 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { compileRechargeRules, onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumberFromContext,
-  skillNumber,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
-  requireEffect
+  requireEffect,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
-import { mesmerConditionApplied } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { mesmerIllusionsGained } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { mesmerConditionApplied } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerEventExtra, MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';

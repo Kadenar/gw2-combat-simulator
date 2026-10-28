@@ -1,9 +1,9 @@
 /** Reconciles rendered timeline rows and binds editing, insertion, and preview interactions. */
+import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import { timelineInteractionOptions } from '#gw2/app/rotation/editing/timeline-options.js';
 import { bindTimelineInteractions } from '#gw2/app/rotation/timeline/interactions.js';
 import { currentTimelineResults, procFilterKey } from '#gw2/app/rotation/timeline/model.js';
 import { timelineRowsView, type TimelineRowRender } from '#gw2/app/rotation/timeline/rows.js';
-import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/results/types.js';

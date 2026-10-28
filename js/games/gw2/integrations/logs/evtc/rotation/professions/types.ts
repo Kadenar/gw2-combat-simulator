@@ -1,7 +1,7 @@
 import type { EvtcReconstructionEvidence } from '#gw2/integrations/logs/evtc/rotation/evidence.js';
 import type { EvtcRotationEvidence, ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
-import type { RecordedRotationAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import type { RotationCatalog } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import type { RecordedRotationAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 
 export interface EvtcRecordedRotationAction extends RecordedRotationAction {

@@ -1,13 +1,3 @@
-import {
-  WEAPON,
-  COMBO_FIELD,
-  COMBO_FINISHER,
-  RECIPIENT,
-  STATUS,
-  BOON,
-  CONDITION,
-  CONTROL
-} from '#gw2/platform/constants.js';
 /**
  * Sword weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -16,10 +6,19 @@ import {
  * cooldown skills in slots 2 and 3. Declarative data merged into the Core skill catalog by
  * `core/skills/index.ts`.
  */
-
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import {
+  BOON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  CONDITION,
+  CONTROL,
+  RECIPIENT,
+  STATUS,
+  WEAPON
+} from '#gw2/platform/constants.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // Canonical Sword timelines keep condition applications aligned with their originating strike packets.
 const QUANTUM_STRIKE_TICKS = [

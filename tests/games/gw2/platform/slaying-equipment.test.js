@@ -1,15 +1,16 @@
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { aggregateSigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+
 import { sigilOptionLabel, utilityOptionLabel } from '#gw2/app/shared/equipment/labels.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { aggregateSigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Minimal queries isolate equipment stacking from saved rotations and profession balance.
 test('slaying bonuses multiply strikes outside the shared additive bucket and follow the active weapon set', () => {

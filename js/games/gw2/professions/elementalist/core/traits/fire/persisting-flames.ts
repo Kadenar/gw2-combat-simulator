@@ -1,5 +1,5 @@
-import { COMBO_FIELD } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { COMBO_FIELD } from '#gw2/platform/constants.js';
 import { extendPeriodicEffects } from '#gw2/platform/effects/periodic.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';

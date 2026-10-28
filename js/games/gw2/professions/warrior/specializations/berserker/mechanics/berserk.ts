@@ -1,6 +1,6 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR } from '#gw2/platform/constants.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -8,8 +8,8 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import {
   balanceNumberFromContext,
   effectNumber,
-  skillNumber,
-  requireEffect
+  requireEffect,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';

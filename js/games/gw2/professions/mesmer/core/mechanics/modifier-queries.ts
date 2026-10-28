@@ -1,6 +1,6 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 
 /** Clones, phantasms, and Troubadour afterimages are all illusions for trait and buff ownership. */
 export function isIllusionSummonKind(summonKind: string | undefined): boolean {

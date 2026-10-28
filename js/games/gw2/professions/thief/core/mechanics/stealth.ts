@@ -1,15 +1,15 @@
-import { ACTOR, STATUS } from '#gw2/platform/constants.js';
-import { createStealthLifecycle, endStealth, revealedActive, stealthActive } from '#gw2/platform/combat/stealth.js';
 import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
+import { createStealthLifecycle, endStealth, revealedActive, stealthActive } from '#gw2/platform/combat/stealth.js';
+import { ACTOR, STATUS } from '#gw2/platform/constants.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefSkill } from '#gw2/professions/thief/core/events.js';
-import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
+import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Smoke outcomes precede their finisher's damage; only that same-instant impact is protected from revealing its grant.

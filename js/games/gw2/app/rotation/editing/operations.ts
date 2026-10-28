@@ -1,4 +1,4 @@
-import type { RotationCommand, CastCommand, WaitCommand } from '#gw2/platform/builds/rotation.js';
+import type { CastCommand, RotationCommand, WaitCommand } from '#gw2/platform/builds/rotation.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 /**

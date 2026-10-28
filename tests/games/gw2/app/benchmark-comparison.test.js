@@ -1,19 +1,20 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
 import {
-  comparisonKey,
-  comparisonResult,
+  comparisonConfig,
+  comparisonCurve,
   comparisonDamageAt,
   comparisonDpsAt,
-  comparisonCurve,
-  comparisonConfig,
+  comparisonKey,
+  comparisonResult,
   savedComparisonAlliedPlayerCount
 } from '#gw2/app/page/benchmark-comparison/model.js';
-import { ComparisonRunner } from '#gw2/app/page/benchmark-comparison/runner.js';
 import { prepareComparisonRequest } from '#gw2/app/page/benchmark-comparison/request.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { ComparisonRunner } from '#gw2/app/page/benchmark-comparison/runner.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // A minimal observation window protects packet ownership, tied boundaries, and rolling-DPS semantics.
 const result = () =>

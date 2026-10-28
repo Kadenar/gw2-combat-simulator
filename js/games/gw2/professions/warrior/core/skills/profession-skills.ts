@@ -1,14 +1,14 @@
-import { WEAPON, COMBO_FINISHER, CONTROL, COMBO_FIELD, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 /** Canonical Core warrior skill fragments grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { skillNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorBurstSpend, warriorBurstTier } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

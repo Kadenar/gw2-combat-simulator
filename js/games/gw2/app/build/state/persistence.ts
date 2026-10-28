@@ -1,5 +1,5 @@
-import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import type { Gw2AppAdapter } from '#gw2/app/types.js';
+import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 /**

@@ -1,7 +1,8 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 // Entangle's delayed damage must not preserve the dagger step that preceded its cast.

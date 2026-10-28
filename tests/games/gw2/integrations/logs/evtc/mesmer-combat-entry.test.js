@@ -1,14 +1,15 @@
-import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { eiMesmerPhaseRetreat } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
+import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
 import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
-import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { eiMesmerPhaseRetreat } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Core skill evidence applies across Mesmer specializations without inventing casts from unrelated packets. */
 test('Phase Retreat imports owned missile creations across Mesmer specializations without duplicate inputs', () => {

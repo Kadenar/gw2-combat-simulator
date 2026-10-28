@@ -1,12 +1,13 @@
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { galeshotPetStrike } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { galeshotPetStrike } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // A rearmed charge belongs to a new pet activation, including when old packets arrive much later.
 test('Wuthering Wind preserves charge eligibility and claims before reentrant emissions', () => {

@@ -1,9 +1,10 @@
 ﻿import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
 
 // Grouped authoring must retain the ordinary scheduler's ordering, ownership, and recipient contracts.
 test('shared impacts preserve event order, local attribution and recipient ownership', () => {

@@ -1,8 +1,8 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { consumeNewestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { effectNumber, requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 

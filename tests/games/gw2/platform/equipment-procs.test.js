@@ -1,19 +1,20 @@
-import { NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
-import { enteredCombat } from '#tests/helpers/engagement.js';
-import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
-import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
+import { NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { enteredCombat } from '#tests/helpers/engagement.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Swap procs require combat and the destination sigil, with one cooldown shared across both weapon sets.
 test('Mischief shares its nine-second cooldown across equipped copies', () => {

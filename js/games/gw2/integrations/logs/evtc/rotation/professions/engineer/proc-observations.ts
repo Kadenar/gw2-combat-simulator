@@ -1,10 +1,9 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import {
-  EVTC_BLEEDING_SKILL_ID,
-  EVTC_CRIPPLED_SKILL_ID,
   analyzeCriticalBleedingProcObservation,
   bleedingDuration,
   countPairedApplications,
+  EVTC_BLEEDING_SKILL_ID,
+  EVTC_CRIPPLED_SKILL_ID,
   expectedConditionDurationsMs,
   hasSelectedTrait,
   isOutgoingStrike,
@@ -16,6 +15,7 @@ import {
 } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
 import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import { normalizedName as normalized } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { balanceProfileNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';

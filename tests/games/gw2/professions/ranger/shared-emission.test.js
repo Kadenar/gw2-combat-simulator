@@ -1,11 +1,12 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 // Boon-only swap rewards keep independent ICDs and never reserve one for an absent payload or precombat swap.
 for (const [trait, boon, key, name] of [

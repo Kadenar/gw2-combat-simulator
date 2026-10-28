@@ -1,10 +1,11 @@
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defineTestProfession } from '#tests/helpers/profession.js';
+
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const gw2WeaponSwapSkill = { id: -3, name: 'Swap Weapons', inputCategory: 'weapon-swap', castTimeMs: 0, effects: [] };
 

@@ -1,11 +1,11 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import { troubadourDodgeCompleted } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
-import { troubadourBuffPolicies } from '#gw2/professions/mesmer/specializations/troubadour/effect-state.js';
-import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
+import { troubadourBuffPolicies } from '#gw2/professions/mesmer/specializations/troubadour/effect-state.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
 import {
   completeTroubadourPerformance,
@@ -13,10 +13,10 @@ import {
   scheduleTroubadourPerformance
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { troubadourTaleLifecycle } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/tales.js';
+import { troubadourDodgeCompleted } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
-import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Instruments commit notes when playing begins; delayed waves and accepted disables retain their own timing. */
 export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSkill>([

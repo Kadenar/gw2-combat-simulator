@@ -1,7 +1,7 @@
-import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
-import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { soaringDevastationEffects } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
 

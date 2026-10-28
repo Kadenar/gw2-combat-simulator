@@ -1,11 +1,9 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-
-import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */
 export function revenantBuffPolicies(_context: unknown): BuffStatePolicy[] {

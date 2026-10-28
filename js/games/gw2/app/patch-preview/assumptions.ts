@@ -1,5 +1,3 @@
-import type { ProfessionAppState } from '#gw2/app/types.js';
-import { escapeHtml as html } from '#ui/shared/html.js';
 import {
   canonicalAssumptionValue,
   displayAssumptionValue,
@@ -7,6 +5,8 @@ import {
   previewAssumptionGroups,
   type PreviewAssumptionGroup
 } from '#gw2/app/patch-preview/assumptions-model.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { escapeHtml as html } from '#ui/shared/html.js';
 
 /** Open the shared controls from either DPS surface without changing the selected game-data version. */
 export function openPreviewAssumptions(root: Document = document): void {

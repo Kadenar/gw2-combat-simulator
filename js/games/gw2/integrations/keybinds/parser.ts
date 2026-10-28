@@ -1,7 +1,7 @@
-import { inputBindingForKey } from '#gw2/input/bindings.js';
 /** Converts GW2's exported keybind XML into rotation-builder hotkey bindings. */
+import { inputBindingForKey } from '#gw2/input/bindings.js';
+import type { InputBindingImportResult, InputBindings } from '#gw2/input/bindings.js';
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
-import type { InputBindings, InputBindingImportResult } from '#gw2/input/bindings.js';
 
 const ACTION_BY_GW2_ID: Readonly<Record<string, InputControlId>> = Object.freeze({
   '16': 'dodge',

@@ -1,11 +1,6 @@
-import { BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionCatalogContext,
   ProfessionEventLogDescriptor,
@@ -13,6 +8,8 @@ import type {
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
@@ -22,12 +19,14 @@ import {
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
 import type {
+  GuardianPlanningState,
   GuardianResolverEvent,
   GuardianSkill,
-  GuardianPlanningState,
   GuardianUiContext,
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Render actual weapon-bar transitions at their executed boundary. */

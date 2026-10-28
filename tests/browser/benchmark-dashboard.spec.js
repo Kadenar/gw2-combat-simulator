@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openDashboard, selectProfessions } from '#tests/helpers/browser-benchmarks.js';
 
 // A single additive profession selection and shared filters must describe every benchmark view.

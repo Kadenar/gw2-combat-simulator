@@ -1,13 +1,14 @@
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Rejected or removed packets leave the activation available; a surviving emission commits before reentry.
 test('Deadly Ambition preserves component eligibility and its ID-less identity rule', () => {

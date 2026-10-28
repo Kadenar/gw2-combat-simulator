@@ -1,14 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { criticalChance, criticalDamageMultiplier } from '#gw2/platform/combat/formulas.js';
-import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/formulas.js';
+
 import {
   conditionDurationFractionFromExpertise,
   conditionDurationPercentFromExpertise,
+  criticalChance,
   criticalChanceFractionFromPrecision,
   criticalChancePercentFromPrecision,
+  criticalDamageMultiplier,
   criticalDamageMultiplierFromFerocity,
-  criticalDamagePercentFromFerocity
+  criticalDamagePercentFromFerocity,
+  gw2ConditionDurationMultiplier
 } from '#gw2/platform/combat/formulas.js';
 
 test('stat scaling preserves exact percent- and fraction-form values', () => {

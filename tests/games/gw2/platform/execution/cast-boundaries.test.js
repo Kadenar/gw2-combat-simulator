@@ -1,6 +1,7 @@
-import { castReachedFullDuration, castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { castReachedFullDuration, castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 
 // Completion and interruption partition finite scheduler instants without an early-completion grace window.
 test('cast lifecycle distinguishes adjacent microseconds at completion', () => {

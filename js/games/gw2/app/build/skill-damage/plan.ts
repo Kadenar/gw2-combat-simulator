@@ -1,5 +1,3 @@
-import { CONDITION, BOON } from '#gw2/platform/constants.js';
-import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
@@ -13,7 +11,8 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import {
@@ -24,6 +23,7 @@ import {
 import type { SkillDamageState } from '#gw2/platform/profession-presentation/skill-damage.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import type { SkillDamageOccurrence, SkillDamageRequest } from '#gw2/platform/skill-damage/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export type SkillDamageRowStatus = 'equipped' | 'unslotted';
 

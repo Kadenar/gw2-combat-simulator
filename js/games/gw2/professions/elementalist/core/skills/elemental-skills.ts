@@ -2,8 +2,8 @@
  * Owns supplemental command skills for Glyph of Elementals summons.
  * Summon lifecycle and attack execution live in `mechanics/elementals/`.
  */
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Supplies command flipovers absent from the API catalog for active Fire and Earth elementals. */
 export const ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS: readonly Skill[] = Object.freeze([

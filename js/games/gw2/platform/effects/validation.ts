@@ -1,20 +1,21 @@
-import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR, AURA } from '#gw2/platform/constants.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
+import { ACTOR, AURA } from '#gw2/platform/constants.js';
 import { snapshotEffectReactions } from '#gw2/platform/effects/action-declarations.js';
+import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import {
   effectApplicationCount,
   MAX_EFFECT_EXPANSION,
   requireEffectExpansionCount
 } from '#gw2/platform/effects/expansion-budget.js';
-import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
 import type { ConditionTick, SkillEffect, StrikeTick } from '#gw2/platform/effects/types.js';
+import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
+import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
+import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
-import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
+
 /** Validate authored effects and retain canonical immutable lists before any runtime consumes them. */
 
 // Closed vocabulary sets used for fast membership checks during catalog validation.

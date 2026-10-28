@@ -1,22 +1,21 @@
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
-import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
+/** Owns Legendary Assassin Stance skill fragments and their alternate identities. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { effectFirstAtMs, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
+import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
-
-/** Owns Legendary Assassin Stance skill fragments and their alternate identities. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.ENCHANTED_DAGGERS]: {

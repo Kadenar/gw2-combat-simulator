@@ -1,15 +1,15 @@
-import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { soulBatteryCapacity } from '#gw2/professions/necromancer/core/traits/soul-reaping/resource-queries.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
-import type { PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface NecromancerSelfCondition {

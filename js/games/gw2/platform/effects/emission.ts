@@ -1,4 +1,3 @@
-import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import {
   effectApplicationCount,
   MAX_EFFECT_EXPANSION,
@@ -6,6 +5,7 @@ import {
   validateConditionExpansion,
   type EffectExpansionBudget
 } from '#gw2/platform/effects/expansion-budget.js';
+import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';

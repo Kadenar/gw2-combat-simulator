@@ -1,13 +1,12 @@
-import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { ACTOR, COMBO_FINISHER, RECIPIENT, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /** Canonical Core ranger skill fragments grouped by their GW2 owner. */
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';

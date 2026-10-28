@@ -1,20 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
+import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
 import {
   AMALGAM_MORPH_KIND_BY_SKILL_ID,
-  DEFAULT_AMALGAM_MORPHS,
   amalgamProtocolOptions,
+  DEFAULT_AMALGAM_MORPHS,
   normalizeAmalgamMorphs,
   selectAmalgamMorph,
   validAmalgamMorphs
 } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
 
 // Slot-specific IDs refer to the same protocol; absent protocols must remain unavailable instead of changing kind.
 test('rotation normalization binds every morph variant to its selected slot and retains unselected kinds', () => {

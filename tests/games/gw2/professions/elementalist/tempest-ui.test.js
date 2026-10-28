@@ -1,14 +1,14 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { paletteSkillView, paletteAvailability } from '#gw2/app/rotation/palette/model.js';
-import { renderPaletteMarkup } from '#tests/helpers/palette.js';
-import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { paletteAvailability, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { effectPlanningState } from '#tests/helpers/effect-report.js';
+import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 
 const catalog = elementalistProfession.catalog;
 

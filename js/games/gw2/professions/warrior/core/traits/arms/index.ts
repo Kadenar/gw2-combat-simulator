@@ -1,16 +1,13 @@
-import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-
-import { warriorDualWieldingActive } from '#gw2/professions/warrior/data/dual-wielding.js';
-
+import { ACTOR, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusFromContext,
   attributeBonusNumber,
@@ -32,6 +29,7 @@ import {
   warriorBoonActive,
   warriorWieldingSword
 } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
+import { warriorDualWieldingActive } from '#gw2/professions/warrior/data/dual-wielding.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';

@@ -1,12 +1,13 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { event, log } from '#tests/helpers/evtc-fixture.js';
 
 // Paired animations prove a single charge hold; replay must neither discard it nor add a second idle wait.

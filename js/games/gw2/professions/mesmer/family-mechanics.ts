@@ -8,12 +8,12 @@ import {
   createProfessionActionController,
   mesmerShatterCompleted
 } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
+import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import type {
   MesmerShatterDefinition,
   MesmerShatterResolution
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
-import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { bountifulBladesSpawnModifiers } from '#gw2/professions/mesmer/core/traits/domination/index.js';
 import { createMesmerIllusionRewards, destroyClone } from '#gw2/professions/mesmer/family-resources.js';

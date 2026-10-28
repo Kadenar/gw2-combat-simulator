@@ -1,21 +1,21 @@
 import {
-  fromProfile,
   fromModifier,
+  fromProfile,
   modifierFact,
   outsideScopeTooltip,
   simulationEffectFacts,
   skillTooltip,
+  tooltipDecimal,
   tooltipFactorChange,
+  tooltipNumber,
   tooltipPercent,
   tooltipSeconds,
-  tooltipNumber,
-  tooltipDecimal,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 

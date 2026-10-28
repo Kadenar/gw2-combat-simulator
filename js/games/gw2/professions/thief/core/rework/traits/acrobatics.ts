@@ -1,11 +1,11 @@
-import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

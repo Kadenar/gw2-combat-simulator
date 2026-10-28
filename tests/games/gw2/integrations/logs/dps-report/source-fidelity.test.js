@@ -1,16 +1,17 @@
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+
 import {
   readDpsReportRotationData,
   readDpsReportRotationUrl
 } from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
+import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
+import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
+import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
-import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
-import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 function report(rotation, skillMap, profession = 'Luminary') {
   return {

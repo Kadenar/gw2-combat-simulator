@@ -1,14 +1,14 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 
 const AUDITED_WEAPON_FLIPS = Object.freeze([

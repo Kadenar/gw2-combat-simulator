@@ -1,4 +1,7 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { elementalistDodgeCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_TRAIT_IDS as E, ELEMENTALIST_SKILL_IDS as ES } from '#gw2/professions/elementalist/data/ids.js';
@@ -25,29 +28,29 @@ import {
   strike
 } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { RANGER_TRAIT_IDS as R, RANGER_SKILL_IDS as RS } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { THIEF_TRAIT_IDS as T, THIEF_SKILL_IDS as TS } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { WARRIOR_TRAIT_IDS as W, WARRIOR_SKILL_IDS as WS } from '#gw2/professions/warrior/data/ids.js';
+import { strikeResourcesGranted } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
+import {
+  WARRIOR_TRAIT_IDS as W,
+  WARRIOR_SKILL_IDS,
+  WARRIOR_SKILL_IDS as WS
+} from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { spellbreakerStrike } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/trigger-points.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Explosive Entrance's compiled strike trigger, applied to an observed runtime's mechanic capabilities.
 const explosiveEntranceStrike = (runtime, event) =>
   compileProfessionRules({
     traitTriggers: explosiveEntrance.triggers.map((rule) => ({ ...rule, trait: explosiveEntrance.id }))
   }).reactions['damage.resolved'](runtime, event, {});
-
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { strikeResourcesGranted } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
-import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
-import { spellbreakerStrike } from '#gw2/professions/warrior/specializations/spellbreaker/mechanics/trigger-points.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const heal = { id: 'fixture-heal', name: 'Fixture heal', type: 'Heal', slot: 'Heal' };
 const cast = (r) => ({ id: 'fixture', skill: heal, command: {}, start: r.time, effectiveEnd: r.time });

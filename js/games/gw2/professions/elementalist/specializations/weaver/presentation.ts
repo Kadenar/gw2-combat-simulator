@@ -4,48 +4,47 @@
  * that renders the main-hand / off-hand split. Everything here is a read-only
  * projection of scheduler or end state; none of it may mutate the simulation.
  */
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import { CONDITION } from '#gw2/platform/constants.js';
-import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
-import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
+import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
-  ElementalistUiContext,
-  ElementalistUiSlice,
-  ElementalistPlanningState
-} from '#gw2/professions/elementalist/types.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import type {
+  ProfessionCatalogContext,
   ProfessionEventLogDescriptor,
   ProfessionPaletteSkillRenderer,
   ProfessionWeaponPaletteRenderContext,
   ProfessionWeaponPaletteView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
-import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_WEAVER_SKILL_IDS,
-  ELEMENTALIST_TRAIT_IDS as TRAIT
-} from '#gw2/professions/elementalist/data/ids.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { escapeHtml as esc } from '#ui/shared/html.js';
-
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ElementalistBuildSpecialization } from '#gw2/professions/elementalist/build/types.js';
 import { elementalistUiState } from '#gw2/professions/elementalist/core/presentation.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
+import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
+import {
+  ELEMENTALIST_WEAVER_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import {
   weaverDualAttunements,
   weaverWeaponAttunementAvailable
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import type {
+  ElementalistPlanningState,
+  ElementalistUiContext,
+  ElementalistUiSlice
+} from '#gw2/professions/elementalist/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 // Unravel and its F5 palette group only exist when the trait is selected.
 function hasElementsOfRage(context: ElementalistUiContext & ProfessionCatalogContext): boolean {

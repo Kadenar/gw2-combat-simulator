@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { mockGw2Icons } from '#tests/helpers/browser-icons.js';
 
 test.beforeEach(async ({ page }) => {

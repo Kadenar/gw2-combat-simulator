@@ -1,36 +1,42 @@
-import { createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { attributeSeedFromCommon, equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
-import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
+import {
+  describeSimulationSkill,
+  describeSimulationTrait,
+  resolveTooltips
+} from '#gw2/app/shared/simulation-tooltip.js';
+import { bindBuildContext } from '#gw2/build-context/create.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { selectionFromConfig } from '#gw2/integrations/patches/selection.js';
 import { resolveAttributeEffects } from '#gw2/platform/attributes/calculation.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import {
+  attributeSeedFromCommon,
+  baseAttributeInputs,
+  equipmentAttributeConversions
+} from '#gw2/platform/attributes/inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import { createSkillSelectionContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import {
   defineTrait,
   traitAttributeBonuses,
   traitAttributeEffects,
   traitSkillReplacement
 } from '#gw2/platform/profession-definition/traits.js';
-import { createSkillSelectionContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes
 } from '#gw2/professions/shared/build-attributes.js';
-import { createProfessionTraitData } from '#gw2/professions/shared/trait-data.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { bindBuildContext } from '#gw2/build-context/create.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { selectionFromConfig } from '#gw2/integrations/patches/selection.js';
-import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
-import { describeSimulationSkill, resolveTooltips } from '#gw2/app/shared/simulation-tooltip.js';
+import { createProfessionTraitData, selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 // Generic reworks keep selection, layout and tooltip contracts independent of a temporary profession preview.
 function selectionFixture() {

@@ -1,7 +1,7 @@
 /** Weapon data, strength profiles, and the profession weapon-eligibility policy for weapon skills. */
-import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 /** Equipment selection and live state shared by scheduler eligibility and weapon-bar previews. */
 export interface Gw2WeaponMatcherContext {

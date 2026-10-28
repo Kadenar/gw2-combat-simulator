@@ -4,11 +4,10 @@ import {
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
 } from '#gw2/app/import-export/build-template-import.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { ResolvedGw2BuildTemplate } from '#gw2/integrations/chat-code/codec.js';
 import { ensureDocumentStyles } from '#ui/shared/dom.js';
 import { errorMessage } from '#ui/shared/errors.js';
-
-import type { ResolvedGw2BuildTemplate } from '#gw2/integrations/chat-code/codec.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
 
 interface BuildTemplateDialogElements {
   readonly dialog: HTMLDialogElement;

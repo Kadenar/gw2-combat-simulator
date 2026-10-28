@@ -1,7 +1,7 @@
-import { escapeHtml as esc } from '#ui/shared/html.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
-import type { CatalogEntity, Skill, TooltipFact } from '#gw2/platform/skills/types.js';
 import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
+import type { CatalogEntity, Skill, TooltipFact } from '#gw2/platform/skills/types.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 /** Keep descriptions local and escape both text and wiki titles before putting them in markup. */
 export function wikiTooltipAttributes(

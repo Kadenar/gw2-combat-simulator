@@ -1,5 +1,5 @@
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export interface RotationActionOptions {
   readonly skillId?: SkillId | null;

@@ -1,38 +1,41 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { runOrdinaryOptimizer } from '#tests/helpers/gear-optimizer.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
-import { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
-import { createFastOptimizer, OPTIMIZER_SEARCH_BUDGET } from '#gw2/app/optimizer/gear/fast-search.js';
-import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
-import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
-import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
-import { verifyOptimizerScore, applyOptimizerCandidate } from '#gw2/app/optimizer/gear/search.js';
+
 import {
-  groupOptimizerSpace,
+  createOptimizerResultGroups,
+  optimizerEquipmentIdentity,
+  retainOptimizerGroup
+} from '#gw2/app/optimizer/gear/candidate-results.js';
+import { createFastOptimizer, OPTIMIZER_SEARCH_BUDGET } from '#gw2/app/optimizer/gear/fast-search.js';
+import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
+import {
+  createGroupedOptimizer,
   groupedEquipmentAt,
+  groupOptimizerSpace,
   optimizerEquivalenceKey
 } from '#gw2/app/optimizer/gear/search-space.js';
 import {
+  applyOptimizerCandidate,
   captureGearOptimizerRequest,
-  isOptimizerRequestCurrent,
-  createOptimizerSpace,
+  compareOptimizerCandidates,
   createOptimizerEvaluator,
-  ordinaryEquipmentAt,
+  createOptimizerSpace,
+  isOptimizerRequestCurrent,
+  optimizerCardinality,
   optimizerEquipment,
+  optimizerScore,
   optimizerSlots,
   optimizerWeaponSets,
-  optimizerCardinality,
-  optimizerScore
+  ordinaryEquipmentAt,
+  retainOptimizerCandidate,
+  verifyOptimizerScore
 } from '#gw2/app/optimizer/gear/search.js';
-import { retainOptimizerCandidate, compareOptimizerCandidates } from '#gw2/app/optimizer/gear/search.js';
-import {
-  createOptimizerResultGroups,
-  retainOptimizerGroup,
-  optimizerEquipmentIdentity
-} from '#gw2/app/optimizer/gear/candidate-results.js';
+import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
+import { runOrdinaryOptimizer } from '#tests/helpers/gear-optimizer.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const adapter = await loadProfessionAppAdapter('warrior');
 

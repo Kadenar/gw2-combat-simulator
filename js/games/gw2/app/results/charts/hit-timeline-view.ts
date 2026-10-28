@@ -1,4 +1,3 @@
-import { escapeHtml } from '#ui/shared/html.js';
 import {
   conditionWindow,
   groupSkillHits,
@@ -8,6 +7,7 @@ import {
   type SkillHit
 } from '#gw2/app/results/charts/hit-timeline-model.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 /** Combine all sources into one payout row; tick counts represent stacks, not application rows. */
 function conditionTickTotalsHtml(hits: readonly SkillHit[], offsetMs: number): string {

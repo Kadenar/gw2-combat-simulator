@@ -1,9 +1,9 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { pruneSkillFlips } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -11,7 +11,6 @@ import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/cor
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { thiefAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
-import { landedChannelRefundLifecycle } from '#gw2/professions/thief/core/mechanics/channel-refund.js';
 import {
   grantThiefGroundAxe,
   landThiefAxe,
@@ -20,19 +19,7 @@ import {
   startThiefAxeExpiry,
   THIEF_AXE_LAND
 } from '#gw2/professions/thief/core/mechanics/axes.js';
-import {
-  signetCompleted,
-  stealAccepted,
-  stealthAttackCompleted,
-  thiefCastCompleted,
-  thiefConditionApplied,
-  thiefDodgeStarted,
-  thiefMobilityUsed,
-  thiefReworkStruck,
-  thiefStruck,
-  thiefWeaponSwapped,
-  venomsConsumed
-} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
+import { landedChannelRefundLifecycle } from '#gw2/professions/thief/core/mechanics/channel-refund.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import { activateTrap, prepareTrap } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import { setThiefKneeling, thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
@@ -60,6 +47,19 @@ import {
   selectThiefStealth,
   thiefStealthLifecycle
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import {
+  signetCompleted,
+  stealAccepted,
+  stealthAttackCompleted,
+  thiefCastCompleted,
+  thiefConditionApplied,
+  thiefDodgeStarted,
+  thiefMobilityUsed,
+  thiefReworkStruck,
+  thiefStruck,
+  thiefWeaponSwapped,
+  venomsConsumed
+} from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { activateVenom, applyActiveVenoms, emitVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { infiltratorsSignetLifecycle } from '#gw2/professions/thief/core/skills/slot-skills.js';
 import {

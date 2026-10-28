@@ -1,9 +1,8 @@
-import { ACTOR, RECIPIENT, BOON, COMBO_FIELD } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-
+import { ACTOR, BOON, COMBO_FIELD, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 /**
  * Invoked skills own their payloads and recharge; fixed pulses preserve their independent impact timing.

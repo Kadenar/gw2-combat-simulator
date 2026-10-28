@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { addCounterProgress, advanceCounter, advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
 
 // The arithmetic reports a crossing without owning eligibility, rewards, expiry or the caller's stored value.

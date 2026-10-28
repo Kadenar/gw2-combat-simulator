@@ -5,9 +5,9 @@ import {
   type CompositeAction
 } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { skillNumberFromContext, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Align combat within a clipped opening teleport using the main-minus-follow-up offset, without adding inputs. */
 export function alignConduitHazeCombatOffset<Action extends CompositeAction & { readonly replayDurationMs?: number }>(

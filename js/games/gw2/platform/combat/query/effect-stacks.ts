@@ -1,4 +1,3 @@
-import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   boonKey,
   buffApplicationStacks,
@@ -10,6 +9,7 @@ import {
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Per-recipient boon and buff stack reads over accepted applications, for live queries and boon copying. */

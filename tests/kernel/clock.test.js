@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { canonicalInterval } from '#kernel/core/clock.js';
 
 // A recurring owner must advance the clock instead of falling into same-time work or an invented delay.

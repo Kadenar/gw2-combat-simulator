@@ -1,7 +1,7 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   buildResolverBuff,
   buildResolverCondition,
@@ -16,8 +16,9 @@ import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { holosmithSlotEventHandlers } from '#gw2/professions/engineer/specializations/holosmith/skills/slot-skills.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { arachnophobia } from '#gw2/professions/ranger/core/traits/wilderness-survival/index.js';
-import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
+import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 const trigger = {

@@ -1,13 +1,13 @@
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
-import { clamp } from '#kernel/core/numeric.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import {
   previewControlScopes,
-  type PreviewControl,
   type AttributePreviewValues,
+  type PreviewControl,
   type ProfessionAttributePreviewContext
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 /** Supply the active preview catalog and weapon set without exposing application state to profession hooks. */
 export function attributePreviewContext(

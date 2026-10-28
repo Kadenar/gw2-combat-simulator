@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
+
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 
 // Exercise EI's actual buff-give predicate independently of the number of venom charges in a real log.
 const grant = (overrides = {}) =>

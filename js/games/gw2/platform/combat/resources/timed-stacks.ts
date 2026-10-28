@@ -12,8 +12,8 @@
  * need inclusive expiry own that decision and must not extend the canonical deadline.
  */
 
-import { boundedInteger } from '#kernel/core/numeric.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Absolute expiry timestamps, one per live application. */
 type Gw2TimedStackExpiries = readonly number[];

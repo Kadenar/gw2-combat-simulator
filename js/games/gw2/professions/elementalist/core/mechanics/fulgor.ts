@@ -1,8 +1,8 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { empowerElementalistSpearPacket } from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';

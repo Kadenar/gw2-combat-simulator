@@ -1,17 +1,17 @@
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
-  skillNumber,
   effectNumber,
+  requireEffect,
   requireSkillFromContext,
-  requireEffect
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerStrike } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { ENGINEER_TRAIT_IDS as TRAIT, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** A positive strike resolved while Amalgam is selected; the cause is the resolved hit. */
 export interface AmalgamStrike {

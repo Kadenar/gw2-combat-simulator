@@ -1,22 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  loadSimulationSettings,
-  saveSimulationSettings,
-  SIMULATION_SETTINGS_STORAGE_KEY
-} from '#gw2/app/simulation/settings.js';
-import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/execution/transition-lockouts.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
-import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
-import { captureGearOptimizerRequest, createOptimizerEvaluator } from '#gw2/app/optimizer/gear/search.js';
-import { ProfessionApp } from '#gw2/app/profession-app.js';
-import { createBuildTab, emptyBuildTabSession } from '#gw2/app/build/state/workspace.js';
-import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
-import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
-import { beginRotationComparison, setRotationReference } from '#gw2/app/rotation/comparison-state.js';
-import { createBossScenario, parseBossScenario } from '#gw2/app/boss-scenarios/model.js';
+
 import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
-import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
+import { createBossScenario, parseBossScenario } from '#gw2/app/boss-scenarios/model.js';
 import {
   normalizeTargetArmor,
   PRIMARY_ATTRIBUTES,
@@ -24,6 +10,21 @@ import {
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
 } from '#gw2/app/build/panels/metadata.js';
+import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
+import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
+import { createBuildTab, emptyBuildTabSession } from '#gw2/app/build/state/workspace.js';
+import { captureGearOptimizerRequest, createOptimizerEvaluator } from '#gw2/app/optimizer/gear/search.js';
+import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { beginRotationComparison, setRotationReference } from '#gw2/app/rotation/comparison-state.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
+import {
+  loadSimulationSettings,
+  saveSimulationSettings,
+  SIMULATION_SETTINGS_STORAGE_KEY
+} from '#gw2/app/simulation/settings.js';
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
+import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/execution/transition-lockouts.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
 
 // Browser storage is separate from the build codec; missing or corrupt preferences remain safe.

@@ -1,7 +1,7 @@
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
-import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Invoked skills own their patchable payloads and recharge; traits own trigger eligibility. */
 export const NECROMANCER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([

@@ -1,23 +1,23 @@
-import { professionRegistry } from '#gw2/profession-registry.js';
 import { navigationRoute } from '#browser/page/embed.js';
-import { escapeHtml as html } from '#ui/shared/html.js';
-import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
-import { benchmarkBuildPreview } from '#gw2/app/page/benchmark-build-preview.js';
-import { mountHealthInteractions } from '#gw2/app/page/benchmark-health-interactions.js';
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
-import { mountBenchmarkPatchPreview, patchBenchmarks } from '#gw2/app/page/benchmark-patch-preview.js';
 import { templateBoon, templateCategory } from '#gw2/app/build/library/model.js';
+import { benchmarkBuildPreview } from '#gw2/app/page/benchmark-build-preview.js';
 import type { BenchmarkComparisonView } from '#gw2/app/page/benchmark-comparison/view.js';
+import { mountHealthInteractions } from '#gw2/app/page/benchmark-health-interactions.js';
+import { mountBenchmarkPatchPreview, patchBenchmarks } from '#gw2/app/page/benchmark-patch-preview.js';
 import {
-  benchmarkColors,
-  benchmarkScale,
   benchmarkApmScale,
+  benchmarkColors,
   benchmarkComparisonAxis,
-  hasBenchmarkApm,
+  benchmarkScale,
   filterBenchmarks,
+  hasBenchmarkApm,
   readBenchmarks,
   type Benchmark
 } from '#gw2/app/page/benchmarks.js';
+import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
+import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+import { escapeHtml as html } from '#ui/shared/html.js';
 
 /** Mount the optional benchmark tool once so chart filters survive navigation back to the workspace. */
 export function mountBenchmarks(root: HTMLElement): void {

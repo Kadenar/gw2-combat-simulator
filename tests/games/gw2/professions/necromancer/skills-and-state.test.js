@@ -1,12 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
 import {
   addSoulShards,
   consumeSoulShards,
@@ -14,10 +14,11 @@ import {
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const baseConfig = Object.freeze({
   attributeInputs: baseAttributeInputs({

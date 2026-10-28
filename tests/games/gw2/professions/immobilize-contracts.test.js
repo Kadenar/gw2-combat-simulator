@@ -1,11 +1,12 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const immobilizes = (result) =>
   result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Immobilized');

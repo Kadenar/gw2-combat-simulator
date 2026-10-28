@@ -1,17 +1,17 @@
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import {
-  boonKey,
-  type Gw2TimedBuffApplication,
-  GW2_STANDARD_BOONS,
-  isStandardBoon
-} from '#gw2/platform/combat/boons.js';
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/attributes/stats.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import {
+  boonKey,
+  GW2_STANDARD_BOONS,
+  isStandardBoon,
+  type Gw2TimedBuffApplication
+} from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';

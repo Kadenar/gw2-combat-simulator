@@ -1,11 +1,12 @@
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import { access } from 'node:fs/promises';
 import { describe, test } from 'node:test';
+
 import { replaceBuild } from '#gw2/app/build/state/persistence.js';
 import { COMMON_EVENT_TYPES } from '#gw2/platform/events/events.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 
 function assertCatalogMetadata(entry, catalog) {
   const traitById = new Map(catalog.traits.map((trait) => [trait.id, trait]));

@@ -5,10 +5,12 @@
  *   node scripts/patch-preview/patch-preview-report.mjs
  */
 
-import { loadProfession } from '#gw2/profession-registry.js';
+import { fileURLToPath } from 'node:url';
+
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { fileURLToPath } from 'node:url';
+import { loadProfession } from '#gw2/profession-registry.js';
+
 import { assertPromotionReady, reworkChecklist, reworkExtensionPoints } from './rework-lifecycle.mjs';
 
 if (!activePatchPreview) {

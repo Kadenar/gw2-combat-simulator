@@ -4,8 +4,8 @@ import {
   migrateEngineerBuild,
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
-import { engineerNativeModules } from '#gw2/professions/engineer/catalog.js';
 import { engineerWeaponSkillMatchesSet } from '#gw2/professions/engineer/build/weapon-matching.js';
+import { engineerNativeModules } from '#gw2/professions/engineer/catalog.js';
 
 export { engineerCatalog, engineerNativeModules } from '#gw2/professions/engineer/catalog.js';
 

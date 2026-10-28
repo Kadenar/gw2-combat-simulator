@@ -1,18 +1,18 @@
-import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { skillNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
-import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 /**
  * Owns Amalgam Evolve, locked-slot, and evolved-state skill fragments.
  * Persistent strain and morph state remain under `mechanics/evolved-form.ts`.
  */
+import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
+import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 const PLASMATIC_STATE_CAST_TIME_MS = 480 + 480;
 const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;

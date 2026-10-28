@@ -4,6 +4,7 @@ import {
   BUILD_FILE_IMPORT_ACCEPT,
   previewBuildFileImport
 } from '#gw2/app/import-export/build-file-import.js';
+import type { BuildFileImportPreview, BuildFileImportSelection } from '#gw2/app/import-export/build-file-import.js';
 import { readJsonFile } from '#gw2/app/import-export/files.js';
 import {
   bindImportFileSources,
@@ -13,12 +14,10 @@ import {
   renderImportNotices,
   requiredDialogPart
 } from '#gw2/app/import-export/import-dialog.js';
-import { ensureDocumentStyles } from '#ui/shared/dom.js';
-import { errorMessage } from '#ui/shared/errors.js';
-
-import type { BuildFileImportPreview, BuildFileImportSelection } from '#gw2/app/import-export/build-file-import.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { ensureDocumentStyles } from '#ui/shared/dom.js';
+import { errorMessage } from '#ui/shared/errors.js';
 
 interface BuildFileImportDialogElements {
   readonly dialog: HTMLDialogElement;

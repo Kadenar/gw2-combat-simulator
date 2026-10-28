@@ -1,10 +1,9 @@
-import { AMALGAM_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/amalgam/catalog-fields.js';
-import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
-import { plasmaticStateModifiers } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
+import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
+import { AMALGAM_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/amalgam/catalog-fields.js';
 import { amalgamHooks } from '#gw2/professions/engineer/specializations/amalgam/hooks.js';
-
+import { plasmaticStateModifiers } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import { amalgamState, projectAmalgamPlanningState } from '#gw2/professions/engineer/specializations/amalgam/state.js';

@@ -1,6 +1,6 @@
 import {
-  tooltipSeconds,
   outsideScopeTooltip,
+  tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';

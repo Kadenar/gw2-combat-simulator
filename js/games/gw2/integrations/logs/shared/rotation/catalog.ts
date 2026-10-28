@@ -1,8 +1,8 @@
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RotationActionKind } from '#gw2/integrations/logs/shared/rotation/model.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { VINDICATOR_DODGE_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import {
   resolveWarriorDualWieldSkill,

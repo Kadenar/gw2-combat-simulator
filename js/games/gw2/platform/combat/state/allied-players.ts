@@ -1,6 +1,5 @@
-import { RECIPIENT, ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { normalizeEffectAudience } from '#gw2/platform/events/audience-metadata-validation.js';
-
 import type { EffectAudience, ResolvedEffectAudience, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { boundedInteger, boundedNumber, clamp } from '#kernel/core/numeric.js';
 

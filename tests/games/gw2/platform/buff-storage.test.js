@@ -1,22 +1,23 @@
-import { GW2_STANDARD_BOONS, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { GW2_STANDARD_BOONS, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   activeBoonStacks,
   activeBuffStacks,
   boonActive,
   countActiveBoons
 } from '#gw2/platform/combat/query/runtime-query.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { recordTimedBuffProc } from '#gw2/platform/equipment/relics/rules/shared.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
-import { recordTimedBuffProc } from '#gw2/platform/equipment/relics/rules/shared.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const custom = ['superspeed', 'relic-peitha', 'sigil-severance', 'fixture-buff'];
 const profession = defineTestProfession({

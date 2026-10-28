@@ -1,10 +1,10 @@
 import type { BuildValidationResult, Gw2Build, UnvalidatedBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
-import type { NormalizedProfessionContract, ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type {
   ProfessionRuntimeOptions,
   RuntimeProfession
 } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { NormalizedProfessionContract, ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';

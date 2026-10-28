@@ -1,11 +1,11 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefStealPaletteGroups } from '#gw2/professions/thief/core/presentation.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Show dodge damage bonuses only while their projected post-dodge windows are active. */
 function daredevilStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {

@@ -1,20 +1,21 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { BOON } from '#gw2/platform/constants.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
-import { canonicalTime } from '#kernel/core/clock.js';
 import test from 'node:test';
+
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import {
   DRAGON_TRIGGER_TICK_RESOURCE_REASON,
   dragonChargesToAdrenalineSpent
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Resource contracts read the selected skill's charging parameters.
 const DRAGON_TRIGGER_SKILL = warriorProfession.catalog.skillsById.get(ID.DRAGON_TRIGGER);

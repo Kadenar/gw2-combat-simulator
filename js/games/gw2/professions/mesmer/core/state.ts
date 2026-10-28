@@ -1,15 +1,14 @@
-import type { MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
-import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
-import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { skillFlipVisible, type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
+import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Core owns state present for every specialization runtime. */
 export interface MesmerCoreState {

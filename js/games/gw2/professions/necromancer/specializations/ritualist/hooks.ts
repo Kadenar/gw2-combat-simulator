@@ -1,7 +1,5 @@
-import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
-import { setNecromancerCreatureStrikeScaling } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { spiritsStrengthCreatureMultiplier } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
@@ -10,6 +8,7 @@ import {
   requireSkillFromContext as damageSkill
 } from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
+import { setNecromancerCreatureStrikeScaling } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
   NECROMANCER_SKILL_IDS as DAMAGE_SKILL,
   NECROMANCER_TRAIT_IDS as TRAIT
@@ -33,7 +32,10 @@ import {
   ritualistSpiritActions
 } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-actions.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-import { lingeringSpiritsActive } from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
+import {
+  lingeringSpiritsActive,
+  spiritsStrengthCreatureMultiplier
+} from '#gw2/professions/necromancer/specializations/ritualist/traits/behavior.js';
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Ritualist uses the shared Core resource owner and actual creature callbacks, with specialization-owned lifetimes. */

@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+
 import { createPeriodicTaskState, definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
-import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const occurrence = (id) => ({
   id: String(id),

@@ -1,5 +1,5 @@
-import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 export const GUARDIAN_SPEAR_EXPIRY = 'guardian.spear-expiry';
 

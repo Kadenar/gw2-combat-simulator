@@ -18,6 +18,7 @@ import { readFile } from 'node:fs/promises';
 
 import { decompressEvtcInput } from '#gw2/integrations/logs/evtc/decompression.js';
 import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
+
 import { parseGameOption } from '../lib/game-data.mjs';
 
 const { gameId, args } = parseGameOption(process.argv.slice(2));

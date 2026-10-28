@@ -1,15 +1,16 @@
-import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { loadProfession } from '#gw2/profession-registry.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
-import { acceptElementalistAuraReaction } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { loadProfession } from '#gw2/profession-registry.js';
+import { acceptElementalistAuraReaction } from '#gw2/professions/elementalist/core/mechanics/auras.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Lifecycle updates belong to gameplay facts even when score runs omit report collections.
 test('action updates change authoritative history without enabling score reporting', () => {

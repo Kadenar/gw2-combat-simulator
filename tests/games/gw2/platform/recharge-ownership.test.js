@@ -1,8 +1,9 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
+
 import { gw2RechargeIntervals } from '#gw2/platform/combat/recharge.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 
 const magazine = { id: 1, name: 'Magazine', ammo: 3, ammoRecharge: 5 };
 const ordinary = { id: 2, name: 'Ordinary', cooldown: 10 };

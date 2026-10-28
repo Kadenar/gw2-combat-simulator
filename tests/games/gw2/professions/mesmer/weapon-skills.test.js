@@ -1,14 +1,14 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Weapon skills retain their Clarity, packet, and follow-up behavior across Mesmer specializations.
 test('The Prestige blasts the active field with its delayed burning explosion', () => {

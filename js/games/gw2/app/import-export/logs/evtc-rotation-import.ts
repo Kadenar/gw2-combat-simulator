@@ -1,15 +1,15 @@
-import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
-import type { CriticalBleedingProcObservation } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
-import type { EngineerShrapnelObservation } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
-import type { MesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
-import type { RangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
 import {
   appLogReconstructionOptions,
   selectActiveBuildLogPlayer
 } from '#gw2/app/import-export/logs/log-rotation-import.js';
 import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { CriticalBleedingProcObservation } from '#gw2/integrations/logs/evtc/rotation/professions/condition-proc-observation.js';
+import type { EngineerShrapnelObservation } from '#gw2/integrations/logs/evtc/rotation/professions/engineer/proc-observations.js';
+import type { MesmerSharperImagesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/mesmer/sharper-images-observation.js';
+import type { RangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
+import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 
 export interface ImportedEvtcRotation {
   readonly rotation: readonly RotationCommand[];

@@ -1,20 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createInputProfile, validateInputProfile } from '#gw2/input/profile.js';
-import { analyzeInputTrace } from '#gw2/input/analysis.js';
-import { projectInputTrace } from '#gw2/platform/results/input-trace.js';
+
 import { summarizeInputAnalysis } from '#gw2/app/input-profile/summary.js';
+import { analyzeInputTrace } from '#gw2/input/analysis.js';
+import { createInputProfile, validateInputProfile } from '#gw2/input/profile.js';
+import { projectInputTrace } from '#gw2/platform/results/input-trace.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
 import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
-import { runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 // Minimal synthetic inputs isolate input accounting, observation scope, and accounting from saved rotations.
 function trace(entries, end = 60, start = 0) {

@@ -1,14 +1,13 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { emitRangerAction } from '#gw2/professions/ranger/core/events.js';
-import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { emitRangerAction } from '#gw2/professions/ranger/core/events.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';

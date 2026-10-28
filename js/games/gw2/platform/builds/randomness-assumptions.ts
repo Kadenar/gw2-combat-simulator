@@ -3,8 +3,8 @@ import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js'
 import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
 import {
   DEFAULT_SIMULATION_RANDOMNESS,
-  SIMULATION_RANDOMNESS_MODES,
-  normalizeSimulationRandomness
+  normalizeSimulationRandomness,
+  SIMULATION_RANDOMNESS_MODES
 } from '#kernel/core/simulation-random.js';
 
 type SimulationRandomnessAssumptions = Record<string, unknown>;

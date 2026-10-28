@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import {
   foodOptionLabel,
   prefixOptionLabel,
@@ -10,8 +11,8 @@ import {
 } from '#gw2/app/shared/equipment/labels.js';
 import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
-import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
 import { PREFIX_GROUPS, PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
+import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
 import { RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
 import { SIGIL_GROUPS, SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 

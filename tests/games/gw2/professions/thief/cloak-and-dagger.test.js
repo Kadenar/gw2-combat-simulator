@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
 // Stealth belongs to a landed dagger hit; missing the target must not create stealth or its trait rewards.
 test('Cloak and Dagger grants stealth only when its strike lands', () => {

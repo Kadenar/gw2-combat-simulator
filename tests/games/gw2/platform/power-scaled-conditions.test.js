@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Both traits must use final Power once per application, without altering other conditions or independent owners.
 for (const [name, catalog, modifiers, trait, condition, other, damage, coefficient] of [

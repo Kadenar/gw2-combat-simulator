@@ -1,15 +1,15 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey, buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 /**
  * Owns Evoker meditation heal, utility, and elite skill fragments.
  * Meditation trait reactions are registered by the Evoker module.
  */
-import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { boonKey, buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 
 /** Declares the meditation catalog while the shared handler applies Altruistic Aspect. */
 // Shared impact timing keeps companion payloads independent and in their authored order.

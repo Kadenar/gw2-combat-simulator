@@ -1,4 +1,3 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   outsideScopeTooltip,
   profileFact,
@@ -12,8 +11,9 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { upkeepTooltip } from '#gw2/professions/revenant/app/tooltips/shared.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 const facetConsumeTooltip: DescribeSimulationTooltip = skillTooltip(
   'Consume the active facet to perform this skill and stop its energy upkeep. Its cooldown belongs to the parent facet. Draconic Echo can retain the passive after consumption.'

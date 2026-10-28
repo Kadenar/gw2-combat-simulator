@@ -1,19 +1,20 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+
+import { activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { bindSoulbeastUi } from '#gw2/professions/ranger/specializations/soulbeast/presentation.js';
-import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
+import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { bindDruidUi } from '#gw2/professions/ranger/specializations/druid/presentation.js';
+import { galeshotCastAvailability } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import { galeshotCastAvailability } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { soulbeastCastAvailability } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
+import { bindSoulbeastUi } from '#gw2/professions/ranger/specializations/soulbeast/presentation.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 // A swap changes merged ownership in runtime and its UI projection, but not the detached build selection.
 test('Soulbeast remerges with the live pet and keeps detached previews on the configured pet', () => {

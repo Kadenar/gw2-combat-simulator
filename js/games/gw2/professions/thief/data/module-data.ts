@@ -1,16 +1,16 @@
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
   defineProfessionWeapons
 } from '#gw2/professions/shared/catalog-data.js';
 import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
-import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/thief/data/thief-api-metadata.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/thief/data/thief-api-metadata.js';
 import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
 import { TRAITS } from '#gw2/professions/thief/data/traits-data.js';
-import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Link dual-wield openers to their follow-ups for flip metadata and opener detection.

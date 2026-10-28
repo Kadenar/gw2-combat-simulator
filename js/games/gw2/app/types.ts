@@ -1,48 +1,44 @@
-import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
-import type { BuildContextFactory } from '#gw2/build-context/types.js';
-import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
-import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
-import type { RotationEditingState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
-import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js';
-import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
-import type { ResultViewState } from '#gw2/app/results/state.js';
-import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
-
-import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
-
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
-import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
-import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
-import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import type { CanonicalCatalog, SkillId, Skill, CatalogEntity } from '#gw2/platform/skills/types.js';
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
+import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
+import type { ProfessionDefaultOffhand, ProfessionIsSkillAvailable } from '#gw2/app/build/types.js';
+import type { RelicComparisonRequest, RelicComparisonResultState } from '#gw2/app/optimizer/relic-comparison/types.js';
+import type { ResultViewState } from '#gw2/app/results/state.js';
+import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
+import type { RotationActionOptions, RotationEditingState } from '#gw2/app/rotation/editing/state.js';
+import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js';
+import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import type {
-  PatchComparison,
   BaselineSimulationOutput,
+  BaselineSimulationRequest,
   BaselineSimulationResult,
-  BaselineSimulationRequest
+  PatchComparison
 } from '#gw2/app/simulation/baseline/types.js';
 import type {
   ModifierContribution,
-  ModifierContributionResultState,
-  ModifierContributionRequest
+  ModifierContributionRequest,
+  ModifierContributionResultState
 } from '#gw2/app/simulation/modifier-contributions/types.js';
-
 import type {
-  RandomDistributionSummary,
-  RandomDistributionResultState,
   RandomDistributionJobRequest,
+  RandomDistributionOptions,
   RandomDistributionRequest,
-  RandomDistributionOptions
+  RandomDistributionResultState,
+  RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type { RelicComparisonRequest, RelicComparisonResultState } from '#gw2/app/optimizer/relic-comparison/types.js';
+import type { BuildAttributes, BuildContextFactory } from '#gw2/build-context/types.js';
+import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
+import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { Gw2WeaponDataEntry, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
-import type { ProfessionIsSkillAvailable, ProfessionDefaultOffhand } from '#gw2/app/build/types.js';
-import type { BuildAttributes } from '#gw2/build-context/types.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
+import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export type ProfessionAppContract = Gw2ProfessionSource & {
   readonly nativeDefinition: {

@@ -1,21 +1,19 @@
-import { RECIPIENT, CONTROL, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusFromContext,
   balanceNumberFromContext,
@@ -27,12 +25,12 @@ import {
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { gunsaberEntered } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import {
   ammunitionCommitted,
   explosionAccepted
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/trigger-points.js';
-import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
-import { gunsaberEntered } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import { resolveSharpAsTheWindSkillId } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';

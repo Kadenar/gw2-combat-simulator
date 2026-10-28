@@ -1,16 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
-import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { deflateRawSync } from 'node:zlib';
+
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/import-export/logs/evtc-rotation-import.js';
 import { applyRotationImportPreview, previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import { decompressEvtcInput } from '#gw2/integrations/logs/evtc/decompression.js';
+import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
 import { detectEvtcRotationPlayers, reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { event, expandedEvtcFixture, log } from '#tests/helpers/evtc-fixture.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 function crc32(bytes) {
   let crc = 0xffffffff;

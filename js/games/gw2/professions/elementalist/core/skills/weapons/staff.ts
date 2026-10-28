@@ -1,14 +1,3 @@
-import {
-  WEAPON,
-  COMBO_FIELD,
-  COMBO_FINISHER,
-  RECIPIENT,
-  STATUS,
-  AURA,
-  BOON,
-  CONDITION,
-  CONTROL
-} from '#gw2/platform/constants.js';
 /**
  * Staff weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -17,11 +6,21 @@ import {
  * ends, and some (Geyser, Healing Rain, Magnetic Aura) contribute only a field, aura, or boon
  * with no damage packets at all. Declarative data merged in by `core/skills/index.ts`.
  */
-
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  AURA,
+  BOON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  CONDITION,
+  CONTROL,
+  RECIPIENT,
+  STATUS,
+  WEAPON
+} from '#gw2/platform/constants.js';
 import { impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // Meteor Shower's canonical timeline retains the observed coefficient decay and packet timestamps.
 const METEOR_SHOWER_STRIKE_TICKS = [

@@ -1,4 +1,7 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import {
   buffApplicationStacks,
   durationStackingBoonCapSeconds,
@@ -7,12 +10,10 @@ import {
   remainingDurationStackSeconds,
   standardBoonPresentation
 } from '#gw2/platform/combat/boons.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { activeBoonStacks, boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { runtimeTargetConditionStacks, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
 // Both scheduled and accepted histories use canonical, half-open visibility before applying audience and intensity caps.
 test('intensity queries preserve canonical visibility in unordered and ordered histories', () => {

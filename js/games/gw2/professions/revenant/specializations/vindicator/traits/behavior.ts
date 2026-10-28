@@ -1,8 +1,7 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
-
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';

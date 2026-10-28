@@ -1,11 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { loadProfession } from '#gw2/profession-registry.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 for (const [id, specialization, capacity] of [
   ['elementalist', 'Core', 100],

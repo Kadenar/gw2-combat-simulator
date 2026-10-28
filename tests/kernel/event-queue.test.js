@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compareQueuedEvents } from '#tests/helpers/event-order.js';
-import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
+
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
 import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
+import { compareQueuedEvents } from '#tests/helpers/event-order.js';
 
 // Every insertion needs a finite canonical at; rejected input cannot invent work at zero or disturb accepted ties.
 test('event normalization and queue insertion reject missing or invalid timestamps', () => {

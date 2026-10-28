@@ -1,15 +1,16 @@
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_TRAIT_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import {
-  NECROMANCER_SKILL_IDS as NECROMANCER_SKILLS,
-  NECROMANCER_TRAIT_IDS as NECROMANCER
+  NECROMANCER_TRAIT_IDS as NECROMANCER,
+  NECROMANCER_SKILL_IDS as NECROMANCER_SKILLS
 } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 
 const mesmerRules = (specialization) =>
   mesmerProfession.resolveProfession({

@@ -1,33 +1,31 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   balanceNumberFromContext,
   skillNumber,
   skillNumberFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { swapGunsaber } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
+import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import {
   dragonFlowPerInterval,
   maximumDragonCharges
 } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { timeKey } from '#kernel/core/clock.js';
+import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
+import { canonicalTime, timeKey } from '#kernel/core/clock.js';
+import { clamp } from '#kernel/core/numeric.js';
 
 const CHARGE_TICK = 'warrior.dragon-charge';
 const TRIGGER_EXPIRY = 'warrior.dragon-trigger-expiry';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
-import { clamp } from '#kernel/core/numeric.js';
 
 export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = 'dragon trigger entry';
 

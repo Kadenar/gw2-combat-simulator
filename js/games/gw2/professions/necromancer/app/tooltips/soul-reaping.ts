@@ -1,4 +1,3 @@
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   simulationEffectFacts,
@@ -9,10 +8,11 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/soul-reaping/procs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
-import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 
 /** Describe soul reaping tooltips from the selected balance data. */
 export const necromancerSoulReapingTooltips = {

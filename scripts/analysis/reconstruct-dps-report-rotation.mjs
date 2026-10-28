@@ -17,13 +17,14 @@
  */
 import { readFile } from 'node:fs/promises';
 
-import { loadProfession } from '#gw2/profession-registry.js';
 import { loadBuildContext } from '#gw2/build-context/load.js';
-import { fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
 import {
   detectDpsReportRotationPlayers,
   reconstructDpsReportRotation
 } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { fetchDpsReport } from '#gw2/integrations/logs/dps-report/url.js';
+import { loadProfession } from '#gw2/profession-registry.js';
+
 import { parseGameOption } from '../lib/game-data.mjs';
 
 const { gameId, args } = parseGameOption(process.argv.slice(2));

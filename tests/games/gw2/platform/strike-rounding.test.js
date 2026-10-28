@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+
 import { expectedCritMultiplier } from '#gw2/platform/combat/formulas.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 // Critical units remain fractions/factors, with the existing upper chance cap and no extra lower clamp.
 test('expected critical scaling uses fraction chance and factor damage', () => {

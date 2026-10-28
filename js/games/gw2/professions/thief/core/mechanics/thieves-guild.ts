@@ -1,23 +1,20 @@
-import { ConditionEffect } from '#gw2/platform/effects/types.js';
-import { ACTOR } from '#gw2/platform/constants.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import { ConditionEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  requireSkillFromContext,
-  skillNumber,
   effectNumber,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { ThiefRuntimeState } from '#gw2/professions/thief/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { ThiefSkill, ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefRuntimeState, ThiefSkill, ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 const THIEF_GUILD_ATTACK = 'thief.thieves-guild-attack';
 const THIEF_GUILD_EXPIRY = 'thief.thieves-guild-expire';

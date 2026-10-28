@@ -1,8 +1,8 @@
-import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';

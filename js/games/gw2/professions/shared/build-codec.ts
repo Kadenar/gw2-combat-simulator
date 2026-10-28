@@ -1,8 +1,13 @@
 import { normalizeProfessionAssumptions, validateProfessionAssumptions } from '#gw2/platform/builds/assumptions.js';
-import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
-import type { Gw2BuildCodec, Gw2BuildCodecOptions, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { ProfessionAssumptionControl, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import type {
+  Gw2BuildCodec,
+  Gw2BuildCodecOptions,
+  Gw2CanonicalBuild,
+  ProfessionAssumptionControl,
+  ProfessionBuildAssumptions
+} from '#gw2/platform/builds/types.js';
+import { buildAssumptionControls } from '#gw2/professions/shared/build-assumptions.js';
 
 interface ProfessionBuildCodecOptions<TBuild extends Gw2CanonicalBuild> extends Gw2BuildCodecOptions<TBuild> {
   readonly assumptionControls?: readonly ProfessionAssumptionControl[];

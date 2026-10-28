@@ -1,5 +1,3 @@
-import { attributeBonusNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -10,7 +8,7 @@ import {
 } from '#gw2/platform/combat/formulas.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-
+import { attributeBonusNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetAutoProfile, rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import {
   beastlyWardenPetDamageMultiplier,
@@ -19,6 +17,7 @@ import {
 import { skirmishingPetAttributes } from '#gw2/professions/ranger/core/traits/skirmishing/pet-attributes.js';
 import { wildernessPetAttributes } from '#gw2/professions/ranger/core/traits/wilderness-survival/attributes.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRuntime>, 'profession'>): string {

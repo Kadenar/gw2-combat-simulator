@@ -1,14 +1,14 @@
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type {
   Gw2AttributeInputs,
   Gw2AttributeSeed,
-  Gw2SeedAttributeConversion,
   Gw2CommonAttributeResult,
-  Gw2NumericAttributes
+  Gw2NumericAttributes,
+  Gw2SeedAttributeConversion
 } from '#gw2/platform/attributes/types.js';
-import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import { UTILITY_DATA } from '#gw2/platform/equipment/consumables/utilities.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Seed declarations keep utilities and permanent reinforcement in the same grouped conversion phase. */
 export function equipmentAttributeConversions(utility = ''): readonly Gw2SeedAttributeConversion[] {

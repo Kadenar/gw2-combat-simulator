@@ -1,4 +1,3 @@
-import { WEAPON, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Scepter weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -7,10 +6,10 @@ import { WEAPON, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants
  * `tasks` are implemented by `core/execution/index.ts`, and the table
  * is merged into the Core skill catalog by `core/skills/index.ts`.
  */
-
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import { BOON, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // One Hurl input releases five rocks at fixed 200ms intervals.
 const HURL_PACKET_TIMES = [320, 520, 720, 920, 1120] as const;

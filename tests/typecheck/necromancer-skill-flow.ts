@@ -1,12 +1,11 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 import { necromancerCoreHooks } from '#gw2/professions/necromancer/core/hooks.js';
 import { necromancerCoreModule } from '#gw2/professions/necromancer/core/module.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { harbingerHooks } from '#gw2/professions/necromancer/specializations/harbinger/hooks.js';
-import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;

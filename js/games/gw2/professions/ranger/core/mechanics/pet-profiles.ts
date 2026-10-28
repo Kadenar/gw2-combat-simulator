@@ -1,7 +1,7 @@
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { rangerPetSkillTiming } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { isRangerPetName, rangerPetByName } from '#gw2/professions/ranger/data/pets.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export interface RangerPetAttributes {
   readonly power: number;

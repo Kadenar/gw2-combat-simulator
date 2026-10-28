@@ -1,12 +1,11 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { galeshotHooks } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
-import type { RangerSkill } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;

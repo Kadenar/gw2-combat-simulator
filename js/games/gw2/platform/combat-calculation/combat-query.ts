@@ -1,10 +1,10 @@
-import { ACTOR, CONDITION, BOON } from '#gw2/platform/constants.js';
-import { boonKey, type Gw2TimedBuffApplication, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
-import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { applyMightAttributes } from '#gw2/platform/attributes/evaluation.js';
+import { gw2StaticAttributes, type Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK, type Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
 import {
   criticalChance,
   criticalDamageMultiplier,
@@ -12,11 +12,12 @@ import {
 } from '#gw2/platform/combat/formulas.js';
 import type { Gw2DamageInputs, Gw2ModifierContext, Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-stacks.js';
+import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import {
   gw2EventActorType,
-  isGw2PlayerModifierOwnedEvent,
   isGw2IllusionEvent,
-  isGw2PhantasmEvent
+  isGw2PhantasmEvent,
+  isGw2PlayerModifierOwnedEvent
 } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
 import {
@@ -24,8 +25,7 @@ import {
   targetConditionStacks,
   targetHasCondition
 } from '#gw2/platform/combat/state/targets.js';
-import { gw2StaticAttributes, type Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
-import { roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import {
   relicConditionDamageBonus,

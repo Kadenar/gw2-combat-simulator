@@ -1,13 +1,14 @@
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { reactToGaleshotMissile } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Multiple contacts from one activation each qualify; optional strike removal must not revoke the arrow refund.
 test('Shrike resets each completed hit cycle before refunding arrows', () => {

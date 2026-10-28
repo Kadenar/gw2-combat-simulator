@@ -1,15 +1,12 @@
-import { WEAPON, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
-import { selectedDodgeProfile } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
-
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusFromContext,
   balanceNumberFromContext,
@@ -20,8 +17,10 @@ import {
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
+import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { selectedDodgeProfile } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
 import type {
   DaredevilCast,
   DaredevilStrike,

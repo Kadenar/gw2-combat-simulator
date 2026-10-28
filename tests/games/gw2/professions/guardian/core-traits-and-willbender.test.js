@@ -1,17 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
-import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { createGuardianBuildDefaults, migrateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
-import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 
 const config = {
   attributeInputs: baseAttributeInputs({

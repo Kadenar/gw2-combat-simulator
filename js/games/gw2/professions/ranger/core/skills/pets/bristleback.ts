@@ -1,19 +1,19 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
-import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
-import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { isActivePetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { deliverChargedHit } from '#gw2/professions/ranger/core/skills/charge-grants.js';
-import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 /**
  * Owns Core Ranger pet skill fragments for the Bristleback family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
+import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
+import { isActivePetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import { deliverChargedHit } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Natural Spike Shoot uses wiki PvE effects; the selected pet profile supplies its measured action cadence.

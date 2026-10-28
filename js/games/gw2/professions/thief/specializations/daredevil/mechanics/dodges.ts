@@ -1,9 +1,9 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { THIEF_TRAIT_IDS as TRAIT, THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { daredevilState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import type { ThiefDodge, ThiefSkill } from '#gw2/professions/thief/types.js';
 

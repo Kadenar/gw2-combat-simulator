@@ -1,23 +1,18 @@
-import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
-import { WEAPON, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { skillForEvent, targetConditionCount, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
-
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-
+import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusFromContext,
   attributeBonusNumber,
@@ -27,8 +22,8 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-
 import type {
   StealAcceptance,
   ThiefConditionApplication,
@@ -38,12 +33,13 @@ import type {
 import {
   stealAccepted,
   stealCompleted,
-  type StealCompletion,
   thiefConditionApplied,
   thiefStruck,
-  venomsConsumed
+  venomsConsumed,
+  type StealCompletion
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
+import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 

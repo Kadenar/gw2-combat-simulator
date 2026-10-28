@@ -1,5 +1,5 @@
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 export const THIEF_TEST_CONFIG = Object.freeze({

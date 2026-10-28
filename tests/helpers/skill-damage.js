@@ -1,7 +1,7 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 // Headless application state for skill damage tests: a saved build loaded through the real adapter, without a DOM.
 import { readFile } from 'node:fs/promises';
 
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const repoUrl = (path) => new URL(`../../${path}`, import.meta.url);

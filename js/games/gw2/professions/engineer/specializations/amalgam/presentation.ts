@@ -1,23 +1,17 @@
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
-import {
-  resolveAmalgamSkillId,
-  amalgamProtocolOptions,
-  selectAmalgamMorph
-} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type {
+  ProfessionCatalogContext,
   ProfessionSkillBarGroup,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
 import {
   engineerToolbeltSkillIds,
@@ -25,14 +19,20 @@ import {
   uniqueSkillIds
 } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import {
+  amalgamProtocolOptions,
+  resolveAmalgamSkillId,
+  selectAmalgamMorph
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import type { AmalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type {
   EngineerSkill,
   EngineerUiContext,
   EngineerUiSelection,
   EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Reads the current three Morph selections, preferring the editable build over simulated state. */

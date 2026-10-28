@@ -1,6 +1,6 @@
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import type { WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 type Queries = MechanicQueriesOf<WarriorRuntime>;
 

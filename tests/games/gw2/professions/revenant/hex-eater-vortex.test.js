@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
-  REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';

@@ -1,7 +1,7 @@
-import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
-import { boonKey, buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey, buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
@@ -10,7 +10,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import {
   elementalistAnnouncement,

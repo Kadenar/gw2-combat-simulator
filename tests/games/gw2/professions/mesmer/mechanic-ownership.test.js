@@ -1,10 +1,11 @@
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 function fixture() {
   const config = { specialization: 'Core', primaryWeapon: 'Sword' };

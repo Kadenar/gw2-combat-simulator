@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cases = [

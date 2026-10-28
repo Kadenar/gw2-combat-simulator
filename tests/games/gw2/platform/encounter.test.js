@@ -1,14 +1,15 @@
 ﻿import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
-import { runtimeTargetConditionStacks, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { remainingTargetHealthFraction, targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { runtimeTargetConditionStacks, targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const bossPhase = (id, endHealthPercent, groupDps, maximumHealth = 1000) => ({
   id,

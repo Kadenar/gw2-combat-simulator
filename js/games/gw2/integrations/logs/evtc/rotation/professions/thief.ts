@@ -1,10 +1,10 @@
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { isBuffApply } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
-import { GW2_ACTION_TICK_MS, quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { GW2_ACTION_TICK_MS, quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 /** Keep sub-480 ms Shadow Bolt attempts below that boundary; timeline alignment restores the saved time as idle. */
 export function thiefShadowBoltInterruptMs(action: EvtcRecordedRotationAction): number | null {

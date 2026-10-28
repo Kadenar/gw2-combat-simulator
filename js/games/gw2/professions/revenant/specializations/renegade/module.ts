@@ -1,13 +1,13 @@
-import { REVENANT_RENEGADE_PROFILE_FIELDS } from '#gw2/professions/revenant/specializations/renegade/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
+import { REVENANT_RENEGADE_PROFILE_FIELDS } from '#gw2/professions/revenant/specializations/renegade/catalog-fields.js';
 import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 import { renegadeUi } from '#gw2/professions/revenant/specializations/renegade/presentation.js';
 import { RENEGADE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/index.js';
 import { RENEGADE_EXTRA_SKILLS } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import {
-  renegadeState,
-  projectRenegadePlanningState
+  projectRenegadePlanningState,
+  renegadeState
 } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { traitDefinitions } from '#gw2/professions/revenant/specializations/renegade/traits/index.js';
 

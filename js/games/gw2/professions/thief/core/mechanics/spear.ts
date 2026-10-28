@@ -1,17 +1,15 @@
 import { CONDITION } from '#gw2/platform/constants.js';
-import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-
-import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const SPEAR_STEALTH_SKILLS = new Set<SkillId>([ID.ASHEN_ASSAULT]);

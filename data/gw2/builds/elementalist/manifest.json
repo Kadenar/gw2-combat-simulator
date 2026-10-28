@@ -6,26 +6,26 @@
         "label": "Power (Sword)",
         "build": "data/gw2/builds/elementalist/b-power-weaver-sword.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-weaver-sword.json",
-        "benchmarkDps": 43566,
+        "benchmarkDps": 43669,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-weaver-sword-dagger",
-        "benchmarkApm": 89.9,
+        "benchmarkApm": 90.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 49093, "phase": 49093 },
-          "80-60": { "cumulative": 41548, "phase": 35878 },
-          "60-40": { "cumulative": 41236, "phase": 40632 },
-          "40-20": { "cumulative": 41637, "phase": 42918 },
-          "20-0": { "cumulative": 43566, "phase": 53408 }
+          "100-80": { "cumulative": 49863, "phase": 49863 },
+          "80-60": { "cumulative": 41913, "phase": 35917 },
+          "60-40": { "cumulative": 41327, "phase": 40209 },
+          "40-20": { "cumulative": 42271, "phase": 45278 },
+          "20-0": { "cumulative": 43669, "phase": 43669 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42464,
+          "benchmarkDps": 42616,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 47782, "phase": 47782 },
-            "80-60": { "cumulative": 40843, "phase": 35582 },
-            "60-40": { "cumulative": 40057, "phase": 38573 },
-            "40-20": { "cumulative": 41280, "phase": 45471 },
-            "20-0": { "cumulative": 42464, "phase": 42464 }
+            "100-80": { "cumulative": 48804, "phase": 48804 },
+            "80-60": { "cumulative": 41284, "phase": 35805 },
+            "60-40": { "cumulative": 40194, "phase": 38161 },
+            "40-20": { "cumulative": 41419, "phase": 45635 },
+            "20-0": { "cumulative": 42616, "phase": 42616 }
           }
         }
       },
@@ -87,26 +87,26 @@
         "label": "Condition (Pistol/Dagger)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol-dagger.json",
-        "benchmarkDps": 43900,
+        "benchmarkDps": 43856,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-dagger",
         "benchmarkApm": 100.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43649, "phase": 43649 },
-          "80-60": { "cumulative": 42978, "phase": 42271 },
-          "60-40": { "cumulative": 42733, "phase": 42256 },
-          "40-20": { "cumulative": 42328, "phase": 41195 },
-          "20-0": { "cumulative": 43900, "phase": 51862 }
+          "100-80": { "cumulative": 43440, "phase": 43440 },
+          "80-60": { "cumulative": 42858, "phase": 42252 },
+          "60-40": { "cumulative": 42662, "phase": 42274 },
+          "40-20": { "cumulative": 42276, "phase": 41195 },
+          "20-0": { "cumulative": 43856, "phase": 51862 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42599,
+          "benchmarkDps": 42566,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 42630, "phase": 42630 },
-            "80-60": { "cumulative": 41864, "phase": 41099 },
-            "60-40": { "cumulative": 41628, "phase": 41179 },
-            "40-20": { "cumulative": 41254, "phase": 40117 },
-            "20-0": { "cumulative": 42599, "phase": 42599 }
+            "100-80": { "cumulative": 42471, "phase": 42471 },
+            "80-60": { "cumulative": 41591, "phase": 40721 },
+            "60-40": { "cumulative": 41576, "phase": 41546 },
+            "40-20": { "cumulative": 41029, "phase": 39398 },
+            "20-0": { "cumulative": 42566, "phase": 42566 }
           }
         }
       },

@@ -1,10 +1,10 @@
-import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { WEAPON, ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
+import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** At impact, full clones or notes replace the resource reward with torment; blades keep their own reward. */

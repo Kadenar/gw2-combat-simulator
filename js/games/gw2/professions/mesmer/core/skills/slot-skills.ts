@@ -1,8 +1,8 @@
-import { ACTOR, COMBO_FIELD, RECIPIENT, STATUS, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { ACTOR, BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 // Reviewed activation durations keep completion effects and resource changes on their intended action ticks.
 export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({

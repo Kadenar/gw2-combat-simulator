@@ -1,10 +1,9 @@
-import { HAMMER_ORB_REUSE_DELAY } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import {
-  type AvailabilityResult,
   selectedSlotSkillAvailability,
-  denySkillCast as unavailable
+  denySkillCast as unavailable,
+  type AvailabilityResult
 } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -21,6 +20,7 @@ import { activeAura, etchingChain, skillWeapon } from '#gw2/professions/elementa
 import { elementalistElementalAvailability } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import {
   activeHammerOrbElements,
+  HAMMER_ORB_REUSE_DELAY,
   hammerOrbMatchesAttunement
 } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';

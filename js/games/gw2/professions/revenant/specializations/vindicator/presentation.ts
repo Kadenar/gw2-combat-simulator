@@ -1,8 +1,6 @@
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type {
   ProfessionPaletteActionIdentity,
   RotationStateSnapshotItem
@@ -13,10 +11,11 @@ import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js'
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import {
   VINDICATOR_AIRBORNE_MS,
-  VINDICATOR_LANDING_MS,
-  VINDICATOR_DODGE_MS
+  VINDICATOR_DODGE_MS,
+  VINDICATOR_LANDING_MS
 } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Sentinel string used as a skill ID/name for the synthetic palette entry; never maps to a real skill.

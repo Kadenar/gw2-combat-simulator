@@ -1,20 +1,18 @@
-import { instrumentSkill } from '#gw2/professions/mesmer/specializations/troubadour/skills/instrument.js';
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ACTOR, CONTROL, BOON, CONDITION, AURA, RECIPIENT } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
-
 /**
  * Owns Troubadour instrument, Tale, and simulator-action catalog data.
  * Instrument and Tale runtime behavior lives under `mechanics/`.
  */
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { ACTOR, AURA, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { instrumentSkill } from '#gw2/professions/mesmer/specializations/troubadour/skills/instrument.js';
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 // Tales capture eligibility at acceptance and grant their intrinsic rewards at commitment.

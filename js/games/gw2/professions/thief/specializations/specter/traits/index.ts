@@ -1,16 +1,15 @@
-import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { barrierRecipients } from '#gw2/platform/combat/barrier.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { barrierRecipients } from '#gw2/platform/combat/barrier.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeChargeCount, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-
-import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
   attributeBonusNumber,
   balanceNumberFromContext,
@@ -20,7 +19,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
 

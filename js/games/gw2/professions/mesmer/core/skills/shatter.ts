@@ -1,7 +1,7 @@
 import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect, StrikeTick } from '#gw2/platform/effects/types.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Author tiers directly on the resource transaction; runtime selects a tier without emitting its siblings. */
 export function shatterSkill(

@@ -1,16 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
-import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
+
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
+import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const config = {
   attributeInputs: baseAttributeInputs({

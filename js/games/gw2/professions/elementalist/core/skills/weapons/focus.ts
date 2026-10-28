@@ -1,23 +1,22 @@
-import {
-  AURA,
-  WEAPON,
-  COMBO_FIELD,
-  RECIPIENT,
-  COMBO_FINISHER,
-  BOON,
-  CONDITION,
-  CONTROL
-} from '#gw2/platform/constants.js';
 /**
  * Focus weapon-skill mechanics owned by the Core Elementalist module.
  *
  * Off-hand only, so it covers slots 4 and 5 in each attunement, including the
  * Fire Shield / Transmute Fire flipover pair.
  */
-
+import {
+  AURA,
+  BOON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  CONDITION,
+  CONTROL,
+  RECIPIENT,
+  WEAPON
+} from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Skill-id keyed fragments the Core module contributes to the focus catalog.

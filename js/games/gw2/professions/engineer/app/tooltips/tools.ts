@@ -1,15 +1,15 @@
-import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromProfile,
-  tooltipFactorChange,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
   profileFact,
+  simulationEffectFacts,
   skillFact,
+  tooltipFactorChange,
   tooltipPercent,
   tooltipProfile,
-  simulationEffectFacts,
+  tooltipSeconds,
+  traitSkillTooltip,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';

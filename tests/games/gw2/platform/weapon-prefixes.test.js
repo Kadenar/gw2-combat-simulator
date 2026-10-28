@@ -1,19 +1,18 @@
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
-
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { gw2StatsForWeaponSet } from '#gw2/platform/attributes/stats.js';
-import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calculateAttributes = createCalculateAttributes(

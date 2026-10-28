@@ -1,7 +1,6 @@
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { skillUseStrikeRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
-import { akeem } from '#gw2/platform/equipment/relics/rules/akeem.js';
 import { agony } from '#gw2/platform/equipment/relics/rules/agony.js';
+import { akeem } from '#gw2/platform/equipment/relics/rules/akeem.js';
 import { aristocracy } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
 import { blightbringer } from '#gw2/platform/equipment/relics/rules/blightbringer.js';
 import { bloodstone } from '#gw2/platform/equipment/relics/rules/bloodstone.js';
@@ -13,17 +12,17 @@ import { eagle } from '#gw2/platform/equipment/relics/rules/eagle.js';
 import { fireworks } from '#gw2/platform/equipment/relics/rules/fireworks.js';
 import { fractal } from '#gw2/platform/equipment/relics/rules/fractal.js';
 import { lastTyrant } from '#gw2/platform/equipment/relics/rules/last-tyrant.js';
-import { mistburn } from '#gw2/platform/equipment/relics/rules/mistburn.js';
-import { mistStranger } from '#gw2/platform/equipment/relics/rules/mist-stranger.js';
 import { mirage } from '#gw2/platform/equipment/relics/rules/mirage.js';
+import { mistStranger } from '#gw2/platform/equipment/relics/rules/mist-stranger.js';
+import { mistburn } from '#gw2/platform/equipment/relics/rules/mistburn.js';
 import { nourys } from '#gw2/platform/equipment/relics/rules/nourys.js';
 import { peitha } from '#gw2/platform/equipment/relics/rules/peitha.js';
 import { shackles } from '#gw2/platform/equipment/relics/rules/shackles.js';
+import { skillUseStrikeRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import { steamshrieker } from '#gw2/platform/equipment/relics/rules/steamshrieker.js';
 import { thief } from '#gw2/platform/equipment/relics/rules/thief.js';
-import { visionary } from '#gw2/platform/equipment/relics/rules/visionary.js';
 import { thorns } from '#gw2/platform/equipment/relics/rules/thorns.js';
-
+import { visionary } from '#gw2/platform/equipment/relics/rules/visionary.js';
 import type { Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 
 /** Assembles specialized rules and directly binds simple heal/elite activation policies. */

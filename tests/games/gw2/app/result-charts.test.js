@@ -1,12 +1,13 @@
-import { effectFields } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
-import { mountSimulationSection } from '#ui/results/simulation-view.js';
-import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
+
 import { mountResultCharts } from '#gw2/app/results/charts/section-view.js';
-import { inertContainer } from '#tests/helpers/dom.js';
+import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
+import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
+import { inertContainer } from '#tests/helpers/dom.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
+import { mountSimulationSection } from '#ui/results/simulation-view.js';
 
 // Hidden views keep shared output available without reading Analysis data; re-entry prepares fresh projections.
 test('Analysis projections are prepared only when the Analysis view is active', (t) => {

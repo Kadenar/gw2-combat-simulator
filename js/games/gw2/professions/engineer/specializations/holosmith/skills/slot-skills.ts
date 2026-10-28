@@ -1,18 +1,21 @@
-import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
+/**
+ * Owns Holosmith slot, toolbelt, and palette-follow-up skill fragments.
+ * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
+ */
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR, CONTROL, COMBO_FINISHER, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import {
-  requireSkillFromContext,
-  requireEffect,
-  skillNumber,
-  effectNumber
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { EngineerResolverContext, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import {
+  effectNumber,
+  requireEffect,
+  requireSkillFromContext,
+  skillNumber
+} from '#gw2/platform/skills/balance-profiles.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import {
   holosmithHeatSnapshotFromEvent,
@@ -20,15 +23,15 @@ import {
   holosmithSkillStrikeFactor,
   snapshotHolosmithHeat
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-/**
- * Owns Holosmith slot, toolbelt, and palette-follow-up skill fragments.
- * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
- */
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type {
   HolosmithSkill,
   HolosmithSkillFragment
 } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import type {
+  EngineerResolverContext,
+  EngineerRuntime,
+  EngineerRuntimeState
+} from '#gw2/professions/engineer/types.js';
 
 // Seconds from Launch Wall's heat event to its walls' shared impact.
 const LAUNCH_WALL_IMPACT_DELAY = 0.48;

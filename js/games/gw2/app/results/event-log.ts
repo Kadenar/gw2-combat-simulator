@@ -1,27 +1,27 @@
 /** Maps simulation events to display rows and mounts the rotation event-log view. */
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
-import { mountEventLog } from '#ui/results/event-log.js';
-import type { EventLogDescriptor, EventLogRow } from '#ui/results/event-log.js';
-import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
-import { professionPlanningState } from '#gw2/app/rotation/context.js';
-import { effectName } from '#gw2/app/results/model.js';
-import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { downloadJson } from '#gw2/app/import-export/files.js';
 import { damageDebugPayload } from '#gw2/app/results/damage-debug.js';
-import { consolidateTraitBuffRows } from '#gw2/app/results/trait-buff-rows.js';
-import type { AttributedEventLogRow } from '#gw2/app/results/trait-buff-rows.js';
 import {
   CAST_LINK,
-  ENTITY_SOURCE,
   deriveEventLogOwnership,
+  ENTITY_SOURCE,
   eventLogSource,
   minionAttackerLabel
 } from '#gw2/app/results/event-ownership.js';
+import { effectName } from '#gw2/app/results/model.js';
+import { consolidateTraitBuffRows } from '#gw2/app/results/trait-buff-rows.js';
+import type { AttributedEventLogRow } from '#gw2/app/results/trait-buff-rows.js';
+import { professionPlanningState } from '#gw2/app/rotation/context.js';
+import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
+import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
+import { mountEventLog } from '#ui/results/event-log.js';
+import type { EventLogDescriptor, EventLogRow } from '#ui/results/event-log.js';
 
 interface NormalizedEventLogDescriptor extends EventLogDescriptor {
   readonly className: string;

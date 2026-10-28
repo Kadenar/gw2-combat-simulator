@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 
 // Exercise the shared clock with real recharge intervals, independently of profession trigger eligibility.
 function fixture(rate = 1.25) {

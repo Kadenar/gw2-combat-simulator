@@ -1,18 +1,18 @@
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { encounterEndTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
-import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import { normalizeConduitHazeActions } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
-import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
-import { resolvedActionIdentity } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
+import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import { resolvedActionIdentity } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { RANGER_SKILL_IDS } from '#gw2/professions/ranger/data/ids.js';
+import { normalizeConduitHazeActions } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
-import { event, log, EVTC_FIXTURE_PLAYER } from '#tests/helpers/evtc-fixture.js';
+import { RANGER_SKILL_IDS } from '#gw2/professions/ranger/data/ids.js';
+import { event, EVTC_FIXTURE_PLAYER, log } from '#tests/helpers/evtc-fixture.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 // Command encoding preserves adapter decisions, including zero-duration cancellation and mechanic-specific inputs.
 test('shared commands retain explicit cancellation and variants but reset markers discard cast fields', () => {

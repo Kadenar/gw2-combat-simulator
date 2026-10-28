@@ -1,5 +1,5 @@
-import { loadGameWorkerDriver } from '#browser/game/worker-driver.js';
 import type { GameContentAddress } from '#browser/game/contracts.js';
+import { loadGameWorkerDriver } from '#browser/game/worker-driver.js';
 
 export interface GameWorkerRequestEnvelope<TRequest extends GameContentAddress> {
   readonly requestId: number;

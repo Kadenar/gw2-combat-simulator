@@ -1,13 +1,14 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Staff',

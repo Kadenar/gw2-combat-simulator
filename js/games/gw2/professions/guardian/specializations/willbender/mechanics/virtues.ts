@@ -1,21 +1,21 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { RECIPIENT, ACTOR, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
-  effectNumber,
   balanceNumberFromContext,
-  requireSkillFromContext,
-  requireEffect
+  effectNumber,
+  requireEffect,
+  requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { admitVirtueActivation, completeVirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';

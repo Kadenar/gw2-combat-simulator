@@ -1,13 +1,14 @@
-import { analyzeInputTrace } from '#gw2/input/analysis.js';
-import { createInputProfile } from '#gw2/input/profile.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { isAutoattackSkill } from '#gw2/platform/skills/autoattack-chain-index.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
+
+import { analyzeInputTrace } from '#gw2/input/analysis.js';
+import { createInputProfile } from '#gw2/input/profile.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { isAutoattackSkill } from '#gw2/platform/skills/autoattack-chain-index.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Minimal commands isolate input accounting from damage formulas and saved benchmark rotations.
 const catalog = createCanonicalCatalog({

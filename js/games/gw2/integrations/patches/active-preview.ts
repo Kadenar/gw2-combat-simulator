@@ -1,7 +1,7 @@
-import { WEAPON, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import { impactEffects, strikeTimeline, conditionTimeline } from '#gw2/platform/effects/authoring.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 
 // A target receives one Dust Storm pulse per two-second interval across both storms;
 // the fourth pulse overlaps only large hitboxes, with every offensive payload sharing that restriction.

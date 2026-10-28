@@ -1,21 +1,22 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { armElementalLightningJolt } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
-import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
-import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
+
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
+import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import {
-  completeElementalistGlyphCast,
   completeElementalistElementalCommand,
+  completeElementalistGlyphCast,
   ensureElementalistElemental
 } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
+import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { armElementalLightningJolt } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
+import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
 const config = {
   specialization: 'Core',

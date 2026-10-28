@@ -1,17 +1,17 @@
 import {
   fromProfile,
   fromSkill,
-  tooltipFactorChange,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
   skillTooltip,
+  tooltipFactorChange,
   tooltipPercent,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { shatterTooltip } from '#gw2/professions/mesmer/app/tooltips/shared.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
-import { shatterTooltip } from '#gw2/professions/mesmer/app/tooltips/shared.js';
 
 /** Describe chronomancer tooltips from the selected balance data. */
 export const chronomancerTooltips = {

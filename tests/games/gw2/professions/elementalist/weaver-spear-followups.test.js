@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+
+import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
+import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { WEAVER_SPEAR_BUFFS } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const skills = Object.keys(WEAVER_SPEAR_BUFFS).map((id) => elementalistCatalog.skillsById.get(Number(id)));
 const wait = (durationMs) => ({ type: 'wait', durationMs });

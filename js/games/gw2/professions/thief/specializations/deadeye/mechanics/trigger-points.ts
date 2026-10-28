@@ -1,7 +1,7 @@
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export interface DeadeyeCast {
   readonly cast: RuntimeCast<ThiefSkill>;

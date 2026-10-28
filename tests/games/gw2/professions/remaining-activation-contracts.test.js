@@ -1,28 +1,29 @@
-import { eternalLifePassive } from '#gw2/professions/necromancer/core/traits/soul-reaping/index.js';
-import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { skillEffectKey } from '#gw2/platform/effects/validation.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS as ATTUNEMENT,
   ELEMENTALIST_TRAIT_IDS as ET
 } from '#gw2/professions/elementalist/data/ids.js';
-import { NECROMANCER_SKILL_IDS as N, NECROMANCER_TRAIT_IDS as NT } from '#gw2/professions/necromancer/data/ids.js';
-import {
-  REVENANT_SKILL_IDS as R,
-  REVENANT_TRAIT_IDS as RT,
-  REVENANT_LEGEND_IDS as LEGEND
-} from '#gw2/professions/revenant/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { reenterEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { skillEffectKey } from '#gw2/platform/effects/validation.js';
+import { eternalLifePassive } from '#gw2/professions/necromancer/core/traits/soul-reaping/index.js';
+import { NECROMANCER_SKILL_IDS as N, NECROMANCER_TRAIT_IDS as NT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_SKILL_IDS as R,
+  REVENANT_TRAIT_IDS as RT
+} from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const combat = { type: 'combat-start' };
 const wait = (durationMs) => ({ type: 'wait', durationMs });

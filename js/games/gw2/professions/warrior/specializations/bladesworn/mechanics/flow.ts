@@ -1,18 +1,17 @@
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
-
+import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import type { WarriorRuntimeState, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { timeKey } from '#kernel/core/clock.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 const FLOW_TICK = 'warrior.flow-tick';
 

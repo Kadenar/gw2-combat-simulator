@@ -1,9 +1,13 @@
-import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
 /** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import {
+  activeBuffStacks,
+  boonActive,
+  countActiveBoons,
+  skillForEvent
+} from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 
 // Use canonical duration pools while retaining Warrior's config/live-only visibility contract.
 export function warriorBoonActive(context: Gw2ModifierContext, boon: string): boolean {

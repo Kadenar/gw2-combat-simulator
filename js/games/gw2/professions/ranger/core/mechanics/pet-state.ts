@@ -1,6 +1,6 @@
-import { createCompanionEffects, type CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import { createCompanionEffects, type CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import {
   createRangerActorProcState,
   type RangerActorProcState

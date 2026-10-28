@@ -1,11 +1,11 @@
-import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/catalog-fields.js';
-import type { MESMER_CORE_SKILL_FIELDS } from '#gw2/professions/mesmer/core/catalog-fields.js';
-import type { SimulationActorType } from '#gw2/platform/constants.js';
 /** Declarative Mesmer skill records shared by generated data and runtime consumers. */
+import type { SimulationActorType } from '#gw2/platform/constants.js';
 import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { MESMER_CORE_SKILL_FIELDS } from '#gw2/professions/mesmer/core/catalog-fields.js';
+import type { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations/troubadour/catalog-fields.js';
 
 // Troubadour afterimages are illusions, so every illusion rule applies to them alongside clones and phantasms.
 export type MesmerSummonKind = 'clone' | 'phantasm' | 'afterimage';

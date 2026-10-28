@@ -1,7 +1,7 @@
 import path from 'node:path';
-import { fetchProfessionSnapshot, serializeProfessionSnapshot } from './lib/gw2-profession-snapshot.mjs';
 
 import { writeGeneratedFiles } from './lib/generator-utils.mjs';
+import { fetchProfessionSnapshot, serializeProfessionSnapshot } from './lib/gw2-profession-snapshot.mjs';
 
 const STABLE_THIEF_ARTIFACT_SKILL_IDS = Object.freeze([76633, 76674, 76702]);
 // Exclude retired duplicates too: supported variants already belong to the canonical skill's mechanics.

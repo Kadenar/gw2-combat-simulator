@@ -1,7 +1,7 @@
 /** Defines build presets and selection contracts shared by the build editor and professions. */
+import type { TargetHealthBandDps } from '#gw2/app/results/summary-metrics.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { CatalogEntity, Skill } from '#gw2/platform/skills/types.js';
-import type { TargetHealthBandDps } from '#gw2/app/results/summary-metrics.js';
 
 export interface BuildTemplatePreset {
   readonly label: string;

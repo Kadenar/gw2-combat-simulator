@@ -1,7 +1,7 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { type ActionContext } from '#gw2/platform/effects/actions.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';

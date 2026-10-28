@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
 

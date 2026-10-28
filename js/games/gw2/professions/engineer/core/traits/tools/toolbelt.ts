@@ -1,9 +1,9 @@
-import { type EngineerRuntime } from '#gw2/professions/engineer/types.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { type Skill } from '#gw2/platform/skills/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { type SkillEffect } from '#gw2/platform/effects/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { type SkillEffect } from '#gw2/platform/effects/types.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { type Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { type EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 /** Adrenal Implant owns its additive endurance bonus alongside its dodge recharge reduction. */
 export function adrenalImplantEnduranceBonus(context: EngineerRuntime): number {

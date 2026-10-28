@@ -1,9 +1,9 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
-import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Only the selected elite supplies its effect policies, using the same caps as its mechanics. */
 export function willbenderBuffPolicies(context: unknown): BuffStatePolicy[] {

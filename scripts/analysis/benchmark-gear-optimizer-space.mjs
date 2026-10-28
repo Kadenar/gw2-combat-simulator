@@ -1,7 +1,7 @@
 /** Measure unique-stat preparation without simulating the enormous Cartesian products it replaces. */
 import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
-import { captureGearOptimizerRequest, createOptimizerSpace } from '#gw2/app/optimizer/gear/search.js';
 import { groupOptimizerSpace } from '#gw2/app/optimizer/gear/search-space.js';
+import { captureGearOptimizerRequest, createOptimizerSpace } from '#gw2/app/optimizer/gear/search.js';
 
 const adapter = await loadOptimizerContext('warrior');
 const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());

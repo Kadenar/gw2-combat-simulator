@@ -1,5 +1,5 @@
-import { canonicalTime } from '#kernel/core/clock.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** One owned occurrence is pending per loop; the next deadline is also available to resource readiness queries. */
 export interface PeriodicTaskState {

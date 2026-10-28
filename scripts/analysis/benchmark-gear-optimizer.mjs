@@ -1,18 +1,19 @@
 /** Reproduce preparation/serialization throughput; --cpu-prof and --heap-prof capture engine and allocation costs. */
+import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { cpus, totalmem } from 'node:os';
-import { execFileSync } from 'node:child_process';
 import { performance, PerformanceObserver } from 'node:perf_hooks';
+
 import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
 import {
   captureGearOptimizerRequest,
-  createOptimizerSpace,
   createOptimizerEvaluator,
-  ordinaryEquipmentAt,
-  optimizerScore
+  createOptimizerSpace,
+  optimizerScore,
+  ordinaryEquipmentAt
 } from '#gw2/app/optimizer/gear/search.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const professions = process.argv.slice(2);
 const gc = [];

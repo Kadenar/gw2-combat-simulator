@@ -1,6 +1,44 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { test } from 'node:test';
+
+import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
+import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { remainingDurationStackSeconds, timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
+import {
+  createRevenantBuildDefaults,
+  migrateRevenantBuild,
+  validateRevenantBuild
+} from '#gw2/professions/revenant/build/build.js';
+import { REVENANT_LEGENDS, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
+import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/index.js';
+import {
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_SKILL_IDS as SKILL,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
+import {
+  legalRevenantLegendIds,
+  REVENANT_CORE_LEGEND_IDS,
+  REVENANT_ELITE_LEGEND_BY_SPECIALIZATION,
+  REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND
+} from '#gw2/professions/revenant/data/legends.js';
+import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { timedBuffApplicationsAt, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import {
+  createObservedProfessionSimulator,
+  observedRuntime,
+  planningFixture
+} from '#tests/helpers/observed-runtime.js';
+import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 // Inputs are equipment attributes; baseline Might and its trait adjustment share one stage.
 function notorietyAttributes(context, attributes) {
@@ -10,42 +48,6 @@ function notorietyAttributes(context, attributes) {
   );
   return applyMightAttributes(attributes, activeBoonStacks(context, 'might'), [notoriety.attributes(facts)]);
 }
-
-import { applyMightAttributes, attributeContext } from '#gw2/platform/attributes/evaluation.js';
-import { notoriety } from '#gw2/professions/revenant/core/traits/devastation/index.js';
-import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import assert from 'node:assert/strict';
-import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { readFile } from 'node:fs/promises';
-import { test } from 'node:test';
-import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
-
-import {
-  createRevenantBuildDefaults,
-  migrateRevenantBuild,
-  validateRevenantBuild
-} from '#gw2/professions/revenant/build/build.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import {
-  REVENANT_LEGEND_IDS as LEGEND,
-  REVENANT_SKILL_IDS as SKILL,
-  REVENANT_TRAIT_IDS as TRAIT
-} from '#gw2/professions/revenant/data/ids.js';
-import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import {
-  legalRevenantLegendIds,
-  REVENANT_CORE_LEGEND_IDS,
-  REVENANT_ELITE_LEGEND_BY_SPECIALIZATION,
-  REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND
-} from '#gw2/professions/revenant/data/legends.js';
-import { REVENANT_LEGENDS, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(

@@ -1,4 +1,4 @@
-import { INPUT_CONTROLS, defaultInputBindings, parseInputBinding, type InputBindings } from '#gw2/input/bindings.js';
+import { defaultInputBindings, INPUT_CONTROLS, parseInputBinding, type InputBindings } from '#gw2/input/bindings.js';
 
 const INPUT_PROFILE_VERSION = 1;
 

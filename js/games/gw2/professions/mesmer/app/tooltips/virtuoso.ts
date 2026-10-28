@@ -1,16 +1,16 @@
 import {
   fromProfile,
-  tooltipFactorChange,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
   skillTooltip,
+  tooltipFactorChange,
   tooltipPercent,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { shatterTooltip } from '#gw2/professions/mesmer/app/tooltips/shared.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
-import { shatterTooltip } from '#gw2/professions/mesmer/app/tooltips/shared.js';
 
 /** Describe virtuoso tooltips from the selected balance data. */
 export const virtuosoTooltips = {

@@ -1,13 +1,13 @@
-import { ACTOR, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitSkillReplacement } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
@@ -15,16 +15,12 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { holosmithModifierState } from '#gw2/professions/engineer/specializations/holosmith/mechanics/modifier-queries.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   holosmithEventMetadata,
   type HolosmithResolverEvent
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
-import { preservesPhotonicHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
-import { type EngineerResolverContext } from '#gw2/professions/engineer/types.js';
-
+import { holosmithModifierState } from '#gw2/professions/engineer/specializations/holosmith/mechanics/modifier-queries.js';
 import {
   heatGained,
   heatInitialized,
@@ -33,7 +29,10 @@ import {
   type HeatGain,
   type PhotonForgeTransition
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
+import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import { preservesPhotonicHeat } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
+import { type EngineerResolverContext } from '#gw2/professions/engineer/types.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Owns Thermal Release Valve at its established heat and impact boundaries. */

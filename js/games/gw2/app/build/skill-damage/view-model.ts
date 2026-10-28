@@ -1,6 +1,6 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDamagePlan, SkillDamageRowDefinition } from '#gw2/app/build/skill-damage/plan.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type {
   SkillDamageConditionRow,
   SkillDamageEvaluation,

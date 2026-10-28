@@ -1,21 +1,19 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
-import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
-import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
+import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import { beginThiefStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
-import { emitStealth } from '#tests/helpers/stealth.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
+import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { emitStealth } from '#tests/helpers/stealth.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const baseConfig = {

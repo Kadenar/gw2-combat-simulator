@@ -1,11 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { observeGw2Runtime, observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { armMesmerSkillFlip } from '#gw2/professions/mesmer/core/mechanics/flips.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { observedRuntime, observeGw2Runtime, projectObservedState } from '#tests/helpers/observed-runtime.js';
 
 // Use real runtime expiry and scheduled probes to isolate window contracts from weapon cast durations.
 function flipScenario(initialize, tasks = {}) {

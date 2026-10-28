@@ -1,12 +1,12 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
 function canonicalRotation(rotation) {
   return rotation.map((entry) =>

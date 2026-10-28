@@ -1,21 +1,21 @@
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { ACTOR, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
 import {
   fromProfile,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
   profileFact,
-  tooltipPercent,
   simulationEffectFacts,
+  skillTooltip,
+  tooltipPercent,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
+import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerSelectedAmbush } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 
 const cloakFacts = (balanceContext: Parameters<DescribeSimulationTooltip>[0]) => [
   profileFact(balanceContext, TRAIT.MIRAGE_CLOAK, 'duration', 'Mirage Cloak', tooltipSeconds),

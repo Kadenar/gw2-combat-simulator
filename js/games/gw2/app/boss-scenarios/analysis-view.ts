@@ -1,7 +1,7 @@
-import { escapeHtml as h } from '#ui/shared/html.js';
-import { resultNumber as number } from '#gw2/app/results/formatting.js';
 import type { EncounterAnalysisPhase } from '#gw2/app/boss-scenarios/analysis-model.js';
+import { resultNumber as number } from '#gw2/app/results/formatting.js';
 import type { EncounterResult } from '#gw2/platform/combat/state/encounter.js';
+import { escapeHtml as h } from '#ui/shared/html.js';
 
 /** Show DPS only for damage phases; split time still contributes to overall DPS and chart transitions. */
 export function mountEncounterAnalysis(

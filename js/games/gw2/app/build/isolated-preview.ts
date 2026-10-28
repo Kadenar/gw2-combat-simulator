@@ -1,6 +1,6 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import type { BuildAttributes, BuildContextInput } from '#gw2/build-context/types.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type {
   AttributePreviewValues,
   PreviewControl,

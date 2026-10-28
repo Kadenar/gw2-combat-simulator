@@ -1,5 +1,5 @@
-import type { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
 import type { createFastOptimizer } from '#gw2/app/optimizer/gear/fast-search.js';
+import type { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
 import type { GearOptimizerRequest, OptimizerCandidate } from '#gw2/app/optimizer/gear/search.js';
 
 type GearOptimizerWorkerRequest = { readonly requestId: number } & (

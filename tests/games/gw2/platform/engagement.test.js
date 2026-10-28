@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCombatEngagement, autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
+
+import { autonomousActionsAllowed, createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 
 // Discovery admits simultaneous opening damage without letting it finish authored preparation.
 test('authored discovery, preparation, and accepted combat entry remain separate transitions', () => {

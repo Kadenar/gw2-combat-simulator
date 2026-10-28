@@ -1,20 +1,20 @@
-import { escapeHtml as html } from '#ui/shared/html.js';
-import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
-import { professionRegistry } from '#gw2/profession-registry.js';
 import { templateCategory, templateTileContent } from '#gw2/app/build/library/model.js';
-import type { Benchmark } from '#gw2/app/page/benchmarks.js';
-import { ComparisonRunner } from '#gw2/app/page/benchmark-comparison/runner.js';
-import { createComparisonExecutor } from '#gw2/app/page/benchmark-comparison/execute.js';
 import { mountComparisonChart, type ComparisonLine } from '#gw2/app/page/benchmark-comparison/chart.js';
-import { assignComparisonSlots, comparisonStyle } from '#gw2/app/page/benchmark-comparison/styles.js';
+import { createComparisonExecutor } from '#gw2/app/page/benchmark-comparison/execute.js';
 import {
-  comparisonKey,
   comparisonCurve,
   comparisonDamageAt,
   comparisonDpsAt,
+  comparisonKey,
   type ComparisonMode,
   type ComparisonResult
 } from '#gw2/app/page/benchmark-comparison/model.js';
+import { ComparisonRunner } from '#gw2/app/page/benchmark-comparison/runner.js';
+import { assignComparisonSlots, comparisonStyle } from '#gw2/app/page/benchmark-comparison/styles.js';
+import type { Benchmark } from '#gw2/app/page/benchmarks.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+import { escapeHtml as html } from '#ui/shared/html.js';
 
 export interface BenchmarkComparisonView {
   update(rows: readonly Benchmark[], colors: ReadonlyMap<Benchmark, string>): void;

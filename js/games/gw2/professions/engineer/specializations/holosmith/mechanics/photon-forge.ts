@@ -1,16 +1,17 @@
+import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
+import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { holosmithCastAvailability } from '#gw2/professions/engineer/specializations/holosmith/mechanics/availability.js';
 import {
   HOLOSMITH_FORGE_TOGGLE_SKILL_IDS,
   HOLOSMITH_HEAT
@@ -23,8 +24,6 @@ import {
   preservesPhotonicHeat
 } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import type {
   EngineerConfig,
   EngineerRuntime,
@@ -32,7 +31,7 @@ import type {
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 interface PhotonForgeHeatPayload {
   readonly amount: number;

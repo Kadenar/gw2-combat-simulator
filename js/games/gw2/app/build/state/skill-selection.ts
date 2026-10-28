@@ -1,5 +1,5 @@
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export function isSlotSkillSelectable(
   app: ProfessionAppState,

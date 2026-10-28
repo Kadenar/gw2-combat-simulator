@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openSimulator, openTemplates } from '#tests/helpers/browser-workspace.js';
 
 // Cursor changes refresh both comparison previews without mutating rotations or invalidating simulation results.

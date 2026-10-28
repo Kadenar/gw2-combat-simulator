@@ -1,15 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { profession, createBuildContext } from '#gw2/professions/mesmer/build/context.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 import { createElementalistBuildDefaults } from '#gw2/professions/elementalist/build/build.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { createMesmerBuildDefaults } from '#gw2/professions/mesmer/build/build.js';
+import { createBuildContext, profession } from '#gw2/professions/mesmer/build/context.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 
 test('all profession pages use the shared default target conditions', () => {

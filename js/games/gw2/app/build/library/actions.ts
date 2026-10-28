@@ -1,14 +1,14 @@
-import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
 import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
+import { buildSignature } from '#gw2/app/build/library/model.js';
+import type { MyBuild } from '#gw2/app/build/library/storage.js';
+import { updateTemplateSelection } from '#gw2/app/build/library/view.js';
+import { renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { replaceBuild, replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 import { addBuildTab, captureBuildDestination, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
-import { renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
-import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
-import { buildSignature } from '#gw2/app/build/library/model.js';
-import { updateTemplateSelection } from '#gw2/app/build/library/view.js';
-import type { MyBuild } from '#gw2/app/build/library/storage.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
+import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 type TemplateLoadAction = 'build' | 'rotation' | 'template' | 'new-tab';

@@ -1,14 +1,12 @@
-import {
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
-  ELEMENTALIST_SKILL_IDS as ID
-} from '#gw2/professions/elementalist/data/ids.js';
-
 import { normalizedName as normalized, recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-
 import type {
   LogActionNormalizationContext,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
 
 type Element = keyof typeof ELEMENTALIST_ATTUNEMENT_SKILL_IDS;
 

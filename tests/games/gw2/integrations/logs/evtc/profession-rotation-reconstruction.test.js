@@ -1,27 +1,28 @@
-import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
-import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
-import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
-import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import { evtcProfessionMetadata, evtcSpecializationMetadata } from '#gw2/integrations/logs/evtc/profession-metadata.js';
 import { createStrikePacketMatcher } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
-import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
-import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
-import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
-import { deadeyeMarkActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
-import { thiefCatalog } from '#gw2/professions/thief/profession.js';
+import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import {
   eiMesmerPhaseRetreat,
   eiMesmerShatters,
   eiMinionSpawns
 } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
+import { deadeyeMarkActions } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
+import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
+import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
+import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 function context(profession, specialization, events, agents = log().agents) {
   const result = {

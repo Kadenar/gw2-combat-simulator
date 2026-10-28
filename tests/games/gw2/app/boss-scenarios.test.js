@@ -1,25 +1,26 @@
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
-import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
-import { scenarioSimulation, withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ENCOUNTER_TEMPLATES, encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
-import { encounterPhasePlan, encounterExecutionPhases } from '#gw2/app/boss-scenarios/phases.js';
+
 import { encounterAnalysisPhases } from '#gw2/app/boss-scenarios/analysis-model.js';
-import { encounterTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
+import { ENCOUNTER_TEMPLATES, encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
 import { ENCOUNTER_HEALTH } from '#gw2/app/boss-scenarios/health-data.js';
 import {
   createBossScenario,
+  parseBossScenario,
   selectScenarioEncounter,
-  selectScenarioTarget,
-  parseBossScenario
+  selectScenarioTarget
 } from '#gw2/app/boss-scenarios/model.js';
+import { encounterExecutionPhases, encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
+import { scenarioSimulation, withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
+import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
+import { encounterTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const adapter = await loadProfessionAppAdapter('engineer');
 const makeDraft = () =>

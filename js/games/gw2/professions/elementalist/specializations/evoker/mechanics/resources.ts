@@ -1,10 +1,3 @@
-import { ELEMENTALIST_TRAIT_IDS as EVOKER_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
-import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { evokerChargeProfile } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
-
 /**
  * The Evoker familiar-charge economy.
  *
@@ -13,13 +6,21 @@ import { evokerChargeProfile } from '#gw2/professions/elementalist/specializatio
  * the resource events the charge dial renders. Spending charges belongs to the
  * familiar handlers; this module only accrues and reports them.
  */
+import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceNumberFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 // Use Core's bundle names so conjure availability and familiar-charge exclusions agree.
 import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_TRAIT_IDS as EVOKER_TRAIT,
+  ELEMENTALIST_SKILL_IDS as ID
+} from '#gw2/professions/elementalist/data/ids.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { evokerChargeProfile } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Weapon skills exempted from familiar charge generation despite sitting in slots 2-5. */
 const EVOKER_NO_CHARGE_SKILLS: ReadonlySet<SkillId> = new Set([

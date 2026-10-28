@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { professionRegistry } from '#gw2/profession-registry.js';
 
 test('the landing selector records supplied specialization artwork for every profession', () => {

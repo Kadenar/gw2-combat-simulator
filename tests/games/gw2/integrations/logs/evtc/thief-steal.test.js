@@ -1,16 +1,17 @@
-import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
-import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+
+import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import {
   thiefStealActions,
   thiefThousandNeedlesActions
 } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
-import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
-import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
+import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
+import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
 
 const TARGET = 0x2000n;
 const STEAL = 13014;

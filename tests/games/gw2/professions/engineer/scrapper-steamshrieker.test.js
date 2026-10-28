@@ -1,10 +1,10 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { resolveProcIcon } from '#gw2/app/shared/icons.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { RELIC_DATA, RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { RELIC_IDS, RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 const scrapperConfig = Object.freeze({

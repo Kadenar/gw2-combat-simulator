@@ -1,8 +1,8 @@
-import { professionPlanningState } from '#gw2/app/rotation/context.js';
-import { targetHealthTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
-import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import { renderPatchComparison } from '#gw2/app/patch-preview/view.js';
 import { presentationMetrics, type WorkspacePresentation } from '#gw2/app/presentation/model.js';
+import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
+import { professionPlanningState } from '#gw2/app/rotation/context.js';
+import { targetHealthTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
 
 /** Golem presents one target's health milestones and makes patch comparison available alongside analysis. */
 export function createGolemPresentation(): WorkspacePresentation {

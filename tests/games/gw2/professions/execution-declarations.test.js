@@ -1,14 +1,15 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { THIEF_SKILL_IDS as THIEF_ID } from '#gw2/professions/thief/data/ids.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { THIEF_SKILL_IDS as THIEF_ID } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
 test('Antiquary replacement owners emit their own packets instead of the authored effects', () => {
   // Skritt Scuffle and Forged Surfer author packets that their live owners replace with pilfers and a timed sequence.

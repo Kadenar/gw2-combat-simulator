@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { previewControlScopes } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { previewControlScopes } from '#gw2/platform/profession-presentation/attribute-preview.js';
 
 function familyUi(core, elite, family = {}) {
   return normalizeProfessionUi(

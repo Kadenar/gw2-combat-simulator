@@ -1,15 +1,10 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
-import { ACTOR, BOON } from '#gw2/platform/constants.js';
-import { boonKey, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
-import { createRangerPetState, rangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
-import {
-  RANGER_PET_SKILL_TIMINGS,
-  rangerPetSkillTiming
-} from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
-import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { boonKey, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
+import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/cast-effects.js';
 import {
@@ -19,32 +14,37 @@ import {
   summonQuicknessCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import {
   rangerPetCombatMetadata,
   rangerPetCompanionId
 } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { isPetActorEvent } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import {
   rangerPetAutoProfile,
   type PetAutoProfile,
   type PetAutoSkill
 } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
+import {
+  RANGER_PET_SKILL_TIMINGS,
+  rangerPetSkillTiming
+} from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
+import { createRangerPetState, rangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
+import { isPetActorEvent } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { ibogaAutonomousRecharge } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
 import {
   beastlyWardenPetDamageMultiplier,
   packAlphaPetRecharge
 } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
 import { lingeringMagicConcentration } from '#gw2/professions/ranger/core/traits/nature-magic/index.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import {
   rangerPetSkillCommandable,
   rangerPetSkillsRequireCommands
 } from '#gw2/professions/ranger/data/pet-commands.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerRuntime, RangerSkill, RangerRuntimeState } from '#gw2/professions/ranger/types.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 export { RANGER_PET_STRIKE_SCALING } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 

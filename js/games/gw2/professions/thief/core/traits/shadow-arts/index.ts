@@ -1,17 +1,14 @@
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-
 import type { StealAcceptance, StealthTransition } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import {
   stealAccepted,

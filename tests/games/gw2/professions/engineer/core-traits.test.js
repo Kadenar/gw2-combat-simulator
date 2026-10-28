@@ -1,16 +1,16 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Core trait contracts cover proc triggers, attribute modifiers, and Tools interactions.
 const baseConfig = Object.freeze({

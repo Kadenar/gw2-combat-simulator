@@ -1,9 +1,9 @@
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
-
-import { MESMER_TRAIT_IDS as TRAIT, MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 
 // Cached build facts must not freeze signet recharge or timed stacks, or leak across simulation/patch queries.
 test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stacks remain live', () => {

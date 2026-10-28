@@ -2,60 +2,59 @@
  * Projects authored commands and simulation events into timeline rows and the proc panel.
  * The view reconciles this HTML into the DOM, so imported text must be escaped at each HTML boundary.
  */
-import { encounterStepContext } from '#gw2/app/rotation/timeline/encounter.js';
 import type { TimelinePresentation } from '#gw2/app/presentation/model.js';
-import { escapeHtml as esc } from '#ui/shared/html.js';
-import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import {
   doubleEdgeOutcomeLabel,
   hasConfigurableDoubleEdgeOutcome
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
+import { encounterStepContext } from '#gw2/app/rotation/timeline/encounter.js';
 import {
-  ACTION_ICONS,
-  COMBAT_START_ICON,
-  COOLDOWN_RESET_ICON,
-  WAIT_ICON,
-  resolveProcIcon
-} from '#gw2/app/shared/icons.js';
-import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
-import {
-  professionTimelineMarkers,
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
   formatTimelineCastDetails,
   formatTimelineDuration,
   formatTimelineSkillTooltip,
   groupConsecutiveProcSteps,
+  mechanicResourceSpends,
   procBadgeLabel,
   procFilterKey,
   procFilterLabel,
-  procTypeLabel,
   procStackLabel,
+  procTypeLabel,
+  professionTimelineMarkers,
   relicProcExpirationTimelineMarkers,
   relicProcTimelineMarkers,
   rotationEntryName,
   rotationSkillHighlightKey,
-  mechanicResourceSpends,
   sigilProcTimelineMarkers,
   timelineDeadTimeMarkers,
-  timelineTransitionDelayMarkers,
   timelineItem,
   timelineSkillCastOrdinals,
-  timelineTargetImpactDetails,
   timelineStepsWithChargeFills,
+  timelineTargetImpactDetails,
+  timelineTransitionDelayMarkers,
   timelineWeaponRowGroups,
   timelineWeaponRows,
   traitProcTimelineMarkers
 } from '#gw2/app/rotation/timeline/model.js';
-import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/weapon-set-duration.js';
+import {
+  ACTION_ICONS,
+  COMBAT_START_ICON,
+  COOLDOWN_RESET_ICON,
+  resolveProcIcon,
+  WAIT_ICON
+} from '#gw2/app/shared/icons.js';
+import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
+import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
+import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
-import type { SimulationStep, Gw2ProcStep } from '#gw2/platform/results/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { Gw2ProcStep, SimulationStep } from '#gw2/platform/results/types.js';
 import { rotationInsertionGapHtml, rotationTimelineEntryHtml } from '#ui/rotation/insertion-cursor.js';
+import { escapeHtml as esc } from '#ui/shared/html.js';
 
 /** The view retains a row's DOM node while both its identity and rendered HTML remain unchanged. */
 export interface TimelineRowRender {

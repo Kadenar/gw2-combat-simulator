@@ -1,8 +1,8 @@
-import type { ParsedEvtc, ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
-import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
-import type { EvtcPlayerEvidence } from '#gw2/integrations/logs/evtc/rotation/players.js';
-import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
 import { usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
+import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
+import type { EvtcPlayerEvidence } from '#gw2/integrations/logs/evtc/rotation/players.js';
+import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import type { ParsedEvtc, ParsedEvtcEvent } from '#gw2/integrations/logs/evtc/types.js';
 
 export interface IndexedEvent {
   readonly event: ParsedEvtcEvent;

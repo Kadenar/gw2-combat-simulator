@@ -1,25 +1,24 @@
-import { ACTOR, CONTROL, AURA } from '#gw2/platform/constants.js';
-import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-
+import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, AURA, CONTROL } from '#gw2/platform/constants.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   effectNumber,
   requireBalanceProfileFromContext,
-  requireSkillFromContext,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { lightAuraGranting } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { lightAuraGranting } from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
-import type { GuardianSkill, GuardianRuntime, GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 export const AURA_GRANT = 'guardian.luminary.aura-grant';
 

@@ -1,21 +1,22 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
-import { loadProfession } from '#gw2/profession-registry.js';
+
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { loadProfession } from '#gw2/profession-registry.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {

@@ -1,10 +1,8 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
-
-import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */
 export function guardianBuffPolicies(context: unknown): BuffStatePolicy[] {

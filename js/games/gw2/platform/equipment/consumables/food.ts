@@ -1,4 +1,5 @@
-import { CONDITION, BOON } from '#gw2/platform/constants.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
+
 /** Owns food catalog data, proc metadata, and UI groupings. */
 
 // ─── Food Data ────────────────────────────────────────────────────────────────

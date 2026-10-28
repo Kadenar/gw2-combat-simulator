@@ -1,10 +1,10 @@
+import type { NativePatchAuthoringSkill } from '#gw2/integrations/patches/authoring/module-types.js';
+import { numericFieldSpec, patchFieldLabel } from '#gw2/integrations/patches/authoring/overview-generation.js';
+import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
+import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import { AURA, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { NativePatchAuthoringSkill } from '#gw2/integrations/patches/authoring/module-types.js';
-import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import { numericFieldSpec, patchFieldLabel } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type { NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
-import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 
 export interface PatchAuthoringSkillGroup {
   readonly key: string;

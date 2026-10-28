@@ -1,6 +1,3 @@
-import { loadBuildContext } from '#gw2/build-context/load.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 /** Profiles existing manifest rotations after warmup; loading and build preparation stay outside timed runs. */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { Session } from 'node:inspector/promises';
@@ -8,8 +5,12 @@ import { cpus } from 'node:os';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { parseArgs } from 'node:util';
-import { professionOptions } from '#gw2/profession-registry.js';
+
+import { loadBuildContext } from '#gw2/build-context/load.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { professionOptions } from '#gw2/profession-registry.js';
 
 // Usage: node scripts/analysis/benchmark-supported-rotations.mjs [profession ...] > timings.json
 // Add --filter Ritualist to match preset IDs, or --cpu-profile-dir .scratch/profiles for separate warmed CPU captures.

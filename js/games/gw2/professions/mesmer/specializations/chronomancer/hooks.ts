@@ -1,9 +1,9 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { masterOfFragmentationDuration } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { completeMesmerShatter, createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { chronomancerBuffPolicies } from '#gw2/professions/mesmer/specializations/chronomancer/effect-state.js';
@@ -12,7 +12,7 @@ import {
   createContinuumController
 } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
-import type { MesmerRuntimeState, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 // Mimic and weapon swap keep their live recharge progress through either Continuum exit.
 const CONTINUUM_UNAFFECTED_COOLDOWN_IDS = new Set<number>([SHARED_SKILL_IDS.SWAP_WEAPONS, ID.MIMIC]);

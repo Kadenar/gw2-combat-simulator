@@ -1,15 +1,16 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
-import { canonicalTime } from '#kernel/core/clock.js';
 import test from 'node:test';
+
+import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
-import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
+import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 
 const ui = bindWillbenderUi(guardianCatalog);
 const config = { specialization: 'Willbender' };

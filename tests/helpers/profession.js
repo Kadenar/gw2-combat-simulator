@@ -1,5 +1,5 @@
-import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 
 /** Fixtures keep state and modifiers separate from executable policies, validating the final hook overrides. */
 export function defineTestProfession({ hooks, ...definition }) {

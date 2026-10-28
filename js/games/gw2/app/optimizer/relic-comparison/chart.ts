@@ -1,11 +1,10 @@
-import { escapeHtml } from '#ui/shared/html.js';
-
 // Share the comparison model without loading simulation code into the chart.
 import type {
   RelicComparisonModel,
   RelicComparisonPoint
 } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 export interface RelicComparisonChartOptions {
   /** Human label for the opponent relic (defaults to "Relic of <key>"). */

@@ -1,11 +1,5 @@
-import { INPUT_MODIFIER_CODES } from '#gw2/input/bindings.js';
-import { escapeHtml as html } from '#ui/shared/html.js';
-import { formatInputBinding, INPUT_CONTROLS } from '#gw2/input/bindings.js';
-import { type InputControlId } from '#gw2/platform/skills/input-controls.js';
-import { InputProfileError } from '#gw2/input/profile.js';
-import { analyzeInputTrace, type InputAnalysis } from '#gw2/input/analysis.js';
-import { parseInputBinding } from '#gw2/input/bindings.js';
-import type { InputTrace } from '#gw2/platform/results/input-trace.js';
+import { inputKeyboardSvg, offKeyboardUsage } from '#gw2/app/input-profile/keyboard.js';
+import { drawInputPaceChart, markInputPaceChart, placeInputTooltip } from '#gw2/app/input-profile/pace-chart.js';
 import { activeInputProfile, subscribeInputProfile } from '#gw2/app/input-profile/store.js';
 import { ensureInputProfileStyles } from '#gw2/app/input-profile/styles.js';
 import {
@@ -14,8 +8,12 @@ import {
   type InputKeyRow,
   type InputTransitionRow
 } from '#gw2/app/input-profile/summary.js';
-import { inputKeyboardSvg, offKeyboardUsage } from '#gw2/app/input-profile/keyboard.js';
-import { drawInputPaceChart, markInputPaceChart, placeInputTooltip } from '#gw2/app/input-profile/pace-chart.js';
+import { analyzeInputTrace, type InputAnalysis } from '#gw2/input/analysis.js';
+import { formatInputBinding, INPUT_CONTROLS, INPUT_MODIFIER_CODES, parseInputBinding } from '#gw2/input/bindings.js';
+import { InputProfileError } from '#gw2/input/profile.js';
+import type { InputTrace } from '#gw2/platform/results/input-trace.js';
+import { type InputControlId } from '#gw2/platform/skills/input-controls.js';
+import { escapeHtml as html } from '#ui/shared/html.js';
 
 type Selection =
   | { readonly kind: 'section'; readonly index: number }

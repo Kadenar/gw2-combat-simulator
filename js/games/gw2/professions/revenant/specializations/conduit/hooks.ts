@@ -1,29 +1,27 @@
-import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { skillNumberFromContext, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
+import {
+  REVENANT_CONDUIT_FORM_BY_LEGEND,
+  REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND
+} from '#gw2/professions/revenant/data/legends.js';
 import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { conduitBuffPolicies } from '#gw2/professions/revenant/specializations/conduit/effect-state.js';
 import {
-  UPKEEP_AFFINITY,
   costAffinity,
+  UPKEEP_AFFINITY,
   upkeepAffinity
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-gains.js';
 import {
   conduitAffinityPolicy,
   gainAffinity
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
-import {
-  entityBoonCompleted,
-  entityCastCompleted
-} from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
 import { FORM_EXPIRY } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import {
   cosmicWisdom,
@@ -31,14 +29,18 @@ import {
   swapLegend
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import {
+  entityBoonCompleted,
+  entityCastCompleted
+} from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
+import {
   cleanseHexEater,
   completeBeguilingHaze
 } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
 import {
-  UPKEEP_DAGGERS,
   dervishAttack,
   dervishCasts,
   lesserDaggers,
+  UPKEEP_DAGGERS,
   upkeepDaggers
 } from '#gw2/professions/revenant/specializations/conduit/skills/form-attacks.js';
 import {

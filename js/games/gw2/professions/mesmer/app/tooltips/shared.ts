@@ -1,10 +1,10 @@
-import { tooltipSeconds, skillFact, simulationEffectFacts } from '#gw2/app/shared/simulation-tooltip.js';
+import { simulationEffectFacts, skillFact, tooltipSeconds } from '#gw2/app/shared/simulation-tooltip.js';
+import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import { cloneShatterEffects } from '#gw2/professions/mesmer/core/mechanics/shatter-projection.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { bladesongEffects } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesong-projection.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 
 /** Share tooltip formatting and descriptions used by multiple profession owners. */
 

@@ -1,8 +1,8 @@
 /** Validates activation timing and mounts the rotation activation editor. */
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
-import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { DurationValidation } from '#ui/rotation/editing/duration-editor.js';
+import { mountFloatingEditor, type FloatingEditorHandle } from '#ui/rotation/editing/floating-editor.js';
 
 const DEFAULT_IMPACT_DELAY_MS = 1000;
 

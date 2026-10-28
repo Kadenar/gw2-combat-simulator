@@ -1,8 +1,7 @@
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import {
   mesmerMechanicPaletteGroups,
@@ -11,6 +10,7 @@ import {
 } from '#gw2/professions/mesmer/core/presentation.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const MIRAGE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);

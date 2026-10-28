@@ -1,26 +1,26 @@
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
   activeBoonStacks,
   activeBuffStacks,
   boonActive,
-  skillForEvent,
   hasSelectedSkillId,
   playerHealthFraction,
   selectedSkillIds,
+  skillForEvent,
   targetConditionActive,
   targetConditionCount,
   targetHealthBelow,
   targetHealthFraction,
   vulnerabilityStacks
 } from '#gw2/platform/combat/query/runtime-query.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Query fixtures need a canonical catalog even when no skill-specific behavior is exercised.
 const catalog = createCanonicalCatalog();

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { navigationRoute } from '#browser/page/embed.js';
 
 // Internal links retain only the active modes, including when bookmarked or opened in another tab.

@@ -1,13 +1,14 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { COMMON_EVENT_TYPES } from '#gw2/platform/events/events.js';
+
 import { createProfessionWeaponData, WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
-import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#gw2/professions/mesmer/build/build.js';
+import { COMMON_EVENT_TYPES } from '#gw2/platform/events/events.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
+import { BUILD_SCHEMA_VERSION, migrateMesmerBuild, validateMesmerBuild } from '#gw2/professions/mesmer/build/build.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Version validation must preserve historical inputs without mutating the caller's saved data.
 test('build upgrades reject unsupported versions and leave saved data independent', () => {

@@ -1,11 +1,3 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { isGw2IllusionEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
-import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 import type {
   RandomDistributionDriver,
   RandomDistributionMetricSample,
@@ -14,7 +6,15 @@ import type {
   RandomDistributionRequest,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import { isGw2IllusionEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
 /** Default number of stochastic trials used by the application. */
 export const DEFAULT_RANDOM_DISTRIBUTION_TRIALS = 500;

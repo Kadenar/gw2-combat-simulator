@@ -1,13 +1,13 @@
 import {
   fromProfile,
+  profileFact,
+  simulationEffectFacts,
+  tooltipDecimal,
   tooltipFactorChange,
+  tooltipNumber,
+  tooltipPercent,
   tooltipSeconds,
   traitTooltip,
-  profileFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipNumber,
-  simulationEffectFacts,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';

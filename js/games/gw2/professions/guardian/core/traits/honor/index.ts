@@ -1,15 +1,15 @@
-import { RECIPIENT, ACTOR, WEAPON, BOON } from '#gw2/platform/constants.js';
-import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
   guardianCastCompleted,
   type GuardianCastCompletion
 } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
-import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { writOfPersistenceEffects } from '#gw2/professions/guardian/core/traits/honor/writ-of-persistence.js';
 import { emitTraitSymbol } from '#gw2/professions/guardian/core/traits/symbols.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';

@@ -1,17 +1,18 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
-import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
-import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
+import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
+import { mesmerCoreUi } from '#gw2/professions/mesmer/core/presentation.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Minimal scenarios keep removal, patch isolation, and resource contracts independent of benchmark rotations.
 function run(patch, specialization, rotation, config = {}, skills = {}) {

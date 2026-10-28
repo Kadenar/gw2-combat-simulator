@@ -1,7 +1,8 @@
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
 // Pets and the mech own the bleeding they apply, so only bleeding the player owns may arm the relic.
 test('Relic of the Fractal ignores bleeding owned by an independent pet or mech', () => {

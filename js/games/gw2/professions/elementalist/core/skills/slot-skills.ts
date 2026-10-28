@@ -1,4 +1,3 @@
-import { COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /**
  * Canonical Core elementalist skill fragments grouped by their GW2 owner.
  *
@@ -9,10 +8,11 @@ import { COMBO_FINISHER, BOON, CONDITION, CONTROL } from '#gw2/platform/constant
  * These are pure data fragments — no behavior. Stateful behavior is owned by the corresponding
  * mechanic subsystem, while `tasks` names handlers in `core/execution/index.ts`.
  */
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import { BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
  * Skill-id → fragment table for the Core heal, utility, and elite slot skills. Entries are keyed

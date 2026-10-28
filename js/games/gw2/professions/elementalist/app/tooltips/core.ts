@@ -1,12 +1,8 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
-import { skillActionEffects } from '#gw2/platform/effects/actions.js';
-import { WEAPON, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import {
   fromSkill,
-  skillFact,
   modifierFact,
   simulationEffectFacts,
+  skillFact,
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
@@ -14,7 +10,15 @@ import {
   tooltipSeconds,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { elementalistAirTooltips } from '#gw2/professions/elementalist/app/tooltips/air.js';
+import { elementalistArcaneTooltips } from '#gw2/professions/elementalist/app/tooltips/arcane.js';
+import { elementalistEarthTooltips } from '#gw2/professions/elementalist/app/tooltips/earth.js';
+import { elementalistFireTooltips } from '#gw2/professions/elementalist/app/tooltips/fire.js';
+import { elementalistWaterTooltips } from '#gw2/professions/elementalist/app/tooltips/water.js';
 import {
   AURA_TRANSMUTE_SKILLS,
   CONJURE_PICKUP_WEAPONS,
@@ -22,6 +26,7 @@ import {
   ETCHING_CHAINS,
   HAMMER_ORB_SKILLS
 } from '#gw2/professions/elementalist/core/constants.js';
+import { ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import {
   EARTH_ELEMENTAL_EVTC_PROFILE as EARTH_ELEMENTAL,
   FIRE_ELEMENTAL_EVTC_PROFILE as FIRE_ELEMENTAL
@@ -30,11 +35,6 @@ import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/professions/elementalist/data/ids.js';
-import { elementalistWaterTooltips } from '#gw2/professions/elementalist/app/tooltips/water.js';
-import { elementalistEarthTooltips } from '#gw2/professions/elementalist/app/tooltips/earth.js';
-import { elementalistFireTooltips } from '#gw2/professions/elementalist/app/tooltips/fire.js';
-import { elementalistArcaneTooltips } from '#gw2/professions/elementalist/app/tooltips/arcane.js';
-import { elementalistAirTooltips } from '#gw2/professions/elementalist/app/tooltips/air.js';
 
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const elementalistCoreTooltips = {

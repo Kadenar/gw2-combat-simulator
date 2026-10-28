@@ -1,18 +1,17 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 /** Electric Enchantment owns its shared identity, charge lifecycle, combat payload, and damage preview. */
-import { activeChargeGrants, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { activeChargeGrants, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import type { DamageEffectDefinition } from '#gw2/platform/skill-damage/types.js';
-
+import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { evokerState, type EvokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 // Combat packets, announcements, and the preview share one identity independently of the granting skill or trait.
 const electricEnchantment = Object.freeze({

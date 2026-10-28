@@ -1,8 +1,8 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
-  harbingerState,
-  harbingerBlightMaximum
+  harbingerBlightMaximum,
+  harbingerState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 

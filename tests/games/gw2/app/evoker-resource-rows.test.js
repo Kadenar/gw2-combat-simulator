@@ -1,8 +1,9 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Evoker snapshots and weapon gains use their own recorded capacity instead of the clone resource contract.
 test('Evoker resource presentation distinguishes charge totals from gains', () => {

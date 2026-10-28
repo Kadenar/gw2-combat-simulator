@@ -1,6 +1,12 @@
-import { defineFields, numberField, dataField } from '#gw2/platform/skills/field-specs.js';
 import { attributeFields } from '#gw2/platform/skills/attribute-fields.js';
-import { assertFieldGroups, combineFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import {
+  assertFieldGroups,
+  combineFields,
+  dataField,
+  defineFields,
+  numberField,
+  type FieldSpecs
+} from '#gw2/platform/skills/field-specs.js';
 
 /** Declares shared profile tuning once for validation, patch controls, and labels. */
 export const SHARED_PROFILE_FIELDS: FieldSpecs = defineFields({

@@ -1,18 +1,18 @@
-import { WEAPON, ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
-import {
-  buildMesmerStrikes,
-  mesmerPacketOwner,
-  buildMesmerConditions
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-clone.js';
-import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
+import { ACTOR, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import {
+  buildMesmerConditions,
+  buildMesmerStrikes,
+  mesmerPacketOwner
+} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-clone.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 // The axe chain uses reviewed 440/520/720 ms activations to keep its completion packets aligned.
 export const MESMER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({

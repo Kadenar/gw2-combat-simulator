@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { blightbringer } from '#gw2/platform/equipment/relics/rules/blightbringer.js';
 import { visionary } from '#gw2/platform/equipment/relics/rules/visionary.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';

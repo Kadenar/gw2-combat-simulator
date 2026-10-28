@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { LatestWorkerQueue } from '#browser/game/latest-worker-queue.js';
 
 // Controlled transport and timers exercise scheduling contracts without loading a browser or profession.

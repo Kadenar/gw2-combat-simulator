@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
-import { mockGw2Icons } from '#tests/helpers/browser-icons.js';
 import { expect, test } from '@playwright/test';
+
+import { mockGw2Icons } from '#tests/helpers/browser-icons.js';
 
 // Decode every local image used by JavaScript and CSS to catch unresolved aliases and missing artwork.
 test('local artwork aliases resolve to loadable images', async ({ page }) => {

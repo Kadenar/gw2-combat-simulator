@@ -1,6 +1,6 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import {
   closePreparedMagazine,
@@ -10,16 +10,15 @@ import {
   type PreparedMagazine
 } from '#gw2/platform/execution/prepared-magazines.js';
 import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import type { ActionContext } from '#gw2/platform/effects/actions.js';
-import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
-import type { GuardianRuntimeState, GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { MANTRAS, type MantraDefinition } from '#gw2/professions/guardian/data/mantra-definitions.js';
+import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 export const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';
 const owner = (definition: MantraDefinition, generation: number) => ({ id: `mantra:${definition.rootId}`, generation });

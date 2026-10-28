@@ -1,8 +1,8 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import { permanentTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
-import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefSummonDefinition } from '#gw2/professions/thief/types.js';
 
 /** The selected elite owns actor identity and stream startup; attack packets live on canonical actor skills. */

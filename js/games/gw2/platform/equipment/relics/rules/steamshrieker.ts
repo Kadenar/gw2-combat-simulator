@@ -1,10 +1,10 @@
-import { COMBO_FINISHER, COMBO_FIELD, ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 /** Steamshrieker relic rules. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 export const steamshrieker = defineRelic({
   damagePayload: emitDamagePayload,

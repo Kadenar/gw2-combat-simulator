@@ -1,36 +1,36 @@
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
-import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
-import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
-import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type {
+  ProfessionCatalogContext,
   ProfessionEffectPresentation,
   ProfessionPaletteGroup,
   ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
+import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
+import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { NECROMANCER_LICH_SKILL_IDS } from '#gw2/professions/necromancer/core/skills/index.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type {
   NecromancerSkill,
-  NecromancerUiState,
   NecromancerUiContext,
-  NecromancerUiSlice
+  NecromancerUiSlice,
+  NecromancerUiState
 } from '#gw2/professions/necromancer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);

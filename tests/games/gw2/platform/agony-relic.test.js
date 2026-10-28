@@ -1,10 +1,11 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
-import { RELIC_NAMES, RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { RELIC_GROUPS, RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 const control = (at, overrides = {}) => ({
   type: 'control',

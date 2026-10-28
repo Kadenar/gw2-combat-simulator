@@ -1,22 +1,21 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { inertContainer } from '#tests/helpers/dom.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
-import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { inertContainer } from '#tests/helpers/dom.js';
+import { createObservedProfessionSimulator, planningFixture } from '#tests/helpers/observed-runtime.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const baseConfig = Object.freeze({
   attributeInputs: baseAttributeInputs({

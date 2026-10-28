@@ -1,5 +1,3 @@
-import { WEAPON, COMBO_FINISHER, STATUS, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 /**
  * Hammer weapon-skill mechanics owned by the Core Elementalist module.
  *
@@ -7,11 +5,12 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
  * Finale flipover. The slot-3 skills create the elemental orbs that Grand Finale
  * spends; the orb bookkeeping itself lives in `core/mechanics/hammer-orbs.ts`.
  */
-
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { impactEffects, conditionTimeline, strikeTimeline } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { BOON, COMBO_FINISHER, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 // Hurricane of Pain uses canonical parallel timelines so every landed strike applies its matching Vulnerability.

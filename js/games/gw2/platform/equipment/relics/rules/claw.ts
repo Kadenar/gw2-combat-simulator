@@ -1,7 +1,7 @@
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Claw relic rules. */
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { defineRelic, timedStrikeBuff, recordTimedBuffProc } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { defineRelic, recordTimedBuffProc, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const claw = defineRelic({
   buffPolicies: [{ kind: 'relic-claw', name: 'Relic of the Claw', maximumStacks: 1 }],

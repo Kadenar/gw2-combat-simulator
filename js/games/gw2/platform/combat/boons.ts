@@ -1,11 +1,11 @@
-import { BOON, type BoonName, RECIPIENT } from '#gw2/platform/constants.js';
-import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
-import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import { gw2EffectExpiresAt, roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
+import { BOON, RECIPIENT, type BoonName } from '#gw2/platform/constants.js';
+import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
+import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 
 /** Runtime boon storage uses lowercase keys while effect declarations and labels use canonical names. */
 export function boonKey<T extends BoonName>(name: T): Lowercase<T> {

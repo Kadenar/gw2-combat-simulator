@@ -1,18 +1,19 @@
-import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadBuildContext } from '#gw2/build-context/load.js';
-import { professionRegistry } from '#gw2/profession-registry.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { bindBuildContext } from '#gw2/build-context/create.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
-import { resolveRevenantSkillLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
-import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
+
 import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import { createOptimizerEvaluator } from '#gw2/app/optimizer/gear/search.js';
+import { bindBuildContext } from '#gw2/build-context/create.js';
+import { loadBuildContext } from '#gw2/build-context/load.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
+import { resolveRevenantSkillLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
 
 const input = (profession, build, patchId = 'current') => ({
   build,

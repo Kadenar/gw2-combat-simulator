@@ -1,5 +1,3 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -13,8 +11,10 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Describes implemented Necromancer mechanics locally; numbers remain in selected rules and profiles. */
 const barrierTooltip: DescribeSimulationTooltip = skillTooltip(

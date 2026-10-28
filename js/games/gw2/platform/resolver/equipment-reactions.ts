@@ -1,21 +1,20 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { createCriticalFoodEffect, criticalFoodProc } from '#gw2/platform/equipment/consumables/food-procs.js';
+import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_BY_ID, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
-import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
-import { createCriticalFoodEffect, criticalFoodProc } from '#gw2/platform/equipment/consumables/food-procs.js';
-
-import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 const GW2_REACTION_ORDER = Object.freeze({
   EARLY_COMMON: -200,

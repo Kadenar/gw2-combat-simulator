@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+
 import { UNDERWATER_ONLY_SKILL_IDS } from '../../../js/games/gw2/platform/skills/underwater-skill-ids.ts';
 
 export const GW2_API_ROOT = 'https://api.guildwars2.com/v2';

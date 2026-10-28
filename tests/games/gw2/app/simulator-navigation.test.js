@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { simulatorViewFromHash, simulatorViewHref, workspaceSimulatorView } from '#gw2/app/page/navigation.js';
 
 test('simulator navigation defaults to the workspace and recognizes each tool', () => {

@@ -1,19 +1,19 @@
-import { AURA, ACTOR, COMBO_FIELD, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, AURA, BOON, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { MechanicCombatContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusFromContext,
   attributeBonusNumber,
@@ -24,22 +24,6 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import {
-  attunementChanged,
-  attunementInvoked,
-  attunementReentered,
-  attunementReleased,
-  conjureEquipped,
-  type ElementalistAttunementChanged,
-  type ElementalistAttunementCount,
-  elementalistCastCompleted,
-  type ElementalistCastCompleted,
-  elementalistConditionApplied,
-  elementalistDamageResolved,
-  type ElementalistDamageResolved,
-  type ElementalistEntry,
-  type ElementalistReaction
-} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -47,6 +31,22 @@ import {
   elementalistMightStacks,
   primaryAttunement
 } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
+import {
+  attunementChanged,
+  attunementInvoked,
+  attunementReentered,
+  attunementReleased,
+  conjureEquipped,
+  elementalistCastCompleted,
+  elementalistConditionApplied,
+  elementalistDamageResolved,
+  type ElementalistAttunementChanged,
+  type ElementalistAttunementCount,
+  type ElementalistCastCompleted,
+  type ElementalistDamageResolved,
+  type ElementalistEntry,
+  type ElementalistReaction
+} from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { criticalTraitEligible } from '#gw2/professions/elementalist/core/traits/critical-eligibility.js';
 import {
   emitFlameExpulsion,

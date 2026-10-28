@@ -1,7 +1,6 @@
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */
 export function mesmerResourceDefinition(specialization: string, context: unknown): MesmerResourceDefinition {

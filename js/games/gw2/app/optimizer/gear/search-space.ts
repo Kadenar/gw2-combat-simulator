@@ -1,30 +1,30 @@
-import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
-import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
-import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
-import { PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
-import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
-import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import {
   createOptimizerResultGroups,
   optimizerEquipmentIdentity,
   retainOptimizerGroup,
   type OptimizerGroupedFilter
 } from '#gw2/app/optimizer/gear/candidate-results.js';
+import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import {
   assignOptimizerChoice,
-  optimizerCardinality,
-  optimizerWeaponSets,
-  optimizerEquipment,
-  createOptimizerSpace,
   createOptimizerEvaluator,
+  createOptimizerSpace,
+  optimizerCardinality,
+  optimizerEquipment,
   optimizerScore,
+  optimizerWeaponSets,
   retainOptimizerCandidate,
   type GearOptimizerRequest,
   type OptimizerCandidate,
+  type OptimizerDimension,
   type OptimizerEquipment,
-  type OptimizerSpace,
-  type OptimizerDimension
+  type OptimizerSpace
 } from '#gw2/app/optimizer/gear/search.js';
+import { PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
+import { INFUSION_BONUS } from '#gw2/platform/equipment/gear/infusions.js';
+import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 
 const stats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, Readonly<Record<string, number>>>>>>;
 const MAX_OPTIMIZER_STAT_TOTALS = 100_000;

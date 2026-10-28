@@ -1,11 +1,8 @@
 /** Explicit PvE skill mechanics owned by the Core Warrior module. */
-import { WARRIOR_CORE_TRAIT_SKILLS } from '#gw2/professions/warrior/core/skills/trait-skills.js';
-
 import type { Skill } from '#gw2/platform/skills/types.js';
-
-export { WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from '#gw2/professions/warrior/core/skills/actions.js';
 import { WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { WARRIOR_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/slot-skills.js';
+import { WARRIOR_CORE_TRAIT_SKILLS } from '#gw2/professions/warrior/core/skills/trait-skills.js';
 import { WARRIOR_WEAPONS_AXE_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/weapons/axe.js';
 import { WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/weapons/dagger.js';
 import { WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/weapons/greatsword.js';
@@ -20,6 +17,8 @@ import { WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/warrior/
 import { WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/weapons/sword.js';
 import { WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/weapons/torch.js';
 import { WARRIOR_WEAPONS_WARHORN_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/weapons/warhorn.js';
+
+export { WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from '#gw2/professions/warrior/core/skills/actions.js';
 
 export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   ...WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS,

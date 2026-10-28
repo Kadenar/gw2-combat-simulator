@@ -1,17 +1,17 @@
-import { COMBO_FINISHER, ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 /** Bloodstone relic rules. */
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import {
   defineRelic,
   recordTimedBuffProc,
   relicBuffActive,
   timedStrikeBuff
 } from '#gw2/platform/equipment/relics/rules/shared.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 // The fourth qualifying blast consumes the native three-stack pool.
 const VOLATILITY_STACKS = 3;

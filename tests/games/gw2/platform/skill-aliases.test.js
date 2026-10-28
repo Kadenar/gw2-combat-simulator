@@ -1,12 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { engineerCatalog, engineerNativeModules } from '#gw2/professions/engineer/profession.js';
-import { guardianCatalog, guardianNativeModules } from '#gw2/professions/guardian/profession.js';
-import { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/necromancer/profession.js';
-import { thiefCatalog, thiefNativeModules } from '#gw2/professions/thief/profession.js';
-import { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/profession.js';
-import { revenantCatalog, revenantNativeModules } from '#gw2/professions/revenant/profession.js';
 import {
   catalogSkillById,
   findRotationSkill,
@@ -15,6 +9,12 @@ import {
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { canonicalGw2SkillId, GW2_SKILL_ID_ALIASES } from '#gw2/platform/skills/external-skill-ids.js';
+import { engineerCatalog, engineerNativeModules } from '#gw2/professions/engineer/profession.js';
+import { guardianCatalog, guardianNativeModules } from '#gw2/professions/guardian/profession.js';
+import { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/necromancer/profession.js';
+import { revenantCatalog, revenantNativeModules } from '#gw2/professions/revenant/profession.js';
+import { thiefCatalog, thiefNativeModules } from '#gw2/professions/thief/profession.js';
+import { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/profession.js';
 
 const ALIASES = Object.entries(GW2_SKILL_ID_ALIASES).map(([alias, canonical]) => [Number(alias), canonical]);
 const CATALOGS = [warriorCatalog, guardianCatalog, engineerCatalog, thiefCatalog, necromancerCatalog, revenantCatalog];

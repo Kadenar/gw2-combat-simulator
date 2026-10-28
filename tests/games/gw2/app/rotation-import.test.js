@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import {
   applyRotationImportPreview,
   previewManifestRotation,
   previewRotationFile
 } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { mesmerAppAdapter as adapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { setRotationReference } from '#gw2/app/rotation/comparison-state.js';
+import { mesmerAppAdapter as adapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 import { RANGER_SKILL_IDS } from '#gw2/professions/ranger/data/ids.js';
 

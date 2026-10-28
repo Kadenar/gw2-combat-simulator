@@ -1,19 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
+
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { VENOMS, activateVenom } from '#gw2/professions/thief/core/mechanics/venoms.js';
-import { prepareTrap, thiefTrapAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
+import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
+import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
+import { prepareTrap, thiefTrapAvailability } from '#gw2/professions/thief/core/mechanics/preparations.js';
+import { activateVenom, VENOMS } from '#gw2/professions/thief/core/mechanics/venoms.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 
 // The skill's grant buff controls charge entitlement independently of its action's triggered condition duration.
 test('patched venom duration owns personal and allied charge expiry and tooltip facts', () => {

@@ -1,20 +1,20 @@
 import {
   fromProfile,
-  tooltipFactorChange,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
   profileFact,
-  skillFact,
-  tooltipPercent,
   simulationEffectFacts,
-  type ProfessionTooltips,
-  type DescribeSimulationTooltip
+  skillFact,
+  skillTooltip,
+  tooltipFactorChange,
+  tooltipPercent,
+  tooltipSeconds,
+  traitTooltip,
+  type DescribeSimulationTooltip,
+  type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 
 /** Both improved-inheritance traits read the same live mech caps and ratio. */
 function improvedMechInheritanceFacts(balanceContext: ProfessionBalanceContext, id: SkillId) {

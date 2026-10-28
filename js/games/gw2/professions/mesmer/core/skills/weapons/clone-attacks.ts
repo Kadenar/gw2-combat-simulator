@@ -1,7 +1,6 @@
-import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
+import { CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import type { MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-clone.js';
-
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Dagger clones retain their own attack strength, payloads, and cadence independently of player attacks. */

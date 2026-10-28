@@ -1,15 +1,14 @@
-import { RANGER_SOULBEAST_PROFILE_FIELDS } from '#gw2/professions/ranger/specializations/soulbeast/catalog-fields.js';
-import { soulbeastAttributes } from '#gw2/professions/ranger/specializations/soulbeast/attributes.js';
-import { sicEmPlayerModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { sicEmPlayerModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
+import { soulbeastAttributes } from '#gw2/professions/ranger/specializations/soulbeast/attributes.js';
+import { RANGER_SOULBEAST_PROFILE_FIELDS } from '#gw2/professions/ranger/specializations/soulbeast/catalog-fields.js';
 import { soulbeastHooks } from '#gw2/professions/ranger/specializations/soulbeast/hooks.js';
-
 import { bindSoulbeastUi } from '#gw2/professions/ranger/specializations/soulbeast/presentation.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/index.js';
 import {
-  soulbeastState,
-  projectSoulbeastPlanningState
+  projectSoulbeastPlanningState,
+  soulbeastState
 } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { soulbeastTraits } from '#gw2/professions/ranger/specializations/soulbeast/traits/index.js';
 

@@ -1,12 +1,12 @@
-import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ProfessionApp } from '#gw2/app/profession-app.js';
+
 import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
 import { createBossScenario, selectScenarioEncounter } from '#gw2/app/boss-scenarios/model.js';
+import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
+import { deleteMyBuild, loadMyBuilds, myBuildsStorageKey, saveMyBuild } from '#gw2/app/build/library/storage.js';
+import { loadBuild } from '#gw2/app/build/state/persistence.js';
 import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
-import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
   addBuildTab,
   captureBuildDestination,
@@ -17,15 +17,16 @@ import {
   saveBuildWorkspace,
   workspaceStorageKey
 } from '#gw2/app/build/state/workspace.js';
-import { deleteMyBuild, loadMyBuilds, myBuildsStorageKey, saveMyBuild } from '#gw2/app/build/library/storage.js';
-import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
+import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
+import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/history.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
-import { loadBuild } from '#gw2/app/build/state/persistence.js';
-import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { defaultSimulationSettings } from '#gw2/app/simulation/settings.js';
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 function storage(t, initial = {}) {
   const values = new Map(Object.entries(initial));

@@ -1,12 +1,12 @@
-import { ACTOR, RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Core Engineer skills created by trait procs and trait-triggered actions.
  * Trait triggers own selection and invocation; these skills own their payload and delivery.
  */
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Defines the catalog fragments used by Core Engineer trait effects. */
 export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, Partial<EngineerSkill>>> = Object.freeze({

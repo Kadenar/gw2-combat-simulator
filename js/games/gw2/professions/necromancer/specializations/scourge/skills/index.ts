@@ -1,6 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { COMBO_FIELD, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 /**
  * Scourge skill mechanics owned by the Scourge Necromancer module.
  *
@@ -8,10 +5,13 @@ import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-fo
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON, COMBO_FIELD, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 // Intrinsic applications are removable effects, so only delivered barriers can trigger traits.
 const barrier: SkillEffect = {

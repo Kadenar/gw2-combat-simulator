@@ -1,11 +1,12 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import { buffApplicationStacks, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { buffApplicationStacks, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 
 const attribution = { source: 'replay probe', sourceId: 'grant', actorType: 'player' };
 const grant = (kind, priority = -1) => ({

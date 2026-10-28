@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { GW2_RESOLVER_PHASE, gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
 import { eventCausalOrder, StableEventQueue } from '#kernel/events/queue.js';
-import { gw2ResolverPhase, GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 
 // Phase 1 contract for the future cursor: settle due hits, then drain each command's effects before the next command.
 test('command boundaries see settled conditions and hit gains before same-time self transitions', () => {

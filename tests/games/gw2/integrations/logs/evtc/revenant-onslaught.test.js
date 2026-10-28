@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
+import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { event, log } from '#tests/helpers/evtc-fixture.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';

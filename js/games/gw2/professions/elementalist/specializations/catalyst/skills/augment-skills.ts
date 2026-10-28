@@ -1,6 +1,6 @@
-import { RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -9,9 +9,9 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type {
+  ElementalistRuntime,
   ElementalistRuntimeState,
-  ElementalistSkill,
-  ElementalistRuntime
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
 /** Augments retain their declarations, conditional effects, and weapon-recharge actions together. */

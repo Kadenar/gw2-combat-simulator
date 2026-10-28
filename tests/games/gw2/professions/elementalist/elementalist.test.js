@@ -1,4 +1,6 @@
-import { enteredCombat } from '#tests/helpers/engagement.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import {
   createElementalistBuildDefaults,
@@ -14,9 +16,8 @@ import {
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { flowStateAttunementReduction } from '#gw2/professions/elementalist/specializations/weaver/traits/attunements.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Training reductions must recognize numeric trait IDs without depending on catalog-name aliases.
 test('elemental training reduces only matching weapon recharge with ID-only trait sets', () => {

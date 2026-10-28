@@ -1,22 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+
 import {
-  skillAuthoringReference,
   balanceProfileAuthoringReference,
-  skillPatchableNumericFields,
-  balanceProfilePatchableNumericFields
+  balanceProfilePatchableNumericFields,
+  skillAuthoringReference,
+  skillPatchableNumericFields
 } from '#gw2/integrations/patches/authoring/fields.js';
 import {
-  applySkillPatch,
   applyBalanceProfilePatch,
+  applySkillPatch,
   normalizeAuthoringSkillEdit
 } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { grantNecromancerSoulShards } from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 // The authoring reference and executable patch grammar must agree for aggregate and inherited tick formulas.

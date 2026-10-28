@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { stealAccepted, stealthAttackCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { stealAccepted, stealthAttackCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 
 // Both trait boundaries retain the triggering cast's identity and suppress explicitly removed conditions.
 for (const [trait, point, skillId, name] of [

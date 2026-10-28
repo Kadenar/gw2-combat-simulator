@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
-import { professionRegistry } from '#gw2/profession-registry.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { profession, createBuildContext } from '#gw2/professions/guardian/build/context.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+import { createBuildContext, profession } from '#gw2/professions/guardian/build/context.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // All application entry paths must agree before attributes or simulations consume the build.
 test('application builds enable permanent quickness and alacrity across professions and legacy assumptions', async () => {

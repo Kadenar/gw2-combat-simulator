@@ -1,9 +1,9 @@
-import { COMBO_FIELD, ACTOR, COMBO_FINISHER, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Canonical Core revenant skill fragments grouped by their GW2 owner. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
 // Snap measured impact offsets to 40 ms action ticks instead of retaining EVTC timestamp jitter.
 export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

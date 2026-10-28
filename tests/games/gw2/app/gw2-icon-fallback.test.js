@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { gw2BackupIconUrl, nextGw2IconFallback } from '#gw2/app/page/icon-fallback.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 

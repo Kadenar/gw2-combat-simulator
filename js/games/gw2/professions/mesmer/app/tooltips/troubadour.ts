@@ -1,21 +1,21 @@
+import {
+  fromModifier,
+  fromProfile,
+  outsideScopeTooltip,
+  profileFact,
+  simulationEffectFacts,
+  skillFact,
+  skillTooltip,
+  tooltipFactorChange,
+  tooltipPercent,
+  tooltipSeconds,
+  traitTooltip,
+  type ProfessionTooltips
+} from '#gw2/app/shared/simulation-tooltip.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import {
-  fromProfile,
-  fromModifier,
-  tooltipFactorChange,
-  tooltipSeconds,
-  outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
-  profileFact,
-  skillFact,
-  tooltipPercent,
-  simulationEffectFacts,
-  type ProfessionTooltips
-} from '#gw2/app/shared/simulation-tooltip.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import {

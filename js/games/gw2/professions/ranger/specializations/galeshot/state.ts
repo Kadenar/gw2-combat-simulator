@@ -5,10 +5,10 @@ import {
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import type { RangerConfig } from '#gw2/professions/ranger/types.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
 
 export interface GaleshotState {
   cycloneBowActive: boolean;

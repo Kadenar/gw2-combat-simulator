@@ -1,15 +1,15 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import {
   rangerPetCombatMetadata,
   rangerPetCompanionId
 } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerResolverContext, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Commandable pet Beast skills exclude their independently delivered family skills. */

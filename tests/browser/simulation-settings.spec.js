@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openSimulator } from '#tests/helpers/browser-workspace.js';
 
 // Native target and delay edits must preserve row layout through worker results, including swaps after target death.

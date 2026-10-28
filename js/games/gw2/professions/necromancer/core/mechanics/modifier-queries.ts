@@ -1,5 +1,4 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-
 import {
   readProfessionCoreState,
   readProfessionSpecializationState

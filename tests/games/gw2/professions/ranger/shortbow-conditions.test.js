@@ -1,12 +1,13 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { triggerBloodThirst } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
+import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 // Base positional bonuses and trait extensions are separate contracts; neither creates extra bleed stacks.
 test('shortbow conditions distinguish frontal and defiant targets with and without Light on Your Feet', () => {

@@ -1,4 +1,4 @@
-import { RECIPIENT, ACTOR, CONTROL, COMBO_FINISHER, COMBO_FIELD, BOON } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { gadgeteerMineVariant } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';

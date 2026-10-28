@@ -1,7 +1,7 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 /** Owns Core Revenant supplemental skill identities that have no narrower catalog family. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
 /** All scar-granting traits feed one charge pool and one patchable life-siphon payload. */
 export const battleScarsSkill: Skill = {

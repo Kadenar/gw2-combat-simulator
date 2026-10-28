@@ -1,4 +1,3 @@
-import { NECROMANCER_MINION_ATTACK_SKILLS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 /**
  * Core skill mechanics owned by the Core Necromancer module.
  *
@@ -6,18 +5,16 @@ import { NECROMANCER_MINION_ATTACK_SKILLS } from '#gw2/professions/necromancer/c
  * fragments. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import { NECROMANCER_CORE_TRAIT_SKILLS } from '#gw2/professions/necromancer/core/skills/trait-skills.js';
-
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-
+import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/professions/necromancer/core/skills/actions.js';
+import { NECROMANCER_MINION_ATTACK_SKILLS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 import { NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/profession-skills.js';
 import { NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
+import { NECROMANCER_CORE_TRAIT_SKILLS } from '#gw2/professions/necromancer/core/skills/trait-skills.js';
 import {
-  NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS,
-  NECROMANCER_AXE_EXTRA_SKILLS
+  NECROMANCER_AXE_EXTRA_SKILLS,
+  NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS
 } from '#gw2/professions/necromancer/core/skills/weapons/axe.js';
-import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/professions/necromancer/core/skills/actions.js';
 import { NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/dagger.js';
 import { NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/focus.js';
 import { NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/greatsword.js';
@@ -28,6 +25,7 @@ import { NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/necr
 import { NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/sword.js';
 import { NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import { NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/weapons/warhorn.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Lich's replacement bar is shared by cast legality and palette projection; it is not a life-force shroud. */
 export const NECROMANCER_LICH_SKILL_IDS: readonly SkillId[] = Object.freeze([

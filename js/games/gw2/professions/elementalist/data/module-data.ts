@@ -1,5 +1,3 @@
-import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 /**
  * Elementalist catalog generation.
  *
@@ -7,8 +5,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
  * local chain definitions. Shared assembly validates and normalizes the resulting
  * module contributions; combat behavior remains in each owner-local skill fragment.
  */
-import { createProfessionModuleDataFactory, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
-import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   SKILLS as ELEMENTALIST_API_SKILLS,
   SPECIALIZATIONS as ELEMENTALIST_API_SPECIALIZATIONS
@@ -19,6 +16,9 @@ import {
   ELEMENTALIST_LOADOUT_SKILL_IDS
 } from '#gw2/professions/elementalist/data/skill-identities.js';
 import { TRAITS } from '#gw2/professions/elementalist/data/traits-data.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import { createProfessionModuleDataFactory, defineProfessionWeapons } from '#gw2/professions/shared/catalog-data.js';
+import type { ProfessionModuleDataOptions } from '#gw2/professions/shared/catalog-data.js';
 
 // Stable family positions preserve name-collision winners and circular-chain roots
 // even though owners now contribute their skills independently.

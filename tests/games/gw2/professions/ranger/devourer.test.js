@@ -1,10 +1,11 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/devourer.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 const config = {

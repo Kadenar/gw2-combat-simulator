@@ -1,8 +1,8 @@
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 /**
  * Owns cast-local interfaces shared by the Core Mesmer effect pipeline.
  * Catalog skill shapes live under `data/`; profession runtime interfaces live in the profession `types.ts`.
  */
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerCastDetails {

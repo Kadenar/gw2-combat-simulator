@@ -1,12 +1,11 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { engineerKitAvailability } from '#gw2/professions/engineer/core/mechanics/kits.js';
 import { engineerSpearAvailability } from '#gw2/professions/engineer/core/mechanics/spear.js';
-
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Enforces Core Engineer resource, kit, flip, and toolbelt prerequisites after shared build eligibility. */

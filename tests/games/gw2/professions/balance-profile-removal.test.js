@@ -1,14 +1,15 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ENGINEER_TRAIT_IDS as ENG, ENGINEER_SKILL_IDS as ENG_SKILL } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Minimal casts exercise the same patched catalog in scheduler and resolver paths.
 function run(profession, balanceProfiles, specialization, rotation, config = {}, skills = {}) {

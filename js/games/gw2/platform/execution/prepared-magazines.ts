@@ -1,6 +1,6 @@
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import { armSkillFlip, consumeSkillFlip, type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /**
  * A prepared magazine is a charge pool that exists only while one of its faces is on the bar. Mantras use it:

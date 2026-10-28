@@ -1,13 +1,12 @@
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog, rangerNativeModules } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 
 // Native ownership follows the trait line even when an elite invokes its behavior explicitly.
 test('Ranger registers one canonical owner for cross-specialization traits', () => {

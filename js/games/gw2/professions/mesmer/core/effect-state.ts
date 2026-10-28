@@ -1,15 +1,13 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
-
-import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
+import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import {
   balanceProfileFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Core owns shared weapon and trait effects; selected elites register their own policies. */
 export function mesmerBuffPolicies(context: unknown): BuffStatePolicy[] {

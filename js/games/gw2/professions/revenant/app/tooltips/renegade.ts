@@ -1,8 +1,3 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import {
-  RAZORCLAW_PROC_ID,
-  SOULCLEAVE_PROC_ID
-} from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -17,9 +12,14 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { upkeepReleaseTooltip } from '#gw2/professions/revenant/app/tooltips/shared.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
-import { upkeepReleaseTooltip } from '#gw2/professions/revenant/app/tooltips/shared.js';
+import {
+  RAZORCLAW_PROC_ID,
+  SOULCLEAVE_PROC_ID
+} from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 
 const bandTogetherTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id)!;

@@ -1,8 +1,8 @@
-import { COMBO_FINISHER, ACTOR, CONTROL, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Photon Forge skill fragments, heat variants, and forge-only actions.
  * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
  */
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializations/holosmith/types.js';

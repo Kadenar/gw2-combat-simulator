@@ -1,10 +1,10 @@
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import {
   createNativeModuleData,
   type NativeModuleDataSelection
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface ProfessionModuleDataOptions<TSkill extends Skill = Skill> {
   readonly skillMechanics: Readonly<Record<string, Partial<TSkill>>>;

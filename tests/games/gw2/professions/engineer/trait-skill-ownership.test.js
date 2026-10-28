@@ -1,10 +1,11 @@
-import { BOON } from '#gw2/platform/constants.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 

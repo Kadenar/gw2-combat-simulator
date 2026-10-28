@@ -1,16 +1,16 @@
-import { isStandardBoon, recordBuffApplication, applyBoonExtension } from '#gw2/platform/combat/boons.js';
-import { ACTOR } from '#gw2/platform/constants.js';
-import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
-import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import type { Gw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverEventHandlers, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import { applyBoonExtension, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   gw2BoonApplicationRecipients,
   gw2BuffApplicationRecipients
 } from '#gw2/platform/combat/state/allied-players.js';
+import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
+import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import type { Gw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import type { Gw2ResolverEventHandlers, Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
 
 interface CreateGw2ResolverEventHandlersOptions {
   readonly hitResolution: Gw2HitResolution;

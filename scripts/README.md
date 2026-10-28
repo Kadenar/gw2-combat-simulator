@@ -58,6 +58,11 @@ Replace `<touched-files>` with a space-separated list of supported files, includ
 retains its existing scope; it does not replace the explicit touched-document check. Avoid a repository-wide formatting
 pass when making a local change. Prettier does not support `.gitignore` or `.prettierignore`.
 
+Prettier also sorts imports with `@ianvs/prettier-plugin-sort-imports`: Node built-ins and packages first, then `#`
+aliases alphabetically, then relative paths. `format:check` rejects unsorted imports, so formatting touched files is the
+only ordering step. Keep a file's description comment above its first import; a comment attached to a later import
+travels with it.
+
 ## Local scratch work
 
 Keep disposable scripts, downloaded analysis inputs, and captured logs under the root `.scratch/` directory (create it

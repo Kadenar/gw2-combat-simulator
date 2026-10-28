@@ -1,8 +1,8 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { emitRangerPetSkill, restartRangerPetAutoattack } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { rangerPetCommandBar } from '#gw2/professions/ranger/data/pet-commands.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { untamedBuffPolicies } from '#gw2/professions/ranger/specializations/untamed/effect-state.js';
 import { untamedUnleashLifecycle } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';

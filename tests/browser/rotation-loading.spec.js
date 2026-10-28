@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openSimulator, openTemplates } from '#tests/helpers/browser-workspace.js';
 
 // Clearing a restored rotation must update the editor in the click handler, before the first worker result.

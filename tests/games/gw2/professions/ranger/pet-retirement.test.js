@@ -1,7 +1,10 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import {
   rangerPetCombatMetadata,
@@ -11,8 +14,6 @@ import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const config = { selectedPet: 'Tiger', selectedPet2: 'Pig' };

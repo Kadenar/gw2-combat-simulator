@@ -1,5 +1,5 @@
-import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 
 export const FORM_EXPIRY = 'revenant.conduit-form-expiry';
 

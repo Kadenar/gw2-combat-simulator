@@ -1,9 +1,9 @@
-import type { BuildContextModule } from '#gw2/build-context/types.js';
 import { loadBuildContext } from '#gw2/build-context/load.js';
+import type { BuildContextModule } from '#gw2/build-context/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import type { Gw2WeaponDataEntry } from '#gw2/platform/equipment/weapons/types.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 /** Search metadata is independent of browser adapters and individual candidate contexts. */
 export interface OptimizerContext extends BuildContextModule {

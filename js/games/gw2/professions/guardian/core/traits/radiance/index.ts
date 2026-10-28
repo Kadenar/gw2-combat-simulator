@@ -1,14 +1,13 @@
-import { WEAPON, ACTOR, BOON, CONDITION, AURA } from '#gw2/platform/constants.js';
-import { boonKey, durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { boonKey, durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-
+import { ACTOR, AURA, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusNumber,
   balanceNumberFromContext,
@@ -17,14 +16,14 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
+import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import {
   guardianBuffApplied,
   guardianCastCompleted,
   type GuardianBuffApplication,
   type GuardianCastCompletion
 } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
-import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { virtueActivated, type VirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';

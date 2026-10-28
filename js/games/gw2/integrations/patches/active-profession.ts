@@ -1,7 +1,7 @@
-import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import type { NativePatchAuthoringContract } from '#gw2/integrations/patches/authoring/module-types.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 
 /** Binds the repository's optional active preview only at application and tooling composition boundaries. */

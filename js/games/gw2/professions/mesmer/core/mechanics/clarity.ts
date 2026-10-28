@@ -1,12 +1,12 @@
+/** Owns the Clarity window that one spear cast arms and a later spear cast consumes. */
+import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-/** Owns the Clarity window that one spear cast arms and a later spear cast consumes. */
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 
 /** Consume once at acceptance; canceled casts retain this start cost. */
 export function consumeMesmerClarity(state: MesmerRuntime, castStart: number): boolean {

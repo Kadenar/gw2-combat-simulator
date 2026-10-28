@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { assertSimulationEvent, COMMON_EVENT_TYPES } from '#gw2/platform/events/events.js';
 
 // The live event boundary validates explicit ownership before execution.

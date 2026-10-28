@@ -1,16 +1,14 @@
-import { attributeContext, resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import { finalizeBuildAttributes } from '#gw2/platform/attributes/calculation.js';
-import type { Gw2BuildAttributeRuleContext } from '#gw2/platform/attributes/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
-
+import { attributeContext, resolveAttributeContributions } from '#gw2/platform/attributes/evaluation.js';
 import type {
   Gw2AttributeSeed,
+  Gw2BuildAttributeRuleContext,
   Gw2CommonAttributeResult,
   Gw2FinalizedAttributeResult
 } from '#gw2/platform/attributes/types.js';
-
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
+import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
 
 /**
  * Minimum trait shape required by the shared build-attribute helpers.

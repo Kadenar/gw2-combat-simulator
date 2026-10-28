@@ -1,20 +1,20 @@
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
+import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
-  necromancerTransformPaletteGroups,
   necromancerSoulShardResourceViews,
+  necromancerTransformPaletteGroups,
   necromancerUiState
 } from '#gw2/professions/necromancer/core/presentation.js';
-import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import type { ScourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const SCOURGE_SKILLS = Object.freeze([

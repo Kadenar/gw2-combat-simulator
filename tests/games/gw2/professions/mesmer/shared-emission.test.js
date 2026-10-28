@@ -1,7 +1,8 @@
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Trait attribution identifies the grant independently of the instrument that triggered it.
 test('Troubadour trait boons retain their granting source and status announcement identity', () => {

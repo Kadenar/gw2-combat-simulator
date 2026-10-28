@@ -13,5 +13,7 @@
   "tabWidth": 2,
   "trailingComma": "none",
   "useTabs": false,
-  "endOfLine": "lf"
+  "endOfLine": "lf",
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"],
+  "importOrder": ["<BUILTIN_MODULES>", "<THIRD_PARTY_MODULES>", "", "^#", "", "^[.]"]
 }

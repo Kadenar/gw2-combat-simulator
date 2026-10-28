@@ -1,6 +1,9 @@
-import { CONTROL } from '#gw2/platform/constants.js';
-import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { CONTROL } from '#gw2/platform/constants.js';
 import {
   rangerPetCombatMetadata,
   rangerPetCompanionId
@@ -10,8 +13,6 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const config = {
   primaryWeapon: 'Greatsword',

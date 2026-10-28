@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { canEquipWeaponSigil, normalizeWeaponSigils, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import { mesmerAppAdapter as adapter } from '#gw2/professions/mesmer/app/app-definition.js';
+
 import {
   captureGearOptimizerRequest,
   createOptimizerEvaluator,
   createOptimizerSpace,
   optimizerEquipment
 } from '#gw2/app/optimizer/gear/search.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { canEquipWeaponSigil, normalizeWeaponSigils, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
+import { mesmerAppAdapter as adapter } from '#gw2/professions/mesmer/app/app-definition.js';
 
 // Check the shared selection rule at every socket so alternate sets cannot bypass exclusivity.
 test('Slaying is limited per set and stacking sigils are limited across both sets', () => {

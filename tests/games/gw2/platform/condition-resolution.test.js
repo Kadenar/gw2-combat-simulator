@@ -1,18 +1,19 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
-import { StableEventQueue } from '#kernel/events/queue.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
+import { StableEventQueue } from '#kernel/events/queue.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Derive paid lifetime from reported payouts so tests protect accounting without a runtime-only accumulator.
 const paidStackSeconds = (application) =>

@@ -1,4 +1,3 @@
-import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
@@ -7,26 +6,33 @@ import {
   gw2AlliedEffectRecipients,
   prepareGw2BuffCompanionCandidates
 } from '#gw2/platform/combat/state/allied-players.js';
-import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import {
+  GW2_QUICKNESS_ACTION_RATE,
+  scaleCastBoundTiming,
+  summonQuicknessCastTimeMs
+} from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
-import { jadeCannonsAttack } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
-import type { EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
-import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { GW2_QUICKNESS_ACTION_RATE, scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
+import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 import { shiftSignetPassive } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { mechanistState } from '#gw2/professions/engineer/specializations/mechanist/state.js';
-import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import { jadeCannonsAttack } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
+import type {
+  EngineerResolverEvent,
+  EngineerRuntime,
+  EngineerRuntimeState,
+  EngineerSkill
+} from '#gw2/professions/engineer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 

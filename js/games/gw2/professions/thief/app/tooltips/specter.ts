@@ -1,23 +1,23 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import {
   fromProfile,
-  tooltipSeconds,
+  fromSkill,
   outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
   profileFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipProfile,
   simulationEffectFacts,
-  type ProfessionTooltips,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
   type DescribeSimulationTooltip,
-  fromSkill
+  type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 const siphonTooltip: DescribeSimulationTooltip = skillTooltip(
   'Siphon the target, trigger stealing traits, and gain Shadow Force. Replaces the held stolen-skill pool without granting a stolen skill.',

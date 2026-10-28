@@ -1,14 +1,14 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 /** Last Tyrant relic rules. */
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 const LAST_TYRANT_STACKS_NEEDED = 5;
 const LAST_TYRANT_STACK_INTERNAL_COOLDOWN = 0.25;

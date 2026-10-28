@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import { openDashboard, selectProfessions } from '#tests/helpers/browser-benchmarks.js';
 
 // Clicking either surface opens the same cached build details; hovering never changes a pinned build.

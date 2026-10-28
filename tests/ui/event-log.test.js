@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
 import { inertContainer } from '#tests/helpers/dom.js';
+import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
 
 const skill = { id: 'skill', label: 'Skill', badge: false };
 const recorded = { kind: 'recorded', label: 'part of' };

@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Generic charges and Dragon's Roar magazines share the same one-at-a-time recharge contract.
 const sequential = { id: 990060, name: 'Sequential ammo', ammo: 6, ammoRecharge: 5 };

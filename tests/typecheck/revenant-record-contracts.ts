@@ -1,8 +1,8 @@
 /** Revenant live state and cost inputs expose only their declared fields. */
-import type { InternalWork } from '#gw2/platform/simulation/work-contract.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
+import type { InternalWork } from '#gw2/platform/simulation/work-contract.js';
 import { revenantRuntimeSpecializationState } from '#gw2/professions/revenant/core/state-queries.js';
+import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';

@@ -1,11 +1,11 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
-import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import {
   castRelativeEffectTimingScale,
-  retainsInterruptedCastLockout,
-  referenceCastTimeMs
+  referenceCastTimeMs,
+  retainsInterruptedCastLockout
 } from '#gw2/platform/execution/cast-timing.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** A shortened atomic input cancels unless a declared skill or effect cutoff has been reached. */
 function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {

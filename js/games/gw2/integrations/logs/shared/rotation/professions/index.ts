@@ -1,5 +1,10 @@
-import { reconstructEngineerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer.js';
+import type {
+  LogActionNormalizationContext,
+  LogActionNormalizer,
+  RecordedLogAction
+} from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import { reconstructElementalistDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/elementalist.js';
+import { reconstructEngineerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer.js';
 import { reconstructGuardianDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian.js';
 import { reconstructMesmerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/mesmer.js';
 import { reconstructNecromancerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/necromancer.js';
@@ -8,11 +13,6 @@ import { reconstructRevenantDpsReportActions } from '#gw2/integrations/logs/shar
 import { reconstructThiefDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/thief.js';
 import { reconstructWarriorDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
 import { UNDERWATER_ONLY_SKILL_IDS } from '#gw2/platform/skills/underwater-skill-ids.js';
-import type {
-  LogActionNormalizer,
-  LogActionNormalizationContext,
-  RecordedLogAction
-} from '#gw2/integrations/logs/shared/rotation/normalization.js';
 
 const reconstructors: ReadonlyMap<string, LogActionNormalizer> = new Map([
   ['elementalist', reconstructElementalistDpsReportActions],

@@ -1,5 +1,4 @@
 import { type BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
-
 import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 

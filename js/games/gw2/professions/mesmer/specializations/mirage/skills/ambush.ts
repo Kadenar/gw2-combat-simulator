@@ -1,5 +1,5 @@
 import { CONDITION } from '#gw2/platform/constants.js';
-import type { ConditionEffect, StatusEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
+import type { ConditionEffect, SkillEffect, StatusEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerAmbushAttack, MesmerAmbushStrike } from '#gw2/professions/mesmer/types.js';
 
 function attackStatusEffect(status: ConditionEffect, source: 'Player' | 'Clone'): SkillEffect {

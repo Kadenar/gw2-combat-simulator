@@ -1,13 +1,11 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromModifier,
   fromProfile,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
-  skillTooltip,
   skillFact,
+  skillTooltip,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
@@ -16,14 +14,16 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import {
   RITUALIST_SPIRIT_SKILL_IDS,
   spiritAttackEffects
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
-import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/tooltips/shared.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
 const innervateTooltip: DescribeSimulationTooltip = skillTooltip(
   'Command the corresponding active spirit to apply its listed effects and restore life force. The spirit must be available for the command.'

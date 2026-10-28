@@ -1,14 +1,10 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import {
   fromProfile,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
-  skillTooltip,
   skillFact,
+  skillTooltip,
   tooltipFactorChange,
   tooltipPercent,
   tooltipProfile,
@@ -16,8 +12,12 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 /** Describe berserker tooltips from the selected balance data. */
 export const berserkerTooltips = {

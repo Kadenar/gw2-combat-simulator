@@ -1,12 +1,10 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-
-import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
-import type { ThiefConfig, ThiefDodge } from '#gw2/professions/thief/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
+import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefConfig, ThiefDodge } from '#gw2/professions/thief/types.js';
 
 export interface DaredevilState {
   selectedDodge: ThiefDodge;

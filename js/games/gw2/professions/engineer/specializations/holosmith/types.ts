@@ -1,6 +1,6 @@
-import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { HOLOSMITH_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/holosmith/catalog-fields.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /**
  * Owns skill metadata consumed only by Holosmith mechanics, keeping heat and

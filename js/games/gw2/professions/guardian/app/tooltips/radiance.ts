@@ -3,9 +3,9 @@ import {
   outsideScopeTooltip,
   tooltipDecimal,
   tooltipFactorChange,
+  tooltipNumber,
   tooltipPercent,
   tooltipProfile,
-  tooltipNumber,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips

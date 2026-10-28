@@ -1,15 +1,16 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { migrateGuardianBuild, validateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { migrateGuardianBuild, validateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Minimal slot casts exercise live completion and activation timing without profession mechanics.
 const slotProfession = defineTestProfession({

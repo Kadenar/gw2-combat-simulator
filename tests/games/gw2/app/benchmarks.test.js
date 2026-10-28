@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import { readFile } from 'node:fs/promises';
-import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
+import test from 'node:test';
+
 import {
-  benchmarkColors,
-  benchmarkScale,
   benchmarkApmScale,
+  benchmarkColors,
   benchmarkComparisonAxis,
-  hasBenchmarkApm,
+  benchmarkScale,
   filterBenchmarks,
+  hasBenchmarkApm,
   readBenchmarks
 } from '#gw2/app/page/benchmarks.js';
+import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 
 const profession = { id: 'mesmer', name: 'Mesmer' };
 const rows = readBenchmarks(profession, [

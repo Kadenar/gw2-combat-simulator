@@ -1,10 +1,10 @@
-import { NECROMANCER_REAPER_PROFILE_FIELDS } from '#gw2/professions/necromancer/specializations/reaper/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
-import { reaperShoutMeleeModifier } from '#gw2/professions/necromancer/specializations/reaper/skills/shout-skills.js';
+import { NECROMANCER_REAPER_PROFILE_FIELDS } from '#gw2/professions/necromancer/specializations/reaper/catalog-fields.js';
 import { bindReaperUi } from '#gw2/professions/necromancer/specializations/reaper/presentation.js';
 import { REAPER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/index.js';
+import { reaperShoutMeleeModifier } from '#gw2/professions/necromancer/specializations/reaper/skills/shout-skills.js';
 import { reaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
 import { necromancerReaperTraits } from '#gw2/professions/necromancer/specializations/reaper/traits/index.js';
 

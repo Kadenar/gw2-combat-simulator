@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { chargeReleaseRowLabel } from '#gw2/app/rotation/editing/charge-release-editor.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
+import { chargeReleaseRowLabel } from '#gw2/app/rotation/editing/charge-release-editor.js';
 import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // The Bladesworn Dragon Slash release editor labels each projected charge outcome.
 test('charge release rows expose time, Flow, and coefficient', () => {

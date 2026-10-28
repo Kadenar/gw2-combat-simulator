@@ -1,9 +1,10 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 const trait = { source: 'Trait', sourceId: TRAIT.MASTER_FENCER, actorType: 'effect' };

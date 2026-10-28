@@ -1,8 +1,8 @@
-import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { stealthActive } from '#gw2/platform/combat/stealth.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 export const RANGER_SPEAR_STEALTH_FLIP_BY_PARENT: Readonly<Record<number, number>> = Object.freeze({
   [ID.MONGOOSES_FRENZY]: ID.WOLFS_ONSLAUGHT,

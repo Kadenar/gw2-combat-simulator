@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { warriorAppAdapter as adapter } from '#gw2/professions/warrior/app/app-definition.js';
+
+import { loadMyBuilds, myBuildsStorageKey } from '#gw2/app/build/library/storage.js';
 import { loadBuild } from '#gw2/app/build/state/persistence.js';
 import { loadBuildWorkspace, workspaceStorageKey } from '#gw2/app/build/state/workspace.js';
-import { loadMyBuilds, myBuildsStorageKey } from '#gw2/app/build/library/storage.js';
-import { previewBuildFileImport, applyBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
+import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
 import { createGw2BuildCodec } from '#gw2/platform/builds/codec.js';
 import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
+import { warriorAppAdapter as adapter } from '#gw2/professions/warrior/app/app-definition.js';
 
 // The disabled cannon shares its display name with the usable utility but must never compete for a saved slot.
 test('saved Antiquary cannon selections load and rewrite to the usable cannon ID', (t) => {

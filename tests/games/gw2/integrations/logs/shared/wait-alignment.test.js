@@ -1,17 +1,18 @@
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { readDpsReportRotationData } from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
-import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { event, log } from '#tests/helpers/evtc-fixture.js';
-import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
-import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import { createRotationSkillResolver } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
+import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
+import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
+import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { event, log } from '#tests/helpers/evtc-fixture.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 test('Warrior replay preserves idle gaps with the selected trait and active offhand', () => {
   // A faster selected variant must not consume the recorded gap in the importer's scheduler projection.

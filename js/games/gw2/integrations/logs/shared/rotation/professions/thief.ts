@@ -1,11 +1,9 @@
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-
-import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
-
 import type {
   LogActionNormalizationContext,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { mergeCompositeActions, mergedActionStatus } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 const METAL_LEGION_GUITAR_FINISH_ID = 76_596;
 const COMPOSITE_SIGNAL_WINDOW_MS = 75;

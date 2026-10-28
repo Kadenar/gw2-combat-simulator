@@ -1,13 +1,14 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { revealedActive, stealthActive } from '#gw2/platform/combat/stealth.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
-import { stealthActive, revealedActive } from '#gw2/platform/combat/stealth.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { emitStealth } from '#tests/helpers/stealth.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const externalSource = { id: 'fixture.external-stealth', name: 'External Stealth' };
 

@@ -1,7 +1,6 @@
-import { attributeBonusFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-
+import { attributeBonusFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 /** Owns Focus Mastery's live tuning and trait behavior. */

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulateProfession = createObservedProfessionSimulator(necromancerProfession, {
   initialResource: 100,

@@ -1,41 +1,40 @@
-import { WEAPON, CONDITION, BOON } from '#gw2/platform/constants.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
-import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
-
-import type { PaletteOverride } from '#gw2/platform/profession-presentation/types.js';
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
-import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
+  PaletteOverride,
   ProfessionEffectPresentation,
   ProfessionPaletteGroup,
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
+import {
+  balanceNumberFromContext,
+  balanceProfileNumber,
+  requireBalanceProfileFromContext
+} from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type {
-  WarriorSkill,
   WarriorPlanningState,
+  WarriorSkill,
   WarriorUiContext,
   WarriorUiSlice
 } from '#gw2/professions/warrior/types.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
   [WEAPON.AXE]: ID.EVISCERATE,

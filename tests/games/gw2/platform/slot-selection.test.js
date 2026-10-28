@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { selectedSlotSkillAvailability } from '#gw2/platform/execution/availability.js';
 
 // Minimal skills isolate selection identity and root inheritance from combat-state prerequisites.

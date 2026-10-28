@@ -1,8 +1,8 @@
 import { createGameWorkerEndpoint } from '#browser/game/worker-harness.js';
 import { calculateContributionBatch } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { ModifierContributionBatchRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
+import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 /**
  * The single request message this worker accepts. The application shell owns

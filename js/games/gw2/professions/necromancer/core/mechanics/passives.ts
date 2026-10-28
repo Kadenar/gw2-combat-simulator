@@ -1,14 +1,16 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
   balanceNumberFromContext,
-  skillNumber,
-  requireSkillFromContext
+  requireSkillFromContext,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
-  NECROMANCER_SIGNET_PASSIVES,
-  applyNecromancerSignetPassive
+  applyNecromancerSignetPassive,
+  NECROMANCER_SIGNET_PASSIVES
 } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
@@ -17,8 +19,6 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Each signet owns an independent cadence; suppression never advances resources or shifts the anchor. */
 function defineSignetPassive(passive: 'undeath' | 'vampirism') {

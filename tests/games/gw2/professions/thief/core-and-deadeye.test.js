@@ -1,33 +1,35 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
+
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
-import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
-import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
-import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
-import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-
-import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
-
-import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
-import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
-import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
-import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
-import { thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
+import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
+import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-matching.js';
+import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
+import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
+import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
+import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
+import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import {
+  createObservedProfessionSimulator,
+  observedRuntime,
+  planningFixture
+} from '#tests/helpers/observed-runtime.js';
+import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [13027, 13046, 41158, 46335, 13082],

@@ -1,12 +1,13 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import test from 'node:test';
+
+import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Virtuoso packets and trait reactions preserve blade generation, spending, and timing.
 test('Deadly Blades activates only after a completed Virtuoso Bladesong', () => {

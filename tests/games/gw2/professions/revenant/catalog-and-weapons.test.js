@@ -1,12 +1,7 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
-import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { BOON } from '#gw2/platform/constants.js';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
 
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { renderSkills } from '#gw2/app/build/panels/skills.js';
-import { inertContainer } from '#tests/helpers/dom.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import {
   displayedSkillTiles,
@@ -18,12 +13,13 @@ import {
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS,
@@ -31,9 +27,12 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { inertContainer } from '#tests/helpers/dom.js';
+import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(

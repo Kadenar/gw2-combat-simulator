@@ -1,34 +1,33 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   createProfessionAssumptionControls,
   normalizeProfessionAssumptions,
   STANDARD_POSITION_ASSUMPTION_CONTROLS,
   validateProfessionAssumptions
 } from '#gw2/platform/builds/assumptions.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
-import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
+import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
+import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
+import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { canonicalTargetConditionName, targetConditionStacks } from '#gw2/platform/combat/state/targets.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   defaultWeaponSkillMatchesSet,
   isGw2WeaponSkillEquipped
 } from '#gw2/platform/equipment/weapons/skill-matcher.js';
+import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 
 test('shared build eligibility allows elite weapons while restricting slot skills and actions', () => {
   // Synthetic actions follow their skill type, so negative IDs need no separate rule.

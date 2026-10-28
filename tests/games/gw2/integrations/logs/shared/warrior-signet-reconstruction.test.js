@@ -1,4 +1,3 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -7,11 +6,12 @@ import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { reconstructWarriorDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 
 const profile = ROTATION_PROFILES.find((entry) => entry.specializationId === 'spellbreaker');
 

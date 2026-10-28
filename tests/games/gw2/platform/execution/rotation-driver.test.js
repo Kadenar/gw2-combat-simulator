@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createRotationDriver } from '#gw2/platform/execution/rotation-driver.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 

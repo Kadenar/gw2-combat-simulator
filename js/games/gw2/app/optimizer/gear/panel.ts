@@ -1,45 +1,45 @@
-import { candidatePicker, updatePicker, bindCandidatePickers } from '#gw2/app/shared/equipment/picker.js';
-import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
-import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
-import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
-import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
-import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
-import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
-import { escapeHtml } from '#ui/shared/html.js';
-import {
-  prefixOptionLabel,
-  runeOptionLabel,
-  relicOptionLabel,
-  foodOptionLabel,
-  utilityOptionLabel,
-  sigilOptionLabel
-} from '#gw2/app/shared/equipment/labels.js';
-import {
-  captureGearOptimizerRequest,
-  optimizerSlots,
-  optimizerWeaponSets,
-  optimizerEquipment,
-  applyOptimizerCandidate,
-  isOptimizerRequestCurrent,
-  optimizerAppliedCandidate,
-  OPTIMIZER_REQUIREMENTS,
-  type GearOptimizerSelections,
-  type OptimizerCandidate,
-  type OptimizerEquipment
-} from '#gw2/app/optimizer/gear/search.js';
-import { MAX_OPTIMIZER_WORKERS } from '#gw2/app/optimizer/gear/runner.js';
 import {
   OPTIMIZER_RESULT_FILTERS,
   optimizerEquipmentIdentity,
   type OptimizerResultFilter
 } from '#gw2/app/optimizer/gear/candidate-results.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
 import { renderOptimizerPreview } from '#gw2/app/optimizer/gear/equipment-preview.js';
-import { readFractalControls, renderFractalControls } from '#gw2/app/optimizer/gear/fractal-controls.js';
 import type { FractalBuffs } from '#gw2/app/optimizer/gear/fractal-buffs.js';
+import { readFractalControls, renderFractalControls } from '#gw2/app/optimizer/gear/fractal-controls.js';
+import { MAX_OPTIMIZER_WORKERS } from '#gw2/app/optimizer/gear/runner.js';
+import {
+  applyOptimizerCandidate,
+  captureGearOptimizerRequest,
+  isOptimizerRequestCurrent,
+  OPTIMIZER_REQUIREMENTS,
+  optimizerAppliedCandidate,
+  optimizerEquipment,
+  optimizerSlots,
+  optimizerWeaponSets,
+  type GearOptimizerSelections,
+  type OptimizerCandidate,
+  type OptimizerEquipment
+} from '#gw2/app/optimizer/gear/search.js';
+import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
+import {
+  foodOptionLabel,
+  prefixOptionLabel,
+  relicOptionLabel,
+  runeOptionLabel,
+  sigilOptionLabel,
+  utilityOptionLabel
+} from '#gw2/app/shared/equipment/labels.js';
+import { bindCandidatePickers, candidatePicker, updatePicker } from '#gw2/app/shared/equipment/picker.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import { FOOD_NAMES } from '#gw2/platform/equipment/consumables/food.js';
+import { UTILITY_NAMES } from '#gw2/platform/equipment/consumables/utilities.js';
+import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
+import { PREFIXES } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
+import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
+import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 // Keep search preferences in memory without adding them to builds, exports, or main simulation settings.
 const fractalSelections = new WeakMap<ProfessionAppState['build'], FractalBuffs>();

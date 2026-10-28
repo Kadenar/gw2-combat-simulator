@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 
 /** Minimal modules keep these checks about selected hook ownership rather than profession content. */

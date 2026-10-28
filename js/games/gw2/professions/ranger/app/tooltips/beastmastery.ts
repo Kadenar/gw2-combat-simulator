@@ -1,13 +1,13 @@
-import { balanceNumberFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import {
   fromProfile,
+  outsideScopeTooltip,
   tooltipFactorChange,
   tooltipSeconds,
-  outsideScopeTooltip,
+  traitSkillTooltip,
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { balanceNumberFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Describes Beastmastery from its active balance profiles without owning simulation behavior. */

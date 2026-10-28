@@ -1,22 +1,22 @@
-import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   boonKey,
-  type Gw2BuffAudience,
-  timedBuffApplicationsAt,
   buffApplicationStacks,
   buffMatchesAudience,
   isDurationStackingBoon,
   isStandardBoon,
   normalizeBoonDuration,
   prepareBoonWindows,
-  type BoonWindow
+  timedBuffApplicationsAt,
+  type BoonWindow,
+  type Gw2BuffAudience
 } from '#gw2/platform/combat/boons.js';
-import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals } from '#gw2/platform/combat/recharge.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { GW2_ALACRITY_RECHARGE_RATE, gw2RechargeIntervals } from '#gw2/platform/combat/recharge.js';
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
+import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { insertSorted } from '#kernel/core/collections.js';
 import { eventCausalOrder } from '#kernel/events/queue.js';

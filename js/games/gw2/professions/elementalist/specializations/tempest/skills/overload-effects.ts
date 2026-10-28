@@ -1,13 +1,13 @@
-import { RECIPIENT, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Static skill-catalog tick tables for the channeled overloads.
  *
  * Each overload is expanded into per-pulse strike/condition/boon packets anchored to cast start and
  * scaled with the cast, so a slower unquickened channel stretches the same pulses proportionally.
  */
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // Payload builders keep each pulse's timing on its shared impact; finishers stay on the strike.
 function strike(coefficient: number, tick: Readonly<Record<string, unknown>> = {}): SkillEffect {

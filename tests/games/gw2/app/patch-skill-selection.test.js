@@ -1,9 +1,10 @@
-import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { availableSlotSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
-import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 
 const utility = { type: 'Utility', slot: 'Utility', weapon: '' };
 const focus = { type: 'Weapon', slot: 'Weapon_5', weapon: 'Focus' };

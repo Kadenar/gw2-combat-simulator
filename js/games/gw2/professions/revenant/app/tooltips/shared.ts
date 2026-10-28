@@ -1,4 +1,3 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   simulationEffectFacts,
   skillTooltip,
@@ -7,6 +6,7 @@ import {
   type DescribeSimulationTooltip,
   type SimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';

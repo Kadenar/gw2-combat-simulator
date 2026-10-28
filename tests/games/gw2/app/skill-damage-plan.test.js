@@ -1,18 +1,18 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { attributeEffectControls, attributePreviewContext } from '#gw2/app/build/attribute-effects.js';
+import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
 import {
   clearedValues,
   createSkillDamagePlan,
   simulationConfigValues,
   skillDamageControls
 } from '#gw2/app/build/skill-damage/plan.js';
-import { createSkillDamageViewModel } from '#gw2/app/build/skill-damage/view-model.js';
-import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
+import { createSkillDamageViewModel } from '#gw2/app/build/skill-damage/view-model.js';
+import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.js';
 

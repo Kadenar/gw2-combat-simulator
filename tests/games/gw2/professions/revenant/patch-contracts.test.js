@@ -1,19 +1,20 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
 import {
-  REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
-import { runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const conduitConfig = {

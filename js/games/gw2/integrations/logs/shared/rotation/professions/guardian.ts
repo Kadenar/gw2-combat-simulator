@@ -1,11 +1,11 @@
-import { reconstructLuminaryDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian/luminary.js';
-import { reconstructGuardianCompositeActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian/willbender.js';
 import { catalogSkillById } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type {
-  LogActionNormalizer,
   LogActionNormalizationContext,
+  LogActionNormalizer,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { reconstructLuminaryDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian/luminary.js';
+import { reconstructGuardianCompositeActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian/willbender.js';
 
 const specializationReconstructors: ReadonlyMap<string, LogActionNormalizer> = new Map([
   ['luminary', reconstructLuminaryDpsReportActions]

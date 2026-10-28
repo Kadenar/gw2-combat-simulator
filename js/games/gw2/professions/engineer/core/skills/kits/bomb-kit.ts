@@ -1,8 +1,8 @@
-import { COMBO_FINISHER, ACTOR, CONTROL, COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
 /** Core Engineer Bomb Kit skill mechanics. */
+import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Bomb Kit. */
 export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({

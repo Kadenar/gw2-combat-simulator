@@ -1,17 +1,16 @@
-import { RECIPIENT, ACTOR, CONTROL, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
-
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   attributeBonusFromContext,
   balanceNumberFromContext,
@@ -27,11 +26,10 @@ import {
   critical,
   dragonSlashCompleted
 } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
-
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
-import type { WarriorResolverContext, WarriorSkill, WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorResolverContext, WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Using a healing skill grants self boons even when the player is already at full health. */
 export const restorativeStrength = defineTrait({

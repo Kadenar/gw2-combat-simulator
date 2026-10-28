@@ -1,8 +1,8 @@
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ProfessionEventLogDescriptor } from '#gw2/platform/profession-presentation/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import {
   necromancerSoulShardResourceViews,
   necromancerTransformPaletteGroups

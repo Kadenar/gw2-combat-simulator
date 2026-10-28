@@ -1,8 +1,8 @@
-import { COMBO_FINISHER, ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Amalgam offensive and defensive protocol skill fragments across mechanic slots.
  * Evolved-state actions and persistent morph behavior live in their named owners.
  */
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';

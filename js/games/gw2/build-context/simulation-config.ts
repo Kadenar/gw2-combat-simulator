@@ -1,7 +1,18 @@
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { Gw2AttributeSeed } from '#gw2/platform/attributes/types.js';
 import type { BuildContextInput, ProfessionModifier } from '#gw2/build-context/types.js';
-import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { Gw2AttributeSeed } from '#gw2/platform/attributes/types.js';
+import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
+import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
+import { simulationRandomnessFromAssumptions } from '#gw2/platform/builds/randomness-assumptions.js';
+import type { ProfessionAssumptionControl, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
+import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
+import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
 interface SimulationConfigOptions extends Omit<BuildContextInput, 'patch'> {
   readonly patchId: string;
@@ -12,18 +23,6 @@ interface SimulationConfigOptions extends Omit<BuildContextInput, 'patch'> {
   readonly selectedTraitIds: readonly SkillId[];
   readonly assumptionControls: readonly ProfessionAssumptionControl[];
 }
-import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
-import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
-import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
-import { simulationRandomnessFromAssumptions } from '#gw2/platform/builds/randomness-assumptions.js';
-import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
-import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
-import { aggregateSigilSet, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { boundedInteger, boundedNumber } from '#kernel/core/numeric.js';
-import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
 /** Keep baseline and modifier comparisons stable while preserving all other simulation settings. */
 export function deterministicSimulationConfig(config: Gw2Config): Gw2Config {

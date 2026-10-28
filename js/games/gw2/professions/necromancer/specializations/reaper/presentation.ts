@@ -1,21 +1,20 @@
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import { CONDITION } from '#gw2/platform/constants.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import type { ProfessionCatalogContext, ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
   necromancerCoreTargetHealthThresholds,
   necromancerSoulShardResourceViews,
   necromancerTransformPaletteGroups
 } from '#gw2/professions/necromancer/core/presentation.js';
-import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
+import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindReaperUi(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>): NecromancerUiSlice {

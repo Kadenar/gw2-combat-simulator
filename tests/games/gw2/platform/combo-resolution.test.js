@@ -1,16 +1,16 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   createGw2ComboRuntimeState,
   registerComboField,
   resolveComboAttempt
 } from '#gw2/platform/combos/resolution.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 
 const query = {
   statsAt: () => ({

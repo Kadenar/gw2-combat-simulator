@@ -1,6 +1,6 @@
-import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import { replaceBuild } from '#gw2/app/build/state/persistence.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
+import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 
 /** Owns durable named snapshots independently of the open workspace tabs. */

@@ -1,11 +1,11 @@
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import {
-  createOptimizerSpace,
   createOptimizerEvaluator,
-  ordinaryEquipmentAt,
+  createOptimizerSpace,
   optimizerScore,
+  ordinaryEquipmentAt,
   retainOptimizerCandidate
 } from '#gw2/app/optimizer/gear/search.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 /** Exhaustive detailed simulations provide a small-search correctness reference for the production optimizers. */
 export function runOrdinaryOptimizer(request, adapter) {

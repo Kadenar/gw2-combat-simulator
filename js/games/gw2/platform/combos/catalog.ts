@@ -1,14 +1,14 @@
 import { requireComboDescriptorOwner } from '#gw2/platform/combos/ownership.js';
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
-import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import {
+  normalizeComboFieldSelectionAnchor,
   normalizeComboFieldType,
-  normalizeComboFinisherType,
-  normalizeComboFieldSelectionAnchor
+  normalizeComboFinisherType
 } from '#gw2/platform/combos/validation.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { clamp } from '#kernel/core/numeric.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
 function positiveInteger(value: unknown, fallback: number, label: string): number {
   const normalized = Number(value ?? fallback);

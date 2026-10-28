@@ -1,22 +1,21 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
+import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {
   guardianBuffApplied,
   guardianCastCompleted,
   guardianStruck
 } from '#gw2/professions/guardian/core/mechanics/trigger-points.js';
-import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {
   admitVirtueActivation,
   applyJusticeBurn,

@@ -1,10 +1,10 @@
 import type {
+  BuildAttributes,
   BuildContext,
   BuildContextFactory,
   BuildContextInput,
   BuildContextModule,
-  WeaponSet,
-  BuildAttributes
+  WeaponSet
 } from '#gw2/build-context/types.js';
 import type { Gw2AttributeMap, Gw2AttributeSeed } from '#gw2/platform/attributes/types.js';
 

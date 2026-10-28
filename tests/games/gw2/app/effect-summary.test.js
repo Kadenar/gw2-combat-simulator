@@ -1,15 +1,16 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildChartSeries } from '#gw2/app/results/model.js';
-import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
+
 import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
+import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 
 const self = {
   includesSelf: true,

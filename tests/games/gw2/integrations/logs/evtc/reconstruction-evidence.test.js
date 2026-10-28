@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import { prepareEvtcEvidence } from '#gw2/integrations/logs/evtc/rotation/evidence.js';
 import { detectEvtcRotationPlayers } from '#gw2/integrations/logs/evtc/rotation/players.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
-import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';
 
 // Observe builder-specific reads so every finder in a real reconstruction must reuse the same indexes.

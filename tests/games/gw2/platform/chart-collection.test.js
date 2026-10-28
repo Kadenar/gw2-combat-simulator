@@ -1,12 +1,13 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadProfession } from '#gw2/profession-registry.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+
+import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
-import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { loadProfession } from '#gw2/profession-registry.js';
 
 // Optional chart collection must leave combat and the editor's single-boundary observations intact.
 for (const [id, name, primaryWeapon, specialization = 'Core'] of [

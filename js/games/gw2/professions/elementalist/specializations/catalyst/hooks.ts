@@ -22,9 +22,9 @@ import {
   modifyJadeSphereEffects
 } from '#gw2/professions/elementalist/specializations/catalyst/skills/jade-sphere.js';
 import type {
+  ElementalistRuntime,
   ElementalistRuntimeState,
-  ElementalistSkill,
-  ElementalistRuntime
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
 // Resource policies initialize energy first; retain the actual attunement notification for trait rewards.

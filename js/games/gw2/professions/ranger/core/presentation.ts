@@ -1,25 +1,25 @@
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { WEAPON } from '#gw2/platform/constants.js';
-import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { WEAPON } from '#gw2/platform/constants.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type {
   ProfessionPaletteGroup,
   ProfessionResourceView,
   ProfessionSkillBarGroup
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
-import { rangerPetSkillTiming } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import { rangerPetAutoProfile } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
+import { rangerPetSkillTiming } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import {
   RANGER_SPEAR_STEALTH_FLIP_BY_PARENT,
   rangerSpearStealthAvailable
@@ -40,8 +40,8 @@ import {
 } from '#gw2/professions/ranger/data/pets.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type {
-  RangerSkill,
   RangerPlanningState,
+  RangerSkill,
   RangerUiContext,
   RangerUiSelection,
   RangerUiSlice

@@ -1,9 +1,8 @@
 import { CONDITION } from '#gw2/platform/constants.js';
-import type { SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
-import type { ConditionEffect } from '#gw2/platform/effects/types.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
+import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 /** Share player-plus-clone packet expansion between execution and presentation without scheduling effects. */
 export function cloneShatterTier(shatter: MesmerShatter, skill: MesmerSkill, spent: number) {

@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
-import { mountSimulationSection } from '#ui/results/simulation-view.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { inertContainer } from '#tests/helpers/dom.js';
+import { mountSimulationSection } from '#ui/results/simulation-view.js';
 
 // Presentation rounds only the displayed rate and exposes the same accounting on hover and keyboard disclosure.
 test('APM renders next to duration with a tooltip and sustained peak details', () => {

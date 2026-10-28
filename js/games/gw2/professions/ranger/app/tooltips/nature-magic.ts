@@ -1,12 +1,12 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
   tooltipPercent,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Describes NatureMagic from its active balance profiles without owning simulation behavior. */

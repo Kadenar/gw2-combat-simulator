@@ -1,5 +1,5 @@
-import { mountSimulationSection, type SimulationViewModel } from '#ui/results/simulation-view.js';
 import { updateHeaderDps } from '#browser/shell/header-dps.js';
+import { mountSimulationSection, type SimulationViewModel } from '#ui/results/simulation-view.js';
 
 export interface SimulationRenderState {
   readonly inputRevision: number;

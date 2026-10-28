@@ -1,4 +1,3 @@
-import { CONDITION } from '#gw2/platform/constants.js';
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
 import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
@@ -22,6 +21,7 @@ import type { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2AttributeMap } from '#gw2/platform/attributes/types.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import type {
   AttributePreviewValues,
   PreviewControl

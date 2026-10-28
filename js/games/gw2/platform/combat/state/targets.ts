@@ -1,9 +1,9 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import type { EncounterController } from '#gw2/platform/combat/state/encounter.js';
 /**
  * Hostile-target model: which packets face the target or establish combat, the condition vocabulary, and configured
  * and runtime condition stacks. Targets never carry boons.
  */
+import type { EncounterController } from '#gw2/platform/combat/state/encounter.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';

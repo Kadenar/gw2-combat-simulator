@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getBuildExportPayload, getBuildWithRotationExportPayload } from '#gw2/app/import-export/files.js';
+
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
+import { getBuildExportPayload, getBuildWithRotationExportPayload } from '#gw2/app/import-export/files.js';
 import { loadManifestBuilds } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 

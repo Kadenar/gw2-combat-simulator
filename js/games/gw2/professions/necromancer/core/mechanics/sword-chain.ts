@@ -7,15 +7,14 @@ import {
   resetAutoattackChains,
   type AutoattackChainTransitionResult
 } from '#gw2/platform/execution/autoattack-chains.js';
-import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
-
-import type {
-  NecromancerSkill,
-  NecromancerRuntime,
-  NecromancerRuntimeState
-} from '#gw2/professions/necromancer/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type {
+  NecromancerRuntime,
+  NecromancerRuntimeState,
+  NecromancerSkill
+} from '#gw2/professions/necromancer/types.js';
 
 const SWORD_AUTOATTACK_EXPIRY_OWNER = 'necromancer.sword-autoattack-chain';
 const SWORD_AUTOATTACK_EXPIRY_TASK = 'necromancer.sword-autoattack-chain-expire';

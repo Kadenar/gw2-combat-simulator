@@ -1,22 +1,21 @@
 import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionEffectPresentation,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
   guardianUiSkillIds,
   guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
-import { GUARDIAN_TRAIT_IDS as WILLBENDER_TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianUiContext, GuardianUiSlice, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import { boundedInteger } from '#kernel/core/numeric.js';
+import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS as WILLBENDER_TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import type { GuardianSkill, GuardianUiContext, GuardianUiSlice } from '#gw2/professions/guardian/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 const VIRTUE_IDS = Object.freeze([
   GUARDIAN_SKILL_IDS.RUSHING_JUSTICE,

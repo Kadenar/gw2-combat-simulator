@@ -1,5 +1,5 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';

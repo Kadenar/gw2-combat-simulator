@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import {
   createEffectExpansionBudget,
   effectApplicationCount,
   MAX_EFFECT_EXPANSION
 } from '#gw2/platform/effects/expansion-budget.js';
-import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';

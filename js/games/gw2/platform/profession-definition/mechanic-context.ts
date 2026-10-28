@@ -1,22 +1,20 @@
 import type { CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
-import type { AlliedStrikeGrants } from '#gw2/platform/combat/state/allied-strikes.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
-import type { ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import type { MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import type { ExecutedFactsReader, ExecutedFactsWriter } from '#gw2/platform/combat/history/executed-facts.js';
-import type { SimulationRandom } from '#kernel/core/simulation-random.js';
+import type { ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import type { EnduranceController, ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { AlliedStrikeGrants } from '#gw2/platform/combat/state/allied-strikes.js';
+import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
+import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
-import type { CastControl } from '#gw2/platform/execution/cast-contracts.js';
-import type { ResourceController, EnduranceController } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
-import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
-import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
+import type { FlipWindowOptions, SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
+import type { MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 
 /** Preserve a family's concrete state and skill identities when a shared helper only reads mechanic facts. */
 export type MechanicQueriesOf<TContext extends { profession: object; helpers: CanonicalCatalog }> =

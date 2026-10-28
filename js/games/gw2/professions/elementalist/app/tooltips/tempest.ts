@@ -1,4 +1,3 @@
-import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import {
   fromProfile,
   profileFact,
@@ -9,6 +8,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import {
   ELEMENTALIST_OVERLOAD_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID,

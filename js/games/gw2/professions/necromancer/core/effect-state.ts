@@ -1,9 +1,7 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { deathCarapaceEffectState } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
-
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Core owns shared weapon and trait effects; selected elites register their own policies. */

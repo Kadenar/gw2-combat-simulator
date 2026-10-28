@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const TRAIT = 991090;

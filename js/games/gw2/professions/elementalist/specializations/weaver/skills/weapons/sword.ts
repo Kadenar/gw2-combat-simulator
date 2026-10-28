@@ -1,9 +1,8 @@
-import { WEAPON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 /** Sword weapon-skill mechanics owned by the Weaver module. */
-
+import { CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

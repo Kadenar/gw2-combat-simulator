@@ -1,4 +1,4 @@
-import { createInputProfile, validateInputProfile, InputProfileError, type InputProfile } from '#gw2/input/profile.js';
+import { createInputProfile, InputProfileError, validateInputProfile, type InputProfile } from '#gw2/input/profile.js';
 
 export const INPUT_PROFILE_STORAGE_KEY = 'gw2-input-profile';
 type StoragePort = Pick<Storage, 'getItem' | 'setItem'>;

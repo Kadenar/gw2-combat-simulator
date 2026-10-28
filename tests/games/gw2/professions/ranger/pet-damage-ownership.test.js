@@ -1,12 +1,13 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
+
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 

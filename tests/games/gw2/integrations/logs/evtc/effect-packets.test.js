@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createStrikePacketMatcher } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { event, log, EVTC_FIXTURE_PLAYER } from '#tests/helpers/evtc-fixture.js';
+import { event, EVTC_FIXTURE_PLAYER, log } from '#tests/helpers/evtc-fixture.js';
 
 // Reconstruction must retain authored packet evidence for false-stop recovery, even when skills transform effects.
 test('packet matching retains observed evidence for skills with acceptance transforms', () => {

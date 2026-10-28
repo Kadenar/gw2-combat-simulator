@@ -1,16 +1,16 @@
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
+import { GUARDIAN_BUNDLE_SKILLS } from '#gw2/professions/guardian/data/guardian-bundle-skills.js';
+import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
+import { TRAITS } from '#gw2/professions/guardian/data/traits-data.js';
+import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 import {
   createFlipParentMap,
   createProfessionModuleDataFactory,
   defineProfessionWeapons,
   normalizeGeneratedSkill
 } from '#gw2/professions/shared/catalog-data.js';
-import { SKILLS, SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
-import { GUARDIAN_BUNDLE_SKILLS } from '#gw2/professions/guardian/data/guardian-bundle-skills.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { TRAITS } from '#gw2/professions/guardian/data/traits-data.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 const allSkills: readonly GuardianSkill[] = Object.freeze([...SKILLS, ...GUARDIAN_BUNDLE_SKILLS]);
 

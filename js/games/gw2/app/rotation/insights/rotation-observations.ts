@@ -1,10 +1,10 @@
-import { eventDamagePackets } from '#gw2/platform/results/damage-packets.js';
-import { effectSummary } from '#gw2/platform/results/effect-report.js';
 import {
   mechanicResourceSpends,
   timelineDeadTimeMarkers,
   timelineStepsWithChargeFills
 } from '#gw2/app/rotation/timeline/model.js';
+import { eventDamagePackets } from '#gw2/platform/results/damage-packets.js';
+import { effectSummary } from '#gw2/platform/results/effect-report.js';
 import type { Gw2SimulationResult, SimulationStep } from '#gw2/platform/results/types.js';
 
 interface ObservationInterval {

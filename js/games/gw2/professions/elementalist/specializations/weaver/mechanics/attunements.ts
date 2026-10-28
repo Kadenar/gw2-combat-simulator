@@ -1,16 +1,15 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ACTOR } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import { type AvailabilityResult, denyCast } from '#gw2/platform/execution/availability.js';
+import { denyCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { skillNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
-import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import {
   elementalistAttunementRechargeDuration,
   onAttunementComplete,
@@ -18,6 +17,7 @@ import {
   targetAttunement
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
+import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_ATTUNEMENTS, isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import {

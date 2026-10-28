@@ -4,13 +4,13 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
-import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import {
   captureDeadeyeMalice,
   deadeyeMalice,
   deadeyeMaliceSnapshot,
   reactDeadeyeMalice
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
+import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { deadeyesMarkLifecycle } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
 import { maliciousAttackLifecycle } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';
 import { deadeyeSlotLifecycle } from '#gw2/professions/thief/specializations/deadeye/skills/slot-skills.js';

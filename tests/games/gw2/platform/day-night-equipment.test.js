@@ -1,15 +1,15 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { profession, createBuildContext } from '#gw2/professions/necromancer/build/context.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { aggregateSigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/build/build.js';
+import { createBuildContext, profession } from '#gw2/professions/necromancer/build/context.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 test('the shared simulation config defaults to day and preserves a night selection', () => {
   const build = createNecromancerBuildDefaults();

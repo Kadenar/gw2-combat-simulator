@@ -1,11 +1,12 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
-import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
+
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
+import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
+import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { MESMER_SKILL_IDS as MESMER_SKILL } from '#gw2/professions/mesmer/data/ids.js';
 
 const adapters = {};

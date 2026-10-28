@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { gw2EventActorType, gw2EventOwnerActorType } from '#gw2/platform/combat/state/event-ownership.js';
 
 // Unknown metadata must remain conservative; explicit ownership overrides a valid actor only when recognized.

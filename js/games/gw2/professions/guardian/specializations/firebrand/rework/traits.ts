@@ -1,10 +1,11 @@
-import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
   balanceNumberFromContext,
   effectNumber,
@@ -13,6 +14,7 @@ import {
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import {
   grantAshes,
   resolveAshesGrantData
@@ -21,13 +23,11 @@ import {
   finalMantraChargeUsed,
   firebrandControlAccepted,
   swiftScholarPagesGranted,
-  type FirebrandControl,
-  type FinalMantraCharge
+  type FinalMantraCharge,
+  type FirebrandControl
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { firebrandTraits, swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
-import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 /** Unknown bonuses start neutral; the selected patch supplies explicitly labeled experimental values. */
 const unrelentingCriticism = defineTrait({

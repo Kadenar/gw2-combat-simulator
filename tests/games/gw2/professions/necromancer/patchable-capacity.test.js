@@ -1,14 +1,15 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { grantNecromancerSoulShards } from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
 import { consumeSoulShards } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { harbingerHooks } from '#gw2/professions/necromancer/specializations/harbinger/hooks.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { harbingerHooks } from '#gw2/professions/necromancer/specializations/harbinger/hooks.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const PATCH = 'resource-capacity';
 const SHARDS = ID.SOUL_SHARDS;

@@ -1,13 +1,14 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defineTestProfession } from '#tests/helpers/profession.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
+import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 const attribution = { source: 'Trait', sourceId: 42, actorType: 'player', skillId: 42, skillName: 'Fixture trait' };
 const strike = { ...attribution, type: 'damage', at: 1, coefficient: 1, skillWeapon: 'Sword' };

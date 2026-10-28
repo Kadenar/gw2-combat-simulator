@@ -1,6 +1,7 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { createCriticalFoodEffect } from '#gw2/platform/equipment/consumables/food-procs.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { createSigilDamagePayload } from '#gw2/platform/equipment/sigils/proc-events.js';
@@ -8,7 +9,6 @@ import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import { isTraitEffect } from '#gw2/platform/profession-definition/trait-emission.js';
-import { createCriticalFoodEffect } from '#gw2/platform/equipment/consumables/food-procs.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { runRuntime } from '#gw2/platform/simulation/runtime.js';

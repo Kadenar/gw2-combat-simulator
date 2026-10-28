@@ -1,17 +1,17 @@
-import { ACTOR, RECIPIENT, COMBO_FINISHER, COMBO_FIELD, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import {
-  skillNumberFromContext,
   effectNumber,
+  requireEffect,
   requireSkillFromContext,
-  requireEffect
+  skillNumberFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';

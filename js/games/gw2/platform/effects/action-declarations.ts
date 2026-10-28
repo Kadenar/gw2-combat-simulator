@@ -1,7 +1,7 @@
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import { isCustomSideEffectAction, type SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 const authoredReactions = new WeakSet<readonly EffectReaction[]>();

@@ -1,12 +1,13 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { testProfession } from '#tests/fixtures/profession.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { testProfession } from '#tests/fixtures/profession.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 // Isolate dodge starts from follow-up packets, precombat actions and the exact ICD boundary.
 test('Mirage follows executed rotation dodges with a one-second ICD', () => {

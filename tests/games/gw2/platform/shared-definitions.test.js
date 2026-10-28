@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resourceAtLeast, RESOURCE_TOLERANCE } from '#gw2/platform/combat/resources/pool.js';
+
+import { RESOURCE_TOLERANCE, resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import { isFlatLifeStealPacket } from '#gw2/platform/effects/packet-builders.js';
 import { createDodgeSkill, createWeaponSwapSkill, SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 

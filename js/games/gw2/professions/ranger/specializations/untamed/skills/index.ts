@@ -1,15 +1,14 @@
-import { ACTOR, COMBO_FIELD, CONTROL, COMBO_FINISHER, BOON, CONDITION } from '#gw2/platform/constants.js';
-
 /**
  * Owns Untamed Unleash, ambush, and specialization skill catalog fragments only.
  * Persistent Unleash state and transitions live under `mechanics/`.
  */
+import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { UNTAMED_WEAPON_AMBUSH_MECHANICS } from '#gw2/professions/ranger/specializations/untamed/skills/weapon-ambushes.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { naturalFortitudeAmbushEffect } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
-import { UNTAMED_WEAPON_AMBUSH_MECHANICS } from '#gw2/professions/ranger/specializations/untamed/skills/weapon-ambushes.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
 const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';

@@ -5,8 +5,8 @@ import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { reconstructEngineerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { event, log } from '#tests/helpers/evtc-fixture.js';
 
 // Synthetic inputs isolate corroboration boundaries without pinning a benchmark rotation or skill timing.

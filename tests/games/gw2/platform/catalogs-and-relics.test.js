@@ -1,33 +1,34 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { enteredCombat } from '#tests/helpers/engagement.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { captureEffectEmissions, captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
-import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import {
+  FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
+  PRECISION_PER_CRITICAL_CHANCE_FRACTION
+} from '#gw2/platform/combat/formulas.js';
+import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import {
   relicConditionDurationBonus,
   relicOutgoingDamageBonus,
   relicStrikeMultiplier
 } from '#gw2/platform/equipment/relics/query.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
+import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/severance.js';
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
-import {
-  FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
-  PRECISION_PER_CRITICAL_CHANCE_FRACTION
-} from '#gw2/platform/combat/formulas.js';
+import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { runMesmer, createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { captureAcceptedBuffEmissions, captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { enteredCombat } from '#tests/helpers/engagement.js';
+import { createDefaultConfig, runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 test('Mesmer test scenarios use the registered live runtime', () => {
   const config = {

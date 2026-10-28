@@ -1,4 +1,15 @@
 import { equipmentAttributeConversions } from '#gw2/platform/attributes/inputs.js';
+import type {
+  Gw2AttributeBreakdown,
+  Gw2AttributeConversionInputs,
+  Gw2AttributeEffect,
+  Gw2AttributeMap,
+  Gw2AttributeSeed,
+  Gw2CommonAttributeResult,
+  Gw2FinalizedAttributeResult,
+  Gw2NumericAttributes
+} from '#gw2/platform/attributes/types.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import {
   conditionDurationPercentFromExpertise,
   criticalChancePercentFromPrecision,
@@ -13,18 +24,6 @@ import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { stackingSigilForBuild, weaponSigilsForSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { WEAPON_DATA } from '#gw2/platform/equipment/weapons/data.js';
-
-import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type {
-  Gw2AttributeBreakdown,
-  Gw2AttributeEffect,
-  Gw2AttributeConversionInputs,
-  Gw2AttributeMap,
-  Gw2AttributeSeed,
-  Gw2CommonAttributeResult,
-  Gw2FinalizedAttributeResult,
-  Gw2NumericAttributes
-} from '#gw2/platform/attributes/types.js';
 
 /** Level-80 character baseline that gear and food attributes build on top of. */
 const BASE_STATS: Readonly<Gw2NumericAttributes> = {

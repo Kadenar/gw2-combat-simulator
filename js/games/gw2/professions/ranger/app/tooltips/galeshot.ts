@@ -1,22 +1,22 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
   fromProfile,
-  tooltipFactorChange,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
-  skillTooltip,
   profileFact,
-  skillFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipNumber,
-  tooltipProfile,
   simulationEffectFacts,
+  skillFact,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipNumber,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Compose galeshot descriptions using the selected catalog's balance data. */

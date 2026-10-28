@@ -1,8 +1,5 @@
-import type { ProfessionStateSnapshotContext } from '#gw2/platform/profession-presentation/types.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -14,8 +11,11 @@ import type {
 import type {
   ProfessionEffectPresentation,
   ProfessionResourceView,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import {
   necromancerSoulShardResourceViews,
   necromancerTransformPaletteGroups,
@@ -23,15 +23,15 @@ import {
 } from '#gw2/professions/necromancer/core/presentation.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import {
   harbingerBlightMaximum,
   MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { boundedInteger } from '#kernel/core/numeric.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
 function harbingerStateSnapshot(

@@ -1,18 +1,18 @@
-import {
-  RANGER_PET_SKILL_IDS,
-  SIMULATED_FAMILY_SKILL_IDS,
-  SIMULATED_SKILL_FALLBACKS,
-  SIMULATED_SKILL_OVERRIDES,
-  AUTONOMOUS_PET_SKILL_IDS,
-  SOULBEAST_FAMILY_SKILL_IDS,
-  SOULBEAST_PET_SKILL_IDS,
-  SOULBEAST_PET_FAMILY_OVERRIDES,
-  SOULBEAST_ARCHETYPE_SKILL_IDS
-} from './ranger-pet-skills.mjs';
 import { fileURLToPath } from 'node:url';
 
 import { mapConcurrent, serializeWithLocalImages } from './lib/generator-utils.mjs';
 import { fetchManyGw2, isTerrestrialSkill } from './lib/gw2-profession-snapshot.mjs';
+import {
+  AUTONOMOUS_PET_SKILL_IDS,
+  RANGER_PET_SKILL_IDS,
+  SIMULATED_FAMILY_SKILL_IDS,
+  SIMULATED_SKILL_FALLBACKS,
+  SIMULATED_SKILL_OVERRIDES,
+  SOULBEAST_ARCHETYPE_SKILL_IDS,
+  SOULBEAST_FAMILY_SKILL_IDS,
+  SOULBEAST_PET_FAMILY_OVERRIDES,
+  SOULBEAST_PET_SKILL_IDS
+} from './ranger-pet-skills.mjs';
 
 const WIKI_API = 'https://wiki.guildwars2.com/api.php';
 

@@ -1,10 +1,9 @@
-import { WEAPON } from '#gw2/platform/constants.js';
-import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/elementalist/build/context.js';
-import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
-import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
-
 import type { ProfessionSkillAvailabilityContext } from '#gw2/app/build/types.js';
+import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
+import { WEAPON } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
+import { createBuildContext, profession, toApplicationBuild } from '#gw2/professions/elementalist/build/context.js';
 
 // Dual-attunement weapon skills share the catalog with the single-attunement ones, so
 // hide them from every non-Weaver build before applying the shared availability rules.

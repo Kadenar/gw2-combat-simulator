@@ -1,8 +1,8 @@
-import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
-import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
+import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   activeBoonStacks,
   activeBuffStacks,
@@ -10,6 +10,7 @@ import {
   buffActive,
   countActiveBoons
 } from '#gw2/platform/combat/query/runtime-query.js';
+import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 

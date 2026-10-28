@@ -1,9 +1,9 @@
-import { WEAPON, ACTOR, COMBO_FINISHER, CONTROL, RECIPIENT, CONDITION } from '#gw2/platform/constants.js';
-import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 /** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
+import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({

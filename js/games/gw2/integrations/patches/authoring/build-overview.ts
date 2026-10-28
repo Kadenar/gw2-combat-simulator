@@ -1,15 +1,15 @@
-import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
-import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
-import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { NativePatchAuthoringMetadata } from '#gw2/integrations/patches/authoring/module-types.js';
+import type { ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { AnyNativeModule } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
-import type { NativePatchAuthoringMetadata } from '#gw2/integrations/patches/authoring/module-types.js';
-import type { ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
+import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+import { GUARDIAN_SKILL_IDS } from '#gw2/professions/guardian/data/ids.js';
 
 /** Limit authored notes to selected traits, equipped weapons and skills, and effects observed in either comparison. */
 export function buildRelevantPatch(

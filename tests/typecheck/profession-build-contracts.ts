@@ -1,16 +1,15 @@
 /** Compile-time checks for closed build shapes and codec results across profession composition. */
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { toApplicationBuild as engineerApplicationBuild } from '#gw2/professions/engineer/build/build.js';
-import { toApplicationBuild as elementalistApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
-import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
-import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
-import type { ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
-import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
-import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
+import type { Gw2Build, Gw2CanonicalBuild, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
+import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
+import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import { toApplicationBuild as elementalistApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
+import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
+import { toApplicationBuild as engineerApplicationBuild } from '#gw2/professions/engineer/build/build.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import type { EngineerCanonicalBuild } from '#gw2/professions/engineer/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;

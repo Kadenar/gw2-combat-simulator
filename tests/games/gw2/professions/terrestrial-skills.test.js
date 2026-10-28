@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
 import { UNDERWATER_ONLY_SKILL_IDS } from '#gw2/platform/skills/underwater-skill-ids.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
-import { RANGER_PETS, RANGER_PET_SKILLS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { RANGER_CORE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/index.js';
-import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
+import { RANGER_PET_SKILLS, RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 
 test('all profession catalogs and source metadata exclude confirmed underwater skills', async () => {
   // Check every source as well as assembled catalogs so metadata refreshes cannot silently restore water skills.

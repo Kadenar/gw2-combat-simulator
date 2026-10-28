@@ -1,18 +1,18 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import { escapeHtml } from '#ui/shared/html.js';
-import { resultNumber as number } from '#gw2/app/results/formatting.js';
-import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
-import type { OwnerConditionDamage } from '#gw2/app/results/skill-breakdown.js';
 import { bindConditionInspectors, renderSkillInspector } from '#gw2/app/results/breakdown/inspectors.js';
 import {
+  nextResultSortState,
   prepareDamageBreakdown,
   sortResultRows,
-  nextResultSortState,
   type DamageBreakdownModel,
-  type ResultRow,
   type ResultColumn,
+  type ResultRow,
   type ResultSortState
 } from '#gw2/app/results/breakdown/model.js';
+import { resultNumber as number } from '#gw2/app/results/formatting.js';
+import type { OwnerConditionDamage } from '#gw2/app/results/skill-breakdown.js';
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 export interface DamageBreakdownOptions {
   readonly resolveSkillIcon?: (row: ResultRow) => string;

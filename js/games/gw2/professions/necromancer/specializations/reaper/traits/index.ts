@@ -1,11 +1,13 @@
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { targetConditionStacks as configuredTargetConditionStacks } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
   attributeBonusFromContext,
   balanceNumberFromContext,
@@ -13,14 +15,9 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-
-import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 /** Shroud Knight owns Reaper Shroud's intrinsic life-force drain. */

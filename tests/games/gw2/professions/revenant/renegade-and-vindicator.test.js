@@ -1,35 +1,38 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { effectFields } from '#tests/helpers/effect-report.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import assert from 'node:assert/strict';
-import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { describe, test } from 'node:test';
+
+import { buildChartSeries } from '#gw2/app/results/model.js';
+import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
+import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
 import {
   currentAutoattackSkill,
   paletteActionSkills,
-  weaponSkills,
-  paletteSkillView
+  paletteSkillView,
+  weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
-import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
-import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import {
-  VINDICATOR_DODGE_AUTO_ACTION,
-  vindicatorDodgeAutoRotationEntries
-} from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
+import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import {
+  activeKallasFervorStacks,
+  grantKallasFervor
+} from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import {
+  VINDICATOR_DODGE_AUTO_ACTION,
+  vindicatorDodgeAutoRotationEntries
+} from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
-import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
-import { grantKallasFervor } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {

@@ -1,9 +1,9 @@
-import { BOON } from '#gw2/platform/constants.js';
+import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
+import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
+import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
-import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
-import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
-import type { AttributePreviewState } from '#gw2/app/build/types.js';
+import { BOON } from '#gw2/platform/constants.js';
 import type { PreviewControl } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { Gw2Config, Gw2InitialBuff } from '#gw2/platform/simulation/config.js';
 

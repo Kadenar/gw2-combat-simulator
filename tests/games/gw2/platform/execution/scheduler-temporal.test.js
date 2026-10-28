@@ -1,10 +1,11 @@
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // A full reload clears pending charges so the next spend starts a fresh recharge queue.
 test('ammo restoration resets full-pool recharge', () => {

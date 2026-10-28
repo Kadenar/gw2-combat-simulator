@@ -1,5 +1,3 @@
-import { WEAPON } from '#gw2/platform/constants.js';
-import { ELEMENTALIST_SKILL_IDS as SKILL } from '#gw2/professions/elementalist/data/ids.js';
 /**
  * Elementalist build persistence.
  *
@@ -7,15 +5,16 @@ import { ELEMENTALIST_SKILL_IDS as SKILL } from '#gw2/professions/elementalist/d
  * from, and the codec that migrates, validates, and adapts stored builds for the
  * application shell. Schema-version bumps and field additions belong here.
  */
+import type { UnvalidatedBuildRecord } from '#gw2/platform/builds/types.js';
+import { WEAPON } from '#gw2/platform/constants.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
-import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
-import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import type { UnvalidatedBuildRecord } from '#gw2/platform/builds/types.js';
-
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
+import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { ELEMENTALIST_SKILL_IDS as SKILL } from '#gw2/professions/elementalist/data/ids.js';
+import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
+import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 
 /** Bumped whenever the persisted build shape changes, so older saves are migrated on load. */
 export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 5;

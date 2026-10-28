@@ -1,9 +1,8 @@
-import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 /** Creates the selected relic's runtime. Per-relic behavior lives in `rules/`. */
+import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
-
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2RelicRule, Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 const STATELESS_RELIC: Readonly<Gw2RelicRule> = Object.freeze({});
 

@@ -1,12 +1,12 @@
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
-import { engineerUiState } from '#gw2/professions/engineer/core/presentation.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { selectedMechCommands } from '#gw2/professions/engineer/specializations/mechanist/state.js';
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { engineerUiState } from '#gw2/professions/engineer/core/presentation.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { selectedMechCommands } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Prefer the editable build's traits, but fall back to simulation state when a

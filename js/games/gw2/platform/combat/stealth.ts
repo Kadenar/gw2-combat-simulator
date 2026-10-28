@@ -1,5 +1,5 @@
-import { STATUS } from '#gw2/platform/constants.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { STATUS } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';

@@ -1,21 +1,23 @@
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 /**
  * Handles shared profession actions decorated by active modules.
  * Manages resource consumption, trait procs (Maim/Phantom Pain/Illusionary Membrane/etc.).
  * Resource transactions settle before ordered trait points and shatter markers.
  * Profession action controller
  */
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerDestroyClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type {
   MesmerResourceDefinition,
   MesmerResourceSpendDetails
 } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerShatter, MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import type {
   MesmerProfessionActionController,
@@ -23,9 +25,6 @@ import type {
   MesmerShatterResolver
 } from '#gw2/professions/mesmer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
-
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 interface ProfessionActionControllerOptions {
   readonly state: MesmerRuntime;

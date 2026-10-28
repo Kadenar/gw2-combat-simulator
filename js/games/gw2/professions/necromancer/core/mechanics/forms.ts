@@ -3,6 +3,7 @@ import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { DEPLETION } from '#gw2/professions/necromancer/core/mechanics/resources.js';
@@ -14,11 +15,10 @@ import {
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
-  NecromancerSkill,
-  NecromancerRuntimeState
+  NecromancerRuntimeState,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Owns shroud and Lich transitions, their trait effects, and automatic exits on the live runtime. */
 

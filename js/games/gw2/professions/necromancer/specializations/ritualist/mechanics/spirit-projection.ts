@@ -1,5 +1,5 @@
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 

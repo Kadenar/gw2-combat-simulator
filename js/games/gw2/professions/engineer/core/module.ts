@@ -1,18 +1,18 @@
-import { ENGINEER_CORE_PROFILE_FIELDS } from '#gw2/professions/engineer/core/catalog-fields.js';
-import { projectEngineerCorePlanningState } from '#gw2/professions/engineer/core/state.js';
-import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
-
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import {
+  ENGINEER_CORE_PROFILE_FIELDS,
+  ENGINEER_CORE_SKILL_FIELDS
+} from '#gw2/professions/engineer/core/catalog-fields.js';
 import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
 import {
   ENGINEER_CORE_EXTRA_SKILLS,
   ENGINEER_CORE_SKILL_MECHANICS
 } from '#gw2/professions/engineer/core/skills/index.js';
-import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js';
+import { createEngineerCoreState, projectEngineerCorePlanningState } from '#gw2/professions/engineer/core/state.js';
+import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
-import { ENGINEER_CORE_SKILL_FIELDS } from '#gw2/professions/engineer/core/catalog-fields.js';
 
 export const engineerCoreModule = defineNativeModule({
   canSwapWeaponSetsInCombat: false,

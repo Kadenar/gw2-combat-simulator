@@ -1,21 +1,20 @@
-import type { GUARDIAN_CORE_SKILL_FIELDS } from '#gw2/professions/guardian/core/catalog-fields.js';
-import type { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { SimulationActorType } from '#gw2/platform/constants.js';
+import type { EffectMetadata } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { EffectMetadata } from '#gw2/platform/events/events.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { GUARDIAN_CORE_SKILL_FIELDS } from '#gw2/professions/guardian/core/catalog-fields.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import type { GuardianDragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
+import type { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
 import type { GuardianFirebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import type { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/catalog-fields.js';
 import type { GuardianLuminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/catalog-fields.js';
 
 export interface GuardianCanonicalBuild extends Gw2CanonicalBuild {
   initialTomePages: number;

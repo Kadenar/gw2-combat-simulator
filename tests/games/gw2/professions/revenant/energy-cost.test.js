@@ -1,12 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
+import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 // Cost policies consume explicit inputs regardless of where the state originated.

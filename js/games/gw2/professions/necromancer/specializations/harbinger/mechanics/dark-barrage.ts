@@ -1,6 +1,6 @@
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { effectNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { skillNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
 
 /** Doom Approaches repeats only strikes and conditions; combat and tooltips consume the same selected volley. */
 export function darkBarrageEffects(profile: Skill, effects: readonly SkillEffect[]): SkillEffect[] {

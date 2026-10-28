@@ -1,7 +1,7 @@
 import { ACTOR, AURA } from '#gw2/platform/constants.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   admitVirtueActivation,
   completeVirtueActivation,
@@ -15,17 +15,17 @@ import {
   luminaryEffectStates
 } from '#gw2/professions/guardian/specializations/luminary/effect-state.js';
 import {
-  luminaryVirtueCompleted,
-  luminaryCastStarted,
-  radiantWeaponDrawn
-} from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
-import {
   acceptLuminaryAura,
   countEffulgentHit,
   grantLuminaryAura,
   luminaryEffectLifecycle
 } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { radiantForgeLifecycle } from '#gw2/professions/guardian/specializations/luminary/mechanics/radiant-forge.js';
+import {
+  luminaryCastStarted,
+  luminaryVirtueCompleted,
+  radiantWeaponDrawn
+} from '#gw2/professions/guardian/specializations/luminary/mechanics/trigger-points.js';
 import { luminaryHammerLifecycle } from '#gw2/professions/guardian/specializations/luminary/skills/hammer-impact.js';
 import {
   glaringBurstDetail,

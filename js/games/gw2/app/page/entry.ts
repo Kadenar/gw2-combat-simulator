@@ -8,11 +8,11 @@
  */
 
 import { EMBED_VISIBLE_TOP_EVENT, embeddedVisibleTop, navigationRoute } from '#browser/page/embed.js';
-import { mountGw2IconFallback } from '#gw2/app/page/icon-fallback.js';
-import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/preferences.js';
 import { mountRotationWorkspace } from '#browser/shell/rotation-workspace.js';
-import { mountSimulatorTutorial } from '#gw2/app/page/tutorial.js';
+import { mountGw2IconFallback } from '#gw2/app/page/icon-fallback.js';
 import { mountSimulatorNavigation } from '#gw2/app/page/navigation.js';
+import { mountSimulatorTutorial } from '#gw2/app/page/tutorial.js';
+import { mountRotationTimelineSize } from '#gw2/app/rotation/timeline/preferences.js';
 import { getProfessionEntry, professionGroups, type ProfessionRegistryEntry } from '#gw2/profession-registry.js';
 
 const GITHUB_ISSUES_URL = 'https://github.com/Kadenar/gw2-combat-simulator/issues';

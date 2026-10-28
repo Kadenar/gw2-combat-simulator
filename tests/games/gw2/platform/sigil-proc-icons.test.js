@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { SIGIL_DATA, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
+
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
-import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
+import { SIGIL_BY_ID, SIGIL_DATA, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 
 // Selectable sigils need artwork, and proc views must inherit it without pinning asset hashes.
 test('all selectable sigils provide an icon', () => {

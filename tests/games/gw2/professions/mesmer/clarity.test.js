@@ -1,14 +1,15 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
-import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import { mesmerEffectStates } from '#gw2/professions/mesmer/core/effect-state.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { applyMesmerClarity, consumeMesmerClarity } from '#gw2/professions/mesmer/core/mechanics/clarity.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 
 // Isolate buff recipients, replacement, and expiry without depending on spear animation timing.
 function fixture() {

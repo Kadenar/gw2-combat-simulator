@@ -1,11 +1,11 @@
-import { RECIPIENT, ACTOR, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { targetConditionActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -21,18 +21,18 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
+  illusionSource,
+  isIllusionSummonKind,
+  timedStacks
+} from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+import { cloneShatterMaterialized } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
+import {
   mesmerConditionApplied,
   mesmerControlAccepted,
   mesmerCritical,
   mesmerEvaded,
   mesmerStrikeResolved
 } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
-import {
-  illusionSource,
-  isIllusionSummonKind,
-  timedStacks
-} from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { cloneShatterMaterialized } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';

@@ -1,5 +1,5 @@
-import { professionRegistry } from '#gw2/profession-registry.js';
 import type { BuildContextModule } from '#gw2/build-context/types.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 
 const modules = new Map<string, Promise<BuildContextModule>>();
 

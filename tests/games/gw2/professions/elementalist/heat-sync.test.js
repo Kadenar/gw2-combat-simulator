@@ -1,14 +1,15 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
   buffApplicationStacks,
   buffMatchesAudience,
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/boons.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
 // Minimal casts protect recipient ownership, live expiry, and one-time duration scaling independently of rotations.

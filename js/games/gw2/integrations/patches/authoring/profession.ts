@@ -1,11 +1,3 @@
-import { traitAttributeFieldLabels } from '#gw2/platform/profession-definition/traits.js';
-import { selectionFromConfig, type PatchSelection, type ResolvedPatch } from '#gw2/integrations/patches/selection.js';
-import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
-import {
-  replaceProvisionalEffect,
-  validateProvisionalCatalog,
-  validateProvisionalParameters
-} from '#gw2/integrations/patches/authoring/provisional-values.js';
 import { buildRelevantPatch } from '#gw2/integrations/patches/authoring/build-overview.js';
 import {
   balanceProfileAuthoringReference,
@@ -19,31 +11,39 @@ import type {
   NativePatchAuthoringMetadata,
   NativePreviewModifierRuleTarget
 } from '#gw2/integrations/patches/authoring/module-types.js';
+import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import type {
   ModifierRulePatchEdit,
   PatchPreview,
   ProfessionPatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
 import {
-  CURRENT_PATCH_ID,
   applyBalanceProfilePatch,
   applyModifierRulePatch,
   applySkillPatch,
+  CURRENT_PATCH_ID,
   professionPatchFor,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
+import {
+  replaceProvisionalEffect,
+  validateProvisionalCatalog,
+  validateProvisionalParameters
+} from '#gw2/integrations/patches/authoring/provisional-values.js';
+import { selectionFromConfig, type PatchSelection, type ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { ProfessionRuntimeOptions } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import type { ProfessionRuntimeOptions } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { traitAttributeFieldLabels } from '#gw2/platform/profession-definition/traits.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types.js';
 import { patchableNumericFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
+import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types.js';
 
 function assertObject(value: object | null | undefined, label: string): void {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {

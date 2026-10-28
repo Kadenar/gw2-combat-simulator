@@ -1,11 +1,11 @@
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
-import type { Gw2Build } from '#gw2/platform/builds/types.js';
-import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
-import type { BalanceProfile, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
-import type { NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
-import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import type { PatchPreview, ProfessionPatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
+import type { Gw2Build } from '#gw2/platform/builds/types.js';
+import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
+import type { BalanceProfile, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface NativePreviewModifierRuleTarget {
   readonly id: string;

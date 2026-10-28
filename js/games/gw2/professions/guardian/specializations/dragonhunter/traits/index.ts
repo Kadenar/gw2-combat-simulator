@@ -1,27 +1,25 @@
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumberFromContext,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
-
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   dragonhunterCastCompleted,
   dragonhunterControlAccepted,
   type DragonhunterCastCompletion,
   type DragonhunterControl
 } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/trigger-points.js';
+import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Owns Soaring Devastation's tuning and behavior at the existing Dragonhunter boundaries. */

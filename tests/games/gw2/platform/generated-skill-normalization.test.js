@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { normalizeGeneratedSkill } from '#gw2/professions/shared/catalog-data.js';
+
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
 import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
+import { normalizeGeneratedSkill } from '#gw2/professions/shared/catalog-data.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 
 // Generated defaults replace only their owned fields and must never mutate the source declaration.

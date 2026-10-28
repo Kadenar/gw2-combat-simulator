@@ -1,8 +1,8 @@
-import { ACTOR, COMBO_FINISHER, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Canonical Core thief skill fragments grouped by their GW2 owner. */
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 // Both Repeater variants fire the same volley; their weapon access, initiative cost, and charge gate are separate.
 const REPEATER_ATTACK = {

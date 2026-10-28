@@ -1,15 +1,15 @@
-import { ACTOR, BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { necromancerCreatureStrikeMultiplier } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   commandDefinitionFor,
@@ -18,15 +18,17 @@ import {
   type MinionAttack,
   type MinionDefinition
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
-import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
+import {
+  creatureSummoned,
+  necromancerCreatureStrikeMultiplier
+} from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { necromanticCorruptionMultiplier } from '#gw2/professions/necromancer/core/traits/death-magic/carapace.js';
 import type {
   NecromancerRuntime,
-  NecromancerSkill,
-  NecromancerRuntimeState
+  NecromancerRuntimeState,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const ATTACK = 'necromancer.minion-attack';
 const COMMAND = 'necromancer.minion-command-impact';

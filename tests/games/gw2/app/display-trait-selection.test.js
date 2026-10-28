@@ -1,9 +1,10 @@
-import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+
+import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';

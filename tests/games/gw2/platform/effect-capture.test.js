@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { EffectRecorder, effectStateAt } from '#gw2/platform/results/effect-report.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Acceptance and packet-free tasks mutate native state at shared instants, including the terminal boundary.

@@ -1,4 +1,4 @@
-import { ACTOR, STATUS, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';

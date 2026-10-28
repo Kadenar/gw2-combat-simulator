@@ -4,8 +4,8 @@ import { ANTIQUARY_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializa
 import { DAREDEVIL_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/daredevil/mechanics/thieves-guild.js';
 import { DEADEYE_THIEVES_GUILD_ACTOR } from '#gw2/professions/thief/specializations/deadeye/mechanics/thieves-guild.js';
 import {
-  SPECTER_THIEVES_GUILD_ACTOR,
-  guildAttackConditions
+  guildAttackConditions,
+  SPECTER_THIEVES_GUILD_ACTOR
 } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
 
 const guildContributions: Readonly<Record<string, ThiefGuildContribution | null>> = Object.freeze({

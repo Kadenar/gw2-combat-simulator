@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { loadBuildContext } from '#gw2/build-context/load.js';
-import { professionRegistry } from '#gw2/profession-registry.js';
 import { relicConditionDamageBonus } from '#gw2/platform/equipment/relics/query.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 
 // Saved inputs become whole stacks within the relic cap before build validation and simulation.
 test('starting Thorns stacks normalize saved input and validate canonical values', async () => {

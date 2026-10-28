@@ -1,7 +1,7 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
+import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Register Scourge's effect rules only when its module is selected. */
 export function scourgeBuffPolicies(): BuffStatePolicy[] {

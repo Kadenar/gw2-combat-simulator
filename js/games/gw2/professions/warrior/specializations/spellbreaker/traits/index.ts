@@ -1,15 +1,14 @@
-import { ACTOR, CONTROL, WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { ACTOR, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
-
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,

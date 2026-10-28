@@ -1,8 +1,8 @@
-import { ACTOR, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Owns Legendary Alliance stance skill fragments. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
 export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.SELFISH_SPIRIT]: {

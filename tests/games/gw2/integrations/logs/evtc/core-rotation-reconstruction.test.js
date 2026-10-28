@@ -1,16 +1,17 @@
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { applyRotationImportPreview } from '#gw2/app/import-export/rotation-import-dialog.js';
+import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
+import { encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import {
   LOG_OPENER_WARNING,
   MUSHROOM_KINGS_BLESSING_BUFF_ID,
   MUSHROOM_KINGS_BLESSING_SKILL_ID
 } from '#gw2/integrations/logs/shared/rotation/model.js';
-import { applyRotationImportPreview } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
-import { event, log, expandedEvtcFixture } from '#tests/helpers/evtc-fixture.js';
-import { encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
+import { event, expandedEvtcFixture, log } from '#tests/helpers/evtc-fixture.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 const catalog = rotationCatalog([{ id: 1000, name: 'Mind Stab', castTimeMs: 400, type: 'Weapon', effects: [] }]);
 const cast = (start = 0, end = 400) => [

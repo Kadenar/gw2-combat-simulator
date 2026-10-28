@@ -1,12 +1,14 @@
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import {
-  projectAntiquaryPlanningState,
-  createAntiquaryState
+  createAntiquaryState,
+  projectAntiquaryPlanningState
 } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/daredevil/skills/index.js';
 import {
@@ -15,10 +17,9 @@ import {
 } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { DEADEYE_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
 import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/specter/skills/index.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 test('Antiquary projects its own charge fields and initialized empty grants', () => {
   // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.

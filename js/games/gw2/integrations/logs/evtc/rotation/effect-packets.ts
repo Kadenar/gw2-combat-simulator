@@ -1,16 +1,16 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { referenceCastTimeMs, strikePacketOffsets } from '#gw2/integrations/logs/shared/rotation/timing.js';
-import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
-import {
-  normalizedName as normalized,
-  recordedActionSkill,
-  createRotationSkillResolver
-} from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { EVTC_ACTIVATION, EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
+import {
+  createRotationSkillResolver,
+  normalizedName as normalized,
+  recordedActionSkill
+} from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import { referenceCastTimeMs, strikePacketOffsets } from '#gw2/integrations/logs/shared/rotation/timing.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 const EFFECT_PACKET_TOLERANCE_MS = 80;
 

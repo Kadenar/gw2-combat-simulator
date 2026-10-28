@@ -1,10 +1,10 @@
+import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
+import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { RELIC_RULES } from '#gw2/platform/equipment/relics/rules/index.js';
-import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
 import { SIGIL_DATA, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
-import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillDamageOccurrence } from '#gw2/platform/skill-damage/types.js';
 
 /** Enumerate standalone mechanic and equipment payloads; traits are collected from actual skill executions. */

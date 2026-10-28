@@ -1,5 +1,3 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Derives which visible event-log row caused each other row, using provenance the runtime already records.
  *
@@ -14,7 +12,9 @@ import { canonicalTime } from '#kernel/core/clock.js';
  *    when several share that instant (inferred).
  * Rows that should have an owner but match nothing are marked as orphans; autonomous summon packets are not.
  */
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import type { EventLogParentLink, EventLogSource } from '#ui/results/event-log.js';
 
 export interface EventLogOwnership {

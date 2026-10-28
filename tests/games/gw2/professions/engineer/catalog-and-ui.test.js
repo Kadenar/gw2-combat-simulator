@@ -1,17 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
-import { inertContainer } from '#tests/helpers/dom.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import {
   applyBalanceProfilePatch,
   applySkillPatch,
   validatePatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import {
   createEngineerBuildDefaults,
   migrateEngineerBuild,
@@ -23,10 +23,11 @@ import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/eng
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const baseConfig = Object.freeze({
   selectedSkillIds: [5857, 5805, 6161, 5933, 5868],

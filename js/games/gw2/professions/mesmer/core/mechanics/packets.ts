@@ -1,16 +1,15 @@
+import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
-import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
-
+import type { ConditionEffect } from '#gw2/platform/effects/types.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { ConditionEffect } from '#gw2/platform/effects/types.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
-import type { MesmerEventExtra, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
-import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { MESMER_CORE_WEAPON_STRENGTH } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { MESMER_CORE_WEAPON_STRENGTH } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import type { MesmerEventExtra, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Player events are the default; explicit summon metadata keeps ownership independent of display labels. */
 function ownership(actorType: SimulationActorType | undefined, summonKind: string | undefined) {

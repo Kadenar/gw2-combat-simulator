@@ -1,17 +1,18 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfession } from '#tests/fixtures/profession.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Repeated resolution starts from resolver state and connects both runtime and condition dispatch to profession hooks.
 test('resolver setup shares reactions and creates fresh profession state for each pass', () => {

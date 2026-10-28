@@ -1,10 +1,10 @@
-import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 import type {
   EvtcProfessionReconstructionContext,
   EvtcRecordedRotationAction
 } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { recordedActionSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const BUNDLE_SET = 2;
 const SIGNAL_WINDOW_MS = 5;

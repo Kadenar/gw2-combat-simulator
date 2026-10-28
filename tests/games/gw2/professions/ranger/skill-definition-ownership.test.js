@@ -1,3 +1,6 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { BOON } from '#gw2/platform/constants.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -6,8 +9,6 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 

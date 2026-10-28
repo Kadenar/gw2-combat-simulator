@@ -1,11 +1,11 @@
-import { ACTOR, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
 /**
  * Owns Renegade warband, enhanced Band Together, stance, and triggered skill identities.
  * Stance-owned enhancement and triggered payloads are authored here; traits own their tuning.
  */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
 /** Triggered attacks keep their own skill identities across player and allied grants. */
 export const RAZORCLAW_PROC_ID = 'revenant.renegade.razorclaws-rage-proc';

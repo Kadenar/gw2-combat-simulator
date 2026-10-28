@@ -1,9 +1,9 @@
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import { mountHeaderDps } from '#browser/shell/header-dps.js';
 import { addBuildTab, closeBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
-import { escapeHtml } from '#ui/shared/html.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 const CHEVRON_ICON =
   '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';

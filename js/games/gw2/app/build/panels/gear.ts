@@ -1,30 +1,5 @@
-import { getProfessionEntry } from '#gw2/profession-registry.js';
-import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/app/shared/equipment/icons.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { createProcRateControl } from '#gw2/app/build/panels/proc-rates.js';
-import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
-import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
-import { PREFIX_GROUPS } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
-import { INFUSION_BONUS, INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
-import { RELIC_GROUPS, PRECAST_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
-import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
-import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
-import {
-  candidatePicker,
-  updatePicker,
-  bindCandidatePickers,
-  enhanceDetailedSelect,
-  setEquipmentTooltip,
-  positionGearPopover
-} from '#gw2/app/shared/equipment/picker.js';
-import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
-import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
-import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
-import { canEquipWeaponSigil, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
-import { groupedOptionsHtml, optionHtml } from '#ui/shared/select-options.js';
-import { escapeHtml } from '#ui/shared/html.js';
-import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
-import { requiredElement, requiredSelect } from '#ui/shared/dom.js';
+import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import {
   foodOptionLabel,
   gearTooltipAttributes,
@@ -34,9 +9,33 @@ import {
   sigilOptionLabel,
   utilityOptionLabel
 } from '#gw2/app/shared/equipment/labels.js';
-
+import {
+  bindCandidatePickers,
+  candidatePicker,
+  enhanceDetailedSelect,
+  positionGearPopover,
+  setEquipmentTooltip,
+  updatePicker
+} from '#gw2/app/shared/equipment/picker.js';
+import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { FOOD_GROUPS } from '#gw2/platform/equipment/consumables/food.js';
+import { UTILITY_GROUPS } from '#gw2/platform/equipment/consumables/utilities.js';
+import { INFUSION_BONUS, INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
+import { PREFIX_GROUPS } from '#gw2/platform/equipment/gear/prefixes/catalog.js';
+import { RUNE_GROUPS } from '#gw2/platform/equipment/gear/runes.js';
+import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
+import { PRECAST_RELIC_NAMES, RELIC_GROUPS } from '#gw2/platform/equipment/relics/catalog.js';
+import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
+import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
+import { SIGIL_GROUPS } from '#gw2/platform/equipment/sigils/catalog.js';
+import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
+import { canEquipWeaponSigil, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
+import { getProfessionEntry } from '#gw2/profession-registry.js';
 import { boundedInteger, clamp } from '#kernel/core/numeric.js';
+import { requiredElement, requiredSelect } from '#ui/shared/dom.js';
+import { escapeHtml } from '#ui/shared/html.js';
+import { groupedOptionsHtml, optionHtml } from '#ui/shared/select-options.js';
 
 // Decorative item icons identify equipment slots without inventing selectable armor or trinket items.
 function equipmentIcon(source?: string): string {

@@ -1,7 +1,6 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 

@@ -1,11 +1,11 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { escapeHtml } from '#ui/shared/html.js';
 import { bindPreviewAssumptionNotice, previewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
-import { missingPatchTraits } from '#gw2/professions/shared/trait-data.js';
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import type { PatchComparison } from '#gw2/app/simulation/baseline/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { missingPatchTraits } from '#gw2/professions/shared/trait-data.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 function httpUrl(value: string | undefined): string | null {
   if (!value) return null;

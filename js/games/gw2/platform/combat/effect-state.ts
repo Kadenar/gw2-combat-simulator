@@ -1,12 +1,12 @@
-import { RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import {
   boonKey,
   buffApplicationStacks,
-  type Gw2TimedBuffApplication,
+  durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   remainingDurationStackSeconds,
-  durationStackingBoonCapSeconds
+  type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
+import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 

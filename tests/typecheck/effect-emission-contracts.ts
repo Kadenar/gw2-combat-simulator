@@ -1,7 +1,7 @@
 /** The shared service is the only public packet/application/reporting capability. */
-import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { PacketEmission, ProfileEmission, AnnouncementEmission } from '#gw2/platform/effects/emission.js';
+import type { AnnouncementEmission, PacketEmission, ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 
 declare const runtime: Gw2Runtime;
 declare const packet: PacketEmission;

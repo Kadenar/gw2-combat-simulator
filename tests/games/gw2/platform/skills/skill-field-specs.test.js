@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import {
   combineFields,
@@ -8,14 +12,11 @@ import {
   numberField,
   validateFieldValues
 } from '#gw2/platform/skills/field-specs.js';
-import { SHARED_SKILL_FIELDS, professionSkillFields } from '#gw2/platform/skills/shared-fields.js';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { professionSkillFields, SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { WARRIOR_SKILL_IDS as WARRIOR } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 // A field has one owner: two modules, or a module and the shared vocabulary, cannot both declare it.
 test('skill field declarations reject duplicate owners and orphaned patch leaves', () => {

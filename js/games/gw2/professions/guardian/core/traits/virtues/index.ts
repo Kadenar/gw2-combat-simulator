@@ -1,8 +1,8 @@
-import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
-import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { extendPeriodicEffects } from '#gw2/platform/effects/periodic.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -20,7 +20,7 @@ import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/mod
 import { virtueActivated, type VirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianResolutionMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import type { GuardianSkill, GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /** Owns Permeating Wrath tuning and behavior at its existing mechanic boundaries. */
 export const permeatingWrath = defineTrait({

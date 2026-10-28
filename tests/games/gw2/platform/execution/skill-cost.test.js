@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { skillCostAvailability, spendSkillCost } from '#gw2/platform/execution/skill-cost.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

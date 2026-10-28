@@ -1,11 +1,11 @@
+import { evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
+import type { EvtcRecordedRotationAction as RecordedAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import {
   EVTC_ACTIVATION,
   EVTC_STATE_CHANGE,
   type ParsedEvtc,
   type ParsedEvtcEvent
 } from '#gw2/integrations/logs/evtc/types.js';
-import { evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
-import type { EvtcRecordedRotationAction as RecordedAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 const SERVER_DELAY_MS = 10;

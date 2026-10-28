@@ -1,26 +1,26 @@
-import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
-import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
-import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
-import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
-import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
-
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
+import type { Gw2Build, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { Gw2AutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
-import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
+import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
+import type {
+  Gw2ProfessionContract,
+  ProfessionFamilyContract
+} from '#gw2/platform/profession-definition/family-contract.js';
 import type {
   ProfessionRuntimeOptions,
   RuntimeProfession
 } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
-import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
+import type { ProfessionConfig, ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
+import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
   readonly generatedSkills?: readonly TSkill[];

@@ -1,5 +1,3 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { CONDITION } from '#gw2/platform/constants.js';
 import {
   fromProfile,
   profileFact,
@@ -12,9 +10,11 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { CONDITION } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { darkBarrageEffects } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/dark-barrage.js';
-import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 
 /** Base and empowered packets are alternatives; spending happens before the elixir grants fresh Blight. */
 const empoweredSkill: DescribeSimulationTooltip = (balanceContext, entity) => {

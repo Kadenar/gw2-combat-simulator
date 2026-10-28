@@ -1,19 +1,20 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { playerHealthFraction, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
-import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { headlessApp, firstPresetBuildPath } from '#tests/helpers/skill-damage.js';
-import { certainTraitRandom } from '#gw2/platform/skill-damage/occurrence-driver.js';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { playerHealthFraction, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { COMBO_RANDOM_STREAM_PREFIX } from '#gw2/platform/combos/resolution.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
+import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
+import { certainTraitRandom } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
+import { firstPresetBuildPath, headlessApp } from '#tests/helpers/skill-damage.js';
 
 const occurrence = (id, fields = {}) => ({
   id: String(id),

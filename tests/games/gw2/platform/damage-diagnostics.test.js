@@ -1,12 +1,13 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { defineTestProfession } from '#tests/helpers/profession.js';
-import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Minimal packets exercise each formula branch and expose query/RNG consumption without saved-rotation expectations.
 function resolveHits(damageDiagnostics, output = 'detailed', target = { health: 100000, startingHealthFraction: 0.4 }) {

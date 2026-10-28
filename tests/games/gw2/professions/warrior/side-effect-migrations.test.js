@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Catalog membership, rather than a copied primal-skill list, controls which recharges the completed heal clears.
 test('Blood Reckoning resets live primal skills after its adrenaline grant and leaves other recharges intact', () => {

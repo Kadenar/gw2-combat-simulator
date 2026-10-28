@@ -1,11 +1,11 @@
 import type { EffectState } from '#gw2/platform/combat/effect-state.js';
+import type { AnnouncedEffectState } from '#gw2/platform/effects/emission.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
-import type { AnnouncedEffectState } from '#gw2/platform/effects/emission.js';
 import type { Gw2EnvironmentConditionBreakdownEntry } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { RotationApm } from '#gw2/platform/results/rotation-apm.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';

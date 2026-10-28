@@ -1,20 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
+
 import { traitSkillTooltip } from '#gw2/app/shared/simulation-tooltip.js';
-import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
-import { NECROMANCER_SKILL_IDS as N } from '#gw2/professions/necromancer/data/ids.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { RANGER_SKILL_IDS as R } from '#gw2/professions/ranger/data/ids.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_TRAIT_IDS as G } from '#gw2/professions/guardian/data/ids.js';
+import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
+import { NECROMANCER_SKILL_IDS as N } from '#gw2/professions/necromancer/data/ids.js';
 import { rangerTooltips } from '#gw2/professions/ranger/app/tooltips.js';
-import { RANGER_TRAIT_IDS as RT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { RANGER_SKILL_IDS as R, RANGER_TRAIT_IDS as RT } from '#gw2/professions/ranger/data/ids.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/professions/warrior/data/ids.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
 // Trait tooltips retain skill-owned timing facts while damage categories remain profession-authored.
 test('invoked skill facts preserve field duration, cadence, and scoped damage bonuses', () => {

@@ -1,27 +1,15 @@
-import { invokeLesserRangerSkill } from '#gw2/professions/ranger/core/traits/lesser-skill.js';
-import { ACTOR, WEAPON, CONDITION } from '#gw2/platform/constants.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  isActivePetStrike,
-  isBeastSkill,
-  isPetStrike,
-  isPlayerStrike,
-  petDerivedConditionMetadata
-} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { activePetFamily, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusFromContext,
   attributeBonusNumber,
@@ -29,11 +17,21 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-
+import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
+import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
+import {
+  isActivePetStrike,
+  isBeastSkill,
+  isPetStrike,
+  isPlayerStrike,
+  petDerivedConditionMetadata
+} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { castCompleted, strike, strikeEffectsApplied } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
+import { invokeLesserRangerSkill } from '#gw2/professions/ranger/core/traits/lesser-skill.js';
+import { activePetFamily, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Owns Child of Earth's live tuning and trait behavior. */

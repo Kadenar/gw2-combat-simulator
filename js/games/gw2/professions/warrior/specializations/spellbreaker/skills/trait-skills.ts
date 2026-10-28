@@ -1,5 +1,5 @@
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
 /** Invoked skills own their payloads and recharge; traits retain only trigger eligibility and passive bonuses. */
 export const SPELLBREAKER_TRAIT_SKILLS: readonly Skill[] = Object.freeze([

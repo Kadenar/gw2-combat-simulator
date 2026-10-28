@@ -1,5 +1,5 @@
-import { gameRegistry, loadGameContent } from '#browser/game/registry.js';
 import type { GameRegistryEntry } from '#browser/game/contracts.js';
+import { gameRegistry, loadGameContent } from '#browser/game/registry.js';
 
 /** Requires explicit game and content IDs so page identity never depends on profession-specific markup. */
 export async function bootstrapGameApp(

@@ -1,16 +1,15 @@
-import { mergedActionStatus, mergeCompositeActions } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
-import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import {
-  dragonChargesForDurationMs,
-  dragonChargeTickOffsetSeconds
-} from '#gw2/professions/warrior/data/dragon-charges.js';
-import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
-
 import type {
   LogActionNormalizationContext,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { mergeCompositeActions, mergedActionStatus } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
+import {
+  dragonChargesForDurationMs,
+  dragonChargeTickOffsetSeconds
+} from '#gw2/professions/warrior/data/dragon-charges.js';
+import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 const REND_ANIMATION_ID = 80_247;
 const REND_FOLLOW_UP_ANIMATION_ID = 80_224;

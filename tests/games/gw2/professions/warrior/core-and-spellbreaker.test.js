@@ -1,36 +1,38 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
-import { bloodReaction } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
-import { attackersInsight } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
+
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
-import { mechanicResourceSpends, timelineStepsWithChargeFills } from '#gw2/app/rotation/timeline/model.js';
-import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
-import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import {
+  mechanicResourceSpends,
+  timelineDeadTimeMarkers,
+  timelineStepsWithChargeFills
+} from '#gw2/app/rotation/timeline/model.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import {
   createWarriorBuildDefaults,
   migrateWarriorBuild,
   validateWarriorBuild
 } from '#gw2/professions/warrior/build/build.js';
-import { warriorNativeModules, warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { warriorCatalog } from '#gw2/professions/warrior/catalog.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
 import { createWarriorCoreState } from '#gw2/professions/warrior/core/state.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorNativeModules, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { berserkerModule } from '#gw2/professions/warrior/specializations/berserker/module.js';
+import { bloodReaction } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
 import { bladeswornModule } from '#gw2/professions/warrior/specializations/bladesworn/module.js';
 import { paragonModule } from '#gw2/professions/warrior/specializations/paragon/module.js';
 import { spellbreakerModule } from '#gw2/professions/warrior/specializations/spellbreaker/module.js';
+import { attackersInsight } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
+import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
+import { createObservedProfessionSimulator, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const baseConfig = Object.freeze({
   attributeInputs: baseAttributeInputs({

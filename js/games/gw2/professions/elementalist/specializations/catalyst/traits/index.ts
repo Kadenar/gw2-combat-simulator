@@ -1,21 +1,21 @@
-import type { AuraName } from '#gw2/platform/constants.js';
-import { AURA, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { elementalEmpowermentAttributes } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import type { AuraName } from '#gw2/platform/constants.js';
+import { ACTOR, AURA, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
@@ -24,10 +24,9 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import type { ElementalistCastCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import {
   catalystCombatStarted,
@@ -37,11 +36,11 @@ import {
 import { catalystState, type CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import {
   applyCatalystEmpowerment,
+  elementalEmpowermentAttributes,
   grantBaseEmpowerment
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
 import { sphereSpecialistDuration } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Empowering Auras tuning and its existing execution behavior. */

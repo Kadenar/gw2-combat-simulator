@@ -1,8 +1,8 @@
-import { enteredCombat } from '#tests/helpers/engagement.js';
-import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import {
   attunementChanged,
@@ -14,6 +14,7 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { enteredCombat } from '#tests/helpers/engagement.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const config = { specialization: 'Core', selectedTraitIds: [TRAIT.ELECTRIC_DISCHARGE] };

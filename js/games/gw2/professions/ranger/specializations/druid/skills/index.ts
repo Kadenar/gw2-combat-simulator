@@ -1,8 +1,8 @@
-import { CONTROL, COMBO_FINISHER, RECIPIENT, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 /** Explicit PvE skill mechanics owned by the Druid Ranger module. */
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 // Native and Eclipse effects share the impact, independently of the Avatar animation ending.
 export const SEED_OF_LIFE_DETONATION_MS = 720;

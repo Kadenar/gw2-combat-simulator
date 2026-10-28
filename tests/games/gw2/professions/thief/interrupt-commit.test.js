@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { thiefProfession, thiefCatalog } from '#gw2/professions/thief/profession.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Dagger',

@@ -1,18 +1,16 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
-import {
-  skillNumber,
-  effectNumber,
-  requireSkillFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import {
+  effectNumber,
+  requireEffect,
+  requireSkillFromContext,
+  skillNumber
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
-
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
 // Each packet names its individual creature; weapon-spell stacks follow that owner before its stat

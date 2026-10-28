@@ -1,7 +1,7 @@
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 
 /** Share the scheduler's exact instrument replacement and expiry policy with modifier queries. */

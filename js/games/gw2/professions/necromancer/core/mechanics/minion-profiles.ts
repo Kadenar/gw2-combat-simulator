@@ -1,7 +1,7 @@
-import { requireSkillFromContext, skillNumber, effectNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { effectNumber, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export interface MinionAttack {

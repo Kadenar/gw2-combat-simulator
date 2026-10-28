@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { addRotation, createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '#gw2/app/rotation/editing/operations.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
-import { addRotation, createRotationItem, insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 
 test('rotation editing operations update, insert, and reject invalid moves', () => {
   assert.deepEqual(updateRotationEntry({ type: 'cast', skillId: 'One' }, { concurrentOffsetMs: 100 }), {

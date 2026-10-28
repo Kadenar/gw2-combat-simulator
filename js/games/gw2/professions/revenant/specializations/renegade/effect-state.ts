@@ -1,8 +1,8 @@
+import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
+import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
-import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
-import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import { fervorMaximumStacks } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 
 /** Only the selected renegade installs its effect stacking policies. */

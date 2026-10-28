@@ -1,17 +1,17 @@
-import { DEADEYE_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/guild-attacks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { landedChannelRefundLifecycle } from '#gw2/professions/thief/core/mechanics/channel-refund.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
+import { DEADEYE_SKILL_FIELDS } from '#gw2/professions/thief/specializations/deadeye/catalog-fields.js';
 import { deadeyeHooks } from '#gw2/professions/thief/specializations/deadeye/hooks.js';
 import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presentation.js';
+import { DEADEYE_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/guild-attacks.js';
 import { DEADEYE_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
 import { maliciousAttackModifiers } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';
 import { deadeyeSlotModifiers } from '#gw2/professions/thief/specializations/deadeye/skills/slot-skills.js';
 import { deadeyeState, projectDeadeyePlanningState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { deadeyeTraits } from '#gw2/professions/thief/specializations/deadeye/traits/index.js';
-import { DEADEYE_SKILL_FIELDS } from '#gw2/professions/thief/specializations/deadeye/catalog-fields.js';
 
 export const deadeyeModule = defineNativeModule({
   traitDefinitions: deadeyeTraits,

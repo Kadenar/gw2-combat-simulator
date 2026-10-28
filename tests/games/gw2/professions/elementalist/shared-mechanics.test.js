@@ -1,4 +1,6 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -7,9 +9,8 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 test('every Elementalist specialization can prepare attunements without precombat recharge', () => {
   // Cover each recharge override, including Weave Self, with and without an explicit future combat marker.

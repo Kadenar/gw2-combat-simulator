@@ -1,5 +1,5 @@
-import { WEAPON } from '#gw2/platform/constants.js';
 import { stealthActive } from '#gw2/platform/combat/stealth.js';
+import { WEAPON } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';

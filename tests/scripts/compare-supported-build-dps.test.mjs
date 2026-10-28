@@ -6,6 +6,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { check, resolveConfig } from 'prettier';
 
+import { simulateBenchmarkPreset } from '../../scripts/analysis/capture-supported-build-metrics.mjs';
 import {
   findDpsMismatches,
   MAXIMUM_ABSOLUTE_DPS_ERROR,
@@ -16,7 +17,6 @@ import {
   updateManifestBenchmarks
 } from '../../scripts/analysis/compare-supported-build-dps.mjs';
 import { parseGameOption } from '../../scripts/lib/game-data.mjs';
-import { simulateBenchmarkPreset } from '../../scripts/analysis/capture-supported-build-metrics.mjs';
 
 // Each capture decodes detached build and rotation input before invoking the shared headless engine.
 test('capture leaves saved input unchanged and rejects unknown patches', async () => {

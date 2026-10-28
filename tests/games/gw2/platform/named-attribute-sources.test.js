@@ -1,14 +1,15 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { mechanistAttributes } from '#gw2/professions/engineer/specializations/mechanist/attributes.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Named sources retain build facts across samples while observing weapon changes and live grants separately.
 function facts(family, specialization, names, options = {}) {

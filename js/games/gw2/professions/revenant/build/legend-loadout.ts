@@ -1,12 +1,12 @@
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
-import { REVENANT_DECLARED_SKILLS } from '#gw2/professions/revenant/data/module-data.js';
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_LEGEND_SPECIALIZATIONS } from '#gw2/professions/revenant/data/legends.js';
-import { revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
+import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_LEGEND_SPECIALIZATIONS } from '#gw2/professions/revenant/data/legends.js';
+import { REVENANT_DECLARED_SKILLS } from '#gw2/professions/revenant/data/module-data.js';
+import { revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 

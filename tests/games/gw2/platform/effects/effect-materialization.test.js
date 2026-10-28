@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
 test('materialization retains base clone identity while effect and tick metadata override defaults', () => {
   // Clone-authored control packets and condition/strike ticks share the same nested annotation path.

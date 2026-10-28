@@ -1,14 +1,14 @@
-import { canonicalTime } from '#kernel/core/clock.js';
+import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
   closePreparedMagazine,
   openPreparedMagazine,
   type PreparedMagazine
 } from '#gw2/platform/execution/prepared-magazines.js';
-import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Keep the parent's authored window while the shared runtime owns identity-safe expiry. */
 export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {

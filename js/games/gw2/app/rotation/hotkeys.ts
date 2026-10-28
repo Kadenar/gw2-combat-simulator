@@ -1,18 +1,20 @@
+import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import { bindInputCapture } from '#gw2/app/shared/input-binding-capture.js';
-import { inputBindingForKey, inputMouseButtonCode, inputKeyModifier } from '#gw2/input/bindings.js';
-import { inputControlForBinding } from '#gw2/input/bindings.js';
 import {
-  INPUT_CONTROLS,
-  type InputBindings,
   defaultInputBindings,
-  normalizeInputBindings,
   duplicateInputBindings,
-  formatInputBinding
+  formatInputBinding,
+  INPUT_CONTROLS,
+  inputBindingForKey,
+  inputControlForBinding,
+  inputKeyModifier,
+  inputMouseButtonCode,
+  normalizeInputBindings,
+  type InputBindings
 } from '#gw2/input/bindings.js';
 import { type InputControlId } from '#gw2/platform/skills/input-controls.js';
-import { bindDialog, showDialog } from '#browser/page/dialog.js';
-import { escapeHtml } from '#ui/shared/html.js';
 import { ensureDocumentStyles, shouldIgnoreHotkey } from '#ui/shared/dom.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 export const ROTATION_HOTKEY_STORAGE_KEY = 'gw2-rotation-hotkeys-v1';
 

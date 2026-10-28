@@ -4,7 +4,7 @@ import { parseArgs } from 'node:util';
 
 import { decompressEvtcInput } from '#gw2/integrations/logs/evtc/decompression.js';
 import { parseEvtc } from '#gw2/integrations/logs/evtc/parser.js';
-import { EVTC_STATE_CHANGE as STATE, EVTC_ACTIVATION as ACTIVATION } from '#gw2/integrations/logs/evtc/types.js';
+import { EVTC_ACTIVATION as ACTIVATION, EVTC_STATE_CHANGE as STATE } from '#gw2/integrations/logs/evtc/types.js';
 
 const OVERLOAD_FIRE = 29706;
 const BURNING_BOLT = 12853;

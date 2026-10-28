@@ -1,11 +1,11 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   assembleNativeRuntimeCatalog,
   getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
-import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/catalog.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';

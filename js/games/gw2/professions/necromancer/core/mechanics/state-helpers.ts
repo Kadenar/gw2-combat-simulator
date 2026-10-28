@@ -1,20 +1,18 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { boundedInteger } from '#kernel/core/numeric.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-
 /**
  * Shared live Carapace, Soul Shard, and creature-summon operations.
  * Specializations register creature reactions without coupling Core to their mechanics.
  */
-
+import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 const SOUL_SHARD_DURATION_SECONDS = 10;
 

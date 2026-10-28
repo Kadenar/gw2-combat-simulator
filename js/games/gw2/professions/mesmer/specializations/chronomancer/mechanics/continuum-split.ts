@@ -1,23 +1,21 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
-import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
-import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
-import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
-import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
-import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /**
  * Chronomancer-owned Continuum Split checkpoints and restoration.
  */
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import type { MesmerRefreshAmmo } from '#gw2/professions/mesmer/types.js';
-
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
+import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
+import type { MesmerRefreshAmmo, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 interface ContinuumControllerOptions {
   readonly state: MesmerRuntime;

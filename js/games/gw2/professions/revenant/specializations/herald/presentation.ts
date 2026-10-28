@@ -1,14 +1,14 @@
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamagePreviewContext,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
+import type { Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Resolve every Nature projection from this selection, so changing catalogs cannot retain stale relationships. */

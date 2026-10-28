@@ -1,14 +1,8 @@
-import { prepareEvtcEvidence, type EvtcReconstructionEvidence } from '#gw2/integrations/logs/evtc/rotation/evidence.js';
-import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
-import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
-import {
-  isMushroomKingsBlessing,
-  isWeaponStow,
-  LOG_OPENER_WARNING
-} from '#gw2/integrations/logs/shared/rotation/model.js';
-import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
+import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
+import { evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
+import { createStrikePacketMatcher, referenceCastTimeMs } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
 import { eiCustomAnimatedActions } from '#gw2/integrations/logs/evtc/rotation/ei-custom-casts.js';
+import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import {
   eiChronomancerShatters,
   eiMesmerPhaseRetreat,
@@ -16,24 +10,25 @@ import {
   eiMinionSpawns,
   rangerPetActions
 } from '#gw2/integrations/logs/evtc/rotation/ei-minions.js';
-import { evtcRecordingWindow } from '#gw2/integrations/logs/evtc/recording.js';
+import { encounterEndTime, encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
+import { prepareEvtcEvidence, type EvtcReconstructionEvidence } from '#gw2/integrations/logs/evtc/rotation/evidence.js';
 import {
   detectEvtcRotationPlayers,
-  selectPlayerAgent,
   selectedPlayerEvent,
+  selectPlayerAgent,
   type EvtcPlayerEvidence
 } from '#gw2/integrations/logs/evtc/rotation/players.js';
-
-import { EvtcError } from '#gw2/integrations/logs/evtc/errors.js';
-import { encounterEndTime, encounterStartTime } from '#gw2/integrations/logs/evtc/rotation/encounter.js';
+import { restoreConduitHazeOpener } from '#gw2/integrations/logs/evtc/rotation/professions/conduit.js';
+import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import {
   antiquaryChakShieldActions,
   deadeyeMarkActions,
   thiefShadowBoltInterruptMs,
-  thiefThousandNeedlesActions,
-  thiefStealActions
+  thiefStealActions,
+  thiefThousandNeedlesActions
 } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
-
+import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
+import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 import {
   EVTC_STATE_CHANGE,
   type EvtcRotationAction,
@@ -41,24 +36,27 @@ import {
   type ParsedEvtc
 } from '#gw2/integrations/logs/evtc/types.js';
 import {
-  findNamedRotationSkill,
   createRotationSkillResolver,
+  findNamedRotationSkill,
   findRotationSkill,
   recordedActionSkill,
   resolvedActionIdentity,
   skillIdentity,
   type RotationCatalog
 } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-import { createStrikePacketMatcher, referenceCastTimeMs } from '#gw2/integrations/logs/evtc/rotation/effect-packets.js';
-import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
-import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
-import { restoreConduitHazeOpener } from '#gw2/integrations/logs/evtc/rotation/professions/conduit.js';
-import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
-import type { ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
+import {
+  isMushroomKingsBlessing,
+  isWeaponStow,
+  LOG_OPENER_WARNING
+} from '#gw2/integrations/logs/shared/rotation/model.js';
 import type { RotationReconstructionBase } from '#gw2/integrations/logs/shared/rotation/model.js';
+import type { ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 
 const TIMING_TOLERANCE_MS = 50;

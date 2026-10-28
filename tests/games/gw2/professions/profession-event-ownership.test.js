@@ -1,25 +1,24 @@
-import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
-
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { reaperModule } from '#gw2/professions/necromancer/specializations/reaper/module.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_TRAIT_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { galeshotModule } from '#gw2/professions/ranger/specializations/galeshot/module.js';
-
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
 import { REVENANT_TRAIT_IDS } from '#gw2/professions/revenant/data/ids.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const OWNERSHIP_CASES = Object.freeze([
   ['player actor', { actorType: 'player' }, true],

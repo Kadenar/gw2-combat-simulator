@@ -1,23 +1,23 @@
-import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
-import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
+
 import {
   skillBreakdownRows,
-  skillDamageKeyByIdentity,
-  skillDamageIdentityKey
+  skillDamageIdentityKey,
+  skillDamageKeyByIdentity
 } from '#gw2/app/results/skill-breakdown.js';
-import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
+import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
+import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
+import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Spear',

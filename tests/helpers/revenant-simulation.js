@@ -1,5 +1,5 @@
-import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 export const REVENANT_TEST_CONFIG = Object.freeze({

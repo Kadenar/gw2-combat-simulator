@@ -1,8 +1,6 @@
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import {
-  skillFact,
   simulationEffectFacts,
+  skillFact,
   skillTooltip,
   tooltipDecimal,
   tooltipFactorChange,
@@ -12,23 +10,25 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { necromancerBloodMagicTooltips } from '#gw2/professions/necromancer/app/tooltips/blood-magic.js';
+import { necromancerCursesTooltips } from '#gw2/professions/necromancer/app/tooltips/curses.js';
+import { necromancerDeathMagicTooltips } from '#gw2/professions/necromancer/app/tooltips/death-magic.js';
+import {
+  conditionTransferTooltip,
+  flipTooltip,
+  lifeForce,
+  shroudTooltip
+} from '#gw2/professions/necromancer/app/tooltips/shared.js';
+import { necromancerSoulReapingTooltips } from '#gw2/professions/necromancer/app/tooltips/soul-reaping.js';
+import { necromancerSpiteTooltips } from '#gw2/professions/necromancer/app/tooltips/spite.js';
 import {
   castLifeForceGrants,
   effectLifeForceGrants
 } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import {
-  lifeForce,
-  conditionTransferTooltip,
-  flipTooltip,
-  shroudTooltip
-} from '#gw2/professions/necromancer/app/tooltips/shared.js';
-import { necromancerSpiteTooltips } from '#gw2/professions/necromancer/app/tooltips/spite.js';
-import { necromancerCursesTooltips } from '#gw2/professions/necromancer/app/tooltips/curses.js';
-import { necromancerDeathMagicTooltips } from '#gw2/professions/necromancer/app/tooltips/death-magic.js';
-import { necromancerBloodMagicTooltips } from '#gw2/professions/necromancer/app/tooltips/blood-magic.js';
-import { necromancerSoulReapingTooltips } from '#gw2/professions/necromancer/app/tooltips/soul-reaping.js';
 
 const oppressiveCollapseTooltip: DescribeSimulationTooltip = skillTooltip(
   "Strike and control your target. Gain party might for each distinct condition on the target when its strike lands, up to the skill's condition limit."

@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  buildMesmerPacket,
   buildMesmerConditions,
+  buildMesmerPacket,
   buildMesmerStrikes
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 

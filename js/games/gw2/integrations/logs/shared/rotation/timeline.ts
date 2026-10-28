@@ -1,9 +1,9 @@
-import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/builds/rotation.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { actionKind } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { retainsReplayCastLockout } from '#gw2/integrations/logs/shared/rotation/timing.js';
+import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { quantizeGw2ActionDurationUp, quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 const OBSERVED_CAST_TOLERANCE_MS = 20;
 

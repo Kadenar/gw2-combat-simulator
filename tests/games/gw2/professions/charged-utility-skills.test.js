@@ -1,13 +1,13 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
-import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
+import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Short synthetic rotations isolate trap timing and finite on-hit charges from benchmark totals.
 const config = {

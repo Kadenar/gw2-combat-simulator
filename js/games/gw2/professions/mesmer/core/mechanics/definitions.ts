@@ -1,4 +1,5 @@
 import { WEAPON } from '#gw2/platform/constants.js';
+
 /**
  * Core weapon-strength defaults used by shared packet construction.
  */

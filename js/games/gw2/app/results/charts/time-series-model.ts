@@ -1,9 +1,10 @@
-import { eventDamagePackets, recordedDamageTicks } from '#gw2/platform/results/damage-packets.js';
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import { effectStateAt, effectSummary, type EffectSource } from '#gw2/platform/results/effect-report.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { type BoonGenerationByAudience } from '#gw2/platform/results/boon-generation.js';
+import { eventDamagePackets, recordedDamageTicks } from '#gw2/platform/results/damage-packets.js';
+import { effectStateAt, effectSummary, type EffectSource } from '#gw2/platform/results/effect-report.js';
+import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 // Builds renderer-independent chart data so simulations and views share one time-series contract.
@@ -491,5 +492,3 @@ function buildEffectSeries(
     effectUnits
   };
 }
-
-import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';

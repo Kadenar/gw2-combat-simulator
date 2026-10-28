@@ -1,55 +1,56 @@
-import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
-import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
-import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
-import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
-import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
-import { receiveSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
-import { readStoredTimelineOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
-import { bindSessionControls } from '#gw2/app/session-controls.js';
-import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
-import { normalizeSelectedSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
-import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
-import { loadBuildWorkspace, saveBuildWorkspace, type BuildWorkspace } from '#gw2/app/build/state/workspace.js';
-import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
-import { addRotation } from '#gw2/app/rotation/editing/actions.js';
-import { recordRotationHistory } from '#gw2/app/rotation/editing/history.js';
-import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
-import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
-import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
-import { renderGearOptimizer } from '#gw2/app/optimizer/gear/panel.js';
-import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
-import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel.js';
-import { renderModifierContributions } from '#gw2/app/results/view.js';
-import { mountPatchPreviewControls } from '#gw2/app/patch-preview/view.js';
-import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
-import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
-import { readStoredRotationProcOverlayVisibility } from '#gw2/app/rotation/timeline/preferences.js';
-import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
-import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
-import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
-import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
-import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
-import { renderEventLog } from '#gw2/app/results/event-log.js';
-import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
-import { mountBossScenarios } from '#gw2/app/boss-scenarios/view.js';
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
-
+import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
+import { mountBossScenarios } from '#gw2/app/boss-scenarios/view.js';
+import { receiveSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
+import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
+import { normalizeSelectedSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
+import { loadBuildWorkspace, saveBuildWorkspace, type BuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { BuildTemplatePreset, BuildTemplateSelection } from '#gw2/app/build/types.js';
-import type { BuildAttributes } from '#gw2/build-context/types.js';
+import { renderGearOptimizer } from '#gw2/app/optimizer/gear/panel.js';
+import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
+import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel.js';
+import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
+import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
+import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
+import { mountPatchPreviewControls } from '#gw2/app/patch-preview/view.js';
+import { renderEventLog } from '#gw2/app/results/event-log.js';
+import { renderModifierContributions } from '#gw2/app/results/view.js';
+import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/builder.js';
+import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
+import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
+import { addRotation } from '#gw2/app/rotation/editing/actions.js';
+import { recordRotationHistory } from '#gw2/app/rotation/editing/history.js';
+import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
+import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
+import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { renderRotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/view.js';
+import {
+  readStoredRotationProcOverlayVisibility,
+  readStoredTimelineOverlayVisibility
+} from '#gw2/app/rotation/timeline/preferences.js';
+import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
+import { bindSessionControls } from '#gw2/app/session-controls.js';
+import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
+import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
+import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
+import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
+import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
+import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
+import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
 import type {
   Gw2AppAdapter,
   ProfessionAppResult,
   ProfessionAppState,
   ProfessionChangeOptions
 } from '#gw2/app/types.js';
-import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
-import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
-import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { BuildAttributes } from '#gw2/build-context/types.js';
+import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
+import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 export class ProfessionApp implements ProfessionAppState {
   workspace: BuildWorkspace;

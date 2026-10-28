@@ -1,21 +1,20 @@
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2NonWeaponEffectEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
+import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import {
   sampleWeaponStrength,
   weaponStrengthMidpoint,
   weaponStrengthProfile,
   weaponStrengthProfileForName
 } from '#gw2/platform/equipment/weapons/strength.js';
-import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { isGw2NonWeaponEffectEvent } from '#gw2/platform/combat/state/event-ownership.js';
-
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/weapons/types.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
 /** Weapon-strength resolution: choose each packet's profile, then resolve its midpoint or per-activation sample. */
 

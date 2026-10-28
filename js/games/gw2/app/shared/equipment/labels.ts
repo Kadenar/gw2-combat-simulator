@@ -1,19 +1,18 @@
-import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
+import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
+import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import {
   UTILITY_DATA,
-  UTILITY_STRIKE_DAMAGE_BONUSES,
-  UTILITY_STAT_DATA
+  UTILITY_STAT_DATA,
+  UTILITY_STRIKE_DAMAGE_BONUSES
 } from '#gw2/platform/equipment/consumables/utilities.js';
-import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
+import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
-import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
-import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
-import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
-import { escapeHtml } from '#ui/shared/html.js';
+import { SIGIL_DATA, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import type { TooltipFact } from '#gw2/platform/skills/types.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 type NumericValues = Readonly<Record<string, number>>;
 

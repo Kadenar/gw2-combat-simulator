@@ -1,7 +1,8 @@
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { virtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';

@@ -1,5 +1,3 @@
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-
 /**
  * Evoker cast gating.
  *
@@ -7,8 +5,9 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
  * boundaries without predicting the resources it will grant.
  */
 import { denyCast, retryCast } from '#gw2/platform/execution/availability.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   BASIC_FAMILIARS,
   FAMILIAR_ELEMENTS

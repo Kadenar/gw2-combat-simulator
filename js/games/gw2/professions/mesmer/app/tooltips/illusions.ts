@@ -1,18 +1,18 @@
 import {
   fromProfile,
-  tooltipFactorChange,
-  tooltipSeconds,
   outsideScopeTooltip,
-  traitTooltip,
   profileFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipProfile,
   simulationEffectFacts,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
+import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Describe illusions tooltips from the selected balance data. */
 export const mesmerIllusionsTooltips = {

@@ -1,23 +1,24 @@
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
-import type { ProfessionStateSnapshotContext } from '#gw2/platform/profession-presentation/types.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { activeChargeCount, activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type {
+  ProfessionCatalogContext,
+  ProfessionStateSnapshotContext,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
-import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import {
   THIEF_SKILL_IDS as ID,
   THIEF_ARTIFACT_IDS,
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-
+import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(

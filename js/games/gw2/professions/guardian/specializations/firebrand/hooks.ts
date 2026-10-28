@@ -1,5 +1,5 @@
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
@@ -8,15 +8,10 @@ import {
   firebrandEffectStates
 } from '#gw2/professions/guardian/specializations/firebrand/effect-state.js';
 import {
-  firebrandBuffApplied,
-  firebrandControlAccepted,
-  firebrandStruck
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
-import {
+  emitAshesForInspection,
   firebrandAshesLifecycle,
-  startFirebrandAshes,
   reactToAshesHit,
-  emitAshesForInspection
+  startFirebrandAshes
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import {
   FIREBRAND_MANTRA_WAKE,
@@ -30,6 +25,11 @@ import {
   initializeFirebrandTomes,
   reactToTomeJusticeHit
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
+import {
+  firebrandBuffApplied,
+  firebrandControlAccepted,
+  firebrandStruck
+} from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 

@@ -1,25 +1,25 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { resolveAshes, type ResolvedAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   profileFact,
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
   tooltipNumber,
+  tooltipPercent,
   tooltipProfile,
   tooltipSeconds,
-  tooltipPercent,
   traitTooltip,
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
-import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
+import { resolveAshes, type ResolvedAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
 /** Resolved Ashes payloads reuse the shared effect formatter so Burning rows match the grant rows' icons and stacks. */
 function ashesBurningFacts(burning: ResolvedAshes['burning'], qualifier: string) {

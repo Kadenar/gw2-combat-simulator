@@ -1,18 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { displayedWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
-import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import assert from 'node:assert/strict';
-import { assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import test from 'node:test';
-import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { displayedWeaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Mirage tests cover endurance, cloak, ambushes, mirrors, and specialization traits.
 test('Mirage dodge spends 50 endurance and waits for continuous regeneration', () => {

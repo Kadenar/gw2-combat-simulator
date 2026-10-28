@@ -1,7 +1,7 @@
 import { WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { skillNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';

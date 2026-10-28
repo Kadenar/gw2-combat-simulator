@@ -4,8 +4,8 @@
  * @example
  *   node scripts/patch-preview/patch-preview-authoring-server.mjs
  */
-import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
+import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 

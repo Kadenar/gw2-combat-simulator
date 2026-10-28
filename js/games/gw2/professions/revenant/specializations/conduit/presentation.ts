@@ -1,17 +1,16 @@
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
-import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
+import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
+import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Reports both the legend-derived Cosmic Wisdom form and its remaining duration. */

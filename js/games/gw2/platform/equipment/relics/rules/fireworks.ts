@@ -1,7 +1,7 @@
-import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 /** Fireworks relic rules. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { defineRelic, timedStrikeBuff, recordTimedBuffProc } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { defineRelic, recordTimedBuffProc, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const fireworks = defineRelic({
   buffPolicies: [{ kind: 'relic-fireworks', name: 'Relic of Fireworks', maximumStacks: 1 }],

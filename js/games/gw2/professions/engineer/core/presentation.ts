@@ -1,33 +1,31 @@
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { BOON } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
+import { BOON } from '#gw2/platform/constants.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type {
+  EngineerPlanningState,
   EngineerResolverEvent,
   EngineerSkill,
-  EngineerPlanningState,
   EngineerUiContext,
   EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /**

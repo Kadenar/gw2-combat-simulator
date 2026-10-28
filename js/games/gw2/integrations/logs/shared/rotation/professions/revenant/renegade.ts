@@ -1,10 +1,9 @@
-import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import { normalizedName as normalized } from '#gw2/integrations/logs/shared/rotation/catalog.js';
-
 import type {
   LogActionNormalizationContext,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 
 const ICERAZOR = Object.freeze({ name: "Icerazor's Ire", skillId: 40485 });
 const RAZORCLAW = Object.freeze({ name: "Razorclaw's Rage", skillId: 42949 });

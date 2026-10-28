@@ -1,19 +1,20 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
+import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import {
   createObservedProfessionSimulator,
-  observeGw2Runtime,
-  observedRuntime
+  observedRuntime,
+  observeGw2Runtime
 } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
 const patched = (balanceProfiles) => applyBalanceProfilePatch(necromancerCatalog, { balanceProfiles });

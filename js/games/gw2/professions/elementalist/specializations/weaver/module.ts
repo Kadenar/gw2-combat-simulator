@@ -1,13 +1,12 @@
-import { weaveSelfModifiers } from '#gw2/professions/elementalist/specializations/weaver/skills/slot-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
+import { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
-
 import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
-import { weaverState, projectWeaverPlanningState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import { weaveSelfModifiers } from '#gw2/professions/elementalist/specializations/weaver/skills/slot-skills.js';
+import { projectWeaverPlanningState, weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { weaverTraits } from '#gw2/professions/elementalist/specializations/weaver/traits/index.js';
-import { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';
 
 /**
  * Weaver specialization module.

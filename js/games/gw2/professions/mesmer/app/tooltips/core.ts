@@ -1,29 +1,29 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { ACTOR } from '#gw2/platform/constants.js';
-import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   fromSkill,
-  tooltipSeconds,
+  simulationEffectFacts,
   skillTooltip,
-  tooltipPercent,
   tooltipDecimal,
   tooltipNumber,
-  simulationEffectFacts,
+  tooltipPercent,
+  tooltipSeconds,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
-import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
-import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
-import { shatterTooltip } from '#gw2/professions/mesmer/app/tooltips/shared.js';
+import { ACTOR } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { mesmerChaosTooltips } from '#gw2/professions/mesmer/app/tooltips/chaos.js';
 import { mesmerDominationTooltips } from '#gw2/professions/mesmer/app/tooltips/domination.js';
 import { mesmerDuelingTooltips } from '#gw2/professions/mesmer/app/tooltips/dueling.js';
-import { mesmerChaosTooltips } from '#gw2/professions/mesmer/app/tooltips/chaos.js';
-import { mesmerInspirationTooltips } from '#gw2/professions/mesmer/app/tooltips/inspiration.js';
 import { mesmerIllusionsTooltips } from '#gw2/professions/mesmer/app/tooltips/illusions.js';
+import { mesmerInspirationTooltips } from '#gw2/professions/mesmer/app/tooltips/inspiration.js';
+import { shatterTooltip } from '#gw2/professions/mesmer/app/tooltips/shared.js';
+import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
+import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
+import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 
 // Phantasm condition budgets are distributed across their authored hit packets, independently for each summoned entity.
 const phantasmTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {

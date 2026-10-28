@@ -1,12 +1,11 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 /**
  * Owns Primordial Stance's scheduled pulses against the live Weaver attunement pair.
  * Skill packet templates remain in `skills/slot-skills.ts`.
  */
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -15,6 +14,7 @@ import { elementalistConditionRequest, elementalistStrikeRequest } from '#gw2/pr
 import { primordialStancePayload } from '#gw2/professions/elementalist/specializations/weaver/skills/slot-skills.js';
 import { weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Reads canonical condition timing without emitting packets that the live-attunement tasks replace. */
 export function schedulePrimordialStance(

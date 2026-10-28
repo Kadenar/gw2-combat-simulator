@@ -1,4 +1,6 @@
+/** Owns the static sigil tables: passive stat entries and active proc declarations. */
 import { CONDITION } from '#gw2/platform/constants.js';
+import type { Gw2SigilDataEntry } from '#gw2/platform/equipment/sigils/types.js';
 
 /** Canonical exotic item IDs verified against the public GW2 items API. */
 export const SIGIL_IDS = Object.freeze({
@@ -31,9 +33,6 @@ export const SIGIL_IDS = Object.freeze({
   SEVERANCE: 84505,
   CONCENTRATION: 72339
 });
-
-/** Owns the static sigil tables: passive stat entries and active proc declarations. */
-import type { Gw2SigilDataEntry } from '#gw2/platform/equipment/sigils/types.js';
 
 // ─── Sigil Data ───────────────────────────────────────────────────────────────
 // Stat values are percentages stored as numbers (e.g. 7 = 7%).

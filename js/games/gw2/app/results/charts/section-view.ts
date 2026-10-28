@@ -1,6 +1,6 @@
-import { escapeHtml } from '#ui/shared/html.js';
-import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 export interface ResultChartsModel {
   readonly chartSeries: ChartSeries | null;

@@ -1,12 +1,12 @@
-import { ACTOR, type AuraName } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { ACTOR, type AuraName } from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 export interface ElementalistAuraApplication {

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import {

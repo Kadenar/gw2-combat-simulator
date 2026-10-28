@@ -1,20 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { ENGINEER_TRAIT_IDS as E, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
-import { GUARDIAN_TRAIT_IDS as G } from '#gw2/professions/guardian/data/ids.js';
+
+import { skillEffectKey } from '#gw2/platform/effects/validation.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { mechStruck } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
 import { aimAssistedRocket, shortFuse } from '#gw2/professions/engineer/core/traits/explosives/index.js';
 import { hematicFocus } from '#gw2/professions/engineer/core/traits/firearms/index.js';
+import { ENGINEER_TRAIT_IDS as E, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { appliedForce } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
-import { mechStruck } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { GUARDIAN_TRAIT_IDS as G } from '#gw2/professions/guardian/data/ids.js';
+import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { firebrandBuffApplied } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { liberatorsVow } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
-import { skillEffectKey } from '#gw2/platform/effects/validation.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const hit = (runtime, extra = {}) => ({
   type: 'damage',

@@ -1,7 +1,7 @@
-import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
-import { ACTOR, COMBO_FIELD, RECIPIENT, CONTROL, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 // The field and its pulses share an application time independent of the cast's page payment.

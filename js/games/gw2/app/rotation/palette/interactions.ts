@@ -5,16 +5,16 @@ import {
   hasConfigurableDoubleEdgeOutcome,
   openDoubleEdgeEditor
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
+import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import { createPaletteContext, paletteSkillIsInstant, type PaletteContext } from '#gw2/app/rotation/palette/model.js';
-import { WAIT_ICON } from '#gw2/app/shared/icons.js';
 import { clearTimelineDropIndicators } from '#gw2/app/rotation/timeline/interactions.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
+import { WAIT_ICON } from '#gw2/app/shared/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 

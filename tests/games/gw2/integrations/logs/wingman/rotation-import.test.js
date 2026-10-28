@@ -1,4 +1,3 @@
-import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -7,6 +6,7 @@ import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/
 import { WingmanError } from '#gw2/integrations/logs/wingman/errors.js';
 import { normalizeWingmanReport } from '#gw2/integrations/logs/wingman/normalize.js';
 import { fetchWingmanReport, isWingmanUrl, wingmanJsonUrl, wingmanLogId } from '#gw2/integrations/logs/wingman/url.js';
+import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 

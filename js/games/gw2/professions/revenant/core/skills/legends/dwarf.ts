@@ -1,11 +1,11 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
+/** Owns Legendary Dwarf Stance skill fragments and their alternate identities. */
+import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-/** Owns Legendary Dwarf Stance skill fragments and their alternate identities. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 
 export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   [ID.VENGEFUL_HAMMERS]: {

@@ -1,9 +1,10 @@
-import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
-import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
-import { encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { encounterTimelineMarkers, encounterStepContext } from '#gw2/app/rotation/timeline/encounter.js';
+
+import { encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
+import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
+import { encounterStepContext, encounterTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
+import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 

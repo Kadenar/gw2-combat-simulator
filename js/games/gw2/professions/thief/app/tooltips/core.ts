@@ -1,32 +1,30 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
-  tooltipFactorChange,
-  tooltipSeconds,
-  skillTooltip,
-  modifierFact,
-  tooltipPercent,
-  tooltipDecimal,
-  tooltipNumber,
-  tooltipProfile,
-  simulationEffectFacts,
-  type ProfessionTooltips,
-  type DescribeSimulationTooltip,
   fromSkill,
-  skillFact
+  modifierFact,
+  simulationEffectFacts,
+  skillFact,
+  skillTooltip,
+  tooltipDecimal,
+  tooltipFactorChange,
+  tooltipNumber,
+  tooltipPercent,
+  tooltipProfile,
+  tooltipSeconds,
+  type DescribeSimulationTooltip,
+  type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { thiefAcrobaticsTooltips } from '#gw2/professions/thief/app/tooltips/acrobatics.js';
+import { thiefCriticalStrikesTooltips } from '#gw2/professions/thief/app/tooltips/critical-strikes.js';
+import { thiefDeadlyArtsTooltips } from '#gw2/professions/thief/app/tooltips/deadly-arts.js';
+import { thiefShadowArtsTooltips } from '#gw2/professions/thief/app/tooltips/shadow-arts.js';
+import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
+import { thiefTrickeryTooltips } from '#gw2/professions/thief/app/tooltips/trickery.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-
-import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
-import { thiefShadowArtsTooltips } from '#gw2/professions/thief/app/tooltips/shadow-arts.js';
-import { thiefDeadlyArtsTooltips } from '#gw2/professions/thief/app/tooltips/deadly-arts.js';
-import { thiefCriticalStrikesTooltips } from '#gw2/professions/thief/app/tooltips/critical-strikes.js';
-import { thiefTrickeryTooltips } from '#gw2/professions/thief/app/tooltips/trickery.js';
-import { thiefAcrobaticsTooltips } from '#gw2/professions/thief/app/tooltips/acrobatics.js';
 
 const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
   'Switch weapon sets, leave Kneel, and trigger applicable swap effects. Quick Pockets restores initiative only when swapping in combat.'

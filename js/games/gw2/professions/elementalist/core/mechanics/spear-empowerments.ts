@@ -1,23 +1,23 @@
-import { WEAPON, CONTROL } from '#gw2/platform/constants.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 /** Owns spear etching progress and one-shot empowerments that survive until a later cast consumes them. */
+import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+import { CONTROL, WEAPON } from '#gw2/platform/constants.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
 import { etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistRuntime,
+  ElementalistRuntimeState,
   ElementalistSimulationEvent,
-  ElementalistSkill,
-  ElementalistRuntimeState
+  ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 /** Snapshots armed one-shot bonuses for the next eligible spear activation. */
 export function beginElementalistSpearCast(

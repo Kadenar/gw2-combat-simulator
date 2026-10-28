@@ -1,14 +1,15 @@
-import { ACTOR } from '#gw2/platform/constants.js';
-import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   balanceNumberFromContext,
-  skillNumber,
   effectNumber,
+  requireEffect,
   requireSkillFromContext,
-  requireEffect
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
   addSoulShards,
@@ -21,7 +22,6 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 
 const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 

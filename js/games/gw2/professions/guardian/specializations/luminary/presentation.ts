@@ -1,10 +1,14 @@
-import { WEAPON, AURA } from '#gw2/platform/constants.js';
-import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { balanceNumberFromContext, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { AURA, WEAPON } from '#gw2/platform/constants.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type {
+  ProfessionEffectPresentation,
+  ProfessionEventLogDescriptor,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
+import { balanceNumberFromContext, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
   formatSecondsRemaining,
   guardianSnapshotAt,
@@ -12,21 +16,16 @@ import {
   guardianUiSkillsByMode
 } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-
 import type {
-  ProfessionEffectPresentation,
-  ProfessionEventLogDescriptor,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
-import type {
+  GuardianPlanningState,
   GuardianResolverEvent,
   GuardianSkill,
-  GuardianPlanningState,
   GuardianUiContext,
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
-import { boundedInteger } from '#kernel/core/numeric.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Render actual weapon-bar transitions at their executed boundary. */
 function luminaryEventLogRow(

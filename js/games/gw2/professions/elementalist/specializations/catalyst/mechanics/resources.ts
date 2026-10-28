@@ -1,8 +1,8 @@
-import { ELEMENTALIST_TRAIT_IDS as CATALYST_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import { ACTOR } from '#gw2/platform/constants.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { ELEMENTALIST_TRAIT_IDS as CATALYST_TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { sphereSpecialistAllowsEnergy } from '#gw2/professions/elementalist/specializations/catalyst/traits/spheres.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';

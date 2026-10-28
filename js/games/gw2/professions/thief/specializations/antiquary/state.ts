@@ -5,11 +5,11 @@ import {
   type ChargeGrant
 } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import { cloneStateFields, defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { ThiefArtifactKind } from '#gw2/professions/thief/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import type { ThiefArtifactKind } from '#gw2/professions/thief/types.js';
 
 export interface ThiefArtifactSlot {
   readonly kind: ThiefArtifactKind;

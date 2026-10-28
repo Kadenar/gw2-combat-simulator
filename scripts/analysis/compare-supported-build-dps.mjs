@@ -6,15 +6,16 @@
  * Absolute-tolerance usage: npm run benchmarks:compare -- --absolute-dps
  * Commit usage: npm run benchmarks:compare -- --commit
  */
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { format, resolveConfig } from 'prettier';
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
-import { findPendingPatchBenchmark } from '#gw2/app/page/benchmark-patch-preview.js';
 
-import { captureSupportedBuildMetrics } from './capture-supported-build-metrics.mjs';
-import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
+import { findPendingPatchBenchmark } from '#gw2/app/page/benchmark-patch-preview.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
+import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+
+import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
+import { captureSupportedBuildMetrics } from './capture-supported-build-metrics.mjs';
 
 export const MAXIMUM_RELATIVE_ERROR = 0.01;
 

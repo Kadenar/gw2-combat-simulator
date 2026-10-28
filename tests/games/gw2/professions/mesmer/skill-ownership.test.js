@@ -1,16 +1,17 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { simulateMesmer, runMesmer } from '#tests/helpers/mesmer-simulation.js';
+
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
+import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
+import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
-import { scheduleAxesClones, completeAxesConfusion } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Successful activation rewards are visible at the owning completion transaction.
 test('Clarity and blade refunds share their successful completion', () => {

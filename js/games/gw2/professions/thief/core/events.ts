@@ -1,12 +1,12 @@
 import { ACTOR, type ControlKind, type SimulationActorType } from '#gw2/platform/constants.js';
-import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-import { normalizeEffectAudience } from '#gw2/platform/events/audience-metadata-validation.js';
 import { splitStrikeHits } from '#gw2/platform/effects/packet-builders.js';
+import { normalizeEffectAudience } from '#gw2/platform/events/audience-metadata-validation.js';
 import type { EffectAudience, EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 export type ThiefRuntime = MechanicContext<ThiefRuntimeState, ThiefSkill>;
 

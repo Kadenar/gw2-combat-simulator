@@ -1,20 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { dragonhunterVirtueLifecycle } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { tomeStowed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import { dragonhunterVirtueLifecycle } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
+import { tomeStowed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
-import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { willbenderHooks } from '#gw2/professions/guardian/specializations/willbender/hooks.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const hit = { at: 1, actorType: 'player', coefficient: 1, skillName: 'Strike' };
 const details = { hitContext: { damage: 1 } };

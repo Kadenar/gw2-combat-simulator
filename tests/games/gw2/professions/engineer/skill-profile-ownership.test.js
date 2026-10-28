@@ -1,24 +1,25 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  signetModifierRules,
-  overclockRechargeWork
-} from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
+import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
+import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { holosmithSkillStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import {
+  overclockRechargeWork,
+  signetModifierRules
+} from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
-import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
-import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 
 // Returning to Current must restore the canonical owner without retaining any preview mutations.
 function preview(skills, balanceProfiles = {}) {

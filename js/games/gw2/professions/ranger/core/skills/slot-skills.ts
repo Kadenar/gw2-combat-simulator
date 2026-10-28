@@ -1,30 +1,28 @@
-import { skillNumber, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
-import { RECIPIENT, COMBO_FIELD, COMBO_FINISHER, CONTROL, ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { activeBuff, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import {
   activeChargeGrants,
   appendChargeGrant,
   consumeChargeBatch,
   grantCharges
 } from '#gw2/platform/combat/resources/charges.js';
+import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-
+import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { buildRangerPacket, emitRangerProfile, emitRangerAction } from '#gw2/professions/ranger/core/events.js';
+import { buildRangerPacket, emitRangerAction, emitRangerProfile } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
+import { activeBuff, rangerPetEvent } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type {
   RangerResolverContext,

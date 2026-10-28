@@ -1,6 +1,8 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
@@ -10,9 +12,8 @@ import {
   firebrandState,
   projectFirebrandPlanningState
 } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const config = {
   attributeInputs: baseAttributeInputs({

@@ -1,6 +1,10 @@
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import assert from 'node:assert/strict';
+import { readdirSync } from 'node:fs';
+import test from 'node:test';
+
 import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
 import { SPECIALIZATIONS as API_SPECIALIZATIONS } from '#gw2/professions/elementalist/data/elementalist-api-metadata.js';
@@ -17,9 +21,6 @@ import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializ
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
-import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
-import test from 'node:test';
 
 const slices = [
   ['core', elementalistCoreModule, ELEMENTALIST_CORE_SKILL_MECHANICS],

@@ -1,13 +1,13 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
-import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { antiquaryStruck } from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
-import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { antiquaryStruck } from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
+import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
+import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
 
 // Spend one unexpired Mistburn charge on a qualifying player strike and attach
 // its Burning without allowing the mortar's granting strike to self-consume.

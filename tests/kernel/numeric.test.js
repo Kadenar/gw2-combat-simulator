@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { boundedInteger, boundedNumber, clamp, finiteNumber, roundHalfToEven } from '#kernel/core/numeric.js';
 
 test('clamp restricts values to an inclusive range', () => {

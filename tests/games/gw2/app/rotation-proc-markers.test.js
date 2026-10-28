@@ -1,6 +1,6 @@
-import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import {
   groupConsecutiveProcSteps,
   procBadgeLabel,
@@ -13,6 +13,7 @@ import {
 } from '#gw2/app/rotation/timeline/model.js';
 import { syncProcVisibility } from '#gw2/app/rotation/timeline/view.js';
 import { resolveProcIcon } from '#gw2/app/shared/icons.js';
+import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 
 test('proc display groups only consecutive occurrences of the same proc', () => {
   const proc = (type, skill, start) => ({ type, skill, start });

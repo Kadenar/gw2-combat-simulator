@@ -3,12 +3,10 @@ import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/c
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-
 import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export interface DeadeyeState {
   bonusStealthAttack: ChargeGrant;

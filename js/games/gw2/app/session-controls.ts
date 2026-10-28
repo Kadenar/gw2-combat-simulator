@@ -1,4 +1,4 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { bindBuildFileImportDialog } from '#gw2/app/import-export/build-file-import-dialog.js';
 import {
   downloadJson,
@@ -6,11 +6,10 @@ import {
   getBuildWithRotationExportPayload
 } from '#gw2/app/import-export/files.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
-import { requiredElement, requiredInput, requiredSelect } from '#ui/shared/dom.js';
-
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { requiredElement, requiredInput, requiredSelect } from '#ui/shared/dom.js';
 
 /** Coordinates build transfers, reset, and rotation history for the active application session. */
 export function bindSessionControls(app: ProfessionAppState): void {

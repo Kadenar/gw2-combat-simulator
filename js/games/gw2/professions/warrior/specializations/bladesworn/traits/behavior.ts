@@ -1,6 +1,5 @@
 import type { Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-
 import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';

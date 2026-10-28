@@ -1,4 +1,4 @@
-import { WEAPON, ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
 import { bountifulBladesMirrorBlade } from '#gw2/professions/mesmer/core/traits/domination/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';

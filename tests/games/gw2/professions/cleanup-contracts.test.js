@@ -1,33 +1,31 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
-
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { firebrandModule } from '#gw2/professions/guardian/specializations/firebrand/module.js';
-import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
-import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
-
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as R } from '#gw2/professions/revenant/data/ids.js';
 import { conduitModule } from '#gw2/professions/revenant/specializations/conduit/module.js';
 import { activeKallasFervorStacks } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { paragonModule } from '#gw2/professions/warrior/specializations/paragon/module.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
 test('Forge exits finalize once at the actual transition and clear weapon state', () => {

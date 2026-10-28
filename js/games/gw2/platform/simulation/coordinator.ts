@@ -1,9 +1,9 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { PacketIdentity } from '#gw2/platform/events/identity.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
 import type { Gw2EventQueue } from '#gw2/platform/resolver/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { isRuntimeWork, type RuntimeQueueEntry, type RuntimeWork } from '#gw2/platform/simulation/work-contract.js';

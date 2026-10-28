@@ -1,13 +1,10 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
   fromProfile,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
-  skillTooltip,
   skillFact,
+  skillTooltip,
   tooltipDecimal,
   tooltipPercent,
   tooltipSeconds,
@@ -15,6 +12,9 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 /** Commands describe their selected echo action; shared cadence remains command policy. */

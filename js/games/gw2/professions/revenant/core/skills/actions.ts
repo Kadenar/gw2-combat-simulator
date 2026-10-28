@@ -1,12 +1,11 @@
-import { createWeaponSwapSkill, createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
-import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
-
 /**
  * Owns simulator-only Core Revenant action declarations.
  * Their runtime behavior is registered through `core/hooks.ts`.
  */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
 const actions: readonly Skill[] = [
   battleScarsSkill,

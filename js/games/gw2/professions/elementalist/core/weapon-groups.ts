@@ -1,5 +1,5 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionWeaponSkillGroup } from '#gw2/platform/profession-presentation/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 const ATTUNEMENT_ORDER = ['Fire', 'Water', 'Air', 'Earth', 'Dual', 'Special'];
 

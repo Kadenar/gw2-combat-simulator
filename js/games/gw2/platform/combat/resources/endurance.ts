@@ -1,13 +1,11 @@
-import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
-import { boonKey, boonIntervalsFromWindows, prepareBoonWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
-import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-
+import { boonIntervalsFromWindows, boonKey, prepareBoonWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
+import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { cappedResource, grantCapped, resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
+import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 
 /** Cache one runtime's append-only executed history; unrelated facts cannot change its prepared self-Vigor windows. */
 export function createVigorWindowReader(events: readonly SimulationEvent[]): () => readonly BoonWindow[] {

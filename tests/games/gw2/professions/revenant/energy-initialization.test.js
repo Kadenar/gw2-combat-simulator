@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import {
   REVENANT_MAXIMUM_ENERGY,
   REVENANT_PRECOMBAT_ENERGY_CEILING,
   revenantStartingEnergy
 } from '#gw2/professions/revenant/core/resource-values.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { REVENANT_TEST_CONFIG } from '#tests/helpers/revenant-simulation.js';
 import { constructedAndInitializedPool } from '#tests/helpers/resource-initialization.js';
+import { REVENANT_TEST_CONFIG } from '#tests/helpers/revenant-simulation.js';
 
 // Standalone construction and runtime initialization share one energy authority before combat begins.
 test('constructed and initialized energy agree on fixed base recovery', () => {

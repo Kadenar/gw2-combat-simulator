@@ -1,8 +1,7 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
-
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
-import { requireBalanceProfileFromContext, balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 

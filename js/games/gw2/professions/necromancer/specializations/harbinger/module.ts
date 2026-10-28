@@ -1,6 +1,9 @@
-import { NECROMANCER_HARBINGER_PROFILE_FIELDS } from '#gw2/professions/necromancer/specializations/harbinger/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
+import {
+  HARBINGER_SKILL_FIELDS,
+  NECROMANCER_HARBINGER_PROFILE_FIELDS
+} from '#gw2/professions/necromancer/specializations/harbinger/catalog-fields.js';
 import { harbingerHooks } from '#gw2/professions/necromancer/specializations/harbinger/hooks.js';
 import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
 import { HARBINGER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/harbinger/skills/index.js';
@@ -9,7 +12,6 @@ import {
   projectHarbingerPlanningState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { necromancerHarbingerTraits } from '#gw2/professions/necromancer/specializations/harbinger/traits/index.js';
-import { HARBINGER_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/harbinger/catalog-fields.js';
 
 export const harbingerModule = defineNativeModule({
   traitDefinitions: necromancerHarbingerTraits,

@@ -1,7 +1,7 @@
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 import {
   COMBO_DEFINITIONS,
   comboDefinition,
@@ -15,12 +15,12 @@ import {
   resolveComboAttempt,
   selectComboFieldForFinisher
 } from '#gw2/platform/combos/resolution.js';
-import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
-import { professionRegistry } from '#gw2/profession-registry.js';
-import { normalizeEffect } from '#gw2/platform/effects/validation.js';
-import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
+import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
+import { normalizeEffect } from '#gw2/platform/effects/validation.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 
 test('combo field boundaries use exact canonical instants', () => {
   // Ordinary fields are half-open while explicit inclusivity retains only the exact expiry instant.

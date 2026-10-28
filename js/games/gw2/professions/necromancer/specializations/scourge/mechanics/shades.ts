@@ -1,22 +1,22 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  requireSkillFromContext,
-  skillNumber,
   effectNumber,
   requireBalanceProfileFromContext,
-  requireEffect
+  requireEffect,
+  requireSkillFromContext,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { scourgeShadeManifested } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
+import { scourgeShadeManifested } from '#gw2/professions/necromancer/specializations/scourge/mechanics/trigger-points.js';
 import { purgeScourgeTimedState, scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type {
   NecromancerRuntime,

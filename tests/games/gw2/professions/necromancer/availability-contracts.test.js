@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { necromancerAvailability } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { observeGw2Runtime, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 /** Exercise real catalog and resource queries while varying only the availability state under test. */
 function fixture(overrides = {}) {

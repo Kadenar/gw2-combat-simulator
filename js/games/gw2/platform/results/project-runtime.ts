@@ -1,18 +1,17 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { projectInputTrace } from '#gw2/platform/results/input-trace.js';
-import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/combat-result.js';
 import { locateDiagnostics } from '#gw2/platform/results/diagnostics.js';
-import { planningState } from '#gw2/platform/results/planning-state.js';
+import { projectInputTrace } from '#gw2/platform/results/input-trace.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
+import { planningState } from '#gw2/platform/results/planning-state.js';
+import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
+import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import type { DamageRuntimeResult, RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 
 /** Project settled combat and planning facts without dispatching work or advancing time. */
 export function projectRuntimeResult<T extends object>(

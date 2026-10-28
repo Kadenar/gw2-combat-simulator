@@ -1,8 +1,8 @@
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
 import { encounterHealth } from '#gw2/app/boss-scenarios/catalog.js';
-import { encounterPhasePlan, encounterExecutionPhases } from '#gw2/app/boss-scenarios/phases.js';
+import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
+import { encounterExecutionPhases, encounterPhasePlan } from '#gw2/app/boss-scenarios/phases.js';
 import type { EncounterConfig, EncounterPhase } from '#gw2/platform/combat/state/encounter.js';
+import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export const ENCOUNTER_RESULT_EVENT = 'gw2:encounter-result';
 

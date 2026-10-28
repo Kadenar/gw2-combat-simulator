@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { modernAnimationActions, legacyActivationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
+
 import { evtcRecordingWindow, usesModernAnimations } from '#gw2/integrations/logs/evtc/recording.js';
+import { legacyActivationActions, modernAnimationActions } from '#gw2/integrations/logs/evtc/rotation/animations.js';
 import { detectEvtcRotationPlayers, selectPlayerAgent } from '#gw2/integrations/logs/evtc/rotation/players.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/reconstruct.js';
 import { event, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';

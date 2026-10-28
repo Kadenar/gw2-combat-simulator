@@ -2,8 +2,8 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { scheduleDirectSkillResources } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
+import { mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import {
   completeMesmerShatter,

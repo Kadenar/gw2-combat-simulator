@@ -1,7 +1,5 @@
-import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
@@ -11,18 +9,20 @@ import {
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
   effectNumber,
-  skillNumberFromContext,
   requireBalanceProfileFromContext,
-  requireEffect
+  requireEffect,
+  skillNumberFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -40,7 +40,6 @@ import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/suppleme
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
-import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Combat suppression skips the boon while the combat-anchored cadence keeps advancing. */
 const assassinsPresencePassive = definePeriodicTask<RevenantRuntime>({

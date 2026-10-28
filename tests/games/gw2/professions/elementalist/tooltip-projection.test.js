@@ -1,7 +1,10 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
+import { AURA } from '#gw2/platform/constants.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -10,12 +13,10 @@ import {
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { acceptIgniteEffects } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import { AURA } from '#gw2/platform/constants.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 // The unlock trait owns the same energy policy read by runtime and presentation.
 test('Depth of Elements tooltip shares the selected Catalyst energy capacity', () => {

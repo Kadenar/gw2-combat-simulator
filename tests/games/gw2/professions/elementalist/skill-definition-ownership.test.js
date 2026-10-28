@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
+import { AURA_TRANSMUTE_SKILLS, ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
+import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
-import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import {
-  ELEMENTALIST_SKILL_IDS as ID,
-  ELEMENTALIST_TRAIT_IDS as TRAIT,
-  ELEMENTALIST_ATTUNEMENT_SKILL_IDS
-} from '#gw2/professions/elementalist/data/ids.js';
-import { AURA_TRANSMUTE_SKILLS, ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 
 // Patch declarations through every catalog lookup while retaining the real lifecycle and state owners.
 function patchedProfession(changes, afterCommit) {

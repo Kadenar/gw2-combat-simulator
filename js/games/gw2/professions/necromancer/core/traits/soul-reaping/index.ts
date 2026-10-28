@@ -1,31 +1,32 @@
-import { emitShroudEntryTrait } from '#gw2/professions/necromancer/core/traits/shroud-entry.js';
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
+import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import { shroudEntered, shroudExited, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
+import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
+import { necromancerPassivesStarting } from '#gw2/professions/necromancer/core/mechanics/passives.js';
 import {
   necromancerConditionApplied,
   necromancerStrike,
   necromancerStrikeLifeForce
 } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
-import { shroudEntered, shroudExited, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
-import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
-import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
-import { necromancerPassivesStarting } from '#gw2/professions/necromancer/core/mechanics/passives.js';
+import { emitShroudEntryTrait } from '#gw2/professions/necromancer/core/traits/shroud-entry.js';
 import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/soul-reaping/procs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
@@ -34,7 +35,6 @@ import type {
   NecromancerRuntime
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 
 /** Owns Dhuumfire tuning and behavior at its existing execution boundaries. */
 export const dhuumfire = defineTrait({

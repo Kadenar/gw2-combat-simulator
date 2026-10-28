@@ -1,11 +1,11 @@
-import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
-import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
 import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 
 // Two Signet Mastery applications (1 stack each, 60s) plus a later one that
 // only comes up after the first two lapse. Mirrors how the trait stacks the

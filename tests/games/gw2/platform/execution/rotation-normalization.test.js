@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 

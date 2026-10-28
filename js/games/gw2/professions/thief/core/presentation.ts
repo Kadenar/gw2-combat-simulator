@@ -1,33 +1,32 @@
-import { WEAPON, STATUS } from '#gw2/platform/constants.js';
-import { stealthActive } from '#gw2/platform/combat/stealth.js';
-import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
+import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { stealthActive } from '#gw2/platform/combat/stealth.js';
+import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
+import { STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
-import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
-
-import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type {
   ProfessionCatalogContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
+import { thiefInitiativeCapacity } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
+import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
-import type { ThiefSkill, ThiefPlanningState, ThiefUiContext } from '#gw2/professions/thief/types.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { thiefInitiativeCapacity } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import type { ThiefPlanningState, ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
 export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.

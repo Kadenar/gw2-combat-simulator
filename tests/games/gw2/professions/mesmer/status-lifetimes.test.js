@@ -1,4 +1,6 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -17,12 +19,11 @@ import {
   mirageInitialized,
   mirageResourcesGained
 } from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
-import { canonicalTime } from '#kernel/core/clock.js';
+import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Real profiles and specialization initialization isolate the lifetime contracts from rotation and cast timing.
 function lifetimeContext(traits = [], rechargeRate = 1) {

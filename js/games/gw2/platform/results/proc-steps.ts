@@ -1,8 +1,8 @@
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { AnnouncementEmission } from '#gw2/platform/effects/emission.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
 import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 
 /** Optional reporting observes executed announcements through this protocol; resolution never owns proc rows. */
 export interface ProcStepObserver {

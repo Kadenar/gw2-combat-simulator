@@ -1,6 +1,10 @@
-import { CONTROL, ACTOR, COMBO_FINISHER, BOON } from '#gw2/platform/constants.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
+import { ACTOR, BOON, COMBO_FINISHER, CONTROL } from '#gw2/platform/constants.js';
+import { type SimulationEventBase } from '#gw2/platform/events/events.js';
+import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
@@ -12,11 +16,6 @@ import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { type EngineerRuntime, type EngineerSkill } from '#gw2/professions/engineer/types.js';
-
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { type SimulationEventBase } from '#gw2/platform/events/events.js';
-import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
 // In-game "disable" reminder: stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.
 const DISABLE_CONTROL_KINDS: ReadonlySet<string> = new Set([

@@ -1,12 +1,12 @@
+import type { Gw2QueryRuntime } from '#gw2/platform/combat-calculation/combat-query.js';
 import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
 } from '#gw2/platform/combat/formulas.js';
-import type { Gw2QueryRuntime } from '#gw2/platform/combat-calculation/combat-query.js';
+import { SIGIL_BY_ID, SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import type { Gw2CriticalChanceContributor } from '#gw2/platform/events/resolver-event.js';
-import { SIGIL_IDS, SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
-import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 
 /** Keep the observation schema available after a swap while an accepted Severance grant survives. */
 export const SEVERANCE_BUFF_POLICY: BuffStatePolicy = Object.freeze({ kind: 'sigil-severance', maximumStacks: 1 });

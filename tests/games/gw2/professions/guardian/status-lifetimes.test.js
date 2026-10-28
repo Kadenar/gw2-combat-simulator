@@ -1,5 +1,8 @@
-import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
+import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
@@ -8,8 +11,6 @@ import { luminaryModule } from '#gw2/professions/guardian/specializations/lumina
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const config = { specialization: 'Luminary' };
 const wait = (durationMs) => ({ type: 'wait', durationMs });

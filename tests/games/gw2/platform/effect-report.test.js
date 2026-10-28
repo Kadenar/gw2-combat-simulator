@@ -1,17 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { EffectRecorder, effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
-import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
-import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
-import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { explosionAccepted } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/trigger-points.js';
-import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 
-import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
+import { buildChartSeries } from '#gw2/app/results/model.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { EffectRecorder, effectStateAt, effectSummary } from '#gw2/platform/results/effect-report.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
+import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
+import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { explosionAccepted } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/trigger-points.js';
 
 const track = (result, kind) =>
   result.effectReport.tracks.find(

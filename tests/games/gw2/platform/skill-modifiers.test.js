@@ -1,6 +1,7 @@
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';

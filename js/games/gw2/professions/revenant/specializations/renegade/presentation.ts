@@ -1,24 +1,24 @@
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import type { ProfessionStateSnapshotContext } from '#gw2/platform/profession-presentation/types.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
-import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
-import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type {
   ProfessionEffectPresentation,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
+import { type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
+import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/renegade-enhanced-skills.js';
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Both displays select the same trait-dependent cap as runtime Fervor grants. */

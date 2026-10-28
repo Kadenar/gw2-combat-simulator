@@ -1,9 +1,9 @@
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
-import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { rankedInputWindows } from '#gw2/platform/results/input-windows.js';
-import { activationInputKind } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { InputTrace } from '#gw2/platform/results/input-trace.js';
+import { rankedInputWindows } from '#gw2/platform/results/input-windows.js';
+import type { SimulationStep } from '#gw2/platform/results/types.js';
+import { activationInputKind } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 export interface RotationApm {

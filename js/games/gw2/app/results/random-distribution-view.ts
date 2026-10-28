@@ -1,10 +1,10 @@
-import { escapeHtml } from '#ui/shared/html.js';
 import { resultNumber as number, signedInteger } from '#gw2/app/results/formatting.js';
-import { boundedNumber } from '#kernel/core/numeric.js';
 import type {
   RandomDistributionProgress,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
+import { boundedNumber } from '#kernel/core/numeric.js';
+import { escapeHtml } from '#ui/shared/html.js';
 
 export interface RandomDistributionViewModel {
   readonly randomDistribution?: RandomDistributionSummary | null;

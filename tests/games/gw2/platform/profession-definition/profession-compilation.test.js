@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
+import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 
 // Flat declarations must compile once per stage, preserving priorities, ties, and stage-scoped IDs.
 test('mixed-stage reaction arrays retain dispatch ownership and stable order after compilation', () => {

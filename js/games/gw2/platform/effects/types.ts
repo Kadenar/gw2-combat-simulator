@@ -1,11 +1,11 @@
-import type { AuraName, SimulationActorType } from '#gw2/platform/constants.js';
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
+import type { AuraName, SimulationActorType } from '#gw2/platform/constants.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
 import type { DamageEvent, EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /**
  * Declarative skill-effect schemas (strike, condition, control, status, custom) so authored effects stay independent

@@ -1,28 +1,28 @@
-import { ACTOR, COMBO_FIELD, CONTROL, COMBO_FINISHER, WEAPON, CONDITION } from '#gw2/platform/constants.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
 import {
   activeStackCount,
   addTimedStacks,
   grantTimedStacks,
   purgeExpiredStacks
 } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
-import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import {
-  impactEffects,
   conditionEffectTicks,
   effectFirstAtMs,
+  impactEffects,
   strikeEffectCoefficient
 } from '#gw2/platform/effects/authoring.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
 export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({

@@ -1,4 +1,3 @@
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 /**
  * Runs the deterministic simulator over every rotation-backed manifest preset and
  * prints the resulting benchmark metrics as JSON.
@@ -20,11 +19,13 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { loadBuildContext } from '#gw2/build-context/load.js';
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
-import { targetHealthBandDps } from './health-band-dps.mjs';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+
 import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
+import { targetHealthBandDps } from './health-band-dps.mjs';
 
 const DEFAULT_PROFESSIONS = [
   'elementalist',

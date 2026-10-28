@@ -1,16 +1,10 @@
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
-import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
-import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
 import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
 } from '#gw2/app/build/state/persistence.js';
-import { bindBuildContext } from '#gw2/build-context/create.js';
 import {
   calculateContributionBatch,
   calculateContributionComparisons,
@@ -19,18 +13,24 @@ import {
   partitionModifierComparisons
 } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
+import { bindBuildContext } from '#gw2/build-context/create.js';
 import {
   calculateCommonAttributes,
   finalizeBuildAttributes,
   resolveAttributeEffects
 } from '#gw2/platform/attributes/calculation.js';
+import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
+import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
 const calcAttributes = createCalculateAttributes(

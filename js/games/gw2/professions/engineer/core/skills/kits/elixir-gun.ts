@@ -1,9 +1,9 @@
-import { COMBO_FINISHER, COMBO_FIELD, ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 // Name packets independently for patch deletion while preserving their shared attribution.
 /** Core Engineer Elixir Gun skill mechanics. */
+import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines the Elixir Gun equip action and packet-level palette mechanics, including fields and finishers. */
 export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({

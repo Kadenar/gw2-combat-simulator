@@ -1,5 +1,5 @@
-import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 
 /** Elite invocation identities are shared data, so Core traits can read them without loading elite behavior. */
 export const REVENANT_ELITE_INVOCATIONS: Readonly<Record<string, { song: SkillId }>> = {

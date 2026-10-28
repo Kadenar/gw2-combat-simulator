@@ -1,8 +1,9 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
-import assert from 'node:assert/strict';
-import test from 'node:test';
 
 const config = { selectedSkillIds: [ID.ASSASSINS_SIGNET] };
 const wait = (seconds) => ({ type: 'wait', durationMs: seconds * 1000 });

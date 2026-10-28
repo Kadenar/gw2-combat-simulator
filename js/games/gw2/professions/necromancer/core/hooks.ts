@@ -1,22 +1,15 @@
-import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ACTOR } from '#gw2/platform/constants.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
-import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
+import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professions/necromancer/core/effect-state.js';
 import { necromancerAvailability } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
-import {
-  necromancerConditionApplied,
-  necromancerControlAccepted,
-  necromancerStrike,
-  necromancerStrikeLifeForce,
-  necromancerStrikePreparing
-} from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import {
   completeNecromancerCorruption,
   necromancerConditionLifecycle,
@@ -52,6 +45,13 @@ import {
   soulShardLifecycle
 } from '#gw2/professions/necromancer/core/mechanics/soul-shards.js';
 import { necromancerSwordLifecycle } from '#gw2/professions/necromancer/core/mechanics/sword-chain.js';
+import {
+  necromancerConditionApplied,
+  necromancerControlAccepted,
+  necromancerStrike,
+  necromancerStrikeLifeForce,
+  necromancerStrikePreparing
+} from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
 import { torchLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import { necromancerLifeForceCapacity } from '#gw2/professions/necromancer/core/state.js';

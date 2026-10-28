@@ -1,15 +1,15 @@
 import type { CombatEngagement } from '#gw2/platform/combat/engagement.js';
-import type { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { EnduranceController, ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
+import type { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type { FlipWindowOptions, SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
-import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
-import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 

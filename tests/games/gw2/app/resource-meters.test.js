@@ -1,11 +1,12 @@
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
-import { resourceDisplayViews, activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
+
+import { clampStartingResourceValues } from '#gw2/app/build/panels/traits.js';
+import { activeResourceGroup, resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
-import { clampStartingResourceValues } from '#gw2/app/build/panels/traits.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // Every resource presentation must consume a bounded canonical planning pool without requiring browser navigation.
 for (const [professionId, elite, resourceId, key] of [

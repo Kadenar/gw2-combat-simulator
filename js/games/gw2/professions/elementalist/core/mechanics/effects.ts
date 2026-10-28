@@ -1,9 +1,3 @@
-import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
-import { ACTOR } from '#gw2/platform/constants.js';
-import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { AnnouncementEmission, EffectDelivery, ProfileEmission } from '#gw2/platform/effects/emission.js';
 /**
  * Elementalist payload selection and attribution for the shared emission service.
  *
@@ -11,8 +5,13 @@ import type { AnnouncementEmission, EffectDelivery, ProfileEmission } from '#gw2
  * catalog and state lookups they depend on. Skill and trait handlers depend on
  * this module; it must not depend on them.
  */
+import { ACTOR } from '#gw2/platform/constants.js';
+import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
+import type { AnnouncementEmission, EffectDelivery, ProfileEmission } from '#gw2/platform/effects/emission.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';

@@ -1,15 +1,15 @@
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import {
   effectNumber,
   requireEffect,
-  skillNumberFromContext,
-  requireSkillFromContext
+  requireSkillFromContext,
+  skillNumberFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
+import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';

@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
 import { applySkillPatch, normalizeAuthoringSkillEdit } from '#gw2/integrations/patches/authoring/patches.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { castResourceGrants, effectResourceGrants } from '#gw2/platform/effects/resource-grants.js';
-import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
-import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
+import { WARRIOR_SKILL_IDS } from '#gw2/professions/warrior/data/ids.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 // Real skill declarations must survive editor serialization and deliver the edited amount through their existing action.
 for (const [profession, skillId, grantId, resource, from, to, effectIndex] of [

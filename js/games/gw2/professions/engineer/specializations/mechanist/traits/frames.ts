@@ -1,7 +1,3 @@
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { selectedMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
-import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import {
@@ -9,7 +5,11 @@ import {
   balanceProfileNumber,
   requireBalanceProfileFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
+import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { selectedMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
+import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 
 /** The mech's base attributes are fixed; Mechanical Genius and selected frames own inherited-stat tuning. */
 export const MECH_BASE_ATTRIBUTES = Object.freeze({ attribute: 1000, precision: 1, criticalChance: 0.05 });
