@@ -5,7 +5,7 @@ export interface ProfessionTraitSelection {
   /** Live trait positions. */
   readonly traits?: string;
   readonly disabledMinorTraits?: readonly number[];
-  /** Positions in a preview that relays this line, keyed by patch ID. */
+  /** Explicit preview positions, including choices for unchanged layouts, keyed by patch ID. */
   readonly patchTraits?: Readonly<Record<string, string>>;
 }
 
@@ -96,15 +96,13 @@ export function relaidPatchId(catalog: TraitLayoutCatalog, name: string | undefi
 }
 
 /**
- * Positions for the catalog's patch. Saved builds are Live-based, so a relaid line reads only its own preview
- * positions and stays empty without them instead of misreading Live slots in a different layout.
+ * Explicit preview choices override Live positions even when the layout is unchanged. Relaid lines stay empty
+ * without preview choices instead of misreading Live slots in a different layout.
  */
 export function traitPositions(catalog: TraitLayoutCatalog, selection: ProfessionTraitSelection): string {
-  const patchId = relaidPatchId(catalog, selection.name);
-
-  if (!patchId) return selection.traits ?? '';
-
-  return selection.patchTraits?.[patchId] ?? '0-0-0';
+  const patchId = catalog.balanceDataContext?.patchId;
+  const previewTraits = patchId && patchId !== 'current' ? selection.patchTraits?.[patchId] : undefined;
+  return previewTraits ?? (relaidPatchId(catalog, selection.name) ? '0-0-0' : (selection.traits ?? ''));
 }
 
 /** Relaid lines that still need preview positions; the trait panel and patch comparison ask for them. */

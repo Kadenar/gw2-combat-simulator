@@ -128,7 +128,7 @@ export interface Gw2BuildSpecialization {
   traits: string;
   /** Zero-based minor tiers omitted from trait effects; absent means all are active. */
   disabledMinorTraits?: number[];
-  /** Positions in a preview that relays this line's major traits, keyed by patch ID. */
+  /** Explicit preview positions, including choices for unchanged layouts, keyed by patch ID. */
   patchTraits?: Record<string, string>;
 }
 

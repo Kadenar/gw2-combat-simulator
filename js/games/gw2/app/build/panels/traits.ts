@@ -20,8 +20,8 @@ export function clampStartingResourceValues(app: ProfessionAppState, specializat
 }
 
 /**
- * Toggles one major choice in the positions the selected patch reads. Relaid preview lines keep their own choices,
- * so switching back to Live reads the untouched Live positions; clicking a selected major clears only its tier.
+ * Toggles one major choice in the positions the selected patch reads. Explicit preview choices and relaid lines
+ * keep Live positions untouched; clicking a selected major clears only its tier.
  */
 export function toggleMajorTrait(
   catalog: ProfessionAppState['activeCatalog'],
@@ -29,7 +29,11 @@ export function toggleMajorTrait(
   tier: number,
   pick: string
 ): void {
-  const patchId = relaidPatchId(catalog, spec.name);
+  const activePatchId = catalog.balanceDataContext?.patchId;
+  const patchId =
+    activePatchId && activePatchId !== 'current' && spec.patchTraits?.[activePatchId] !== undefined
+      ? activePatchId
+      : relaidPatchId(catalog, spec.name);
   const picks = traitPositions(catalog, spec).split('-');
   picks[tier] = picks[tier] === pick ? '0' : pick;
 

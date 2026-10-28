@@ -1,11 +1,41 @@
-import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { selectedTraits, traitPositions, missingPatchTraits } from '#gw2/professions/shared/trait-data.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { professionOptions } from '#gw2/profession-registry.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
-import { selectSpecialization } from '#gw2/app/build/panels/traits.js';
+import { selectSpecialization, toggleMajorTrait } from '#gw2/app/build/panels/traits.js';
+
+// A preview may choose different traits without moving their slots; editing those choices must preserve Live.
+test('explicit preview traits resolve and edit independently on unchanged layouts', async () => {
+  const adapter = await loadProfessionAppAdapter('guardian');
+  const live = adapter.profession.resolvePatch({ id: 'current' }).catalog;
+  const preview = adapter.profession.resolvePatch({ id: 'nov-10-balance-preview' }).catalog;
+  const selection = {
+    name: 'Virtues',
+    traits: '3-1-2',
+    patchTraits: { 'nov-10-balance-preview': '3-1-1' }
+  };
+  assert.equal(traitPositions(live, selection), '3-1-2');
+  assert.equal(traitPositions(preview, selection), '3-1-1');
+  assert.deepEqual(missingPatchTraits(preview, [selection]), []);
+  const virtues = preview.specializations.find(({ name }) => name === 'Virtues');
+  assert.ok(selectedTraits(preview, [selection]).some(({ id }) => id === virtues.majorTraits[2][0].id));
+  assert.ok(!selectedTraits(preview, [selection]).some(({ id }) => id === virtues.majorTraits[2][1].id));
+  toggleMajorTrait(preview, selection, 2, '3');
+  assert.equal(traitPositions(preview, selection), '3-1-3');
+  assert.equal(traitPositions(live, selection), '3-1-2');
+  toggleMajorTrait(live, selection, 0, '1');
+  assert.equal(traitPositions(live, selection), '1-1-2');
+  assert.equal(traitPositions(preview, selection), '3-1-3');
+  const otherPreview = { balanceDataContext: { patchId: 'other-preview' } };
+  assert.equal(traitPositions(otherPreview, selection), '1-1-2');
+  const liveOnly = { name: 'Virtues', traits: '3-1-2' };
+  assert.equal(traitPositions(preview, liveOnly), '3-1-2');
+  toggleMajorTrait(preview, liveOnly, 2, '1');
+  assert.equal(liveOnly.traits, '3-1-1');
+});
 
 // Every profession must preserve empty tiers and minor opt-outs through the shared build codec and trait resolver.
 test('disabled traits survive saving and loading for every profession', async () => {
