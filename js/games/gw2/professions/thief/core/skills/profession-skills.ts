@@ -8,6 +8,7 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.STEAL]: {
     stealTraitSkill: true,
     movementSkill: true,
+    shadowstepSkill: true,
     cooldown: 25,
     initiativeCost: 0,
 
@@ -15,13 +16,6 @@ export const THIEF_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [],
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.steal' } }]
-  },
-  [ID.STEAL_ID_13109]: {
-    movementSkill: true,
-    cooldown: 25,
-    initiativeCost: 0,
-    castTimeMs: 0,
-    effects: []
   },
   [ID.SOUL_STONE_VENOM]: {
     cooldown: 0,

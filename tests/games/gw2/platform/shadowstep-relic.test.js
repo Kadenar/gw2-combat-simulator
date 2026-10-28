@@ -69,6 +69,7 @@ const groups = [
     profession: thiefProfession,
     config: { specialization: 'Core', primaryWeapon: 'Dagger', secondaryWeapon: 'Dagger' },
     cases: [
+      [T.STEAL],
       [T.SHADOW_STRIKE, { primaryWeapon: 'Pistol' }],
       [T.INFILTRATORS_ARROW, { primaryWeapon: 'Shortbow', secondaryWeapon: '' }],
       [T.HIDE_IN_SHADOWS],

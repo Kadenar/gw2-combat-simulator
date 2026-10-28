@@ -84,7 +84,6 @@ function spearWeaponBarMetadata(skill: ThiefSkill): Partial<ThiefSkill> {
 }
 
 const PATCH_AUTHORING_EXCLUDED_SKILL_IDS = new Set<SkillId>([
-  ID.STEAL_ID_13109,
   ID.DASH_TRAIT_SKILL,
   ID.BURST_OF_SHADOWS,
   ID.ANTIVENOM_DRAUGHT_BACKFIRED,

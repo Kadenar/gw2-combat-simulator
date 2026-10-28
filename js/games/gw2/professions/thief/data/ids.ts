@@ -139,7 +139,6 @@ export const THIEF_SKILL_IDS = Object.freeze({
 
   // Keep identities for supported skills supplied by the supplemental catalog.
   BACKSTAB: 13005, // Backstab
-  STEAL_ID_13109: 13109, // Steal
   TACTICAL_STRIKE: 13114, // Tactical Strike
   INFILTRATORS_RETURN: 13128, // Infiltrator's Return
   LESSER_CALTROPS: 14136, // Lesser Caltrops

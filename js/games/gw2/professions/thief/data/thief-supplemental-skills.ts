@@ -21,21 +21,6 @@ const records = [
     simulatorExcluded: false
   },
   {
-    id: 13109,
-    name: 'Steal',
-    description: 'Shadowstep to your foe and steal from them.',
-    // Official counterpart 13014 provides Steal's artwork while this record keeps its simulator ID.
-    icon: 'https://render.guildwars2.com/file/A9ED689FE901E12467497F3FE79A04D300ADE3BB/103876.png',
-    type: 'Profession',
-    slot: 'Profession_1',
-    weapon: '',
-    specialization: '',
-    categories: [],
-    nextChainId: null,
-    flipSkillId: null,
-    simulatorExcluded: false
-  },
-  {
     id: 13114,
     name: 'Tactical Strike',
     description:
