@@ -20,6 +20,28 @@ import {
   primordialStancePulse
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/primordial-stance.js';
 
+test('Elements of Rage requires attuning to a double element rather than starting in one', () => {
+  // Initial equipment state cannot grant a transition reward; explicit preparation swaps can.
+  const rage = (result) => observedRuntime(result).buffs.get('elements of rage') ?? [];
+  for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
+    const options = {
+      lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
+      startAttunement: element,
+      secondaryAttunement: element
+    };
+    assert.deepEqual(rage(runNative({ ...options, rotation: [] })), []);
+
+    const result = runNative({
+      ...options,
+      secondaryAttunement: element === 'Fire' ? 'Air' : 'Fire',
+      rotation: [`${element} Attunement`, 1000, { type: 'combat-start' }]
+    });
+    assert.equal(rage(result).length, 1);
+    assert.equal(rage(result)[0].event.skillName, `${element} Attunement`);
+    assert.ok(rage(result)[0].at < observedRuntime(result).engagement.startTime);
+  }
+});
+
 // Switching orb creators must refresh the original buff and transfer only the recast elements' ownership.
 test('Core and Weaver orb creation refresh existing buffs without duplicating them', () => {
   const single = elementalistCatalog.skillsById.get(62758);

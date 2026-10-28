@@ -27,7 +27,6 @@ import {
 import {
   weaverAttunementCompleted,
   weaverHandsChanged,
-  weaverHandsInitialized,
   weaverUnraveled
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/trigger-points.js';
 import {
@@ -49,9 +48,7 @@ const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 /** Shorter base attunement recharge while Weave Self is active; exported for its tooltip. */
 export const WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS = 2;
 
-// Seed the off-hand element from the build (falling back to the starting
-// attunement) and, when both hands open on the same element, carry Elements of
-// Rage into the opener the way a real fully-attuned swap would.
+// Starting hands describe the equipped state; only an actual attunement transition grants Elements of Rage.
 function initializeWeaverAttunements(context: ElementalistRuntime): void {
   registerElementalistEliteEvents(context, (runtime, event) => {
     onAcceptedEvent(runtime, event);
@@ -62,7 +59,6 @@ function initializeWeaverAttunements(context: ElementalistRuntime): void {
   state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
-  context.fireTrigger(weaverHandsInitialized);
 }
 
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and

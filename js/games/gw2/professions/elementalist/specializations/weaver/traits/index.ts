@@ -7,7 +7,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import {
   attributeBonusNumber,
@@ -23,7 +23,6 @@ import {
   weaverAttunementCompleted,
   weaverCastCompleted,
   weaverHandsChanged,
-  weaverHandsInitialized,
   weaverUnraveled,
   type WeaverCastCompleted,
   type WeaverTransition,
@@ -213,9 +212,6 @@ const elementsOfRage = defineTrait({
     }
   ],
   triggers: [
-    onTriggerPoint(weaverHandsInitialized, {
-      run: (runtime: ElementalistRuntime) => initializeElementsOfRage(runtime)
-    }),
     onTriggerPoint(weaverHandsChanged, {
       run: (runtime: ElementalistRuntime, { event }: WeaverTransition) => applyElementsOfRageAttunement(runtime, event)
     }),
@@ -254,28 +250,6 @@ export const weaverTraits = [
   elementsOfRage,
   flowState
 ];
-
-/** Seed the opener only after the mechanic has assigned both starting hands. */
-function initializeElementsOfRage(context: ElementalistRuntime): void {
-  const core = professionCoreState(context),
-    state = weaverState.from(context);
-
-  if (core.primaryAttunement === state.secondaryAttunement) {
-    context.effects.emit(
-      elementalistBuffRequest({
-        skill: elementalistEventSkill(context, 'Starting Attunement', 'starting-attunement'),
-        at: context.time,
-        source: 'Starting Attunement',
-        sourceId: 'starting-attunement',
-        actorType: ACTOR.PLAYER,
-        kind: 'elements of rage',
-        stacks: 1,
-        duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'duration'),
-        skillName: 'Starting Attunement'
-      })
-    );
-  }
-}
 
 /** Fully attuned setup swaps may carry Rage into combat before Weave Self observes the transition. */
 function applyElementsOfRageAttunement(context: ElementalistRuntime, event: SimulationEvent): void {

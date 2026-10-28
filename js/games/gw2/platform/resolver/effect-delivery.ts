@@ -385,6 +385,15 @@ export function createEffectDelivery<T extends object>(
       // Preserve attempted packets for targeting edits; only resolved rows contribute damage.
       if (runtime.output !== 'score') executed.push(event);
 
+      // Relics may accept non-damaging preparation strikes without running damage or critical-hit reactions.
+      if (precombat && event.type === 'damage' && !missesTarget(event) && runtime.encounter?.damageable !== false)
+        runtime.relic.rules.precombatStrike?.(
+          runtime,
+          runtime.relic.state,
+          event,
+          skillForEvent(runtime.helpers, event)
+        );
+
       // A missed impact can still finish a field and grant self effects; hostile combo outcomes retain its miss.
       if (runtime.deathTime == null && !preparedCombos.has(event))
         produceRuntimeCombos(runtime, profession.catalog, event);

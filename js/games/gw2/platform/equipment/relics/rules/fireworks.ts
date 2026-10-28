@@ -5,6 +5,11 @@ import { defineRelic, timedStrikeBuff, recordTimedBuffProc } from '#gw2/platform
 
 export const fireworks = defineRelic({
   buffPolicies: [{ kind: 'relic-fireworks', name: 'Relic of Fireworks', maximumStacks: 1 }],
+  precombatStrike(ctx, state, event, skill) {
+    // Non-damaging strikes such as Updraft can prepare Fireworks without dealing damage or entering combat.
+    // The normal eligibility check still excludes flat damage, allies, bundles, and short-recharge skills.
+    if (event.coefficient === 0 && event.damageKind !== 'condition') fireworks.afterHit?.(ctx, state, event, skill);
+  },
   afterHit(ctx, _state, event, skill) {
     // Flat strikes (including Binding Blade's tether) ignore weapon strength and cannot activate Fireworks.
     const isFlatStrike =

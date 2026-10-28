@@ -11,7 +11,12 @@ import { projectedFreshAirReadyAt } from '#gw2/professions/elementalist/core/mec
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { inertContainer } from '#tests/helpers/dom.js';
-import { resolvedAndScheduledEvents, runNative } from '#tests/helpers/elementalist-simulation.js';
+import {
+  createNativeApp,
+  resolvedAndScheduledEvents,
+  runElementalist,
+  runNative
+} from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -145,6 +150,58 @@ test("Updraft's 0-damage hit activates Relic of Fireworks", () => {
 
   assert.ok(procs.length > 0);
   assert.ok(procs.every((step) => step.sourceSkill === 'Updraft'));
+});
+
+test('precombat Updraft carries Fireworks into combat without resolving damage', () => {
+  // Preparation grants the relic window, but cannot resolve strikes or move the explicit combat boundary.
+  for (const output of ['detailed', 'score']) {
+    for (const [offTarget, waitMs] of [
+      [false, 1000],
+      [false, 8000],
+      [true, 1000]
+    ]) {
+      const run = (relic) => {
+        const { app, commands } = createNativeApp({
+          lines: [['Water'], ['Earth'], ['Arcane']],
+          startAttunement: 'Air',
+          relic,
+          targetHealth: 0,
+          rotation: [{ type: 'cast', skillId: 5687, offTarget }, waitMs, { type: 'combat-start' }, 'Charged Strike']
+        });
+        const config = elementalistAppAdapter
+          .createBuildContext({ build: app.build, patch: app.patch })
+          .simulationConfig();
+        return runElementalist(commands, config, { output });
+      };
+
+      const result = run('Fireworks');
+      const baseline = run('');
+      const owner = observedRuntime(result);
+      const buff = owner.buffs.get('relic-fireworks')?.[0];
+
+      assert.equal(owner.engagement.startTime, observedRuntime(baseline).engagement.startTime);
+      assert.ok(baseline.totalDamage > 0);
+      assertFlooredDamageMultiplier(result.totalDamage, baseline.totalDamage, !offTarget && waitMs < 6000 ? 1.07 : 1);
+
+      if (!offTarget && waitMs < 6000) {
+        assert.ok(buff.at < owner.engagement.startTime);
+        assert.equal(buff.expiresAt, buff.at + 6);
+      }
+
+      if (offTarget) assert.equal(buff, undefined);
+
+      if (output === 'detailed') {
+        assert.equal(
+          result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === 5687),
+          false
+        );
+        const procs = result.procSteps.filter((step) => step.skill === 'Relic of Fireworks');
+        assert.equal(procs.length, offTarget ? 0 : 1);
+
+        if (!offTarget) assert.equal(procs[0].sourceSkill, 'Updraft');
+      }
+    }
+  }
 });
 
 test('Catalyst mechanics execute through native hooks', () => {
@@ -1156,5 +1213,10 @@ test('Unravel resets the current Weaver recharge, fully attunes for five seconds
     ]
   );
   assert.equal(result.planningState.profession.unravelUntil, 5);
-  assert.equal(result.events.filter((event) => event.type === 'buff' && event.kind === 'elements of rage').length, 4);
+  assert.deepEqual(
+    result.events
+      .filter((event) => event.type === 'buff' && event.kind === 'elements of rage')
+      .map((event) => event.skillName),
+    ['Unravel', 'Fire Attunement', 'Earth Attunement']
+  );
 });

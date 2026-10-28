@@ -1,5 +1,6 @@
 import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import { CONDITION } from '#gw2/platform/constants.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -117,10 +118,13 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
   const state = elementalistUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
+  // Read the inspected point's resolved buff windows so Rage refreshes and expiry match combat state.
+  const rage = planningBuffAt(context.planningState, 'elements of rage');
 
   // Surface only the Weaver windows currently affecting the inspected rotation point,
   // so stance follow-ups and the temporary single-attunement override are easy to time.
   for (const [id, label, expiresAt] of [
+    ['elements-of-rage', 'Elements of Rage', rage ? at + rage.remaining : 0],
     ['weave-self', 'Weave Self', state.weaveSelfUntil || 0],
     ['perfect-weave', 'Perfect Weave', state.perfectWeaveUntil || 0],
     ['unravel', 'Unravel', state.unravelUntil || 0]

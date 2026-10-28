@@ -90,8 +90,8 @@ export const WEAVER_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     skillFamily: 'Weapon skill',
     specialization: 'Weaver',
     castTimeMs: 400,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+    interruptCommitMs: 320,
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [1240, 2240, 3240, 4240, 5240].map((atMs) => ({ atMs, coefficient: 0.33, damageKind: 'field-tick' }))

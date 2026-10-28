@@ -131,6 +131,13 @@ export interface Gw2RelicRule {
     event: SimulationEvent,
     skill: Skill | null | undefined
   ) => unknown;
+  /** Preparation packets may grant relic buffs without resolving damage or dispatching ordinary hit reactions. */
+  readonly precombatStrike?: (
+    context: Gw2RelicContext,
+    state: Gw2RelicState,
+    event: SimulationEvent,
+    skill: Skill | null | undefined
+  ) => unknown;
   readonly conditionDurationBonus?: (context: Gw2RelicDurationQueryContext, state: Gw2RelicState, at: number) => number;
   readonly conditionDamageBonus?: (context: Gw2RelicAttributeQueryContext, state: Gw2RelicState, at: number) => number;
   readonly condition?: (

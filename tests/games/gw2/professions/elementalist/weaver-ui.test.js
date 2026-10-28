@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { inertContainer } from '#tests/helpers/dom.js';
+import { runNative } from '#tests/helpers/elementalist-simulation.js';
 
 import { paletteView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
@@ -150,6 +151,41 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
   assert.ok(currentHtml.indexOf('data-skill="Polaric Slash"') < currentHtml.indexOf('data-skill="Fire Strike"'));
   assert.match(currentHtml, /data-skill="Polaric Slash"[^>]*draggable="true"/);
   assert.match(currentHtml, /data-skill="Fire Strike"[^>]*draggable="true"/);
+});
+
+test('Weaver active state reads Elements of Rage at the inspected rotation point', () => {
+  // Inspecting an earlier cursor must show its live buff even when the completed rotation has expired it.
+  const run = (rotation) =>
+    runNative({
+      lines: [['Fire'], ['Air'], ['Weaver', '1-1-1']],
+      startAttunement: 'Air',
+      secondaryAttunement: 'Fire',
+      rotation
+    });
+  const before = run([]);
+  const active = run(['Air Attunement', 3000]);
+  const expired = run(['Air Attunement', 8000]);
+  const snapshot = (result) =>
+    elementalistProfession.ui
+      .rotationStateSnapshot({
+        specialization: 'Weaver',
+        professionState: result.planningState.profession,
+        planningState: result.planningState,
+        atSeconds: result.planningState.atSeconds,
+        result: expired
+      })
+      .filter(({ id }) => id === 'elements-of-rage');
+
+  assert.deepEqual(snapshot(before), []);
+  assert.deepEqual(snapshot(active), [
+    {
+      id: 'elements-of-rage',
+      label: 'Elements of Rage',
+      value: '5.0s',
+      title: 'Time remaining in Elements of Rage'
+    }
+  ]);
+  assert.deepEqual(snapshot(expired), []);
 });
 
 test('Weaver active state shows remaining Weave Self and Perfect Weave time', () => {
