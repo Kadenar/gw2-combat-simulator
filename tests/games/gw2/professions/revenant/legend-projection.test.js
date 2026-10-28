@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
@@ -10,8 +11,8 @@ import { observedRuntime, projectObservedState } from '#tests/helpers/observed-r
 function assertLoadout(config, profession, projected) {
   const legend = profession.core.activeLegendId;
   assert.equal(Object.hasOwn(profession.core, 'activeLoadoutId'), false);
-  assert.equal(projected.activeLegendId, legend);
-  assert.equal(projected.activeLoadoutId, legend);
+  assert.equal(projected[STATE.ACTIVE_LEGEND_ID], legend);
+  assert.equal(projected[STATE.ACTIVE_LOADOUT_ID], legend);
   const context = { build: config, specialization: 'Core', professionState: projected };
   assert.equal(revenantLegendLoadout.view(context).activeBar.id, legend);
   const palette = revenantProfession.ui.paletteGroups({ ...context, catalog: revenantProfession.catalog });
@@ -54,5 +55,5 @@ test('damage preparation projects the assumed legend without adding a stored loa
     runtime.profession,
     projectObservedState(revenantProfession, { config, profession: runtime.profession })
   );
-  assert.equal(result.planningState.profession.activeLoadoutId, LEGEND.ASSASSIN);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_LOADOUT_ID], LEGEND.ASSASSIN);
 });

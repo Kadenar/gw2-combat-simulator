@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { CONDITION_FORMULAS } from '#gw2/platform/combat/formulas.js';
@@ -38,8 +39,8 @@ test('Depth of Elements tooltip shares the selected Catalyst energy capacity', (
       { profession: family }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.catalystEnergy.maximum, maximum);
-    assert.equal(result.planningState.profession.catalystEnergy.value, maximum);
+    assert.equal(result.planningState.profession[STATE.CATALYST_ENERGY].maximum, maximum);
+    assert.equal(result.planningState.profession[STATE.CATALYST_ENERGY].value, maximum);
   }
 });
 

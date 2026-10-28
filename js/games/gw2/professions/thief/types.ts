@@ -54,7 +54,14 @@ export type ThiefArtifactKind = 'offensive' | 'defensive' | 'unstable';
 
 export type ThiefDoubleEdgeOutcome = 'success' | 'backfire';
 
-export type ThiefState = ThiefCoreState & DaredevilState & DeadeyeState & SpecterState & AntiquaryState;
+/** Public consumers receive only the ID/value pairs published by active owners. */
+export type ThiefPlanningState = ReturnType<
+  typeof import('#gw2/professions/thief/core/state.js').projectThiefCorePlanningState
+> &
+  ReturnType<typeof import('#gw2/professions/thief/specializations/antiquary/state.js').projectAntiquaryPlanningState> &
+  ReturnType<typeof import('#gw2/professions/thief/specializations/daredevil/state.js').projectDaredevilPlanningState> &
+  ReturnType<typeof import('#gw2/professions/thief/specializations/deadeye/state.js').projectDeadeyePlanningState> &
+  ReturnType<typeof import('#gw2/professions/thief/specializations/specter/state.js').projectSpecterPlanningState>;
 
 export interface ThiefRuntimeState {
   core: ThiefCoreState;
@@ -132,7 +139,7 @@ export type ThiefResolverContext = MechanicCombatContext & {
   readonly state?: { readonly profession: ThiefRuntimeState };
 };
 
-export interface ThiefUiContext extends Omit<ProfessionUiCallbackContext<Partial<ThiefState>>, 'build'> {
+export interface ThiefUiContext extends Omit<ProfessionUiCallbackContext<Partial<ThiefPlanningState>>, 'build'> {
   readonly config?: ThiefConfig;
   readonly build?: ThiefBuild | null;
   readonly initialInitiative?: number;

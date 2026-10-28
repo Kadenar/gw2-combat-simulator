@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { activeChargeCount, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
@@ -1224,9 +1225,9 @@ test('Symbolic Avenger projects independently expired stacks during idle waits',
 
   const config = { selectedTraitIds: [TRAIT.SYMBOLIC_AVENGER] };
   const partial = run([wait(15100)], config, { initialize: initialize });
-  assert.deepEqual(partial.planningState.profession.symbolicAvengerExpirations, [15.5]);
+  assert.deepEqual(partial.planningState.profession[STATE.SYMBOLIC_AVENGER_EXPIRATIONS], [15.5]);
   const expired = run([wait(15500)], config, { initialize: initialize });
-  assert.deepEqual(expired.planningState.profession.symbolicAvengerExpirations, []);
+  assert.deepEqual(expired.planningState.profession[STATE.SYMBOLIC_AVENGER_EXPIRATIONS], []);
 });
 
 test("Zealot's Resolution excludes the threshold-crossing hit and gives its child symbol one activation", () => {
@@ -1585,7 +1586,7 @@ test('Verdict consumes its occurrence and stops subsequent tether work', () => {
 test('Dragonhunter tether expiry and replacement invalidate old burns and flip wakes', () => {
   const expired = run([ID.SPEAR_OF_JUSTICE, wait(7000)], dragonhunter);
   assert.deepEqual(expired.warnings, []);
-  assert.equal(expired.planningState.profession.tetherUntil, 0);
+  assert.equal(expired.planningState.profession[STATE.TETHER_UNTIL], 0);
   assert.equal(core(expired).availableFlips[ID.HUNTERS_VERDICT], undefined);
   const replaced = run(
     [ID.SPEAR_OF_JUSTICE, wait(1000), { type: 'cooldown-reset' }, ID.SPEAR_OF_JUSTICE, wait(4800)],

@@ -1,10 +1,9 @@
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import {
-  defineProfessionSpecializationState,
-  definePublicStateDefaults
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface GuardianWillbenderState {
   flameVirtue: GuardianVirtue | null;
@@ -36,14 +35,17 @@ function createWillbenderState(): GuardianWillbenderState {
   };
 }
 
-/** Keeps Willbender projection ownership beside the state that produces it. */
-export const WILLBENDER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  flameVirtue: null,
-  justiceUntil: 0,
-  resolveUntil: 0,
-  courageUntil: 0,
-  virtueHitCounts: { justice: 0, resolve: 0, courage: 0 },
-  lethalTempo: { stacks: 0, expiresAt: 0 }
-} satisfies Partial<GuardianWillbenderState>);
-
 export const willbenderState = defineProfessionSpecializationState('Willbender', createWillbenderState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectWillbenderPlanningState(input: Gw2PlanningStateInput) {
+  const state = willbenderState.from(input);
+  return structuredClone({
+    [STATE.FLAME_VIRTUE]: state.flameVirtue,
+    [STATE.JUSTICE_UNTIL]: state.justiceUntil,
+    [STATE.RESOLVE_UNTIL]: state.resolveUntil,
+    [STATE.COURAGE_UNTIL]: state.courageUntil,
+    [STATE.VIRTUE_HIT_COUNTS]: state.virtueHitCounts,
+    [STATE.LETHAL_TEMPO]: state.lethalTempo
+  });
+}

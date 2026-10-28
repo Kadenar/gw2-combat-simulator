@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -39,8 +40,8 @@ test('Enemy Attraction requires a mature tether and releases it with vulnerabili
     )
   );
   assert.ok(effects.some((event) => event.type === 'control' && event.controlKind === 'pull'));
-  assert.equal(result.planningState.profession.availableFlips[ID.OTHERWORLDLY_ATTRACTION_ENEMY], undefined);
-  assert.equal(result.planningState.profession.availableFlips[ID.DEACTIVATE_OTHERWORLDLY_BOND], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.OTHERWORLDLY_ATTRACTION_ENEMY], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DEACTIVATE_OTHERWORLDLY_BOND], undefined);
   assert.ok(result.planningState.cooldowns[ID.OTHERWORLDLY_BOND].remaining > 0);
 });
 
@@ -53,8 +54,8 @@ test('Tether cancellation, expiry and weapon swap close follow-ups and start rec
   ]) {
     const result = simulate('Core', ['Otherworldly Bond', ...ending], { weaponSet2Primary: 'Staff' });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.availableFlips[ID.OTHERWORLDLY_ATTRACTION_ENEMY], undefined);
-    assert.equal(result.planningState.profession.availableFlips[ID.DEACTIVATE_OTHERWORLDLY_BOND], undefined);
+    assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.OTHERWORLDLY_ATTRACTION_ENEMY], undefined);
+    assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DEACTIVATE_OTHERWORLDLY_BOND], undefined);
     assert.ok(result.planningState.cooldowns[ID.OTHERWORLDLY_BOND].remaining > 0);
   }
 });
@@ -79,7 +80,7 @@ test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast spe
     assert.deepEqual(result.warnings, []);
     assert.equal(damage.at(-1).coefficient, 2.5);
     assert.equal(result.planningState.cooldowns[ID.BLOSSOMING_AURA].readyAt, 6400);
-    assert.equal(result.planningState.profession.availableFlips[ID.DETONATE_BLOSSOMING_AURA], undefined);
+    assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
 
@@ -99,7 +100,7 @@ test('Manual Aura detonation uses the reached tier and cancels future pulses wit
       [1 + tier * 0.5]
     );
     assert.equal(result.planningState.cooldowns[ID.BLOSSOMING_AURA].readyAt, 6400);
-    assert.equal(result.planningState.profession.availableFlips[ID.DETONATE_BLOSSOMING_AURA], undefined);
+    assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
 

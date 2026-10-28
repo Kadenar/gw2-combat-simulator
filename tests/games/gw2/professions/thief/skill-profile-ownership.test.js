@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -27,7 +28,7 @@ for (const [specialization, trait, resource, maximum] of [
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
 
-    if (resource === 'endurance') assert.equal(result.planningState.profession.endurance.maximum, maximum);
+    if (resource === 'endurance') assert.equal(result.planningState.profession[STATE.ENDURANCE].maximum, maximum);
     else {
       runtime.resourceController.replace(resource, 999);
       assert.equal(runtime.resourceController.value(resource), maximum);
@@ -161,7 +162,7 @@ test('Guild actor strike removal preserves conditions and summon expiry', () => 
     false
   );
   assert.ok(packets.some((event) => event.type === 'condition' && event.condition === 'Poisoned'));
-  assert.equal(result.planningState.profession.activeThievesGuild, null);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_THIEVES_GUILD], null);
 });
 
 // Old profile targets must fail rather than silently applying an obsolete tuning path.

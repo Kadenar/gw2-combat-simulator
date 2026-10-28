@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -17,20 +18,23 @@ test('Core and Daredevil pre-steal grant and consume their normal stolen choices
       const config = { specialization, initialPreSteal: 1, selectedTraitIds };
       const initial = runThief([], config);
       assert.deepEqual(initial.warnings, []);
-      assert.deepEqual(initial.planningState.profession.storedStolenSkillIds, THIEF_STOLEN_SKILL_IDS);
-      assert.equal(initial.planningState.profession.storedStolenSkillCount, selectedTraitIds.length ? 2 : 1);
+      assert.deepEqual(initial.planningState.profession[STATE.STORED_STOLEN_SKILL_IDS], THIEF_STOLEN_SKILL_IDS);
+      assert.equal(initial.planningState.profession[STATE.STORED_STOLEN_SKILL_COUNT], selectedTraitIds.length ? 2 : 1);
       assert.equal(initial.events.filter((event) => event.type === 'damage').length, 0);
       const used = runThief([ID.DETONATE_PLASMA], config);
       assert.deepEqual(used.warnings, []);
-      assert.equal(used.planningState.profession.storedStolenSkillCount, selectedTraitIds.length ? 1 : 0);
+      assert.equal(used.planningState.profession[STATE.STORED_STOLEN_SKILL_COUNT], selectedTraitIds.length ? 1 : 0);
       assert.deepEqual(
-        used.planningState.profession.storedStolenSkillIds,
+        used.planningState.profession[STATE.STORED_STOLEN_SKILL_IDS],
         selectedTraitIds.length ? [ID.DETONATE_PLASMA] : []
       );
       const refreshed = runThief([ID.DETONATE_PLASMA, ID.STEAL], config);
       assert.deepEqual(refreshed.warnings, []);
-      assert.deepEqual(refreshed.planningState.profession.storedStolenSkillIds, THIEF_STOLEN_SKILL_IDS);
-      assert.equal(refreshed.planningState.profession.storedStolenSkillCount, selectedTraitIds.length ? 2 : 1);
+      assert.deepEqual(refreshed.planningState.profession[STATE.STORED_STOLEN_SKILL_IDS], THIEF_STOLEN_SKILL_IDS);
+      assert.equal(
+        refreshed.planningState.profession[STATE.STORED_STOLEN_SKILL_COUNT],
+        selectedTraitIds.length ? 2 : 1
+      );
     }
   }
 });
@@ -53,25 +57,25 @@ test('Deadeye pre-steal respects Fire for Effect and Improvisation without apply
       const initial = runThief([], config);
       const state = initial.planningState.profession;
       assert.deepEqual(initial.warnings, []);
-      assert.deepEqual(state.storedStolenSkillIds, choices);
-      assert.equal(state.storedStolenSkillCount, improvisation ? 2 : 1);
-      assert.equal(state.markedTargetId, null);
-      assert.equal(state.malice.value, 0);
+      assert.deepEqual(state[STATE.STORED_STOLEN_SKILL_IDS], choices);
+      assert.equal(state[STATE.STORED_STOLEN_SKILL_COUNT], improvisation ? 2 : 1);
+      assert.equal(state[STATE.MARKED_TARGET_ID], null);
+      assert.equal(state[STATE.MALICE].value, 0);
       assert.equal(initial.planningState.availability[ID.DEADEYES_MARK].ready, true);
       assert.equal(initial.planningState.availability[skillId].ready, true);
       assert.equal(initial.events.filter((event) => event.type === 'damage').length, 0);
       const used = runThief([skillId], config);
       assert.deepEqual(used.warnings, []);
-      assert.equal(used.planningState.profession.storedStolenSkillCount, improvisation ? 1 : 0);
-      assert.deepEqual(used.planningState.profession.storedStolenSkillIds, improvisation ? [skillId] : []);
+      assert.equal(used.planningState.profession[STATE.STORED_STOLEN_SKILL_COUNT], improvisation ? 1 : 0);
+      assert.deepEqual(used.planningState.profession[STATE.STORED_STOLEN_SKILL_IDS], improvisation ? [skillId] : []);
       // Availability follows the narrowed choice list while Improvisation retains a use.
       assert.equal(used.planningState.availability[skillId].ready, improvisation);
       assert.equal(used.planningState.availability[ID.STEAL_DEFENSES].ready, false);
       const refreshed = runThief([skillId, ID.DEADEYES_MARK], config);
       assert.deepEqual(refreshed.warnings, []);
-      assert.deepEqual(refreshed.planningState.profession.storedStolenSkillIds, choices);
-      assert.equal(refreshed.planningState.profession.storedStolenSkillCount, improvisation ? 2 : 1);
-      assert.equal(refreshed.planningState.profession.markedTargetId, 'primary-target');
+      assert.deepEqual(refreshed.planningState.profession[STATE.STORED_STOLEN_SKILL_IDS], choices);
+      assert.equal(refreshed.planningState.profession[STATE.STORED_STOLEN_SKILL_COUNT], improvisation ? 2 : 1);
+      assert.equal(refreshed.planningState.profession[STATE.MARKED_TARGET_ID], 'primary-target');
     }
   }
 });
@@ -88,21 +92,21 @@ test('Antiquary pre-steal respects extra uses and normal artifact replacement', 
     const initial = runThief([], config);
     const state = initial.planningState.profession;
     assert.deepEqual(initial.warnings, []);
-    assert.deepEqual(state.artifactSlots, allArtifactChoices());
-    assert.equal(state.artifactUsesRemaining, uses);
-    assert.equal(state.storedStolenSkillCount, 0);
-    assert.equal(state.scoundrelsLuck, 0);
-    assert.deepEqual(state.combatHighExpirations, []);
+    assert.deepEqual(state[STATE.ARTIFACT_SLOTS], allArtifactChoices());
+    assert.equal(state[STATE.ARTIFACT_USES_REMAINING], uses);
+    assert.equal(state[STATE.STORED_STOLEN_SKILL_COUNT], 0);
+    assert.equal(state[STATE.SCOUNDRELS_LUCK], 0);
+    assert.deepEqual(state[STATE.COMBAT_HIGH_EXPIRATIONS], []);
     assert.equal(initial.events.filter((event) => event.type === 'damage').length, 0);
     const skillId = allArtifactChoices()[0].skillId;
     const used = runThief([skillId], config);
     assert.deepEqual(used.warnings, []);
-    assert.equal(used.planningState.profession.artifactUsesRemaining, uses - 1);
-    assert.ok(!used.planningState.profession.artifactSlots.some((slot) => slot.skillId === skillId));
+    assert.equal(used.planningState.profession[STATE.ARTIFACT_USES_REMAINING], uses - 1);
+    assert.ok(!used.planningState.profession[STATE.ARTIFACT_SLOTS].some((slot) => slot.skillId === skillId));
     const refreshed = runThief([skillId, ID.SKRITT_SWIPE], config);
     assert.deepEqual(refreshed.warnings, []);
-    assert.equal(refreshed.planningState.profession.artifactUsesRemaining, uses);
-    assert.deepEqual(refreshed.planningState.profession.artifactSlots, allArtifactChoices());
+    assert.equal(refreshed.planningState.profession[STATE.ARTIFACT_USES_REMAINING], uses);
+    assert.deepEqual(refreshed.planningState.profession[STATE.ARTIFACT_SLOTS], allArtifactChoices());
   }
 });
 
@@ -146,8 +150,8 @@ test('pre-steal persists as a bounded starting resource and is specialization sc
   for (const specialization of ['Core', 'Daredevil', 'Antiquary', 'Deadeye', 'Specter']) {
     const supported = ['Core', 'Daredevil', 'Deadeye', 'Antiquary'].includes(specialization);
     const result = runThief([], { specialization, initialPreSteal: supported ? 0 : 1 });
-    assert.equal(result.planningState.profession.storedStolenSkillCount, 0);
-    assert.equal(result.planningState.profession.artifactUsesRemaining ?? 0, 0);
+    assert.equal(result.planningState.profession[STATE.STORED_STOLEN_SKILL_COUNT], 0);
+    assert.equal(result.planningState.profession[STATE.ARTIFACT_USES_REMAINING] ?? 0, 0);
     const controls = resourceDisplayViews(profession, { build, specialization, catalog: profession.catalog }).filter(
       (view) => view.id === 'pre-steal'
     );

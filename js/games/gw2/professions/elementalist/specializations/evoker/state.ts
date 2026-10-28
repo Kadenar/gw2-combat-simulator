@@ -1,5 +1,3 @@
-import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 /**
  * Mutable Evoker specialization state.
  *
@@ -9,14 +7,15 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
  * work scheduled by surrounding commands. One instance owns accepted casts,
  * completion grants, and impact reactions throughout the simulation.
  */
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Per-simulation Evoker state carried across every cast, deadline, and accepted impact. */
 export interface EvokerState {
@@ -88,12 +87,14 @@ export const evokerState = defineProfessionSpecializationState(
   }
 );
 
-// Evoker publishes familiar resources and Elemental Balance windows.
-/** Contributed to the Elementalist family end-state projection. */
-export const EVOKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  element: 'Fire',
-  familiarCharges: createResourceClock(),
-  empoweredCharges: createResourceClock(),
-  elementalBalanceProgress: 0,
-  elementalBalanceUntil: 0
-} satisfies Partial<EvokerState>);
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectEvokerPlanningState(input: Gw2PlanningStateInput) {
+  const state = evokerState.from(input);
+  return structuredClone({
+    [STATE.ELEMENT]: state.element,
+    [STATE.FAMILIAR_CHARGES]: state.familiarCharges,
+    [STATE.EMPOWERED_CHARGES]: state.empoweredCharges,
+    [STATE.ELEMENTAL_BALANCE_PROGRESS]: state.elementalBalanceProgress,
+    [STATE.ELEMENTAL_BALANCE_UNTIL]: state.elementalBalanceUntil
+  });
+}

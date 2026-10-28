@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -59,7 +60,7 @@ test('Ether Bolt and Ether Blast do not generate clones', () => {
     result.steps.map((step) => step.skill),
     ['Ether Bolt', 'Ether Blast']
   );
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 0);
 });
 
 test('Ether Clone creates a clone below cap and inflicts torment at cap', () => {
@@ -69,7 +70,7 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
     secondaryWeapon: 'Sword'
   });
   const belowCap = simulateMesmer(['Ether Bolt', 'Ether Blast', 'Ether Clone'], { ...config, initialResource: 2 });
-  assert.equal(belowCap.planningState.profession.resource, 3);
+  assert.equal(belowCap.planningState.profession[STATE.RESOURCE], 3);
   const cloneGain = belowCap.events.find((event) => event.type === 'resource' && event.reason === 'Ether Clone');
   assert.ok(cloneGain);
   assert.equal(Math.round(cloneGain.at * 1000 - belowCap.steps[2].start), 440);
@@ -85,7 +86,7 @@ test('Ether Clone creates a clone below cap and inflicts torment at cap', () => 
     initialResource: 3
   });
 
-  assert.equal(atCap.planningState.profession.resource, 3);
+  assert.equal(atCap.planningState.profession[STATE.RESOURCE], 3);
   assert.equal(
     atCap.events.some((event) => event.type === 'resource' && event.reason === 'Ether Clone'),
     false
@@ -114,7 +115,7 @@ test('Ether Clone uses the note cap for Troubadour replacement torment', () => {
       })
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.notes.value, 3);
+    assert.equal(result.planningState.profession[STATE.NOTES].value, 3);
     const replacement = result.events.find(
       (event) => event.type === 'condition' && event.skillName === 'Ether Clone' && event.condition === 'Torment'
     );
@@ -150,10 +151,10 @@ test('Ether Clone resolves its at-cap outcome from clone count at projectile tim
       (event) => event.type === 'condition' && event.skillName === 'Ether Clone' && event.condition === 'Torment'
     );
 
-  assert.equal(freedBeforePacket.planningState.profession.resource, 1);
+  assert.equal(freedBeforePacket.planningState.profession[STATE.RESOURCE], 1);
   assert.equal(hasCloneGain(freedBeforePacket), true);
   assert.equal(hasMaximumTorment(freedBeforePacket), false);
-  assert.equal(freedAfterPacket.planningState.profession.resource, 0);
+  assert.equal(freedAfterPacket.planningState.profession[STATE.RESOURCE], 0);
   assert.equal(hasCloneGain(freedAfterPacket), false);
   assert.equal(hasMaximumTorment(freedAfterPacket), true);
 });
@@ -176,12 +177,12 @@ test('autoattack chain steps unlock only after the preceding attack', () => {
     skippedStep.steps.filter((step) => !step.invalid).map((step) => step.skill),
     ['Ether Bolt']
   );
-  assert.equal(skippedStep.planningState.profession.autoattackChains[ID.ETHER_BOLT], ID.ETHER_BLAST);
+  assert.equal(skippedStep.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], ID.ETHER_BLAST);
   assert.match(skippedStep.warnings[0].message, /cast Ether Blast first/);
 
   const completed = simulateMesmer(['Ether Bolt', 'Ether Blast', 'Ether Clone'], config);
 
-  assert.equal(completed.planningState.profession.autoattackChains[ID.ETHER_BOLT], ID.ETHER_BOLT);
+  assert.equal(completed.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], ID.ETHER_BOLT);
 });
 
 test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
@@ -197,7 +198,7 @@ test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
     result.steps.map((step) => step.skill),
     ['Ether Bolt', 'Confusing Images', 'Ether Blast']
   );
-  assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], ID.ETHER_CLONE);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], ID.ETHER_CLONE);
 });
 
 // Every skill category leaves either pending scepter step available, including long utility and healing casts.
@@ -228,7 +229,7 @@ test('scepter chains continue through intervening skills of every category', () 
       const result = simulateMesmer(rotation, config);
       assert.deepEqual(result.warnings, [], `${specialization}: ${skillId}`);
       assert.ok(result.steps.every((step) => !step.invalid));
-      assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
+      assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], expected);
     }
   }
 });
@@ -246,7 +247,7 @@ test('scepter chain expiry resets the pending step at the deadline', () => {
   ]) {
     const result = simulateMesmer(rotation, config);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
+    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], expected);
   }
 
   const expired = simulateMesmer(['Ether Bolt', wait(2800), 'Ether Blast'], config);
@@ -264,7 +265,7 @@ test('only scepter chain advancement refreshes its expiry', () => {
   ]) {
     const result = simulateMesmer(rotation, config);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
+    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], expected);
   }
 });
 
@@ -287,8 +288,8 @@ test('Continuum Split and Shift do not extend scepter chain expiry', () => {
     ]) {
       const result = simulateMesmer([...prefix, wait(delay)], config);
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.planningState.profession.continuumActive, false);
-      assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
+      assert.equal(result.planningState.profession[STATE.CONTINUUM_ACTIVE], false);
+      assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], expected);
     }
   }
 });
@@ -310,7 +311,7 @@ test('Continuum Shift preserves live scepter progression and its latest expiry',
   ]) {
     const result = simulateMesmer(rotation, config);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.autoattackChains[ID.ETHER_BOLT], expected);
+    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], expected);
   }
 });
 
@@ -330,7 +331,7 @@ test('Imaginary Axes preserves the axe auto chain but other skills reset it', ()
     preserved.steps.filter((step) => !step.invalid).map((step) => step.skill),
     ['Lacerating Chop', 'Dodge / Mirage Cloak', 'Imaginary Axes', 'Ethereal Chop']
   );
-  assert.equal(preserved.planningState.profession.autoattackChains[ID.LACERATING_CHOP], ID.MIRROR_STRIKES);
+  assert.equal(preserved.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.LACERATING_CHOP], ID.MIRROR_STRIKES);
 
   const interrupted = simulateMesmer(['Lacerating Chop', { type: 'cast', skillId: 45243 }, 'Ethereal Chop'], config);
 
@@ -338,7 +339,7 @@ test('Imaginary Axes preserves the axe auto chain but other skills reset it', ()
     interrupted.steps.filter((step) => !step.invalid).map((step) => step.skill),
     ['Lacerating Chop', 'Lingering Thoughts']
   );
-  assert.equal(interrupted.planningState.profession.autoattackChains[ID.LACERATING_CHOP], ID.LACERATING_CHOP);
+  assert.equal(interrupted.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.LACERATING_CHOP], ID.LACERATING_CHOP);
   assert.match(interrupted.warnings[0].message, /cast Lacerating Chop first/);
 });
 
@@ -355,7 +356,7 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
     interrupted.steps.filter((step) => !step.invalid).map((step) => step.skill),
     ['Mind Slash', 'Blurred Frenzy']
   );
-  assert.equal(interrupted.planningState.profession.autoattackChains[ID.MIND_SLASH], ID.MIND_SLASH);
+  assert.equal(interrupted.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.MIND_SLASH], ID.MIND_SLASH);
 
   const scepterConfig = defaultSimulationConfig({
     specialization: 'Core',
@@ -371,7 +372,7 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
     swapped.steps.filter((step) => !step.invalid).map((step) => step.skill),
     ['Ether Bolt', 'Swap Weapons']
   );
-  assert.equal(swapped.planningState.profession.autoattackChains[ID.ETHER_BOLT], ID.ETHER_BOLT);
+  assert.equal(swapped.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], ID.ETHER_BOLT);
 });
 
 test('short utility casts preserve spear autoattack-chain progress', () => {

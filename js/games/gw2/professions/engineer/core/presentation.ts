@@ -24,10 +24,11 @@ import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import type {
   EngineerResolverEvent,
   EngineerSkill,
-  EngineerState,
+  EngineerPlanningState,
   EngineerUiContext,
   EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /**
  * Core Engineer presentation and shared application callbacks. Elite modules
@@ -47,7 +48,7 @@ const KIT_ORDER = new Map<SkillId, number>([
 const SKILL_SLOT_ORDER: readonly string[] = Object.freeze(['Heal', 'Utility1', 'Utility2', 'Utility3', 'Elite']);
 
 /** Flattens Core and active-specialization state for Engineer UI consumers. */
-export function engineerUiState(context: EngineerUiContext = {}): Partial<EngineerState> {
+export function engineerUiState(context: EngineerUiContext = {}): Partial<EngineerPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
@@ -200,9 +201,9 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
     paletteOverride: (context, skill) => {
       const state = engineerUiState(context);
 
-      if (skill.kitTransition === 'equip') return { tileActive: state.activeKit !== skill.id };
+      if (skill.kitTransition === 'equip') return { tileActive: state[STATE.ACTIVE_KIT] !== skill.id };
 
-      if (skill.kitTransition === 'stow') return { tileActive: state.activeKit === skill.kitId };
+      if (skill.kitTransition === 'stow') return { tileActive: state[STATE.ACTIVE_KIT] === skill.kitId };
     },
     // Swap Weapons also leaves an active kit, so it stays beside Dodge even without an alternate set; planning
     // availability disables it whenever it can neither stow a kit nor swap equipped sets before combat.
@@ -273,13 +274,13 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
 
       if (!usesToolsTraitline(catalog, context)) return [];
 
-      const maximum = state.endurance?.maximum ?? ENDURANCE.maximum;
+      const maximum = state[STATE.ENDURANCE]?.maximum ?? ENDURANCE.maximum;
       const endurance: ProfessionResourceView = {
         id: 'endurance',
         singular: 'endurance',
         plural: 'endurance',
         maximum,
-        value: state.endurance?.value ?? maximum,
+        value: state[STATE.ENDURANCE]?.value ?? maximum,
         startMaximum: maximum,
         canStart: false,
         displayMode: 'bar',
@@ -304,7 +305,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
         items.push({
           id: 'engineer-kinetic-charges',
           label: 'Kinetic Charges',
-          value: `${engineerUiState(context).kineticCharges || 0}/${maximum}`
+          value: `${engineerUiState(context)[STATE.KINETIC_CHARGES] || 0}/${maximum}`
         });
       }
 

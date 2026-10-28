@@ -4,12 +4,11 @@ import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 
-import {
-  defineProfessionSpecializationState,
-  definePublicStateDefaults
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface DeadeyeState {
   bonusStealthAttack: ChargeGrant;
@@ -38,16 +37,6 @@ function createDeadeyeState(): DeadeyeState {
   };
 }
 
-// Detached defaults describe fields exposed only when the Deadeye module is active.
-export const DEADEYE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  markedTargetId: null,
-  markExpiresAt: 0,
-  markGeneration: 0,
-  malice: createResourceClock(),
-  bonusStealthAttack: grantCharges(0, 0),
-  maleficentSevenTriggered: false
-} satisfies Partial<DeadeyeState>);
-
 export const deadeyeState = defineProfessionSpecializationState('Deadeye', createDeadeyeState);
 
 /** Accepted marked malice remains available until the skill's commitment actions finish. */
@@ -56,3 +45,16 @@ interface DeadeyeCastFacts {
 }
 
 export const deadeyeCastFacts = new WeakMap<RuntimeCast<ThiefSkill>, DeadeyeCastFacts>();
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectDeadeyePlanningState(input: Gw2PlanningStateInput) {
+  const state = deadeyeState.from(input);
+  return structuredClone({
+    [STATE.MARKED_TARGET_ID]: state.markedTargetId,
+    [STATE.MARK_EXPIRES_AT]: state.markExpiresAt,
+    [STATE.MARK_GENERATION]: state.markGeneration,
+    [STATE.MALICE]: state.malice,
+    [STATE.BONUS_STEALTH_ATTACK]: state.bonusStealthAttack,
+    [STATE.MALEFICENT_SEVEN_TRIGGERED]: state.maleficentSevenTriggered
+  });
+}

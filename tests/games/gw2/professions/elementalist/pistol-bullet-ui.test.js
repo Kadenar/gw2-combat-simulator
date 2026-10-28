@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -42,10 +43,9 @@ function createPistolApp() {
         // Palette fixtures use the same ID-keyed ammo projection as simulation results.
         ammoBySkillId: {},
         profession: {
-          primaryAttunement: 'Air',
-          secondaryAttunement: null,
-          autoattackChains: {},
-          pistolBullets: {
+          [STATE.PRIMARY_ATTUNEMENT]: 'Air',
+          [STATE.AUTOATTACK_CHAINS]: {},
+          [STATE.PISTOL_BULLETS]: {
             Fire: false,
             Water: true,
             Air: true,
@@ -146,7 +146,7 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
   assert.match(partialStock, /data-skill="Electric Exposure"/);
   assert.doesNotMatch(partialStock, />Special<\/div>/);
 
-  app.results.planningState.profession.pistolBullets = {
+  app.results.planningState.profession[STATE.PISTOL_BULLETS] = {
     Fire: true,
     Water: true,
     Air: true,
@@ -178,7 +178,7 @@ test('pistol controls and Elemental Explosion follow the active equipment set', 
   app.build.pistolBullets = { Fire: true, Water: true, Air: true, Earth: true };
   const live = app.results;
   live.planningState.activeWeaponSet = 2;
-  live.planningState.profession.pistolBullets = { ...app.build.pistolBullets };
+  live.planningState.profession[STATE.PISTOL_BULLETS] = { ...app.build.pistolBullets };
   for (const results of [null, live]) {
     app.results = results;
     const html = renderPaletteMarkup(app);

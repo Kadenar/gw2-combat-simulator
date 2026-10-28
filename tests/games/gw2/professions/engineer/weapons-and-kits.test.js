@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -677,8 +678,8 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
     ).duration,
     5
   );
-  assert.deepEqual(unfocused.planningState.profession.lightningRodChargeExpiries, []);
-  assert.equal(unfocused.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
+  assert.deepEqual(unfocused.planningState.profession[STATE.LIGHTNING_ROD_CHARGE_EXPIRIES], []);
+  assert.equal(unfocused.planningState.profession[STATE.AVAILABLE_FLIPS][ID.ELECTRIC_ARTILLERY], undefined);
   for (const [result, rodStacks, artilleryStacks] of [
     [focused, 2, 8],
     [unfocused, 1, 4]
@@ -731,11 +732,11 @@ test('Lightning Rod exposes Electric Artillery after charging', () => {
   assert.equal(charging.planningState.availability[artillery.id].ready, false);
   assert.equal(charged.planningState.availability[artillery.id].ready, true);
   assert.equal(
-    skillFlipVisible(charging.planningState.profession.availableFlips[artillery.id], charging.rotationEndTime),
+    skillFlipVisible(charging.planningState.profession[STATE.AVAILABLE_FLIPS][artillery.id], charging.rotationEndTime),
     false
   );
   assert.equal(
-    skillFlipReady(charged.planningState.profession.availableFlips[artillery.id], charged.rotationEndTime),
+    skillFlipReady(charged.planningState.profession[STATE.AVAILABLE_FLIPS][artillery.id], charged.rotationEndTime),
     true
   );
 });

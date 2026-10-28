@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -205,9 +206,9 @@ test('resource gain at an interrupted endpoint survives roundoff but a later gai
   }
 });
 
-for (const [specialization, key, maximum] of [
-  ['Virtuoso', 'blades', 5],
-  ['Troubadour', 'notes', 3]
+for (const [specialization, key, id, maximum] of [
+  ['Virtuoso', 'blades', STATE.BLADES, 5],
+  ['Troubadour', 'notes', STATE.NOTES, 3]
 ]) {
   test(`${specialization} seeds one clock and rewards only the actual capped gain`, () => {
     const { context, profession, events, announcements } = fixture(specialization, maximum - 1);
@@ -241,11 +242,11 @@ for (const [specialization, key, maximum] of [
       time: context.time,
       activeWeaponSet: 1
     });
-    assert.notEqual(projected[key], clock);
+    assert.notEqual(projected[id], clock);
     assert.equal(Object.hasOwn(projected, 'resource'), false);
     assert.equal(Object.hasOwn(context.profession.specialization.state, 'numericResource'), false);
     context.resourceController.spend(key, maximum);
-    assert.equal(projected[key].value, maximum);
+    assert.equal(projected[id].value, maximum);
     const empty = profession.projectPlanningState({
       profession: context.profession,
       config: context.config,
@@ -283,8 +284,8 @@ for (const [specialization, key, maximum] of [
       { profession }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession[key].value, 2);
-    assert.equal(result.planningState.profession[key].maximum, 2);
+    assert.equal(result.planningState.profession[id].value, 2);
+    assert.equal(result.planningState.profession[id].maximum, 2);
     const view = profession.ui
       .resourceViews({
         specialization,

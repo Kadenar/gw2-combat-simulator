@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -95,8 +96,8 @@ test('Mesmer state creation and planning projections are profession owned', () =
   assert.equal(Object.hasOwn(state.specialization.state, 'nextForgeAt'), false);
   assert.equal(Object.hasOwn(projected, 'nextForgeAt'), false);
   assert.equal(state.specialization.state.blades.value, 3);
-  assert.equal(projected.blades.value, 3);
-  assert.equal(projected.blades.maximum, 5);
+  assert.equal(projected[STATE.BLADES].value, 3);
+  assert.equal(projected[STATE.BLADES].maximum, 5);
   assert.equal(Object.hasOwn(projected, 'resource'), false);
   assert.equal(mesmerProfession.id, 'mesmer');
   assert.equal(Object.hasOwn(virtuosoRuntime.reactions, 'damage.resolved'), true);

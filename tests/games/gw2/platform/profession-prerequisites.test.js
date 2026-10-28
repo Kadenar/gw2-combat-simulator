@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -917,7 +918,7 @@ test('fixed slot loadouts normalize, validate, render, and gate alternate bars',
   assert.match(loadout.unavailableReason({ id: 6 }, { build, specialization: 'Core' }), /Swap to Mallyx/);
   assert.equal(loadout.unavailableReason({ id: 'synthetic-action' }, { build, specialization: 'Core' }), '');
   // A runtime projection selects the active bar without changing the saved starting legend.
-  const projected = { build, specialization: 'Core', professionState: { activeLoadoutId: 'mallyx' } };
+  const projected = { build, specialization: 'Core', professionState: { [STATE.ACTIVE_LOADOUT_ID]: 'mallyx' } };
   assert.equal(loadout.view(projected).activeBar.id, 'mallyx');
   assert.equal(build.startingLegend, 'jalis');
   assert.equal(loadout.view({ ...projected, professionState: null }).activeBar.id, 'jalis');

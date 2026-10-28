@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
@@ -610,7 +611,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   assert.ok(
     toolbelt.events.some((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 5)
   );
-  assert.equal(toolbelt.planningState.profession.kineticCharges, 1);
+  assert.equal(toolbelt.planningState.profession[STATE.KINETIC_CHARGES], 1);
 
   const wrench = simulate('Core', ['Supply Crate', 'Dodge'], {
     selectedTraitIds: [TRAIT.POWER_WRENCH]
@@ -627,7 +628,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     adrenal.planningState.cooldowns[ID.GRENADE_BARRAGE].readyAt,
     Math.ceil((adrenal.steps[0].end + 16200) / 40) * 40
   );
-  assert.equal(adrenal.planningState.profession.endurance.value, 65.75);
+  assert.equal(adrenal.planningState.profession[STATE.ENDURANCE].value, 65.75);
 
   const streamlined = simulate('Core', ['Grenade Kit'], {
     selectedTraitIds: [TRAIT.STREAMLINED_KITS]

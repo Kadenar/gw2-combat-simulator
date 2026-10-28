@@ -18,6 +18,7 @@ import type {
   ProfessionEventLogDescriptor
 } from '#gw2/platform/profession-presentation/types.js';
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const TROUBADOUR_MECHANIC_SKILLS = Object.freeze([
   ID.LIVELY_LUTE,
@@ -86,7 +87,7 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
   paletteGroups: (context: MesmerUiContext) =>
     mesmerMechanicPaletteGroups(context, TROUBADOUR_MECHANIC_SKILLS, 'notes'),
   resourceViews: (context: MesmerUiContext) => {
-    const activeInstruments = context.professionState?.activeInstruments || [];
+    const activeInstruments = context.professionState?.[STATE.ACTIVE_INSTRUMENTS] || [];
     const resources = [
       ...mesmerResourceViews(context, {
         id: 'notes',
@@ -99,8 +100,8 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
         id: 'endurance',
         singular: 'endurance',
         plural: 'endurance',
-        maximum: mesmerUiState(context).endurance?.maximum ?? context.resources!.endurance!.maximum,
-        value: mesmerUiState(context).endurance?.value ?? ENDURANCE.maximum,
+        maximum: mesmerUiState(context)[STATE.ENDURANCE]?.maximum ?? context.resources!.endurance!.maximum,
+        value: mesmerUiState(context)[STATE.ENDURANCE]?.value ?? ENDURANCE.maximum,
         canStart: false,
         step: 1,
         displayMode: 'bar' as const,

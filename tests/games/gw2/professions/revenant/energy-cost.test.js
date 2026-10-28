@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -143,7 +144,8 @@ test('Energy Meld spending agrees with the composed cost for both variants and t
       assert.deepEqual(result.warnings, []);
       assert.ok(
         Math.abs(
-          result.planningState.profession.energy.value - (config.initialEnergy - cost + 5 * result.rotationEndTime)
+          result.planningState.profession[STATE.ENERGY].value -
+            (config.initialEnergy - cost + 5 * result.rotationEndTime)
         ) < 1e-9
       );
       const planning = planningFixture(revenantProfession, { ...config, initialEnergy: 0 });

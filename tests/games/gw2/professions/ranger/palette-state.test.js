@@ -1,4 +1,5 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
@@ -19,9 +20,9 @@ test('Soulbeast remerges with the live pet and keeps detached previews on the co
   const config = { specialization: 'Soulbeast', selectedPet: 'Pig', selectedPet2: 'Smokescale' };
   const result = runRanger([ID.LEAVE_BEASTMODE, ID.PET_SWAP, ID.BEASTMODE, ID.SMOKE_ASSAULT], config);
   assert.deepEqual(result.warnings, []);
-  assert.equal(rangerPetForState(result.planningState.profession).name, 'Smokescale');
-  assert.equal(result.planningState.profession.beastmodeActive, true);
-  assert.equal(result.planningState.profession.pet, null);
+  assert.equal(activeRangerUiPet({ professionState: result.planningState.profession }).name, 'Smokescale');
+  assert.equal(result.planningState.profession[STATE.BEASTMODE_ACTIVE], true);
+  assert.equal(result.planningState.profession[STATE.PET], null);
   assert.ok(result.totalDamage > 0);
 
   const runtime = observedRuntime(result);
@@ -128,7 +129,7 @@ for (const specialization of ['Core', 'Untamed']) {
     const result = runRanger([ID.PET_SWAP], config);
     assert.deepEqual(result.warnings, []);
     const state = result.planningState.profession;
-    assert.equal(state.activePetSlot, 2);
+    assert.equal(state[STATE.ACTIVE_PET_SLOT], 2);
     const palette = rangerProfession.ui
       .paletteGroups({ config, professionState: state })
       .find((group) => group.id === 'ranger-pet');

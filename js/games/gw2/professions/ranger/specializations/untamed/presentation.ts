@@ -13,6 +13,7 @@ import { VOW_OF_THE_UNTAMED } from '#gw2/professions/ranger/specializations/unta
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 function initialUntamedState(context: RangerUiContext): 'Pet' | 'Ranger' {
   return context.build?.initialUntamedState === 'Ranger' || context.config?.initialUntamedState === 'Ranger'
@@ -35,7 +36,7 @@ function untamedStateSnapshot(context: RangerUiContext, maximumStacks: number): 
   const state = rangerUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
-  const ambushRemaining = (state.ambushReadyUntil || 0) - at;
+  const ambushRemaining = (state[STATE.AMBUSH_READY_UNTIL] || 0) - at;
 
   if (ambushRemaining > 0) {
     items.push({
@@ -48,8 +49,8 @@ function untamedStateSnapshot(context: RangerUiContext, maximumStacks: number): 
 
   // Both read paths query the canonical beneficiary pool without settling live state.
   for (const [id, beneficiary, pool] of [
-    ['untamed-ferocious-symbiosis-player', 'Player', state.ferociousSymbiosisPlayer],
-    ['untamed-ferocious-symbiosis-pet', 'Pet', state.pet?.ferociousSymbiosis]
+    ['untamed-ferocious-symbiosis-player', 'Player', state[STATE.FEROCIOUS_SYMBIOSIS_PLAYER]],
+    ['untamed-ferocious-symbiosis-pet', 'Pet', state[STATE.PET]?.ferociousSymbiosis]
   ] as const) {
     const remaining = (pool?.expiresAt || 0) - at;
     const stacks = boundedInteger(activeRefreshedStacks(pool, at, 'exclusive'), 0, 0, maximumStacks);
@@ -124,10 +125,13 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
       const state = rangerUiState(context);
 
       if (skill.id === ID.UNLEASH_RANGER || skill.id === ID.UNLEASH_PET)
-        return { tileActive: (skill.id === ID.UNLEASH_PET) === Boolean(state.rangerUnleashed) };
+        return { tileActive: (skill.id === ID.UNLEASH_PET) === Boolean(state[STATE.RANGER_UNLEASHED]) };
 
       if (skill.unleashedAmbushSkill)
-        return { tileActive: Boolean(state.rangerUnleashed) && (context.time || 0) < (state.ambushReadyUntil || 0) };
+        return {
+          tileActive:
+            Boolean(state[STATE.RANGER_UNLEASHED]) && (context.time || 0) < (state[STATE.AMBUSH_READY_UNTIL] || 0)
+        };
     },
     startControls: (context: RangerUiContext) => [
       {

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -66,8 +67,8 @@ test('Weaver exposes primary and secondary starting attunements', () => {
     specialization: 'Weaver',
     build,
     professionState: {
-      primaryAttunement: 'Air',
-      secondaryAttunement: 'Fire'
+      [STATE.PRIMARY_ATTUNEMENT]: 'Air',
+      [STATE.SECONDARY_ATTUNEMENT]: 'Fire'
     },
     catalog: elementalistProfession.catalog
   });
@@ -121,10 +122,10 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
         // Carryover changes the active chain without changing the ammo projection.
         ammoBySkillId: {},
         profession: {
-          primaryAttunement: 'Fire',
-          secondaryAttunement: 'Air',
-          autoattackChains: { [airRoot]: airFollowup.id },
-          autoattackCarryover: { root: airRoot, attunement: 'Air' }
+          [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
+          [STATE.SECONDARY_ATTUNEMENT]: 'Air',
+          [STATE.AUTOATTACK_CHAINS]: { [airRoot]: airFollowup.id },
+          [STATE.AUTOATTACK_CARRYOVER]: { root: airRoot, attunement: 'Air' }
         }
       }
     }
@@ -192,10 +193,10 @@ test('Weaver active state shows remaining Weave Self and Perfect Weave time', ()
   const snapshot = elementalistProfession.ui.rotationStateSnapshot({
     specialization: 'Weaver',
     professionState: {
-      primaryAttunement: 'Fire',
-      secondaryAttunement: 'Air',
-      weaveSelfUntil: 12.34,
-      perfectWeaveUntil: 8.26
+      [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
+      [STATE.SECONDARY_ATTUNEMENT]: 'Air',
+      [STATE.WEAVE_SELF_UNTIL]: 12.34,
+      [STATE.PERFECT_WEAVE_UNTIL]: 8.26
     },
     atSeconds: 3
   });
@@ -220,7 +221,7 @@ test('Weaver active state shows remaining Weave Self and Perfect Weave time', ()
 
   const expired = elementalistProfession.ui.rotationStateSnapshot({
     specialization: 'Weaver',
-    professionState: { weaveSelfUntil: 3, perfectWeaveUntil: 3 },
+    professionState: { [STATE.WEAVE_SELF_UNTIL]: 3, [STATE.PERFECT_WEAVE_UNTIL]: 3 },
     atSeconds: 3
   });
   assert.equal(

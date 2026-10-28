@@ -24,11 +24,12 @@ import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/cor
 import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
-import type { ThiefSkill, ThiefState, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import type { ThiefSkill, ThiefPlanningState, ThiefUiContext } from '#gw2/professions/thief/types.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { thiefInitiativeCapacity } from '#gw2/professions/thief/core/mechanics/resources.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
-export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefState> {
+export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
@@ -62,7 +63,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   // Count at the insertion cursor's time so expired axes disappear even without another axe cast.
-  const axes = (state.spinningAxes || []).filter((axe) => axe.expiresAt > at);
+  const axes = (state[STATE.SPINNING_AXES] || []).filter((axe) => axe.expiresAt > at);
 
   if (axes.length || [context.build?.weapons?.[0], context.build?.alternateWeapons?.[0]].includes(WEAPON.AXE)) {
     items.push({
@@ -76,17 +77,17 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
   }
 
   // Outgoing axes can be recalled without displacing a grounded axe until their flight finishes.
-  if (state.outboundAxes?.length) {
+  if (state[STATE.OUTBOUND_AXES]?.length) {
     items.push({
       id: 'thief-outbound-axes',
       label: 'Axes in Flight',
-      value: String(state.outboundAxes.length),
+      value: String(state[STATE.OUTBOUND_AXES]?.length ?? 0),
       title: 'Outgoing axes available to recall; occupy a spinning-axe slot only after landing'
     });
   }
 
   // Each initiative-spending grant expires independently, so the count is read at the displayed instant.
-  const leadAttacksStacks = activeStackCount(state.leadAttackExpirations || [], at);
+  const leadAttacksStacks = activeStackCount(state[STATE.LEAD_ATTACK_EXPIRATIONS] || [], at);
 
   if (leadAttacksStacks > 0) {
     items.push({
@@ -116,7 +117,7 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     if (remaining > 0) items.push({ id, label, value: `${remaining.toFixed(1)}s`, title });
   }
 
-  const revealedRemaining = (state.revealedUntil || 0) - at;
+  const revealedRemaining = (state[STATE.REVEALED_UNTIL] || 0) - at;
 
   if (revealedRemaining > 0) {
     return [
@@ -130,7 +131,16 @@ function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotI
     ];
   }
 
-  const stealthRemaining = stealthActive(state, at) ? state.stealthUntil! - at : 0;
+  const stealthRemaining = stealthActive(
+    {
+      stealthStartedAt: state[STATE.STEALTH_STARTED_AT],
+      stealthUntil: state[STATE.STEALTH_UNTIL],
+      revealedUntil: state[STATE.REVEALED_UNTIL]
+    },
+    at
+  )
+    ? state[STATE.STEALTH_UNTIL]! - at
+    : 0;
   return stealthRemaining > 0
     ? [
         ...items,
@@ -259,7 +269,15 @@ export const thiefCoreUi = Object.freeze({
     const state = thiefUiState(context);
     const now = context.time || 0;
     return {
-      tileActive: stealthActive(state, now) || activeChargeCount(state.bonusStealthAttack, now) > 0
+      tileActive:
+        stealthActive(
+          {
+            stealthStartedAt: state[STATE.STEALTH_STARTED_AT],
+            stealthUntil: state[STATE.STEALTH_UNTIL],
+            revealedUntil: state[STATE.REVEALED_UNTIL]
+          },
+          now
+        ) || activeChargeCount(state[STATE.BONUS_STEALTH_ATTACK], now) > 0
     };
   },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.
@@ -290,15 +308,15 @@ export const thiefCoreUi = Object.freeze({
           traits: new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
         })
       : context.resources!.initiative!.maximum;
-    const enduranceCapacity = state.endurance?.maximum ?? context.resources!.endurance!.maximum;
-    const endurance = state.endurance?.value ?? enduranceCapacity;
+    const enduranceCapacity = state[STATE.ENDURANCE]?.maximum ?? context.resources!.endurance!.maximum;
+    const endurance = state[STATE.ENDURANCE]?.value ?? enduranceCapacity;
     return [
       {
         id: 'initiative',
         singular: 'initiative',
         plural: 'initiative',
-        maximum: state.initiative?.maximum ?? initiativeCapacity,
-        value: state.initiative?.value ?? context.initialInitiative ?? 12,
+        maximum: state[STATE.INITIATIVE]?.maximum ?? initiativeCapacity,
+        value: state[STATE.INITIATIVE]?.value ?? context.initialInitiative ?? 12,
         startMaximum: initiativeCapacity,
         canStart: true,
         buildKey: 'initialInitiative',
@@ -311,7 +329,7 @@ export const thiefCoreUi = Object.freeze({
         statusLabel: 'Current'
       },
       // Core contributes its own starting inventory control; elite modules declare theirs independently.
-      ...(specialization === 'Core' ? [preStealResourceView(state.storedStolenSkillCount || 0)] : []),
+      ...(specialization === 'Core' ? [preStealResourceView(state[STATE.STORED_STOLEN_SKILL_COUNT] || 0)] : []),
       // Reuse the starting-resource editor; the active-state bar already displays the live axe count.
       ...([
         context.build?.weapons?.[0],
@@ -325,7 +343,8 @@ export const thiefCoreUi = Object.freeze({
               singular: 'precast autoattack axe',
               plural: 'precast autoattack axes',
               maximum: MAXIMUM_SPINNING_AXES,
-              value: (state.spinningAxes || []).filter((axe) => axe.expiresAt > (context.simulationTime ?? 0)).length,
+              value: (state[STATE.SPINNING_AXES] || []).filter((axe) => axe.expiresAt > (context.simulationTime ?? 0))
+                .length,
               canStart: true,
               buildKey: 'initialSpinningAxes' as const,
               step: 1,

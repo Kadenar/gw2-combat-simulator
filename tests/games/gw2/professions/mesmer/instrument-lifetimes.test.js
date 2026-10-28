@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
@@ -130,7 +131,7 @@ test('instrument commitment, damage bonuses, projection, and UI share exact excl
       config: context.config,
       catalog: context.catalog
     });
-    assert.equal(projected.activeInstruments.length, Number(active));
+    assert.equal(projected[STATE.ACTIVE_INSTRUMENTS].length, Number(active));
     const view = troubadourUi
       .resourceViews({
         catalog: context.catalog,
@@ -164,7 +165,7 @@ test('shorter instrument replays replace their own window without reviving old b
   );
   context.time = 7.301;
   assert.deepEqual(
-    projectObservedState(mesmerProfession, context).activeInstruments.map(({ name }) => name),
+    projectObservedState(mesmerProfession, context)[STATE.ACTIVE_INSTRUMENTS].map(({ name }) => name),
     ['Flute']
   );
   context.start = 7.301;
@@ -334,7 +335,7 @@ test('delayed performance packets survive instrument expiry without retaining it
     (event) => event.type === 'damage' && event.source === 'Afterimage' && event.at > instrument.expiresAt
   );
   assert.ok(delayed?.damage > 0);
-  assert.equal(result.planningState.profession.activeInstruments.length, 0);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_INSTRUMENTS].length, 0);
   assert.equal(
     luteModifiers.find((rule) => rule.id === 'mesmer.lute').when({ events: result.events, time: delayed.at }),
     false

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import assert from 'node:assert/strict';
@@ -62,13 +63,13 @@ test('Shadow Strike composite import does not spend initiative or grant charges 
   ]) {
     const replay = runThief(imported.rotation, { primaryWeapon: 'Pistol', secondaryWeapon: 'Dagger' });
     assert.deepEqual(replay.warnings, []);
-    assert.equal(replay.planningState.profession.availableFlips[59526].remainingUses, 3);
+    assert.equal(replay.planningState.profession[STATE.AVAILABLE_FLIPS][59526].remainingUses, 3);
     const followed = runThief([...imported.rotation, { type: 'cast', skillId: 59526 }], {
       primaryWeapon: 'Pistol',
       secondaryWeapon: 'Dagger'
     });
     assert.deepEqual(followed.warnings, []);
-    assert.equal(followed.planningState.profession.availableFlips[59526].remainingUses, 2);
+    assert.equal(followed.planningState.profession[STATE.AVAILABLE_FLIPS][59526].remainingUses, 2);
   }
 });
 

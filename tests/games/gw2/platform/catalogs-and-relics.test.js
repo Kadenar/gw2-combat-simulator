@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
@@ -57,8 +58,8 @@ test('Mesmer test scenarios use the registered live runtime', () => {
     ].sort()
   );
   // Virtuoso's initialized blade clock is the canonical balance in both execution paths.
-  assert.equal(canonical.planningState.profession.blades.value, 5);
-  assert.equal(fixture.planningState.profession.blades.value, 5);
+  assert.equal(canonical.planningState.profession[STATE.BLADES].value, 5);
+  assert.equal(fixture.planningState.profession[STATE.BLADES].value, 5);
 });
 
 test('canonical catalog validation rejects duplicate ids', () => {

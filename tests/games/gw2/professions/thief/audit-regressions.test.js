@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -146,7 +147,7 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
       assert.equal(runtime.cooldownController.readyAt(ID.SIGNET_OF_AGILITY), 24);
       const capacity = thiefProfession.runtimeFor({ specialization }).endurance.maximum(runtime);
       // The restoration applies at the instant cast's completion, before any regeneration.
-      assert.ok(result.planningState.profession.endurance.value >= Math.min(capacity, initial + 100));
+      assert.ok(result.planningState.profession[STATE.ENDURANCE].value >= Math.min(capacity, initial + 100));
       for (const [time, staticRules, value] of observed) {
         if (staticRules === 'unselected') assert.equal(value, 1000, `${time}`);
         else if (time === 0) continue;
@@ -189,7 +190,7 @@ test('Signet of Agility restores endurance up to each elite capacity', () => {
         initialEndurance: initial
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.planningState.profession.endurance.value, Math.min(capacity, initial + 100));
+      assert.equal(result.planningState.profession[STATE.ENDURANCE].value, Math.min(capacity, initial + 100));
     }
   }
 });
@@ -315,12 +316,17 @@ test('THF-002: Signet of Shadows is excluded from the simulator', () => {
 
 test('THF-003: cancelled activations preserve persistent state while successful casts commit it', () => {
   const cases = [
-    ['Core', 'Thieves Guild', {}, (state) => Boolean(state.activeThievesGuild)],
-    ['Core', 'Mantis Sting', { primaryWeapon: 'Spear', secondaryWeapon: '' }, (state) => state.spearChainStage === 1],
-    ['Daredevil', 'Fist Flurry', {}, (state) => state.availableFlips[ID.PALM_STRIKE]?.expiresAt > 0],
-    ['Deadeye', 'Shadow Flare', {}, (state) => state.availableFlips[ID.SHADOW_SWAP]?.expiresAt > 0],
-    ['Specter', 'Siphon', {}, (state) => state.shadowClock.value > 0],
-    ['Antiquary', 'Skritt Scuffle', {}, (state) => state.artifactUsesRemaining > 0]
+    ['Core', 'Thieves Guild', {}, (state) => Boolean(state[STATE.ACTIVE_THIEVES_GUILD])],
+    [
+      'Core',
+      'Mantis Sting',
+      { primaryWeapon: 'Spear', secondaryWeapon: '' },
+      (state) => state[STATE.SPEAR_CHAIN_STAGE] === 1
+    ],
+    ['Daredevil', 'Fist Flurry', {}, (state) => state[STATE.AVAILABLE_FLIPS][ID.PALM_STRIKE]?.expiresAt > 0],
+    ['Deadeye', 'Shadow Flare', {}, (state) => state[STATE.AVAILABLE_FLIPS][ID.SHADOW_SWAP]?.expiresAt > 0],
+    ['Specter', 'Siphon', {}, (state) => state[STATE.SHADOW_CLOCK].value > 0],
+    ['Antiquary', 'Skritt Scuffle', {}, (state) => state[STATE.ARTIFACT_USES_REMAINING] > 0]
   ];
   for (const [specialization, name, config, committed] of cases) {
     for (const cancelled of [true, false]) {

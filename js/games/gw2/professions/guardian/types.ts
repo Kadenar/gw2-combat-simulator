@@ -26,13 +26,22 @@ export interface GuardianConfig extends Gw2Config {
   readonly specializations?: readonly (string | { readonly name?: string })[];
 }
 
-export interface GuardianState
-  extends
-    GuardianCoreState,
-    GuardianDragonhunterState,
-    GuardianFirebrandState,
-    GuardianWillbenderState,
-    GuardianLuminaryState {}
+/** Public consumers receive only the ID/value pairs published by active owners. */
+export type GuardianPlanningState = ReturnType<
+  typeof import('#gw2/professions/guardian/core/state.js').projectGuardianPlanningState
+> &
+  ReturnType<
+    typeof import('#gw2/professions/guardian/specializations/dragonhunter/state.js').projectDragonhunterPlanningState
+  > &
+  ReturnType<
+    typeof import('#gw2/professions/guardian/specializations/firebrand/state.js').projectFirebrandPlanningState
+  > &
+  ReturnType<
+    typeof import('#gw2/professions/guardian/specializations/luminary/state.js').projectLuminaryPlanningState
+  > &
+  ReturnType<
+    typeof import('#gw2/professions/guardian/specializations/willbender/state.js').projectWillbenderPlanningState
+  >;
 
 export interface GuardianRuntimeState {
   core: GuardianCoreState;
@@ -96,9 +105,9 @@ export interface GuardianSkill
   readonly tome?: string;
 }
 
-export interface GuardianUiContext extends ProfessionUiCallbackContext<Partial<GuardianState>> {
+export interface GuardianUiContext extends ProfessionUiCallbackContext<Partial<GuardianPlanningState>> {
   readonly config?: GuardianConfig;
 }
 
 /** UI slice whose callbacks read Guardian end-state projections. */
-export type GuardianUiSlice = Partial<ProfessionUiContract<Partial<GuardianState>>>;
+export type GuardianUiSlice = Partial<ProfessionUiContract<Partial<GuardianPlanningState>>>;

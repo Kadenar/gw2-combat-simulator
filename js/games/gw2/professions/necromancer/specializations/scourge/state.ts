@@ -1,18 +1,12 @@
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface ScourgeState {
   shadeGeneration: number;
   shades: number[];
 }
-
-/** Declares Scourge's public field and missing-state default, used only when Scourge is selected. */
-export const SCOURGE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  shades: []
-} satisfies Partial<ScourgeState>);
 
 /** Creates Scourge's timed shade and trait-cooldown runtime state. */
 function createScourgeState(): ScourgeState {
@@ -31,3 +25,11 @@ export function purgeScourgeTimedState(state: ScourgeState, at: number): void {
 
 // Shade lifetime and Sand Sage attributes read the same state.
 export const scourgeState = defineProfessionSpecializationState('Scourge', createScourgeState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectScourgePlanningState(input: Gw2PlanningStateInput) {
+  const state = scourgeState.from(input);
+  return structuredClone({
+    [STATE.SHADES]: state.shades
+  });
+}

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -140,5 +141,5 @@ test('Signet of Illusions skill fields control passive resource generation', () 
     { profession }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.resource, 2);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 2);
 });

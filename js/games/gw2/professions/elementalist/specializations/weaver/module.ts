@@ -1,15 +1,13 @@
 import { weaveSelfModifiers } from '#gw2/professions/elementalist/specializations/weaver/skills/slot-skills.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 
 import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
-import {
-  WEAVER_PUBLIC_STATE_PROJECTION,
-  weaverState
-} from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import { weaverState, projectWeaverPlanningState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
+import { weaverTraits } from '#gw2/professions/elementalist/specializations/weaver/traits/index.js';
+import { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';
 
 /**
  * Weaver specialization module.
@@ -24,13 +22,10 @@ export const weaverModule = defineNativeModule({
     skillFields: WEAVER_SKILL_FIELDS,
     skillMechanics: WEAVER_SKILL_MECHANICS
   }),
-  state: { create: weaverState.create, project: createPublicStateProjector(WEAVER_PUBLIC_STATE_PROJECTION) },
+  state: { create: weaverState.create, project: projectWeaverPlanningState },
   traitDefinitions: weaverTraits,
   // Register the skill/mechanic-owned rules alongside trait declarations.
   modifiers: weaveSelfModifiers,
   hooks: weaverHooks,
   presentation: weaverUi
 });
-
-import { weaverTraits } from '#gw2/professions/elementalist/specializations/weaver/traits/index.js';
-import { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';

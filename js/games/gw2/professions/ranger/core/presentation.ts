@@ -41,12 +41,13 @@ import {
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import type {
   RangerSkill,
-  RangerState,
+  RangerPlanningState,
   RangerUiContext,
   RangerUiSelection,
   RangerUiSlice
 } from '#gw2/professions/ranger/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const RANGER_HIDDEN_EVENT_TYPES = new Set([
   'ranger.poison-master-armed',
@@ -61,7 +62,7 @@ const RANGER_HIDDEN_EVENT_TYPES = new Set([
 // Boon-copy mechanics retain their simulation events without duplicating whole boon lists in the readable log.
 const RANGER_HIDDEN_BOON_SOURCES = new Set<number>([TRAIT.FORTIFYING_BOND, TRAIT.RESOUNDING_TIMBRE, ID.WE_HEAL_AS_ONE]);
 
-export function rangerUiState(context: RangerUiContext): Partial<RangerState> {
+export function rangerUiState(context: RangerUiContext): Partial<RangerPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
@@ -105,18 +106,21 @@ function selectedRangerUiPet(context: RangerUiContext, slot: 1 | 2 = 1) {
     slot === 2
       ? context.build?.selectedPet2 ||
         context.config?.selectedPet2 ||
-        state.petNames?.[1] ||
+        state[STATE.PET_NAMES]?.[1] ||
         RANGER_DEFAULT_PET_NAMES[1]
-      : context.build?.selectedPet || context.config?.selectedPet || state.petNames?.[0] || RANGER_DEFAULT_PET_NAMES[0];
+      : context.build?.selectedPet ||
+        context.config?.selectedPet ||
+        state[STATE.PET_NAMES]?.[0] ||
+        RANGER_DEFAULT_PET_NAMES[0];
   return rangerPetByName(selected);
 }
 
 /** Live pet identity owns combat palettes; detached previews use the configured selection. */
 export function activeRangerUiPet(context: RangerUiContext) {
   const state = rangerUiState(context);
-  return state.petNames && state.activePetSlot
-    ? rangerPetForState({ petNames: state.petNames, activePetSlot: state.activePetSlot })
-    : selectedRangerUiPet(context);
+  const petNames = state[STATE.PET_NAMES];
+  const activePetSlot = state[STATE.ACTIVE_PET_SLOT];
+  return petNames && activePetSlot ? rangerPetForState({ petNames, activePetSlot }) : selectedRangerUiPet(context);
 }
 
 function updatePetSelection(context: RangerUiContext, selection: RangerUiSelection): boolean {
@@ -207,7 +211,19 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
       const stealth = Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT).includes(Number(skill.id));
 
       if (stealth || flip != null)
-        return { tileActive: stealth === rangerSpearStealthAvailable(rangerUiState(context), context.time || 0) };
+        return {
+          tileActive:
+            stealth ===
+            rangerSpearStealthAvailable(
+              {
+                availableFlips: rangerUiState(context)[STATE.AVAILABLE_FLIPS],
+                stealthStartedAt: rangerUiState(context)[STATE.STEALTH_STARTED_AT],
+                stealthUntil: rangerUiState(context)[STATE.STEALTH_UNTIL],
+                revealedUntil: rangerUiState(context)[STATE.REVEALED_UNTIL]
+              },
+              context.time || 0
+            )
+        };
     },
     assumptionControls: [
       ...RANGER_ASSUMPTION_CONTROLS,
@@ -330,8 +346,8 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
           id: 'endurance',
           singular: 'endurance',
           plural: 'endurance',
-          maximum: state.endurance?.maximum ?? context.resources!.endurance!.maximum,
-          value: state.endurance?.value ?? ENDURANCE.maximum,
+          maximum: state[STATE.ENDURANCE]?.maximum ?? context.resources!.endurance!.maximum,
+          value: state[STATE.ENDURANCE]?.value ?? ENDURANCE.maximum,
           startMaximum: ENDURANCE.maximum,
           canStart: false,
           step: 1,

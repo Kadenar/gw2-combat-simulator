@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
@@ -196,8 +197,8 @@ test('removed spear payloads preserve Focused, patched charge limits, and releas
     vulnerability.reduce((sum, event) => sum + event.stacks, 0),
     1
   );
-  assert.deepEqual(result.planningState.profession.lightningRodChargeExpiries, []);
-  assert.equal(result.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
+  assert.deepEqual(result.planningState.profession[STATE.LIGHTNING_ROD_CHARGE_EXPIRIES], []);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.ELECTRIC_ARTILLERY], undefined);
 });
 
 test('heat-component removal is independent from ordinary packets and sibling conditions', () => {
@@ -283,7 +284,7 @@ test('Evolve and Silver Lining consume the selected protocol slot without leakin
         (event) => event.type === 'buff' && event.sourceId === 'engineer.predator-strain' && event.kind === 'quickness'
       );
       assert.equal(quickness.duration, duration);
-      assert.equal(result.planningState.profession.predatorUntil, quickness.at + duration);
+      assert.equal(result.planningState.profession[STATE.PREDATOR_UNTIL], quickness.at + duration);
       assert.equal(
         result.events.some((event) => event.kind === 'superspeed'),
         id === other
@@ -307,7 +308,7 @@ test('Forge entry reads its selected kit lockout and primary beam damage precede
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.kitLockoutUntil, 9 / 1.25);
+  assert.equal(result.planningState.profession[STATE.KIT_LOCKOUT_UNTIL], 9 / 1.25);
   const hits = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillId === ID.PRIME_LIGHT_BEAM
   );

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -75,8 +76,8 @@ test('Motivation policies initialize empty, cap fractional rewards, and isolate 
     assert.equal(pool.value, Math.min(maximumStacks, 6.5));
     assert.equal(pool.maximum, maximumStacks);
     assert.equal(pool.rate, 0);
-    assert.deepEqual(result.planningState.profession.motivation, pool);
-    assert.notEqual(result.planningState.profession.motivation, pool);
+    assert.deepEqual(result.planningState.profession[STATE.MOTIVATION], pool);
+    assert.notEqual(result.planningState.profession[STATE.MOTIVATION], pool);
     assert.equal(Object.hasOwn(state(result), 'maximumMotivation'), false);
     assert.equal(Object.hasOwn(result.planningState.profession, 'maximumMotivation'), false);
     const view = source.ui
@@ -208,7 +209,7 @@ test('chants and weapon bursts spend one bar and expose only live projected stat
   assert.equal(core(chant).adrenaline.value, 20);
   assert.equal(core(chant).adrenaline.maximum, 30);
   assert.equal(state(chant).motivation.value, 4);
-  assert.equal(chant.planningState.profession.activeRefrain, 'Chant of Action');
+  assert.equal(chant.planningState.profession[STATE.ACTIVE_REFRAIN], 'Chant of Action');
   assert.equal(
     chant.events.some((event) => event.type === 'warrior.paragon-state'),
     false
@@ -266,7 +267,7 @@ test('Invigorating Tempo rewards only actual Motivation spent, including the fin
   assert.equal(core(partial).adrenaline.value, 5);
   const later = run(['Chant of Recuperation', wait(15000)], config);
   assert.equal(core(later).adrenaline.value, 5);
-  assert.equal(later.planningState.profession.activeRefrain, '');
+  assert.equal(later.planningState.profession[STATE.ACTIVE_REFRAIN], '');
 });
 
 test('Call to Action starts once at accepted combat and preserves an existing refrain cadence', () => {

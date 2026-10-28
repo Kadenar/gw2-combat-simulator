@@ -1,10 +1,6 @@
-import {
-  flattenProfessionState,
-  projectPublicProfessionState,
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface GuardianDragonhunterState {
   tetherUntil: number;
@@ -18,22 +14,13 @@ function createDragonhunterState(): GuardianDragonhunterState {
   };
 }
 
-/** Keeps Dragonhunter projection ownership beside the state that produces it. */
-const DRAGONHUNTER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  tetherUntil: 0
-} satisfies Partial<GuardianDragonhunterState>);
-
 export const dragonhunterState = defineProfessionSpecializationState('Dragonhunter', createDragonhunterState);
 
 /** Detach only the public tether deadline before hiding expiry; its flip retains its own expiry task. */
 export function projectDragonhunterPlanningState(input: Gw2PlanningStateInput) {
-  const state = projectPublicProfessionState(
-    flattenProfessionState(input.profession) as unknown as GuardianDragonhunterState,
-    DRAGONHUNTER_PUBLIC_STATE_PROJECTION.keys,
-    DRAGONHUNTER_PUBLIC_STATE_PROJECTION.defaults
-  );
+  const state = cloneStateFields(dragonhunterState.from(input), ['tetherUntil']);
 
   if (state.tetherUntil <= input.time) state.tetherUntil = 0;
 
-  return state;
+  return { [STATE.TETHER_UNTIL]: state.tetherUntil };
 }

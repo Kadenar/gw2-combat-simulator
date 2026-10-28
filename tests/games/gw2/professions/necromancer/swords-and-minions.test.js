@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -52,7 +53,7 @@ test('Dark Pact inflicts conditions without gaining life force against the boonl
     boonless.events.find((event) => event.type === 'damage' && event.skillId === ID.DARK_PACT)?.coefficient,
     2.4
   );
-  assert.equal(lifeForcePercent(boonless.planningState.profession.lifeForce), 0);
+  assert.equal(lifeForcePercent(boonless.planningState.profession[STATE.LIFE_FORCE]), 0);
   assert.deepEqual([targetCondition('Bleeding')?.stacks, targetCondition('Bleeding')?.duration], [2, 10]);
   assert.deepEqual([selfBleeding?.stacks, selfBleeding?.duration], [2, 10]);
   assert.equal(targetCondition('Immobilized')?.duration, 6);
@@ -504,7 +505,7 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
       .map((event) => event.coefficient),
     [1.3]
   );
-  assert.equal(lifeForcePercent(grasp.planningState.profession.lifeForce), 10);
+  assert.equal(lifeForcePercent(grasp.planningState.profession[STATE.LIFE_FORCE]), 10);
   assert.equal(
     grasp.events.some(
       (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.GRASPING_DARKNESS
@@ -529,7 +530,7 @@ test('Greatsword control and Nightfall pulses use their live mechanics', () => {
       (event) => event.type === 'condition' && event.skillId === ID.NIGHTFALL && event.condition === 'Crippled'
     ).length > 0
   );
-  assert.equal(lifeForcePercent(nightfall.planningState.profession.lifeForce), 28);
+  assert.equal(lifeForcePercent(nightfall.planningState.profession[STATE.LIFE_FORCE]), 28);
 });
 
 test('Lich Form swaps its bar and grants life force on exit', () => {
@@ -540,8 +541,8 @@ test('Lich Form swaps its bar and grants life force on exit', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.activeShroud, '');
-  assert.ok(lifeForcePercent(result.planningState.profession.lifeForce) >= 15);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], '');
+  assert.ok(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]) >= 15);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Deathly Claws'));
   assert.match(invalid.warnings.map(({ message }) => message).join(' '), /Rending Claws is unavailable/);
 });
@@ -556,7 +557,7 @@ test('minion summons persist, attack, and unlock their command', () => {
   const invalid = simulate('Core', ['Rigor Mortis']);
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.activeMinions['bone-fiend'], 1);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_MINIONS]['bone-fiend'], 1);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Bone Shard'));
   assert.ok(result.breakdown.some((entry) => entry.name === 'Rigor Mortis - Bone Shard'));
   assert.match(invalid.warnings.map(({ message }) => message).join(' '), /Rigor Mortis is unavailable/);
@@ -1088,7 +1089,7 @@ test('unequipped Necromancer slot skills cannot execute', () => {
     false
   );
   assert.equal(equipped.warnings.length, 0);
-  assert.equal(equipped.planningState.profession.activeMinions['bone-minion'], 2);
+  assert.equal(equipped.planningState.profession[STATE.ACTIVE_MINIONS]['bone-minion'], 2);
 });
 
 test('persistent minion summons cannot recharge until their minions die', () => {
@@ -1129,7 +1130,7 @@ test('bone minion recharge starts after both minions are destroyed', () => {
   assert.equal(summons.length, 2);
   assert.equal(explosions[1].start, explosions[0].end + 800);
   assert.equal(summons[1].start, explosions[1].end + 12800);
-  assert.equal(result.planningState.profession.activeMinions['bone-minion'], 2);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_MINIONS]['bone-minion'], 2);
 });
 
 test('calibrated minion strikes ignore player Power and Signet of Spite', () => {
@@ -1315,8 +1316,8 @@ test("Shadow Fiend reports Slash and Haunt's full command effects", () => {
   assert.equal(conditionDuration('Chilled'), 3);
   assert.equal(conditionDuration('Weakness'), 5);
   assert.equal(
-    lifeForcePercent(result.planningState.profession.lifeForce) -
-      lifeForcePercent(summonOnly.planningState.profession.lifeForce),
+    lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]) -
+      lifeForcePercent(summonOnly.planningState.profession[STATE.LIFE_FORCE]),
     10
   );
 });

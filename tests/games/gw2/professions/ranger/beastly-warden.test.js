@@ -1,4 +1,4 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import { activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
@@ -59,7 +59,7 @@ test('Beastly Warden damage ends with the outgoing pet', () => {
   const traited = simulate('Pig', true, true);
   for (const result of [baseline, traited]) {
     assert.deepEqual(result.warnings, []);
-    assert.equal(rangerPetForState(result.planningState.profession).name, 'Lynx');
+    assert.equal(activeRangerUiPet({ professionState: result.planningState.profession }).name, 'Lynx');
   }
 
   const strike = (result) =>

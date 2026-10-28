@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import assert from 'node:assert/strict';
@@ -31,13 +32,13 @@ for (const [id, specialization, capacity] of [
     assert.ok(Number.isFinite(state.endurance.rate));
     assert.equal(Object.hasOwn(state, 'enduranceUpdatedAt'), false);
     assert.equal(Object.hasOwn(result.planningState.profession, 'maximumEndurance'), false);
-    assert.deepEqual(result.planningState.profession.endurance, state.endurance);
-    assert.notEqual(result.planningState.profession.endurance, state.endurance);
+    assert.deepEqual(result.planningState.profession[STATE.ENDURANCE], state.endurance);
+    assert.notEqual(result.planningState.profession[STATE.ENDURANCE], state.endurance);
     const beforeQuery = structuredClone(state.endurance);
     runtime.endurance.readyAt(capacity);
     assert.deepEqual(state.endurance, beforeQuery);
     runtime.endurance.spend(capacity);
-    assert.equal(result.planningState.profession.endurance.value, capacity);
+    assert.equal(result.planningState.profession[STATE.ENDURANCE].value, capacity);
     assert.equal(runtime.endurance.grant(50), true);
     assert.equal(state.endurance.value, 50);
     runtime.endurance.grant(capacity);

@@ -16,6 +16,7 @@ import {
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const CHRONOMANCER_MECHANIC_SKILLS = Object.freeze([
   ID.SPLIT_SECOND,
@@ -46,9 +47,9 @@ function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnaps
   const at = Math.max(0, context.atSeconds || 0);
   const result = context.result;
   const items: RotationStateSnapshotItem[] = [];
-  const continuumRemaining = (state.continuumRemaining || 0) / 1000;
+  const continuumRemaining = (state[STATE.CONTINUUM_REMAINING] || 0) / 1000;
 
-  if (state.continuumActive && continuumRemaining > 0) {
+  if (state[STATE.CONTINUUM_ACTIVE] && continuumRemaining > 0) {
     items.push({
       id: 'chronomancer-continuum-split',
       label: 'Continuum Split',

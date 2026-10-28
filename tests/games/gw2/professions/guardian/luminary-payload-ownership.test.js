@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -45,7 +46,7 @@ test('each native Light Aura grant reads only its skill or trait payload', () =>
     const aura = result.events.find((event) => event.type === 'aura' && event.aura === 'Light Aura');
     assert.ok(aura, String(source.id));
     assert.equal(aura.duration, 9);
-    assert.equal(result.planningState.profession.lightAuraUntil, aura.at + 9);
+    assert.equal(result.planningState.profession[STATE.LIGHT_AURA_UNTIL], aura.at + 9);
 
     // Editing one source cannot change another source's duration, even when both grants share the same tracker.
     const other = source.id === ID.RADIANT_RESOLVE ? sources[0] : sources[1];
@@ -73,9 +74,10 @@ test('removing a native aura grant preserves other sources and independent skill
       false,
       String(source.id)
     );
-    assert.equal(result.planningState.profession.lightAuraUntil, 0);
+    assert.equal(result.planningState.profession[STATE.LIGHT_AURA_UNTIL], 0);
 
-    if (source.id === ID.RADIANT_RESOLVE) assert.equal(result.planningState.profession.radiantResolveArmed, true);
+    if (source.id === ID.RADIANT_RESOLVE)
+      assert.equal(result.planningState.profession[STATE.RADIANT_RESOLVE_ARMED], true);
 
     if (source.id === ID.DAZZLING_HAMMER)
       assert.ok(result.events.some((event) => event.type === 'damage' && event.skillId === source.id));
@@ -109,8 +111,8 @@ test('Effulgent skill tuning controls its counting window, capped detonation, an
   const activation = result.events.find((event) => event.type === 'action' && event.skillId === ID.EFFULGENT_STANCE);
   assert.equal(detonation.at - activation.at, 3);
   assert.ok(result.events.some((event) => event.type === 'control' && event.skillId === ID.EFFULGENT_STANCE_DAMAGE));
-  assert.equal(result.planningState.profession.effulgentStacks, 0);
-  assert.equal(result.planningState.profession.effulgentActiveUntil, 0);
+  assert.equal(result.planningState.profession[STATE.EFFULGENT_STACKS], 0);
+  assert.equal(result.planningState.profession[STATE.EFFULGENT_ACTIVE_UNTIL], 0);
   const facts = guardianTooltips.skills[ID.EFFULGENT_STANCE](patched.context, { id: ID.EFFULGENT_STANCE }).facts;
   assert.equal(facts.find((fact) => fact.name === 'Maximum counted hits').detail, '2');
   assert.equal(facts.find((fact) => fact.name === 'Stance duration').detail, '3s');

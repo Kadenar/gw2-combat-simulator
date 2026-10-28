@@ -1,6 +1,5 @@
 import { ENGINEER_CORE_PROFILE_FIELDS } from '#gw2/professions/engineer/core/catalog-fields.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
-import { ENGINEER_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/engineer/core/state.js';
+import { projectEngineerCorePlanningState } from '#gw2/professions/engineer/core/state.js';
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
 
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
@@ -30,7 +29,7 @@ export const engineerCoreModule = defineNativeModule({
   state: {
     // One runtime owns the mutable Core state.
     create: createEngineerCoreState,
-    project: createPublicStateProjector(ENGINEER_CORE_PUBLIC_STATE_PROJECTION)
+    project: projectEngineerCorePlanningState
   },
   hooks: engineerCoreHooks,
   presentation: bindEngineerCoreUi

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
@@ -310,8 +311,8 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
   );
   assert.equal(amplifiedWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 3);
   assert.equal(permeatingWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 5);
-  assert.equal(full.planningState.profession.justiceUntil, 10.04);
-  assert.equal(full.planningState.profession.lethalTempo.stacks, 5);
+  assert.equal(full.planningState.profession[STATE.JUSTICE_UNTIL], 10.04);
+  assert.equal(full.planningState.profession[STATE.LETHAL_TEMPO].stacks, 5);
   assert.equal(
     full.procSteps.filter(
       (step) =>

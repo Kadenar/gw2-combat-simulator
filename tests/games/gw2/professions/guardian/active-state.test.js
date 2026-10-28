@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -37,7 +38,7 @@ test('Purity of Word reads the live page deadline and Loremaster cadence at the 
     assert.equal(elapsed['firebrand-purity-of-word'].value, `${(interval - 1).toFixed(1)}s`);
     assert.match(elapsed['firebrand-purity-of-word'].title, new RegExp(`every ${interval}\\.0s`));
     const regenerated = simulate(undefined, [{ type: 'wait', durationMs: interval * 1000 }], config);
-    assert.equal(regenerated.planningState.profession.tomePages.value, 5);
+    assert.equal(regenerated.planningState.profession[STATE.TOME_PAGES].value, 5);
     assert.equal(activeState(regenerated)['firebrand-purity-of-word'].value, `${interval.toFixed(1)}s · Full`);
   }
 
@@ -61,9 +62,9 @@ test('Swift Scholar exposes current tome progress and clears it after a refund o
   assert.equal(activeState(cancelled)['firebrand-swift-scholar'].value, '2/3');
   const refunded = simulate(undefined, [...prefix, 'Chapter 4: Scorched Aftermath'], config);
   assert.equal(activeState(refunded)['firebrand-swift-scholar'].value, '0/3');
-  assert.equal(refunded.planningState.profession.tomePages.value, 3);
+  assert.equal(refunded.planningState.profession[STATE.TOME_PAGES].value, 3);
   const stowed = simulate(undefined, [...prefix, 'Stow Tome'], config);
-  assert.equal(stowed.planningState.profession.swiftScholarCount, 0);
+  assert.equal(stowed.planningState.profession[STATE.SWIFT_SCHOLAR_COUNT], 0);
   assert.equal(activeState(stowed)['firebrand-swift-scholar'], undefined);
   for (const tome of ['Tome of Justice', 'Tome of Resolve']) {
     assert.equal(

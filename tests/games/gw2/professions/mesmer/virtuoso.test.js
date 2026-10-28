@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -52,9 +53,9 @@ test('Infinite Forge refunds two blades only after a completed five-blade Blades
     (event) => event.type === 'resource' && event.reason === 'Infinite Forge refund'
   );
 
-  assert.equal(fullShatter.planningState.profession.blades.value, 2);
-  assert.equal(partialShatter.planningState.profession.blades.value, 0);
-  assert.equal(interruptedShatter.planningState.profession.blades.value, 5);
+  assert.equal(fullShatter.planningState.profession[STATE.BLADES].value, 2);
+  assert.equal(partialShatter.planningState.profession[STATE.BLADES].value, 0);
+  assert.equal(interruptedShatter.planningState.profession[STATE.BLADES].value, 5);
   assert.equal(refund.amount, 2);
   assert.equal(refund.at, action.fullEndsAt);
 });
@@ -191,9 +192,9 @@ test('Bloodsong needs real bleeding and does not treat blade hits as bleeding', 
     })
   );
 
-  assert.equal(withoutJaggedMind.planningState.profession.blades.value, 0);
+  assert.equal(withoutJaggedMind.planningState.profession[STATE.BLADES].value, 0);
   assert.equal(withoutJaggedMind.conditionDamage, 0);
-  assert.equal(withJaggedMind.planningState.profession.blades.value, 1);
+  assert.equal(withJaggedMind.planningState.profession[STATE.BLADES].value, 1);
   assert.ok(withJaggedMind.conditionDamage > 0);
 });
 
@@ -351,7 +352,7 @@ test('configured Virtuoso bladesongs spend blades at cast end', () => {
       (event) => event.type === 'resource' && event.activationId === action.activationId
     );
 
-    assert.equal(result.planningState.profession.blades.value, 0);
+    assert.equal(result.planningState.profession[STATE.BLADES].value, 0);
     assert.equal(spend.amount, -5);
     assert.equal(spend.activationId, result.steps[0].activationId);
     assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001, `${skillName} spent blades before cast end`);
@@ -364,7 +365,7 @@ test('interrupting a bladesong restores its reserved blades', () => {
     defaultSimulationConfig({ initialResource: 5 })
   );
 
-  assert.equal(result.planningState.profession.blades.value, 5);
+  assert.equal(result.planningState.profession[STATE.BLADES].value, 5);
   assert.equal(
     result.events.some(
       (event) => event.type === 'resource' && event.activationId === result.steps[0].activationId && event.amount < 0

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -112,7 +113,7 @@ test('shatter removal keeps surviving tier edits and the current catalog isolate
     result.events.some((event) => event.type === 'condition' && event.condition === 'Torment'),
     false
   );
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 0);
 });
 
 test('removed Virtuoso tier preserves Confusion and blade spending without hit-triggered Maim', () => {
@@ -137,7 +138,7 @@ test('removed Virtuoso tier preserves Confusion and blade spending without hit-t
     result.events.some((event) => event.type === 'condition' && event.condition === 'Torment'),
     false
   );
-  assert.equal(result.planningState.profession.blades.value, 0);
+  assert.equal(result.planningState.profession[STATE.BLADES].value, 0);
 });
 
 test('removed condition wrapper output leaves its shatter strike intact', () => {
@@ -302,8 +303,8 @@ test('removed Flute strike keeps conditions, note spending, and playing state', 
     false
   );
   assert.ok(result.events.some((event) => event.type === 'condition'));
-  assert.equal(result.planningState.profession.notes.value, 0);
-  assert.ok(result.planningState.profession.activeInstruments.some(({ name }) => name === 'Flute'));
+  assert.equal(result.planningState.profession[STATE.NOTES].value, 0);
+  assert.ok(result.planningState.profession[STATE.ACTIVE_INSTRUMENTS].some(({ name }) => name === 'Flute'));
 });
 
 test('removing immediate Syncopate preserves the edited delayed wave', () => {
@@ -340,7 +341,7 @@ test('removing Chronomancer boon preserves its sibling and clone refund', () => 
     false
   );
   assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'quickness'));
-  assert.equal(result.planningState.profession.resource, 1);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 1);
 });
 
 // Core clones use the same fixed entity limit in simulation and presentation.
@@ -350,7 +351,7 @@ test('fixed clone capacity is shared by simulation and presentation', () => {
     initialResource: 10
   });
   const maximum = mesmerCoreUi.resourceViews({ catalog: mesmerCatalog })[0].maximum;
-  assert.equal(result.planningState.profession.resource, maximum);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], maximum);
 });
 
 test('removing the first Fury packet keeps the edited allied packet bound to allies', () => {
@@ -416,7 +417,7 @@ test('removed mirror window never creates pickup state and zero forge interval d
     [{ type: 'wait', durationMs: 4000 }],
     { selectedTraitIds: [TRAIT.INFINITE_FORGE] }
   );
-  assert.equal(virtuoso.planningState.profession.blades.value, 0);
+  assert.equal(virtuoso.planningState.profession[STATE.BLADES].value, 0);
 });
 
 test('tick edits survive deletion of a lower Virtuoso resource tier', () => {

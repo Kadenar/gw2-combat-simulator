@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -158,8 +159,8 @@ test('EI Unravel identity synchronizes both hands without replaying its generate
       })
     });
     assert.deepEqual(simulation.warnings, []);
-    assert.equal(simulation.planningState.profession.primaryAttunement, 'Fire');
-    assert.equal(simulation.planningState.profession.secondaryAttunement, 'Fire');
+    assert.equal(simulation.planningState.profession[STATE.PRIMARY_ATTUNEMENT], 'Fire');
+    assert.equal(simulation.planningState.profession[STATE.SECONDARY_ATTUNEMENT], 'Fire');
   }
 });
 

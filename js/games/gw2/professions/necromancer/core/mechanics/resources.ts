@@ -5,6 +5,7 @@ import { nextNecromancerPassiveGain } from '#gw2/professions/necromancer/core/me
 import type { NecromancerRuntime, NecromancerUiContext } from '#gw2/professions/necromancer/types.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Wake that ends a draining shroud once life force runs out; the Core hooks own its task handler. */
 export const DEPLETION = 'necromancer.life-force-depleted';
@@ -16,7 +17,7 @@ export const necromancerLifeForce: ResourcePolicy<NecromancerRuntime> = {
   maximum(context: NecromancerRuntime | NecromancerUiContext) {
     // Live and projected pools expose points; an uninitialized starting control exposes only percentages.
     const live = readProfessionCoreState<NecromancerCoreState>(context.profession).lifeForce;
-    const projected = 'professionState' in context ? context.professionState?.lifeForce : undefined;
+    const projected = 'professionState' in context ? context.professionState?.[STATE.LIFE_FORCE] : undefined;
     return (live ?? projected)?.maximum ?? 100;
   },
   initial: (runtime, maximum) => ((runtime.config.initialResource ?? 100) * maximum) / 100,

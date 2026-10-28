@@ -1,6 +1,7 @@
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
 import type { ResolvedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 /**
  * Shared model for profession slot skills chosen as fixed packages rather than
  * as independent skills (for example, a Revenant legend and its entire bar).
@@ -244,8 +245,8 @@ export function createFixedSlotLoadout<TBuild extends object = Record<string, un
   function activeId(context: SlotLoadoutContext, selected: string[]): string {
     const profession = context.professionState;
     const projectedId =
-      profession && typeof profession === 'object' && 'activeLoadoutId' in profession
-        ? profession.activeLoadoutId
+      profession && typeof profession === 'object' && STATE.ACTIVE_LOADOUT_ID in profession
+        ? profession[STATE.ACTIVE_LOADOUT_ID]
         : undefined;
     const activeId = stableId(projectedId);
     return selected.includes(activeId)

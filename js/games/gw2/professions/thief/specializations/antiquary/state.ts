@@ -5,15 +5,11 @@ import {
   type ChargeGrant
 } from '#gw2/platform/combat/resources/charges.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import {
-  defineProfessionSpecializationState,
-  definePublicStateDefaults,
-  projectPublicProfessionState,
-  flattenProfessionState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { ThiefArtifactKind } from '#gw2/professions/thief/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface ThiefArtifactSlot {
   readonly kind: ThiefArtifactKind;
@@ -60,33 +56,25 @@ export function createAntiquaryState(): AntiquaryState {
   };
 }
 
-// Publish Antiquary's visible resources and windows; artifact outcomes and sequence counters remain runtime-only.
-export const ANTIQUARY_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  artifactSlots: [],
-  artifactUsesRemaining: 0,
-  initiativeSpentSincePilfer: 0,
-  scoundrelsLuck: 0,
-
-  nextSkrittScufflePilferAt: 0,
-  antiquaryDamageUntil: 0,
-  combatHighExpirations: [],
-  bonusStealthAttack: grantCharges(0, 0),
-  mistburn: grantCharges(0, 0),
-  kryptisDamageUntil: 0,
-  chakInitiativeRefunds: [],
-  holoUtilityCooldownReductionExpirations: [],
-  forgedSurferBombDropUntil: 0
-} satisfies Partial<AntiquaryState>);
-
 export const antiquaryState = defineProfessionSpecializationState('Antiquary', createAntiquaryState);
 
 /** Detach public grants and stacks before expiring them so observations never consume live entitlements. */
 export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput) {
-  const state = projectPublicProfessionState(
-    flattenProfessionState(input.profession) as unknown as AntiquaryState,
-    ANTIQUARY_PUBLIC_STATE_PROJECTION.keys,
-    ANTIQUARY_PUBLIC_STATE_PROJECTION.defaults
-  );
+  const state = cloneStateFields(antiquaryState.from(input), [
+    'artifactSlots',
+    'artifactUsesRemaining',
+    'initiativeSpentSincePilfer',
+    'scoundrelsLuck',
+    'nextSkrittScufflePilferAt',
+    'antiquaryDamageUntil',
+    'combatHighExpirations',
+    'bonusStealthAttack',
+    'mistburn',
+    'kryptisDamageUntil',
+    'chakInitiativeRefunds',
+    'holoUtilityCooldownReductionExpirations',
+    'forgedSurferBombDropUntil'
+  ]);
   expireCharges(state.mistburn, input.time);
   state.chakInitiativeRefunds = activeChargeGrants(state.chakInitiativeRefunds, input.time);
   state.combatHighExpirations = purgeExpiredStacks(state.combatHighExpirations, input.time);
@@ -94,5 +82,19 @@ export function projectAntiquaryPlanningState(input: Gw2PlanningStateInput) {
     state.holoUtilityCooldownReductionExpirations,
     input.time
   );
-  return state;
+  return {
+    [STATE.BONUS_STEALTH_ATTACK]: state.bonusStealthAttack,
+    [STATE.ARTIFACT_SLOTS]: state.artifactSlots,
+    [STATE.ARTIFACT_USES_REMAINING]: state.artifactUsesRemaining,
+    [STATE.SCOUNDRELS_LUCK]: state.scoundrelsLuck,
+    [STATE.INITIATIVE_SPENT_SINCE_PILFER]: state.initiativeSpentSincePilfer,
+    [STATE.NEXT_SKRITT_SCUFFLE_PILFER_AT]: state.nextSkrittScufflePilferAt,
+    [STATE.ANTIQUARY_DAMAGE_UNTIL]: state.antiquaryDamageUntil,
+    [STATE.COMBAT_HIGH_EXPIRATIONS]: state.combatHighExpirations,
+    [STATE.MISTBURN]: state.mistburn,
+    [STATE.KRYPTIS_DAMAGE_UNTIL]: state.kryptisDamageUntil,
+    [STATE.CHAK_INITIATIVE_REFUNDS]: state.chakInitiativeRefunds,
+    [STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS]: state.holoUtilityCooldownReductionExpirations,
+    [STATE.FORGED_SURFER_BOMB_DROP_UNTIL]: state.forgedSurferBombDropUntil
+  };
 }

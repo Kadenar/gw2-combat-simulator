@@ -1,5 +1,3 @@
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
-import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
 /**
  * Renders normalized profession resource views in the rotation builder.
  *
@@ -14,6 +12,8 @@ import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
  * Mesmer notes and Revenant affinity emblems. Pip capacity is also exposed so
  * density can follow the resource shape without specialization selectors.
  */
+import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
 import type {
   ProfessionResourceView,
   ProfessionResourceViewContext
@@ -28,6 +28,7 @@ import {
   professionPlanningState
 } from '#gw2/app/rotation/context.js';
 import { boundedNumber, clamp, finiteNumber } from '#kernel/core/numeric.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface PaletteResourceView {
   readonly id: string;
@@ -117,7 +118,7 @@ function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceV
     build: app.build,
     // Profession views use scheduler seconds for their live cooldown labels.
     simulationTime: Number(palettePlanningState(app)?.atSeconds || 0),
-    value: professionState.resource ?? app.build?.initialResource,
+    value: professionState[STATE.RESOURCE] ?? app.build?.initialResource,
     professionState,
     initialResource: app.build?.initialResource,
     initialBlight: app.build?.initialBlight,
@@ -350,7 +351,7 @@ export function renderStartResource(app: ProfessionAppState): void {
     specialization: activeSpecialization(app),
     build: app.build,
     professionState,
-    value: professionState.resource ?? app.build.initialResource,
+    value: professionState[STATE.RESOURCE] ?? app.build.initialResource,
     initialResource: app.build.initialResource,
     initialBlight: app.build.initialBlight,
     initialCascadingCorruptionStacks: app.build.initialCascadingCorruptionStacks

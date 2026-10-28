@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { barrierEnginePassive } from '#gw2/professions/engineer/specializations/mechanist/traits/index.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -293,7 +294,7 @@ test('Holosmith dodge admits Vigor and vent together while PBM preserves heat in
           result.events.some((event) => event.type === 'damage' && event.skillId === ID.VENT_EXHAUST),
           active && !pbm
         );
-        assert.equal(result.planningState.profession.heat.value, active && !pbm ? 35 : 50);
+        assert.equal(result.planningState.profession[STATE.HEAT].value, active && !pbm ? 35 : 50);
       }
 });
 

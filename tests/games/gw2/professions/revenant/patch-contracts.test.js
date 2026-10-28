@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { revenantTooltips } from '#gw2/professions/revenant/app/tooltips.js';
 import assert from 'node:assert/strict';
@@ -344,7 +345,10 @@ test('Revenant stack displays use patched skill and selected trait caps', () => 
         specialization: 'Renegade',
         ...selection,
         atSeconds: 1,
-        professionState: { crushingAbyss: Array(9).fill(10), kallasFervor: Array(9).fill({ at: 0, expiresAt: 10 }) }
+        professionState: {
+          [STATE.CRUSHING_ABYSS]: Array(9).fill(10),
+          [STATE.KALLAS_FERVOR]: Array(9).fill({ at: 0, expiresAt: 10 })
+        }
       };
       const values = Object.fromEntries(
         revenantProfession.ui.rotationStateSnapshot(context).map((item) => [item.id, item.value])

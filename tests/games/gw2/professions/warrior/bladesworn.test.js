@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -97,8 +98,8 @@ test('Bladesworn redirects trait and signet grants while ordinary hits produce n
   close(state(trained).flow.value - state(critical).flow.value, 2);
   const signet = run([combat, wait(3000)], { selectedSkillIds: [14355] });
   close(state(signet).flow.value, 8);
-  assert.equal(signet.planningState.profession.adrenaline.value, 0);
-  assert.equal(signet.planningState.profession.adrenaline.maximum, 0);
+  assert.equal(signet.planningState.profession[STATE.ADRENALINE].value, 0);
+  assert.equal(signet.planningState.profession[STATE.ADRENALINE].maximum, 0);
 });
 
 test('Flow caps use the selected profile', () => {
@@ -695,7 +696,7 @@ test('cartridges activate on the queue, upgrade once, and expire without another
   );
   assert.equal(state(thrice).overchargedCartridgeWindows.at(-1).expiresAt, upgraded.expiresAt);
   const expired = run(['Overcharged Cartridges', wait(9000)], config);
-  assert.deepEqual(expired.planningState.profession.overchargedCartridgeWindows, []);
+  assert.deepEqual(expired.planningState.profession[STATE.OVERCHARGED_CARTRIDGE_WINDOWS], []);
   const canceled = run([{ name: 'Overcharged Cartridges', interruptAfterMs: 1 }, wait(1000)], config);
   assert.deepEqual(state(canceled).overchargedCartridgeWindows, []);
 });

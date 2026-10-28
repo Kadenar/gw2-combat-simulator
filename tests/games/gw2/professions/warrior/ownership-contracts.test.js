@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
 import { berserkersPower } from '#gw2/professions/warrior/core/traits/strength/index.js';
@@ -38,8 +39,8 @@ test('Warrior initialization and displays share fixed Core and selected elite ca
       const result = observeGw2Runtime({ profession: family.runtimeFor(config), config, rotation: [] });
       assert.deepEqual(result.warnings, []);
       const state = result.planningState.profession;
-      assert.equal(state.adrenaline.maximum, adrenalineCap);
-      assert.equal(state.adrenaline.value, Math.min(initialResource, adrenalineCap));
+      assert.equal(state[STATE.ADRENALINE].maximum, adrenalineCap);
+      assert.equal(state[STATE.ADRENALINE].value, Math.min(initialResource, adrenalineCap));
       const resources = family.ui.resourceViews({
         specialization,
         catalog: family.resolvePatch({ id: patchId }).catalog,

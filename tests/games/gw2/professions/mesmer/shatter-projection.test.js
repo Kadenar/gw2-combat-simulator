@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
@@ -190,7 +191,7 @@ test('removed blade strikes retain condition facts and combat applications witho
     result.events.some((event) => event.type === 'condition' && event.condition === 'Torment'),
     false
   );
-  assert.equal(result.planningState.profession.blades.value, 0);
+  assert.equal(result.planningState.profession[STATE.BLADES].value, 0);
 });
 
 // Control shatters project the entire emitted skill payload, including Time Sink's companion condition.

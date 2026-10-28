@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
@@ -8,22 +9,22 @@ import { clampStartingResourceValues } from '#gw2/app/build/panels/traits.js';
 
 // Every resource presentation must consume a bounded canonical planning pool without requiring browser navigation.
 for (const [professionId, elite, resourceId, key] of [
-  ['mesmer', 'Virtuoso', 'blades', 'blades'],
-  ['mesmer', 'Troubadour', 'notes', 'notes'],
-  ['engineer', 'Holosmith', 'heat', 'heat'],
-  ['thief', null, 'initiative', 'initiative'],
-  ['thief', 'Deadeye', 'malice', 'malice'],
-  ['guardian', 'Firebrand', 'pages', 'tomePages'],
-  ['ranger', 'Galeshot', 'arrows', 'arrows'],
-  ['ranger', 'Galeshot', 'wind-force', 'windForce'],
-  ['revenant', null, 'energy', 'energy'],
-  ['necromancer', null, 'life-force', 'lifeForce'],
-  ['elementalist', 'Catalyst', 'catalyst-energy', 'catalystEnergy'],
-  ['elementalist', 'Evoker', 'evoker-charges', 'familiarCharges'],
-  ['warrior', 'Paragon', 'motivation', 'motivation'],
-  ['warrior', 'Paragon', 'adrenaline', 'adrenaline'],
-  ['warrior', 'Bladesworn', 'flow', 'flow'],
-  ['revenant', 'Conduit', 'affinity', 'affinity']
+  ['mesmer', 'Virtuoso', 'blades', STATE.BLADES],
+  ['mesmer', 'Troubadour', 'notes', STATE.NOTES],
+  ['engineer', 'Holosmith', 'heat', STATE.HEAT],
+  ['thief', null, 'initiative', STATE.INITIATIVE],
+  ['thief', 'Deadeye', 'malice', STATE.MALICE],
+  ['guardian', 'Firebrand', 'pages', STATE.TOME_PAGES],
+  ['ranger', 'Galeshot', 'arrows', STATE.ARROWS],
+  ['ranger', 'Galeshot', 'wind-force', STATE.WIND_FORCE],
+  ['revenant', null, 'energy', STATE.ENERGY],
+  ['necromancer', null, 'life-force', STATE.LIFE_FORCE],
+  ['elementalist', 'Catalyst', 'catalyst-energy', STATE.CATALYST_ENERGY],
+  ['elementalist', 'Evoker', 'evoker-charges', STATE.FAMILIAR_CHARGES],
+  ['warrior', 'Paragon', 'motivation', STATE.MOTIVATION],
+  ['warrior', 'Paragon', 'adrenaline', STATE.ADRENALINE],
+  ['warrior', 'Bladesworn', 'flow', STATE.FLOW],
+  ['revenant', 'Conduit', 'affinity', STATE.AFFINITY]
 ]) {
   test(professionId + ' ' + (elite ?? 'Core') + ' projects ' + resourceId + ' into the meter', async () => {
     const { profession } = await loadProfessionAppAdapter(professionId);
@@ -44,9 +45,9 @@ for (const [professionId, elite, resourceId, key] of [
     assert.ok(Number.isFinite(view.maximum) && view.maximum > 0);
     assert.ok(view.value >= 0 && view.value <= view.maximum);
 
-    if (key === 'familiarCharges') {
+    if (key === STATE.FAMILIAR_CHARGES) {
       // Evoker combines the familiar pool with a separately projected empowered pool in one dial.
-      const empowered = planning.profession.empoweredCharges;
+      const empowered = planning.profession[STATE.EMPOWERED_CHARGES];
       assert.ok(Number.isFinite(empowered.value));
       assert.ok(Number.isFinite(empowered.maximum) && empowered.maximum > 0);
       assert.ok(empowered.value >= 0 && empowered.value <= empowered.maximum);

@@ -1,15 +1,13 @@
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /**
  * Runtime state Weaver owns on top of the Elementalist core, which keeps the
  * main-hand (primary) attunement: the off-hand element plus the expiry stamps
- * for Unravel, Weave Self / Perfect Weave, Fervent Stance, and the Superior
- * Elements internal cooldown.
+ * for Unravel, Weave Self / Perfect Weave, and Fervent Stance.
  */
 export interface WeaverState {
   secondaryAttunement: ElementalistAttunement | null;
@@ -41,13 +39,15 @@ export const weaverState = defineProfessionSpecializationState(
   })
 );
 
-// Weaver owns dual-attunement state and its public stance windows.
-/** Keys the Elementalist end-state projection publishes on the simulation result. */
-export const WEAVER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  secondaryAttunement: null,
-  unravelUntil: 0,
-  weaveSelfUntil: 0,
-  weaveSelfVisited: [],
-  perfectWeaveUntil: 0,
-  ferventStanceUntil: 0
-} satisfies Partial<WeaverState>);
+/** Publish detached, typed facts from Weaver's owner; unrelated runtime fields cannot overwrite them. */
+export function projectWeaverPlanningState(input: Gw2PlanningStateInput) {
+  const state = weaverState.from(input);
+  return {
+    [STATE.SECONDARY_ATTUNEMENT]: state.secondaryAttunement,
+    [STATE.UNRAVEL_UNTIL]: state.unravelUntil,
+    [STATE.WEAVE_SELF_UNTIL]: state.weaveSelfUntil,
+    [STATE.WEAVE_SELF_VISITED]: [...state.weaveSelfVisited],
+    [STATE.PERFECT_WEAVE_UNTIL]: state.perfectWeaveUntil,
+    [STATE.FERVENT_STANCE_UNTIL]: state.ferventStanceUntil
+  };
+}

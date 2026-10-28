@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
@@ -29,8 +30,8 @@ test('Catalyst initializes one detached clock with the selected cap and seed', (
       assert.equal(runtime.resourceController.value('catalystEnergy'), expected);
       assert.equal(live.catalystEnergy.maximum, maximumStacks);
       assert.equal(live.catalystEnergy.rate, 0);
-      assert.deepEqual(projected.catalystEnergy, live.catalystEnergy);
-      assert.notEqual(projected.catalystEnergy, live.catalystEnergy);
+      assert.deepEqual(projected[STATE.CATALYST_ENERGY], live.catalystEnergy);
+      assert.notEqual(projected[STATE.CATALYST_ENERGY], live.catalystEnergy);
       for (const state of [live, projected]) {
         assert.equal(Object.hasOwn(state, 'energy'), false);
         assert.equal(Object.hasOwn(state, 'maximumEnergy'), false);
@@ -38,7 +39,10 @@ test('Catalyst initializes one detached clock with the selected cap and seed', (
     }
   }
 
-  assert.equal(runElementalist([], { specialization: 'Catalyst' }).planningState.profession.catalystEnergy.maximum, 30);
+  assert.equal(
+    runElementalist([], { specialization: 'Catalyst' }).planningState.profession[STATE.CATALYST_ENERGY].maximum,
+    30
+  );
 });
 
 // Denial must leave energy, cooldowns, and sphere windows untouched; exact funding spends once at deployment.
@@ -111,7 +115,7 @@ test('Catalyst hit rewards preserve eligibility, sphere suppression, and actual 
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.catalystEnergy.value, expected);
+    assert.equal(result.planningState.profession[STATE.CATALYST_ENERGY].value, expected);
   }
 
   const result = runElementalist(
@@ -131,7 +135,7 @@ test('Catalyst hit rewards preserve eligibility, sphere suppression, and actual 
       }
     }
   );
-  assert.equal(result.planningState.profession.catalystEnergy.value, 30);
+  assert.equal(result.planningState.profession[STATE.CATALYST_ENERGY].value, 30);
   assert.deepEqual(
     result.events.filter((event) => event.kind === 'catalyst-energy').map((event) => event.change),
     [0.5]
@@ -165,7 +169,7 @@ test('Energized Elements immediately funds deployment and reports only actual en
     [8, -8]
   );
   assert.equal(changes[0].at, changes[1].at);
-  assert.equal(result.planningState.profession.catalystEnergy.value, 0);
+  assert.equal(result.planningState.profession[STATE.CATALYST_ENERGY].value, 0);
   assert.ok(result.resolvedEvents.some((event) => event.kind === 'fury' && event.source === 'Energized Elements'));
 });
 

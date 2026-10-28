@@ -19,6 +19,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Both displays select the same trait-dependent cap as runtime Fervor grants. */
 function fervorMaximum(context: RevenantUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>): number {
@@ -45,7 +46,9 @@ function renegadeStateSnapshot(
   const state = revenantUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
-  const fervor = (state.kallasFervor || []).filter((stack) => (stack.at || 0) <= at && (stack.expiresAt || 0) > at);
+  const fervor = (state[STATE.KALLAS_FERVOR] || []).filter(
+    (stack) => (stack.at || 0) <= at && (stack.expiresAt || 0) > at
+  );
 
   if (fervor.length) {
     const maximum = fervorMaximum(context);

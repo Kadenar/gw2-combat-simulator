@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -24,14 +25,14 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
   const finalState = planningState({
     atSeconds: 9,
     activeWeaponSet: 2,
-    profession: { resource: 5 }
+    profession: { [STATE.RESOURCE]: 5 }
   });
   const checkpoint = planningState({
     atSeconds: 1.2,
     cooldowns: {
       1: { remaining: 3800, readyAt: 5000 }
     },
-    profession: { resource: 2 }
+    profession: { [STATE.RESOURCE]: 2 }
   });
   let previewCount = 0;
   const app = {
@@ -56,7 +57,7 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
   };
 
   assert.equal(palettePlanningState(app), checkpoint);
-  assert.deepEqual(paletteProfessionState(app), { resource: 2 });
+  assert.deepEqual(paletteProfessionState(app), { [STATE.RESOURCE]: 2 });
   assert.equal(
     paletteSkillView(app, {
       id: 1,
@@ -126,13 +127,13 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
     assert.deepEqual(result.warnings, []);
     const beforeHit = adapter.rotationPlanningStateAt(app, 2);
     assert.equal(beforeHit.atSeconds, 1);
-    assert.ok(Math.abs(beforeHit.profession.flow.value - 4) < 1e-9);
+    assert.ok(Math.abs(beforeHit.profession[STATE.FLOW].value - 4) < 1e-9);
     const beforeMarker = adapter.rotationPlanningStateAt(app, 3);
     const afterMarker = adapter.rotationPlanningStateAt(app, 4);
     assert.equal(beforeMarker.atSeconds, afterMarker.atSeconds);
-    assert.equal(beforeMarker.profession.flow.value, afterMarker.profession.flow.value);
+    assert.equal(beforeMarker.profession[STATE.FLOW].value, afterMarker.profession[STATE.FLOW].value);
     const expectedFlow = 4 * beforeMarker.atSeconds + 2 * (beforeMarker.atSeconds - result.combatStartTime);
-    assert.ok(Math.abs(beforeMarker.profession.flow.value - expectedFlow) < 1e-9);
+    assert.ok(Math.abs(beforeMarker.profession[STATE.FLOW].value - expectedFlow) < 1e-9);
   }
 });
 

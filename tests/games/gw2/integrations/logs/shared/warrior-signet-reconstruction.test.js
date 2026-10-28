@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -191,6 +192,6 @@ for (const format of ['dps.report', 'evtc']) {
       config: defaultSimulationConfig({ specialization: 'Spellbreaker', initialResource: 0 })
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.adrenaline.value, 20);
+    assert.equal(result.planningState.profession[STATE.ADRENALINE].value, 20);
   });
 }

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -101,11 +102,11 @@ test('instrument commitment requires a performance that was not cancelled', () =
 
     assert.equal(cancelled.events.find((event) => event.type === 'action').cancelled, true);
     assert.deepEqual(cancelled.warnings, []);
-    assert.equal(cancelled.planningState.profession.notes.value, 3);
-    assert.deepEqual(cancelled.planningState.profession.activeInstruments, []);
-    assert.equal(completed.planningState.profession.notes.value, 0);
-    assert.equal(completed.planningState.profession.activeInstruments[0].name, instrument);
-    assert.ok(completed.planningState.profession.activeInstruments[0].remaining > 0);
+    assert.equal(cancelled.planningState.profession[STATE.NOTES].value, 3);
+    assert.deepEqual(cancelled.planningState.profession[STATE.ACTIVE_INSTRUMENTS], []);
+    assert.equal(completed.planningState.profession[STATE.NOTES].value, 0);
+    assert.equal(completed.planningState.profession[STATE.ACTIVE_INSTRUMENTS][0].name, instrument);
+    assert.ok(completed.planningState.profession[STATE.ACTIVE_INSTRUMENTS][0].remaining > 0);
   }
 });
 

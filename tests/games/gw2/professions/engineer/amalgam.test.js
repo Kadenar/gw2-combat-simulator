@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
@@ -231,7 +232,10 @@ test('Evolve grants each selected protocol strain without leaking it to casts', 
 
   assert.equal(berserker.stacks, 5);
   assert.equal(berserker.duration, 8);
-  assert.equal(result.planningState.profession.berserkerUntil, result.planningState.profession.evolvedUntil);
+  assert.equal(
+    result.planningState.profession[STATE.BERSERKER_UNTIL],
+    result.planningState.profession[STATE.EVOLVED_UNTIL]
+  );
 
   const demolish = simulate('Amalgam', [76954], {
     selectedMorphSkillIds: [77103, 77203, 76954]

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
@@ -70,7 +71,7 @@ test('Clarity consumption and its derived timer exclude exact expiry without mut
     const effect = mesmerEffectStates(runtime)[0];
     assert.equal(effectStateValue(effect, at).count, at < 5 ? 1 : 0);
 
-    if (at >= 5) assert.equal(projectObservedState(mesmerProfession, runtime).clarityRemaining, 0);
+    if (at >= 5) assert.equal(projectObservedState(mesmerProfession, runtime)[STATE.CLARITY_REMAINING], 0);
 
     assert.deepEqual(core.clarity, before);
     assert.equal(consumeMesmerClarity(runtime, at), at < 5);
@@ -82,12 +83,12 @@ test('Clarity observation remains detached after acceptance spends the owner gra
   const { runtime, core, apply } = fixture();
   apply(1, 4);
   const effect = mesmerEffectStates(runtime)[0];
-  assert.equal(projectObservedState(mesmerProfession, runtime).clarityRemaining, 4000);
+  assert.equal(projectObservedState(mesmerProfession, runtime)[STATE.CLARITY_REMAINING], 4000);
   assert.equal(consumeMesmerClarity(runtime, 1), true);
   assert.equal(core.clarity.charges, 0);
   assert.equal(effectStateValue(effect, 1).count, 1);
   assert.equal(effectStateValue(mesmerEffectStates(runtime)[0], 1).count, 0);
-  assert.equal(projectObservedState(mesmerProfession, runtime).clarityRemaining, 0);
+  assert.equal(projectObservedState(mesmerProfession, runtime)[STATE.CLARITY_REMAINING], 0);
 });
 
 test('a nonqualifying spear attack preserves Clarity while a canceled qualifying acceptance spends it', () => {
@@ -104,6 +105,6 @@ test('a nonqualifying spear attack preserves Clarity while a canceled qualifying
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(result.events.find((event) => event.type === 'action').cancelled, canceled);
-    assert.equal(result.planningState.profession.clarityRemaining > 0, !canceled);
+    assert.equal(result.planningState.profession[STATE.CLARITY_REMAINING] > 0, !canceled);
   }
 });

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -124,8 +125,8 @@ test('Necromancer stores and displays life-force points while starting settings 
     assert.equal(view.maximum, Math.round(expectedCapacity), specialization);
     assert.equal(view.value, Math.round(expectedCapacity * 0.8), specialization);
     assert.equal(view.startMaximum, 100);
-    assert.ok(Math.abs(state.lifeForce.maximum - expectedCapacity) < 1e-8);
-    assert.ok(Math.abs(state.lifeForce.value - expectedCapacity * 0.8) < 1e-8);
+    assert.ok(Math.abs(state[STATE.LIFE_FORCE].maximum - expectedCapacity) < 1e-8);
+    assert.ok(Math.abs(state[STATE.LIFE_FORCE].value - expectedCapacity * 0.8) < 1e-8);
   }
 });
 
@@ -134,10 +135,10 @@ test('Necromancer resources and palette change with specialization state', () =>
     catalog: necromancerProfession.catalog,
     specialization: 'Harbinger',
     professionState: {
-      lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+      [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
 
-      blight: 12,
-      cascadingCorruptionStacks: 7
+      [STATE.BLIGHT]: 12,
+      [STATE.CASCADING_CORRUPTION_STACKS]: 7
     }
   });
   const scourgeResources = necromancerProfession.ui.resourceViews({
@@ -147,10 +148,10 @@ test('Necromancer resources and palette change with specialization state', () =>
       weapons: ['Spear', '']
     },
     professionState: {
-      lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+      [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
 
-      soulShardGrant: { charges: 4, expiresAt: 10 },
-      shades: [10, 20]
+      [STATE.SOUL_SHARD_GRANT]: { charges: 4, expiresAt: 10 },
+      [STATE.SHADES]: [10, 20]
     }
   });
   const reaperEntry = necromancerProfession.ui.paletteGroups({
@@ -160,15 +161,15 @@ test('Necromancer resources and palette change with specialization state', () =>
   const reaperBar = necromancerProfession.ui.paletteGroups({
     specialization: 'Reaper',
     professionState: {
-      activeShroud: 'reaper',
-      availableFlips: { [ID.EXIT_REAPERS_SHROUD]: armSkillFlip({}, 0, 0, Infinity) }
+      [STATE.ACTIVE_SHROUD]: 'reaper',
+      [STATE.AVAILABLE_FLIPS]: { [ID.EXIT_REAPERS_SHROUD]: armSkillFlip({}, 0, 0, Infinity) }
     }
   });
   const ritualistPalette = necromancerProfession.ui.paletteGroups({
     specialization: 'Ritualist',
     professionState: {
-      activeShroud: '',
-      activeSpirits: {}
+      [STATE.ACTIVE_SHROUD]: '',
+      [STATE.ACTIVE_SPIRITS]: {}
     }
   });
 
@@ -225,7 +226,7 @@ test('Necromancer resources and palette change with specialization state', () =>
       build: {
         specializations: [{ name: 'Harbinger', traits: '3-3-1' }]
       },
-      professionState: { blight: 12, cascadingCorruptionStacks: 7 }
+      professionState: { [STATE.BLIGHT]: 12, [STATE.CASCADING_CORRUPTION_STACKS]: 7 }
     }),
     [
       {
@@ -252,10 +253,10 @@ test('Necromancer resources and palette change with specialization state', () =>
           alternateWeapons: ['Spear', '']
         },
         professionState: {
-          lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+          [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
 
-          blight: 12,
-          soulShardGrant: { charges: 4, expiresAt: 10 }
+          [STATE.BLIGHT]: 12,
+          [STATE.SOUL_SHARD_GRANT]: { charges: 4, expiresAt: 10 }
         }
       })
       .map((resource) => resource.id),
@@ -358,10 +359,10 @@ test('Necromancer renders life force above its F-skills', async () => {
       cooldowns: {},
       ammoBySkillId: {},
       profession: {
-        lifeForce: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+        [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
 
-        soulShardGrant: { charges: 0, expiresAt: 10 },
-        shades: [10, 20]
+        [STATE.SOUL_SHARD_GRANT]: { charges: 0, expiresAt: 10 },
+        [STATE.SHADES]: [10, 20]
       }
     }
   };
@@ -383,7 +384,7 @@ test('Necromancer renders life force above its F-skills', async () => {
     palette.innerHTML,
     /profession-palette-resource-group resource-beside[\s\S]*necromancer-f-skills[\s\S]*data-resource-id="soul-shards"/
   );
-  app.results.planningState.profession.soulShardGrant.charges = 4;
+  app.results.planningState.profession[STATE.SOUL_SHARD_GRANT].charges = 4;
   globalThis.document = {
     querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
@@ -413,11 +414,11 @@ test('Necromancer shroud transitions stay adjacent and toggle availability', () 
   ]) {
     const inactiveContext = {
       specialization,
-      professionState: { activeShroud: '' }
+      professionState: { [STATE.ACTIVE_SHROUD]: '' }
     };
     const activeContext = {
       specialization,
-      professionState: { activeShroud: shroud }
+      professionState: { [STATE.ACTIVE_SHROUD]: shroud }
     };
 
     for (const context of [inactiveContext, activeContext]) {

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
@@ -112,13 +113,13 @@ test('Guardian planning projections detach visible resources and entitlement fro
   const result = runGuardian(['Virtue of Justice', 'Orb of Wrath']);
   const runtime = observedRuntime(result);
   assert.equal(runtime.profession.core.justiceActiveArmed, false);
-  assert.equal(result.planningState.profession.justiceActiveArmed, false);
+  assert.equal(result.planningState.profession[STATE.JUSTICE_ACTIVE_ARMED], false);
   const projected = projectObservedState(guardianProfession, { profession: runtime.profession, time: runtime.time });
   const liveEndurance = runtime.profession.core.endurance.value;
-  projected.endurance.value = 99;
+  projected[STATE.ENDURANCE].value = 99;
   runtime.profession.core.justiceActiveArmed = true;
   assert.equal(runtime.profession.core.endurance.value, liveEndurance);
-  assert.equal(result.planningState.profession.justiceActiveArmed, false);
+  assert.equal(result.planningState.profession[STATE.JUSTICE_ACTIVE_ARMED], false);
 });
 
 test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks independently', () => {
@@ -164,7 +165,7 @@ test('Symbolic Avenger replaces the oldest stack at its cap and expires stacks i
       stacks * 0.01
     );
     const projected = projectObservedState(guardianProfession, { profession, time: at });
-    assert.equal(projected.symbolicAvengerExpirations.length, stacks);
+    assert.equal(projected[STATE.SYMBOLIC_AVENGER_EXPIRATIONS].length, stacks);
     assert.equal(profession.core.symbolicAvengerExpirations.length, 5);
     const items = guardianCoreUi.rotationStateSnapshot({
       balanceContext: { catalog: guardianCatalog, modifierRulesById: new Map() },
@@ -210,7 +211,7 @@ test('Zeal symbol traits emit their full profiles and stack damage', () => {
     projectObservedState(guardianProfession, {
       profession: observedRuntime(symbols).profession,
       time: symbols.combatEndTime
-    }).symbolicAvengerExpirations.length,
+    })[STATE.SYMBOLIC_AVENGER_EXPIRATIONS].length,
     5
   );
   assert.ok(blades.at(-1).damage > blades[0].damage);
@@ -614,9 +615,9 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     activeBurning.every((event) => event.duration === 2),
     true
   );
-  assert.equal(result.planningState.profession.tetherUntil, 0);
+  assert.equal(result.planningState.profession[STATE.TETHER_UNTIL], 0);
   // The observation ends after the tether, so its expired flip must not remain in planning state.
-  assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.HUNTERS_VERDICT], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][GUARDIAN_SKILL_IDS.HUNTERS_VERDICT], undefined);
   assert.equal(
     buffs.some((event) => event.kind === 'aegis' && event.skillName === 'Shield of Courage' && event.duration === 20),
     true
@@ -783,7 +784,7 @@ test('Dragonhunter traps and control traits apply their complete effects', () =>
     maw.procSteps.some((step) => step.skill === "Hunter's Determination"),
     true
   );
-  assert.equal(maw.planningState.profession.endurance.value, 100);
+  assert.equal(maw.planningState.profession[STATE.ENDURANCE].value, 100);
 });
 
 test('Dragonhunter relic boosts the triggering trap hit and expires for later attacks', () => {
@@ -898,7 +899,7 @@ test('Luminary UI excludes virtue aliases and lists the forge exit once', () => 
   })[0].skillIds;
   const professionSkillNames = professionSkillIds.map((id) => guardianCatalog.skillsById.get(id)?.name);
 
-  assert.equal(result.planningState.profession.availableFlips[GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE], undefined);
   assert.equal(professionSkillNames.includes('Spear of Justice'), false);
   assert.equal(professionSkillNames.filter((name) => name === 'Exit Radiant Forge').length, 1);
 });
@@ -913,8 +914,8 @@ test('elite specializations expose their profession mechanics', () => {
     .paletteGroups({
       specialization: 'Firebrand',
       professionState: {
-        activeTome: 'justice',
-        tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
+        [STATE.ACTIVE_TOME]: 'justice',
+        [STATE.TOME_PAGES]: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity }
       }
     })
     .flatMap((group) => group.skillIds);
@@ -923,9 +924,9 @@ test('elite specializations expose their profession mechanics', () => {
     specialization: 'Firebrand',
     simulationTime: 10,
     professionState: {
-      tomePages: { value: 3, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity },
+      [STATE.TOME_PAGES]: { value: 3, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity },
 
-      virtueReadyAt: { justice: 20, resolve: 10, courage: 0 }
+      [STATE.VIRTUE_READY_AT]: { justice: 20, resolve: 10, courage: 0 }
     }
   });
 

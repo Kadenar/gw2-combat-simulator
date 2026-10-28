@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -55,18 +56,18 @@ test('Gleam Saber declarations reduce only other sword recharges after commitmen
 // Removing a declaration must remove its intrinsic state change, without an ID-based hook restoring it.
 test('Engineer lifecycle state follows the skill declarations', () => {
   for (const [skillId, config, active] of [
-    [ID.GRENADE_KIT, { selectedSkillIds: [5805] }, (state) => state.activeKit === ID.GRENADE_KIT],
-    [ID.ENGAGE_PHOTON_FORGE, { specialization: 'Holosmith' }, (state) => state.photonForgeActive],
-    [ID.EVOLVE_BASE, { specialization: 'Amalgam' }, (state) => state.evolvedUntil > 0],
+    [ID.GRENADE_KIT, { selectedSkillIds: [5805] }, (state) => state[STATE.ACTIVE_KIT] === ID.GRENADE_KIT],
+    [ID.ENGAGE_PHOTON_FORGE, { specialization: 'Holosmith' }, (state) => state[STATE.PHOTON_FORGE_ACTIVE]],
+    [ID.EVOLVE_BASE, { specialization: 'Amalgam' }, (state) => state[STATE.EVOLVED_UNTIL] > 0],
     [
       ID.PLASMATIC_STATE,
       { specialization: 'Amalgam', selectedSkillIds: [77209] },
-      (state) => state.plasmaticStateUntil > 0
+      (state) => state[STATE.PLASMATIC_STATE_UNTIL] > 0
     ],
     [
       ID.HEALING_TURRET,
       { selectedSkillIds: [5857] },
-      (state) => Boolean(state.availableFlips[ID.DETONATE_HEALING_TURRET])
+      (state) => Boolean(state[STATE.AVAILABLE_FLIPS][ID.DETONATE_HEALING_TURRET])
     ]
   ]) {
     for (const declared of [true, false]) {
@@ -182,9 +183,9 @@ test('Overclock declaration and cannon payload independently own activation and 
       independentConditionOwner
     }));
   assert.deepEqual(conditions(removed), conditions(baseline));
-  const busyUntil = baseline.planningState.profession.mech.busyUntil;
+  const busyUntil = baseline.planningState.profession[STATE.MECH].busyUntil;
   assert.ok(busyUntil > 0);
-  assert.equal(removed.planningState.profession.mech.busyUntil, busyUntil);
+  assert.equal(removed.planningState.profession[STATE.MECH].busyUntil, busyUntil);
   for (const result of [baseline, removed]) {
     const autos = result.events.filter((event) => event.type === 'damage' && event.mechBasicAttack);
     assert.ok(autos.length > 0);
@@ -193,5 +194,5 @@ test('Overclock declaration and cannon payload independently own activation and 
 
   assert.deepEqual(cannon(untriggered, 'damage'), []);
   assert.deepEqual(cannon(untriggered, 'condition'), []);
-  assert.equal(untriggered.planningState.profession.mech.busyUntil, 0);
+  assert.equal(untriggered.planningState.profession[STATE.MECH].busyUntil, 0);
 });

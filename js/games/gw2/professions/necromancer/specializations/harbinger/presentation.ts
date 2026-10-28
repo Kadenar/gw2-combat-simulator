@@ -31,6 +31,7 @@ import {
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
 function harbingerStateSnapshot(
@@ -38,9 +39,9 @@ function harbingerStateSnapshot(
 ): RotationStateSnapshotItem[] {
   const state = necromancerUiState(context);
   const maximum = harbingerBlightMaximum(context.balanceContext);
-  const blight = boundedInteger(state.blight || 0, 0, 0, maximum);
+  const blight = boundedInteger(state[STATE.BLIGHT] || 0, 0, 0, maximum);
   const stacks = boundedInteger(
-    state.cascadingCorruptionStacks || 0,
+    state[STATE.CASCADING_CORRUPTION_STACKS] || 0,
     0,
     0,
     MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
@@ -68,7 +69,7 @@ function harbingerStateSnapshot(
   }
 
   // Meltdown is a short post-proc damage window, so expose only its remaining active duration.
-  const meltdownRemaining = (state.meltdownUntil || 0) - Math.max(0, context.atSeconds || 0);
+  const meltdownRemaining = (state[STATE.MELTDOWN_UNTIL] || 0) - Math.max(0, context.atSeconds || 0);
 
   if (meltdownRemaining > 0) {
     items.push({
@@ -209,7 +210,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
         singular: 'blight',
         plural: 'blight',
         maximum: harbingerBlightMaximum(context),
-        value: Number(necromancerUiState(context).blight ?? context.initialBlight ?? 0),
+        value: Number(necromancerUiState(context)[STATE.BLIGHT] ?? context.initialBlight ?? 0),
         canStart: true,
         buildKey: 'initialBlight',
         step: 1,
@@ -225,7 +226,9 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
         // Maximum is 19, not 20: entering a simulation with 20 stacks would immediately proc Meltdown before any action.
         maximum: 19,
         value: Number(
-          necromancerUiState(context).cascadingCorruptionStacks ?? context.initialCascadingCorruptionStacks ?? 0
+          necromancerUiState(context)[STATE.CASCADING_CORRUPTION_STACKS] ??
+            context.initialCascadingCorruptionStacks ??
+            0
         ),
         canStart: true,
         buildKey: 'initialCascadingCorruptionStacks',

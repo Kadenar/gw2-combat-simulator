@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -391,7 +392,7 @@ test('Troubadour tales grant their boons and instrument-specific notes', () => {
       })
     );
 
-    assert.equal(result.planningState.profession.notes.value, expectedNotes, tale);
+    assert.equal(result.planningState.profession[STATE.NOTES].value, expectedNotes, tale);
     assert.ok(
       result.events.some((event) => event.type === 'mesmer.instrument' && instrument.includes(event.instrument))
     );
@@ -438,8 +439,8 @@ test('August Queen starts all instruments with duration based on the previously 
     );
     assert.deepEqual(new Set(windows.map((event) => event.instrument)), new Set(['Lute', 'Flute', 'Drum', 'Harp']));
     assert.ok(windows.every((event) => canonicalTime(event.expiresAt - event.at) === 3 + count * 3));
-    assert.equal(result.planningState.profession.activeInstruments.length, 4);
-    assert.equal(result.planningState.profession.notes.value, 0);
+    assert.equal(result.planningState.profession[STATE.ACTIVE_INSTRUMENTS].length, 4);
+    assert.equal(result.planningState.profession[STATE.NOTES].value, 0);
   }
 });
 
@@ -450,7 +451,7 @@ test('August Queen grants Chaos Aura and Distortion and enables Second Scion wit
     selectedTraitIds: [TRAIT.ILLUSIONARY_MEMBRANE, TRAIT.CALL_AND_RESPONSE]
   });
   const queen = simulateMesmer(['Tale of the August Queen', { type: 'wait', durationMs: 1 }], config);
-  assert.equal(queen.planningState.profession.notes.value, 2);
+  assert.equal(queen.planningState.profession[STATE.NOTES].value, 2);
   assert.ok(
     queen.resolvedEvents.some((event) => event.type === 'aura' && event.aura === 'Chaos Aura' && event.duration === 6)
   );
@@ -464,13 +465,13 @@ test('August Queen grants Chaos Aura and Distortion and enables Second Scion wit
     ['Tale of the August Queen', 'Tale of the Second Scion', { type: 'wait', durationMs: 1 }],
     config
   );
-  assert.equal(scion.planningState.profession.notes.value, 3);
+  assert.equal(scion.planningState.profession[STATE.NOTES].value, 3);
   const expired = simulateMesmer(
     ['Tale of the August Queen', { type: 'wait', durationMs: 3000 }, 'Tale of the Second Scion'],
     config
   );
-  assert.equal(expired.planningState.profession.activeInstruments.length, 0);
-  assert.equal(expired.planningState.profession.notes.value, 2);
+  assert.equal(expired.planningState.profession[STATE.ACTIVE_INSTRUMENTS].length, 0);
+  assert.equal(expired.planningState.profession[STATE.NOTES].value, 2);
   const canceled = simulateMesmer(
     [
       { name: 'Tale of the August Queen', interruptMs: 0 },
@@ -478,7 +479,7 @@ test('August Queen grants Chaos Aura and Distortion and enables Second Scion wit
     ],
     config
   );
-  assert.equal(canceled.planningState.profession.activeInstruments.length, 0);
+  assert.equal(canceled.planningState.profession[STATE.ACTIVE_INSTRUMENTS].length, 0);
   assert.equal(
     canceled.events.some(
       (event) => event.type === 'aura' || event.kind === 'distortion' || event.kind === 'illusionary-membrane'
@@ -505,7 +506,7 @@ test('Tortured Mastermind and Soulkeeper require their matching instrument for n
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.notes.value, 0);
+    assert.equal(result.planningState.profession[STATE.NOTES].value, 0);
   }
 });
 
@@ -522,7 +523,7 @@ test('Second Scion grants one note with at least two playing instruments', () =>
   for (const playing of cases) {
     const result = simulateMesmer([...playing, 'Tale of the Second Scion', { type: 'wait', durationMs: 1 }], config);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.notes.value, playing.length >= 2 ? 1 : 0, playing.join(', '));
+    assert.equal(result.planningState.profession[STATE.NOTES].value, playing.length >= 2 ? 1 : 0, playing.join(', '));
   }
 });
 
@@ -549,7 +550,7 @@ test('Second Scion snapshots its performance requirement at cast acceptance', ()
       config
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.notes.value, expected);
+    assert.equal(result.planningState.profession[STATE.NOTES].value, expected);
   }
 });
 
@@ -560,7 +561,7 @@ test('Second Scion respects cancellation and the note cap', () => {
     [{ type: 'cast', skillId: 76552 }, 'Flustering Flute', { name: 'Tale of the Second Scion', interruptMs: 0 }],
     config
   );
-  assert.equal(canceled.planningState.profession.notes.value, 0);
+  assert.equal(canceled.planningState.profession[STATE.NOTES].value, 0);
   const capped = simulateMesmer(
     [
       { type: 'cast', skillId: 76552 },
@@ -573,7 +574,7 @@ test('Second Scion respects cancellation and the note cap', () => {
     config
   );
   assert.deepEqual(capped.warnings, []);
-  assert.equal(capped.planningState.profession.notes.value, 3);
+  assert.equal(capped.planningState.profession[STATE.NOTES].value, 3);
 });
 
 test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timing', () => {
@@ -595,7 +596,7 @@ test('Tale of the Honorable Rogue owns its Aegis, note gate, and two-charge timi
     casts.map((step) => step.start),
     [0, 3200, 20000]
   );
-  assert.equal(result.planningState.profession.notes.value, 0);
+  assert.equal(result.planningState.profession[STATE.NOTES].value, 0);
   assert.equal(aegis.length, 3);
   assert.ok(aegis.every((event) => event.duration === 4));
 });
@@ -615,8 +616,8 @@ test('Troubadour Dodge spends continuous endurance and waits for regeneration wi
       result.steps.map((step) => step.start),
       [0, 0, readyAt]
     );
-    assert.ok(result.planningState.profession.endurance.value < 0.11);
-    assert.equal(result.planningState.profession.endurance.maximum, 100);
+    assert.ok(result.planningState.profession[STATE.ENDURANCE].value < 0.11);
+    assert.equal(result.planningState.profession[STATE.ENDURANCE].maximum, 100);
     assert.equal(result.planningState.ammoBySkillId[SHARED_SKILL_IDS.DODGE], undefined);
     assert.equal(Object.hasOwn(result.planningState.cooldowns, -5), false);
   }
@@ -641,13 +642,13 @@ test('Honorable Rogue restores 50 endurance, preserving partial regeneration and
       assert.deepEqual(before.warnings, []);
       assert.deepEqual(after.warnings, []);
       const rate = flute ? 6.25 : 5;
-      assert.equal(before.planningState.profession.endurance.value, 100 - 50 * dodges + rate);
+      assert.equal(before.planningState.profession[STATE.ENDURANCE].value, 100 - 50 * dodges + rate);
       const tale = after.steps.at(-1);
       const expected = Math.min(
         100,
-        before.planningState.profession.endurance.value + 50 + ((tale.end - tale.start) / 1000) * rate
+        before.planningState.profession[STATE.ENDURANCE].value + 50 + ((tale.end - tale.start) / 1000) * rate
       );
-      assert.ok(Math.abs(after.planningState.profession.endurance.value - expected) < 0.000001);
+      assert.ok(Math.abs(after.planningState.profession[STATE.ENDURANCE].value - expected) < 0.000001);
       assert.equal(Object.hasOwn(after.planningState.cooldowns, -5), false);
       assert.equal(after.planningState.ammoBySkillId[SHARED_SKILL_IDS.DODGE], undefined);
       assert.ok(after.planningState.cooldowns[ID.TALE_OF_THE_HONORABLE_ROGUE].remaining > 0);
@@ -664,7 +665,7 @@ test('Troubadour uses initial endurance and Energy grants through the shared poo
     sigilSets: [{ names: ['Energy'] }, { names: ['Energy'] }]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.endurance.value, 55);
+  assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 55);
   const view = mesmerProfession.ui
     .resourceViews({
       catalog: mesmerCatalog,
@@ -697,7 +698,7 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
     resource: 'notes'
   });
   assert.deepEqual(
-    result.planningState.profession.activeInstruments.map((instrument) => instrument.name),
+    result.planningState.profession[STATE.ACTIVE_INSTRUMENTS].map((instrument) => instrument.name),
     ['Lute', 'Flute']
   );
   const resourceViews = mesmerProfession.ui.resourceViews({
@@ -873,7 +874,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     harmonize.events.filter((event) => event.type === 'resource').map((event) => event.reason),
     ['Harmonize', 'Phantasmal Swordsman phantasm conversion']
   );
-  assert.equal(harmonize.planningState.profession.notes.value, 2);
+  assert.equal(harmonize.planningState.profession[STATE.NOTES].value, 2);
 
   const response = simulateMesmer(
     [
@@ -907,7 +908,7 @@ test('Harmonize, Call and Response, Fortissimo, and Altered Chord execute', () =
     ['Crescendo', { name: '__wait', waitMs: 5100 }],
     defaultSimulationConfig({ specialization: 'Troubadour', initialResource: 0, selectedTraitIds: [TRAIT.FORTISSIMO] })
   );
-  assert.equal(fortissimo.planningState.profession.notes.value, 3);
+  assert.equal(fortissimo.planningState.profession[STATE.NOTES].value, 3);
 
   assert.ok(altered.events.some((event) => event.type === 'control' && event.skillName === 'Crescendo'));
   assert.ok(altered.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Crescendo'));

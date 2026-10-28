@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -165,7 +166,7 @@ test('empty Sunspot effects emit neither an aura nor a proc marker', () => {
     result.events.some((event) => event.skillName === 'Sunspot'),
     false
   );
-  assert.deepEqual(result.planningState.profession.activeAuras, []);
+  assert.deepEqual(result.planningState.profession[STATE.ACTIVE_AURAS], []);
 });
 
 test('removed Ignite tier stays empty while the next named tier retains its duration edit', () => {
@@ -215,8 +216,8 @@ test('Rocket Punch keeps Burning and stun when its strike is removed', () => {
 test('patched resource capacities seed simulation and presentation from the same catalog', () => {
   // Profession-specific resource clocks expose the same patched capacities in simulation and presentation.
   for (const [profession, specialization, profile, balance] of [
-    [elementalistProfession, 'Catalyst', ELE.DEPTH_OF_ELEMENTS, (state) => state.catalystEnergy.value],
-    [elementalistProfession, 'Evoker', ELE.EVOCATION, (state) => state.familiarCharges.value]
+    [elementalistProfession, 'Catalyst', ELE.DEPTH_OF_ELEMENTS, (state) => state[STATE.CATALYST_ENERGY].value],
+    [elementalistProfession, 'Evoker', ELE.EVOCATION, (state) => state[STATE.FAMILIAR_CHARGES].value]
   ]) {
     const balanceProfiles = { [profile]: { fields: { maximumStacks: 12 } } };
     const result = run(profession, balanceProfiles, specialization, []);
@@ -240,7 +241,7 @@ test('patched resource capacities seed simulation and presentation from the same
   const specialized = run(elementalistProfession, balanceProfiles, 'Evoker', [], {
     selectedTraitIds: [ELE.SPECIALIZED_ELEMENTS]
   });
-  assert.equal(specialized.planningState.profession.familiarCharges.value, 8);
+  assert.equal(specialized.planningState.profession[STATE.FAMILIAR_CHARGES].value, 8);
   const patched = withPatchPreview(elementalistProfession, {
     id: 'specialized-capacity',
     label: 'Specialized capacity',

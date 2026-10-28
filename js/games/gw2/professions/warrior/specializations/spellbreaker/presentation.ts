@@ -15,6 +15,7 @@ import {
 } from '#gw2/professions/warrior/core/presentation.js';
 import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const SKILLS = Object.freeze([ID.FULL_COUNTER]);
 
@@ -70,7 +71,7 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
-    const insight = activeStackCount(state.attackerInsightExpiries || [], at);
+    const insight = activeStackCount(state[STATE.ATTACKER_INSIGHT_EXPIRIES] || [], at);
 
     if (insight > 0) {
       items.push({
@@ -81,7 +82,7 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
       });
     }
 
-    const tether = (state.magebaneTetherUntil || 0) - at;
+    const tether = (state[STATE.MAGEBANE_TETHER_UNTIL] || 0) - at;
 
     if (tether > 0) {
       items.push({

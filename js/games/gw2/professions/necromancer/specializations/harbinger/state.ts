@@ -1,17 +1,13 @@
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import {
-  projectPublicProfessionState,
-  flattenProfessionState,
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const BLIGHT_DURATION_SECONDS = 25;
 
@@ -30,13 +26,6 @@ export interface HarbingerState {
   cascadingCorruptionStacks: number;
   meltdownUntil: number;
 }
-
-/** Declares Harbinger's public fields and missing-state defaults, used only when Harbinger is selected. */
-const HARBINGER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  blightExpiries: [],
-  cascadingCorruptionStacks: 0,
-  meltdownUntil: 0
-} satisfies Partial<HarbingerState>);
 
 /** Creates isolated Harbinger Blight, Cascading Corruption, and Meltdown state from build inputs. */
 function createHarbingerState(
@@ -116,12 +105,17 @@ export const harbingerState = defineProfessionSpecializationState('Harbinger', c
 
 /** Detach public fields before reconciling Blight so its display cap cannot alter live stacks. */
 export function projectHarbingerPlanningState(input: Gw2PlanningStateInput) {
-  const state = projectPublicProfessionState(
-    flattenProfessionState(input.profession) as unknown as HarbingerState,
-    HARBINGER_PUBLIC_STATE_PROJECTION.keys,
-    HARBINGER_PUBLIC_STATE_PROJECTION.defaults
-  );
+  const state = cloneStateFields(harbingerState.from(input), [
+    'blightExpiries',
+    'cascadingCorruptionStacks',
+    'meltdownUntil'
+  ]);
   capHarbingerBlight(state, harbingerBlightMaximum(input));
   // Public consumers receive a count derived from the detached, capped applications.
-  return { ...state, blight: state.blightExpiries.length };
+  return {
+    [STATE.BLIGHT_EXPIRIES]: state.blightExpiries,
+    [STATE.CASCADING_CORRUPTION_STACKS]: state.cascadingCorruptionStacks,
+    [STATE.MELTDOWN_UNTIL]: state.meltdownUntil,
+    [STATE.BLIGHT]: state.blightExpiries.length
+  };
 }

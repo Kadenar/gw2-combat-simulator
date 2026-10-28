@@ -38,7 +38,17 @@ export interface NecromancerConfig extends Gw2Config {
   readonly professionAssumptions?: Readonly<Record<string, unknown>>;
 }
 
-export interface NecromancerState extends NecromancerCoreState, ScourgeState, HarbingerState, RitualistState {}
+/** Public consumers receive only the ID/value pairs published by active owners. */
+export type NecromancerPlanningState = ReturnType<
+  typeof import('#gw2/professions/necromancer/core/state.js').projectNecromancerPlanningState
+> &
+  ReturnType<
+    typeof import('#gw2/professions/necromancer/specializations/harbinger/state.js').projectHarbingerPlanningState
+  > &
+  ReturnType<typeof import('#gw2/professions/necromancer/specializations/ritualist/state.js').projectRitualistState> &
+  ReturnType<
+    typeof import('#gw2/professions/necromancer/specializations/scourge/state.js').projectScourgePlanningState
+  >;
 
 export interface NecromancerRuntimeState {
   core: NecromancerCoreState;
@@ -90,7 +100,7 @@ export type NecromancerResolverContext = MechanicCombatContext & {
 };
 
 /** Presentation includes the projected Blight count; live mechanics own only its expiry array. */
-export interface NecromancerUiState extends Partial<NecromancerState> {
+export interface NecromancerUiState extends Partial<NecromancerPlanningState> {
   readonly blight?: number;
 }
 

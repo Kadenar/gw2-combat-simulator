@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -18,11 +19,11 @@ test('Warrior cooldown reset refills adrenaline while preserving Bladesworn pool
     });
     assert.deepEqual(result.warnings, []);
     const state = result.planningState.profession;
-    assert.equal(state.adrenaline.value, state.adrenaline.maximum);
+    assert.equal(state[STATE.ADRENALINE].value, state[STATE.ADRENALINE].maximum);
 
     if (specialization === 'Bladesworn') {
-      assert.equal(state.flow.value, 3.5);
-      assert.equal(state.dragonCharges.value, 0);
+      assert.equal(state[STATE.FLOW].value, 3.5);
+      assert.equal(state[STATE.DRAGON_CHARGES].value, 0);
     }
   }
 });
@@ -39,8 +40,8 @@ test('cooldown reset refills shared life force for every Necromancer specializat
 
     assert.deepEqual(result.warnings, [], specialization);
     assert.equal(
-      result.planningState.profession.lifeForce.value,
-      result.planningState.profession.lifeForce.maximum,
+      result.planningState.profession[STATE.LIFE_FORCE].value,
+      result.planningState.profession[STATE.LIFE_FORCE].maximum,
       specialization
     );
     assert.equal(result.planningState.cooldowns[10549], undefined, specialization);
@@ -57,7 +58,7 @@ test('cooldown reset refills Specter shadow force and clears skill recharge', ()
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.shadowClock.value, 100);
+  assert.equal(result.planningState.profession[STATE.SHADOW_CLOCK].value, 100);
   assert.equal(result.planningState.cooldowns[63067], undefined);
 });
 
@@ -69,6 +70,6 @@ test('cooldown reset restores Revenant energy only after combat starts', () => {
   const beforeCombat = simulate([{ type: 'cooldown-reset' }, { type: 'combat-start' }]);
   const inCombat = simulate([{ type: 'combat-start' }, { type: 'cooldown-reset' }]);
 
-  assert.equal(beforeCombat.planningState.profession.energy.value, 25);
-  assert.equal(inCombat.planningState.profession.energy.value, 100);
+  assert.equal(beforeCombat.planningState.profession[STATE.ENERGY].value, 25);
+  assert.equal(inCombat.planningState.profession[STATE.ENERGY].value, 100);
 });

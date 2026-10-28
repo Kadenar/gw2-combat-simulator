@@ -3,15 +3,14 @@ import { MECHANIST_SKILL_FIELDS } from '#gw2/professions/engineer/specialization
 import { mechanistAttributes } from '#gw2/professions/engineer/specializations/mechanist/attributes.js';
 import { signetModifierRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
 import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
 
 import { mechanistUi } from '#gw2/professions/engineer/specializations/mechanist/presentation.js';
 import { MECHANIST_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/index.js';
 import {
-  MECHANIST_PUBLIC_STATE_PROJECTION,
-  mechanistState
+  mechanistState,
+  projectMechanistPlanningState
 } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { mechanistTraits } from '#gw2/professions/engineer/specializations/mechanist/traits/index.js';
 
@@ -25,7 +24,7 @@ export const mechanistModule = defineNativeModule({
     skillFields: MECHANIST_SKILL_FIELDS,
     skillMechanics: MECHANIST_SKILL_MECHANICS
   }),
-  state: { create: mechanistState.create, project: createPublicStateProjector(MECHANIST_PUBLIC_STATE_PROJECTION) },
+  state: { create: mechanistState.create, project: projectMechanistPlanningState },
   attributes: mechanistAttributes,
   // Signets own their packet rules; actor projection remains in the attribute calculator.
   modifiers: Object.freeze([...signetModifierRules]),

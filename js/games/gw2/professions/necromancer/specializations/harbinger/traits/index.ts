@@ -1,7 +1,7 @@
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { ACTOR, RECIPIENT, WEAPON, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -380,7 +380,7 @@ function activeBlight(context: Gw2ModifierContext): number {
   return Math.max(
     0,
     event?.metadata?.necromancerBlight ??
-      necromancerRuntimeSpecializationState(context, 'Harbinger').blightExpiries?.length ??
+      necromancerRuntimeSpecializationState(context, 'Harbinger')?.blightExpiries?.length ??
       0
   );
 }

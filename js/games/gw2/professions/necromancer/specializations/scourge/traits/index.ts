@@ -1,10 +1,10 @@
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { ACTOR, RECIPIENT, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { barrierBoonAudience } from '#gw2/platform/combat/barrier.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
@@ -251,7 +251,7 @@ const sandSage = defineTrait({
   // A living shade grants conversion-eligible duration attributes; expiry also removes their utility contribution.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.SAND_SAGE);
-    const shadeActive = (necromancerRuntimeSpecializationState(context, 'Scourge').shades || []).some(
+    const shadeActive = (necromancerRuntimeSpecializationState(context, 'Scourge')?.shades || []).some(
       (expiresAt: number) => expiresAt > context.time
     );
     return {

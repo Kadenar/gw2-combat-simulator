@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -104,8 +105,8 @@ for (const id of [ID.ENTER_SHADOW_SHROUD, ID.DAWNS_REPOSE]) {
       result.events.some((event) => event.skillId === TRAIT.DARK_SENTRY),
       false
     );
-    assert.equal(result.planningState.profession.shadowShroudActive, true);
-    assert.ok(result.planningState.profession.shadowClock.value < 100);
+    assert.equal(result.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], true);
+    assert.ok(result.planningState.profession[STATE.SHADOW_CLOCK].value < 100);
 
     if (id === ID.DAWNS_REPOSE) assert.ok(packet(result, 'buff', TRAIT.SHADESTEP).length);
   });
@@ -147,7 +148,7 @@ test('removed Larcenous Torment strike preserves its independent shadow-force ga
     result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.LARCENOUS_TORMENT),
     false
   );
-  assert.ok(result.planningState.profession.shadowClock.value > 4);
+  assert.ok(result.planningState.profession[STATE.SHADOW_CLOCK].value > 4);
 });
 
 test('core steal removals preserve sibling conditions, boons, and initiative', () => {
@@ -184,7 +185,7 @@ test('core steal removals preserve sibling conditions, boons, and initiative', (
   assert.ok(result.events.some((event) => event.kind === 'might'));
   assert.equal(packet(result, 'damage', TRAIT.MUG).length, 0);
   assert.equal(packet(result, 'control', TRAIT.SLEIGHT_OF_HAND).length, 0);
-  assert.ok(result.planningState.profession.initiative.value >= 2);
+  assert.ok(result.planningState.profession[STATE.INITIATIVE].value >= 2);
 });
 
 test('Uncatchable conditions own independent pulses and dodge still spends endurance', () => {
@@ -204,15 +205,15 @@ test('Uncatchable conditions own independent pulses and dodge still spends endur
     false
   );
   assert.ok(conditions.some((event) => event.condition === 'Crippled'));
-  assert.ok(result.planningState.profession.endurance.value < 100);
+  assert.ok(result.planningState.profession[STATE.ENDURANCE].value < 100);
 });
 
 test('removed Weakening Strikes does not arm its grant or expiry', () => {
   const result = run({ [TRAIT.WEAKENING_STRIKES]: remove('condition', 'Weakness') }, 'Daredevil', ['Dodge'], {
     selectedTraitIds: [TRAIT.WEAKENING_STRIKES]
   });
-  assert.equal(result.planningState.profession.weakeningStrikeReady, false);
-  assert.equal(result.planningState.profession.weakeningStrikeExpiresAt, 0);
+  assert.equal(result.planningState.profession[STATE.WEAKENING_STRIKE_READY], false);
+  assert.equal(result.planningState.profession[STATE.WEAKENING_STRIKE_EXPIRES_AT], 0);
 });
 
 test('removed critical Fury leaves its cooldown unclaimed', () => {
@@ -243,7 +244,7 @@ test('Malicious Sneak Attack removal preserves Bleeding and malice spending', ()
     false
   );
   assert.ok(conditions.some((event) => event.condition === 'Bleeding'));
-  assert.equal(result.planningState.profession.malice.value, 0);
+  assert.equal(result.planningState.profession[STATE.MALICE].value, 0);
 });
 
 for (const enhanced of [false, true]) {
@@ -272,7 +273,7 @@ for (const enhanced of [false, true]) {
     assert.ok(strikes.length);
     assert.ok(strikes.every((event) => event.coefficient === 2));
     assert.ok(result.events.some((event) => event.type === 'condition' && event.skillId === ID.FORGED_SURFER_DASH));
-    assert.equal(result.planningState.profession.artifactUsesRemaining, 0);
+    assert.equal(result.planningState.profession[STATE.ARTIFACT_USES_REMAINING], 0);
   });
 }
 
@@ -321,8 +322,8 @@ test('Mistburn removal suppresses its charge grant while spending the artifact',
     'Antiquary',
     ['Skritt Swipe', 'Mistburn Mortar']
   );
-  assert.equal(result.planningState.profession.mistburn.charges, 0);
-  assert.equal(result.planningState.profession.artifactUsesRemaining, 0);
+  assert.equal(result.planningState.profession[STATE.MISTBURN].charges, 0);
+  assert.equal(result.planningState.profession[STATE.ARTIFACT_USES_REMAINING], 0);
 });
 
 test('invalid Mug tuning fails with the selected patch context', () => {

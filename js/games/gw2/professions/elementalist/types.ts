@@ -1,5 +1,3 @@
-import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-
 /**
  * Shared Elementalist type boundary.
  *
@@ -7,6 +5,7 @@ import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profe
  * union that pairs core state with exactly one specialization's state, and the
  * Elementalist-flavored context/event types every module's handlers are written against.
  */
+import type { MechanicContext, MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
@@ -39,8 +38,17 @@ export interface ElementalistRuntimeState {
     | { kind: 'Evoker'; state: EvokerState };
 }
 
-/** Flattened view of core and specialization state, used for snapshots and end-state projection. */
-export interface ElementalistState extends ElementalistCoreState, WeaverState, CatalystState, EvokerState {}
+/** Public consumers receive only the ID/value pairs published by active owners. */
+export type ElementalistPlanningState = ReturnType<
+  typeof import('#gw2/professions/elementalist/core/state.js').projectElementalistCorePlanningState
+> &
+  ReturnType<
+    typeof import('#gw2/professions/elementalist/specializations/catalyst/state.js').projectCatalystPlanningState
+  > &
+  ReturnType<
+    typeof import('#gw2/professions/elementalist/specializations/evoker/state.js').projectEvokerPlanningState
+  > &
+  ReturnType<typeof import('#gw2/professions/elementalist/specializations/weaver/state.js').projectWeaverPlanningState>;
 
 /** Modifier context whose config is the Elementalist's, so rules can read its build selections. */
 export interface ElementalistModifierContext extends Gw2ModifierContext {
@@ -52,7 +60,7 @@ export type ElementalistPistolBullets = Partial<Record<ElementalistAttunement, b
 
 /** Application UI callback context narrowed to Elementalist builds and end-state projections. */
 export interface ElementalistUiContext extends Omit<
-  ProfessionUiCallbackContext<Partial<ElementalistState>>,
+  ProfessionUiCallbackContext<Partial<ElementalistPlanningState>>,
   'build' | 'config'
 > {
   /** Shared callbacks accept a broad profession identity and sparse previews, while persisted builds stay strict. */
@@ -66,7 +74,7 @@ export interface ElementalistUiContext extends Omit<
 }
 
 /** UI slice whose callbacks read Elementalist end-state projections. */
-export type ElementalistUiSlice = Partial<ProfessionUiContract<Partial<ElementalistState>>>;
+export type ElementalistUiSlice = Partial<ProfessionUiContract<Partial<ElementalistPlanningState>>>;
 
 /**
  * A catalog skill carrying the Elementalist-specific identity fields the modules read. Numeric tuning fields are

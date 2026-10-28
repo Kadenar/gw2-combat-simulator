@@ -31,6 +31,7 @@ import type {
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const HALF_HEALTH_TRAITS = new Set(['Siphoned Power', 'Spiteful Fortitude', 'Chill of Death', 'Close to Death']);
 const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
@@ -121,7 +122,7 @@ export function necromancerTransformPaletteGroups(
     });
   }
 
-  if (state.activeShroud === 'lich') {
+  if (state[STATE.ACTIVE_SHROUD] === 'lich') {
     groups.push({
       id: 'lich',
       label: 'Lch',
@@ -161,14 +162,14 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
     gw2PrimaryWeapon(context.config, 1),
     gw2PrimaryWeapon(context.config, 2)
   ];
-  return equippedWeapons.includes(WEAPON.SPEAR) || (state.soulShardGrant?.charges || 0) > 0
+  return equippedWeapons.includes(WEAPON.SPEAR) || (state[STATE.SOUL_SHARD_GRANT]?.charges || 0) > 0
     ? [
         {
           id: 'soul-shards',
           singular: 'soul shard',
           plural: 'soul shards',
           maximum: necromancerSoulShardMaximum(context),
-          value: state.soulShardGrant?.charges || 0,
+          value: state[STATE.SOUL_SHARD_GRANT]?.charges || 0,
           canStart: false,
           step: 1,
           displayMode: 'counter',
@@ -185,7 +186,7 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
 function necromancerCoreResourceViews(context: NecromancerUiContext): ProfessionResourceView[] {
   const state = necromancerUiState(context);
   // Without a planning state, only the percentage-based starting control is available.
-  const maximum = state.lifeForce?.maximum ?? 100;
+  const maximum = state[STATE.LIFE_FORCE]?.maximum ?? 100;
   const views: ProfessionResourceView[] = [
     {
       id: 'life-force',
@@ -193,7 +194,7 @@ function necromancerCoreResourceViews(context: NecromancerUiContext): Profession
       plural: 'life force',
       maximum: Math.round(maximum),
       value: Math.round(
-        state.lifeForce?.value ?? (Number(context.value ?? context.initialResource ?? 100) * maximum) / 100
+        state[STATE.LIFE_FORCE]?.value ?? (Number(context.value ?? context.initialResource ?? 100) * maximum) / 100
       ),
       startMaximum: 100,
       canStart: true,
@@ -260,7 +261,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
 
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.
     paletteOverride: (context, skill) => {
-      const active = necromancerUiState(context).activeShroud || '';
+      const active = necromancerUiState(context)[STATE.ACTIVE_SHROUD] || '';
 
       if (skill.shroudEntry) return { tileActive: active !== skill.shroudEntry };
 

@@ -5,6 +5,8 @@ import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface WarriorCoreState {
   adrenaline: ResourceClock;
@@ -19,23 +21,6 @@ export interface WarriorCoreState {
   empowerAllies: PeriodicTaskState;
 }
 
-/** Declares the Core fields exposed by every Warrior end-state projection. */
-const WARRIOR_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'adrenaline',
-  'endurance',
-
-  'autoattackChains',
-  'availableFlips'
-] as const satisfies readonly (keyof WarriorCoreState)[]);
-
-// Public fields and inactive fallbacks intentionally differ; preserve both sets.
-export const WARRIOR_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
-  keys: WARRIOR_CORE_PUBLIC_END_STATE_KEYS,
-  defaults: Object.freeze({
-    endurance: createResourceClock(ENDURANCE.maximum)
-  } satisfies Partial<WarriorCoreState>)
-});
-
 /** Creates only the state shared by every Warrior build; selected resource policies supply pool values and caps. */
 export function createWarriorCoreState(): WarriorCoreState {
   return {
@@ -49,4 +34,15 @@ export function createWarriorCoreState(): WarriorCoreState {
     signetOfRagePassive: createPeriodicTaskState(),
     empowerAllies: createPeriodicTaskState()
   };
+}
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectWarriorCorePlanningState(input: Gw2PlanningStateInput) {
+  const state = (input.profession as { core: ReturnType<typeof createWarriorCoreState> }).core;
+  return structuredClone({
+    [STATE.ADRENALINE]: state.adrenaline,
+    [STATE.ENDURANCE]: state.endurance,
+    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
+    [STATE.AVAILABLE_FLIPS]: state.availableFlips
+  });
 }

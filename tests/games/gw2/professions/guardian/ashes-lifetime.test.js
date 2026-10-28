@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -60,9 +61,9 @@ test('Ashes spending cannot mutate its delivered buff or public snapshot', () =>
   );
   const buff = result.events.find((event) => event.kind === 'ashes-of-the-just');
   assert.equal(state(result).ashes.charges, buff.stacks - 1);
-  const remaining = result.planningState.profession.ashes.charges;
+  const remaining = result.planningState.profession[STATE.ASHES].charges;
   state(result).ashes.charges = 0;
-  assert.equal(result.planningState.profession.ashes.charges, remaining);
+  assert.equal(result.planningState.profession[STATE.ASHES].charges, remaining);
   assert.equal(buff.stacks, remaining + 1);
 });
 
@@ -75,7 +76,7 @@ test('Ashes buff history, expiry cleanup, and planning state share the effect-cl
   const [buff] = timedBuffApplicationsAt(result.events, 'ashes-of-the-just', application.at);
   assert.ok(buff.expiresAt >= application.at + application.duration);
   assert.equal(state(result).ashes.expiresAt, buff.expiresAt);
-  assert.equal(result.planningState.profession.ashes.expiresAt, buff.expiresAt);
+  assert.equal(result.planningState.profession[STATE.ASHES].expiresAt, buff.expiresAt);
   assert.equal(state(result).ashes.charges, 0);
 });
 

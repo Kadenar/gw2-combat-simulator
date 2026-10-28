@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { armElementalLightningJolt } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import assert from 'node:assert/strict';
@@ -50,7 +51,7 @@ test('Rock Barrier availability, palette, and natural recharge share an exact de
     ]
   });
   assert.equal(observedRuntime(result).cooldownController.readyAt(root.id), 48.4);
-  assert.equal(result.planningState.profession.availableFlips[ID.HURL], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.HURL], undefined);
 });
 
 test('elemental commands and Lightning Jolt retain the final live microsecond without early auto-replacement', () => {
@@ -83,7 +84,7 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
         ]
       }
     );
-    assert.equal(result.planningState.profession.summonedElemental.element, null);
+    assert.equal(result.planningState.profession[STATE.SUMMONED_ELEMENTAL].element, null);
   }
 });
 
@@ -155,7 +156,7 @@ test('an expired automatic elemental stays absent until an explicit glyph clears
     assert.deepEqual(result.warnings, []);
     const summon = result.events.find((event) => event.type === 'action' && event.skillId === glyph.id);
     assert.equal(summon.at, 6);
-    assert.equal(result.planningState.profession.summonedElemental.activeUntil, summon.endsAt + 2);
+    assert.equal(result.planningState.profession[STATE.SUMMONED_ELEMENTAL].activeUntil, summon.endsAt + 2);
   }
 });
 
@@ -239,7 +240,7 @@ test('Hurl consumes the barrier before expiry while its released projectiles fin
       (event) => event.type === 'damage' && event.skillId === ID.HURL && event.at > barrier.endsAt + 30
     )
   );
-  assert.equal(result.planningState.profession.availableFlips[ID.HURL]?.expiresAt ?? 0, 0);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.HURL]?.expiresAt ?? 0, 0);
 });
 
 test('the live queue resolves a final elemental command hit before same-time teardown', () => {
@@ -267,8 +268,8 @@ test('the live queue resolves a final elemental command hit before same-time tea
       (event) => event.type === 'damage' && event.skillId === ID.FLAME_BARRAGE_ELEMENTAL_COMMAND && event.hitIndex === 4
     );
     assert.equal(Boolean(explosion), lifetime >= 1.52);
-    assert.equal(result.planningState.profession.summonedElemental.element, null);
-    assert.deepEqual(result.planningState.profession.availableFlips, {});
+    assert.equal(result.planningState.profession[STATE.SUMMONED_ELEMENTAL].element, null);
+    assert.deepEqual(result.planningState.profession[STATE.AVAILABLE_FLIPS], {});
   }
 });
 

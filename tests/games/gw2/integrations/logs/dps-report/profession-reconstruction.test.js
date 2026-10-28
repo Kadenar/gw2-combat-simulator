@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -63,7 +64,10 @@ test('Troubadour imports preserve scepter chain availability across performances
     });
     assert.deepEqual(result.warnings, []);
     assert.ok(result.steps.some((step) => step.skillId === MESMER_SKILL.ETHER_BLAST && !step.invalid));
-    assert.equal(result.planningState.profession.autoattackChains[MESMER_SKILL.ETHER_BOLT], MESMER_SKILL.ETHER_CLONE);
+    assert.equal(
+      result.planningState.profession[STATE.AUTOATTACK_CHAINS][MESMER_SKILL.ETHER_BOLT],
+      MESMER_SKILL.ETHER_CLONE
+    );
   }
 });
 
@@ -82,8 +86,8 @@ test('Mirage cloak sources import once without spending endurance or applying Du
   const actual = simulateMesmer(imported.rotation, config);
   const expected = simulateMesmer(['__combat_start', 'Mind Wrack'], config);
   assert.deepEqual(actual.warnings, []);
-  assert.equal(actual.planningState.profession.endurance.value, 100);
-  assert.equal(actual.planningState.profession.availableAmbush.source, 'Dune Cloak');
+  assert.equal(actual.planningState.profession[STATE.ENDURANCE].value, 100);
+  assert.equal(actual.planningState.profession[STATE.AVAILABLE_AMBUSH].source, 'Dune Cloak');
   assert.deepEqual(actual.planningState.cooldowns, expected.planningState.cooldowns);
   assert.ok(imported.sourceActions.some((action) => action.rawSkillId === -17));
 });
@@ -175,7 +179,7 @@ test('Firebrand bundle transitions preserve ongoing casts and real weapon swaps'
     }
   });
   assert.deepEqual(sim.warnings, []);
-  assert.equal(sim.planningState.profession.activeTome, '');
+  assert.equal(sim.planningState.profession[STATE.ACTIVE_TOME], '');
 });
 
 for (const [profession, catalog, entryId, exitId] of [

@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  definePublicStateDefaults,
+  cloneStateFields,
+  composePlanningState,
   defineProfessionSpecializationState,
   readProfessionCoreState,
-  readProfessionSpecializationState,
-  projectPublicProfessionState
+  readProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
 import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 
@@ -53,33 +53,32 @@ test('profession-state reads require nested ownership and cannot cross specializ
   assert.deepEqual(readProfessionCoreState(null), {});
 });
 
-test('public descriptors preserve field order, explicit values, and detached projected values', () => {
-  // Explicit state values take precedence over display defaults, including explicit undefined.
-  const fallback = definePublicStateDefaults({
-    active: { stacks: 0 },
-    explicit: 'fallback',
-    inactive: [{ stacks: 1 }]
-  });
-  const projection = { keys: ['core', ...fallback.keys], defaults: fallback.defaults };
-  assert.deepEqual(projection.keys, ['core', 'active', 'explicit', 'inactive']);
-  assert.equal(projection.defaults.explicit, 'fallback');
-  const absent = projectPublicProfessionState({}, projection.keys, projection.defaults);
-  assert.equal(absent.explicit, 'fallback');
-  assert.equal(Object.hasOwn(absent, 'core'), true);
-  assert.equal(absent.core, undefined);
-
-  const state = { active: { stacks: 2 }, explicit: undefined, private: true };
-  const projected = projectPublicProfessionState(state, projection.keys, projection.defaults);
-  assert.deepEqual(Object.keys(projected), ['core', 'active', 'explicit', 'inactive']);
-  assert.deepEqual(projected, {
-    core: undefined,
+// Projection normalization must neither traverse private fields nor retain mutable owner references.
+test('selected state fields are detached without copying private bookkeeping', () => {
+  const state = {
     active: { stacks: 2 },
     explicit: undefined,
-    inactive: [{ stacks: 1 }]
-  });
+    get private() {
+      throw new Error('private read');
+    }
+  };
+  const projected = cloneStateFields(state, ['active', 'explicit']);
+  assert.deepEqual(Object.keys(projected), ['active', 'explicit']);
+  assert.equal(projected.explicit, undefined);
   state.active.stacks = 3;
   assert.equal(projected.active.stacks, 2);
-  projected.inactive[0].stacks = 9;
-  assert.equal(fallback.defaults.inactive[0].stacks, 1);
-  assert.equal(absent.inactive[0].stacks, 1);
+  projected.active.stacks = 4;
+  assert.equal(state.active.stacks, 3);
+});
+
+// Duplicate IDs are an assembly error even when both projections happen to publish the same value.
+test('planning composition rejects conflicting identities instead of overwriting fields', () => {
+  assert.deepEqual(composePlanningState([{ 'test.core.value': 1 }, { 'test.elite.value': 2 }]), {
+    'test.core.value': 1,
+    'test.elite.value': 2
+  });
+  assert.throws(
+    () => composePlanningState([{ 'test.shared': 1 }, { 'test.shared': 1 }]),
+    /Duplicate planning state ID: test.shared/
+  );
 });

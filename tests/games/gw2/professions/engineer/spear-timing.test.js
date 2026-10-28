@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { skillFlipReady, armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -183,10 +184,13 @@ test('Artillery damage and conditions wait for impact without delaying the next 
     false
   );
   assert.equal(
-    skillFlipReady(released.planningState.profession.availableFlips[ID.ELECTRIC_ARTILLERY], released.rotationEndTime),
+    skillFlipReady(
+      released.planningState.profession[STATE.AVAILABLE_FLIPS][ID.ELECTRIC_ARTILLERY],
+      released.rotationEndTime
+    ),
     false
   );
-  assert.deepEqual(released.planningState.profession.lightningRodChargeExpiries, []);
+  assert.deepEqual(released.planningState.profession[STATE.LIGHTNING_ROD_CHARGE_EXPIRIES], []);
 
   const landed = simulate('Core', [...rotation, 'Conduit Surge', { type: 'wait', durationMs: 1000 }]);
   assert.deepEqual(landed.warnings, []);

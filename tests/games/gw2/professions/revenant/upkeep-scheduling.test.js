@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -38,7 +39,7 @@ test('Conduit upkeep delivers due affinity ticks during idle waits', () => {
   // Idle time must deliver every due resource tick without relying on unrelated casts or reads.
   const result = simulate('Conduit', ['Impossible Odds', wait(9100)]);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.affinity.value, 4);
+  assert.equal(result.planningState.profession[STATE.AFFINITY].value, 4);
 });
 
 test('Conduit dagger cadence survives long waits and stops at form expiry', () => {
@@ -49,8 +50,8 @@ test('Conduit dagger cadence survives long waits and stops at form expiry', () =
   assert.deepEqual(daggerTimes(results[0]), daggerTimes(results[1]));
   assert.ok(daggerTimes(results[0]).includes(1));
   assert.ok(!daggerTimes(results[0]).includes(9));
-  assert.equal(results[0].planningState.profession.conduitForm, '');
-  assert.equal(results[0].planningState.profession.activeUpkeeps.length, 1);
+  assert.equal(results[0].planningState.profession[STATE.CONDUIT_FORM], '');
+  assert.equal(results[0].planningState.profession[STATE.ACTIVE_UPKEEPS].length, 1);
 });
 
 test('allied Soulcleave cadence uses ally intervals across idle waits', () => {
@@ -76,7 +77,7 @@ test('starvation cancels Conduit resource and dagger ticks at the boundary', () 
   assert.equal(observedRuntime(result).cooldownController.readyAt(SKILL.IMPOSSIBLE_ODDS), 3 + 4 / 1.25);
   assert.equal(affinity(result), 1, 'the starved upkeep grants no tick at its three-second deadline');
   assert.deepEqual(daggerTimes(result), [1, 2]);
-  assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_UPKEEPS].length, 0);
 });
 
 test('release and reactivation start a fresh Conduit cadence', () => {
@@ -91,7 +92,7 @@ test('legend swap retires the upkeep and its specialization cadences immediately
   const result = simulate('Conduit', ['Cosmic Wisdom', 'Impossible Odds', wait(100), 'Swap Legends', wait(9000)]);
   assert.deepEqual(result.warnings, []);
   assert.equal(affinity(result), 0, 'the swap resets affinity and no later upkeep tick restores it');
-  assert.deepEqual(result.planningState.profession.activeUpkeeps, []);
+  assert.deepEqual(result.planningState.profession[STATE.ACTIVE_UPKEEPS], []);
   assert.deepEqual(daggerTimes(result), []);
   assert.equal(
     result.events.some((event) => event.type === 'damage' && event.skillName === 'Vengeful Hammers'),
@@ -151,7 +152,7 @@ test('releasing Conduit upkeep ends both specialization cadences', () => {
   assert.equal(affinity(result), 1);
   // Relinquish Power is itself an Assassin legend skill; only the upkeep's one-second cadence must stop.
   assert.deepEqual(daggerTimes(result), [0.12]);
-  assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_UPKEEPS].length, 0);
 });
 
 test('starved Conduit upkeep can reactivate with a fresh deadline', () => {

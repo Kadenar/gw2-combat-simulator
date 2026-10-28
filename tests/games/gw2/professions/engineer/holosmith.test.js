@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -193,15 +194,15 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
   const firstTick = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 100 }]);
 
   // Forge heat is discrete: no passive gain occurs before 100 ms, then the base rate contributes 0.2%.
-  assert.equal(beforeFirstTick.planningState.profession.heat.value, 0);
-  assert.equal(firstTick.planningState.profession.heat.value, 0.2);
+  assert.equal(beforeFirstTick.planningState.profession[STATE.HEAT].value, 0);
+  assert.equal(firstTick.planningState.profession[STATE.HEAT].value, 0.2);
 
   const preheatedGrace = simulate('Holosmith', [{ type: 'wait', durationMs: 3000 }], {
     initialHeat: 100,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
   });
 
-  assert.equal(preheatedGrace.planningState.profession.heat.value, 100);
+  assert.equal(preheatedGrace.planningState.profession[STATE.HEAT].value, 100);
 
   const firstCoolingTick = simulate('Holosmith', [{ type: 'wait', durationMs: 3100 }], {
     initialHeat: 100,
@@ -209,21 +210,21 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
   });
 
   // The first cooling tick after the three-second delay loses 0.5 heat.
-  assert.equal(firstCoolingTick.planningState.profession.heat.value, 99.5);
+  assert.equal(firstCoolingTick.planningState.profession[STATE.HEAT].value, 99.5);
 
   const preheatedCooling = simulate('Holosmith', [{ type: 'wait', durationMs: 5200 }], {
     initialHeat: 100,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
   });
 
-  assert.equal(preheatedCooling.planningState.profession.heat.value, 89);
+  assert.equal(preheatedCooling.planningState.profession[STATE.HEAT].value, 89);
 
   const beforeFastCooling = simulate('Holosmith', [{ type: 'wait', durationMs: 8000 }], {
     initialHeat: 100,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
   });
 
-  assert.equal(beforeFastCooling.planningState.profession.heat.value, 75);
+  assert.equal(beforeFastCooling.planningState.profession[STATE.HEAT].value, 75);
 
   const firstFastCoolingTick = simulate('Holosmith', [{ type: 'wait', durationMs: 8100 }], {
     initialHeat: 100,
@@ -231,7 +232,7 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
   });
 
   // After eight seconds, the fast phase loses 1 heat on each 100 ms tick.
-  assert.equal(firstFastCoolingTick.planningState.profession.heat.value, 74);
+  assert.equal(firstFastCoolingTick.planningState.profession[STATE.HEAT].value, 74);
 
   const hot = simulate('Holosmith', [
     'Engage Photon Forge',
@@ -240,8 +241,8 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
     { type: 'wait', durationMs: 3100 }
   ]);
 
-  assert.equal(hot.planningState.profession.heat.value, 9.5);
-  assert.equal(hot.planningState.profession.photonForgeActive, false);
+  assert.equal(hot.planningState.profession[STATE.HEAT].value, 9.5);
+  assert.equal(hot.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], false);
 
   const cooled = simulate('Holosmith', [
     'Engage Photon Forge',
@@ -250,13 +251,13 @@ test('Photon Forge heat generation and cooling use current piecewise rates', () 
     { type: 'wait', durationMs: 11500 }
   ]);
 
-  assert.equal(cooled.planningState.profession.heat.value, 0);
+  assert.equal(cooled.planningState.profession[STATE.HEAT].value, 0);
 
   const amplified = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 100 }], {
     selectedTraitIds: [TRAIT.LIGHT_DENSITY_AMPLIFIER]
   });
 
-  assert.equal(amplified.planningState.profession.heat.value, 0.3);
+  assert.equal(amplified.planningState.profession[STATE.HEAT].value, 0.3);
 });
 
 test('Corona Burst heat persists outside Forge without causing Overheat', () => {
@@ -276,18 +277,18 @@ test('Corona Burst heat persists outside Forge without causing Overheat', () => 
   );
 
   assert.ok(outside.events.some((event) => event.type === 'engineer.heat' && Number(event.heat || 0) >= 150 - 1e-9));
-  assert.ok(outside.planningState.profession.heat.value <= 150);
-  assert.equal(outside.planningState.profession.overheated, false);
-  assert.equal(outside.planningState.profession.photonForgeActive, false);
+  assert.ok(outside.planningState.profession[STATE.HEAT].value <= 150);
+  assert.equal(outside.planningState.profession[STATE.OVERHEATED], false);
+  assert.equal(outside.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], false);
 
   const inside = simulate('Holosmith', ['Engage Photon Forge', 'Corona Burst', { type: 'wait', durationMs: 2000 }], {
     initialHeat: 145,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
   });
 
-  assert.equal(inside.planningState.profession.heat.value, 150);
-  assert.equal(inside.planningState.profession.overheated, true);
-  assert.equal(inside.planningState.profession.photonForgeActive, true);
+  assert.equal(inside.planningState.profession[STATE.HEAT].value, 150);
+  assert.equal(inside.planningState.profession[STATE.OVERHEATED], true);
+  assert.equal(inside.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], true);
 });
 
 test('cancelled Light Strike leaves the Photon Forge chain ready for the next Light Strike', () => {
@@ -304,7 +305,7 @@ test('cancelled Light Strike leaves the Photon Forge chain ready for the next Li
   assert.equal(lightStrikeSteps[0].interrupted, true);
   assert.ok(lightStrikeSteps.every((step) => step.invalid !== true));
   assert.equal(lightStrikePackets.length, 1);
-  assert.equal(result.planningState.profession.autoattackChains[ID.LIGHT_STRIKE], ID.BRIGHT_SLASH);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.LIGHT_STRIKE], ID.BRIGHT_SLASH);
 });
 
 test('Photon Forge overheats at its trait-adjusted maximum', () => {
@@ -312,17 +313,17 @@ test('Photon Forge overheats at its trait-adjusted maximum', () => {
     initialHeat: 90
   });
 
-  assert.equal(core.planningState.profession.heat.value, 100);
-  assert.equal(core.planningState.profession.overheated, true);
-  assert.equal(core.planningState.profession.photonForgeActive, true);
+  assert.equal(core.planningState.profession[STATE.HEAT].value, 100);
+  assert.equal(core.planningState.profession[STATE.OVERHEATED], true);
+  assert.equal(core.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], true);
 
   const enhanced = simulate('Holosmith', [], {
     initialHeat: 149,
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
   });
 
-  assert.equal(enhanced.planningState.profession.heat.maximum, 150);
-  assert.equal(enhanced.planningState.profession.heat.value, 149);
+  assert.equal(enhanced.planningState.profession[STATE.HEAT].maximum, 150);
+  assert.equal(enhanced.planningState.profession[STATE.HEAT].value, 149);
 
   const fullyCooled = simulate(
     'Holosmith',
@@ -337,8 +338,8 @@ test('Photon Forge overheats at its trait-adjusted maximum', () => {
     }
   );
 
-  assert.equal(fullyCooled.planningState.profession.heat.value, 0);
-  assert.equal(fullyCooled.planningState.profession.overheated, false);
+  assert.equal(fullyCooled.planningState.profession[STATE.HEAT].value, 0);
+  assert.equal(fullyCooled.planningState.profession[STATE.OVERHEATED], false);
 });
 
 test('ordinary Forge exits preserve one bar swap and their trait event ordering', () => {
@@ -351,10 +352,10 @@ test('ordinary Forge exits preserve one bar swap and their trait event ordering'
     const exitEvent = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'exit-forge');
     assert.ok(exitEvent);
     const state = result.planningState.profession;
-    assert.equal(state.photonForgeActive, false);
-    assert.equal(state.forgeExitedAt, exitEvent.at);
-    assert.equal(state.overheated, false);
-    assert.equal(state.activeKit, exit === 'Grenade Kit' ? ID.GRENADE_KIT : null);
+    assert.equal(state[STATE.PHOTON_FORGE_ACTIVE], false);
+    assert.equal(state[STATE.FORGE_EXITED_AT], exitEvent.at);
+    assert.equal(state[STATE.OVERHEATED], false);
+    assert.equal(state[STATE.ACTIVE_KIT], exit === 'Grenade Kit' ? ID.GRENADE_KIT : null);
     const exitEvents = result.events.filter(
       (event) =>
         event.at === exitEvent.at &&
@@ -377,9 +378,12 @@ test('explicit Overheat exits preserve cooling cadence and the pending Lens gran
   for (const exit of ['Deactivate Photon Forge', 'Grenade Kit']) {
     const exited = simulate('Holosmith', [...opener, exit, { type: 'wait', durationMs: 4000 }], config);
     assert.deepEqual(exited.warnings, []);
-    assert.equal(exited.planningState.profession.photonForgeActive, false);
-    assert.equal(exited.planningState.profession.forgeExitedAt, locked.planningState.profession.forgeExitedAt);
-    assert.equal(exited.planningState.profession.heat.value, locked.planningState.profession.heat.value);
+    assert.equal(exited.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], false);
+    assert.equal(
+      exited.planningState.profession[STATE.FORGE_EXITED_AT],
+      locked.planningState.profession[STATE.FORGE_EXITED_AT]
+    );
+    assert.equal(exited.planningState.profession[STATE.HEAT].value, locked.planningState.profession[STATE.HEAT].value);
     assert.deepEqual(
       exited.events
         .filter((event) => event.type === 'engineer.solar-focusing-lens')
@@ -391,7 +395,7 @@ test('explicit Overheat exits preserve cooling cadence and the pending Lens gran
   }
 
   const cooled = simulate('Holosmith', [...opener, { type: 'wait', durationMs: 20000 }, 'Photon Blitz'], config);
-  assert.equal(cooled.planningState.profession.heat.value, 0);
+  assert.equal(cooled.planningState.profession[STATE.HEAT].value, 0);
   assert.ok(cooled.steps.find((step) => step.skill === 'Photon Blitz').invalid);
 });
 
@@ -412,7 +416,7 @@ test('Photon Forge waits for its resource tick before overheating at maximum hea
   assert.equal(result.warnings.length, 0);
   assert.equal(barrage.start, 520);
   assert.equal(overheat.at, 0.6);
-  assert.equal(result.planningState.profession.photonForgeActive, true);
+  assert.equal(result.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], true);
 });
 
 test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
@@ -442,7 +446,7 @@ test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
     .filter((event) => event.type === 'action' && event.skillName === 'Engage Photon Forge')
     .at(-1);
   assert.equal(Number((overheat.at - entry.at).toFixed(6)), 0.6);
-  assert.equal(result.planningState.profession.photonForgeActive, true);
+  assert.equal(result.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], true);
 });
 
 test('Photon Forge waits one more resource tick when passive heat fills the bar', () => {
@@ -458,7 +462,7 @@ test('Photon Forge waits one more resource tick when passive heat fills the bar'
   assert.equal(passiveHeat.at, 1);
   assert.equal(passiveHeat.heat, 100);
   assert.equal(overheat.at, 1.1);
-  assert.equal(result.planningState.profession.photonForgeActive, true);
+  assert.equal(result.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], true);
 });
 
 test('Photon Forge passive heat restarts its cadence on each entry', () => {
@@ -511,7 +515,7 @@ test('Overheat blocks Forge and weapon inputs until the rotation exits', () => {
   assert.ok(blocked.invalid);
   assert.equal(ready.invalid, undefined);
   assert.equal(result.steps.find((step) => step.skill === 'Deactivate Photon Forge').invalid, undefined);
-  assert.equal(result.planningState.profession.photonForgeActive, false);
+  assert.equal(result.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], false);
 });
 
 test('an overheated Forge lane stays open until its authored exit', () => {
@@ -655,7 +659,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
     selectedTraitIds: [TRAIT.THERMAL_RELEASE_VALVE]
   });
 
-  assert.equal(vented.planningState.profession.heat.value, 35);
+  assert.equal(vented.planningState.profession[STATE.HEAT].value, 35);
   // Render the real resource observation through the composed UI so a stale reason cannot hide it.
   const heatEvent = vented.events.find((event) => event.type === 'engineer.heat' && event.reason === 'vent-exhaust');
   assert.ok(heatEvent);
@@ -779,7 +783,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
     }
   );
 
-  assert.equal(heatLocked.planningState.profession.heat.value, 2);
+  assert.equal(heatLocked.planningState.profession[STATE.HEAT].value, 2);
 });
 
 test('Prime Light Beam creates its damaging field only above 50 heat', () => {
@@ -1005,7 +1009,7 @@ test('Holosmith skill patches tune tier effects without changing heat topology',
     (event) => event.type === 'damage' && event.skillName === 'Laser Disk'
   );
 
-  assert.equal(disk.planningState.profession.heat.maximum, 150);
+  assert.equal(disk.planningState.profession[STATE.HEAT].maximum, 150);
   assert.ok(diskPackets.length > 0);
   assert.ok(diskPackets.every((event) => event.holosmithStrikeFactor === 1.5));
 

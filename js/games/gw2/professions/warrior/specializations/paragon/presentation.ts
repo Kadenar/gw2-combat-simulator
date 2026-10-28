@@ -10,6 +10,7 @@ import {
 } from '#gw2/professions/warrior/core/presentation.js';
 import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const CHANTS = Object.freeze([ID.CHANT_OF_ACTION, ID.CHANT_OF_RECUPERATION, ID.CHANT_OF_FREEDOM]);
 
@@ -22,8 +23,9 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       singular: 'motivation',
       plural: 'motivation',
       // Reflect the live pool or the intrinsic Rally the Valiant capacity before initialization.
-      maximum: state.motivation?.maximum ?? balanceNumberFromContext(context, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
-      value: state.motivation?.value ?? 0,
+      maximum:
+        state[STATE.MOTIVATION]?.maximum ?? balanceNumberFromContext(context, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
+      value: state[STATE.MOTIVATION]?.value ?? 0,
       canStart: false,
       step: 1,
       displayMode: 'counter',
@@ -37,8 +39,8 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 /** Shows the refrain currently pulsing while Paragon still has motivation to sustain it. */
 function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotItem[] {
   const state = warriorUiState(context);
-  const refrain = state.activeRefrain || '';
-  return refrain && (state.motivation?.value ?? 0) > 0
+  const refrain = state[STATE.ACTIVE_REFRAIN] || '';
+  return refrain && (state[STATE.MOTIVATION]?.value ?? 0) > 0
     ? [
         {
           id: 'paragon-active-refrain',

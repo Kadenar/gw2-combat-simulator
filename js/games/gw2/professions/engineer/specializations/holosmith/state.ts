@@ -1,10 +1,9 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import {
-  defineProfessionSpecializationState,
-  definePublicStateDefaults
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface HolosmithState {
   heat: ResourceClock;
@@ -16,15 +15,6 @@ export interface HolosmithState {
   solarFocusingLens: ChargeGrant;
   kitLockoutUntil: number;
 }
-
-// Detached defaults describe the observations exposed while Holosmith is active.
-export const HOLOSMITH_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  heat: createResourceClock(),
-  photonForgeActive: false,
-  forgeExitedAt: null,
-  overheated: false,
-  kitLockoutUntil: 0
-} satisfies Partial<HolosmithState>);
 
 /** Creates the Forge lifecycle; the resource policy initializes heat before cooling starts. */
 export function createHolosmithState(): HolosmithState {
@@ -42,3 +32,15 @@ export function createHolosmithState(): HolosmithState {
 }
 
 export const holosmithState = defineProfessionSpecializationState('Holosmith', createHolosmithState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectHolosmithPlanningState(input: Gw2PlanningStateInput) {
+  const state = holosmithState.from(input);
+  return structuredClone({
+    [STATE.HEAT]: state.heat,
+    [STATE.PHOTON_FORGE_ACTIVE]: state.photonForgeActive,
+    [STATE.FORGE_EXITED_AT]: state.forgeExitedAt,
+    [STATE.OVERHEATED]: state.overheated,
+    [STATE.KIT_LOCKOUT_UNTIL]: state.kitLockoutUntil
+  });
+}

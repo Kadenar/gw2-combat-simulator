@@ -1,9 +1,7 @@
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
-import type { RangerState } from '#gw2/professions/ranger/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface SoulbeastState {
   beastmodeActive: boolean;
@@ -11,12 +9,6 @@ export interface SoulbeastState {
 
   soulbeastActivationClaims: ActivationClaims;
 }
-
-// Soulbeast owns its public Beastmode and stance projection.
-export const SOULBEAST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  beastmodeActive: false,
-  oneWolfPackUntil: 0
-} satisfies Partial<RangerState>);
 
 export function createSoulbeastState(): SoulbeastState {
   return {
@@ -30,3 +22,12 @@ export function createSoulbeastState(): SoulbeastState {
 }
 
 export const soulbeastState = defineProfessionSpecializationState('Soulbeast', createSoulbeastState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectSoulbeastPlanningState(input: Gw2PlanningStateInput) {
+  const state = soulbeastState.from(input);
+  return structuredClone({
+    [STATE.BEASTMODE_ACTIVE]: state.beastmodeActive,
+    [STATE.ONE_WOLF_PACK_UNTIL]: state.oneWolfPackUntil
+  });
+}

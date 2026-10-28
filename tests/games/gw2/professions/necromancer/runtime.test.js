@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -69,7 +70,7 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
   assert.ok(result.warnings.every(({ message: warning }) => warning.includes('required weapon is not equipped')));
   assert.deepEqual(seen, [[2, true, 0.12]]);
   assert.equal(result.planningState.activeWeaponSet, 2);
-  assert.deepEqual(result.planningState.profession.autoattackChains, {});
+  assert.deepEqual(result.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
   assert.equal(result.events.filter((event) => event.type === 'weapon_set').length, 1);
   assert.equal(
     result.resolvedEvents
@@ -142,15 +143,15 @@ test('native live build eligibility rejects excluded skills and foreign speciali
 // Temporary horrors appear at their own spawn boundary and retain an independent lifetime after the form ends.
 test('Summon Madness creates staggered live creatures only after completion', () => {
   const cancelled = simulate([cast(ID.LICH_FORM), { ...cast(ID.SUMMON_MADNESS), interruptAfterMs: 40 }, wait(2000)]);
-  assert.deepEqual(cancelled.planningState.profession.activeMinions, {});
+  assert.deepEqual(cancelled.planningState.profession[STATE.ACTIVE_MINIONS], {});
   assert.equal(
     cancelled.resolvedEvents.some((event) => event.skillId === ID.SUMMON_MADNESS),
     false
   );
   const first = simulate([cast(ID.LICH_FORM), cast(ID.SUMMON_MADNESS)]);
-  assert.equal(Object.keys(first.planningState.profession.activeMinions).length, 1);
+  assert.equal(Object.keys(first.planningState.profession[STATE.ACTIVE_MINIONS]).length, 1);
   const staggered = simulate([cast(ID.LICH_FORM), cast(ID.SUMMON_MADNESS), wait(1500)]);
-  assert.equal(Object.keys(staggered.planningState.profession.activeMinions).length, 2);
+  assert.equal(Object.keys(staggered.planningState.profession[STATE.ACTIVE_MINIONS]).length, 2);
   const hit = staggered.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.SUMMON_MADNESS);
   assert.equal(hit.actorType, 'summon');
   assert.ok(hit.damage > 0);
@@ -161,7 +162,7 @@ test('Summon Madness creates staggered live creatures only after completion', ()
 test('horrors retain their terminal attack after leaving Lich and clear their actual lifetimes', () => {
   const rotation = [wait(120), cast(ID.LICH_FORM), cast(ID.SUMMON_MADNESS), cast(ID.EXIT_LICH_FORM), wait(14000)];
   const result = simulate(rotation);
-  assert.deepEqual(result.planningState.profession.activeMinions, {});
+  assert.deepEqual(result.planningState.profession[STATE.ACTIVE_MINIONS], {});
   assert.ok(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Unstable Horror - Explosion')
   );
@@ -190,7 +191,7 @@ test('horror expiry survives explosion removal and rejects authored strikes beyo
     })
   };
   const result = simulate([cast(ID.LICH_FORM), cast(ID.SUMMON_MADNESS), wait(14000)], base, { profession });
-  assert.deepEqual(result.planningState.profession.activeMinions, {});
+  assert.deepEqual(result.planningState.profession[STATE.ACTIVE_MINIONS], {});
   assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.SUMMON_MADNESS));
   assert.equal(
     result.resolvedEvents.some(
@@ -210,7 +211,7 @@ test('repeated Summon Madness casts retain distinct creature owners', () => {
     wait(1000)
   ]);
   const casts = result.steps.filter((step) => step.skillId === ID.SUMMON_MADNESS);
-  const keys = Object.keys(result.planningState.profession.activeMinions);
+  const keys = Object.keys(result.planningState.profession[STATE.ACTIVE_MINIONS]);
   assert.equal(casts.length, 2);
   for (const cast of casts) assert.ok(keys.some((key) => key.includes(`:${cast.activationId}:`)));
   const firstHorrors = result.resolvedEvents.filter(
@@ -228,14 +229,19 @@ test('condition-only hands grant spendable life force at their accepted target a
     const native = necromancerProfession.runtimeFor(base);
     const skill = native.catalog.skillsById.get(skillId);
     const landed = simulate([cast(skillId)]);
-    assert.equal(lifeForcePercent(landed.planningState.profession.lifeForce), percent);
+    assert.equal(lifeForcePercent(landed.planningState.profession[STATE.LIFE_FORCE]), percent);
     // Condition reactions share the strike grant owner and apply Gluttony exactly once.
     const gluttony = simulate([cast(skillId)], { ...base, selectedTraitIds: [TRAIT.GLUTTONY] });
     const multiplier = native.catalog.balanceProfilesById.get(TRAIT.GLUTTONY).lifeForceGainMultiplier;
-    assert.ok(Math.abs(lifeForcePercent(gluttony.planningState.profession.lifeForce) - percent * multiplier) < 1e-8);
+    assert.ok(
+      Math.abs(lifeForcePercent(gluttony.planningState.profession[STATE.LIFE_FORCE]) - percent * multiplier) < 1e-8
+    );
     assert.deepEqual(gluttony.warnings, []);
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
-      assert.equal(lifeForcePercent(simulate([{ ...cast(skillId), ...flags }]).planningState.profession.lifeForce), 0);
+      assert.equal(
+        lifeForcePercent(simulate([{ ...cast(skillId), ...flags }]).planningState.profession[STATE.LIFE_FORCE]),
+        0
+      );
     const profession = {
       ...native,
       catalog: applySkillPatch(native.catalog, {
@@ -245,7 +251,7 @@ test('condition-only hands grant spendable life force at their accepted target a
       })
     };
     assert.equal(
-      lifeForcePercent(simulate([cast(skillId)], base, { profession }).planningState.profession.lifeForce),
+      lifeForcePercent(simulate([cast(skillId)], base, { profession }).planningState.profession[STATE.LIFE_FORCE]),
       0
     );
     assert.deepEqual(simulate([cast(skillId), cast(ID.REAPERS_SHROUD)]).warnings, []);
@@ -269,38 +275,38 @@ function withChainStep(config, skillId) {
 test('live sword chains advance, complete, and expire at their exclusive continuation deadline', () => {
   const complete = simulate([cast(ID.ENERVATION_BLADE), cast(ID.ENERVATION_ECHO), cast(ID.DEATHLY_ENERVATION)]);
   assert.deepEqual(complete.warnings, []);
-  assert.deepEqual(complete.planningState.profession.autoattackChains, {});
+  assert.deepEqual(complete.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
   const expired = simulate([cast(ID.ENERVATION_BLADE), wait(3000), cast(ID.ENERVATION_ECHO)]);
   assert.ok(expired.warnings.some(({ message: warning }) => warning.includes('cast Enervation Blade first')));
-  assert.deepEqual(expired.planningState.profession.autoattackChains, {});
+  assert.deepEqual(expired.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
   const active = simulate([cast(ID.ENERVATION_BLADE), wait(2960), cast(ID.ENERVATION_ECHO)]);
   assert.deepEqual(active.warnings, []);
-  assert.equal(active.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
+  assert.equal(active.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
 });
 
 test('a later sword transition cancels the old expiry without extending a preserved continuation', () => {
   const refreshed = simulate([cast(ID.ENERVATION_BLADE), wait(2000), cast(ID.ENERVATION_ECHO), wait(600)]);
-  assert.equal(refreshed.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
+  assert.equal(refreshed.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
   const preserved = simulate([cast(ID.ENERVATION_BLADE), cast(ID.GHASTLY_CLAWS)]);
-  assert.equal(preserved.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
+  assert.equal(preserved.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
   const expired = simulate([cast(ID.ENERVATION_BLADE), cast(ID.GHASTLY_CLAWS), wait(1600)]);
-  assert.equal(expired.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], undefined);
+  assert.equal(expired.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], undefined);
 });
 
 test('live Necromancer form transitions reset weapon chains while cancelled attacks preserve them', () => {
   const config = { ...base, initialResource: 100 };
   const transformed = simulate([cast(ID.ENERVATION_BLADE), cast(ID.REAPERS_SHROUD)], config);
-  assert.equal(transformed.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], undefined);
+  assert.equal(transformed.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], undefined);
   const cancelled = simulate([cast(ID.ENERVATION_BLADE), { ...cast(ID.ENERVATION_ECHO), interruptAfterMs: 40 }]);
-  assert.equal(cancelled.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
+  assert.equal(cancelled.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
   const ordinary = simulate([cast(ID.DUSK_STRIKE), cast(ID.GHASTLY_CLAWS)]);
-  assert.equal(ordinary.planningState.profession.autoattackChains[ID.DUSK_STRIKE], undefined);
+  assert.equal(ordinary.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.DUSK_STRIKE], undefined);
   const depleted = simulate([cast(ID.REAPERS_SHROUD), cast(ID.LIFE_REND), wait(6000)], {
     ...base,
     initialResource: 10
   });
-  assert.equal(depleted.planningState.profession.activeShroud, '');
-  assert.deepEqual(depleted.planningState.profession.autoattackChains, {});
+  assert.equal(depleted.planningState.profession[STATE.ACTIVE_SHROUD], '');
+  assert.deepEqual(depleted.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
   assert.deepEqual(depleted.warnings, []);
 });
 
@@ -309,20 +315,21 @@ test('spear shard gains require landed hits and refreshed grants survive their o
   for (const skillId of [ID.DEADLY_SLICE, ID.SINISTER_STAB, ID.EXTIRPATE]) {
     const profession = withChainStep(base, skillId);
     assert.equal(
-      simulate([cast(skillId)], base, { profession }).planningState.profession.soulShardGrant.charges,
+      simulate([cast(skillId)], base, { profession }).planningState.profession[STATE.SOUL_SHARD_GRANT].charges,
       skillId === ID.EXTIRPATE ? 2 : 1
     );
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
       assert.equal(
-        simulate([{ ...cast(skillId), ...flags }], base, { profession }).planningState.profession.soulShardGrant
-          .charges,
+        simulate([{ ...cast(skillId), ...flags }], base, { profession }).planningState.profession[
+          STATE.SOUL_SHARD_GRANT
+        ].charges,
         0
       );
   }
 
   const rotation = [cast(ID.EXTIRPATE), wait(8000), cast(ID.DARK_SLASH), cast(ID.DEADLY_SLICE), wait(2000)];
-  assert.equal(simulate(rotation).planningState.profession.soulShardGrant.charges, 3);
-  assert.equal(simulate([...rotation, wait(10000)]).planningState.profession.soulShardGrant.charges, 0);
+  assert.equal(simulate(rotation).planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 3);
+  assert.equal(simulate([...rotation, wait(10000)]).planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
 });
 
 test('Addle snapshots its activation gate but grants shards and defiance life force at impact', () => {
@@ -352,14 +359,14 @@ test('Addle snapshots its activation gate but grants shards and defiance life fo
     gained.resolvedEvents.some((event) => event.condition === 'Immobilized'),
     false
   );
-  assert.equal(lifeForcePercent(gained.planningState.profession.lifeForce), 20);
-  assert.equal(gained.planningState.profession.soulShardGrant.charges, 6);
+  assert.equal(lifeForcePercent(gained.planningState.profession[STATE.LIFE_FORCE]), 20);
+  assert.equal(gained.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 6);
   const spent = simulate([cast(ID.ADDLE)], config, { profession: makeProfession(3, 0) });
   assert.ok(spent.resolvedEvents.some((event) => event.condition === 'Immobilized'));
-  assert.equal(spent.planningState.profession.soulShardGrant.charges, 4);
+  assert.equal(spent.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 4);
   const missed = simulate([{ ...cast(ID.ADDLE), offTarget: true }], config);
-  assert.equal(missed.planningState.profession.soulShardGrant.charges, 0);
-  assert.equal(lifeForcePercent(missed.planningState.profession.lifeForce), 0);
+  assert.equal(missed.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
+  assert.equal(lifeForcePercent(missed.planningState.profession[STATE.LIFE_FORCE]), 0);
 });
 
 test('Perforate consumes current shards per accepted packet, including gains during the channel', () => {
@@ -384,13 +391,13 @@ test('Perforate consumes current shards per accepted packet, including gains dur
     }
   };
   const result = simulate([cast(ID.PERFORATE)], base, { profession });
-  assert.equal(result.planningState.profession.soulShardGrant.charges, 0);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.SOUL_SHARDS).length,
     2
   );
   const missed = simulate([{ ...cast(ID.PERFORATE), offTarget: true }], base, { profession });
-  assert.equal(missed.planningState.profession.soulShardGrant.charges, 2);
+  assert.equal(missed.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 2);
   const removed = {
     ...profession,
     catalog: applySkillPatch(native.catalog, {
@@ -398,7 +405,7 @@ test('Perforate consumes current shards per accepted packet, including gains dur
     })
   };
   const noSiphon = simulate([cast(ID.PERFORATE)], base, { profession: removed });
-  assert.equal(noSiphon.planningState.profession.soulShardGrant.charges, 0);
+  assert.equal(noSiphon.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
   assert.equal(
     noSiphon.resolvedEvents.some((event) => event.skillId === ID.SOUL_SHARDS),
     false
@@ -408,9 +415,9 @@ test('Perforate consumes current shards per accepted packet, including gains dur
 
 test('Distress consumes its flip, refreshes Perforate, and grants the single-target shard allowance', () => {
   const result = simulate([cast(ID.PERFORATE), cast(ID.ISOLATE), cast(ID.DISTRESS)]);
-  assert.equal(result.planningState.profession.soulShardGrant.charges, 6);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 6);
   assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.PERFORATE), false);
-  assert.equal(result.planningState.profession.availableFlips[ID.DISTRESS], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DISTRESS], undefined);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -418,10 +425,15 @@ test('Soul Marks grants only on accepted mark impacts', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.SOUL_MARKS] };
   const native = necromancerProfession.runtimeFor(config);
   const amount = native.catalog.balanceProfilesById.get(TRAIT.SOUL_MARKS).lifeForceGain;
-  assert.equal(lifeForcePercent(simulate([cast(ID.REAPERS_MARK)], config).planningState.profession.lifeForce), amount);
+  assert.equal(
+    lifeForcePercent(simulate([cast(ID.REAPERS_MARK)], config).planningState.profession[STATE.LIFE_FORCE]),
+    amount
+  );
   for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
     assert.equal(
-      lifeForcePercent(simulate([{ ...cast(ID.REAPERS_MARK), ...flags }], config).planningState.profession.lifeForce),
+      lifeForcePercent(
+        simulate([{ ...cast(ID.REAPERS_MARK), ...flags }], config).planningState.profession[STATE.LIFE_FORCE]
+      ),
       0
     );
 });
@@ -544,14 +556,14 @@ test('live corruption excludes Expertise from self durations and expires the act
   };
   const rotation = [cast(ID.BLOOD_IS_POWER)];
   const result = simulate(rotation, config);
-  const applications = result.planningState.profession.selfConditions;
+  const applications = result.planningState.profession[STATE.SELF_CONDITIONS];
   assert.deepEqual(
     applications.map((application) => application.condition),
     ['Bleeding', 'Torment']
   );
   for (const application of applications) assert.equal(application.expiresAt - application.appliedAt, 10);
   assert.equal(result.events.filter((event) => event.type === 'self_condition').length, 2);
-  assert.deepEqual(simulate([...rotation, wait(10000)], config).planningState.profession.selfConditions, []);
+  assert.deepEqual(simulate([...rotation, wait(10000)], config).planningState.profession[STATE.SELF_CONDITIONS], []);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -583,7 +595,7 @@ test('corruption skill effects apply self conditions once and honor trait select
       const result = simulate([cast(skillId)], config, { profession });
       assert.deepEqual(result.warnings, []);
       assert.deepEqual(
-        result.planningState.profession.selfConditions.map(({ condition, stacks }) => [condition, stacks]),
+        result.planningState.profession[STATE.SELF_CONDITIONS].map(({ condition, stacks }) => [condition, stacks]),
         mode === 'removed' ? [] : mode === 'trait' ? [ordinary, extra] : [ordinary]
       );
 
@@ -600,7 +612,7 @@ test('corruption skill effects apply self conditions once and honor trait select
     }
 
     const cancelled = simulate([{ ...cast(skillId), interruptAfterMs: 1 }]);
-    assert.deepEqual(cancelled.planningState.profession.selfConditions, []);
+    assert.deepEqual(cancelled.planningState.profession[STATE.SELF_CONDITIONS], []);
   }
 });
 
@@ -613,7 +625,7 @@ test('ordinary transfers move all applications of the oldest distinct types with
   ]);
   const result = simulate([cast(ID.DEATHLY_SWARM)], base, { profession });
   assert.deepEqual(
-    result.planningState.profession.selfConditions.map((application) => application.condition),
+    result.planningState.profession[STATE.SELF_CONDITIONS].map((application) => application.condition),
     ['Torment']
   );
   const moved = result.resolvedEvents.filter(
@@ -630,7 +642,7 @@ test('ordinary transfers move all applications of the oldest distinct types with
 
   for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }]) {
     const missed = simulate([{ ...cast(ID.DEATHLY_SWARM), ...flags }], base, { profession });
-    assert.equal(missed.planningState.profession.selfConditions.length, 4);
+    assert.equal(missed.planningState.profession[STATE.SELF_CONDITIONS].length, 4);
   }
 });
 
@@ -638,10 +650,10 @@ test('first-hit self conditions follow accepted impacts and are not repeated by 
   for (const skillId of [ID.LIFE_SIPHON, ID.DARK_PACT]) {
     const landed = simulate([cast(skillId), wait(2000)]);
     assert.equal(landed.events.filter((event) => event.type === 'self_condition').length, 1);
-    assert.equal(landed.planningState.profession.selfConditions.length, 1);
+    assert.equal(landed.planningState.profession[STATE.SELF_CONDITIONS].length, 1);
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }]) {
       const missed = simulate([{ ...cast(skillId), ...flags }, wait(2000)]);
-      assert.deepEqual(missed.planningState.profession.selfConditions, []);
+      assert.deepEqual(missed.planningState.profession[STATE.SELF_CONDITIONS], []);
     }
   }
 });
@@ -656,7 +668,7 @@ test('corruption boons use the current minion recipients without triggering an a
   assert.deepEqual(boon.resolvedAudience.companionIds, ['minion:bone-minion:0', 'minion:bone-minion:1']);
   assert.equal(observedRuntime(result).profession.core.plagueSendingArmed, true);
   assert.deepEqual(
-    result.planningState.profession.selfConditions.map((application) => application.condition),
+    result.planningState.profession[STATE.SELF_CONDITIONS].map((application) => application.condition),
     ['Poisoned', 'Bleeding']
   );
 });
@@ -670,11 +682,11 @@ test('Plague Sending waits for an accepted strike and consumes the newest applic
   );
   const missed = simulate([{ ...cast(ID.RENDING_CLAWS), offTarget: true }], config, { profession });
   assert.equal(observedRuntime(missed).profession.core.plagueSendingArmed, true);
-  assert.equal(missed.planningState.profession.selfConditions.length, 3);
+  assert.equal(missed.planningState.profession[STATE.SELF_CONDITIONS].length, 3);
   const landed = simulate([cast(ID.RENDING_CLAWS), cast(ID.RENDING_CLAWS)], config, { profession });
   assert.equal(observedRuntime(landed).profession.core.plagueSendingArmed, false);
   assert.deepEqual(
-    landed.planningState.profession.selfConditions.map((application) => application.condition),
+    landed.planningState.profession[STATE.SELF_CONDITIONS].map((application) => application.condition),
     ['Bleeding']
   );
   assert.equal(
@@ -700,14 +712,14 @@ test('Plague Signet transfers immediately without a strike while hit-owned trans
   });
   assert.deepEqual(landed.warnings, []);
   assert.deepEqual(remainingAtCommit, [0]);
-  assert.deepEqual(landed.planningState.profession.selfConditions, []);
+  assert.deepEqual(landed.planningState.profession[STATE.SELF_CONDITIONS], []);
   const transferred = landed.resolvedEvents.find(
     (event) => event.type === 'condition' && event.skillId === ID.PLAGUE_SIGNET
   );
   assert.equal(transferred.at, 0);
   assert.equal(transferred.duration, 10);
   const missed = simulate([{ ...cast(ID.PLAGUE_SIGNET), offTarget: true }], base, { profession });
-  assert.equal(missed.planningState.profession.selfConditions.length, 1);
+  assert.equal(missed.planningState.profession[STATE.SELF_CONDITIONS].length, 1);
   const removed = {
     ...profession,
     catalog: applySkillPatch(profession.catalog, {
@@ -715,7 +727,7 @@ test('Plague Signet transfers immediately without a strike while hit-owned trans
     })
   };
   const noHit = simulate([cast(ID.DEATHLY_SWARM)], base, { profession: removed });
-  assert.equal(noHit.planningState.profession.selfConditions.length, 1);
+  assert.equal(noHit.planningState.profession[STATE.SELF_CONDITIONS].length, 1);
 });
 
 test('condition-based life force belongs to a landed impact and Devouring counts before its own Torment', () => {
@@ -726,7 +738,7 @@ test('condition-based life force belongs to a landed impact and Devouring counts
       target: { ...base.target, conditions: { Bleeding: 1, Poisoned: 1 } }
     };
     const result = simulate([cast(skillId)], config);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 10);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 10);
 
     if (skillId === ID.DEVOURING_DARKNESS)
       assert.equal(
@@ -738,7 +750,7 @@ test('condition-based life force belongs to a landed impact and Devouring counts
 
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
       assert.equal(
-        lifeForcePercent(simulate([{ ...cast(skillId), ...flags }], config).planningState.profession.lifeForce),
+        lifeForcePercent(simulate([{ ...cast(skillId), ...flags }], config).planningState.profession[STATE.LIFE_FORCE]),
         0
       );
   }
@@ -768,7 +780,7 @@ test('Devouring observes a condition arriving during travel and its condition su
   };
   const rotation = [{ ...cast(ID.DEVOURING_DARKNESS), impactDelayMs: 1000 }, wait(1100)];
   const landed = simulate(rotation, config, { profession });
-  assert.equal(lifeForcePercent(landed.planningState.profession.lifeForce), 9);
+  assert.equal(lifeForcePercent(landed.planningState.profession[STATE.LIFE_FORCE]), 9);
   assert.equal(
     landed.resolvedEvents.find((event) => event.skillId === ID.DEVOURING_DARKNESS && event.type === 'condition').stacks,
     1
@@ -780,7 +792,7 @@ test('Devouring observes a condition arriving during travel and its condition su
     })
   };
   const result = simulate(rotation, config, { profession: removed });
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 0);
   assert.ok(
     result.resolvedEvents.some((event) => event.skillId === ID.DEVOURING_DARKNESS && event.type === 'condition')
   );
@@ -790,8 +802,8 @@ test('Devouring observes a condition arriving during travel and its condition su
 test('landed Ghastly Claws funds shroud entry in one native runtime', () => {
   const rotation = [cast(ID.GHASTLY_CLAWS), cast(ID.REAPERS_SHROUD)];
   const result = simulate(rotation);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 12);
-  assert.equal(result.planningState.profession.activeShroud, 'reaper');
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 12);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], 'reaper');
   assert.deepEqual(result.warnings, []);
   const score = simulate(rotation, base, { output: 'score' });
   assert.equal(score.totalDamage, result.totalDamage);
@@ -801,8 +813,8 @@ test('landed Ghastly Claws funds shroud entry in one native runtime', () => {
 test('missed and late Ghastly Claws packets cannot fund shroud entry', () => {
   for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }]) {
     const result = simulate([{ ...cast(ID.GHASTLY_CLAWS), ...flags }, cast(ID.REAPERS_SHROUD)]);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
-    assert.equal(result.planningState.profession.activeShroud, '');
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 0);
+    assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], '');
     assert.ok(result.warnings.some(({ message: warning }) => warning.includes('life force')));
   }
 });
@@ -843,7 +855,7 @@ test('the crossing strike grants Spiteful Fortitude and later dead-target packet
   };
   const result = simulate([wait(500)], config, { profession });
   assert.deepEqual(values, [0, 1, 2]);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 2);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 2);
 });
 
 test('Gravedigger completion uses actual target health to determine the next cast', () => {
@@ -874,10 +886,10 @@ test('a life-force grant replaces depletion and reset restores the same live poo
     }
   };
   const during = simulate([cast(ID.REAPERS_SHROUD), wait(2500)], config, { profession });
-  assert.equal(during.planningState.profession.activeShroud, 'reaper');
+  assert.equal(during.planningState.profession[STATE.ACTIVE_SHROUD], 'reaper');
   const after = simulate([cast(ID.REAPERS_SHROUD), wait(6000), { type: 'cooldown-reset' }], config, { profession });
-  assert.equal(after.planningState.profession.activeShroud, '');
-  assert.equal(lifeForcePercent(after.planningState.profession.lifeForce), 100);
+  assert.equal(after.planningState.profession[STATE.ACTIVE_SHROUD], '');
+  assert.equal(lifeForcePercent(after.planningState.profession[STATE.LIFE_FORCE]), 100);
 });
 
 // Expiry owns its earlier priority even when a same-time passive grant was enqueued first.
@@ -901,8 +913,8 @@ test('shroud depletion precedes a simultaneous life-force refill', () => {
     }
   };
   const result = simulate([cast(ID.REAPERS_SHROUD), wait(at * 1000)], config, { profession });
-  assert.equal(result.planningState.profession.activeShroud, '');
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 10);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], '');
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 10);
 });
 
 // Minimal summon sequences exercise lifetime and recharge ownership without using saved rotations.
@@ -912,14 +924,14 @@ test('an interrupted summon creates neither a minion nor a usable command', () =
     cast(ID.PUTRID_EXPLOSION),
     wait(4000)
   ]);
-  assert.deepEqual(result.planningState.profession.activeMinions, {});
+  assert.deepEqual(result.planningState.profession[STATE.ACTIVE_MINIONS], {});
   assert.ok(result.warnings.some(({ message: warning }) => warning.includes('not alive')));
   assert.equal(result.totalDamage, 0);
 });
 
 test('consumption cancels only the removed creature and starts summon recharge at the last death', () => {
   const one = simulate([cast(ID.SUMMON_BONE_MINIONS), cast(ID.PUTRID_EXPLOSION), wait(5000)]);
-  assert.equal(one.planningState.profession.activeMinions['bone-minion'], 1);
+  assert.equal(one.planningState.profession[STATE.ACTIVE_MINIONS]['bone-minion'], 1);
   const autonomous = one.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillId === ID.SUMMON_BONE_MINIONS
   );
@@ -936,7 +948,7 @@ test('consumption cancels only the removed creature and starts summon recharge a
     wait(5000)
   ]);
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(result.planningState.profession.activeMinions, {});
+  assert.deepEqual(result.planningState.profession[STATE.ACTIVE_MINIONS], {});
   // An opening attack may land while a minion is alive; consumption cancels only that creature's future work.
   const explosions = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillId === ID.PUTRID_EXPLOSION
@@ -970,7 +982,7 @@ test('Haunt grants life force once at its accepted impact, with no off-target or
   ]) {
     const result = simulate([cast(ID.SUMMON_SHADOW_FIEND), command, wait(durationMs)]);
     assert.deepEqual(result.warnings, []);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), expected);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), expected);
   }
 });
 
@@ -1003,7 +1015,7 @@ test('a replacement generation cancels the old autonomous clock and pending Haun
   };
   const result = simulate([cast(ID.SUMMON_SHADOW_FIEND), cast(ID.HAUNT), wait(9000)], base, { profession });
   assert.equal(observedRuntime(result).profession.core.minionGenerations['shadow-fiend'], 2);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 0);
   const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
   assert.ok(strikes.length > 0);
   assert.ok(strikes.every((event) => event.activationId.startsWith('replacement:')));
@@ -1089,10 +1101,10 @@ test('shroud entry includes Armored Shroud Carapace before removing active self-
   };
   const result = simulate([cast(ID.SUMMON_BONE_MINIONS), cast(ID.REAPERS_SHROUD)], config, { profession });
   const state = result.planningState.profession;
-  assert.equal(lifeForcePercent(state.lifeForce), 15.5);
-  assert.equal(state.carapaceExpiries.length, 10);
+  assert.equal(lifeForcePercent(state[STATE.LIFE_FORCE]), 15.5);
+  assert.equal(state[STATE.CARAPACE_EXPIRIES].length, 10);
   assert.deepEqual(
-    state.selfConditions.map((application) => application.condition),
+    state[STATE.SELF_CONDITIONS].map((application) => application.condition),
     ['Poisoned']
   );
   assert.equal(observedRuntime(result).profession.core.plagueSendingArmed, true);
@@ -1114,13 +1126,13 @@ test('automatic shroud depletion refreshes Soul Barbs and starts entry recharge 
 test('Lich expiry owns an exact deadline and never invokes life-force shroud entry traits', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.SOUL_BARBS, TRAIT.ARMORED_SHROUD] };
   const during = simulate([cast(ID.LICH_FORM), wait(19960)], config);
-  assert.equal(during.planningState.profession.activeShroud, 'lich');
-  assert.equal(lifeForcePercent(during.planningState.profession.lifeForce), 0);
+  assert.equal(during.planningState.profession[STATE.ACTIVE_SHROUD], 'lich');
+  assert.equal(lifeForcePercent(during.planningState.profession[STATE.LIFE_FORCE]), 0);
   const ended = simulate([cast(ID.LICH_FORM), wait(20000)], config);
-  assert.equal(ended.planningState.profession.activeShroud, '');
-  assert.equal(lifeForcePercent(ended.planningState.profession.lifeForce), 15);
-  assert.equal(ended.planningState.profession.availableFlips[ID.EXIT_LICH_FORM], undefined);
-  assert.deepEqual(ended.planningState.profession.carapaceExpiries, []);
+  assert.equal(ended.planningState.profession[STATE.ACTIVE_SHROUD], '');
+  assert.equal(lifeForcePercent(ended.planningState.profession[STATE.LIFE_FORCE]), 15);
+  assert.equal(ended.planningState.profession[STATE.AVAILABLE_FLIPS][ID.EXIT_LICH_FORM], undefined);
+  assert.deepEqual(ended.planningState.profession[STATE.CARAPACE_EXPIRIES], []);
   assert.equal(
     ended.events.some((event) => event.kind === 'necromancer-soul-barbs'),
     false
@@ -1142,8 +1154,8 @@ test('manual Lich exit cancels its old deadline before a replacement form begins
     base,
     { profession }
   );
-  assert.equal(result.planningState.profession.activeShroud, 'lich');
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 15);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], 'lich');
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 15);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -1158,14 +1170,14 @@ test('Lich bar skills require the live form and ordinary skills remain unavailab
   ]);
   assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.DEATHLY_CLAWS));
   assert.ok(result.warnings.some(({ message: warning }) => warning.includes('cannot cast in shroud')));
-  assert.equal(result.planningState.profession.activeShroud, '');
+  assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], '');
 });
 
 test('entry conditions award live Carapace without a restored state event', () => {
   const config = { ...base, initialResource: 10, selectedTraitIds: [TRAIT.WEAKENING_SHROUD, TRAIT.CORRUPTERS_FERVOR] };
   const result = simulate([cast(ID.REAPERS_SHROUD)], config);
   // Corruptor's Fervor observes both Bleeding stacks and the separate Weakness application.
-  assert.equal(result.planningState.profession.carapaceExpiries.length, 3);
+  assert.equal(result.planningState.profession[STATE.CARAPACE_EXPIRIES].length, 3);
   assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Weakness'));
   assert.equal(
     result.events.some((event) => event.type === 'necromancer.state'),
@@ -1178,7 +1190,7 @@ test('a delivered entry boon triggers Blighters Boon once for the whole applicat
   const result = simulate([cast(ID.REAPERS_SHROUD)], config);
   const might = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'might');
   assert.equal(might.stacks, 5);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 11);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 11);
 });
 
 // Boon rewards follow actual self recipients and exclude personal statuses on the shared buff stage.
@@ -1186,7 +1198,7 @@ test('Blighters Boon excludes Soul Barbs and boons delivered only to allies', ()
   const config = { ...base, initialResource: 10, selectedTraitIds: [TRAIT.BLIGHTERS_BOON, TRAIT.SOUL_BARBS] };
   const shroud = simulate([cast(ID.REAPERS_SHROUD)], config);
   assert.ok(shroud.events.some((event) => event.kind === 'necromancer-soul-barbs'));
-  assert.equal(lifeForcePercent(shroud.planningState.profession.lifeForce), 10);
+  assert.equal(lifeForcePercent(shroud.planningState.profession[STATE.LIFE_FORCE]), 10);
   for (const affectsSelf of [false, true]) {
     const native = necromancerProfession.runtimeFor(config);
     const result = simulate([wait(1)], config, {
@@ -1212,7 +1224,7 @@ test('Blighters Boon excludes Soul Barbs and boons delivered only to allies', ()
       }
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), affectsSelf ? 11 : 10);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), affectsSelf ? 11 : 10);
   }
 });
 
@@ -1285,7 +1297,7 @@ test('selected resource passives can fund shroud entry without a predicted gain'
     const config = { ...base, ...options };
     const result = simulate([cast(ID.REAPERS_SHROUD)], config);
     assert.equal(result.steps[0].start, expectedStart);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 12);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 12);
     assert.deepEqual(result.warnings, []);
     assert.equal(
       simulate([cast(ID.REAPERS_SHROUD)], config, { output: 'score' }).rotationEndTime,
@@ -1312,7 +1324,7 @@ test('rounded passive delivery preserves resource affordability on the original 
     const result = simulate([cast(ID.REAPERS_SHROUD)], config, { profession });
     assert.deepEqual(result.warnings, []);
     assert.equal(result.steps[0].start, 1000);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 12);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 12);
   }
 });
 
@@ -1363,18 +1375,18 @@ test('signet passives sample current recharge and only real shrouds enable Signe
   };
 
   const ready = run([wait(9000)], [], 0);
-  assert.equal(lifeForcePercent(ready.planningState.profession.lifeForce), 4);
+  assert.equal(lifeForcePercent(ready.planningState.profession[STATE.LIFE_FORCE]), 4);
   const suppressed = run([cast(ID.REAPERS_SHROUD), wait(4000)]);
   const enabled = run([cast(ID.REAPERS_SHROUD), wait(4000)], [TRAIT.SIGNETS_OF_SUFFERING]);
   assert.equal(
-    lifeForcePercent(enabled.planningState.profession.lifeForce) -
-      lifeForcePercent(suppressed.planningState.profession.lifeForce),
+    lifeForcePercent(enabled.planningState.profession[STATE.LIFE_FORCE]) -
+      lifeForcePercent(suppressed.planningState.profession[STATE.LIFE_FORCE]),
     4
   );
   const lich = run([cast(ID.LICH_FORM), wait(4000)], [TRAIT.SIGNETS_OF_SUFFERING]);
-  assert.equal(lich.planningState.profession.activeShroud, 'lich');
+  assert.equal(lich.planningState.profession[STATE.ACTIVE_SHROUD], 'lich');
   assert.deepEqual(lich.warnings, []);
-  assert.equal(lifeForcePercent(lich.planningState.profession.lifeForce), 50);
+  assert.equal(lifeForcePercent(lich.planningState.profession[STATE.LIFE_FORCE]), 50);
 });
 
 test('Eternal Life resumes at its original boundary after a shroud interval', () => {
@@ -1383,10 +1395,10 @@ test('Eternal Life resumes at its original boundary after a shroud interval', ()
   assert.equal(observedRuntime(during).profession.core.eternalLife.nextAt, 2);
   const rotation = [cast(ID.REAPERS_SHROUD), wait(1520), cast(ID.EXIT_REAPERS_SHROUD), wait(480)];
   const result = simulate(rotation, config);
-  assert.equal(result.planningState.profession.activeShroud, '');
+  assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], '');
   assert.equal(
-    lifeForcePercent(result.planningState.profession.lifeForce),
-    lifeForcePercent(during.planningState.profession.lifeForce) + 3
+    lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]),
+    lifeForcePercent(during.planningState.profession[STATE.LIFE_FORCE]) + 3
   );
 });
 
@@ -1459,14 +1471,14 @@ test('zero passive grants cannot advertise an endless affordability retry', () =
 // Legality is evaluated before any cast reserves recharge, creates a summon, or grants a trait effect.
 test('live slot selection rejects unavailable commands without state changes', () => {
   const empty = simulate([cast(ID.SUMMON_BONE_MINIONS)], { ...base, selectedSkillIds: [] });
-  assert.deepEqual(empty.planningState.profession.activeMinions, {});
+  assert.deepEqual(empty.planningState.profession[STATE.ACTIVE_MINIONS], {});
   assert.ok(empty.warnings.some(({ message: warning }) => warning.includes('not equipped')));
   const equipped = simulate([cast(ID.SUMMON_BONE_MINIONS), cast(ID.PUTRID_EXPLOSION)], {
     ...base,
     selectedSkillIds: [10541]
   });
   assert.deepEqual(equipped.warnings, []);
-  assert.equal(equipped.planningState.profession.activeMinions['bone-minion'], 1);
+  assert.equal(equipped.planningState.profession[STATE.ACTIVE_MINIONS]['bone-minion'], 1);
 });
 
 test('a completed parent arms one exclusive follow-up window and interruption arms nothing', () => {
@@ -1475,15 +1487,15 @@ test('a completed parent arms one exclusive follow-up window and interruption ar
   const used = simulate([...before, cast(ID.DARK_PURSUIT), cast(ID.DARK_PURSUIT)], config);
   assert.equal(used.warnings.length, 1);
   assert.match(used.warnings[0].message, /not currently armed/);
-  assert.equal(used.planningState.profession.availableFlips[ID.DARK_PURSUIT], undefined);
+  assert.equal(used.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DARK_PURSUIT], undefined);
   const expired = simulate([...before, wait(3000), cast(ID.DARK_PURSUIT)], config);
-  assert.equal(expired.planningState.profession.availableFlips[ID.DARK_PURSUIT], undefined);
+  assert.equal(expired.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DARK_PURSUIT], undefined);
   assert.ok(expired.warnings.some(({ message: warning }) => warning.includes('not currently armed')));
   const cancelled = simulate(
     [cast(ID.DEATH_SHROUD), { ...cast(ID.DARK_PATH), interruptAfterMs: 40 }, cast(ID.DARK_PURSUIT)],
     config
   );
-  assert.equal(cancelled.planningState.profession.availableFlips[ID.DARK_PURSUIT], undefined);
+  assert.equal(cancelled.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DARK_PURSUIT], undefined);
   assert.ok(cancelled.warnings.some(({ message: warning }) => warning.includes('not currently armed')));
   const rearmed = simulate(
     [...before, wait(1000), { type: 'cooldown-reset' }, cast(ID.DARK_PATH), wait(2000), cast(ID.DARK_PURSUIT)],
@@ -1514,10 +1526,10 @@ test('Core recharge traits commit modified work for corruption and shroud skills
 test('heal completion claims Dark Defense and Malicious Swarm once per cooldown, excluding cancelled casts', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.DARK_DEFENSE, TRAIT.MALICIOUS_SWARM] };
   const cancelled = simulate([{ ...cast(ID.WELL_OF_BLOOD), interruptAfterMs: 40 }], config);
-  assert.deepEqual(cancelled.planningState.profession.carapaceExpiries, []);
+  assert.deepEqual(cancelled.planningState.profession[STATE.CARAPACE_EXPIRIES], []);
   assert.equal(cancelled.totalDamage, 0);
   const result = simulate([cast(ID.WELL_OF_BLOOD), cast(ID.SUMMON_BLOOD_FIEND)], config);
-  assert.equal(result.planningState.profession.carapaceExpiries.length, 10);
+  assert.equal(result.planningState.profession[STATE.CARAPACE_EXPIRIES].length, 10);
   assert.equal(
     result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.sourceId === ID.LESSER_SIGNET_OF_THE_LOCUST
@@ -1575,7 +1587,7 @@ test('Fear of Death applies Gluttony once and caps gains with Soul Battery selec
   ]) {
     const result = simulate([cast(ID.REAPERS_MARK)], { ...base, initialResource, selectedTraitIds: traits });
     assert.deepEqual(result.warnings, []);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), expected);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), expected);
   }
 });
 
@@ -1584,13 +1596,13 @@ test('Fear of Death follows accepted fear with one cooldown and cannot fund entr
   const ordinary = simulate([cast(ID.REAPERS_MARK)]);
   const landed = simulate([cast(ID.REAPERS_MARK)], config);
   assert.equal(
-    lifeForcePercent(landed.planningState.profession.lifeForce) -
-      lifeForcePercent(ordinary.planningState.profession.lifeForce),
+    lifeForcePercent(landed.planningState.profession[STATE.LIFE_FORCE]) -
+      lifeForcePercent(ordinary.planningState.profession[STATE.LIFE_FORCE]),
     15
   );
   for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }]) {
     const result = simulate([{ ...cast(ID.REAPERS_MARK), ...flags }, cast(ID.REAPERS_SHROUD)], config);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 0);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 0);
     assert.equal(observedRuntime(result).procs.deadline('necromancer.core.fearOfDeath'), 0);
     assert.ok(result.warnings.some(({ message: warning }) => warning.includes('life force')));
   }
@@ -1618,7 +1630,7 @@ test('Fear of Death follows accepted fear with one cooldown and cannot fund entr
     }
   };
   const repeated = simulate([wait(5000)], config, { profession });
-  assert.equal(lifeForcePercent(repeated.planningState.profession.lifeForce), 30);
+  assert.equal(lifeForcePercent(repeated.planningState.profession[STATE.LIFE_FORCE]), 30);
 });
 
 // Terror changes the originating Fear's damage while control rewards still observe only one application.
@@ -1664,5 +1676,5 @@ test('interrupted Distress neither refreshes Perforate nor grants shards', () =>
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.PERFORATE), true);
-  assert.equal(result.planningState.profession.soulShardGrant.charges, 0);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
 });

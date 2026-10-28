@@ -4,12 +4,13 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import { projectPublicProfessionState, flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { soulBatteryCapacity } from '#gw2/professions/necromancer/core/traits/soul-reaping/resource-queries.js';
 import type { NecromancerConfig } from '#gw2/professions/necromancer/types.js';
 import type { PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface NecromancerSelfCondition {
   readonly condition: string;
@@ -74,26 +75,6 @@ export interface NecromancerCoreState {
   tasteForBloodGrants: Record<string, TasteForBloodGrant[]>;
 }
 
-/** Declares the Core fields exposed by every Necromancer end-state projection. */
-const NECROMANCER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'endurance',
-  'lifeForce',
-  'activeShroud',
-  'soulShardGrant',
-  'carapaceExpiries',
-  'activeMinions',
-  'availableFlips',
-  'autoattackChains',
-  'selfConditions',
-  'lichEndsAt'
-] as const satisfies readonly (keyof NecromancerCoreState)[]);
-
-// Core fields have no inactive fallbacks; their values come from the live state.
-const NECROMANCER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
-  keys: NECROMANCER_CORE_PUBLIC_END_STATE_KEYS,
-  defaults: {}
-});
-
 const NECROMANCER_BASE_HEALTH = 9212;
 
 /** Maximum life-force points use build vitality and Soul Battery, independently of current player health. */
@@ -112,13 +93,31 @@ export function necromancerLifeForceCapacity(
 
 /** Detach only public fields before clamping resources so normalization cannot mutate live owners. */
 export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
-  const state = projectPublicProfessionState(
-    flattenProfessionState(input.profession) as unknown as NecromancerCoreState,
-    NECROMANCER_CORE_PUBLIC_STATE_PROJECTION.keys,
-    NECROMANCER_CORE_PUBLIC_STATE_PROJECTION.defaults
-  );
+  const state = cloneStateFields((input.profession as { core: NecromancerCoreState }).core, [
+    'endurance',
+    'lifeForce',
+    'activeShroud',
+    'soulShardGrant',
+    'carapaceExpiries',
+    'activeMinions',
+    'availableFlips',
+    'autoattackChains',
+    'selfConditions',
+    'lichEndsAt'
+  ]);
   state.lifeForce.value = cappedResource(state.lifeForce.value, state.lifeForce.maximum);
   // Detached resource values obey the same selected capacity as live grants.
   state.soulShardGrant.charges = cappedResource(state.soulShardGrant.charges, necromancerSoulShardMaximum(input));
-  return state;
+  return {
+    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
+    [STATE.ENDURANCE]: state.endurance,
+    [STATE.LIFE_FORCE]: state.lifeForce,
+    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
+    [STATE.ACTIVE_SHROUD]: state.activeShroud,
+    [STATE.SOUL_SHARD_GRANT]: state.soulShardGrant,
+    [STATE.CARAPACE_EXPIRIES]: state.carapaceExpiries,
+    [STATE.ACTIVE_MINIONS]: state.activeMinions,
+    [STATE.SELF_CONDITIONS]: state.selfConditions,
+    [STATE.LICH_ENDS_AT]: state.lichEndsAt
+  };
 }

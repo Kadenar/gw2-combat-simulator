@@ -2,15 +2,14 @@ import { RANGER_SOULBEAST_PROFILE_FIELDS } from '#gw2/professions/ranger/special
 import { soulbeastAttributes } from '#gw2/professions/ranger/specializations/soulbeast/attributes.js';
 import { sicEmPlayerModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { soulbeastHooks } from '#gw2/professions/ranger/specializations/soulbeast/hooks.js';
 
 import { bindSoulbeastUi } from '#gw2/professions/ranger/specializations/soulbeast/presentation.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/index.js';
 import {
-  SOULBEAST_PUBLIC_STATE_PROJECTION,
-  soulbeastState
+  soulbeastState,
+  projectSoulbeastPlanningState
 } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import { soulbeastTraits } from '#gw2/professions/ranger/specializations/soulbeast/traits/index.js';
 
@@ -23,7 +22,7 @@ export const soulbeastModule = defineNativeModule({
     profileFields: RANGER_SOULBEAST_PROFILE_FIELDS,
     skillMechanics: SOULBEAST_BASE_SKILL_MECHANICS
   }),
-  state: { create: soulbeastState.create, project: createPublicStateProjector(SOULBEAST_PUBLIC_STATE_PROJECTION) },
+  state: { create: soulbeastState.create, project: projectSoulbeastPlanningState },
   // The merged command bonus belongs to this elite; Core traits register their own rules.
   modifiers: sicEmPlayerModifiers,
   hooks: soulbeastHooks,

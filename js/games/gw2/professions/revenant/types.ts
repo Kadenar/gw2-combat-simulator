@@ -10,6 +10,10 @@ import type { ConduitState } from '#gw2/professions/revenant/specializations/con
 import type { HeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import type { RenegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import type { VindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
+import type { CONDUIT_SKILL_FIELDS } from '#gw2/professions/revenant/specializations/conduit/catalog-fields.js';
+import type { REVENANT_CORE_SKILL_FIELDS } from '#gw2/professions/revenant/core/catalog-fields.js';
 
 // Module state is declared beside each state factory; re-export it for existing family type importers.
 /** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
@@ -54,10 +58,17 @@ export interface RevenantTimedStack {
   expiresAt: number;
 }
 
-export interface RevenantState extends RevenantCoreState, HeraldState, RenegadeState, VindicatorState, ConduitState {
-  /** Public loadout consumers use the projected legend identity; live Core state stores only activeLegendId. */
-  activeLoadoutId: string;
-}
+/** Public consumers receive only the ID/value pairs published by active owners. */
+export type RevenantPlanningState = ReturnType<
+  typeof import('#gw2/professions/revenant/core/state.js').projectRevenantPlanningState
+> &
+  ReturnType<typeof import('#gw2/professions/revenant/specializations/conduit/state.js').projectConduitPlanningState> &
+  ReturnType<
+    typeof import('#gw2/professions/revenant/specializations/renegade/state.js').projectRenegadePlanningState
+  > &
+  ReturnType<
+    typeof import('#gw2/professions/revenant/specializations/vindicator/state.js').projectVindicatorPlanningState
+  >;
 
 export interface RevenantRuntimeState {
   core: RevenantCoreState;
@@ -75,7 +86,12 @@ export interface RevenantEnergyCostInput {
   readonly specialization: string;
   readonly time: number;
   readonly state: ReadonlyMechanicState<
-    Partial<Pick<RevenantState, 'activeUpkeeps' | 'beguilingHazeCharges' | 'conduitForm' | 'cosmicWisdomUntil'>>
+    Partial<
+      Pick<
+        RevenantCoreState & ConduitState,
+        'activeUpkeeps' | 'beguilingHazeCharges' | 'conduitForm' | 'cosmicWisdomUntil'
+      >
+    >
   >;
   readonly traits: ReadonlySet<SkillId>;
 }
@@ -86,7 +102,7 @@ export type RevenantResolverContext = MechanicCombatContext & {
 };
 
 export interface RevenantUiContext extends Omit<
-  ProfessionUiCallbackContext<Partial<RevenantState>>,
+  ProfessionUiCallbackContext<Partial<RevenantPlanningState>>,
   'build' | 'cooldowns' | 'entry' | 'rotation'
 > {
   readonly config?: RevenantConfig;
@@ -98,8 +114,4 @@ export interface RevenantUiContext extends Omit<
 }
 
 /** UI slice whose callbacks read Revenant end-state projections. */
-export type RevenantUiSlice = Partial<ProfessionUiContract<Partial<RevenantState>>>;
-import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
-import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { CONDUIT_SKILL_FIELDS } from '#gw2/professions/revenant/specializations/conduit/catalog-fields.js';
-import type { REVENANT_CORE_SKILL_FIELDS } from '#gw2/professions/revenant/core/catalog-fields.js';
+export type RevenantUiSlice = Partial<ProfessionUiContract<Partial<RevenantPlanningState>>>;

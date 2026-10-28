@@ -377,7 +377,7 @@ composition/query exceptions, not places for individual skill or trait implement
 creates an initialization cycle.
 
 Code outside a profession folder imports only `profession.js`, `app/app-definition.js`, `build/build.js`, `types.js`,
-`data/**`, and fixed subsystem `profiles.js` tables. Log integrations import helpers from `data/`, never
+`data/**`, `state-ids.js`, and fixed subsystem `profiles.js` tables. Log integrations import helpers from `data/`, never
 `profession.js`, so lazy log chunks don't load the whole profession graph. Tests are exempt. The shared
 `professions/shared/` helpers are not a profession. `eslint.config.js` enforces these import boundaries.
 
@@ -400,7 +400,7 @@ export const berserkerModule = defineNativeModule({
   data: createWarriorModuleData('Berserker', {
     skillMechanics: BERSERKER_SKILL_MECHANICS
   }),
-  state: { create: berserkerState.create, project: createPublicStateProjector(BERSERKER_PUBLIC_STATE_PROJECTION) },
+  state: { create: berserkerState.create, project: projectBerserkerPlanningState },
   attributes: berserkerAttributes,
   modifiers: { modifierRules: slicingMaelstromModifiers },
   hooks: berserkerHooks,
@@ -415,7 +415,9 @@ Ownership rules for the sections:
   completed catalog only through composition or presentation boundaries. Authored `data.balanceProfiles` is rejected;
   catalog assembly derives trait profiles from `traitDefinitions`.
 - **`state`**: one `create` factory and an optional `project` function that builds the detached public planning state.
-  Do not put temporary runtime mechanics into application build state just because the UI needs to show them.
+  Projectors read their own runtime slice and publish stable `STATE.*` keys; inferred return types define the public
+  contract. Core and active-elite composition rejects duplicate IDs. Keep all imports at the top of the manifest. Do not
+  put temporary runtime mechanics into application build state just because the UI needs to show them.
 - **`modifiers` and `hooks`**: `modifiers.ts` assembles modifier rules and `modify*` callbacks; `hooks.ts` assembles
   availability, cast, recharge, resource, task, event, and reaction callbacks. All hooks receive the same live state and
   clock. Only `module.ts` imports `hooks.ts`; shared helpers live with their owning skill, mechanic, or trait. Manifests
@@ -437,6 +439,7 @@ Ownership rules for the sections:
 | `data/module-data.ts`                      | Generated metadata selection, catalog transforms, and module data options                                        |
 | `skills/index.ts`, `skills/<group>.ts`     | Authoritative skill declarations and intrinsic runtime helpers, grouped by weapon, slot family, or skill concept |
 | `skills/actions.ts`                        | Profession-owned synthetic actions (Core modules)                                                                |
+| `state-ids.ts`                             | Stable namespaced public planning identities, exported through `professions/state-ids.ts`                        |
 | `state.ts`                                 | Module state, its factory, and its public projection                                                             |
 | `hooks.ts`                                 | Registration and explicit sequencing of skill, trait, and mechanic callbacks                                     |
 | `modifiers.ts`                             | The module's modifier rules plus imperative `modify*` attribute and damage callbacks                             |

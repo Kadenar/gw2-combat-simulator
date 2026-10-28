@@ -7,6 +7,7 @@ import type { ProfessionResourceView } from '#gw2/platform/profession-presentati
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const AVATAR_SKILLS = Object.freeze([
   ID.COSMIC_RAY,
@@ -19,7 +20,7 @@ const AVATAR_SKILLS = Object.freeze([
 /** Share the live clock limit, or the bound catalog's limit for a detached preview. */
 function astralForceMaximum(catalog: Readonly<CanonicalCatalog<RangerSkill>>, context: RangerUiContext): number {
   return (
-    rangerUiState(context).astralClock?.maximum ??
+    rangerUiState(context)[STATE.ASTRAL_CLOCK]?.maximum ??
     balanceNumberFromContext({ catalog: context.catalog ?? catalog }, TRAIT.CELESTIAL_BEING, 'maximumStacks')
   );
 }
@@ -38,7 +39,8 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): R
       if (skill.id === ID.CELESTIAL_AVATAR || skill.id === ID.RELEASE_CELESTIAL_AVATAR)
         return {
           tileActive:
-            (skill.id === ID.RELEASE_CELESTIAL_AVATAR) === (rangerUiState(context).celestialAvatarEndsAt != null)
+            (skill.id === ID.RELEASE_CELESTIAL_AVATAR) ===
+            (rangerUiState(context)[STATE.CELESTIAL_AVATAR_ENDS_AT] != null)
         };
     },
     paletteGroups: (context: RangerUiContext) => [
@@ -80,7 +82,7 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): R
           singular: 'astral force',
           plural: 'astral force',
           maximum,
-          value: state.astralClock?.value ?? context.initialAstralForce ?? maximum,
+          value: state[STATE.ASTRAL_CLOCK]?.value ?? context.initialAstralForce ?? maximum,
           startMaximum: maximum,
           canStart: true,
           // buildKey links this value to the config field that persists initial force across sessions
@@ -88,7 +90,7 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): R
           step: 1,
           displayMode: 'bar',
           shortLabel: 'Astral Force',
-          statusLabel: state.celestialAvatarEndsAt != null ? 'Celestial Avatar' : 'Current'
+          statusLabel: state[STATE.CELESTIAL_AVATAR_ENDS_AT] != null ? 'Celestial Avatar' : 'Current'
         }
       ];
     }

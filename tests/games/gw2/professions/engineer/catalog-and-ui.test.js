@@ -1,5 +1,5 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { inertContainer } from '#tests/helpers/dom.js';
@@ -91,7 +91,7 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
   });
   assert.deepEqual(
     groups.find((group) => group.id === 'engineer-profession').skillIds,
-    result.planningState.profession.mech.commandSkillIds
+    result.planningState.profession[STATE.MECH].commandSkillIds
   );
 });
 
@@ -220,7 +220,7 @@ test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', 
     catalog: engineerCatalog,
     build,
     specialization: 'Holosmith',
-    professionState: { photonForgeActive: false }
+    professionState: { [STATE.PHOTON_FORGE_ACTIVE]: false }
   });
   const profession = groups.find((group) => group.id === 'engineer-profession');
   const grenade = groups.find((group) => group.label === 'Gren');
@@ -254,16 +254,23 @@ test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', 
 
 test('Engineer renders Endurance only for Tools and uses a standard bar', () => {
   const build = createEngineerBuildDefaults();
-  const state = engineerProfession
-    .resolveProfession({
-      specialization: 'Core'
-    })
-    .createState({ specialization: 'Core' });
+  const config = { specialization: 'Core' };
+  const runtime = engineerProfession.runtimeFor(config);
+  const state = runtime.createState(config);
+  // A non-default balance makes a missing public field observable instead of accepting UI defaults.
+  state.core.endurance.value = 37;
+  const planningState = runtime.projectPlanningState({
+    profession: state,
+    config,
+    catalog: runtime.catalog,
+    time: 0,
+    activeWeaponSet: 1
+  });
   const core = engineerProfession.ui.resourceViews({
     catalog: engineerCatalog,
     specialization: 'Core',
     build,
-    professionState: flattenProfessionState(state)
+    professionState: planningState
   });
 
   assert.equal(
@@ -282,29 +289,37 @@ test('Engineer renders Endurance only for Tools and uses a standard bar', () => 
         { name: 'Firearms', traits: '1-2-3' }
       ]
     },
-    professionState: flattenProfessionState(state)
+    professionState: planningState
   });
   const endurance = tools.find((view) => view.id === 'endurance');
 
+  assert.equal(endurance.value, 37);
   assert.equal(endurance.displayMode, 'bar');
   assert.equal(endurance.paletteSkillId, SHARED_SKILL_IDS.DODGE);
   assert.equal(Object.hasOwn(endurance, 'pipStyle'), false);
 
+  const holoConfig = { specialization: 'Holosmith' };
+  const holoRuntime = engineerProfession.runtimeFor(holoConfig);
+  const holoState = holoRuntime.createState(holoConfig);
+  Object.assign(holoState.specialization.state.heat, { value: 42, maximum: 100 });
   const holosmith = engineerProfession.ui.resourceViews({
     catalog: engineerCatalog,
     specialization: 'Holosmith',
     build,
-    professionState: engineerProfession
-      .resolveProfession({
-        specialization: 'Holosmith'
-      })
-      .createState({ specialization: 'Holosmith' })
+    professionState: holoRuntime.projectPlanningState({
+      profession: holoState,
+      config: holoConfig,
+      catalog: holoRuntime.catalog,
+      time: 0,
+      activeWeaponSet: 1
+    })
   });
 
   assert.deepEqual(
     holosmith.map((view) => view.id),
     ['heat']
   );
+  assert.equal(holosmith[0].value, 42);
   assert.equal(holosmith[0].pipStyle, 'compact-profession-resource-holosmith-heat');
 });
 
@@ -410,7 +425,13 @@ test('Engineer event log exposes Heat only for Holosmith heat transitions', () =
     return engineerProfession.ui.eventLogRow(
       {
         config,
-        professionState: flattenProfessionState(runtime.createState(config))
+        professionState: runtime.projectPlanningState({
+          profession: runtime.createState(config),
+          config,
+          catalog: runtime.catalog,
+          time: 0,
+          activeWeaponSet: 1
+        })
       },
       value
     );
@@ -583,7 +604,7 @@ test('kits replace the weapon bar and trigger swap procs', () => {
 
   assert.equal(result.warnings.length, 0);
   assert.ok(result.totalDamage > 0);
-  assert.equal(result.planningState.profession.activeKit, ID.GRENADE_KIT);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_KIT], ID.GRENADE_KIT);
   assert.ok(result.events.some((event) => event.type === 'sigil_swap'));
 
   const weaponDenied = simulate('Core', ['Grenade Kit', 'Blunderbuss']);
@@ -594,7 +615,7 @@ test('kits replace the weapon bar and trigger swap procs', () => {
     const exited = simulate('Core', ['Grenade Kit', exitSkill, 'Blunderbuss']);
 
     assert.equal(exited.warnings.length, 0, exitSkill);
-    assert.equal(exited.planningState.profession.activeKit, null, exitSkill);
+    assert.equal(exited.planningState.profession[STATE.ACTIVE_KIT], null, exitSkill);
     assert.equal(exited.planningState.activeWeaponSet, 1, exitSkill);
   }
 
@@ -636,7 +657,7 @@ test('Engineer kit palettes stack and include their linked stow skills', () => {
         Elite: 5868
       }
     },
-    professionState: { activeKit: ID.GRENADE_KIT }
+    professionState: { [STATE.ACTIVE_KIT]: ID.GRENADE_KIT }
   });
   const groups = paletteGroups.filter((group) => group.stackId === 'engineer-kits');
   const names = (group) => group.skillIds.map((id) => engineerCatalog.skillsById.get(id).name);
@@ -736,7 +757,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
 
     assert.equal(result.warnings.length, 0, `${parent} -> ${flip}`);
     assert.equal(
-      result.planningState.profession.availableFlips[
+      result.planningState.profession[STATE.AVAILABLE_FLIPS][
         engineerCatalog.skills.find((candidate) => candidate.name === flip).id
       ],
       undefined
@@ -905,7 +926,7 @@ test('Engineer contextual weapon follow-ups are not standalone selections', () =
 
     assert.equal(used.warnings.length, 0, flip);
     assert.equal(
-      used.planningState.profession.availableFlips[
+      used.planningState.profession[STATE.AVAILABLE_FLIPS][
         engineerCatalog.skills.find((candidate) => candidate.name === flip).id
       ],
       undefined,

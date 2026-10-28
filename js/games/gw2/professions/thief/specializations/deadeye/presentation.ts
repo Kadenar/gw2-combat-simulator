@@ -15,6 +15,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
   const paletteTraits = context.traits;
@@ -82,20 +83,20 @@ export const deadeyeUi = Object.freeze({
     const state = thiefUiState(context);
     return [
       // Deadeye exposes its own pre-steal inventory alongside its malice resource.
-      preStealResourceView(state.storedStolenSkillCount || 0),
+      preStealResourceView(state[STATE.STORED_STOLEN_SKILL_COUNT] || 0),
       {
         id: 'malice',
         singular: 'malice',
         plural: 'malice',
         // Render the observed clock; before a result exists use the selected profile's trait capacity.
         maximum:
-          state.malice?.maximum ??
+          state[STATE.MALICE]?.maximum ??
           balanceNumberFromContext(
             context,
             hasTrait(context, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : TRAIT.DEADEYES_GAZE,
             'maximumStacks'
           ),
-        value: state.malice?.value ?? 0,
+        value: state[STATE.MALICE]?.value ?? 0,
         canStart: false,
         step: 1,
         displayMode: 'pips',

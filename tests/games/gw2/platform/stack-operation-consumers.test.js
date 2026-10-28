@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -66,8 +67,9 @@ test('Holo-Dancer commits spend grant order even when the newest charge expires 
     result.steps[0].start / 1000;
   assert.ok(Math.abs(reduced - unreduced * 0.2) < 1e-9);
   assert.deepEqual(
-    projectObservedState(thiefProfession, { profession: runtime.profession, time: 5 })
-      .holoUtilityCooldownReductionExpirations,
+    projectObservedState(thiefProfession, { profession: runtime.profession, time: 5 })[
+      STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS
+    ],
     []
   );
   assert.deepEqual(snapshot.holoUtilityCooldownReductionExpirations, prior);
@@ -208,9 +210,9 @@ test('Scourge retains latest expiries and prunes at completion', () => {
       [...state.shades].sort((a, b) => a - b),
       expected
     );
-    const planning = [...result.planningState.profession.shades];
+    const planning = [...result.planningState.profession[STATE.SHADES]];
     state.shades.push(99);
-    assert.deepEqual(result.planningState.profession.shades, planning);
+    assert.deepEqual(result.planningState.profession[STATE.SHADES], planning);
     assert.deepEqual(result.warnings, []);
   }
 });

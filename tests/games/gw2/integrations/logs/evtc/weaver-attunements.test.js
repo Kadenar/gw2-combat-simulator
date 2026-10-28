@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { evtcReconstructionContext } from '#tests/helpers/evtc-reconstruction-context.js';
@@ -130,8 +131,8 @@ test('Weaver reconstruction replays synthetic Fire/Water as an attunement and re
     rotation: imported.rotation,
     config: defaultSimulationConfig({ specialization: 'Weaver', startAttunement: 'Water', secondaryAttunement: 'Air' })
   });
-  assert.equal(simulation.planningState.profession.primaryAttunement, 'Fire');
-  assert.equal(simulation.planningState.profession.secondaryAttunement, 'Water');
+  assert.equal(simulation.planningState.profession[STATE.PRIMARY_ATTUNEMENT], 'Fire');
+  assert.equal(simulation.planningState.profession[STATE.SECONDARY_ATTUNEMENT], 'Water');
   assert.equal(
     simulation.steps.some((step) => step.invalid),
     false

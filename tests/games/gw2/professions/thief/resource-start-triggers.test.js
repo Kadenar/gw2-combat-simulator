@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -37,8 +38,8 @@ function traitReward(trait, specialization, resource, id, interrupted) {
       interrupted
     );
     return resource === 'initiative'
-      ? result.planningState.profession.initiative.value
-      : result.planningState.profession.endurance.value;
+      ? result.planningState.profession[STATE.INITIATIVE].value
+      : result.planningState.profession[STATE.ENDURANCE].value;
   });
 
   return values[1] - values[0];

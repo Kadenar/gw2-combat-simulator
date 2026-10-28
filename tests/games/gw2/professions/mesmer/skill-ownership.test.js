@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import assert from 'node:assert/strict';
@@ -187,5 +188,5 @@ test('a canceled ambush leaves its window available for the next accepted attemp
   assert.equal(attempts[0].cancelled, true);
   assert.equal(attempts[1].cancelled, false);
   assert.ok(result.events.some((event) => event.type === 'damage' && event.activationId === attempts[1].activationId));
-  assert.equal(result.planningState.profession.availableAmbush, null);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_AMBUSH], null);
 });

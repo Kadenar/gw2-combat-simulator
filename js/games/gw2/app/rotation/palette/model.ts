@@ -33,6 +33,7 @@ import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Owns the normalized palette declaration consumed by this feature's views. */
 interface NormalizedPaletteGroup extends Omit<ProfessionPaletteGroup, 'skillEntries'> {
@@ -194,7 +195,7 @@ interface WeaponPaletteRow {
 
 function paletteFlipAvailable(
   skill: Skill,
-  availableFlips: NonNullable<RotationProfessionState['availableFlips']>,
+  availableFlips: NonNullable<RotationProfessionState[typeof STATE.AVAILABLE_FLIPS]>,
   at: number
 ): boolean {
   return skillFlipVisible(availableFlips[skill.id], at);
@@ -451,18 +452,12 @@ export function displayedSkillTiles(
 ): Skill[] {
   const planningState = palettePlanningState(app);
   const professionState = paletteProfessionState(app);
-  const availableFlips =
-    professionState.availableFlips && typeof professionState.availableFlips === 'object'
-      ? professionState.availableFlips
-      : {};
+  const availableFlips = professionState[STATE.AVAILABLE_FLIPS] ?? {};
   const at = Number(planningState?.atSeconds || 0);
   const catalogSkills = app.activeCatalog.skills;
   // Resolve flip links through the catalog's existing index instead of rebuilding it for each palette projection.
   const { familyIdBySkillId, membersByFamilyId } = paletteFlipFamilies(catalogSkills, app.activeCatalog.skillsById);
-  const autoattackChains =
-    professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
-      ? professionState.autoattackChains
-      : {};
+  const autoattackChains = professionState[STATE.AUTOATTACK_CHAINS] ?? {};
   const grouped = new Map<string, { readonly skill: Skill; readonly index: number }[]>();
 
   skills.forEach((skill, index) => {
@@ -566,7 +561,7 @@ export function displayedWeaponSkills(
 
   const isWeaponOneReplacement = (skill: Skill): boolean => skill.slot === 'Weapon_1' && isReplacementAttack(skill);
   const activeWeaponSet = Number(planningState?.activeWeaponSet || app.build.startingWeaponSet || 1);
-  const availableAmbushName = String(professionState.availableAmbush?.name || '');
+  const availableAmbushName = String(professionState[STATE.AVAILABLE_AMBUSH]?.name || '');
   const activeReplacement =
     weaponSet === activeWeaponSet
       ? projected.find((skill) => {
@@ -640,7 +635,7 @@ export function currentAutoattackSkill(app: ProfessionAppState): Skill | null {
   const planningState = palettePlanningState(app);
   const activeWeaponSet = Number(planningState?.activeWeaponSet || app.build.startingWeaponSet || 1);
   const professionState = paletteProfessionState(app);
-  const autoattackChains = professionState.autoattackChains;
+  const autoattackChains = professionState[STATE.AUTOATTACK_CHAINS];
   const chainState = autoattackChains && typeof autoattackChains === 'object' ? autoattackChains : {};
   return (
     weaponSkills(app, activeWeaponSet).find(
@@ -945,14 +940,11 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
   const activeWeaponSet = Number(paletteContext.activeWeaponSet || 1);
 
   const availableAmbush =
-    professionState.availableAmbush && typeof professionState.availableAmbush === 'object'
-      ? professionState.availableAmbush
+    professionState[STATE.AVAILABLE_AMBUSH] && typeof professionState[STATE.AVAILABLE_AMBUSH] === 'object'
+      ? professionState[STATE.AVAILABLE_AMBUSH]
       : null;
 
-  const autoattackChains =
-    professionState.autoattackChains && typeof professionState.autoattackChains === 'object'
-      ? professionState.autoattackChains
-      : {};
+  const autoattackChains = professionState[STATE.AUTOATTACK_CHAINS] ?? {};
   const loadoutUnavailableMessage = (skill: Skill): string =>
     app.adapter.slotLoadout?.unavailableReason(skill, paletteContext) || '';
 

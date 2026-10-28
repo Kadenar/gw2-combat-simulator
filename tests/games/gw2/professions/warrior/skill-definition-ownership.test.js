@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -81,9 +82,9 @@ test('Berserk and individual Rage skills own independently selected mode duratio
       rotation: [ID.BERSERK, skill, { type: 'wait', durationMs: 4000 }]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.berserkUntil != null, active);
+    assert.equal(result.planningState.profession[STATE.BERSERK_UNTIL] != null, active);
     assert.equal(
-      result.planningState.profession.adrenaline.maximum,
+      result.planningState.profession[STATE.ADRENALINE].maximum,
       active
         ? warriorProfession.catalog.balanceProfilesById.get(TRAIT.PRIMAL_RAGE).maximumStacks
         : WARRIOR_MAXIMUM_ADRENALINE

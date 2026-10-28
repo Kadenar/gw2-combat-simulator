@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
@@ -152,7 +153,7 @@ test('Evoker familiar flip interruption cancels both familiar attacks', () => {
       ),
       false
     );
-    assert.equal(result.planningState.profession.empoweredCharges.value, 1);
+    assert.equal(result.planningState.profession[STATE.EMPOWERED_CHARGES].value, 1);
   }
 });
 
@@ -602,7 +603,7 @@ test('Evoker traits enforce familiar boons, enchantments, and charge rules', () 
       .length,
     2
   );
-  assert.equal(offensive.planningState.profession.familiarCharges.maximum, 6);
+  assert.equal(offensive.planningState.profession[STATE.FAMILIAR_CHARGES].maximum, 6);
 
   const boons = runNative({
     lines: [['Fire'], ['Air'], ['Evoker', '2-2-2']],
@@ -663,8 +664,8 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
   assert.notEqual(flameBurst.summonUsesMight, false);
   assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
   assert.equal(
-    result.planningState.profession.availableFlips[elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
-    result.planningState.profession.summonedElemental.activeUntil
+    result.planningState.profession[STATE.AVAILABLE_FLIPS][elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
+    result.planningState.profession[STATE.SUMMONED_ELEMENTAL].activeUntil
   );
   assert.equal(result.planningState.cooldowns[25488], undefined);
 });
@@ -690,7 +691,7 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   const elementalActions = result.events.filter((event) => event.type === 'action' && event.actorType === 'summon');
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.summonedElemental.element, 'Fire');
+  assert.equal(result.planningState.profession[STATE.SUMMONED_ELEMENTAL].element, 'Fire');
   const barrageActions = elementalActions.filter((event) => event.skillName === 'Flame Barrage');
   assert.equal(barrageActions.length, 2);
   assert.equal(barrageActions[1].at - barrageActions[0].at, 12);
@@ -735,8 +736,8 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
   );
 
   assert.equal(
-    result.planningState.profession.availableFlips[elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
-    result.planningState.profession.summonedElemental.activeUntil
+    result.planningState.profession[STATE.AVAILABLE_FLIPS][elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
+    result.planningState.profession[STATE.SUMMONED_ELEMENTAL].activeUntil
   );
 
   const armedResult = runNative({
@@ -869,7 +870,7 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
   );
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.summonedElemental.element, 'Earth');
+  assert.equal(result.planningState.profession[STATE.SUMMONED_ELEMENTAL].element, 'Earth');
   assert.equal(
     result.events.some((event) => event.type === 'action' && String(event.skillName).startsWith('Glyph of Elementals')),
     false
@@ -895,11 +896,11 @@ test('selected Earth Elemental auto-summons, attacks, and executes Stomp', () =>
     true
   );
   assert.equal(
-    result.planningState.profession.availableFlips[elementalistCatalog.skillsById.get(2666).id]?.expiresAt,
-    result.planningState.profession.summonedElemental.activeUntil
+    result.planningState.profession[STATE.AVAILABLE_FLIPS][elementalistCatalog.skillsById.get(2666).id]?.expiresAt,
+    result.planningState.profession[STATE.SUMMONED_ELEMENTAL].activeUntil
   );
   assert.equal(
-    result.planningState.profession.availableFlips[elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
+    result.planningState.profession[STATE.AVAILABLE_FLIPS][elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
     undefined
   );
 });

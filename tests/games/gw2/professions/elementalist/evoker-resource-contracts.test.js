@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { availability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
@@ -53,27 +54,27 @@ test('Evoker policies seed both clocks from isolated caps and project detached v
     assert.deepEqual(result.warnings, []);
     const state = result.planningState.profession;
     const views = evokerUi.resourceViews({ professionState: state, catalog });
-    for (const [key, maximum, view] of [
-      ['familiarCharges', maximumStacks, views[0]],
-      ['empoweredCharges', minimumStacks, views[1]]
+    for (const [key, id, maximum, view] of [
+      ['familiarCharges', STATE.FAMILIAR_CHARGES, maximumStacks, views[0]],
+      ['empoweredCharges', STATE.EMPOWERED_CHARGES, minimumStacks, views[1]]
     ]) {
-      assert.equal(state[key].value, maximum);
-      assert.equal(state[key].maximum, maximum);
-      assert.equal(state[key].rate, 0);
+      assert.equal(state[id].value, maximum);
+      assert.equal(state[id].maximum, maximum);
+      assert.equal(state[id].rate, 0);
       assert.equal(view.value, maximum);
       assert.equal(view.maximum, maximum);
       runtime.mechanics.resourceController.replace(key, 0);
       runtime.mechanics.resourceController.grant(key, 0.25);
       assert.equal(runtime.mechanics.resourceController.value(key), Math.min(maximum, 0.25));
-      assert.equal(state[key].value, maximum);
+      assert.equal(state[id].value, maximum);
     }
 
     for (const key of ['charges', 'maximumCharges', 'empowered']) assert.equal(Object.hasOwn(state, key), false);
   }
 
   const ordinary = run().result.planningState.profession;
-  assert.equal(ordinary.familiarCharges.value, 6);
-  assert.equal(ordinary.empoweredCharges.maximum, 3);
+  assert.equal(ordinary[STATE.FAMILIAR_CHARGES].value, 6);
+  assert.equal(ordinary[STATE.EMPOWERED_CHARGES].maximum, 3);
 });
 
 test('Specialized Elements selects the charge policy before locking attunement', () => {
@@ -87,8 +88,8 @@ test('Specialized Elements selects the charge policy before locking attunement',
     { [TRAIT.EVOCATION]: { maximumStacks: 7 }, [TRAIT.SPECIALIZED_ELEMENTS]: { maximumStacks: 9.5 } }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.familiarCharges.value, 9.5);
-  assert.equal(result.planningState.profession.familiarCharges.maximum, 9.5);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 9.5);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].maximum, 9.5);
   assert.equal(runtime.profession.core.primaryAttunement, 'Earth');
 });
 
@@ -97,8 +98,8 @@ test('basic conversion publishes both final pools together and cancellation earn
   const config = { initialEvokerEmpowered: 2 };
   const completed = run([ID.IGNITE], config, profiles).result;
   assert.deepEqual(completed.warnings, []);
-  assert.equal(completed.planningState.profession.familiarCharges.value, 0);
-  assert.equal(completed.planningState.profession.empoweredCharges.value, 2.5);
+  assert.equal(completed.planningState.profession[STATE.FAMILIAR_CHARGES].value, 0);
+  assert.equal(completed.planningState.profession[STATE.EMPOWERED_CHARGES].value, 2.5);
   const readings = completed.events.filter((event) => event.kind === 'evoker-charges');
   assert.deepEqual(
     readings.map((event) => [event.value, event.empowered]),
@@ -108,8 +109,8 @@ test('basic conversion publishes both final pools together and cancellation earn
     [ID.IGNITE]: { castTimeMs: 1000 }
   }).result;
   assert.deepEqual(canceled.warnings, []);
-  assert.equal(canceled.planningState.profession.familiarCharges.value, 7.5);
-  assert.equal(canceled.planningState.profession.empoweredCharges.value, 2);
+  assert.equal(canceled.planningState.profession[STATE.FAMILIAR_CHARGES].value, 7.5);
+  assert.equal(canceled.planningState.profession[STATE.EMPOWERED_CHARGES].value, 2);
 });
 
 test('basic familiar completion gates its empowered flip using the patched profile delay', () => {
@@ -155,7 +156,7 @@ test('overlapping weapon completion flushes its fractional reward after the fami
   assert.equal(readings[0].at, readings[1].at);
   assert.equal(readings[1].sourceId, ID.SAND_SQUALL);
   assert.equal(readings[1].change, 2.75);
-  assert.equal(result.planningState.profession.familiarCharges.value, 2.75);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 2.75);
   assert.deepEqual(runtime.profession.specialization.state.pendingWeaponChargeGains, []);
   assert.deepEqual(runtime.profession.specialization.state.pendingWeaponCompletions, []);
 });
@@ -175,7 +176,7 @@ test('Elemental Dynamo grants at attunement and caps the reported pool without a
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.familiarCharges.value, 5.5);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 5.5);
   const reading = result.events.find((event) => event.kind === 'evoker-charges');
   assert.equal(reading.value, 5.5);
   assert.equal(reading.maximum, 5.5);
@@ -207,7 +208,7 @@ test('Rejuvenate refills the patched familiar capacity without changing empowere
       { [ID.REJUVENATE]: { castTimeMs: 1000 } }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.familiarCharges.value, canceled ? 0.25 : 7.5);
-    assert.equal(result.planningState.profession.empoweredCharges.value, 1.5);
+    assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, canceled ? 0.25 : 7.5);
+    assert.equal(result.planningState.profession[STATE.EMPOWERED_CHARGES].value, 1.5);
   }
 });

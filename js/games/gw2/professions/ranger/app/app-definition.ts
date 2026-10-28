@@ -2,8 +2,9 @@ import { WEAPON } from '#gw2/platform/constants.js';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/ranger/build/context.js';
 import { defineProfessionApp, preferOffhand } from '#gw2/app/define-profession-app.js';
 import { rangerTooltips } from '#gw2/professions/ranger/app/tooltips.js';
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerPlanningState } from '#gw2/professions/ranger/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Exposes Ranger only through the shared browser application contract.
 export const rangerAppAdapter = defineProfessionApp({
@@ -17,7 +18,7 @@ export const rangerAppAdapter = defineProfessionApp({
     if (skill.id === ID.MAUL_SOULBEAST || skill.id === ID.MAUL_BASE) {
       const merged =
         context.specialization === 'Soulbeast' &&
-        flattenProfessionState(context.professionState).beastmodeActive !== false;
+        (context.professionState as Partial<RangerPlanningState> | undefined)?.[STATE.BEASTMODE_ACTIVE] !== false;
       return skill.id === (merged ? ID.MAUL_SOULBEAST : ID.MAUL_BASE);
     }
 
@@ -28,7 +29,7 @@ export const rangerAppAdapter = defineProfessionApp({
     if (
       skill.id === ID.PET_SWAP &&
       context.specialization === 'Soulbeast' &&
-      flattenProfessionState(context.professionState).beastmodeActive !== false
+      (context.professionState as Partial<RangerPlanningState> | undefined)?.[STATE.BEASTMODE_ACTIVE] !== false
     ) {
       return false;
     }

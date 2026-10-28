@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
@@ -482,9 +483,9 @@ test('legend palette shows only the destination legend with the shared swap cool
     build: baseConfig,
     specialization: 'Core',
     professionState: {
-      activeLegendId: LEGEND.ASSASSIN,
-      activeLoadoutId: LEGEND.ASSASSIN,
-      availableFlips: {}
+      [STATE.ACTIVE_LEGEND_ID]: LEGEND.ASSASSIN,
+      [STATE.ACTIVE_LOADOUT_ID]: LEGEND.ASSASSIN,
+      [STATE.AVAILABLE_FLIPS]: {}
     }
   };
   const group = revenantProfession.ui
@@ -532,8 +533,8 @@ test('legend palette shows only the destination legend with the shared swap cool
       ...context,
       professionState: {
         ...context.professionState,
-        activeLegendId: LEGEND.DEMON,
-        activeLoadoutId: LEGEND.DEMON
+        [STATE.ACTIVE_LEGEND_ID]: LEGEND.DEMON,
+        [STATE.ACTIVE_LOADOUT_ID]: LEGEND.DEMON
       }
     })
     .find((candidate) => candidate.id === 'revenant-profession');
@@ -780,7 +781,7 @@ test('Temporal Rift preserves the Mace autoattack chain', () => {
     result.steps.map((step) => step.skill),
     ['Misery Swipe', 'Temporal Rift', 'Anguish Swipe']
   );
-  assert.equal(result.planningState.profession.autoattackChains[SKILL.MISERY_SWIPE], SKILL.MANIFEST_TOXIN);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.MISERY_SWIPE], SKILL.MANIFEST_TOXIN);
 });
 
 test('Temporal Rift preserves the Sword autoattack chain until its delayed hit', () => {
@@ -794,7 +795,7 @@ test('Temporal Rift preserves the Sword autoattack chain until its delayed hit',
     result.steps.map((step) => step.skill),
     ['Preparation Thrust', 'Temporal Rift', 'Brutal Blade']
   );
-  assert.equal(result.planningState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.RIFT_SLASH);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST], SKILL.RIFT_SLASH);
 });
 
 test('Beguiling Haze resets the Sword autoattack chain', () => {
@@ -815,7 +816,7 @@ test('Beguiling Haze resets the Sword autoattack chain', () => {
     result.steps.map((step) => step.skill),
     ['Preparation Thrust', 'Brutal Blade', 'Beguiling Haze', 'Preparation Thrust']
   );
-  assert.equal(result.planningState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
 });
 
 test('Citadel Bombardment resets the Renegade autoattack chain', () => {
@@ -836,7 +837,7 @@ test('Citadel Bombardment resets the Renegade autoattack chain', () => {
     result.steps.map((step) => step.skill),
     ['Preparation Thrust', 'Brutal Blade', 'Citadel Bombardment', 'Preparation Thrust']
   );
-  assert.equal(result.planningState.profession.autoattackChains[SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
 });
 
 test('Bloodbane Path keeps Bleeding aligned with landed projectile packets', () => {
@@ -1229,5 +1230,5 @@ test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', (
       [6, 5]
     ]
   );
-  assert.deepEqual(result.planningState.profession.crushingAbyss, []);
+  assert.deepEqual(result.planningState.profession[STATE.CRUSHING_ABYSS], []);
 });

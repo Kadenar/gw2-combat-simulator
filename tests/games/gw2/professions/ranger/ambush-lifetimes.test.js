@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -43,7 +44,7 @@ test('Let Loose refresh survives the superseded expiry', () => {
     { ...config, weaponSet2Primary: 'Axe' }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.ambushReadyUntil, 5);
+  assert.equal(result.planningState.profession[STATE.AMBUSH_READY_UNTIL], 5);
   assert.equal(observedRuntime(result).procs.deadline('ranger.untamed.unleashedPower'), 10);
 });
 
@@ -76,7 +77,7 @@ test('an admitted ambush consumes the grant while its delayed effects finish', (
     observation: { kind: 'tail', durationMs: 3000 }
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.ambushReadyUntil, 0);
+  assert.equal(result.planningState.profession[STATE.AMBUSH_READY_UNTIL], 0);
   assert.ok(
     result.resolvedEvents.some(
       (event) => event.type === 'damage' && event.skillId === ID.RELENTLESS_WHIRL && event.at > 4
@@ -104,7 +105,7 @@ test('all supported weapon ambushes share availability and Let Loose ownership',
       { observation: { kind: 'tail', durationMs: 5000 } }
     );
     assert.deepEqual(result.warnings, [], skill.name);
-    assert.equal(result.planningState.profession.ambushReadyUntil, 0, skill.name);
+    assert.equal(result.planningState.profession[STATE.AMBUSH_READY_UNTIL], 0, skill.name);
     assert.equal(untamedCastAvailability(observedRuntime(result), skill).ready, false, skill.name);
     assert.ok(
       result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === skillId),

@@ -1,4 +1,3 @@
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
 import { galeshotHooks } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
@@ -7,10 +6,7 @@ import {
   GALESHOT_BASE_SKILL_MECHANICS,
   piercingGalesModifier
 } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
-import {
-  GALESHOT_PUBLIC_STATE_PROJECTION,
-  galeshotState
-} from '#gw2/professions/ranger/specializations/galeshot/state.js';
+import { galeshotState, projectGaleshotPlanningState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { galeshotTraits } from '#gw2/professions/ranger/specializations/galeshot/traits/index.js';
 import { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/catalog-fields.js';
 
@@ -22,7 +18,7 @@ export const galeshotModule = defineNativeModule({
     skillFields: GALESHOT_SKILL_FIELDS,
     skillMechanics: GALESHOT_BASE_SKILL_MECHANICS
   }),
-  state: { create: galeshotState.create, project: createPublicStateProjector(GALESHOT_PUBLIC_STATE_PROJECTION) },
+  state: { create: galeshotState.create, project: projectGaleshotPlanningState },
   // The skill modifier keeps its position after Galeshot's trait rules.
   modifiers: [{ ...piercingGalesModifier, order: 103 }],
   hooks: galeshotHooks,

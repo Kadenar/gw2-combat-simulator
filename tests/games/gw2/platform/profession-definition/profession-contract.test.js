@@ -1,4 +1,3 @@
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
@@ -165,7 +164,7 @@ test('structured definition containers preserve state, recharge rules, and resol
   assert.equal(profession.rechargeWork({}, {}, 10), 6);
 });
 
-// The selected module overrides Core's public fields without publishing siblings or sharing mutable values.
+// Each selected owner publishes independent fields without leaking siblings or sharing mutable values.
 test('module projections compose Core and only the selected specialization', () => {
   const modules = ['Core', 'First', 'Second'].map((id) =>
     defineNativeModule({
@@ -173,7 +172,9 @@ test('module projections compose Core and only the selected specialization', () 
       data: {},
       state: {
         create: () => ({ [id]: { value: 1 }, [id + 'Private']: true }),
-        project: (input) => ({ ...createPublicStateProjector({ keys: [id], defaults: {} })(input), shared: id })
+        project: ({ profession }) => ({
+          [id]: structuredClone((id === 'Core' ? profession.core : profession.specialization.state)[id])
+        })
       }
     })
   );
@@ -182,8 +183,7 @@ test('module projections compose Core and only the selected specialization', () 
     const runtime = family.runtimeFor({ specialization });
     const profession = runtime.createState({ specialization });
     const projected = runtime.projectPlanningState({ profession });
-    assert.equal(projected.shared, specialization);
-    assert.deepEqual(Object.keys(projected).sort(), [...new Set(['shared', 'Core', specialization])].sort());
+    assert.deepEqual(Object.keys(projected).sort(), [...new Set(['Core', specialization])].sort());
     projected.Core.value = 9;
     assert.equal(profession.core.Core.value, 1);
 

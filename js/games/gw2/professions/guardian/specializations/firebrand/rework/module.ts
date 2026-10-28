@@ -1,6 +1,5 @@
 import { FIREBRAND_REWORK_PROFILE_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/rework/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -11,7 +10,7 @@ import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializat
 import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
 import {
   firebrandState,
-  FIREBRAND_PUBLIC_STATE_PROJECTION
+  projectFirebrandPlanningState
 } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import { firebrandReworkTraits } from '#gw2/professions/guardian/specializations/firebrand/rework/traits.js';
@@ -96,7 +95,7 @@ export const firebrandReworkModule = defineNativeModule({
   state: {
     create: (config, { balanceContext }) =>
       firebrandState.create({ config, balanceProfile: (id) => balanceContext.catalog.balanceProfilesById.get(id) }),
-    project: createPublicStateProjector(FIREBRAND_PUBLIC_STATE_PROJECTION)
+    project: projectFirebrandPlanningState
   },
   traitDefinitions: firebrandReworkTraits,
   hooks: firebrandHooks,

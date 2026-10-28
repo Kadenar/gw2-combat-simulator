@@ -1,8 +1,7 @@
-import {
-  defineProfessionSpecializationState,
-  definePublicStateDefaults
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface AmalgamState {
   selectedMorphSkillIds: number[];
@@ -14,18 +13,6 @@ export interface AmalgamState {
   titanicUntil: number;
   berserkerUntil: number;
 }
-
-// Amalgam owns its public protocol state
-export const AMALGAM_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  selectedMorphSkillIds: [],
-  evolvedUntil: 0,
-  willingHostUntil: 0,
-  plasmaticStateUntil: 0,
-  rapaciousUntil: 0,
-  predatorUntil: 0,
-  titanicUntil: 0,
-  berserkerUntil: 0
-} satisfies Partial<AmalgamState>);
 
 /** Creates an isolated Amalgam protocol and strain state from the selected morph configuration. */
 function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
@@ -45,3 +32,18 @@ function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
 }
 
 export const amalgamState = defineProfessionSpecializationState('Amalgam', createAmalgamState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectAmalgamPlanningState(input: Gw2PlanningStateInput) {
+  const state = amalgamState.from(input);
+  return structuredClone({
+    [STATE.SELECTED_MORPH_SKILL_IDS]: state.selectedMorphSkillIds,
+    [STATE.EVOLVED_UNTIL]: state.evolvedUntil,
+    [STATE.WILLING_HOST_UNTIL]: state.willingHostUntil,
+    [STATE.PLASMATIC_STATE_UNTIL]: state.plasmaticStateUntil,
+    [STATE.RAPACIOUS_UNTIL]: state.rapaciousUntil,
+    [STATE.PREDATOR_UNTIL]: state.predatorUntil,
+    [STATE.TITANIC_UNTIL]: state.titanicUntil,
+    [STATE.BERSERKER_UNTIL]: state.berserkerUntil
+  });
+}

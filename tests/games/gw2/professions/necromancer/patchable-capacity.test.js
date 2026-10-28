@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -55,8 +56,8 @@ for (const [shards, blight] of [
     owner.profession.specialization.state.blightExpiries = Array(100).fill(25);
     const before = structuredClone(owner.profession);
     const state = projectObservedState(family, { config, profession: owner.profession });
-    assert.equal(state.soulShardGrant.charges, shards);
-    assert.equal(state.blight, blight);
+    assert.equal(state[STATE.SOUL_SHARD_GRANT].charges, shards);
+    assert.equal(state[STATE.BLIGHT], blight);
     assert.deepEqual(owner.profession, before);
 
     const catalog = family.resolvePatch({ id: PATCH }).catalog;

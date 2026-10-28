@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
@@ -91,7 +92,7 @@ test('Mesmer palette advances through autoattack chain skills', () => {
   const skill = (name) => mesmerProfession.catalog.skills.find((candidate) => candidate.name === name);
   const availabilityAfter = (rotation) => {
     const result = simulateMesmer(rotation, config);
-    const chainState = result.planningState.profession.autoattackChains;
+    const chainState = result.planningState.profession[STATE.AUTOATTACK_CHAINS];
 
     return ['Mind Slash', 'Mind Gash', 'Mind Spike'].map((name) =>
       autoattackChainSkillAvailable(skill(name), chainState)
@@ -118,8 +119,8 @@ test('weapon palette families display one live autoattack or flip skill', () => 
       planningState: {
         availability: {},
         profession: {
-          autoattackChains: { 1: 2 },
-          availableFlips: { 4: armSkillFlip({}, 0, 0, Infinity) }
+          [STATE.AUTOATTACK_CHAINS]: { 1: 2 },
+          [STATE.AVAILABLE_FLIPS]: { 4: armSkillFlip({}, 0, 0, Infinity) }
         }
       }
     }
@@ -150,7 +151,7 @@ test('palette flip projection infers catalog children and honors timed expiry', 
       planningState: {
         availability: {},
         atSeconds: 1.5,
-        profession: { availableFlips: { 11: armSkillFlip({}, 0, 0, 2) } }
+        profession: { [STATE.AVAILABLE_FLIPS]: { 11: armSkillFlip({}, 0, 0, 2) } }
       }
     }
   };
@@ -324,7 +325,7 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
   assert.equal(combatSwapReady([]), false);
   assert.equal(combatSwapReady([{ type: 'cast', skillId: ENGINEER_SKILL_IDS.GRENADE_KIT }]), true);
   engineer.results = {
-    planningState: { availability: {}, profession: { activeKit: ENGINEER_SKILL_IDS.GRENADE_KIT } }
+    planningState: { availability: {}, profession: { [STATE.ACTIVE_KIT]: ENGINEER_SKILL_IDS.GRENADE_KIT } }
   };
   // Swap Weapons and the kit's stow are separate in-game inputs, so the swap stays in the action row
   // while the stow remains owned by its kit group.
@@ -388,12 +389,12 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
   ]) {
     const parent = engineer.activeCatalog.skills.find((candidate) => candidate.name === parentName);
     const flip = engineer.activeCatalog.skills.find((candidate) => candidate.name === flipName);
-    engineer.results.planningState.profession.availableFlips = { [flip.id]: armSkillFlip({}, 0, 0) };
+    engineer.results.planningState.profession[STATE.AVAILABLE_FLIPS] = { [flip.id]: armSkillFlip({}, 0, 0) };
     assert.equal(displayedSkillTiles(engineer, [parent])[0]?.name, flipName, parentName);
   }
 
   const grenadeKit = engineer.activeCatalog.skillsById.get(5805);
-  engineer.results.planningState.profession.availableFlips = {};
+  engineer.results.planningState.profession[STATE.AVAILABLE_FLIPS] = {};
   assert.equal(displayedSkillTiles(engineer, [grenadeKit])[0]?.name, 'Grenade Kit');
 });
 
@@ -407,16 +408,16 @@ test('Firebrand mantra flips replace their selected skill-bar parent', async () 
   const app = {
     patch: patchSelectionFixture({ skillsById: skillById }),
     activeCatalog: { skillsById: skillById },
-    results: { planningState: { availability: {}, profession: { availableFlips: {} } } }
+    results: { planningState: { availability: {}, profession: { [STATE.AVAILABLE_FLIPS]: {} } } }
   };
 
   assert.equal(skillBarDisplaySkill(app, parent), parent);
-  app.results.planningState.profession.availableFlips[normal.id] = armSkillFlip({}, 0, 0, Infinity);
+  app.results.planningState.profession[STATE.AVAILABLE_FLIPS][normal.id] = armSkillFlip({}, 0, 0, Infinity);
   assert.equal(skillBarDisplaySkill(app, parent), normal);
-  delete app.results.planningState.profession.availableFlips[normal.id];
-  app.results.planningState.profession.availableFlips[final.id] = armSkillFlip({}, 0, 0, Infinity);
+  delete app.results.planningState.profession[STATE.AVAILABLE_FLIPS][normal.id];
+  app.results.planningState.profession[STATE.AVAILABLE_FLIPS][final.id] = armSkillFlip({}, 0, 0, Infinity);
   assert.equal(skillBarDisplaySkill(app, parent), final);
-  delete app.results.planningState.profession.availableFlips[final.id];
+  delete app.results.planningState.profession[STATE.AVAILABLE_FLIPS][final.id];
   assert.equal(skillBarDisplaySkill(app, parent), parent);
 });
 

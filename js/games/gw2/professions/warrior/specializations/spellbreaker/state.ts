@@ -1,22 +1,12 @@
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import {
-  flattenProfessionState,
-  projectPublicProfessionState,
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface SpellbreakerState {
   attackerInsightExpiries: number[];
   magebaneTetherUntil: number;
 }
-
-/** Declares Spellbreaker's public fields and inactive values. */
-const SPELLBREAKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  attackerInsightExpiries: [],
-  magebaneTetherUntil: 0
-} satisfies Partial<SpellbreakerState>);
 
 function createSpellbreakerState(): SpellbreakerState {
   return {
@@ -31,14 +21,13 @@ export const spellbreakerState = defineProfessionSpecializationState('Spellbreak
 
 /** Detach public fields before filtering expiry so observations cannot mutate live deadlines. */
 export function projectSpellbreakerPlanningState(input: Gw2PlanningStateInput) {
-  const state = projectPublicProfessionState(
-    flattenProfessionState(input.profession) as unknown as SpellbreakerState,
-    SPELLBREAKER_PUBLIC_STATE_PROJECTION.keys,
-    SPELLBREAKER_PUBLIC_STATE_PROJECTION.defaults
-  );
+  const state = cloneStateFields(spellbreakerState.from(input), ['attackerInsightExpiries', 'magebaneTetherUntil']);
   state.attackerInsightExpiries = purgeExpiredStacks(state.attackerInsightExpiries, input.time);
 
   if (state.magebaneTetherUntil <= input.time) state.magebaneTetherUntil = 0;
 
-  return state;
+  return {
+    [STATE.ATTACKER_INSIGHT_EXPIRIES]: state.attackerInsightExpiries,
+    [STATE.MAGEBANE_TETHER_UNTIL]: state.magebaneTetherUntil
+  };
 }

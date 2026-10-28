@@ -1,3 +1,12 @@
+/**
+ * Core Elementalist UI contract.
+ *
+ * Projects live core state onto the shared build/rotation views: the attunement
+ * and weapon-resource palette, which variant of a state-flipped skill is shown
+ * and castable at the inspection point, the profession event-log rows, and the
+ * timeline's attunement lane. Read-only over simulation state - the one
+ * exception is `updatePaletteControl`, which edits the build's starting stock.
+ */
 import { WEAPON, CONDITION } from '#gw2/platform/constants.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
@@ -11,20 +20,11 @@ import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/wea
 import type {
   ElementalistPistolBullets,
   ElementalistSkill,
-  ElementalistState,
   ElementalistUiContext,
-  ElementalistUiSlice
+  ElementalistUiSlice,
+  ElementalistPlanningState
 } from '#gw2/professions/elementalist/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
-/**
- * Core Elementalist UI contract.
- *
- * Projects live core state onto the shared build/rotation views: the attunement
- * and weapon-resource palette, which variant of a state-flipped skill is shown
- * and castable at the inspection point, the profession event-log rows, and the
- * timeline's attunement lane. Read-only over simulation state - the one
- * exception is `updatePaletteControl`, which edits the build's starting stock.
- */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -52,6 +52,7 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistAttunementResourceAnchor } from '#gw2/professions/elementalist/family-presentation.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const ATTUNEMENT_COLORS: Readonly<Record<ElementalistAttunement, string>> = Object.freeze({
   Fire: '#d94c35',
@@ -85,7 +86,7 @@ const PISTOL_BULLETS = Object.freeze([
 ] as const);
 
 // Palettes read the flat projection for either the insertion point or the completed run.
-export function elementalistUiState(context: ElementalistUiContext): Partial<ElementalistState> {
+export function elementalistUiState(context: ElementalistUiContext): Partial<ElementalistPlanningState> {
   return context.professionState ?? {};
 }
 
@@ -101,7 +102,7 @@ function configuredPistolBullets(context: ElementalistUiContext): ElementalistPi
 
 // Prefer live simulation stock; before a run there is only the build's setting.
 function displayedPistolBullets(context: ElementalistUiContext): ElementalistPistolBullets {
-  return pistolBulletRecord(elementalistUiState(context).pistolBullets) || configuredPistolBullets(context);
+  return pistolBulletRecord(elementalistUiState(context)[STATE.PISTOL_BULLETS]) || configuredPistolBullets(context);
 }
 
 function elementalistPistolEquipped(context: ElementalistUiContext): boolean {
@@ -122,9 +123,9 @@ function pistolBulletPaletteGroup(
 
   const state = elementalistUiState(context);
   const configured = configuredPistolBullets(context);
-  const live = pistolBulletRecord(state.pistolBullets);
+  const live = pistolBulletRecord(state[STATE.PISTOL_BULLETS]);
   const displayed = live || configured;
-  const activeAttunements = new Set([state.primaryAttunement].filter(Boolean).map(String));
+  const activeAttunements = new Set([state[STATE.PRIMARY_ATTUNEMENT]].filter(Boolean).map(String));
   return {
     id: 'elementalist-pistol-bullets',
     label: 'Bullet',
@@ -174,7 +175,7 @@ function paletteWeaponSkills(
 
     if (!chain) return true;
 
-    const progress = state.etchings?.[chain.etching];
+    const progress = state[STATE.ETCHINGS]?.[chain.etching];
     const displayedId = !progress ? chain.etchingId : progress.stage === 'full' ? chain.fullId : chain.lesserId;
     return skill.id === displayedId;
   });
@@ -190,7 +191,7 @@ function paletteWeaponSkills(
     return ordinarySkills;
   }
 
-  const primaryAttunement = state.primaryAttunement || context.build?.startAttunement || 'Fire';
+  const primaryAttunement = state[STATE.PRIMARY_ATTUNEMENT] || context.build?.startAttunement || 'Fire';
   let replaced = false;
   return ordinarySkills.map((skill) => {
     const replacesActiveAutoattack =
@@ -254,7 +255,7 @@ function elementalistPaletteGroups(
       resourceAnchor: elementalistAttunementResourceAnchor(context)
     }
   ];
-  const conjureEquipped = state.conjureEquipped || '';
+  const conjureEquipped = state[STATE.CONJURE_EQUIPPED] || '';
   const selectedSkillIds = selectedSkillIdSet(context.build?.selectedSkillIds || context.config?.selectedSkillIds);
   // Selected conjures keep a stable bar below utilities even when their bundle is not currently wielded.
   const conjures = new Set(
@@ -294,17 +295,17 @@ function paletteActionSkills(context: ElementalistUiContext, skills: readonly Sk
   const state = elementalistUiState(context);
   const now = context.time || 0;
   return skills.filter((skill) => {
-    if (Number(skill.id) === ID.DROP_BUNDLE) return Boolean(state.conjureEquipped);
+    if (Number(skill.id) === ID.DROP_BUNDLE) return Boolean(state[STATE.CONJURE_EQUIPPED]);
 
     const pickupWeapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
-    return !pickupWeapon || (state.conjurePickups?.[pickupWeapon] ?? 0) > now;
+    return !pickupWeapon || (state[STATE.CONJURE_PICKUPS]?.[pickupWeapon] ?? 0) > now;
   });
 }
 
 // Live attunement when a run exists, otherwise the build's configured start.
 function currentAttunement(context: ElementalistUiContext): ElementalistAttunement {
   const build = context.build;
-  const value = elementalistUiState(context).primaryAttunement || build?.startAttunement || 'Fire';
+  const value = elementalistUiState(context)[STATE.PRIMARY_ATTUNEMENT] || build?.startAttunement || 'Fire';
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
     ? (value as ElementalistAttunement)
     : 'Fire';
@@ -378,7 +379,7 @@ function timelineWeaponLineTransition(context: ElementalistUiContext): string | 
 function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
   const freshAir = planningBuffAt(context.planningState, 'fresh-air');
-  const orbs = Object.entries(state.hammerOrbs || {})
+  const orbs = Object.entries(state[STATE.HAMMER_ORBS] || {})
     .filter(([, expiresAt]) => (expiresAt || 0) > 0)
     .map(([element]) => element)
     .join('/');
@@ -549,7 +550,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     paletteWeaponGroups: (_context, skills) => elementalistWeaponGroups(skills),
     // Selected utilities follow the live primary attunement without mutating the saved loadout.
     paletteSelectedSlotSkills: (context, skills) => {
-      const primary = elementalistUiState(context).primaryAttunement || context.build?.startAttunement || '';
+      const primary = elementalistUiState(context)[STATE.PRIMARY_ATTUNEMENT] || context.build?.startAttunement || '';
       const activeCatalog = context.catalog || catalog;
       return skills.map((skill) => {
         if (!skill.attunement) return skill;
@@ -574,7 +575,11 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
 
       // A conjure row's Drop Bundle only inserts while that row's bundle is wielded; the
       // equipped row falls through to the runtime verdict.
-      if (Number(skill.id) === ID.DROP_BUNDLE && skill.skillWeapon && skill.skillWeapon !== state.conjureEquipped) {
+      if (
+        Number(skill.id) === ID.DROP_BUNDLE &&
+        skill.skillWeapon &&
+        skill.skillWeapon !== state[STATE.CONJURE_EQUIPPED]
+      ) {
         return {
           available: false,
           message: `Drop Bundle is unavailable — the ${skill.skillWeapon} bundle is not equipped.`
@@ -585,7 +590,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
 
       if (aura) {
         const active = Boolean(
-          state.activeAuras?.some((entry) => entry.type === aura && entry.expiresAt > (context.time || 0))
+          state[STATE.ACTIVE_AURAS]?.some((entry) => entry.type === aura && entry.expiresAt > (context.time || 0))
         );
         return { tileActive: Boolean(AURA_TRANSMUTE_SKILLS[Number(skill.id)]) === active };
       }

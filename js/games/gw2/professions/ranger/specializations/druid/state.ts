@@ -1,11 +1,10 @@
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
-import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface DruidState {
   pendingHitTimes: number[];
@@ -15,12 +14,6 @@ export interface DruidState {
   /** A non-null lifetime remains active until its exit task commits, including at the exact deadline. */
   celestialAvatarEndsAt: number | null;
 }
-
-// Druid owns its public Celestial Avatar resource projection.
-export const DRUID_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  astralClock: undefined,
-  celestialAvatarEndsAt: null
-} satisfies Partial<RangerState>);
 
 /** The resource clock exclusively owns force, capacity, and advancement time. */
 export function createDruidState(config: RangerConfig = {}): DruidState {
@@ -38,3 +31,12 @@ export function createDruidState(config: RangerConfig = {}): DruidState {
 }
 
 export const druidState = defineProfessionSpecializationState('Druid', createDruidState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectDruidPlanningState(input: Gw2PlanningStateInput) {
+  const state = druidState.from(input);
+  return structuredClone({
+    [STATE.ASTRAL_CLOCK]: state.astralClock,
+    [STATE.CELESTIAL_AVATAR_ENDS_AT]: state.celestialAvatarEndsAt
+  });
+}

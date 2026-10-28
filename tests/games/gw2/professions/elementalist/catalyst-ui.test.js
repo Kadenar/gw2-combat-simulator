@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { catalystBuffPolicies } from '#gw2/professions/elementalist/specializations/catalyst/effect-state.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
@@ -77,8 +78,8 @@ test('Catalyst exposes every Jade Sphere beside its energy in the rotation palet
     catalog: elementalistProfession.catalog,
     specialization: 'Catalyst',
     professionState: {
-      primaryAttunement: 'Fire',
-      catalystEnergy: { value: 30, maximum: 30, rate: 0, updatedAt: 0 }
+      [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
+      [STATE.CATALYST_ENERGY]: { value: 30, maximum: 30, rate: 0, updatedAt: 0 }
     }
   };
   const group = paletteView(elementalistProfession, context).find(
@@ -103,7 +104,7 @@ test('Catalyst energy exposes its native compact-bar styling hook', () => {
   const [energy] = elementalistProfession.ui.resourceViews({
     catalog: elementalistProfession.catalog,
     specialization: 'Catalyst',
-    professionState: { catalystEnergy: { value: 20, maximum: 30, rate: 0, updatedAt: 0 } }
+    professionState: { [STATE.CATALYST_ENERGY]: { value: 20, maximum: 30, rate: 0, updatedAt: 0 } }
   });
 
   assert.equal(energy.id, 'catalyst-energy');

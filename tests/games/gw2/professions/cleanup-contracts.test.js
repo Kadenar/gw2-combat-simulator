@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -324,7 +325,7 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
     assert.equal(runtime.profession.specialization.state.activeRefrainId, id);
-    assert.equal(result.planningState.profession.activeRefrain, 'Renamed ' + id);
+    assert.equal(result.planningState.profession[STATE.ACTIVE_REFRAIN], 'Renamed ' + id);
     assert.equal(rule.when({ config: runtime.config, runtime }), applies);
   }
 
@@ -332,6 +333,6 @@ test('Paragon renamed refrains replace, project, exhaust, and recover from missi
     const result = run([combat, W.CHANT_OF_FREEDOM, { type: 'wait', durationMs: 15000 }], missing);
     assert.deepEqual(result.warnings, []);
     assert.equal(observedRuntime(result).profession.specialization.state.activeRefrainId, null);
-    assert.equal(result.planningState.profession.activeRefrain, '');
+    assert.equal(result.planningState.profession[STATE.ACTIVE_REFRAIN], '');
   }
 });

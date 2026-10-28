@@ -1,10 +1,9 @@
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface ConduitState {
   affinity: ResourceClock;
@@ -14,15 +13,6 @@ export interface ConduitState {
   beguilingHazeReadyAt: number;
   beguilingHazeRecharge: RechargeProgress | null;
 }
-
-// Publish form and resource displays; in-flight recharge remains private to the mechanic.
-export const CONDUIT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  affinity: createResourceClock(),
-  cosmicWisdomUntil: 0,
-  conduitForm: '',
-  beguilingHazeCharges: 0,
-  beguilingHazeReadyAt: 0
-} satisfies Partial<ConduitState>);
 
 export function revenantConduitFormIsActive(
   state: Partial<ConduitState> | null | undefined,
@@ -46,3 +36,15 @@ function createConduitState(): ConduitState {
 }
 
 export const conduitState = defineProfessionSpecializationState('Conduit', createConduitState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectConduitPlanningState(input: Gw2PlanningStateInput) {
+  const state = conduitState.from(input);
+  return structuredClone({
+    [STATE.AFFINITY]: state.affinity,
+    [STATE.COSMIC_WISDOM_UNTIL]: state.cosmicWisdomUntil,
+    [STATE.CONDUIT_FORM]: state.conduitForm,
+    [STATE.BEGUILING_HAZE_CHARGES]: state.beguilingHazeCharges,
+    [STATE.BEGUILING_HAZE_READY_AT]: state.beguilingHazeReadyAt
+  });
+}

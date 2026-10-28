@@ -1,7 +1,6 @@
-import {
-  defineProfessionSpecializationState,
-  definePublicStateDefaults
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface BerserkerState {
   /** Null is inactive; the expiry task clears finite windows and previews may hold Infinity. */
@@ -11,11 +10,6 @@ export interface BerserkerState {
   /** Actual completed activations let delayed hits react without reading action history. */
   completedActivations: Record<string, number>;
 }
-
-/** Declares Berserker's public mode fields and inactive values. */
-export const BERSERKER_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  berserkUntil: null
-} satisfies Partial<BerserkerState>);
 
 // Aura and proc deadlines are shared by the chronological Berserker reactions.
 function createBerserkerState(): BerserkerState {
@@ -29,3 +23,11 @@ function createBerserkerState(): BerserkerState {
 }
 
 export const berserkerState = defineProfessionSpecializationState('Berserker', createBerserkerState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectBerserkerPlanningState(input: Gw2PlanningStateInput) {
+  const state = berserkerState.from(input);
+  return structuredClone({
+    [STATE.BERSERK_UNTIL]: state.berserkUntil
+  });
+}

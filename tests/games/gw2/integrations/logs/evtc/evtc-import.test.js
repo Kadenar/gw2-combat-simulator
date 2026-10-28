@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import assert from 'node:assert/strict';
@@ -229,9 +230,9 @@ test('a recorded Mirage dodge restores the state required to replay an ambush', 
 
   assert.deepEqual(imported.warnings, [LOG_OPENER_WARNING]);
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.planningState.profession.endurance.value < 100);
+  assert.ok(result.planningState.profession[STATE.ENDURANCE].value < 100);
   assert.ok(result.steps.some((step) => step.skill === 'Imaginary Axes' && !step.invalid));
-  assert.equal(result.planningState.profession.availableAmbush, null);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_AMBUSH], null);
 });
 
 test('the browser rotation importer previews compressed .zevtc files before applying them', async () => {

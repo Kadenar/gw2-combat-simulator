@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
@@ -51,7 +52,7 @@ test('Willbender window removal preserves sibling durations, flames, and activat
       }
     }
   );
-  assert.equal(result.planningState.profession.justiceUntil, 0);
+  assert.equal(result.planningState.profession[STATE.JUSTICE_UNTIL], 0);
   assert.equal(has(result, 'buff', 'kind', 'willbender-justice'), false);
   assert.equal(result.events.find((event) => event.type === 'buff' && event.kind === 'willbender-resolve').duration, 2);
   assert.ok(has(result, 'buff', 'kind', 'fury'));
@@ -65,7 +66,7 @@ test('Tyrant window removal never restores the base Justice duration', () => {
     ['Rushing Justice'],
     [TRAIT.TYRANTS_MOMENTUM]
   );
-  assert.equal(result.planningState.profession.justiceUntil, 0);
+  assert.equal(result.planningState.profession[STATE.JUSTICE_UNTIL], 0);
   assert.ok(has(result, 'buff', 'kind', 'lethal-tempo'));
 });
 
@@ -75,8 +76,8 @@ test('Lethal Tempo removal suppresses scheduler and resolver stacks without remo
     { type: 'wait', durationMs: 5000 }
   ]);
   for (const state of [result.planningState.profession, result.planningState.profession]) {
-    assert.equal(state.lethalTempo.stacks, 0);
-    assert.equal(state.lethalTempo.expiresAt, 0);
+    assert.equal(state[STATE.LETHAL_TEMPO].stacks, 0);
+    assert.equal(state[STATE.LETHAL_TEMPO].expiresAt, 0);
   }
 
   assert.equal(has(result, 'buff', 'kind', 'lethal-tempo'), false);
@@ -194,8 +195,8 @@ for (const [type, name] of [
         : { [ashesBurningSkill.id]: remove(type, name) }
     );
     assert.equal(has(result, 'buff', 'kind', 'ashes-of-the-just'), false);
-    assert.equal(result.planningState.profession.ashes.charges, 0);
-    assert.equal(result.planningState.profession.tomePages.value, 4);
+    assert.equal(result.planningState.profession[STATE.ASHES].charges, 0);
+    assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 4);
     assert.ok(has(result, 'buff', 'kind', 'might'));
   });
 }
@@ -209,7 +210,7 @@ test('Weighty Terms keeps its page refund when Slow is removed', () => {
     { initialTomePages: 1, selectedSkillIds: [46148] }
   );
   assert.equal(has(result, 'condition', 'condition', 'Slow'), false);
-  assert.equal(result.planningState.profession.tomePages.value, 3);
+  assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 3);
 });
 
 test('Radiant Forge removal leaves no active form, expiry, or exit flip', () => {
@@ -222,11 +223,11 @@ test('Radiant Forge removal leaves no active form, expiry, or exit flip', () => 
     { [SKILL.ENTER_RADIANT_FORGE]: remove('buff', 'radiant-forge') }
   );
   for (const state of [result.planningState.profession, result.planningState.profession]) {
-    assert.equal(state.radiantForge, false);
-    assert.equal(state.radiantForgeEndsAt, 0);
+    assert.equal(state[STATE.RADIANT_FORGE], false);
+    assert.equal(state[STATE.RADIANT_FORGE_ENDS_AT], 0);
   }
 
-  assert.equal(result.planningState.profession.availableFlips[SKILL.EXIT_RADIANT_FORGE], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][SKILL.EXIT_RADIANT_FORGE], undefined);
 });
 
 test('Radiant Justice strike removal preserves delayed Vulnerability', () => {
@@ -299,9 +300,9 @@ test('patched resource caps and zero recurrence survive initialization and prese
     'Chapter 1: Searing Spell',
     { type: 'wait', durationMs: 20000 }
   ]);
-  assert.equal(result.planningState.profession.tomePages.maximum, 2);
-  assert.equal(result.planningState.profession.tomePages.value, 1);
-  assert.equal(result.planningState.profession.tomePages.nextAt, Infinity);
+  assert.equal(result.planningState.profession[STATE.TOME_PAGES].maximum, 2);
+  assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 1);
+  assert.equal(result.planningState.profession[STATE.TOME_PAGES].nextAt, Infinity);
   const catalog = applyBalanceProfilePatch(guardianCatalog, { balanceProfiles: edits });
   assert.equal(firebrandUi.resourceViews({ catalog, config: {} })[0].maximum, 2);
   const tempoCatalog = applyBalanceProfilePatch(guardianCatalog, {
@@ -479,7 +480,7 @@ test('Quickfire window removal leaves its cooldown and charge reactions inactive
     [TRAIT.QUICKFIRE]
   );
   assert.equal(observedRuntime(result).procs.deadline('guardian.firebrand.quickfire'), 0);
-  assert.equal(result.planningState.profession.ashes.charges, 0);
+  assert.equal(result.planningState.profession[STATE.ASHES].charges, 0);
   assert.equal(has(result, 'proc', 'name', 'Quickfire'), false);
 });
 
@@ -492,7 +493,7 @@ test('Light Aura removal prevents its window and Sovereign detonation', () => {
     {},
     { [SKILL.RADIANT_RESOLVE]: remove('aura', 'Light Aura') }
   );
-  assert.equal(result.planningState.profession.lightAuraUntil, 0);
+  assert.equal(result.planningState.profession[STATE.LIGHT_AURA_UNTIL], 0);
   assert.equal(has(result, 'damage', 'skillName', 'Sovereign of Light'), false);
 });
 

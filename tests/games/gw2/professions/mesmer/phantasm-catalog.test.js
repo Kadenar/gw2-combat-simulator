@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -90,14 +91,14 @@ test('phantasm conversion availability follows each selected runtime catalog wit
   for (const spawnAtMs of [30000, 1000, 30000]) {
     const result = run({ spawnAtMs });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.resource, spawnAtMs === 1000 ? 1 : 0);
+    assert.equal(result.planningState.profession[STATE.RESOURCE], spawnAtMs === 1000 ? 1 : 0);
   }
 });
 
 test('Chronomancer conversion overrides retain precedence over the selected base timing', () => {
   const result = run({ repeatSpawnAtMs: 30000 }, 'Chronomancer', [TRAIT.CHRONOPHANTASMA]);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.resource, 1);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 1);
 });
 
 test('a phantasm without catalog timing fails explicitly during preparation', () => {

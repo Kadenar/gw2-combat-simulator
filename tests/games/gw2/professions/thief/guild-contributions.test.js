@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -85,7 +86,7 @@ for (const [elite, actor] of Object.entries(actors)) {
     const packets = guildPackets(result).filter((event) => event.skillName.endsWith(actor.name));
     assert.ok(packets.length > 0);
     assert.ok(packets.every((event) => event.coefficient === 0.73));
-    assert.equal(result.planningState.profession.activeThievesGuild, null);
+    assert.equal(result.planningState.profession[STATE.ACTIVE_THIEVES_GUILD], null);
     const baseline = thiefProfession.runtimeFor(config(elite)).catalog;
     assert.notEqual(
       baseline.skillsById.get(actor.attacks[0].skillId).effects.find((effect) => effect.type === 'strike').coefficient,

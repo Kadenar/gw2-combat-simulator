@@ -13,6 +13,7 @@ import type {
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const BOW_SKILLS = Object.freeze([
   ID.KEEN_SHOT,
@@ -27,7 +28,7 @@ const GALESHOT_PALETTE_STACK = 'ranger-galeshot';
 
 /** Shows Mistral only while its Galeshot damage window remains active. */
 function galeshotStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
-  const expiresAt = rangerUiState(context).mistralUntil || 0;
+  const expiresAt = rangerUiState(context)[STATE.MISTRAL_UNTIL] || 0;
   const remaining = expiresAt - Math.max(0, context.atSeconds || 0);
   // The final missile may trigger at equality; zero remains the unarmed sentinel.
   return expiresAt > 0 && remaining >= 0
@@ -56,12 +57,13 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
       const state = rangerUiState(context);
 
       if (skill.id === ID.SUMMON_CYCLONE_BOW || skill.id === ID.DISMISS_CYCLONE_BOW)
-        return { tileActive: (skill.id === ID.DISMISS_CYCLONE_BOW) === Boolean(state.cycloneBowActive) };
+        return { tileActive: (skill.id === ID.DISMISS_CYCLONE_BOW) === Boolean(state[STATE.CYCLONE_BOW_ACTIVE]) };
 
       if (skill.id === ID.HAWKEYE || skill.id === ID.KEEN_SHOT) {
         const maximum =
-          state.windForce?.maximum ?? balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'minimumStacks');
-        return { tileActive: (skill.id === ID.HAWKEYE) === (state.windForce?.value ?? 0) >= maximum };
+          state[STATE.WIND_FORCE]?.maximum ??
+          balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'minimumStacks');
+        return { tileActive: (skill.id === ID.HAWKEYE) === (state[STATE.WIND_FORCE]?.value ?? 0) >= maximum };
       }
     },
     // null = suppress the row entirely; undefined = fall through to default rendering.
@@ -111,16 +113,18 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
         TRAIT.TEACHINGS_OF_THE_TENGU
       );
       // Observed clocks carry the selected cap; build-only displays use the bound catalog.
-      const maximumWindForce = state.windForce?.maximum ?? balanceProfileNumber(profile, 'minimumStacks');
+      const maximumWindForce = state[STATE.WIND_FORCE]?.maximum ?? balanceProfileNumber(profile, 'minimumStacks');
       const maximum =
-        state.arrows?.maximum ?? context.resources?.arrows?.maximum ?? balanceProfileNumber(profile, 'maximumStacks');
+        state[STATE.ARROWS]?.maximum ??
+        context.resources?.arrows?.maximum ??
+        balanceProfileNumber(profile, 'maximumStacks');
       return [
         {
           id: 'arrows',
           singular: 'arrow',
           plural: 'arrows',
           maximum,
-          value: state.arrows?.value ?? context.initialArrows ?? maximum,
+          value: state[STATE.ARROWS]?.value ?? context.initialArrows ?? maximum,
           startMaximum: maximum,
           canStart: true,
           buildKey: 'initialArrows',
@@ -136,7 +140,7 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
           singular: 'Wind Force',
           plural: 'Wind Force',
           maximum: maximumWindForce,
-          value: state.windForce?.value ?? 0,
+          value: state[STATE.WIND_FORCE]?.value ?? 0,
           startMaximum: maximumWindForce,
           canStart: false,
           displayMode: 'pips',
@@ -145,7 +149,7 @@ export function bindGaleshotUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>)
           shortLabel: 'WF',
           // Wind Force is meaningless when the Cyclone Bow isn't summoned, so
           // the status label reflects bow state rather than a numeric count.
-          statusLabel: state.cycloneBowActive ? 'Cyclone Bow' : 'Inactive'
+          statusLabel: state[STATE.CYCLONE_BOW_ACTIVE] ? 'Cyclone Bow' : 'Inactive'
         }
       ];
     },

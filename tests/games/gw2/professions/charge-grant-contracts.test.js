@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { overflowingThirst } from '#gw2/professions/necromancer/core/traits/blood-magic/index.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -374,7 +375,7 @@ test('Mistburn replaces grants, spends on eligible strikes, and excludes its gra
             observed.projected = projectObservedState(thiefProfession, {
               profession: runtime.profession,
               time: runtime.time
-            }).mistburn;
+            })[STATE.MISTBURN];
           }
         ]
       ]
@@ -402,15 +403,15 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   state.mistburn = { charges: 3, expiresAt: 5 };
   context.state.time = 2;
   const projected = projectObservedState(thiefProfession, { ...context.state });
-  assert.equal(projected.mistburn.charges, 3);
-  assert.equal(projected.mistburn.expiresAt, 5);
+  assert.equal(projected[STATE.MISTBURN].charges, 3);
+  assert.equal(projected[STATE.MISTBURN].expiresAt, 5);
   for (const internal of [state, snapshotProfessionState(context.profession), projected]) {
     assert.equal(Object.hasOwn(internal, 'mistburnCharges'), false);
     assert.equal(Object.hasOwn(internal, 'mistburnExpiresAt'), false);
   }
 
-  // Detached snapshots and planning projections show the same count and remaining duration.
-  for (const professionState of [projected, snapshotProfessionState(context.profession)]) {
+  // Presentation consumes the detached planning observation.
+  for (const professionState of [projected]) {
     const items = thiefProfession.ui.rotationStateSnapshot({
       balanceContext: { catalog: thiefProfession.catalog },
       specialization: 'Antiquary',
@@ -421,14 +422,14 @@ test('Mistburn projects its grant without aliases or mutations to runtime state'
   }
 
   context.state.time = 5;
-  assert.equal(projectObservedState(thiefProfession, { ...context.state }).mistburn.charges, 0);
+  assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].charges, 0);
   assert.equal(state.mistburn.charges, 3, 'projection must not expire the live runtime grant');
   state.mistburn.charges = 0;
   context.state.time = 2;
-  assert.equal(projectObservedState(thiefProfession, { ...context.state }).mistburn.charges, 0);
+  assert.equal(projectObservedState(thiefProfession, { ...context.state })[STATE.MISTBURN].charges, 0);
   const core = contextFor(thiefProfession, 'Core');
   const inactive = projectObservedState(thiefProfession, { ...core.state });
-  assert.equal(Object.hasOwn(inactive, 'mistburn'), false);
+  assert.equal(Object.hasOwn(inactive, STATE.MISTBURN), false);
 });
 
 /** Explicitly admitted charges use retained delivery hooks independently of new cast admission. */

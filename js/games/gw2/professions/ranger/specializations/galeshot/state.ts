@@ -4,12 +4,11 @@ import {
   createResourceClock,
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
-import {
-  defineProfessionSpecializationState,
-  definePublicStateDefaults
-} from '#gw2/platform/profession-definition/state.js';
-import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface GaleshotState {
   cycloneBowActive: boolean;
@@ -21,17 +20,6 @@ export interface GaleshotState {
 
   missileHits: number;
 }
-
-// Galeshot owns its public Cyclone Bow and wind-resource projection.
-export const GALESHOT_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  cycloneBowActive: false,
-  arrows: createDiscreteResourceClock(8),
-  windForce: createResourceClock(),
-  galeForceUntil: 0,
-  mistralUntil: 0,
-
-  missileHits: 0
-} satisfies Partial<RangerState>);
 
 function createGaleshotState(config: RangerConfig = {}): GaleshotState {
   return {
@@ -48,3 +36,16 @@ function createGaleshotState(config: RangerConfig = {}): GaleshotState {
 }
 
 export const galeshotState = defineProfessionSpecializationState('Galeshot', createGaleshotState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectGaleshotPlanningState(input: Gw2PlanningStateInput) {
+  const state = galeshotState.from(input);
+  return structuredClone({
+    [STATE.CYCLONE_BOW_ACTIVE]: state.cycloneBowActive,
+    [STATE.ARROWS]: state.arrows,
+    [STATE.WIND_FORCE]: state.windForce,
+    [STATE.GALE_FORCE_UNTIL]: state.galeForceUntil,
+    [STATE.MISTRAL_UNTIL]: state.mistralUntil,
+    [STATE.MISSILE_HITS]: state.missileHits
+  });
+}

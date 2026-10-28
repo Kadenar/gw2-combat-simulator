@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -30,7 +31,7 @@ test('Writ and symbol reactions survive renamed skills, including ordinary and s
     );
     assert.ok(extended.length > 0);
     assert.ok(extended.every((event) => event.metadata?.guardianSymbol === true));
-    assert.ok(result.planningState.profession.symbolicAvengerExpirations.length > 0);
+    assert.ok(result.planningState.profession[STATE.SYMBOLIC_AVENGER_EXPIRATIONS].length > 0);
     assert.ok(
       result.resolvedEvents.some(
         (event) => event.sourceId === TRAIT.SYMBOLIC_EXPOSURE && event.at === extended.at(-1).at
@@ -90,7 +91,7 @@ test('symbol reactions use delivered packet metadata rather than skill tags, nam
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.symbolicAvengerExpirations.length, 1);
+  assert.equal(result.planningState.profession[STATE.SYMBOLIC_AVENGER_EXPIRATIONS].length, 1);
   const exposure = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.SYMBOLIC_EXPOSURE);
   assert.equal(
     exposure.reduce((sum, event) => sum + event.stacks, 0),

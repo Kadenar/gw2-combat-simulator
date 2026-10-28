@@ -15,6 +15,7 @@ import {
 } from '#gw2/professions/necromancer/core/presentation.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const SCOURGE_SKILLS = Object.freeze([
   ID.MANIFEST_SAND_SHADE,
@@ -69,7 +70,7 @@ export function bindScourgeUi(catalog: Readonly<CanonicalCatalog<NecromancerSkil
         // the resource display cap stays at 3 pips to keep the UI consistent
         maximum: 3,
         // shades array holds expiry timestamps; its length is the live count
-        value: necromancerUiState(context).shades?.length || 0,
+        value: necromancerUiState(context)[STATE.SHADES]?.length || 0,
         canStart: false,
         step: 1,
         displayMode: 'counter',

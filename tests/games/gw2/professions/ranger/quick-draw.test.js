@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -62,7 +63,7 @@ test('a cancelled weapon attempt preserves its unreserved Quick Draw grant', () 
   assert.ok(result.events.some((event) => event.type === 'action' && event.cancelled));
   assert.equal(acceptedWork, runtime.helpers.skillsById.get(12525).cooldown * 0.34);
   assert.equal(runtime.profession.core.quickDraw.charges, 1);
-  assert.equal(result.planningState.profession.quickDraw.charges, 1);
-  result.planningState.profession.quickDraw.charges = 0;
+  assert.equal(result.planningState.profession[STATE.QUICK_DRAW].charges, 1);
+  result.planningState.profession[STATE.QUICK_DRAW].charges = 0;
   assert.equal(runtime.profession.core.quickDraw.charges, 1, 'planning state is detached');
 });

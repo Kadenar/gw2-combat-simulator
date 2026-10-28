@@ -7,7 +7,7 @@ import type { Gw2CanonicalBuild, Gw2Build, ProfessionBuildAssumptions } from '#g
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 import type { ProfessionTraitSelection } from '#gw2/professions/shared/trait-data.js';
-import type { RangerCoreState, RangerCorePublicState } from '#gw2/professions/ranger/core/state.js';
+import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import type { DruidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
@@ -52,17 +52,16 @@ export interface RangerPetDefinition {
   readonly beastmodeSkillIds: readonly SkillId[];
 }
 
-/** Derive optional projection fields from their owners without exposing additional specialization internals. */
-export type RangerState = RangerCorePublicState &
-  Partial<
-    Pick<DruidState, 'astralClock' | 'celestialAvatarEndsAt'> &
-      Pick<SoulbeastState, 'beastmodeActive' | 'oneWolfPackUntil'> &
-      Pick<UntamedState, 'rangerUnleashed' | 'ambushReadyUntil' | 'ferociousSymbiosisPlayer'> &
-      Pick<
-        GaleshotState,
-        'cycloneBowActive' | 'arrows' | 'windForce' | 'galeForceUntil' | 'mistralUntil' | 'missileHits'
-      >
-  >;
+/** Public consumers receive only the ID/value pairs published by active owners. */
+export type RangerPlanningState = ReturnType<
+  typeof import('#gw2/professions/ranger/core/state.js').projectRangerCoreState
+> &
+  ReturnType<typeof import('#gw2/professions/ranger/specializations/druid/state.js').projectDruidPlanningState> &
+  ReturnType<typeof import('#gw2/professions/ranger/specializations/galeshot/state.js').projectGaleshotPlanningState> &
+  ReturnType<
+    typeof import('#gw2/professions/ranger/specializations/soulbeast/state.js').projectSoulbeastPlanningState
+  > &
+  ReturnType<typeof import('#gw2/professions/ranger/specializations/untamed/state.js').projectUntamedPlanningState>;
 
 export interface RangerRuntimeState {
   core: RangerCoreState;
@@ -102,7 +101,7 @@ export interface RangerModifierContext extends Gw2ModifierContext {
   readonly config?: RangerConfig;
 }
 
-export interface RangerUiContext extends Omit<ProfessionUiCallbackContext<Partial<RangerState>>, 'build'> {
+export interface RangerUiContext extends Omit<ProfessionUiCallbackContext<Partial<RangerPlanningState>>, 'build'> {
   readonly config?: RangerConfig;
   readonly build?: RangerBuild | null;
   readonly initialAstralForce?: number;
@@ -111,7 +110,7 @@ export interface RangerUiContext extends Omit<ProfessionUiCallbackContext<Partia
 }
 
 /** UI slice whose callbacks read Ranger end-state projections. */
-export type RangerUiSlice = Partial<ProfessionUiContract<Partial<RangerState>>>;
+export type RangerUiSlice = Partial<ProfessionUiContract<Partial<RangerPlanningState>>>;
 
 export interface RangerUiSelection {
   readonly key?: string;

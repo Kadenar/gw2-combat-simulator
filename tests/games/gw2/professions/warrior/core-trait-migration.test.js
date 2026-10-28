@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import assert from 'node:assert/strict';
@@ -196,8 +197,9 @@ const traitCases = [
     config: { initialResource: 30 },
     verify: (result) =>
       assert.equal(
-        result.planningState.profession.endurance.value -
-          simulate('Core', ['Dodge', 'Eviscerate'], { initialResource: 30 }).planningState.profession.endurance.value,
+        result.planningState.profession[STATE.ENDURANCE].value -
+          simulate('Core', ['Dodge', 'Eviscerate'], { initialResource: 30 }).planningState.profession[STATE.ENDURANCE]
+            .value,
         15
       )
   },
@@ -290,7 +292,7 @@ const traitCases = [
     trait: TRAIT.MERCILESS_HAMMER,
     rotation: ['Kick'],
     config: { initialResource: 0 },
-    verify: (result) => assert.equal(result.planningState.profession.adrenaline.value, 8)
+    verify: (result) => assert.equal(result.planningState.profession[STATE.ADRENALINE].value, 8)
   },
   {
     name: 'Stalwart Strength',
@@ -354,7 +356,7 @@ const traitCases = [
     trait: TRAIT.VERSATILE_RAGE,
     rotation: ['Swap Weapons'],
     config: { initialResource: 0, primaryWeapon: 'Axe', weaponSet2Primary: 'Mace' },
-    verify: (result) => assert.equal(result.planningState.profession.adrenaline.value, 5)
+    verify: (result) => assert.equal(result.planningState.profession[STATE.ADRENALINE].value, 5)
   },
   {
     name: 'Burst Mastery',

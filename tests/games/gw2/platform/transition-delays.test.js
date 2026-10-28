@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -221,6 +222,6 @@ test('automatic exit during final entry recovery extends only the overlapping de
   });
   // Depletion at 520 ms adds 200 ms exit recovery, overlapping the 600 ms entry recovery.
   assert.equal(result.rotationEndTime, 0.72);
-  assert.equal(result.planningState.profession.shadowShroudActive, false);
+  assert.equal(result.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], false);
   assert.deepEqual(result.warnings, []);
 });

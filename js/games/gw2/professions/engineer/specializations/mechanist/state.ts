@@ -1,7 +1,4 @@
-import {
-  defineProfessionSpecializationState,
-  definePublicStateDefaults
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import { mechArmsCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/behavior.js';
@@ -9,6 +6,8 @@ import { mechCoreCommand } from '#gw2/professions/engineer/specializations/mecha
 import { mechFrameCommand } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 interface EngineerMechState {
   commandSkillIds: SkillId[];
@@ -22,15 +21,6 @@ export interface MechanistState {
   barrierEngine: PeriodicTaskState;
   mech: EngineerMechState;
 }
-
-// Only the Mechanist module publishes mech state; its presence needs no separate mutable flag.
-export const MECHANIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  mech: {
-    commandSkillIds: [],
-    attackLoopStarted: false,
-    busyUntil: 0
-  }
-} satisfies Partial<MechanistState>);
 
 /** Resolves the three mech command skills supplied by the active mechanist traits. */
 export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillId>): SkillId[] {
@@ -51,3 +41,11 @@ export function createMechanistState(config: EngineerConfig = {}): MechanistStat
 }
 
 export const mechanistState = defineProfessionSpecializationState('Mechanist', createMechanistState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectMechanistPlanningState(input: Gw2PlanningStateInput) {
+  const state = mechanistState.from(input);
+  return structuredClone({
+    [STATE.MECH]: state.mech
+  });
+}

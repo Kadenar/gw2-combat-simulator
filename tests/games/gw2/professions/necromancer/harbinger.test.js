@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applySkillPatch, applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -23,12 +24,12 @@ const state = (result) => observedRuntime(result).profession.specialization.stat
 test('Harbinger entry grants precede depletion and its passive clock stops on every exit', () => {
   const config = { ...base, initialResource: 0, selectedTraitIds: [TRAIT.CORRUPTED_TALENT] };
   const entered = run([cast(ID.HARBINGER_SHROUD), wait(1000)], config);
-  assert.equal(entered.planningState.profession.activeShroud, 'harbinger');
-  assert.equal(lifeForcePercent(entered.planningState.profession.lifeForce), 10);
+  assert.equal(entered.planningState.profession[STATE.ACTIVE_SHROUD], 'harbinger');
+  assert.equal(lifeForcePercent(entered.planningState.profession[STATE.LIFE_FORCE]), 10);
   assert.equal(state(entered).blightExpiries.length, 2);
   assert.deepEqual(entered.warnings, []);
   const depleted = run([cast(ID.HARBINGER_SHROUD), wait(2000)], { ...base, initialResource: 5 });
-  assert.equal(depleted.planningState.profession.activeShroud, '');
+  assert.equal(depleted.planningState.profession[STATE.ACTIVE_SHROUD], '');
   assert.equal(state(depleted).nextBlightAt, Infinity);
   assert.equal(state(depleted).blightExpiries.length, 0);
   const exited = run([cast(ID.HARBINGER_SHROUD), wait(1500), cast(ID.EXIT_HARBINGER_SHROUD), wait(2000)]);
@@ -107,9 +108,9 @@ test('Cascading Corruption commits one delayed Meltdown and expires its live win
 test('Vital Draw grants only the siphons that have arrived', () => {
   const config = { ...base, initialResource: 10 };
   const result = run([cast(ID.HARBINGER_SHROUD), cast(ID.VITAL_DRAW)], config);
-  assert.ok(Math.abs(lifeForcePercent(result.planningState.profession.lifeForce) - 9) < 1e-9);
+  assert.ok(Math.abs(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]) - 9) < 1e-9);
   const missed = run([cast(ID.HARBINGER_SHROUD), { ...cast(ID.VITAL_DRAW), offTarget: true }], config);
-  assert.equal(lifeForcePercent(missed.planningState.profession.lifeForce), 6);
+  assert.equal(lifeForcePercent(missed.planningState.profession[STATE.LIFE_FORCE]), 6);
 });
 
 test('Harbinger recharge modifies pistol work while preserving Core shroud reductions', () => {

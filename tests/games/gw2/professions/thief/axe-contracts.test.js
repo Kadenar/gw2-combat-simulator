@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
@@ -27,7 +28,7 @@ test('Spinning Axe alternates and uses normal autoattack chain resets', () => {
   ]) {
     const result = runThief(rotation, axeConfig);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.autoattackChains[opener] ?? opener, next);
+    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][opener] ?? opener, next);
   }
 });
 

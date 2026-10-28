@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { profession, createBuildContext, toApplicationBuild } from '#gw2/professions/revenant/build/context.js';
@@ -97,10 +98,10 @@ test('Balance in Discord grants selected endurance once per swap and respects th
         previewValues: { balanceInDiscordEndurance: amount }
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.planningState.profession.combatBeganAt !== null, combat);
+      assert.equal(result.planningState.profession[STATE.COMBAT_BEGAN_AT] !== null, combat);
       assert.equal(
-        result.planningState.profession.endurance.value,
-        Math.min(100, baseline.planningState.profession.endurance.value + amount)
+        result.planningState.profession[STATE.ENDURANCE].value,
+        Math.min(100, baseline.planningState.profession[STATE.ENDURANCE].value + amount)
       );
     }
 
@@ -110,18 +111,18 @@ test('Balance in Discord grants selected endurance once per swap and respects th
       selectedTraitIds: [TRAIT.BALANCE_IN_DISCORD]
     });
     assert.equal(
-      liveResult.planningState.profession.endurance.value,
-      baseline.planningState.profession.endurance.value
+      liveResult.planningState.profession[STATE.ENDURANCE].value,
+      baseline.planningState.profession[STATE.ENDURANCE].value
     );
   }
 
   const full = run(['Swap Legends'], { selectedTraitIds: [TRAIT.BALANCE_IN_DISCORD] });
   assert.deepEqual(full.warnings, []);
-  assert.equal(full.planningState.profession.endurance.value, 100);
+  assert.equal(full.planningState.profession[STATE.ENDURANCE].value, 100);
   const noSwap = run(['Dodge', { type: 'cast', skillId: 62757 }], { selectedTraitIds: [TRAIT.BALANCE_IN_DISCORD] });
   assert.equal(
-    noSwap.planningState.profession.endurance.value,
-    run(['Dodge', { type: 'cast', skillId: 62757 }]).planningState.profession.endurance.value
+    noSwap.planningState.profession[STATE.ENDURANCE].value,
+    run(['Dodge', { type: 'cast', skillId: 62757 }]).planningState.profession[STATE.ENDURANCE].value
   );
 });
 
@@ -171,7 +172,7 @@ test('moved dodge traits and adept Energy Meld traits remain functional in Previ
     );
     assert.ok(tooltip.description.includes(landing));
 
-    if (choices.startsWith('1')) assert.equal(result.planningState.profession.reaversCurseUntil, 0);
+    if (choices.startsWith('1')) assert.equal(result.planningState.profession[STATE.REAVERS_CURSE_UNTIL], 0);
 
     if (choices.startsWith('2'))
       assert.equal(

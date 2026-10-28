@@ -1,14 +1,9 @@
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import {
-  projectPublicProfessionState,
-  flattenProfessionState,
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
-import type { WarriorState } from '#gw2/professions/warrior/types.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface ParagonState {
   motivation: ResourceClock;
@@ -19,12 +14,6 @@ export interface ParagonState {
   refrainGeneration: number;
   commandEchoes: Record<string, { skillId: SkillId; remaining: number; generation: number }>;
 }
-
-/** Declares Paragon's public fields and inactive values. */
-const PARAGON_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  motivation: createResourceClock(),
-  activeRefrain: ''
-} satisfies Partial<WarriorState>);
 
 /** The policy initializes the detached pool; refrain and echo lifetimes remain owned by Paragon. */
 function createParagonState(): ParagonState {
@@ -42,13 +31,10 @@ export const paragonState = defineProfessionSpecializationState('Paragon', creat
 
 /** Derive the public refrain label and detach selected fields without cloning private echo bookkeeping. */
 export function projectParagonPlanningState(input: Gw2PlanningStateInput) {
-  const state = flattenProfessionState(input.profession) as Partial<WarriorState>;
-  const publicState = projectPublicProfessionState(
-    state,
-    PARAGON_PUBLIC_STATE_PROJECTION.keys,
-    PARAGON_PUBLIC_STATE_PROJECTION.defaults
-  );
-  publicState.activeRefrain =
-    state.activeRefrainId == null ? '' : input.catalog.skillsById.get(state.activeRefrainId)?.name || '';
-  return publicState;
+  const state = paragonState.from(input);
+  return {
+    [STATE.MOTIVATION]: structuredClone(state.motivation),
+    [STATE.ACTIVE_REFRAIN]:
+      state.activeRefrainId == null ? '' : input.catalog.skillsById.get(state.activeRefrainId)?.name || ''
+  };
 }

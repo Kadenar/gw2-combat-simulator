@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -39,7 +40,7 @@ test('Grand Finale selects one delayed projectile for one consumed orb', () => {
   const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.GRAND_FINALE);
   assert.equal(packets.length, 1);
   assert.equal(packets[0].coefficient, 1.4);
-  assert.equal(result.planningState.profession.hammerOrbs.Fire, null);
+  assert.equal(result.planningState.profession[STATE.HAMMER_ORBS].Fire, null);
 });
 
 test('GW2 catalogs separate standard boons from generic timed buffs', async () => {

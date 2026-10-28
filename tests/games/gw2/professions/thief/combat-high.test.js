@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { antiquaryModule } from '#gw2/professions/thief/specializations/antiquary/module.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -31,7 +32,10 @@ test('Combat High shares staggered stack expiry across grants, modifiers, projec
     const query = { helpers: observedRuntime(result).helpers, runtime: { profession }, time };
     assert.equal(strike.amount(query), count * 0.03);
     assert.equal(condition.amount(query), count * 0.02);
-    assert.equal(projectObservedState(thiefProfession, { profession, time }).combatHighExpirations.length, count);
+    assert.equal(
+      projectObservedState(thiefProfession, { profession, time })[STATE.COMBAT_HIGH_EXPIRATIONS].length,
+      count
+    );
     assert.equal(state.combatHighExpirations.length, 10, 'projection cannot mutate the runtime buff');
   }
 

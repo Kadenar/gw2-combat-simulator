@@ -18,15 +18,16 @@ import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/as
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import type { RevenantState, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import type { RevenantPlanningState, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
-export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantState> {
+export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
 
 export function activeRevenantLegend(context: RevenantUiContext = {}): string {
-  return revenantUiState(context).activeLegendId || context.build?.startingLegend || '';
+  return revenantUiState(context)[STATE.ACTIVE_LEGEND_ID] || context.build?.startingLegend || '';
 }
 
 /** Shows the whole Energy unit used by Charged Mists while retaining fractional Energy internally. */
@@ -73,7 +74,7 @@ function revenantCoreStateSnapshot(
   const state = revenantUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
-  const upkeeps = state.activeUpkeeps || [];
+  const upkeeps = state[STATE.ACTIVE_UPKEEPS] || [];
   const drain = upkeeps.reduce((total, upkeep) => total + Math.max(0, upkeep.upkeepCost || 0), 0);
 
   if (drain > 0) {
@@ -85,7 +86,7 @@ function revenantCoreStateSnapshot(
     });
   }
 
-  const abyssExpiries = (state.crushingAbyss || []).map(Number).filter((expiry) => expiry > at);
+  const abyssExpiries = (state[STATE.CRUSHING_ABYSS] || []).map(Number).filter((expiry) => expiry > at);
 
   if (abyssExpiries.length) {
     // Match runtime acquisition's cap from the selected spear skill.
@@ -231,7 +232,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
         singular: 'energy',
         plural: 'energy',
         maximum: 100,
-        value: displayedRevenantEnergy(state.energy?.value ?? context.initialEnergy ?? 50),
+        value: displayedRevenantEnergy(state[STATE.ENERGY]?.value ?? context.initialEnergy ?? 50),
         startMaximum: 100,
         canStart: true,
         buildKey: 'initialEnergy' as const,

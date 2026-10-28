@@ -1,7 +1,6 @@
 import { DAREDEVIL_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/daredevil/skills/guild-attacks.js';
 import { daredevilTraits } from '#gw2/professions/thief/specializations/daredevil/traits/index.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
-import { DAREDEVIL_PUBLIC_STATE_PROJECTION } from '#gw2/professions/thief/specializations/daredevil/state.js';
+import { projectDaredevilPlanningState } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
 
@@ -17,7 +16,7 @@ export const daredevilModule = defineNativeModule({
     extraSkills: DAREDEVIL_GUILD_ATTACK_SKILLS,
     skillMechanics: DAREDEVIL_SKILL_MECHANICS
   }),
-  state: { create: daredevilState.create, project: createPublicStateProjector(DAREDEVIL_PUBLIC_STATE_PROJECTION) },
+  state: { create: daredevilState.create, project: projectDaredevilPlanningState },
   hooks: daredevilHooks,
   presentation: daredevilUi
 });

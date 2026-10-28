@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -283,7 +284,7 @@ test('Justice active burning resolves through simulateGw2', () => {
     withJustice.resolvedEvents.filter((event) => event.type === 'condition').map((event) => event.sourceId),
     ['guardian.justice-active']
   );
-  assert.equal(withJustice.planningState.profession.justiceActiveArmed, false);
+  assert.equal(withJustice.planningState.profession[STATE.JUSTICE_ACTIVE_ARMED], false);
   assert.equal(
     withJustice.procSteps.find((step) => step.skill === 'Justice Active')?.icon,
     guardianCatalog.skillsById.get(GUARDIAN_SKILL_IDS.JUSTICE).icon
@@ -430,7 +431,7 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
   ]);
 
   // Helio Rush is not illuminated itself but arms the buff for the next attack.
-  assert.equal(helioAlone.planningState.profession.spearIlluminated.charges, 1);
+  assert.equal(helioAlone.planningState.profession[STATE.SPEAR_ILLUMINATED].charges, 1);
   assert.equal(
     helioAlone.procSteps.some((step) => step.skill === 'Illuminated'),
     false
@@ -504,7 +505,7 @@ test('Spear Symbol of Luminance keeps all spear skills illuminated while active'
     boons: { quickness: true }
   })(undefined, ['Symbol of Luminance', 'Helio Rush']);
   // The window empowers Helio Rush even though nothing armed it beforehand.
-  assert.ok(symbolThenHelio.planningState.profession.spearLuminanceUntil > 0);
+  assert.ok(symbolThenHelio.planningState.profession[STATE.SPEAR_LUMINANCE_UNTIL] > 0);
   // Both spear proc notifications declare effect ownership before reaching timeline consumers.
   for (const name of ['Symbol of Luminance', 'Illuminated']) {
     const proc = symbolThenHelio.events.find((event) => event.type === 'proc' && event.name === name);
@@ -578,16 +579,16 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
   const inactiveFirebrand = {
     specialization: 'Firebrand',
     professionState: {
-      activeTome: '',
-      tomePages: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity },
-      radiantForge: false
+      [STATE.ACTIVE_TOME]: '',
+      [STATE.TOME_PAGES]: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity },
+      [STATE.RADIANT_FORGE]: false
     }
   };
   const activeFirebrand = {
     ...inactiveFirebrand,
     professionState: {
       ...inactiveFirebrand.professionState,
-      activeTome: 'justice'
+      [STATE.ACTIVE_TOME]: 'justice'
     }
   };
   const inactiveFirebrandGroups = guardianProfession.ui.paletteGroups(inactiveFirebrand);
@@ -597,7 +598,7 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
     time: 10,
     professionState: {
       ...inactiveFirebrand.professionState,
-      virtueReadyAt: { justice: 20, resolve: 10, courage: 30 }
+      [STATE.VIRTUE_READY_AT]: { justice: 20, resolve: 10, courage: 30 }
     }
   })[0];
   const groupIds = (groups) => groups.map((group) => group.id);
@@ -633,11 +634,11 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
 
   const inactiveForgeGroups = guardianProfession.ui.paletteGroups({
     specialization: 'Luminary',
-    professionState: { radiantForge: false }
+    professionState: { [STATE.RADIANT_FORGE]: false }
   });
   const activeForgeGroups = guardianProfession.ui.paletteGroups({
     specialization: 'Luminary',
-    professionState: { radiantForge: true }
+    professionState: { [STATE.RADIANT_FORGE]: true }
   });
 
   assert.deepEqual(

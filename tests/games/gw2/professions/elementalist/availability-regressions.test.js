@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -395,14 +396,14 @@ test('elemental glyphs require equipment while matching command flips and summon
       rotation: [name]
     });
     assert.match(rejected.warnings[0].message, /not equipped/);
-    assert.equal(rejected.planningState.profession.summonedElemental.element, null);
+    assert.equal(rejected.planningState.profession[STATE.SUMMONED_ELEMENTAL].element, null);
     const summoned = runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],
       selectedSkillIds: { Elite: elementalistCatalog.skills.find((candidate) => candidate.name === name).id },
       rotation: [name, command]
     });
     assert.deepEqual(summoned.warnings, []);
-    assert.equal(summoned.planningState.profession.summonedElemental.element, element);
+    assert.equal(summoned.planningState.profession[STATE.SUMMONED_ELEMENTAL].element, element);
   }
 });
 
@@ -453,22 +454,22 @@ test('native rotations reject nonexistent pickups and consume summoned ground co
   };
   const missing = runNative({ ...options, rotation: ['__pickup_Frost Bow'] });
   assert.match(missing.warnings[0].message, /pickup is unavailable or expired/);
-  assert.equal(missing.planningState.profession.conjureEquipped, null);
+  assert.equal(missing.planningState.profession[STATE.CONJURE_EQUIPPED], null);
 
   const pickedUp = runNative({
     ...options,
     rotation: ['Conjure Frost Bow', '__drop_bundle', '__pickup_Frost Bow']
   });
   assert.deepEqual(pickedUp.warnings, []);
-  assert.equal(pickedUp.planningState.profession.conjureEquipped, 'Frost Bow');
-  assert.equal(Object.hasOwn(pickedUp.planningState.profession.conjurePickups, 'Frost Bow'), false);
+  assert.equal(pickedUp.planningState.profession[STATE.CONJURE_EQUIPPED], 'Frost Bow');
+  assert.equal(Object.hasOwn(pickedUp.planningState.profession[STATE.CONJURE_PICKUPS], 'Frost Bow'), false);
 
   const expired = runNative({
     ...options,
     rotation: ['Conjure Frost Bow', '__drop_bundle', 36000, '__pickup_Frost Bow']
   });
   assert.match(expired.warnings[0].message, /pickup is unavailable or expired/);
-  assert.equal(expired.planningState.profession.conjureEquipped, null);
+  assert.equal(expired.planningState.profession[STATE.CONJURE_EQUIPPED], null);
 });
 
 test('Weaver autoattack roots require the primary attunement, even when the off hand matches', () => {
@@ -508,7 +509,7 @@ test('Weaver preserves the next autoattack link across completed and concurrent 
       result.events.some((event) => event.type === 'action' && event.skillName === 'Searing Slash'),
       true
     );
-    assert.equal(result.planningState.profession.autoattackCarryover, null);
-    assert.equal(result.planningState.profession.autoattackChains[root], undefined);
+    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CARRYOVER], null);
+    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][root], undefined);
   }
 });

@@ -18,6 +18,8 @@ import {
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** One engine-owned axe capacity is shared by starting state, live acquisition and preview inputs. */
 export const MAXIMUM_SPINNING_AXES = 6;
@@ -124,30 +126,26 @@ export function createThiefCoreState(
   };
 }
 
-// Core publishes only base-profession state; the family projector composes elite manifests separately.
-const THIEF_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof ThiefCoreState)[] = Object.freeze([
-  'initiative',
-  'stealthStartedAt',
-  'stealthUntil',
-  'revealedUntil',
-  'storedStolenSkillIds',
-  'storedStolenSkillCount',
-  'kneeling',
-  'endurance',
-
-  'leadAttackExpirations',
-  'spearChainStage',
-  'spearPreviousSkillId',
-  'spinningAxes',
-  'outboundAxes',
-  'venomChargeBatches',
-  'activeThievesGuild',
-  'availableFlips',
-  'autoattackChains'
-]);
-
-// Core fields have no inactive fallbacks; their values come from the live state.
-export const THIEF_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
-  keys: THIEF_CORE_PUBLIC_END_STATE_KEYS,
-  defaults: {}
-});
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectThiefCorePlanningState(input: Gw2PlanningStateInput) {
+  const state = (input.profession as { core: ReturnType<typeof createThiefCoreState> }).core;
+  return structuredClone({
+    [STATE.INITIATIVE]: state.initiative,
+    [STATE.STEALTH_STARTED_AT]: state.stealthStartedAt,
+    [STATE.STEALTH_UNTIL]: state.stealthUntil,
+    [STATE.REVEALED_UNTIL]: state.revealedUntil,
+    [STATE.STORED_STOLEN_SKILL_IDS]: state.storedStolenSkillIds,
+    [STATE.STORED_STOLEN_SKILL_COUNT]: state.storedStolenSkillCount,
+    [STATE.KNEELING]: state.kneeling,
+    [STATE.ENDURANCE]: state.endurance,
+    [STATE.LEAD_ATTACK_EXPIRATIONS]: state.leadAttackExpirations,
+    [STATE.SPEAR_CHAIN_STAGE]: state.spearChainStage,
+    [STATE.SPEAR_PREVIOUS_SKILL_ID]: state.spearPreviousSkillId,
+    [STATE.SPINNING_AXES]: state.spinningAxes,
+    [STATE.OUTBOUND_AXES]: state.outboundAxes,
+    [STATE.VENOM_CHARGE_BATCHES]: state.venomChargeBatches,
+    [STATE.ACTIVE_THIEVES_GUILD]: state.activeThievesGuild,
+    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
+    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains
+  });
+}

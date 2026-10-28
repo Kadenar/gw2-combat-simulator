@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -357,8 +358,9 @@ test('player ambush availability and projection preserve the final live microsec
     assert.equal(mirageAvailability(context, skill).ready, at < 1.801);
     assert.equal(
       Boolean(
-        projectObservedState(mesmerProfession, { ...context, config: context.config, catalog: context.catalog })
-          .availableAmbush
+        projectObservedState(mesmerProfession, { ...context, config: context.config, catalog: context.catalog })[
+          STATE.AVAILABLE_AMBUSH
+        ]
       ),
       at < 1.801
     );

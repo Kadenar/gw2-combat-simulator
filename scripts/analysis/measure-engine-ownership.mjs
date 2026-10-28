@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { performance } from 'node:perf_hooks';
 import { loadProfession } from '#gw2/profession-registry.js';
@@ -74,7 +75,8 @@ const definitions = [
     config: { specialization: 'Holosmith', initialHeat: 90 },
     rotation: ['Engage Photon Forge', 'Light Strike', wait(6000)],
     verify(result) {
-      if (!result.planningState.profession.overheated) throw new Error('Forge fixture must overheat.');
+      // Validate the public observation using the same stable identity as presentation.
+      if (!result.planningState.profession[STATE.OVERHEATED]) throw new Error('Forge fixture must overheat.');
     }
   },
   {

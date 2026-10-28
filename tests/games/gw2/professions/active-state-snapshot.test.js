@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -18,20 +19,42 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
 test('planning projections omit private mechanic state while retaining visible observations', () => {
   // Availability is observed in the runtime; presentation does not need its internal counters, costs, or schedules.
-  for (const [family, specialization, slice, privateKeys, visibleKey] of [
+  for (const [family, specialization, slice, privateKeys, visibleKey, stateId] of [
     [
       elementalistProfession,
       'Core',
       'core',
       ['spearNextDamageBonus', 'spearNextRechargeReduction', 'spearNextGuaranteedCritical', 'spearNextControlHit'],
-      'primaryAttunement'
+      'primaryAttunement',
+      STATE.PRIMARY_ATTUNEMENT
     ],
-    [guardianProfession, 'Core', 'core', ['justiceHitCount', 'virtueReadyAt'], 'symbolicAvengerExpirations'],
-    [rangerProfession, 'Core', 'core', ['nextPetInstance', 'player'], 'activePetSlot'],
-    [thiefProfession, 'Antiquary', 'specialization', ['backfireState', 'canachCoinIndex'], 'artifactSlots'],
-    [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity'],
-    [warriorProfession, 'Bladesworn', 'specialization', ['dragonChargeReachedAt'], 'flow'],
-    [warriorProfession, 'Paragon', 'specialization', ['commandEchoes', 'activeRefrainId'], 'motivation']
+    [
+      guardianProfession,
+      'Core',
+      'core',
+      ['justiceHitCount', 'virtueReadyAt'],
+      'symbolicAvengerExpirations',
+      STATE.SYMBOLIC_AVENGER_EXPIRATIONS
+    ],
+    [rangerProfession, 'Core', 'core', ['nextPetInstance', 'player'], 'activePetSlot', STATE.ACTIVE_PET_SLOT],
+    [
+      thiefProfession,
+      'Antiquary',
+      'specialization',
+      ['backfireState', 'canachCoinIndex'],
+      'artifactSlots',
+      STATE.ARTIFACT_SLOTS
+    ],
+    [revenantProfession, 'Conduit', 'specialization', ['beguilingHazeRecharge'], 'affinity', STATE.AFFINITY],
+    [warriorProfession, 'Bladesworn', 'specialization', ['dragonChargeReachedAt'], 'flow', STATE.FLOW],
+    [
+      warriorProfession,
+      'Paragon',
+      'specialization',
+      ['commandEchoes', 'activeRefrainId'],
+      'motivation',
+      STATE.MOTIVATION
+    ]
   ]) {
     const config = { specialization };
     const profession = family.runtimeFor(config).createState(config);
@@ -42,9 +65,9 @@ test('planning projections omit private mechanic state while retaining visible o
       assert.equal(Object.hasOwn(projected, key), false, `${family.id}/${specialization}: projected ${key}`);
     }
 
-    assert.deepEqual(projected[visibleKey], owner[visibleKey]);
+    assert.deepEqual(projected[stateId], owner[visibleKey]);
 
-    if (typeof owner[visibleKey] === 'object') assert.notEqual(projected[visibleKey], owner[visibleKey]);
+    if (typeof owner[visibleKey] === 'object') assert.notEqual(projected[stateId], owner[visibleKey]);
   }
 });
 
@@ -60,28 +83,37 @@ test('Ranger pet projections expose detached observations without traversing pri
 
   const projected = projectObservedState(rangerProfession, { profession, config, time: 0 });
   for (const key of ['activationClaims', 'effects', 'autoAction', 'commandReadyAt'])
-    assert.equal(Object.hasOwn(projected.pet, key), false);
-  assert.equal(projected.pet.id, pet.id);
-  projected.pet.ferociousSymbiosis.stacks = 5;
+    assert.equal(Object.hasOwn(projected[STATE.PET], key), false);
+  assert.equal(projected[STATE.PET].id, pet.id);
+  projected[STATE.PET].ferociousSymbiosis.stacks = 5;
   assert.equal(pet.ferociousSymbiosis.stacks, 0);
 });
 
 test('public expiry projections use exclusive deadlines without mutating the live owner', () => {
   // Expiration is an observation of stored deadlines, independent of queued work or a later grant.
-  for (const [family, specialization, slice, key, value, expired] of [
-    [warriorProfession, 'Spellbreaker', 'specialization', 'attackerInsightExpiries', [5, 7], [7]],
-    [warriorProfession, 'Spellbreaker', 'specialization', 'magebaneTetherUntil', 5, 0],
+  for (const [family, specialization, slice, key, value, expired, stateId] of [
+    [
+      warriorProfession,
+      'Spellbreaker',
+      'specialization',
+      'attackerInsightExpiries',
+      [5, 7],
+      [7],
+      STATE.ATTACKER_INSIGHT_EXPIRIES
+    ],
+    [warriorProfession, 'Spellbreaker', 'specialization', 'magebaneTetherUntil', 5, 0, STATE.MAGEBANE_TETHER_UNTIL],
     [
       warriorProfession,
       'Bladesworn',
       'specialization',
       'overchargedCartridgeWindows',
       [{ startedAt: 1, expiresAt: 5 }],
-      []
+      [],
+      STATE.OVERCHARGED_CARTRIDGE_WINDOWS
     ],
-    [rangerProfession, 'Untamed', 'specialization', 'ambushReadyUntil', 5, 0],
-    [guardianProfession, 'Core', 'core', 'symbolicAvengerExpirations', [5, 7], [7]],
-    [guardianProfession, 'Dragonhunter', 'specialization', 'tetherUntil', 5, 0]
+    [rangerProfession, 'Untamed', 'specialization', 'ambushReadyUntil', 5, 0, STATE.AMBUSH_READY_UNTIL],
+    [guardianProfession, 'Core', 'core', 'symbolicAvengerExpirations', [5, 7], [7], STATE.SYMBOLIC_AVENGER_EXPIRATIONS],
+    [guardianProfession, 'Dragonhunter', 'specialization', 'tetherUntil', 5, 0, STATE.TETHER_UNTIL]
   ]) {
     const config = { specialization };
     const profession = family.runtimeFor(config).createState(config);
@@ -89,7 +121,7 @@ test('public expiry projections use exclusive deadlines without mutating the liv
     owner[key] = structuredClone(value);
     for (const time of [4.999999, 5, 5.000001]) {
       const projected = projectObservedState(family, { profession, config, time });
-      assert.deepEqual(projected[key], time < 5 ? value : expired, `${specialization}.${key} at ${time}`);
+      assert.deepEqual(projected[stateId], time < 5 ? value : expired, `${specialization}.${key} at ${time}`);
       assert.deepEqual(owner[key], value, 'Projection leaves the stored deadlines untouched');
     }
   }
@@ -102,8 +134,8 @@ test('filtered public windows remain deeply detached from their live owners', ()
   const visibleFlip = { identity: 2, visibleAt: 0, availableAt: 0, expiresAt: 7, remainingUses: 1 };
   guardian.core.availableFlips = { expired: expiredFlip, visible: visibleFlip };
   const guardianProjection = projectObservedState(guardianProfession, { profession: guardian, time: 5 });
-  assert.deepEqual(guardianProjection.availableFlips, { visible: visibleFlip });
-  guardianProjection.availableFlips.visible.expiresAt = 99;
+  assert.deepEqual(guardianProjection[STATE.AVAILABLE_FLIPS], { visible: visibleFlip });
+  guardianProjection[STATE.AVAILABLE_FLIPS].visible.expiresAt = 99;
   assert.equal(visibleFlip.expiresAt, 7);
   assert.equal(guardian.core.availableFlips.expired, expiredFlip);
 
@@ -118,8 +150,8 @@ test('filtered public windows remain deeply detached from their live owners', ()
   };
   bladesworn.specialization.state.overchargedCartridgeWindows = [cartridge];
   const bladeswornProjection = projectObservedState(warriorProfession, { profession: bladesworn, time: 5 });
-  assert.deepEqual(bladeswornProjection.overchargedCartridgeWindows, [cartridge]);
-  bladeswornProjection.overchargedCartridgeWindows[0].damageBonus = 99;
+  assert.deepEqual(bladeswornProjection[STATE.OVERCHARGED_CARTRIDGE_WINDOWS], [cartridge]);
+  bladeswornProjection[STATE.OVERCHARGED_CARTRIDGE_WINDOWS][0].damageBonus = 99;
   assert.equal(cartridge.damageBonus, 0.15);
 });
 
@@ -137,8 +169,8 @@ test('Mesmer public projectors do not traverse private cast history', () => {
     profession.core.availableFlips = { visible: flip, expired: { ...flip, identity: 2, expiresAt: 5 } };
     const projected = projectObservedState(mesmerProfession, { profession, config, time: 5 });
     assert.equal(Object.hasOwn(projected, 'castDetails'), false);
-    assert.deepEqual(projected.availableFlips, { visible: flip });
-    projected.availableFlips.visible.expiresAt = 99;
+    assert.deepEqual(projected[STATE.AVAILABLE_FLIPS], { visible: flip });
+    projected[STATE.AVAILABLE_FLIPS].visible.expiresAt = 99;
     assert.equal(flip.expiresAt, 7);
     assert.equal(profession.core.availableFlips.expired.expiresAt, 5);
   }
@@ -154,13 +186,13 @@ test('Mesmer public endurance and instrument observations remain detached', () =
     if (specialization === 'Troubadour') state.instruments = { Lute: 7, Flute: 5 };
 
     const projected = projectObservedState(mesmerProfession, { profession, config, time: 5 });
-    assert.deepEqual(projected.endurance, state.endurance);
-    projected.endurance.value = 0;
+    assert.deepEqual(projected[STATE.ENDURANCE], state.endurance);
+    projected[STATE.ENDURANCE].value = 0;
     assert.equal(state.endurance.value, 100);
 
     if (specialization === 'Troubadour') {
-      assert.deepEqual(projected.activeInstruments, [{ name: 'Lute', remaining: 2000 }]);
-      projected.activeInstruments[0].name = 'edited';
+      assert.deepEqual(projected[STATE.ACTIVE_INSTRUMENTS], [{ name: 'Lute', remaining: 2000 }]);
+      projected[STATE.ACTIVE_INSTRUMENTS][0].name = 'edited';
       assert.deepEqual(state.instruments, { Lute: 7, Flute: 5 });
     }
   }
@@ -177,8 +209,8 @@ test('Antiquary filters refund grants without sharing surviving grants with live
   ];
   profession.specialization.state.chakInitiativeRefunds = grants;
   const projected = projectObservedState(thiefProfession, { profession, config, time: 5 });
-  assert.deepEqual(projected.chakInitiativeRefunds, [grants[2], grants[0]]);
-  projected.chakInitiativeRefunds[0].charges = 0;
+  assert.deepEqual(projected[STATE.CHAK_INITIATIVE_REFUNDS], [grants[2], grants[0]]);
+  projected[STATE.CHAK_INITIATIVE_REFUNDS][0].charges = 0;
   assert.deepEqual(grants, [
     { charges: 2, expiresAt: 9 },
     { charges: 1, expiresAt: 5 },
@@ -188,9 +220,9 @@ test('Antiquary filters refund grants without sharing surviving grants with live
 
 test('force clocks are detached in snapshots and planning projections and absent for inactive specializations', () => {
   // Snapshots and presentation share one clock shape without sharing mutable resource state.
-  for (const [profession, specialization, clockKey] of [
-    [rangerProfession, 'Druid', 'astralClock'],
-    [thiefProfession, 'Specter', 'shadowClock']
+  for (const [profession, specialization, clockKey, stateId] of [
+    [rangerProfession, 'Druid', 'astralClock', STATE.ASTRAL_CLOCK],
+    [thiefProfession, 'Specter', 'shadowClock', STATE.SHADOW_CLOCK]
   ]) {
     const config = { specialization };
     const runtime = profession.runtimeFor(config);
@@ -201,11 +233,11 @@ test('force clocks are detached in snapshots and planning projections and absent
     assert.deepEqual(detached[clockKey], clock);
     assert.notEqual(detached[clockKey], clock);
     const projected = projectObservedState(profession, { profession: state, time: 2 });
-    assert.deepEqual(projected[clockKey], clock);
-    assert.notEqual(projected[clockKey], clock);
+    assert.deepEqual(projected[stateId], clock);
+    assert.notEqual(projected[stateId], clock);
     // Projection must leave the live resource and its capacity untouched.
     assert.deepEqual(clock, { value: 37, maximum: 90, updatedAt: 2, rate: 0 });
-    for (const professionState of [detached, projected]) {
+    for (const professionState of [projected]) {
       const resources = profession.ui.resourceViews({ specialization, professionState });
       assert.equal(
         resources.find(({ id }) => id === (specialization === 'Druid' ? 'astral-force' : 'shadow-force')).value,
@@ -215,13 +247,13 @@ test('force clocks are detached in snapshots and planning projections and absent
 
     clock.value = 12;
     assert.equal(detached[clockKey].value, 37);
-    assert.equal(projected[clockKey].value, 37);
+    assert.equal(projected[stateId].value, 37);
     assert.equal(clock.value, 12);
     assert.equal(detached[clockKey].value, 37);
 
     const core = profession.runtimeFor({ specialization: 'Core' }).createState({ specialization: 'Core' });
     const inactive = projectObservedState(profession, { profession: core, time: 0 });
-    assert.equal(inactive[clockKey], undefined);
+    assert.equal(inactive[stateId], undefined);
   }
 });
 
@@ -250,7 +282,7 @@ test('Elementalist snapshots include Weaver and Catalyst stack/timer windows', (
     snapshot(
       elementalistProfession,
       'Weaver',
-      { primaryAttunement: 'Fire', secondaryAttunement: 'Air', unravelUntil: 9 },
+      { [STATE.PRIMARY_ATTUNEMENT]: 'Fire', [STATE.SECONDARY_ATTUNEMENT]: 'Air', [STATE.UNRAVEL_UNTIL]: 9 },
       4
     )
   );
@@ -261,8 +293,8 @@ test('Elementalist snapshots include Weaver and Catalyst stack/timer windows', (
       elementalistProfession,
       'Catalyst',
       {
-        elementalEmpowermentExpiries: [11, 14, 15],
-        sphereExpiry: { Fire: 15, Water: 10, Air: 0, Earth: 0 }
+        [STATE.ELEMENTAL_EMPOWERMENT_EXPIRIES]: [11, 14, 15],
+        [STATE.SPHERE_EXPIRY]: { Fire: 15, Water: 10, Air: 0, Earth: 0 }
       },
       12,
       {
@@ -310,32 +342,38 @@ test('Elementalist snapshots include Weaver and Catalyst stack/timer windows', (
   assert.equal(catalyst['catalyst-fire-sphere'], '3.0s');
   assert.equal(catalyst['catalyst-water-sphere'], undefined);
 
-  const evoker = valuesById(snapshot(elementalistProfession, 'Evoker', { elementalBalanceUntil: 8.5 }, 6));
+  const evoker = valuesById(snapshot(elementalistProfession, 'Evoker', { [STATE.ELEMENTAL_BALANCE_UNTIL]: 8.5 }, 6));
   assert.equal(evoker['evoker-elemental-balance'], '2.5s');
 });
 
 test('Amalgam snapshot includes Evolve and all active duration-bearing strains', () => {
   const values = valuesById(
-    snapshot(engineerProfession, 'Amalgam', { evolvedUntil: 12, rapaciousUntil: 10, titanicUntil: 11 }, 5, {
-      ...effectFields(
-        [
-          {
-            type: 'buff',
-            resolvedAudience: {
-              includesSelf: true,
-              includesSummons: false,
-              companionIds: [],
-              alliedPlayerCount: 0,
-              recipientCount: 1
-            },
-            sourceId: 'engineer.resiliant-strain',
-            at: 1,
-            duration: 8
-          }
-        ],
-        120
-      )
-    })
+    snapshot(
+      engineerProfession,
+      'Amalgam',
+      { [STATE.EVOLVED_UNTIL]: 12, [STATE.RAPACIOUS_UNTIL]: 10, [STATE.TITANIC_UNTIL]: 11 },
+      5,
+      {
+        ...effectFields(
+          [
+            {
+              type: 'buff',
+              resolvedAudience: {
+                includesSelf: true,
+                includesSummons: false,
+                companionIds: [],
+                alliedPlayerCount: 0,
+                recipientCount: 1
+              },
+              sourceId: 'engineer.resiliant-strain',
+              at: 1,
+              duration: 8
+            }
+          ],
+          120
+        )
+      }
+    )
   );
   assert.equal(values['amalgam-evolve'], '7.0s');
   assert.equal(values['amalgam-active-strains'], 'Resiliant 4.0s · Rapacious 5.0s · Titanic 6.0s');
@@ -347,11 +385,11 @@ test('Guardian snapshots combine core and elite active state', () => {
       guardianProfession,
       'Willbender',
       {
-        symbolicAvengerExpirations: [4, 7, 8, 9],
-        justiceUntil: 8,
-        resolveUntil: 7,
-        courageUntil: 3,
-        lethalTempo: { stacks: 4, expiresAt: 10 }
+        [STATE.SYMBOLIC_AVENGER_EXPIRATIONS]: [4, 7, 8, 9],
+        [STATE.JUSTICE_UNTIL]: 8,
+        [STATE.RESOLVE_UNTIL]: 7,
+        [STATE.COURAGE_UNTIL]: 3,
+        [STATE.LETHAL_TEMPO]: { stacks: 4, expiresAt: 10 }
       },
       4
     )
@@ -362,16 +400,21 @@ test('Guardian snapshots combine core and elite active state', () => {
   assert.equal(willbender['willbender-crashing-courage'], undefined);
   assert.equal(willbender['willbender-lethal-tempo'], '4/5 · 6.0s');
 
-  const dragonhunter = valuesById(snapshot(guardianProfession, 'Dragonhunter', { tetherUntil: 9 }, 4));
+  const dragonhunter = valuesById(snapshot(guardianProfession, 'Dragonhunter', { [STATE.TETHER_UNTIL]: 9 }, 4));
   assert.equal(dragonhunter['dragonhunter-tether'], '5.0s');
 
   const luminary = valuesById(
-    snapshot(guardianProfession, 'Luminary', { lightAuraUntil: 7, effulgentStacks: 7, effulgentActiveUntil: 6 }, 4)
+    snapshot(
+      guardianProfession,
+      'Luminary',
+      { [STATE.LIGHT_AURA_UNTIL]: 7, [STATE.EFFULGENT_STACKS]: 7, [STATE.EFFULGENT_ACTIVE_UNTIL]: 6 },
+      4
+    )
   );
   assert.equal(luminary['luminary-light-aura'], '3.0s');
   assert.equal(luminary['luminary-effulgent-stance'], '7/10 · 2.0s');
   assert.equal(
-    valuesById(snapshot(guardianProfession, 'Luminary', { lightAuraUntil: 4 }, 4))['luminary-light-aura'],
+    valuesById(snapshot(guardianProfession, 'Luminary', { [STATE.LIGHT_AURA_UNTIL]: 4 }, 4))['luminary-light-aura'],
     undefined
   );
 });
@@ -381,7 +424,7 @@ test('Mesmer and Harbinger snapshots expose their short decision windows', () =>
     snapshot(
       mesmerProfession,
       'Chronomancer',
-      { clarityRemaining: 3500, continuumActive: true, continuumRemaining: 4200 },
+      { [STATE.CLARITY_REMAINING]: 3500, [STATE.CONTINUUM_ACTIVE]: true, [STATE.CONTINUUM_REMAINING]: 4200 },
       10,
       {
         ...effectFields(
@@ -435,12 +478,14 @@ test('Mesmer and Harbinger snapshots expose their short decision windows', () =>
   );
   assert.equal(expiredDangerTime['chronomancer-danger-time'], undefined);
 
-  const harbinger = valuesById(snapshot(necromancerProfession, 'Harbinger', { blight: 12, meltdownUntil: 9 }, 6));
+  const harbinger = valuesById(
+    snapshot(necromancerProfession, 'Harbinger', { [STATE.BLIGHT]: 12, [STATE.MELTDOWN_UNTIL]: 9 }, 6)
+  );
   assert.equal(harbinger['harbinger-meltdown'], '3.0s');
 });
 
 test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbiosis', () => {
-  const soulbeast = valuesById(snapshot(rangerProfession, 'Soulbeast', { oneWolfPackUntil: 9 }, 4));
+  const soulbeast = valuesById(snapshot(rangerProfession, 'Soulbeast', { [STATE.ONE_WOLF_PACK_UNTIL]: 9 }, 4));
   assert.equal(soulbeast['soulbeast-one-wolf-pack'], '5.0s');
 
   const untamed = valuesById(
@@ -448,9 +493,9 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
       rangerProfession,
       'Untamed',
       {
-        ambushReadyUntil: 7,
-        ferociousSymbiosisPlayer: { stacks: 3, expiresAt: 9 },
-        pet: { id: 'pet', ferociousSymbiosis: { stacks: 5, expiresAt: 8 } }
+        [STATE.AMBUSH_READY_UNTIL]: 7,
+        [STATE.FEROCIOUS_SYMBIOSIS_PLAYER]: { stacks: 3, expiresAt: 9 },
+        [STATE.PET]: { id: 'pet', ferociousSymbiosis: { stacks: 5, expiresAt: 8 } }
       },
       4
     )
@@ -460,15 +505,12 @@ test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbios
   assert.equal(untamed['untamed-ferocious-symbiosis-pet'], '5/5 · 4.0s');
 
   const projected = projectObservedState(rangerProfession, {
-    profession: {
-      core: {},
-      specialization: { kind: 'Untamed', state: { rangerUnleashed: true, ambushReadyUntil: 7 } }
-    }
+    profession: rangerProfession.runtimeFor({ specialization: 'Untamed' }).createState({ specialization: 'Untamed' })
   });
-  assert.equal(projected.ferociousSymbiosisPlayer.stacks, 0);
-  assert.equal(projected.ferociousSymbiosisPlayer.expiresAt, 0);
+  assert.equal(projected[STATE.FEROCIOUS_SYMBIOSIS_PLAYER].stacks, 0);
+  assert.equal(projected[STATE.FEROCIOUS_SYMBIOSIS_PLAYER].expiresAt, 0);
 
-  const galeshot = valuesById(snapshot(rangerProfession, 'Galeshot', { mistralUntil: 7.5 }, 4));
+  const galeshot = valuesById(snapshot(rangerProfession, 'Galeshot', { [STATE.MISTRAL_UNTIL]: 7.5 }, 4));
   assert.equal(galeshot['galeshot-mistral'], '3.5s');
 });
 
@@ -478,12 +520,12 @@ test('Revenant snapshots expose shared drains and elite stack/form windows', () 
       revenantProfession,
       'Renegade',
       {
-        activeUpkeeps: [
+        [STATE.ACTIVE_UPKEEPS]: [
           { skillId: 1, upkeepCost: 6, startsAt: 0, empoweredNextPulse: false },
           { skillId: 2, upkeepCost: 2, startsAt: 0, empoweredNextPulse: false }
         ],
-        crushingAbyss: [3, 9, 11],
-        kallasFervor: [
+        [STATE.CRUSHING_ABYSS]: [3, 9, 11],
+        [STATE.KALLAS_FERVOR]: [
           { at: 1, expiresAt: 10 },
           { at: 2, expiresAt: 11 }
         ]
@@ -517,16 +559,18 @@ test('Revenant snapshots expose shared drains and elite stack/form windows', () 
   assert.equal(renegade['renegade-band-together'], '4.0s');
 
   const conduit = valuesById(
-    snapshot(revenantProfession, 'Conduit', { conduitForm: 'Mesmer', cosmicWisdomUntil: 9 }, 4)
+    snapshot(revenantProfession, 'Conduit', { [STATE.CONDUIT_FORM]: 'Mesmer', [STATE.COSMIC_WISDOM_UNTIL]: 9 }, 4)
   );
   assert.equal(conduit['conduit-cosmic-wisdom'], 'Mesmer · 5.0s');
 
-  const vindicator = valuesById(snapshot(revenantProfession, 'Vindicator', { reaversCurseUntil: 7 }, 4));
+  const vindicator = valuesById(snapshot(revenantProfession, 'Vindicator', { [STATE.REAVERS_CURSE_UNTIL]: 7 }, 4));
   assert.equal(vindicator['vindicator-reavers-curse'], '3.0s');
 });
 
 test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and artifact effects', () => {
-  const revealed = valuesById(snapshot(thiefProfession, 'Core', { stealthUntil: 12, revealedUntil: 7 }, 4));
+  const revealed = valuesById(
+    snapshot(thiefProfession, 'Core', { [STATE.STEALTH_UNTIL]: 12, [STATE.REVEALED_UNTIL]: 7 }, 4)
+  );
   assert.equal(revealed['thief-revealed'], '3.0s');
   assert.equal(revealed['thief-stealth'], undefined);
 
@@ -548,13 +592,13 @@ test('Thief snapshots expose stealth gates, Bounding Dodger, Combat High, and ar
       thiefProfession,
       'Antiquary',
       {
-        combatHighExpirations: [6, 8, 10, 12, 14, 16, 18, 20],
-        antiquaryDamageUntil: 9,
-        bonusStealthAttack: { charges: 2, expiresAt: 8 },
-        mistburn: { charges: 4, expiresAt: 10 },
-        kryptisDamageUntil: 11,
-        chakInitiativeRefunds: [{ charges: 3, expiresAt: 12 }],
-        holoUtilityCooldownReductionExpirations: [3, 13, 14]
+        [STATE.COMBAT_HIGH_EXPIRATIONS]: [6, 8, 10, 12, 14, 16, 18, 20],
+        [STATE.ANTIQUARY_DAMAGE_UNTIL]: 9,
+        [STATE.BONUS_STEALTH_ATTACK]: { charges: 2, expiresAt: 8 },
+        [STATE.MISTBURN]: { charges: 4, expiresAt: 10 },
+        [STATE.KRYPTIS_DAMAGE_UNTIL]: 11,
+        [STATE.CHAK_INITIATIVE_REFUNDS]: [{ charges: 3, expiresAt: 12 }],
+        [STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS]: [3, 13, 14]
       },
       4
     )
@@ -642,7 +686,10 @@ test('Warrior snapshots expose shared stacks, Bladesworn buffs, and Paragon refr
     snapshot(
       warriorProfession,
       'Paragon',
-      { activeRefrain: 'Chant of Action', motivation: { value: 5, maximum: 10, rate: 0, updatedAt: 4 } },
+      {
+        [STATE.ACTIVE_REFRAIN]: 'Chant of Action',
+        [STATE.MOTIVATION]: { value: 5, maximum: 10, rate: 0, updatedAt: 4 }
+      },
       4
     )
   );

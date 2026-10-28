@@ -18,10 +18,17 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { type CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistUiContext, ElementalistUiSlice } from '#gw2/professions/elementalist/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const CATALYST_SPHERE_SKILL_IDS = Object.freeze(Object.values(ELEMENTALIST_JADE_SPHERE_SKILL_IDS));
 
-function uiState(context: ElementalistUiContext): Partial<CatalystState> {
+function uiState(
+  context: ElementalistUiContext
+): Partial<
+  ReturnType<
+    typeof import('#gw2/professions/elementalist/specializations/catalyst/state.js').projectCatalystPlanningState
+  >
+> {
   return context.professionState || {};
 }
 
@@ -54,7 +61,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
   }
 
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
-    const remaining = (state.sphereExpiry?.[element] || 0) - at;
+    const remaining = (state[STATE.SPHERE_EXPIRY]?.[element] || 0) - at;
 
     if (remaining <= 0) continue;
 
@@ -158,14 +165,15 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
     const build = context.build;
     // Observed clocks carry their selected cap; the build-only view uses the active profile before simulation.
     const maximum =
-      state.catalystEnergy?.maximum ?? balanceNumberFromContext(context, TRAIT.DEPTH_OF_ELEMENTS, 'maximumStacks');
+      state[STATE.CATALYST_ENERGY]?.maximum ??
+      balanceNumberFromContext(context, TRAIT.DEPTH_OF_ELEMENTS, 'maximumStacks');
     return [
       {
         id: 'catalyst-energy',
         singular: 'energy',
         plural: 'energy',
         maximum,
-        value: state.catalystEnergy?.value ?? Math.min(maximum, build?.initialCatalystEnergy ?? maximum),
+        value: state[STATE.CATALYST_ENERGY]?.value ?? Math.min(maximum, build?.initialCatalystEnergy ?? maximum),
         startMaximum: maximum,
         canStart: true,
         buildKey: 'initialCatalystEnergy',

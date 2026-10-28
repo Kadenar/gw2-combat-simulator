@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
@@ -155,6 +156,6 @@ test('Zero periodic intervals disable signet pulses without stalling resource ad
       [NECROMANCER_SKILL.SIGNET_OF_VAMPIRISM]: { fields: { pulseInterval: 0 } }
     }
   );
-  assert.equal(result.planningState.profession.lifeForce.value, 0);
+  assert.equal(result.planningState.profession[STATE.LIFE_FORCE].value, 0);
   assert.equal(result.strikeDamage, 0);
 });

@@ -24,10 +24,11 @@ import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/f
 import type {
   GuardianResolverEvent,
   GuardianSkill,
-  GuardianState,
+  GuardianPlanningState,
   GuardianUiContext,
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Render actual weapon-bar transitions at their executed boundary. */
 function firebrandEventLogRow(
@@ -70,7 +71,7 @@ function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapsh
   const state = professionState(context);
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
-  const pages = state.tomePages;
+  const pages = state[STATE.TOME_PAGES];
 
   if (pages && pages.interval > 0 && Number.isFinite(pages.nextAt) && pages.nextAt > at) {
     const remaining = formatSecondsRemaining(pages.nextAt - at);
@@ -83,7 +84,7 @@ function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapsh
     });
   }
 
-  if (state.activeTome) {
+  if (state[STATE.ACTIVE_TOME]) {
     const threshold = balanceNumberFromContext(
       context.balanceContext,
       GUARDIAN_TRAIT_IDS.SWIFT_SCHOLAR,
@@ -92,7 +93,7 @@ function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapsh
     items.push({
       id: 'firebrand-swift-scholar',
       label: 'Swift Scholar',
-      value: `${state.swiftScholarCount ?? 0}/${threshold}`,
+      value: `${state[STATE.SWIFT_SCHOLAR_COUNT] ?? 0}/${threshold}`,
       title: 'Tome skill progress toward the next Swift Scholar page refund; resets when exiting a tome'
     });
   }
@@ -102,7 +103,7 @@ function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapsh
 
 function dormantTomeClasses(context: GuardianUiContext): string {
   // Palette tint and countdowns observe the same projected deadlines used by passive mechanics.
-  const readyAt = professionState(context).virtueReadyAt;
+  const readyAt = professionState(context)[STATE.VIRTUE_READY_AT];
   const at = context.time ?? context.simulationTime ?? 0;
   // Project dormancy onto the existing Tome group so CSS can tint only the
   // affected opener while the skill remains available to equip.
@@ -175,9 +176,9 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
           : context.traits
       };
       const startMaximum = firebrandPageTuning(tuningContext).maximum;
-      const maximum = state.tomePages?.maximum ?? startMaximum;
+      const maximum = state[STATE.TOME_PAGES]?.maximum ?? startMaximum;
       const simulationTime = context.simulationTime || 0;
-      const readyAt = state.virtueReadyAt || { justice: 0, resolve: 0, courage: 0 };
+      const readyAt = state[STATE.VIRTUE_READY_AT] || { justice: 0, resolve: 0, courage: 0 };
       // Keep passive readiness visible without adding three more resource bars.
       const virtueStatuses = TOME_DORMANCY_LABELS.map(([virtue, label]) => {
         const remaining = Math.max(0, (readyAt[virtue] || 0) - simulationTime);
@@ -190,7 +191,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
           singular: 'page',
           plural: 'pages',
           maximum,
-          value: state.tomePages?.value ?? maximum,
+          value: state[STATE.TOME_PAGES]?.value ?? maximum,
           // Edit starting pages independently of passive regeneration using the selected patch's capacity.
           canStart: true,
           startMaximum,
@@ -216,7 +217,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
   });
 }
 
-function professionState(context: GuardianUiContext): Partial<GuardianState> {
+function professionState(context: GuardianUiContext): Partial<GuardianPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }

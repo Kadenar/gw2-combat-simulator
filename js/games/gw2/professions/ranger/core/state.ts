@@ -1,8 +1,8 @@
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import {
-  createPublicStateProjector,
   readProfessionCoreState,
-  readProfessionSpecializationState
+  readProfessionSpecializationState,
+  cloneStateFields
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
@@ -23,6 +23,7 @@ import {
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { selectedRangerPet } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface RangerCoreState extends StealthState {
   /** The selected pair and active slot own identity; catalog facts are queried rather than synchronized. */
@@ -73,41 +74,34 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
   };
 }
 
-// Publish pet identity and visible state; pet scheduling remains private to the live execution owner.
-const RANGER_PLAYER_PUBLIC_STATE_KEYS = Object.freeze([
-  'activePetSlot',
-  'petNames',
-  'endurance',
-
-  'availableFlips',
-  'stealthStartedAt',
-  'stealthUntil',
-  'revealedUntil',
-  'autoattackChains',
-  'winterBiteReady',
-
-  'quickDraw',
-
-  'sharpeningStoneGrants'
-] as const satisfies readonly (keyof RangerCoreState)[]);
-
-/** Public consumers see only projected fields; adding runtime state never expands the presentation contract. */
-export type RangerCorePublicState = Pick<RangerCoreState, (typeof RANGER_PLAYER_PUBLIC_STATE_KEYS)[number]> & {
-  pet: Pick<RangerPetState, 'id' | 'ferociousSymbiosis' | 'wutheringWindReady'> | null;
-};
-
-/** Publish pet identity and visible rewards without copying scheduler internals or live effect stores. */
-const projectPlayerState = createPublicStateProjector({
-  keys: RANGER_PLAYER_PUBLIC_STATE_KEYS,
-  defaults: {}
-});
-
 export function projectRangerCoreState(input: Gw2PlanningStateInput) {
   const { pet } = readProfessionCoreState<RangerCoreState>(input.profession);
-  const state = projectPlayerState(input);
+  const state = cloneStateFields((input.profession as { core: RangerCoreState }).core, [
+    'autoattackChains',
+    'endurance',
+    'availableFlips',
+    'activePetSlot',
+    'petNames',
+    'winterBiteReady',
+    'quickDraw',
+    'sharpeningStoneGrants',
+    'stealthStartedAt',
+    'stealthUntil',
+    'revealedUntil'
+  ]);
   return {
-    ...state,
-    pet: pet
+    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
+    [STATE.ENDURANCE]: state.endurance,
+    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
+    [STATE.ACTIVE_PET_SLOT]: state.activePetSlot,
+    [STATE.PET_NAMES]: state.petNames,
+    [STATE.WINTER_BITE_READY]: state.winterBiteReady,
+    [STATE.QUICK_DRAW]: state.quickDraw,
+    [STATE.SHARPENING_STONE_GRANTS]: state.sharpeningStoneGrants,
+    [STATE.STEALTH_STARTED_AT]: state.stealthStartedAt,
+    [STATE.STEALTH_UNTIL]: state.stealthUntil,
+    [STATE.REVEALED_UNTIL]: state.revealedUntil,
+    [STATE.PET]: pet
       ? { id: pet.id, ferociousSymbiosis: { ...pet.ferociousSymbiosis }, wutheringWindReady: pet.wutheringWindReady }
       : null
   };

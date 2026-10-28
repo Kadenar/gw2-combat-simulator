@@ -213,7 +213,6 @@ test('patched overload dwell controls runtime availability with and without Tran
       catalog,
       config: { specialization: 'Tempest', selectedTraitIds },
       profession: { core: state },
-      professionState: state,
       time: 3
     };
     const runtime = tempestHooks.availability(context, skill);

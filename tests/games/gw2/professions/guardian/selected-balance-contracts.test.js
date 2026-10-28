@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
@@ -45,7 +46,7 @@ test('Forge entry skill patches own expiry and the conditional exit recharge red
   );
   const expired = result.events.find((event) => event.type === 'weapon_set' && event.automatic);
   assert.equal(expired.at - entered.at, 2);
-  assert.equal(result.planningState.profession.radiantForge, false);
+  assert.equal(result.planningState.profession[STATE.RADIANT_FORGE], false);
   assert.equal(
     baseline.planningState.cooldowns[ID.ENTER_RADIANT_FORGE].remaining -
       result.planningState.cooldowns[ID.ENTER_RADIANT_FORGE].remaining,
@@ -124,7 +125,7 @@ test('hammer empowerment reads patched skill components only after Justice is ar
     assert.equal(strike?.coefficient, armed ? 2.5 : undefined);
     assert.equal(vulnerability?.stacks, armed ? 6 : undefined);
     assert.equal(vulnerability?.duration, armed ? 3 : undefined);
-    assert.equal(result.planningState.profession.radiantJusticeArmed, false);
+    assert.equal(result.planningState.profession[STATE.RADIANT_JUSTICE_ARMED], false);
   }
 
   const facts = fixture.facts(ID.DAZZLING_HAMMER);
@@ -270,7 +271,11 @@ test('Guardian snapshots display selected caps and modifier bonuses', () => {
       ...effectFields(events, 120),
       planningState: {
         ...effectPlanningState(effectFields(events, 120), 1),
-        profession: { symbolicAvengerExpirations: [5, 6], effulgentStacks: 12, effulgentActiveUntil: 4 }
+        profession: {
+          [STATE.SYMBOLIC_AVENGER_EXPIRATIONS]: [5, 6],
+          [STATE.EFFULGENT_STACKS]: 12,
+          [STATE.EFFULGENT_ACTIVE_UNTIL]: 4
+        }
       }
     }
   };

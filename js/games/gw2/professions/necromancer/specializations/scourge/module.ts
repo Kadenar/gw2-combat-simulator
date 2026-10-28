@@ -1,5 +1,4 @@
 import { NECROMANCER_SCOURGE_PROFILE_FIELDS } from '#gw2/professions/necromancer/specializations/scourge/catalog-fields.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
 import { scourgeHooks } from '#gw2/professions/necromancer/specializations/scourge/hooks.js';
@@ -7,8 +6,8 @@ import { scourgeHooks } from '#gw2/professions/necromancer/specializations/scour
 import { bindScourgeUi } from '#gw2/professions/necromancer/specializations/scourge/presentation.js';
 import { SCOURGE_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/scourge/skills/index.js';
 import {
-  SCOURGE_PUBLIC_STATE_PROJECTION,
-  scourgeState
+  scourgeState,
+  projectScourgePlanningState
 } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import { necromancerScourgeTraits } from '#gw2/professions/necromancer/specializations/scourge/traits/index.js';
 import { SCOURGE_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/scourge/catalog-fields.js';
@@ -21,7 +20,7 @@ export const scourgeModule = defineNativeModule({
     skillFields: SCOURGE_SKILL_FIELDS,
     skillMechanics: SCOURGE_BASE_SKILL_MECHANICS
   }),
-  state: { create: scourgeState.create, project: createPublicStateProjector(SCOURGE_PUBLIC_STATE_PROJECTION) },
+  state: { create: scourgeState.create, project: projectScourgePlanningState },
   hooks: scourgeHooks,
 
   presentation: bindScourgeUi

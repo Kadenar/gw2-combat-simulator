@@ -1,6 +1,5 @@
 import { WARRIOR_CORE_PROFILE_FIELDS } from '#gw2/professions/warrior/core/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { warriorCoreHooks } from '#gw2/professions/warrior/core/hooks.js';
 import { warriorBurstSkillModifiers } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { warriorDaggerSkillModifiers } from '#gw2/professions/warrior/core/skills/weapons/dagger.js';
@@ -13,7 +12,7 @@ import {
   WARRIOR_SWAP_WEAPONS
 } from '#gw2/professions/warrior/core/skills/index.js';
 import { signetActiveAttributeEffects } from '#gw2/professions/warrior/core/skills/slot-skills.js';
-import { createWarriorCoreState, WARRIOR_CORE_PUBLIC_STATE_PROJECTION } from '#gw2/professions/warrior/core/state.js';
+import { createWarriorCoreState, projectWarriorCorePlanningState } from '#gw2/professions/warrior/core/state.js';
 import { warriorCoreTraits } from '#gw2/professions/warrior/core/traits/index.js';
 import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
 import { WARRIOR_CORE_SKILL_FIELDS } from '#gw2/professions/warrior/core/catalog-fields.js';
@@ -32,7 +31,7 @@ export const warriorCoreModule = defineNativeModule({
   }),
   state: {
     create: createWarriorCoreState,
-    project: createPublicStateProjector(WARRIOR_CORE_PUBLIC_STATE_PROJECTION)
+    project: projectWarriorCorePlanningState
   },
   traitDefinitions: warriorCoreTraits,
   // Keep burst rules before dagger rules when their explicit orders tie.

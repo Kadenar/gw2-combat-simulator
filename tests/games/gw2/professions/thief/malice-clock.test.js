@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -29,14 +30,14 @@ test('malice initializes once with selected capacity and projects a detached clo
   assert.equal(state.malice.rate, 0);
   assert.equal(Object.hasOwn(state, 'maximumMalice'), false);
   assert.equal(Object.hasOwn(projected, 'maximumMalice'), false);
-  assert.notEqual(projected.malice, state.malice);
+  assert.notEqual(projected[STATE.MALICE], state.malice);
   assert.equal(runtime.resourceController.readyAt('malice', 1), null);
   assert.equal(runtime.resourceController.value('initiative'), 0);
 
   const skill = runtime.helpers.skillsById.get(ID.MALICIOUS_BACKSTAB);
   deadeyeHooks.prepareDamageState(runtime.mechanics, skill, { malice: 9 });
   assert.equal(state.malice.value, 9);
-  assert.equal(projected.malice.value, 0);
+  assert.equal(projected[STATE.MALICE].value, 0);
   assert.equal(state.maleficentSevenTriggered, false);
   assert.equal(runtime.resourceController.value('initiative'), 0);
   for (const malice of [-1, 1.5, 10])

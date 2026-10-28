@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
@@ -114,8 +115,9 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   const rotation = [{ type: 'wait', durationMs: 1000 }, 'Prepare Thousand Needles', 'Prepare Pitfall'];
   const holo = (runtime) => runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations;
   const projected = (runtime) =>
-    projectObservedState(thiefProfession, { profession: runtime.profession, time: runtime.time })
-      .holoUtilityCooldownReductionExpirations;
+    projectObservedState(thiefProfession, { profession: runtime.profession, time: runtime.time })[
+      STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS
+    ];
   const observed = {};
   const recharge = (result) => observedRuntime(result).cooldownController.readyAt(placement.id) - 1;
   const persistent = recharge(runThief(rotation.slice(0, 2), config));
@@ -151,7 +153,7 @@ test('Antiquary preserves charges across queries and consumes FIFO once per util
   assert.deepEqual(observed.afterNeedles, [[5], [5]]);
   assert.ok(Math.abs(recharge(result) - persistent * 0.2) < 1e-9);
   assert.deepEqual(holo(observedRuntime(result)), []);
-  assert.deepEqual(result.planningState.profession.holoUtilityCooldownReductionExpirations, []);
+  assert.deepEqual(result.planningState.profession[STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS], []);
 });
 
 // Rejection and precommit cancellation leave discounts available for the next committed weapon activation.
@@ -187,8 +189,9 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
   const needles = thiefProfession.catalog.skillsById.get(13026);
   const holo = (runtime) => [...runtime.profession.specialization.state.holoUtilityCooldownReductionExpirations];
   const projected = (runtime, time = runtime.time) =>
-    projectObservedState(thiefProfession, { profession: runtime.profession, time })
-      .holoUtilityCooldownReductionExpirations;
+    projectObservedState(thiefProfession, { profession: runtime.profession, time })[
+      STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS
+    ];
   const observed = [];
   const rotation = [
     'Hide in Shadows',
@@ -222,5 +225,5 @@ test('Holo-Dancer charges survive healing, unavailable utilities, and cancellati
   const persistent =
     observedRuntime(runThief(['Prepare Thousand Needles'], config)).cooldownController.readyAt(needles.id) - 0;
   assert.ok(Math.abs(recharge - persistent) < 1e-9);
-  assert.deepEqual(result.planningState.profession.holoUtilityCooldownReductionExpirations, []);
+  assert.deepEqual(result.planningState.profession[STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS], []);
 });

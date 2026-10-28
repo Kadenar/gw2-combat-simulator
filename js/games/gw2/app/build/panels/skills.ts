@@ -13,6 +13,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
 import { requiredElement } from '#ui/shared/dom.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Resolves the armed member of a selected skill's flip chain for display. */
 export function skillBarDisplaySkill(
@@ -22,7 +23,7 @@ export function skillBarDisplaySkill(
   if (!selected) return selected;
 
   const professionState = app.results?.planningState?.profession as RotationProfessionState | undefined;
-  const availableFlips = professionState?.availableFlips;
+  const availableFlips = professionState?.[STATE.AVAILABLE_FLIPS];
 
   if (!availableFlips || typeof availableFlips !== 'object') return selected;
 

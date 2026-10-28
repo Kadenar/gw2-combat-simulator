@@ -4,6 +4,8 @@ import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** The four elements, in the canonical order every attunement loop iterates. */
 export const ELEMENTALIST_ATTUNEMENTS = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
@@ -143,28 +145,25 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
   };
 }
 
-// Publish presentation state; pending spear rewards stay with the live mechanics that consume them.
-const ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'primaryAttunement',
-  'attunementEnteredAt',
-  'autoattackChains',
-  'autoattackCarryover',
-  'endurance',
-  'activeAuras',
-  'pistolBullets',
-  'dazingDischargeUntil',
-  'hammerOrbs',
-  'hammerOrbLastCastAt',
-  'etchings',
-  'conjureEquipped',
-  'conjureExpiresAt',
-  'conjurePickups',
-  'availableFlips',
-  'summonedElemental'
-] as const satisfies readonly (keyof ElementalistCoreState)[]);
-
-// Core fields have no inactive fallbacks; their values come from the live state.
-export const ELEMENTALIST_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
-  keys: ELEMENTALIST_CORE_PUBLIC_END_STATE_KEYS,
-  defaults: {}
-});
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectElementalistCorePlanningState(input: Gw2PlanningStateInput) {
+  const state = (input.profession as { core: ReturnType<typeof createElementalistCoreState> }).core;
+  return structuredClone({
+    [STATE.PRIMARY_ATTUNEMENT]: state.primaryAttunement,
+    [STATE.ATTUNEMENT_ENTERED_AT]: state.attunementEnteredAt,
+    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
+    [STATE.AUTOATTACK_CARRYOVER]: state.autoattackCarryover,
+    [STATE.ENDURANCE]: state.endurance,
+    [STATE.ACTIVE_AURAS]: state.activeAuras,
+    [STATE.PISTOL_BULLETS]: state.pistolBullets,
+    [STATE.DAZING_DISCHARGE_UNTIL]: state.dazingDischargeUntil,
+    [STATE.HAMMER_ORBS]: state.hammerOrbs,
+    [STATE.HAMMER_ORB_LAST_CAST_AT]: state.hammerOrbLastCastAt,
+    [STATE.ETCHINGS]: state.etchings,
+    [STATE.CONJURE_EQUIPPED]: state.conjureEquipped,
+    [STATE.CONJURE_EXPIRES_AT]: state.conjureExpiresAt,
+    [STATE.CONJURE_PICKUPS]: state.conjurePickups,
+    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
+    [STATE.SUMMONED_ELEMENTAL]: state.summonedElemental
+  });
+}

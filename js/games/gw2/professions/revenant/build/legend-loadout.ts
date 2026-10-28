@@ -8,6 +8,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 interface RevenantLegend {
   readonly id: string;
@@ -20,8 +21,8 @@ interface RevenantLegend {
 
 interface RevenantLegendLoadoutContext extends SlotLoadoutContext {
   professionState?: {
-    activeLoadoutId?: string;
-    availableFlips?: SkillFlipWindows;
+    [STATE.ACTIVE_LOADOUT_ID]?: string;
+    [STATE.AVAILABLE_FLIPS]?: SkillFlipWindows;
   };
 }
 
@@ -174,7 +175,7 @@ export const revenantLegendLoadout = Object.freeze({
     if (!context.catalog) throw new Error('Revenant loadout palette requires the selected catalog.');
 
     const catalog = context.catalog;
-    const availableFlips = context.professionState?.availableFlips || {};
+    const availableFlips = context.professionState?.[STATE.AVAILABLE_FLIPS] || {};
     return baseRevenantLegendLoadout.paletteGroups(context).map((group) => ({
       ...group,
       color: group.active ? '#c4565d' : '#84343a',

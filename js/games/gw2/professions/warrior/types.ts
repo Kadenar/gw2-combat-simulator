@@ -25,12 +25,20 @@ export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {
   initialResource: number;
 }
 
-/** Composes family state from the state contracts owned by Core and each specialization. */
-export interface WarriorState
-  extends WarriorCoreState, BerserkerState, SpellbreakerState, BladeswornState, ParagonState {
-  /** User-friendly refrain name derived from activeRefrainId for display. */
-  activeRefrain: string;
-}
+/** Public consumers receive only the ID/value pairs published by active owners. */
+export type WarriorPlanningState = ReturnType<
+  typeof import('#gw2/professions/warrior/core/state.js').projectWarriorCorePlanningState
+> &
+  ReturnType<
+    typeof import('#gw2/professions/warrior/specializations/berserker/state.js').projectBerserkerPlanningState
+  > &
+  ReturnType<
+    typeof import('#gw2/professions/warrior/specializations/spellbreaker/state.js').projectSpellbreakerPlanningState
+  > &
+  ReturnType<
+    typeof import('#gw2/professions/warrior/specializations/bladesworn/state.js').projectBladeswornPlanningState
+  > &
+  ReturnType<typeof import('#gw2/professions/warrior/specializations/paragon/state.js').projectParagonPlanningState>;
 
 export interface WarriorRuntimeState {
   core: WarriorCoreState;
@@ -76,10 +84,10 @@ export type WarriorResolverContext = MechanicCombatContext & {
   profession: WarriorRuntimeState;
 };
 
-export interface WarriorUiContext extends Omit<ProfessionUiCallbackContext<Partial<WarriorState>>, 'build'> {
+export interface WarriorUiContext extends Omit<ProfessionUiCallbackContext<Partial<WarriorPlanningState>>, 'build'> {
   readonly config?: Gw2Config;
   readonly build?: WarriorBuild | null;
 }
 
 /** UI slice whose callbacks read Warrior end-state projections. */
-export type WarriorUiSlice = Partial<ProfessionUiContract<Partial<WarriorState>>>;
+export type WarriorUiSlice = Partial<ProfessionUiContract<Partial<WarriorPlanningState>>>;

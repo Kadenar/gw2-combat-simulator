@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -139,7 +140,7 @@ test('shatter controls use the resources consumed by that activation', () => {
     assert.equal(controls.length, 1);
 
     assert.ok(controls[0].at >= cast.endsAt);
-    assert.equal(result.planningState.profession.blades.value, 0);
+    assert.equal(result.planningState.profession[STATE.BLADES].value, 0);
   }
 });
 

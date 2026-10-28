@@ -3,14 +3,10 @@ import {
   type DragonTriggerState
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger-state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import {
-  flattenProfessionState,
-  projectPublicProfessionState,
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface BladeswornState extends DragonTriggerState {
   flow: ResourceClock;
@@ -36,19 +32,6 @@ export interface BladeswornState extends DragonTriggerState {
   }>;
   gunsAndGloryUntil: number;
 }
-
-/** Projection defaults are detached display templates; the projector clones live clocks whenever those fields exist. */
-const BLADESWORN_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  flow: createResourceClock(),
-  flowStabilizerWindows: [],
-  traitPositiveFlowStartedAt: 0,
-  traitPositiveFlowUntil: 0,
-  traitPositiveFlowStacks: 0,
-  gunsaberActive: false,
-  dragonTriggerActive: false,
-  dragonCharges: createResourceClock(),
-  overchargedCartridgeWindows: []
-} satisfies Partial<BladeswornState>);
 
 function createBladeswornState(): BladeswornState {
   return {
@@ -84,13 +67,29 @@ export function activeCartridgeWindow(
 
 /** Detach only public fields before filtering expiry so private release history is never deep-cloned. */
 export function projectBladeswornPlanningState(input: Gw2PlanningStateInput) {
-  const state = projectPublicProfessionState(
-    flattenProfessionState(input.profession) as unknown as BladeswornState,
-    BLADESWORN_PUBLIC_STATE_PROJECTION.keys,
-    BLADESWORN_PUBLIC_STATE_PROJECTION.defaults
-  );
+  const state = cloneStateFields(bladeswornState.from(input), [
+    'flow',
+    'flowStabilizerWindows',
+    'traitPositiveFlowStartedAt',
+    'traitPositiveFlowUntil',
+    'traitPositiveFlowStacks',
+    'gunsaberActive',
+    'dragonTriggerActive',
+    'dragonCharges',
+    'overchargedCartridgeWindows'
+  ]);
   state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
     (window) => window.expiresAt > input.time
   );
-  return state;
+  return {
+    [STATE.FLOW]: state.flow,
+    [STATE.DRAGON_CHARGES]: state.dragonCharges,
+    [STATE.FLOW_STABILIZER_WINDOWS]: state.flowStabilizerWindows,
+    [STATE.TRAIT_POSITIVE_FLOW_STARTED_AT]: state.traitPositiveFlowStartedAt,
+    [STATE.TRAIT_POSITIVE_FLOW_UNTIL]: state.traitPositiveFlowUntil,
+    [STATE.TRAIT_POSITIVE_FLOW_STACKS]: state.traitPositiveFlowStacks,
+    [STATE.GUNSABER_ACTIVE]: state.gunsaberActive,
+    [STATE.OVERCHARGED_CARTRIDGE_WINDOWS]: state.overchargedCartridgeWindows,
+    [STATE.DRAGON_TRIGGER_ACTIVE]: state.dragonTriggerActive
+  };
 }

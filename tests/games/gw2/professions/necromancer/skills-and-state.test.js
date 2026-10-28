@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -244,10 +245,13 @@ test('Manifest Sand Shade aliases load the one canonical Scourge behavior', () =
 
     assert.equal(necromancerCatalog.skillsById.has(aliasId), false);
     assert.equal(action.skillId, ID.MANIFEST_SAND_SHADE);
-    assert.equal(result.planningState.profession.shades.length, canonical.planningState.profession.shades.length);
     assert.equal(
-      lifeForcePercent(result.planningState.profession.lifeForce),
-      lifeForcePercent(canonical.planningState.profession.lifeForce)
+      result.planningState.profession[STATE.SHADES].length,
+      canonical.planningState.profession[STATE.SHADES].length
+    );
+    assert.equal(
+      lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]),
+      lifeForcePercent(canonical.planningState.profession[STATE.LIFE_FORCE])
     );
     assert.deepEqual(result.warnings, canonical.warnings);
   }
@@ -289,8 +293,8 @@ test('Core Death Shroud drains life force and gates transformed skills', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.activeShroud, '');
-  assert.ok(lifeForcePercent(result.planningState.profession.lifeForce) < 97);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], '');
+  assert.ok(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]) < 97);
   assert.ok(result.strikeDamage > 0);
   assert.equal(invalid.warnings.length, 2);
   assert.match(invalid.warnings.map(({ message }) => message).join(' '), /Life Blast is unavailable/);
@@ -315,7 +319,7 @@ test('Reaper Shroud enforces its chain and four-percent drain', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.ok(lifeForcePercent(result.planningState.profession.lifeForce) < 93);
+  assert.ok(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]) < 93);
   assert.ok(result.breakdown.some((entry) => entry.name === 'Life Reap'));
   assert.match(skipped.warnings.map(({ message }) => message).join(' '), /Life Reap is unavailable/);
 });
@@ -326,7 +330,7 @@ test('Death and Reaper shrouds drain a percentage of the maximum life-force pool
       simulate(specialization, [enter, { type: 'wait', durationMs: 1000 }, exit], {
         initialResource: 100,
         selectedTraitIds: [TRAIT.SOUL_BATTERY]
-      }).planningState.profession.lifeForce
+      }).planningState.profession[STATE.LIFE_FORCE]
     );
 
   assert.equal(drainAfterOneSecond('Core', 'Death Shroud', 'End Death Shroud'), 97);
@@ -341,8 +345,11 @@ test('every Necromancer specialization converts the starting percentage to life-
       attributeInputs: baseAttributeInputs({ vitality: 2000 }),
       selectedTraitIds: [TRAIT.SOUL_BATTERY]
     }).planningState.profession;
-    assert.ok(Math.abs(state.lifeForce.maximum - (9212 + 2000 * 1.05 * 10) * 0.69 * 1.2) < 1e-8, specialization);
-    assert.equal(lifeForcePercent(state.lifeForce), 40, specialization);
+    assert.ok(
+      Math.abs(state[STATE.LIFE_FORCE].maximum - (9212 + 2000 * 1.05 * 10) * 0.69 * 1.2) < 1e-8,
+      specialization
+    );
+    assert.equal(lifeForcePercent(state[STATE.LIFE_FORCE]), 40, specialization);
   }
 });
 
@@ -359,10 +366,12 @@ test('Scourge fixed costs preserve build scaling on the percentage meter', () =>
       const allowed = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost + 0.01 });
       const denied = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost - 0.01 });
       assert.deepEqual(allowed.warnings, []);
-      assert.ok(Math.abs(lifeForcePercent(allowed.planningState.profession.lifeForce) - 0.01) < 1e-10);
+      assert.ok(Math.abs(lifeForcePercent(allowed.planningState.profession[STATE.LIFE_FORCE]) - 0.01) < 1e-10);
       assert.equal(denied.warnings.length, 1);
       assert.match(denied.warnings[0].message, /requires .*lifeForce/);
-      assert.ok(Math.abs(lifeForcePercent(denied.planningState.profession.lifeForce) - (expectedCost - 0.01)) < 1e-8);
+      assert.ok(
+        Math.abs(lifeForcePercent(denied.planningState.profession[STATE.LIFE_FORCE]) - (expectedCost - 0.01)) < 1e-8
+      );
     }
   }
 });
@@ -394,7 +403,9 @@ test('Scourge point capacity and fixed costs use the selected balance profiles',
   // Reinforced Armor uses base Vitality; neither Vital Persistence nor converted Vitality feeds it.
   const expectedCost = (4606 * 100) / ((9212 + (1000 + 2000 * 0.2 + 100 + 50) * 10) * 0.69 * 1.5);
   assert.deepEqual(result.warnings, []);
-  assert.ok(Math.abs(lifeForcePercent(result.planningState.profession.lifeForce) - (50 - expectedCost)) < 1e-10);
+  assert.ok(
+    Math.abs(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]) - (50 - expectedCost)) < 1e-10
+  );
   // Empty starts must receive the final capacity in their clock anchor even without a balance change.
   for (const initialResource of [0, 40, 100]) {
     const initialized = run(1.5, initialResource, []);
@@ -476,7 +487,7 @@ test("delayed interrupted weapon damage preserves Reaper's chain while shroud en
     ['Dusk Strike', 'Grasping Darkness', 'Fading Twilight']
   );
   assert.equal(interrupted.steps[1].interrupted, true);
-  assert.equal(enteredShroud.planningState.profession.autoattackChains[ID.DUSK_STRIKE], undefined);
+  assert.equal(enteredShroud.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.DUSK_STRIKE], undefined);
   assert.deepEqual(shrouded.warnings, []);
   assert.deepEqual(
     shrouded.steps.map((step) => step.skill),
@@ -532,14 +543,14 @@ test('sword autoattack advances through Deathly Enervation before returning to E
       .map((skillId) => necromancerCatalog.skillsById.get(skillId).name),
     ['Enervation Blade', 'Enervation Echo', 'Deathly Enervation']
   );
-  assert.equal(afterBlade.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
-  assert.equal(afterEcho.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
+  assert.equal(afterBlade.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
+  assert.equal(afterEcho.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
   assert.deepEqual(completed.warnings, []);
   assert.deepEqual(
     completed.steps.map((step) => step.skill),
     ['Enervation Blade', 'Enervation Echo', 'Deathly Enervation', 'Enervation Blade']
   );
-  assert.equal(completed.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
+  assert.equal(completed.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
   assert.equal(deathlyDamage?.coefficient, 1.4);
   assert.equal(deathlyChill?.duration, 2);
 });
@@ -557,7 +568,7 @@ test('other weapon skills preserve the exceptional Necromancer sword autoattack 
     result.steps.map((step) => step.skill),
     ['Enervation Blade', 'Ravenous Wave', 'Enervation Echo']
   );
-  assert.equal(result.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
 });
 
 test('Necromancer sword autoattack progress expires three seconds after the latest chain step', () => {
@@ -579,13 +590,13 @@ test('Necromancer sword autoattack progress expires three seconds after the late
   );
 
   assert.deepEqual(retained.warnings, []);
-  assert.equal(retained.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
+  assert.equal(retained.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
   assert.match(expired.warnings.map(({ message }) => message).join(' '), /Enervation Echo is unavailable/);
   assert.deepEqual(
     expired.events.filter((event) => event.type === 'action').map((event) => event.skillName),
     ['Enervation Blade', 'Enervation Blade']
   );
-  assert.equal(expired.planningState.profession.autoattackChains[ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
+  assert.equal(expired.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
 });
 
 test('Gravedigger fully recharges when it hits below 50% target health', () => {
@@ -636,13 +647,14 @@ test('Scourge shades use ammo and shade skills spend life force', () => {
     initialResource: 30
   });
 
-  assert.equal(ammo.planningState.profession.shades.length, 3);
-  assert.equal(lifeForcePercent(ammo.planningState.profession.lifeForce), 100);
+  assert.equal(ammo.planningState.profession[STATE.SHADES].length, 3);
+  assert.equal(lifeForcePercent(ammo.planningState.profession[STATE.LIFE_FORCE]), 100);
   assert.equal(ammo.steps[3].start, ammo.steps[0].end + 12000);
   assert.deepEqual(ammo.warnings, []);
   assert.ok(
     Math.abs(
-      cost.planningState.profession.lifeForce.value - (0.3 * cost.planningState.profession.lifeForce.maximum - 1935)
+      cost.planningState.profession[STATE.LIFE_FORCE].value -
+        (0.3 * cost.planningState.profession[STATE.LIFE_FORCE].maximum - 1935)
     ) < 1e-12
   );
   assert.ok(cost.conditionDamage > 0);
@@ -698,7 +710,7 @@ test('Scourge barrier, shroud, and greater-shade traits trigger precisely', () =
     ),
     true
   );
-  assert.equal(greaterShade.planningState.profession.shades.length, 0);
+  assert.equal(greaterShade.planningState.profession[STATE.SHADES].length, 0);
   assert.equal(greaterShade.steps[1].start, Math.ceil((greaterShade.steps[0].end + 15000) / 40) * 40);
   assert.equal(sandstormTorment?.duration, 5);
   assert.equal(
@@ -762,17 +774,17 @@ test('Harbinger Shroud generates and consumes expiring blight', () => {
     { initialResource: 100 }
   );
 
-  assert.equal(generated.planningState.profession.blight, 6);
-  assert.equal(consumed.planningState.profession.blight, 0);
+  assert.equal(generated.planningState.profession[STATE.BLIGHT], 6);
+  assert.equal(consumed.planningState.profession[STATE.BLIGHT], 0);
   assert.equal(
     consumed.resolvedEvents
       .filter((event) => event.condition === 'Torment')
       .reduce((sum, event) => sum + event.stacks, 0),
     5
   );
-  assert.equal(expired.planningState.profession.blight, 0);
+  assert.equal(expired.planningState.profession[STATE.BLIGHT], 0);
   assert.deepEqual(lateExit.warnings, []);
-  assert.equal(lateExit.planningState.profession.activeShroud, '');
+  assert.equal(lateExit.planningState.profession[STATE.ACTIVE_SHROUD], '');
 });
 
 test('shroud strikes use their fixed or equipped weapon strengths', () => {
@@ -879,7 +891,7 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
       elixirConsumption,
       skill
     );
-    assert.equal(wicked.planningState.profession.blight, 25, skill);
+    assert.equal(wicked.planningState.profession[STATE.BLIGHT], 25, skill);
   }
 });
 
@@ -922,18 +934,18 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
     damageEvents(chain, ID.SINISTER_STAB).map((event) => event.coefficient),
     [1.8]
   );
-  assert.equal(chain.planningState.profession.soulShardGrant.charges, 2);
-  assert.equal(lifeForcePercent(chain.planningState.profession.lifeForce), 5);
+  assert.equal(chain.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 2);
+  assert.equal(lifeForcePercent(chain.planningState.profession[STATE.LIFE_FORCE]), 5);
   assert.equal(
     chain.events.some(
       (event) => event.type === 'condition' && event.condition === 'Chilled' && event.skillId === ID.SINISTER_STAB
     ),
     true
   );
-  assert.equal(expired.planningState.profession.soulShardGrant.charges, 0);
+  assert.equal(expired.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
 
-  assert.equal(lifeForcePercent(utility.planningState.profession.lifeForce), 22);
-  assert.equal(utility.planningState.profession.soulShardGrant.charges, 0);
+  assert.equal(lifeForcePercent(utility.planningState.profession[STATE.LIFE_FORCE]), 22);
+  assert.equal(utility.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
   assert.equal(
     utility.events.some(
       (event) => event.type === 'buff' && event.skillId === ID.EXTIRPATE && event.kind === 'might' && event.stacks === 5
@@ -1070,7 +1082,7 @@ test('Isolate and Distress expose the follow-up and reset Perforate', () => {
     ).length > 0
   );
   assert.ok(result.events.filter((event) => event.type === 'damage' && event.name === 'Soul Shards').length > 0);
-  assert.equal(result.planningState.profession.soulShardGrant.charges, 0);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
   const rows = skillBreakdownRows(result);
   assert.equal(rows.find((row) => row.name === 'Soul Shards')?.hits, 6);
   assert.equal(
@@ -1107,7 +1119,7 @@ test('Perforate consumes one shard per strike after concurrent Distress', () => 
 
   assert.deepEqual(result.warnings, []);
   assert.ok(distress.start > perforate.start && distress.start < perforate.end);
-  assert.equal(result.planningState.profession.soulShardGrant.charges, 0);
+  assert.equal(result.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 0);
   assert.equal(result.events.filter((event) => event.type === 'damage' && event.name === 'Soul Shards').length, 6);
 });
 
@@ -1134,14 +1146,14 @@ test('Addle grants four shards to defiant foes and checks activation shards', ()
       (event) => event.type === 'condition' && event.skillId === ID.ADDLE && event.condition === 'Immobilized'
     );
 
-  assert.equal(normal.planningState.profession.soulShardGrant.charges, 2);
-  assert.equal(lifeForcePercent(normal.planningState.profession.lifeForce), 10);
+  assert.equal(normal.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 2);
+  assert.equal(lifeForcePercent(normal.planningState.profession[STATE.LIFE_FORCE]), 10);
   assert.equal(immobilizes(normal).length, 0);
   assert.ok(normal.events.some((event) => event.type === 'control' && event.skillId === ID.ADDLE));
-  assert.equal(defiant.planningState.profession.soulShardGrant.charges, 4);
-  assert.equal(lifeForcePercent(defiant.planningState.profession.lifeForce), 20);
+  assert.equal(defiant.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 4);
+  assert.equal(lifeForcePercent(defiant.planningState.profession[STATE.LIFE_FORCE]), 20);
   assert.equal(immobilizes(defiant).length, 0);
   assert.ok(defiant.events.some((event) => event.type === 'control' && event.skillId === ID.ADDLE));
-  assert.equal(threshold.planningState.profession.soulShardGrant.charges, 5);
+  assert.equal(threshold.planningState.profession[STATE.SOUL_SHARD_GRANT].charges, 5);
   assert.equal(immobilizes(threshold).length, 1);
 });

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
@@ -28,7 +29,7 @@ test('every mech command retains tool-belt classification and Tools reactions', 
     ]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.kineticCharges, 1);
+  assert.equal(result.planningState.profession[STATE.KINETIC_CHARGES], 1);
   assert.ok(result.events.some((event) => event.kind === 'vigor'));
   assert.ok(result.resolvedEvents.some((event) => event.name === 'Static Discharge'));
   assert.equal(result.planningState.cooldowns[63367].readyAt, 20400);
@@ -62,7 +63,7 @@ test('Kinetic Battery charges and buff timer appear in Active State across Engin
       balanceContext: { catalog },
       specialization,
       config: { selectedTraitIds: [TRAIT.KINETIC_BATTERY] },
-      professionState: { kineticCharges: 2 }
+      professionState: { [STATE.KINETIC_CHARGES]: 2 }
     };
     assert.equal(
       engineerProfession.ui.resourceViews(context).some((view) => view.id === 'kineticCharges'),
@@ -73,7 +74,7 @@ test('Kinetic Battery charges and buff timer appear in Active State across Engin
         engineerProfession.ui
           .rotationStateSnapshot({
             ...context,
-            professionState: { kineticCharges: charges },
+            professionState: { [STATE.KINETIC_CHARGES]: charges },
             atSeconds,
             planningState: effectPlanningState(
               {

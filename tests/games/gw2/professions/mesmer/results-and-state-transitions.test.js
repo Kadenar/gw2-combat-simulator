@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { mesmerBuffPolicies } from '#gw2/professions/mesmer/core/effect-state.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -515,12 +516,12 @@ test('Continuum Shift is available only while Continuum Split is active', () => 
   });
   const split = simulateMesmer(['Continuum Split'], config);
 
-  assert.equal(split.planningState.profession.continuumActive, true);
-  assert.ok(split.planningState.profession.continuumRemaining > 0);
+  assert.equal(split.planningState.profession[STATE.CONTINUUM_ACTIVE], true);
+  assert.ok(split.planningState.profession[STATE.CONTINUUM_REMAINING] > 0);
 
   const shifted = simulateMesmer(['Continuum Split', 'Continuum Shift'], config);
 
-  assert.equal(shifted.planningState.profession.continuumActive, false);
+  assert.equal(shifted.planningState.profession[STATE.CONTINUUM_ACTIVE], false);
 });
 
 test('expired Continuum Split is injected before the next rotation action', () => {
@@ -670,5 +671,5 @@ test('clone specs never open combat with clones', () => {
     })
   );
 
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 0);
 });

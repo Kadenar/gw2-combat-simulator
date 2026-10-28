@@ -24,6 +24,7 @@ import type {
   MesmerUiState
 } from '#gw2/professions/mesmer/types.js';
 import { clamp } from '#kernel/core/numeric.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 interface MesmerUiResourceDefinition {
   readonly id: 'blades' | 'notes' | 'clones';
@@ -40,13 +41,7 @@ export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState {
 /** Display Clarity from the planning timer or the inspected grant without changing its availability. */
 function mesmerCoreStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
   const state = mesmerUiState(context);
-  const at = Math.max(0, context.atSeconds || 0);
-  const remaining =
-    state.clarityRemaining != null
-      ? state.clarityRemaining / 1000
-      : state.clarity && state.clarity.charges > 0
-        ? state.clarity.expiresAt - at
-        : 0;
+  const remaining = (state[STATE.CLARITY_REMAINING] ?? 0) / 1000;
   return remaining > 0
     ? [
         {
@@ -85,11 +80,12 @@ export function mesmerResourceViews(
   // Palette pips use the same selected capacity as runtime resource spending.
   const specialization = definition.id === 'blades' ? 'Virtuoso' : definition.id === 'notes' ? 'Troubadour' : 'Core';
   // Clones are live entities; only blades and notes use a resource pool.
-  const eliteResource = definition.id === 'clones' ? undefined : state[definition.id];
+  const eliteResource =
+    definition.id === 'clones' ? undefined : state[definition.id === 'blades' ? STATE.BLADES : STATE.NOTES];
   const maximum = eliteResource?.maximum ?? mesmerResourceDefinition(specialization, context).maximum;
   const value =
     definition.id === 'clones'
-      ? Number(state.clones?.length ?? state.resource ?? context.value ?? 0)
+      ? Number(state[STATE.RESOURCE] ?? context.value ?? 0)
       : Number(eliteResource?.value ?? context.value ?? 0);
   return [
     {

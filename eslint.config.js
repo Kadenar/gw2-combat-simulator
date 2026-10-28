@@ -44,10 +44,12 @@ const professionBoundaryPattern = {
 
 // Code outside a profession folder may import only its public entry points (docs/architecture/MODULES.md). The
 // shared professions/shared/ helpers are not a profession and stay importable.
+// Planning identity registries are public data-only entry points, independent of runtime state implementations.
 const professionPublicEntryPattern = {
   regex:
-    '^#gw2/professions/(?!shared/)[^/]+/(?!(?:core|specializations/[^/]+)/profiles\\.js$)(?:core/|specializations/|family-|energy-cost\\.js$|catalog[./]|state|presentation|modules|definition)',
-  message: 'Import professions through profession.js, app/app-definition.js, build/, types.js, data/, or profiles.js.'
+    '^#gw2/professions/(?!shared/)[^/]+/(?!(?:(?:core|specializations/[^/]+)/profiles|state-ids)\\.js$)(?:core/|specializations/|family-|energy-cost\\.js$|catalog[./]|state|presentation|modules|definition)',
+  message:
+    'Import professions through profession.js, app/app-definition.js, build/, types.js, data/, state-ids.js, or profiles.js.'
 };
 const moduleCompositionPattern = {
   regex: '^#gw2/professions/[^/]+/(?:profession|modules|definition)\\.js$|^#gw2/professions/.+/module\\.js$',

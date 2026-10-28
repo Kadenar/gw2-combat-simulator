@@ -208,6 +208,19 @@ runtime and random draws; score output omits histories, planning projections, an
 | `planningState`                                                          | Detached cooldowns, ammo, effects, weapon set, availability, and profession state |
 | `warnings`, `randomness`                                                 | Run warnings and actual mode/seed                                                 |
 
+Read native profession observations with stable constants, rather than runtime property names:
+
+```js
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+
+// A Weaver observation publishes its secondary attunement under the stable public identity.
+const secondaryAttunement = result.planningState.profession[STATE.SECONDARY_ATTUNEMENT];
+```
+
+Only the selected Core and elite project their visible fields; inactive elites contribute no defaults. The IDs are
+namespaced strings and remain independent of labels and internal runtime properties. Nested observation values retain
+their documented shapes. These detached records cannot resume a simulation.
+
 Boundary times and `planningState.atSeconds` use absolute seconds. Step `start`/`end` and cooldown `readyAt`/`remaining`
 use milliseconds; ammo recharge timestamps use seconds. Planning can continue through the requested horizon after target
 death, while combat ends at `combatEndTime`. Planning projections are observations, not resumable checkpoints. See

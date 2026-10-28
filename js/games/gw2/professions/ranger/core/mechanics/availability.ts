@@ -32,7 +32,7 @@ export function rangerCoreCastAvailability(
 
   if (
     isRangerHammerVariant(skill.id) &&
-    !rangerHammerSkillIds({ config: context.config, professionState: context.profession }).includes(Number(skill.id))
+    !rangerHammerSkillIds({ config: context.config, state: context }).includes(Number(skill.id))
   ) {
     if (!rangerHammerUsesBuildSelection(context))
       return denySkillCast(

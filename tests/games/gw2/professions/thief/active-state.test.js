@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -102,10 +103,10 @@ test('all recall variants consume axes and cancelled recalls preserve the pool',
 test('Prodigious Pincher projects spending progress and resets on a pilfer', () => {
   const config = { selectedTraitIds: [TRAIT.PRODIGIOUS_PINCHER] };
   const progress = simulate('Antiquary', ['Skritt Swipe', 'Venomous Volley'], config);
-  assert.equal(progress.planningState.profession.initiativeSpentSincePilfer, 3);
+  assert.equal(progress.planningState.profession[STATE.INITIATIVE_SPENT_SINCE_PILFER], 3);
   assert.equal(activeState(progress, 'Antiquary', config)['antiquary-prodigious-pincher'], '3/15');
   const pilfer = simulate('Antiquary', Array(5).fill('Venomous Volley'), config);
-  assert.equal(pilfer.planningState.profession.initiativeSpentSincePilfer, 0);
+  assert.equal(pilfer.planningState.profession[STATE.INITIATIVE_SPENT_SINCE_PILFER], 0);
   assert.equal(activeState(pilfer, 'Antiquary', config)['antiquary-prodigious-pincher'], '0/15');
   assert.equal(
     activeState(simulate('Antiquary', ['Venomous Volley']), 'Antiquary')['antiquary-prodigious-pincher'],
@@ -138,8 +139,8 @@ test('Surfer exposes the selected buff window and hides it at expiry', () => {
 
 test('Distracting Throw stays visible alongside Revealed and disappears at expiry', () => {
   const professionState = {
-    revealedUntil: 8,
-    spinningAxes: [
+    [STATE.REVEALED_UNTIL]: 8,
+    [STATE.SPINNING_AXES]: [
       { skillId: 71967, expiresAt: 5 },
       { skillId: 71967, expiresAt: 9 }
     ]

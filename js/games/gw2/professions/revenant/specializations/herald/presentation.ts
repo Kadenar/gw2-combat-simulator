@@ -9,6 +9,7 @@ import type {
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Resolve every Nature projection from this selection, so changing catalogs cannot retain stale relationships. */
 function natureConsumes(context: Pick<RevenantUiContext, 'catalog'>): Readonly<Record<string, SkillId>> {
@@ -49,7 +50,7 @@ export const heraldUi: RevenantUiSlice = Object.freeze({
     return {
       tileActive:
         skill.id === consumes[activeRevenantLegend(context)] &&
-        skillFlipReady(revenantUiState(context).availableFlips?.[skill.id], context.time || 0)
+        skillFlipReady(revenantUiState(context)[STATE.AVAILABLE_FLIPS]?.[skill.id], context.time || 0)
     };
   },
   paletteGroups: (context) => {

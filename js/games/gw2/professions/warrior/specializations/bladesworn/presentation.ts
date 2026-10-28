@@ -21,6 +21,7 @@ import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/profes
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
 const DRAGON_SLASH_SKILLS = Object.freeze([ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]);
@@ -41,14 +42,14 @@ const NO_WEAPON_BURSTS: Readonly<Record<string, number>> = Object.freeze({});
 function resources(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
   // The live pool wins; authoring before simulation uses the intrinsic Gun X Sword capacity.
-  const maximum = state.flow?.maximum ?? balanceNumberFromContext(context, TRAIT.GUN_X_SWORD, 'maximumStacks');
+  const maximum = state[STATE.FLOW]?.maximum ?? balanceNumberFromContext(context, TRAIT.GUN_X_SWORD, 'maximumStacks');
   return [
     {
       id: 'flow',
       singular: 'flow',
       plural: 'flow',
       maximum,
-      value: Number(state.flow?.value ?? context.initialResource ?? 0),
+      value: Number(state[STATE.FLOW]?.value ?? context.initialResource ?? 0),
       startMaximum: maximum,
       canStart: true,
       buildKey: 'initialResource',
@@ -174,12 +175,12 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     const state = warriorUiState(context);
 
     // Stow remains insertable while authoring; runtime validation still owns the actual cast.
-    if (skill.id === ID.SHEATHE_GUNSABER) return { tileActive: Boolean(state.gunsaberActive), available: true };
+    if (skill.id === ID.SHEATHE_GUNSABER) return { tileActive: Boolean(state[STATE.GUNSABER_ACTIVE]), available: true };
 
-    if (skill.id === ID.UNSHEATHE_GUNSABER) return { tileActive: !state.gunsaberActive };
+    if (skill.id === ID.UNSHEATHE_GUNSABER) return { tileActive: !state[STATE.GUNSABER_ACTIVE] };
 
     // The release editor validates configured charges through its existing prefix previews.
-    if (skill.dragonSlash) return { editorAccess: Boolean(state.dragonTriggerActive) };
+    if (skill.dragonSlash) return { editorAccess: Boolean(state[STATE.DRAGON_TRIGGER_ACTIVE]) };
   },
   chargeReleaseProjection: dragonChargeReleaseProjection,
   // Describe recorded charge outcomes without recalculating Flow gain or the charging cadence.
@@ -291,7 +292,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       });
     }
 
-    const window = (state.overchargedCartridgeWindows || []).find(
+    const window = (state[STATE.OVERCHARGED_CARTRIDGE_WINDOWS] || []).find(
       (candidate) => candidate.startedAt <= at && candidate.expiresAt > at
     );
 
@@ -305,17 +306,20 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
       });
     }
 
-    const positiveFlowSources = (state.flowStabilizerWindows || [])
+    const positiveFlowSources = (state[STATE.FLOW_STABILIZER_WINDOWS] || [])
       .filter((candidate) => candidate.startedAt <= at && candidate.expiresAt > at)
       .map((candidate) => ({
         stacks: candidate.stacks,
         expiresAt: candidate.expiresAt
       }));
 
-    if ((state.traitPositiveFlowStartedAt || 0) <= at && (state.traitPositiveFlowUntil || 0) > at) {
+    if (
+      (state[STATE.TRAIT_POSITIVE_FLOW_STARTED_AT] || 0) <= at &&
+      (state[STATE.TRAIT_POSITIVE_FLOW_UNTIL] || 0) > at
+    ) {
       positiveFlowSources.push({
-        stacks: Number(state.traitPositiveFlowStacks),
-        expiresAt: Number(state.traitPositiveFlowUntil)
+        stacks: Number(state[STATE.TRAIT_POSITIVE_FLOW_STACKS]),
+        expiresAt: Number(state[STATE.TRAIT_POSITIVE_FLOW_UNTIL])
       });
     }
 

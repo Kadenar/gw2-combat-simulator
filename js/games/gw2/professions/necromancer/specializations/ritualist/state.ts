@@ -1,12 +1,9 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import {
-  createPublicStateProjector,
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 interface NecromancerWeaponSpellState {
   readonly generation: number;
@@ -39,20 +36,12 @@ export interface RitualistState {
   painfulBondLastPulseAt: number;
 }
 
-/** Declares Ritualist's public fields and missing-state defaults, used only when Ritualist is selected. */
-const RITUALIST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  activeSpirits: {},
-  soulTwistingAvailable: false
-} satisfies Partial<RitualistState>);
-
-const projectPublicFields = createPublicStateProjector(RITUALIST_PUBLIC_STATE_PROJECTION);
-
 /** Public spirit membership omits the live actor's scheduler identity and recovery cursors. */
 export function projectRitualistState(input: Gw2PlanningStateInput) {
-  const projected = projectPublicFields(input);
+  const projected = ritualistState.from(input);
   return {
-    ...projected,
-    activeSpirits: Object.fromEntries(Object.keys(projected.activeSpirits as object).map((key) => [key, true]))
+    [STATE.SOUL_TWISTING_AVAILABLE]: projected.soulTwistingAvailable,
+    [STATE.ACTIVE_SPIRITS]: Object.fromEntries(Object.keys(projected.activeSpirits as object).map((key) => [key, true]))
   };
 }
 

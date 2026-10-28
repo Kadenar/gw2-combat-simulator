@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
@@ -27,12 +28,12 @@ test('Ghastly Claws grants life force on each landed packet and preserves partia
   const completed = simulate('Core', ['Ghastly Claws']);
   const cancelled = simulate('Core', [{ name: 'Ghastly Claws', interruptMs: ticks[0].atMs / 2 }, wait(3000)]);
 
-  assert.equal(lifeForcePercent(interrupted.planningState.profession.lifeForce), 4.5);
-  assert.equal(lifeForcePercent(completed.planningState.profession.lifeForce), 12);
-  assert.equal(lifeForcePercent(cancelled.planningState.profession.lifeForce), 0);
+  assert.equal(lifeForcePercent(interrupted.planningState.profession[STATE.LIFE_FORCE]), 4.5);
+  assert.equal(lifeForcePercent(completed.planningState.profession[STATE.LIFE_FORCE]), 12);
+  assert.equal(lifeForcePercent(cancelled.planningState.profession[STATE.LIFE_FORCE]), 0);
   for (const result of [interrupted, completed, cancelled]) {
     const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), hits.length * 1.5);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), hits.length * 1.5);
     assert.deepEqual(result.warnings, []);
   }
 });
@@ -41,8 +42,8 @@ test('Ghastly Claws grants life force on each landed packet and preserves partia
 test('Ghastly Claws life force funds the next shroud entry in one execution', () => {
   const result = simulate('Core', ['Ghastly Claws', 'Death Shroud']);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.activeShroud, 'death');
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 12);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], 'death');
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 12);
   assert.equal(result.steps[1].start, result.steps[0].end);
 });
 

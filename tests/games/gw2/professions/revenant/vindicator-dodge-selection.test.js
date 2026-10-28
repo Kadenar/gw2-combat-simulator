@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadBuild } from '#gw2/app/build/state/persistence.js';
@@ -68,7 +69,10 @@ test('stored Vindicator Jump resolves in display and execution without rewriting
       assert.deepEqual(result.warnings, []);
       assert.equal(result.steps[0].skillId, SHARED_SKILL_IDS.DODGE);
       assert.ok(result.events.some((event) => event.skillName === landing));
-      assert.deepEqual(result.planningState.profession.endurance, shared.planningState.profession.endurance);
+      assert.deepEqual(
+        result.planningState.profession[STATE.ENDURANCE],
+        shared.planningState.profession[STATE.ENDURANCE]
+      );
       assert.deepEqual(build.rotation, [command]);
       assert.deepEqual(adapter.toApplicationBuild(JSON.parse(JSON.stringify(build))).rotation, [command]);
     }

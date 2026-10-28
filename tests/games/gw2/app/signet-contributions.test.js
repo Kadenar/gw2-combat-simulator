@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { modifierComparisonRequest, modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import assert from 'node:assert/strict';
@@ -236,8 +237,8 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
       );
     } else {
       assert.ok(
-        outputs[0].result.planningState.profession.initiative.value >
-          outputs[1].result.planningState.profession.initiative.value
+        outputs[0].result.planningState.profession[STATE.INITIATIVE].value >
+          outputs[1].result.planningState.profession[STATE.INITIATIVE].value
       );
     }
   });

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { applyBoonExtension, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
@@ -442,7 +443,7 @@ test('Hard to Catch restores endurance on movement skills', () => {
       initialEndurance: 0
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.endurance.value, expected);
+    assert.equal(result.planningState.profession[STATE.ENDURANCE].value, expected);
   }
 });
 
@@ -759,7 +760,7 @@ test('cast completion grants Lead stacks before movement traits and leaves poiso
   assert.equal(lead[0].duration, 10);
   assert.equal(lead[0].stacks, 3);
   assert.equal(observedRuntime(result).buffs.get('fluid-strikes').at(-1).expiresAt, 5);
-  assert.equal(result.planningState.profession.endurance.value, 8);
+  assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 8);
   // Deadly Ambition's poison follows the activation's first landed strike, never the cast itself.
   const strikes = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillId === ID.INFILTRATORS_STRIKE && event.actorType === 'player'

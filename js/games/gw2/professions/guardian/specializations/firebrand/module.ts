@@ -1,6 +1,5 @@
 import { GUARDIAN_FIREBRAND_PROFILE_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
 import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebrand/hooks.js';
@@ -8,7 +7,7 @@ import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/fireb
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
 import {
   firebrandState,
-  FIREBRAND_PUBLIC_STATE_PROJECTION
+  projectFirebrandPlanningState
 } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { firebrandTraits } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
@@ -26,7 +25,7 @@ export const firebrandModule = defineNativeModule({
     // Initialize pages from the selected patch's compiled trait profiles.
     create: (config, { balanceContext }) =>
       firebrandState.create({ config, balanceProfile: (id) => balanceContext.catalog.balanceProfilesById.get(id) }),
-    project: createPublicStateProjector(FIREBRAND_PUBLIC_STATE_PROJECTION)
+    project: projectFirebrandPlanningState
   },
   traitDefinitions: firebrandTraits,
   hooks: firebrandHooks,

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -85,11 +86,11 @@ test('Engineer kit and toolbelt projections follow IDs when catalog labels chang
   const grenade = skill(5807, 'Renamed attack', { kitId: equip.id, slot: 'Weapon_1' });
   const toolbelt = skill(5810, 'Renamed toolbelt', { toolbeltParentId: equip.id });
   const ui = bindEngineerCoreUi(engineerCatalog(equip, grenade, toolbelt));
-  const context = { config: { selectedSkillIds: [equip.id] }, professionState: { activeKit: equip.id } };
+  const context = { config: { selectedSkillIds: [equip.id] }, professionState: { [STATE.ACTIVE_KIT]: equip.id } };
   assert.deepEqual(groupIds(ui, context, 'engineer-kit-5805'), [grenade.id]);
   assert.deepEqual(groupIds(ui, context, 'engineer-profession'), [toolbelt.id]);
   assert.equal(ui.paletteOverride(context, equip).tileActive, false);
-  assert.equal(ui.paletteOverride({ professionState: { activeKit: null } }, equip).tileActive, true);
+  assert.equal(ui.paletteOverride({ professionState: { [STATE.ACTIVE_KIT]: null } }, equip).tileActive, true);
 });
 
 test('Engineer Forge and protocol controls retain their local skill lists and lookups', () => {
@@ -122,7 +123,13 @@ test('all Ranger pet palettes use the catalog supplied to their own factory', ()
   const catalogs = [false, true].map((petAutonomousSkill) =>
     rangerCatalog(skill(skillId, 'Pet attack', { petSkill: true, petAutonomousSkill }))
   );
-  const context = { professionState: { ...petState, beastmodeActive: false } };
+  const context = {
+    professionState: {
+      [STATE.PET_NAMES]: petState.petNames,
+      [STATE.ACTIVE_PET_SLOT]: petState.activePetSlot,
+      [STATE.BEASTMODE_ACTIVE]: false
+    }
+  };
   for (const bind of [bindRangerCoreUi, bindDruidUi, bindGaleshotUi, bindSoulbeastUi, bindUntamedUi]) {
     assertIsolated(bind, catalogs, (ui) => groupIds(ui, context, 'ranger-pet').includes(skillId), [true, false]);
   }

@@ -1,6 +1,5 @@
 import { THIEF_CORE_PROFILE_FIELDS } from '#gw2/professions/thief/core/catalog-fields.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createPublicStateProjector } from '#gw2/platform/profession-definition/state.js';
 import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
@@ -13,7 +12,7 @@ import { thiefCoreReworkHooks } from '#gw2/professions/thief/core/rework/hooks.j
 import { thiefCoreReworkUi } from '#gw2/professions/thief/core/rework/presentation.js';
 import {
   createThiefCoreReworkState,
-  THIEF_CORE_REWORK_PUBLIC_STATE_PROJECTION
+  projectThiefCoreReworkPlanningState
 } from '#gw2/professions/thief/core/rework/state.js';
 import { acrobaticsReworkTraits } from '#gw2/professions/thief/core/rework/traits/acrobatics.js';
 import { twinFangsRework } from '#gw2/professions/thief/core/rework/traits/critical-strikes.js';
@@ -114,7 +113,7 @@ export const thiefCoreReworkModule = defineNativeModule({
   ],
   state: {
     create: createThiefCoreReworkState,
-    project: createPublicStateProjector(THIEF_CORE_REWORK_PUBLIC_STATE_PROJECTION)
+    project: projectThiefCoreReworkPlanningState
   },
   modifiers: distractingThrowModifiers,
   hooks: thiefCoreReworkHooks,

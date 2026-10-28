@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -156,14 +157,14 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     { condition: 'Weakness', duration: 3.5 }
   );
   // Reset fills the 20-point pool; the next burst spends 10, then control grants 7 and its hit grants 1.
-  assert.equal(defense.planningState.profession.adrenaline.value, 18);
+  assert.equal(defense.planningState.profession[STATE.ADRENALINE].value, 18);
 });
 
 test("Spellbreaker only gains Attacker's Insight from control and lightning leap combos", () => {
   const insightConfig = {
     selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT]
   };
-  const insightStacks = (result) => result.planningState.profession.attackerInsightExpiries.length;
+  const insightStacks = (result) => result.planningState.profession[STATE.ATTACKER_INSIGHT_EXPIRIES].length;
 
   const breaching = simulate('Spellbreaker', [69297], {
     ...insightConfig,
@@ -255,8 +256,8 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
     selectedTraitIds: [TRAIT.THICK_SKIN]
   });
 
-  assert.equal(core.planningState.profession.adrenaline.value, 30);
-  assert.equal(core.planningState.profession.endurance.value, 100);
+  assert.equal(core.planningState.profession[STATE.ADRENALINE].value, 30);
+  assert.equal(core.planningState.profession[STATE.ENDURANCE].value, 100);
   const protection = core.events.find((event) => event.sourceId === TRAIT.THICK_SKIN);
 
   assert.deepEqual({ boon: protection.kind, duration: protection.duration }, { boon: 'protection', duration: 3 });
@@ -265,5 +266,5 @@ test('"To the Limit!" restores endurance, grants flow, and triggers Thick Skin',
     initialResource: 0
   });
 
-  assert.ok(bladesworn.planningState.profession.flow.value >= 30);
+  assert.ok(bladesworn.planningState.profession[STATE.FLOW].value >= 30);
 });

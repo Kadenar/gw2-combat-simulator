@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
@@ -202,7 +203,7 @@ test('Blight skill consumption follows earlier shroud gains', () => {
   const updates = result.events.filter((event) => event.kind === 'harbinger-blight');
   assert.ok(updates.every((event, index) => index === 0 || event.at >= updates[index - 1].at));
   assert.equal(updates.find((event) => event.at === 1).stacks, 6);
-  assert.equal(result.planningState.profession.blight, 1);
+  assert.equal(result.planningState.profession[STATE.BLIGHT], 1);
   assert.equal(
     result.events.find((event) => event.type === 'damage' && event.skillId === ID.DEVOURING_CUT).metadata
       .necromancerBlight,
@@ -216,7 +217,7 @@ test('Blight chart includes initial stacks and expires them at their actual dead
   const series = buildChartSeries(result, 250, harbingerUi.effectPresentations());
   assert.equal(series.effects.Blight[0].v, 12);
   assert.equal(series.effectSummaries.Blight.averageStacks, (12 * 20) / 25);
-  assert.equal(result.planningState.profession.blight, 0);
+  assert.equal(result.planningState.profession[STATE.BLIGHT], 0);
   assert.ok(result.events.some((event) => event.kind === 'harbinger-blight' && event.at === 25 && event.stacks === 0));
 });
 
@@ -262,11 +263,13 @@ function advance(config, targets) {
 test('NEC-001 Eternal Life preserves earned resources and caps only its own regeneration', () => {
   for (const targets of [[0], [0.1], [1, 1, 2]]) {
     const state = advance({ initialResource: 100, selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, targets);
-    assert.equal(lifeForcePercent(state.lifeForce), 100);
+    assert.equal(lifeForcePercent(state[STATE.LIFE_FORCE]), 100);
   }
 
   assert.equal(
-    lifeForcePercent(advance({ initialResource: 65, selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, [1, 2]).lifeForce),
+    lifeForcePercent(
+      advance({ initialResource: 65, selectedTraitIds: [TRAIT.ETERNAL_LIFE] }, [1, 2])[STATE.LIFE_FORCE]
+    ),
     66
   );
 });
@@ -324,7 +327,7 @@ test('NEC-006 condition scaling observes live distinct conditions and their expi
       expected
     );
     // The strike grants from the current condition count before its following Torment application.
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 8 + expected);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 8 + expected);
   }
 
   const torch = simulate('Core', ['Blood Curse', 'Oppressive Collapse'], {
@@ -377,8 +380,8 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
       selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE],
       target: { health: 1000000, startingHealthFraction }
     });
-    assert.equal(result.planningState.profession.activeShroud === 'death', accepted);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), accepted ? 11 : 9);
+    assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD] === 'death', accepted);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), accepted ? 11 : 9);
 
     if (accepted) assert.deepEqual(result.warnings, []);
     else assert.match(result.warnings.map(({ message }) => message).join(' '), /requires more life force/);
@@ -390,7 +393,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
     selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE],
     target: { health: 1000000, startingHealthFraction: 0.4 }
   });
-  assert.equal(lifeForcePercent(minion.planningState.profession.lifeForce), 0);
+  assert.equal(lifeForcePercent(minion.planningState.profession[STATE.LIFE_FORCE]), 0);
   // Percentage gains apply Gluttony once and cannot overflow the meter, including with Soul Battery.
   for (const [initialResource, expected] of [
     [0, 2.2],
@@ -402,7 +405,7 @@ test('NEC-007 strike life force is spendable by the next shroud entry', () => {
       selectedTraitIds: [TRAIT.SPITEFUL_FORTITUDE, TRAIT.GLUTTONY, TRAIT.SOUL_BATTERY],
       target: { health: 1000000, startingHealthFraction: 0.4 }
     });
-    assert.ok(Math.abs(lifeForcePercent(result.planningState.profession.lifeForce) - expected) < 1e-8);
+    assert.ok(Math.abs(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]) - expected) < 1e-8);
   }
 });
 
@@ -422,10 +425,10 @@ test('NEC-007 resource gains preserve Harbinger damage observations before the B
   assert.deepEqual(feedback.warnings, []);
   assert.ok(strikes(baseline).length > 0);
   assert.deepEqual(strikes(feedback), strikes(baseline));
-  assert.equal(feedback.planningState.profession.blight, baseline.planningState.profession.blight);
+  assert.equal(feedback.planningState.profession[STATE.BLIGHT], baseline.planningState.profession[STATE.BLIGHT]);
   assert.ok(
-    lifeForcePercent(feedback.planningState.profession.lifeForce) >
-      lifeForcePercent(baseline.planningState.profession.lifeForce)
+    lifeForcePercent(feedback.planningState.profession[STATE.LIFE_FORCE]) >
+      lifeForcePercent(baseline.planningState.profession[STATE.LIFE_FORCE])
   );
 });
 
@@ -443,7 +446,7 @@ test('Spiteful Fortitude life force funds the next shroud entry', () => {
     })
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.activeShroud, 'death');
+  assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], 'death');
 });
 
 // Same-time strikes before the crossing strike are still above half health and cannot grant life force.
@@ -457,7 +460,7 @@ test('Spiteful Fortitude grants start at the strike that crosses half health', (
   assert.equal(first.at, second.at);
   const result = simulate('Core', ['Necrotic Slash'], config(0.5 + (first.damage + second.damage / 2) / health));
   assert.deepEqual(result.warnings, []);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 1);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 1);
 });
 
 // A packet beyond the observation end never reaches the resource owner.
@@ -468,7 +471,7 @@ test('hit life force beyond the observation end is not granted', () => {
     spitefulFortitude({ primaryWeapon: 'Axe', target: { health: 1000000, startingHealthFraction: 0.4 } })
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 2);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 2);
 });
 
 // Death prevents later hits and their grants while retaining the lethal strike's gain.
@@ -477,7 +480,7 @@ test('Spiteful Fortitude grants stop at target death', () => {
     spitefulFortitude({ primaryWeapon: 'Axe', target: { health, startingHealthFraction: 0.4 } });
   // A surviving target shows both strikes qualify; the lethal first strike leaves the second unresolved.
   assert.equal(
-    lifeForcePercent(simulate('Core', ['Rending Claws'], config(1000000)).planningState.profession.lifeForce),
+    lifeForcePercent(simulate('Core', ['Rending Claws'], config(1000000)).planningState.profession[STATE.LIFE_FORCE]),
     2
   );
   const result = simulate('Core', ['Rending Claws'], config(1000));
@@ -487,7 +490,7 @@ test('Spiteful Fortitude grants stop at target death', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(strikes.length, 1);
   assert.equal(result.deathTime, strikes[0].at);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 1);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 1);
 });
 
 // Actual half-health damage changes cooldown readiness before the next command is accepted.
@@ -513,7 +516,7 @@ test('Spiteful Fortitude and Gravedigger share the actual half-health transition
   const strikes = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.actorType === 'player' && event.coefficient > 0
   );
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), strikes.length + 2 * 2);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), strikes.length + 2 * 2);
 });
 
 test('NEC-009 interrupted minion summons commit no creature, command, or attacks', () => {
@@ -527,8 +530,11 @@ test('NEC-009 interrupted minion summons commit no creature, command, or attacks
       { selectedSkillIds: [10547] }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(Number(result.planningState.profession.activeMinions['blood-fiend'] || 0), interrupted ? 0 : 1);
-    assert.equal(Boolean(result.planningState.profession.availableFlips[ID.TASTE_OF_DEATH]), !interrupted);
+    assert.equal(
+      Number(result.planningState.profession[STATE.ACTIVE_MINIONS]['blood-fiend'] || 0),
+      interrupted ? 0 : 1
+    );
+    assert.equal(Boolean(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.TASTE_OF_DEATH]), !interrupted);
     assert.equal(
       result.resolvedEvents.some((event) => event.type === 'damage' && event.actorType === 'summon'),
       !interrupted
@@ -546,8 +552,8 @@ test('NEC-010 Lich grants its ending life force exactly once', () => {
   ]) {
     const result = simulate('Core', ['Lich Form', ...actions], config);
     assert.deepEqual(result.warnings, []);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), lifeForce);
-    assert.equal(result.planningState.profession.activeShroud, lifeForce ? '' : 'lich');
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), lifeForce);
+    assert.equal(result.planningState.profession[STATE.ACTIVE_SHROUD], lifeForce ? '' : 'lich');
   }
 });
 

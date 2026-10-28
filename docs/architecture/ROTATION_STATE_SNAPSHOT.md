@@ -58,18 +58,20 @@ Choose the existing simulation owner before adding presentation:
 
 Do not create UI-only timers or duplicate simulation state. Core UI owns shared profession mechanics; elite UI owns
 elite-specific mechanics; the shared model owns profession-neutral state. Core, active elite, and family list callbacks
-compose automatically. IDs must be unique across profession slices; also avoid shared IDs such as `critical-chance` and
-`relic:<name>`.
+compose automatically. Snapshot item IDs must be unique across profession slices; also avoid shared IDs such as
+`critical-chance` and `relic:<name>`.
 
 ### Profession item example
 
 Berserker's `specializations/berserker/presentation.ts` reads its existing public state:
 
 ```ts
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+
 rotationStateSnapshot: (context: WarriorUiContext) => {
   const state = warriorUiState(context);
-  const remaining = (state.berserkUntil || 0) - warriorSnapshotAt(context);
-  if (!state.berserkActive || remaining <= 0) return [];
+  const remaining = (state[STATE.BERSERK_UNTIL] || 0) - warriorSnapshotAt(context);
+  if (remaining <= 0) return [];
   return [
     {
       id: 'berserk',
@@ -82,7 +84,8 @@ rotationStateSnapshot: (context: WarriorUiContext) => {
 ```
 
 Use `context.atSeconds`, or a profession helper that reads it, for every timer and window. Timers in profession state
-use seconds; some report records such as `procSteps` use milliseconds. Expiry windows are half-open:
+normally use seconds; derived duration fields and report records such as `procSteps` may use milliseconds. Preserve the
+owning field's units and expiry policy. For exclusive expiry windows:
 
 ```ts
 const activeStacks = expirations.filter((expiresAt) => expiresAt > context.atSeconds).length;
@@ -93,21 +96,40 @@ const currentWindow = windows.find(
 
 ### Exposing runtime state
 
-Each Core or elite module owns its public projection. For example, Berserker declares
-`BERSERKER_PUBLIC_STATE_PROJECTION` in `specializations/berserker/state.ts` using `definePublicStateDefaults()` and
-registers it in `module.ts`:
+Each Core or elite module owns an explicit public projector. Runtime fields keep their local property names; public
+observations use stable IDs from `PROFESSION_STATE_IDS`, conventionally imported as `STATE`. For example, Berserker's
+owner publishes its mode deadline:
 
 ```ts
-state: {
-  create: berserkerState.create,
-  project: createPublicStateProjector(BERSERKER_PUBLIC_STATE_PROJECTION)
+/** Publish the visible mode window without exposing private activation bookkeeping. */
+export function projectBerserkerPlanningState(input: Gw2PlanningStateInput) {
+  const state = berserkerState.from(input);
+  return structuredClone({ [STATE.BERSERK_UNTIL]: state.berserkUntil });
 }
 ```
 
-These helpers come from `#gw2/platform/profession-definition/state.js`. The projector selects and deeply clones declared
-fields, using display defaults only for missing fields. Add an existing runtime field to its owning projection rather
-than a family-wide list. Only Core and the selected elite contribute public state; inactive elites contribute no
-defaults.
+Register the projector in `module.ts`, with all imports at the top:
+
+```ts
+state: { create: berserkerState.create, project: projectBerserkerPlanningState }
+```
+
+Declare profession-specific identities in `professions/<profession>/state-ids.ts`; the aggregate registry is
+`professions/state-ids.ts`. Shared identities such as endurance and available flips live in
+`platform/results/state-ids.ts`. IDs are namespaced strings such as `gw2.berserker.berserk-until`; they are independent
+of runtime property names, display labels, build settings, skill IDs, and snapshot item IDs. Use the exported constants
+in consumers and fixtures. Do not add old-name aliases or infer IDs from runtime keys.
+
+Only Core and the active elite contribute observations. Each projector reads its actual owner, selects visible facts,
+and detaches mutable values. Composition rejects duplicate IDs instead of letting module order overwrite a value. A
+field owned by Core must be read from Core even if an elite is responsible for exposing it. Derive public types from
+`ReturnType<typeof projector>` so a renamed ID or omitted field is checked in presentation code.
+
+Clone the selected record once rather than cloning every scalar or the entire runtime. Projectors that normalize mutable
+observations may use `cloneStateFields` to copy selected owner fields before filtering or deriving values. Never
+traverse private cast histories, task queues, or pet internals to build a public observation. The result boundary also
+detaches the composed observation; this protects generic extension projectors. See
+[CLONE-PERFORMANCE.md](./CLONE-PERFORMANCE.md#planning-state-projections) for the copying contract.
 
 ### Shared and event-derived items
 

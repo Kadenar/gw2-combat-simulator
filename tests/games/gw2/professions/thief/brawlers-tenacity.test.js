@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -17,7 +18,7 @@ function brawlersTenacityEnduranceGain(rotation) {
         .map((name) => thiefCatalog.skills.find((candidate) => candidate.name === name).id)
     });
     assert.deepEqual(result.warnings, []);
-    return result.planningState.profession.endurance.value;
+    return result.planningState.profession[STATE.ENDURANCE].value;
   };
 
   return endurance([TRAIT.BRAWLERS_TENACITY]) - endurance([]);

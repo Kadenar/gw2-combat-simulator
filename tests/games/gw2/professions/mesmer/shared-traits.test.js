@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
@@ -141,8 +142,8 @@ test('Maim the Disillusioned applies torment for defensive shatters', () => {
     );
     assert.equal(
       testCase.specialization === 'Virtuoso'
-        ? result.planningState.profession.blades.value
-        : result.planningState.profession.resource,
+        ? result.planningState.profession[STATE.BLADES].value
+        : result.planningState.profession[STATE.RESOURCE],
       0
     );
     assert.equal(

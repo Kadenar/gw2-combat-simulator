@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
@@ -54,7 +55,7 @@ test('Endurance accrual and Dodge readiness integrate delayed, pooled, and exten
 
   // A 50-endurance Dodge becomes affordable exactly when the integrated Vigor windows reach its cost.
   assert.equal(run(['Dodge']).steps[0].start, 8000);
-  assert.equal(run([wait(8000)]).planningState.profession.endurance.value, 50);
+  assert.equal(run([wait(8000)]).planningState.profession[STATE.ENDURANCE].value, 50);
 });
 
 test('Ancient Echo selects exactly the active Core legend package', () => {
@@ -73,7 +74,7 @@ test('Ancient Echo selects exactly the active Core legend package', () => {
       result.events.filter((event) => event.type === 'buff').map((event) => [event.kind, event.duration, event.stacks]),
       [[kind, duration, stacks]]
     );
-    assert.equal(result.planningState.profession.energy.value, 75 + result.rotationEndTime * 5);
+    assert.equal(result.planningState.profession[STATE.ENERGY].value, 75 + result.rotationEndTime * 5);
   }
 });
 
@@ -189,10 +190,11 @@ test('Draconic Echo retains bounded facet pulses without upkeep drain, including
     result.events.filter((event) => event.type === 'buff' && event.skillId === SKILL.FACET_OF_STRENGTH);
   const consumeAt = consumed.rotationEndTime;
   assert.deepEqual(retained.warnings, []);
-  assert.deepEqual(retained.planningState.profession.activeUpkeeps, []);
+  assert.deepEqual(retained.planningState.profession[STATE.ACTIVE_UPKEEPS], []);
   assert.ok(
-    Math.abs(retained.planningState.profession.energy.value - consumed.planningState.profession.energy.value - 35) <
-      1e-9
+    Math.abs(
+      retained.planningState.profession[STATE.ENERGY].value - consumed.planningState.profession[STATE.ENERGY].value - 35
+    ) < 1e-9
   );
   assert.ok(pulses(retained).some((event) => event.at > consumeAt));
   assert.ok(pulses(retained).every((event) => event.at < consumeAt + 6));
@@ -375,7 +377,7 @@ test('Energy Meld declares one endurance reward for each trait selection and var
         );
         assert.deepEqual(result.warnings, []);
         const expected = result.rotationEndTime * 5 + (cancelled ? 0 : song ? 40 : 17);
-        assert.ok(Math.abs(result.planningState.profession.endurance.value - expected) < 1e-9);
+        assert.ok(Math.abs(result.planningState.profession[STATE.ENDURANCE].value - expected) < 1e-9);
       }
     }
   }

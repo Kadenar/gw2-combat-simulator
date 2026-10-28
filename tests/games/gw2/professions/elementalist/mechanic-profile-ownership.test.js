@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -72,8 +73,8 @@ test('each elemental glyph owns configured and explicit summon lifetime, startup
       const expiry = result.events.find((event) => event.sourceId === 'elementalist.elemental-expire');
       const action = result.events.find((event) => event.type === 'action' && event.skillId === id);
       assert.equal(expiry.at, (explicit ? action.endsAt : 0) + duration);
-      assert.equal(result.planningState.profession.summonedElemental.element, null);
-      assert.equal(result.planningState.profession.availableFlips[command], undefined);
+      assert.equal(result.planningState.profession[STATE.SUMMONED_ELEMENTAL].element, null);
+      assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][command], undefined);
       assert.equal(observedRuntime(result).cooldownController.readyAt(id), expiry.at + recharge / 1.25);
       // A summon that expires before target acquisition cannot begin autonomous attacks.
       assert.equal(
@@ -101,16 +102,16 @@ test('each conjure owns ground expiry and the fresh lifetime granted by its pick
     const initial = runElementalist([cast(id)], config, { profession });
     assert.deepEqual(initial.warnings, []);
     const conjure = initial.events.find((event) => event.type === 'action' && event.skillId === id);
-    assert.equal(initial.planningState.profession.conjurePickups[weapon], conjure.endsAt + duration);
-    assert.equal(initial.planningState.profession.conjureExpiresAt, conjure.endsAt + duration);
+    assert.equal(initial.planningState.profession[STATE.CONJURE_PICKUPS][weapon], conjure.endsAt + duration);
+    assert.equal(initial.planningState.profession[STATE.CONJURE_EXPIRES_AT], conjure.endsAt + duration);
     const picked = runElementalist([cast(id), wait(1000), cast(ID.DROP_BUNDLE), cast(pickup), wait(1000)], config, {
       profession
     });
     assert.deepEqual(picked.warnings, []);
     const action = picked.events.find((event) => event.type === 'action' && event.skillId === pickup);
-    assert.equal(picked.planningState.profession.conjureEquipped, weapon);
-    assert.equal(picked.planningState.profession.conjurePickups[weapon], undefined);
-    assert.equal(picked.planningState.profession.conjureExpiresAt, action.endsAt + duration);
+    assert.equal(picked.planningState.profession[STATE.CONJURE_EQUIPPED], weapon);
+    assert.equal(picked.planningState.profession[STATE.CONJURE_PICKUPS][weapon], undefined);
+    assert.equal(picked.planningState.profession[STATE.CONJURE_EXPIRES_AT], action.endsAt + duration);
     const balance = profession.resolvePatch({ id: 'mechanic-ownership' }).balanceContext;
     assert.equal(facts(balance, id)['Ground pickup lifetime'], `${duration}s`);
   }

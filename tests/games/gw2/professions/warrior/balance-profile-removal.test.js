@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
@@ -96,7 +97,7 @@ for (const [type, name, skill, weapon] of [
       result.events.some((e) => e.skillId === skill && e.type === (type === 'strike' ? 'damage' : 'condition')),
       false
     );
-    assert.ok(result.planningState.profession.adrenaline.value < 30);
+    assert.ok(result.planningState.profession[STATE.ADRENALINE].value < 30);
     assert.ok(result.events.some((e) => e.type === 'action' && e.skillId === skill));
 
     if (type === 'strike')
@@ -139,9 +140,9 @@ test('removed Berserk window retains resource spending and entry boons without a
       selectedTraitIds: [TRAIT.BURST_OF_AGGRESSION]
     }
   );
-  assert.equal(result.planningState.profession.berserkUntil, null);
-  assert.equal(result.planningState.profession.adrenaline.maximum, WARRIOR_MAXIMUM_ADRENALINE);
-  assert.ok(result.planningState.profession.adrenaline.value < 30);
+  assert.equal(result.planningState.profession[STATE.BERSERK_UNTIL], null);
+  assert.equal(result.planningState.profession[STATE.ADRENALINE].maximum, WARRIOR_MAXIMUM_ADRENALINE);
+  assert.ok(result.planningState.profession[STATE.ADRENALINE].value < 30);
   assert.ok(result.events.some((e) => e.kind === 'quickness'));
   assert.equal(
     result.events.some((e) => e.kind === 'berserk'),
@@ -214,7 +215,7 @@ test('Flow Stabilizer removed window preserves its Fury packet', () => {
       [ID.FLOW_STABILIZER]: remove('buff', 'Positive Flow')
     }
   );
-  assert.deepEqual(result.planningState.profession.flowStabilizerWindows, []);
+  assert.deepEqual(result.planningState.profession[STATE.FLOW_STABILIZER_WINDOWS], []);
   assert.ok(result.events.some((e) => e.kind === 'fury'));
 });
 
@@ -241,7 +242,7 @@ test('removed ordinary cartridge buff cannot substitute the supercharged window'
     [ID.OVERCHARGED_CARTRIDGES],
     { selectedSkillIds: [68085] }
   );
-  assert.deepEqual(result.planningState.profession.overchargedCartridgeWindows, []);
+  assert.deepEqual(result.planningState.profession[STATE.OVERCHARGED_CARTRIDGE_WINDOWS], []);
   assert.equal(
     result.events.some((e) => e.kind === 'supercharged-cartridges'),
     false
@@ -277,8 +278,8 @@ test('zero Empower Allies and Paragon intervals disable queued recurrence', () =
     [ID.CHANT_OF_ACTION, { type: 'wait', durationMs: 5000 }],
     { initialResource: 30 }
   );
-  assert.equal(refrain.planningState.profession.motivation.value, 4);
-  assert.equal(refrain.planningState.profession.activeRefrain, 'Chant of Action');
+  assert.equal(refrain.planningState.profession[STATE.MOTIVATION].value, 4);
+  assert.equal(refrain.planningState.profession[STATE.ACTIVE_REFRAIN], 'Chant of Action');
 });
 
 test('Artillery Slash keeps ammo variant identity after first-strike removal and a surviving edit', () => {
@@ -322,7 +323,7 @@ test('removed Spellbreaker buffs cannot retain Insight stacks or a tether window
 test('Paragon opening Might removal preserves Fury, Motivation, and tooltip identity', () => {
   const skills = { [ID.CHANT_OF_ACTION]: { sideEffects: { chant: remove('boon', 'Entry Might') } } };
   const result = runSkills(skills, 'Paragon', [ID.CHANT_OF_ACTION], { initialResource: 30 });
-  assert.equal(result.planningState.profession.motivation.value, 4);
+  assert.equal(result.planningState.profession[STATE.MOTIVATION].value, 4);
   assert.ok(result.events.some((e) => e.kind === 'fury'));
   const catalog = applySkillPatch(warriorCatalog, { skills });
   const tooltip = warriorTooltips.skills[ID.CHANT_OF_ACTION]({ catalog }, catalog.skillsById.get(ID.CHANT_OF_ACTION));

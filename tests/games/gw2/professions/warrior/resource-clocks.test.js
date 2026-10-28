@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
@@ -27,8 +28,8 @@ function run(config, rotation = [], profiles = {}, skills = {}) {
 // Fixed Core bars determine capacity and burst tiers independently of selected balance data.
 test('Core adrenaline retains its fixed capacity and burst thresholds without profile patch targets', () => {
   const result = run({ specialization: 'Core', initialResource: 60 });
-  assert.equal(result.planningState.profession.adrenaline.maximum, 30);
-  assert.equal(result.planningState.profession.adrenaline.value, 30);
+  assert.equal(result.planningState.profession[STATE.ADRENALINE].maximum, 30);
+  assert.equal(result.planningState.profession[STATE.ADRENALINE].value, 30);
   for (const [spent, tier] of [
     [10, 1],
     [19.5, 1],
@@ -56,11 +57,11 @@ test('Signet of Stamina restores endurance, triggers Signet Mastery, and gates p
     initialEndurance: 0
   };
   const passive = run(config, [{ type: 'wait', durationMs: 4000 }]);
-  assert.equal(passive.planningState.profession.endurance.value, 30);
+  assert.equal(passive.planningState.profession[STATE.ENDURANCE].value, 30);
   const vigor = run({ ...config, boons: { vigor: true } }, [{ type: 'wait', durationMs: 4000 }]);
-  assert.equal(vigor.planningState.profession.endurance.value, 40);
+  assert.equal(vigor.planningState.profession[STATE.ENDURANCE].value, 40);
   const active = run(config, ['Signet of Stamina', { type: 'wait', durationMs: 4000 }]);
-  assert.equal(active.planningState.profession.endurance.value, 70);
+  assert.equal(active.planningState.profession[STATE.ENDURANCE].value, 70);
   assert.ok(active.resolvedEvents.some((event) => event.kind === 'signet-mastery' && event.stacks === 1));
   const runtime = observedRuntime(active);
   runtime.endurance.spend(70);
@@ -69,14 +70,14 @@ test('Signet of Stamina restores endurance, triggers Signet Mastery, and gates p
 });
 
 test('selected Warrior clocks seed against patched caps without an earlier factory or Core clamp', () => {
-  for (const [specialization, key, profile, maximum] of [
-    ['Spellbreaker', 'adrenaline', TRAIT.SPELLBREAKERS_CONVICTION, 45],
-    ['Bladesworn', 'flow', TRAIT.GUN_X_SWORD, 125]
+  for (const [specialization, key, id, profile, maximum] of [
+    ['Spellbreaker', 'adrenaline', STATE.ADRENALINE, TRAIT.SPELLBREAKERS_CONVICTION, 45],
+    ['Bladesworn', 'flow', STATE.FLOW, TRAIT.GUN_X_SWORD, 125]
   ]) {
     for (const cap of [0, 7.5, maximum]) {
       const result = run({ specialization, initialResource: 150 }, [], { [profile]: { maximumStacks: cap } });
       const runtime = observedRuntime(result);
-      const clock = result.planningState.profession[key];
+      const clock = result.planningState.profession[id];
       assert.equal(clock.maximum, cap);
       assert.equal(clock.value, cap);
       assert.equal(clock.rate, 0);
@@ -87,7 +88,7 @@ test('selected Warrior clocks seed against patched caps without an earlier facto
     }
 
     const unpatched = run({ specialization, initialResource: 150 });
-    assert.equal(unpatched.planningState.profession[key].maximum, specialization === 'Spellbreaker' ? 20 : 100);
+    assert.equal(unpatched.planningState.profession[id].maximum, specialization === 'Spellbreaker' ? 20 : 100);
   }
 });
 
@@ -95,11 +96,11 @@ test('Berserk refresh clamps its patched mode cap and expiry restores capacity w
   const config = { specialization: 'Berserker', initialResource: 60 };
   const profiles = { [TRAIT.PRIMAL_RAGE]: { maximumStacks: 7.5 } };
   const entered = run(config, ['Berserk'], profiles);
-  assert.equal(entered.planningState.profession.adrenaline.maximum, 7.5);
-  assert.equal(entered.planningState.profession.adrenaline.value, 7.5);
+  assert.equal(entered.planningState.profession[STATE.ADRENALINE].maximum, 7.5);
+  assert.equal(entered.planningState.profession[STATE.ADRENALINE].value, 7.5);
   const expired = run(config, ['Berserk', { type: 'wait', durationMs: 20000 }], profiles);
-  assert.equal(expired.planningState.profession.adrenaline.maximum, 30);
-  assert.equal(expired.planningState.profession.adrenaline.value, 7.5);
+  assert.equal(expired.planningState.profession[STATE.ADRENALINE].maximum, 30);
+  assert.equal(expired.planningState.profession[STATE.ADRENALINE].value, 7.5);
 });
 
 test('adrenaline readiness offers only finite future signet pulses within the selected capacity', () => {
@@ -129,7 +130,7 @@ test('Warrior resource gates share pool tolerance and a short Flow interval stal
   });
   assert.equal(denied.steps[0].invalid, true);
   assert.match(denied.warnings[0].message, /requires at least 15 flow/);
-  assert.equal(denied.planningState.profession.flow.value, config.initialResource);
+  assert.equal(denied.planningState.profession[STATE.FLOW].value, config.initialResource);
 
   const charged = run({ specialization: 'Bladesworn', initialResource: 20 - 0.00005 }, [
     'Dragon Trigger',
@@ -142,7 +143,7 @@ test('Warrior resource gates share pool tolerance and a short Flow interval stal
     ticks.map((event) => event.flowSpent),
     [0, 0, 5]
   );
-  assert.equal(charged.planningState.profession.dragonCharges.value, 2);
+  assert.equal(charged.planningState.profession[STATE.DRAGON_CHARGES].value, 2);
 });
 
 test('doubled Dragon Trigger gains cap at selected charges and release reports the spend after clearing the clock', () => {
@@ -168,6 +169,6 @@ test('doubled Dragon Trigger gains cap at selected charges and release reports t
     assert.equal(state.dragonCharges.rate, 0);
     observedRuntime(result).mechanics.resourceController.grant('dragonCharges', 1);
     assert.equal(release.chargesReached, maximum);
-    assert.equal(result.planningState.profession.dragonCharges.value, 0);
+    assert.equal(result.planningState.profession[STATE.DRAGON_CHARGES].value, 0);
   }
 });

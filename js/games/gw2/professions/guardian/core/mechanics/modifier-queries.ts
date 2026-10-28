@@ -4,10 +4,10 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { GuardianState } from '#gw2/professions/guardian/types.js';
+import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 
-export function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianState> {
-  return readProfessionCoreState<GuardianState>(context.runtime?.profession);
+export function guardianRuntimeState(context: Gw2ModifierContext): Partial<GuardianCoreState> {
+  return readProfessionCoreState<GuardianCoreState>(context.runtime?.profession);
 }
 
 /** Uses chronological self-boon queries while retaining Righteous Instincts' stacked Resolution window. */

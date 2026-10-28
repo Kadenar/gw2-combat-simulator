@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
@@ -188,7 +189,7 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
       (event) => event.type === 'damage' && event.skillName === 'Embrace the Darkness' && event.coefficient === 0.3
     )
   );
-  assert.equal(baseline.planningState.profession.activeUpkeeps.length, 0);
+  assert.equal(baseline.planningState.profession[STATE.ACTIVE_UPKEEPS].length, 0);
 
   const empowered = simulate(
     'Core',
@@ -214,7 +215,7 @@ test('Embrace the Darkness empowers only the next pulse and releases', () => {
     empoweredPulses.map((event) => event.stacks),
     [1, 2, 2]
   );
-  assert.equal(empowered.planningState.profession.activeUpkeeps.length, 0);
+  assert.equal(empowered.planningState.profession[STATE.ACTIVE_UPKEEPS].length, 0);
 
   const freeSkill = simulate(
     'Core',
@@ -268,7 +269,7 @@ test('Dwarf upkeep stops dealing damage when released', () => {
   assert.deepEqual(result.warnings, []);
   assert.ok(hits.length > 0);
   assert.ok(hits.every((event) => event.at <= release.end / 1000));
-  assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_UPKEEPS].length, 0);
 });
 
 // A delayed player-owned Shackles strike remains eligible after swapping into Shiro.
@@ -384,8 +385,8 @@ test('Icerazor grants Fervor only after its projectiles land', () => {
     ],
     config
   );
-  assert.equal(pending.planningState.profession.kallasFervor.length, 0);
-  assert.equal(landed.planningState.profession.kallasFervor.length, 3);
+  assert.equal(pending.planningState.profession[STATE.KALLAS_FERVOR].length, 0);
+  assert.equal(landed.planningState.profession[STATE.KALLAS_FERVOR].length, 3);
 });
 
 test('Citadel Bombardment burns on each hit and Vindication triggers once per cast', () => {
@@ -589,7 +590,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   const rotation = ['Citadel Bombardment', { type: 'wait', durationMs: 2000 }, 'Heroic Command'];
   const base = simulate('Renegade', rotation, config);
 
-  assert.equal(base.planningState.profession.kallasFervor.length, 5);
+  assert.equal(base.planningState.profession[STATE.KALLAS_FERVOR].length, 5);
   assert.ok(
     base.events.some(
       (event) =>
@@ -944,7 +945,7 @@ test('All for One refunds Energy and halves only enhanced-skill recharge', () =>
   assert.deepEqual(traited.warnings, []);
   // Only the enhanced Icerazor refunds the authored All for One Energy once.
   assert.equal(
-    traited.planningState.profession.energy.value - base.planningState.profession.energy.value,
+    traited.planningState.profession[STATE.ENERGY].value - base.planningState.profession[STATE.ENERGY].value,
     revenantCatalog.balanceProfilesById.get(TRAIT.ALL_FOR_ONE).resourceGain
   );
   assert.equal(
@@ -1044,7 +1045,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
   // Each hit consumes one dagger and schedules its siphon after the triggering strike.
   assert.ok(siphon.at > traversal.at);
   assert.ok(siphon.flatStrikeBase > 0);
-  assert.equal(daggers.planningState.profession.enchantedDaggers.charges, 5);
+  assert.equal(daggers.planningState.profession[STATE.ENCHANTED_DAGGERS].charges, 5);
 
   const odds = simulate('Core', ['Impossible Odds', 'Phase Traversal', 'Relinquish Power', 'Impossible Odds'], {
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DEMON],
@@ -1102,7 +1103,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     observedRuntime(starved).cooldownController.readyAt(impossible.id),
     1 + impossible.starvationCooldown / 1.25
   );
-  assert.equal(starved.planningState.profession.activeUpkeeps.length, 0);
+  assert.equal(starved.planningState.profession[STATE.ACTIVE_UPKEEPS].length, 0);
 });
 
 test('Spear of Archemorus applies torment with its delayed impact', () => {
@@ -1143,7 +1144,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   assert.equal(dodges.length, 3);
   assert.equal(dodges[1].coefficient, dodges[0].coefficient * 2);
   assert.equal(dodges[2].coefficient, dodges[0].coefficient);
-  assert.equal(result.planningState.profession.reaversCurseUntil, 0);
+  assert.equal(result.planningState.profession[STATE.REAVERS_CURSE_UNTIL], 0);
   assert.equal(
     revenantModifiers.modifyStrikeDamage(
       {
@@ -1190,8 +1191,9 @@ test('both Energy Meld variants grant resources only on completed casts', () => 
       assert.deepEqual(result.warnings, []);
       const passiveEnergy = (5 * result.steps.at(-1).end) / 1000;
       assert.ok(
-        Math.abs(result.planningState.profession.energy.value - passiveEnergy - (interruptAfterMs == null ? 25 : 0)) <
-          1e-9
+        Math.abs(
+          result.planningState.profession[STATE.ENERGY].value - passiveEnergy - (interruptAfterMs == null ? 25 : 0)
+        ) < 1e-9
       );
     }
   }
@@ -1216,29 +1218,30 @@ test('Vindicator Dodge waits for endurance and Vigor shortens that wait', () => 
   assert.equal(withVigor.steps[1].start, withVigor.steps[0].end);
   // Vigor accelerates regeneration; neither path can spend endurance below zero.
   assert.ok(withVigor.steps[2].start < withoutVigor.steps[2].start);
-  for (const result of [withoutVigor, withVigor]) assert.ok(result.planningState.profession.endurance.value >= 0);
+  for (const result of [withoutVigor, withVigor])
+    assert.ok(result.planningState.profession[STATE.ENDURANCE].value >= 0);
 });
 
 test('Vindicator resource display includes live endurance', () => {
   const core = revenantProfession.ui.resourceViews({
     specialization: 'Core',
     professionState: {
-      energy: { value: 40.9, maximum: 100, updatedAt: 0, rate: 5 },
-      endurance: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
+      [STATE.ENERGY]: { value: 40.9, maximum: 100, updatedAt: 0, rate: 5 },
+      [STATE.ENDURANCE]: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
     }
   });
   const conduit = revenantProfession.ui.resourceViews({
     specialization: 'Conduit',
     professionState: {
-      energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
-      affinity: { value: 3, maximum: 5, rate: 0, updatedAt: 0 }
+      [STATE.ENERGY]: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
+      [STATE.AFFINITY]: { value: 3, maximum: 5, rate: 0, updatedAt: 0 }
     }
   });
   const vindicator = revenantProfession.ui.resourceViews({
     specialization: 'Vindicator',
     professionState: {
-      energy: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
-      endurance: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
+      [STATE.ENERGY]: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
+      [STATE.ENDURANCE]: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
     }
   });
 
@@ -1306,7 +1309,10 @@ test('Sigil of Energy restores 50 endurance on Revenant legend swap', () => {
     result.procSteps.filter((step) => step.skill === 'Sigil of Energy').map((step) => step.sourceSkill),
     ['Swap Legends']
   );
-  assert.equal(result.planningState.profession.endurance.value - baseline.planningState.profession.endurance.value, 50);
+  assert.equal(
+    result.planningState.profession[STATE.ENDURANCE].value - baseline.planningState.profession[STATE.ENDURANCE].value,
+    50
+  );
 });
 
 test('Vindicator jumps pay endurance before midair Energy refunds and reset autos at landing', () => {
@@ -1363,7 +1369,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
       planningState: {
         activeWeaponSet: 1,
         ammoBySkillId: {},
-        profession: { autoattackChains: {} }
+        profession: { [STATE.AUTOATTACK_CHAINS]: {} }
       }
     },
     build: {
@@ -1452,7 +1458,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.equal(app.rotationInsertionIndex, 2);
   assert.equal(changeCount, 2);
 
-  app.results.planningState.profession.autoattackChains[SKILL.PREPARATION_THRUST] = SKILL.BRUTAL_BLADE;
+  app.results.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST] = SKILL.BRUTAL_BLADE;
   assert.equal(currentAutoattackSkill(app).name, 'Brutal Blade');
 
   const combined = simulate(

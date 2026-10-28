@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { professionRegistry } from '#gw2/profession-registry.js';
@@ -75,7 +76,7 @@ test('Engineer swap input stows a kit in either phase without changing equipped 
       rotation: [...start, equip, swap]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.activeKit, null);
+    assert.equal(result.planningState.profession[STATE.ACTIVE_KIT], null);
     assert.equal(result.planningState.activeWeaponSet, 1);
     assert.equal(
       result.events.some((event) => event.type === 'weapon_set'),
@@ -114,12 +115,12 @@ test('Elementalist swap input drops every conjure before considering an equipped
         const simulate = (rotation) => runGw2Runtime({ profession: profession.runtimeFor(config), config, rotation });
         const equipped = simulate(prefix);
         assert.deepEqual(equipped.warnings, []);
-        assert.ok(equipped.planningState.profession.conjureEquipped);
+        assert.ok(equipped.planningState.profession[STATE.CONJURE_EQUIPPED]);
         assert.equal(equipped.planningState.availability[swap.skillId].ready, true);
         const dropped = simulate([...prefix, swap]);
         assert.deepEqual(dropped.warnings, []);
-        assert.equal(dropped.planningState.profession.conjureEquipped, null);
-        assert.equal(dropped.planningState.profession.conjureExpiresAt, 0);
+        assert.equal(dropped.planningState.profession[STATE.CONJURE_EQUIPPED], null);
+        assert.equal(dropped.planningState.profession[STATE.CONJURE_EXPIRES_AT], 0);
         assert.equal(dropped.planningState.activeWeaponSet, startingWeaponSet);
         assert.equal(dropped.steps.at(-1).skillId, ELEMENTALIST_SKILL_IDS.DROP_BUNDLE);
         assert.equal(
@@ -150,7 +151,7 @@ test('Elementalist swap input drops every conjure before considering an equipped
     rotation: [{ type: 'cast', skillId: ELEMENTALIST_SKILL_IDS.CONJURE_FROST_BOW }, swap]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.conjureEquipped, null);
+  assert.equal(result.planningState.profession[STATE.CONJURE_EQUIPPED], null);
   assert.equal(result.planningState.activeWeaponSet, 1);
 });
 

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import {
@@ -110,7 +111,7 @@ test('Lingering Thoughts grants its clone after its damage and cast completion',
   assert.ok(strikes.length > 0);
   assert.ok(strikes.every((event) => event.at < clone.at));
   assert.equal(Math.round(clone.at * 1000 - step.end), 200);
-  assert.equal(result.planningState.profession.resource, 1);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 1);
 });
 
 test('Lingering Thoughts creates two Confounding Bolts in an Ethereal field', () => {
@@ -188,7 +189,7 @@ test('clone state remains capped at three when input or new summons exceed the c
     })
   );
 
-  assert.equal(initial.planningState.profession.resource, 3);
+  assert.equal(initial.planningState.profession[STATE.RESOURCE], 3);
 
   const replaced = simulateMesmer(
     ['Mirror Images', { name: '__wait', waitMs: 1 }],
@@ -200,7 +201,7 @@ test('clone state remains capped at three when input or new summons exceed the c
   );
   const resourceEvents = replaced.events.filter((event) => event.type === 'resource' && event.resource === 'clones');
 
-  assert.equal(replaced.planningState.profession.resource, 3);
+  assert.equal(replaced.planningState.profession[STATE.RESOURCE], 3);
   assert.ok(resourceEvents.every((event) => event.value <= 3));
 });
 
@@ -212,7 +213,7 @@ test('clone resource pips render without a redundant numeric count', () => {
     build: { initialResource: 0 },
     results: {
       planningState: {
-        profession: { clones: [{}, {}, {}] }
+        profession: { [STATE.RESOURCE]: 3 }
       }
     }
   });

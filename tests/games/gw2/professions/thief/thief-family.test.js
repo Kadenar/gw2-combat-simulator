@@ -1,17 +1,17 @@
-import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
-import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import {
-  ANTIQUARY_PUBLIC_STATE_PROJECTION,
+  projectAntiquaryPlanningState,
   createAntiquaryState
 } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/daredevil/skills/index.js';
 import {
   createDaredevilState,
-  DAREDEVIL_PUBLIC_STATE_PROJECTION
+  projectDaredevilPlanningState
 } from '#gw2/professions/thief/specializations/daredevil/state.js';
 import { DEADEYE_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
 import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/specter/skills/index.js';
@@ -20,30 +20,35 @@ import { runThief } from '#tests/helpers/thief-simulation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-test('Antiquary projects its own charge fields and inactive grants', () => {
+test('Antiquary projects its own charge fields and initialized empty grants', () => {
   // The slice must expose its charges without relying on Deadeye's contribution to the family metadata.
-  const { keys, defaults } = ANTIQUARY_PUBLIC_STATE_PROJECTION;
   const state = createAntiquaryState();
   state.bonusStealthAttack = { charges: 2, expiresAt: 10 };
-  const active = projectPublicProfessionState(state, keys, defaults);
-  assert.equal(active.bonusStealthAttack.charges, 2);
-  assert.equal(active.bonusStealthAttack.expiresAt, 10);
+  const active = projectAntiquaryPlanningState({
+    time: 0,
+    profession: { core: {}, specialization: { kind: 'Antiquary', state } }
+  });
+  assert.equal(active[STATE.BONUS_STEALTH_ATTACK].charges, 2);
+  assert.equal(active[STATE.BONUS_STEALTH_ATTACK].expiresAt, 10);
 
-  const inactive = projectPublicProfessionState({}, keys, defaults);
-  assert.equal(inactive.bonusStealthAttack.charges, 0);
-  assert.equal(inactive.bonusStealthAttack.expiresAt, 0);
+  const inactive = projectAntiquaryPlanningState({
+    time: 0,
+    profession: { core: {}, specialization: { kind: 'Antiquary', state: createAntiquaryState() } }
+  });
+  assert.equal(inactive[STATE.BONUS_STEALTH_ATTACK].charges, 0);
+  assert.equal(inactive[STATE.BONUS_STEALTH_ATTACK].expiresAt, 0);
 });
 
 test('Daredevil projects its Weakening Strikes grant from a detached snapshot', () => {
   // Public consumers need readiness and expiry; the snapshot must not alias live state.
   const state = createDaredevilState();
   Object.assign(state, { weakeningStrikeReady: true, weakeningStrikeExpiresAt: 10 });
-  const snapshot = snapshotProfessionState({ core: {}, specialization: { kind: 'Daredevil', state } });
-  const { keys, defaults } = DAREDEVIL_PUBLIC_STATE_PROJECTION;
-  const projected = projectPublicProfessionState(snapshot, keys, defaults);
+  const projected = projectDaredevilPlanningState({
+    profession: { core: {}, specialization: { kind: 'Daredevil', state } }
+  });
   state.weakeningStrikeReady = false;
-  assert.equal(projected.weakeningStrikeReady, true);
-  assert.equal(projected.weakeningStrikeExpiresAt, 10);
+  assert.equal(projected[STATE.WEAKENING_STRIKE_READY], true);
+  assert.equal(projected[STATE.WEAKENING_STRIKE_EXPIRES_AT], 10);
 });
 
 // Tests derive elite names from the same canonical catalog consumed by production.
@@ -153,7 +158,7 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
     const resources = thiefProfession.ui
       .resourceViews({
         config,
-        professionState: flattenProfessionState(state)
+        professionState: projectObservedState(thiefProfession, { profession: state, config })
       })
       .map((resource) => resource.id);
 
@@ -171,11 +176,11 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
 test('Thief public projection omits inactive specialization fields', () => {
   const result = runThief([]);
   for (const key of [
-    'malice',
-    'shadowClock',
-    'artifactSlots',
-    'artifactUsesRemaining',
-    'holoUtilityCooldownReductionExpirations'
+    STATE.MALICE,
+    STATE.SHADOW_CLOCK,
+    STATE.ARTIFACT_SLOTS,
+    STATE.ARTIFACT_USES_REMAINING,
+    STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS
   ])
     assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });

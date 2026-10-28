@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
@@ -69,7 +70,7 @@ test('Necromancer dodge spends endurance and remains usable in shroud and Lich F
   for (const form of ['Death Shroud', 'Lich Form']) {
     const transformed = simulate('Core', [form, 'Dodge'], { initialResource: 100 });
     assert.deepEqual(transformed.warnings, []);
-    assert.ok(transformed.planningState.profession.endurance.value < 100);
+    assert.ok(transformed.planningState.profession[STATE.ENDURANCE].value < 100);
   }
 });
 
@@ -81,7 +82,7 @@ test('Locust Swarm grants life force per impact and Banshee extends the swarm an
   ]) {
     const result = simulate('Core', ['Locust Swarm', wait(8000)], { selectedTraitIds });
     assert.deepEqual(result.warnings, []);
-    assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), lifeForce);
+    assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), lifeForce);
     const strikes = result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.skillId === ID.LOCUST_SWARM
     );
@@ -92,11 +93,11 @@ test('Locust Swarm grants life force per impact and Banshee extends the swarm an
     assert.equal(swiftness.duration, duration);
     assert.equal(swiftness.audience.recipients, 'party');
     const missed = simulate('Core', [{ name: 'Locust Swarm', offTarget: true }, wait(8000)], { selectedTraitIds });
-    assert.equal(lifeForcePercent(missed.planningState.profession.lifeForce), 0);
+    assert.equal(lifeForcePercent(missed.planningState.profession[STATE.LIFE_FORCE]), 0);
   }
 
   const clipped = simulate('Core', ['Locust Swarm']);
-  assert.equal(lifeForcePercent(clipped.planningState.profession.lifeForce), 1.5);
+  assert.equal(lifeForcePercent(clipped.planningState.profession[STATE.LIFE_FORCE]), 1.5);
 
   // A faster extension must not grant its life force before the native swarm finishes.
   const run = createProfessionSimulator(necromancerProfession, () => ({
@@ -121,5 +122,5 @@ test('Locust Swarm grants life force per impact and Banshee extends the swarm an
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 15);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 15);
 });

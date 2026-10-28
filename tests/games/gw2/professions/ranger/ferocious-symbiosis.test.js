@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { untamedStrike } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
@@ -42,8 +43,8 @@ test('Ferocious Symbiosis buffs the tiger only when the ranger attacks', () => {
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(baseline.warnings, []);
     const state = result.planningState.profession;
-    const pet = state.pet;
-    assert.equal(state.ferociousSymbiosisPlayer.stacks, 5);
+    const pet = state[STATE.PET];
+    assert.equal(state[STATE.FEROCIOUS_SYMBIOSIS_PLAYER].stacks, 5);
     assert.equal(pet.ferociousSymbiosis.stacks, attacks ? 5 : 0);
     const lastPetHit = (run) =>
       run.resolvedEvents.findLast((event) => event.type === 'damage' && event.source === 'ranger-pet');

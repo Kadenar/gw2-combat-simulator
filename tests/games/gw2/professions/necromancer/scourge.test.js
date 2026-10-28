@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
@@ -90,9 +91,9 @@ test('shade skills consume Core life force once and never enter a draining shrou
     const core = result.planningState.profession;
     const rawCost = necromancerProfession.runtimeFor(config).catalog.skillsById.get(skillId).lifeForceCost;
     assert.deepEqual(result.warnings, []);
-    assert.equal(core.lifeForce.value, core.lifeForce.maximum - rawCost);
-    assert.equal(core.activeShroud, '');
-    assert.equal(core.lifeForce.rate, 0);
+    assert.equal(core[STATE.LIFE_FORCE].value, core[STATE.LIFE_FORCE].maximum - rawCost);
+    assert.equal(core[STATE.ACTIVE_SHROUD], '');
+    assert.equal(core[STATE.LIFE_FORCE].rate, 0);
   }
 });
 
@@ -118,7 +119,8 @@ test('selected shade costs use vitality and Soul Battery in shared admission and
         assert.deepEqual(allowed.warnings, []);
         assert.ok(
           Math.abs(
-            allowed.planningState.profession.lifeForce.value - ((initialResource * maximum) / 100 - lifeForceCost)
+            allowed.planningState.profession[STATE.LIFE_FORCE].value -
+              ((initialResource * maximum) / 100 - lifeForceCost)
           ) < 1e-8
         );
 
@@ -128,7 +130,9 @@ test('selected shade costs use vitality and Soul Battery in shared admission and
         assert.equal(denied.steps[0].invalid, true);
         assert.equal(denied.warnings.length, 1);
         assert.match(denied.warnings[0].message, /requires .*lifeForce/);
-        assert.ok(Math.abs(denied.planningState.profession.lifeForce.value - ((cost - 0.01) * maximum) / 100) < 1e-8);
+        assert.ok(
+          Math.abs(denied.planningState.profession[STATE.LIFE_FORCE].value - ((cost - 0.01) * maximum) / 100) < 1e-8
+        );
       }
     }
   }
@@ -149,7 +153,9 @@ test('a shade overlap waits for an accepted channel hit and rejects a missed cha
   const missed = run([{ ...rotation[0], offTarget: true }, rotation[1]], config);
   assert.equal(missed.steps[1].invalid, true);
   assert.equal(missed.steps[1].start, missed.steps[0].end);
-  assert.ok(Math.abs(lifeForcePercent(missed.planningState.profession.lifeForce) - config.initialResource) < 1e-8);
+  assert.ok(
+    Math.abs(lifeForcePercent(missed.planningState.profession[STATE.LIFE_FORCE]) - config.initialResource) < 1e-8
+  );
 });
 
 test('Nourishing Ashes grants from accepted Burning before a subsequent shade command', () => {
@@ -162,13 +168,13 @@ test('Nourishing Ashes grants from accepted Burning before a subsequent shade co
   assert.equal(observedRuntime(missed).procs.deadline('necromancer.scourge.nourishingAshes'), 0);
   const pending = run([{ ...cast(ID.MANIFEST_SAND_SHADE), impactDelayMs: 1000 }, cast(ID.NEFARIOUS_FAVOR)], config);
   assert.equal(pending.steps.at(-1).invalid, true);
-  assert.equal(lifeForcePercent(pending.planningState.profession.lifeForce), 10);
+  assert.equal(lifeForcePercent(pending.planningState.profession[STATE.LIFE_FORCE]), 10);
 });
 
 test('Demonic Lore derived Burning reaches the same live Nourishing Ashes cooldown', () => {
   const config = { ...base, initialResource: 0, selectedTraitIds: [TRAIT.DEMONIC_LORE, TRAIT.NOURISHING_ASHES] };
   const result = run([cast(ID.MANIFEST_SAND_SHADE), cast(ID.MANIFEST_SAND_SHADE)], config);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 5);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 5);
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.DEMONIC_LORE).length,
     1
@@ -267,15 +273,15 @@ test('Nefarious Favor cleanses one condition type and F5 transfers only on an ac
   };
   const cleanse = run([cast(ID.NEFARIOUS_FAVOR)], config, { profession });
   assert.deepEqual(
-    cleanse.planningState.profession.selfConditions.map((entry) => entry.condition),
+    cleanse.planningState.profession[STATE.SELF_CONDITIONS].map((entry) => entry.condition),
     ['Burning']
   );
   // Activation arms the transfer, but its self-condition survives until the delayed hostile hit is accepted.
   const pending = run([cast(ID.NEFARIOUS_FAVOR), cast(ID.DESERT_SHROUD)], config, { profession });
-  assert.equal(pending.planningState.profession.selfConditions.length, 1);
+  assert.equal(pending.planningState.profession[STATE.SELF_CONDITIONS].length, 1);
   assert.equal(observedRuntime(pending).profession.core.plagueSendingArmed, true);
   const hit = run([cast(ID.NEFARIOUS_FAVOR), cast(ID.DESERT_SHROUD), wait(1000)], config, { profession });
-  assert.deepEqual(hit.planningState.profession.selfConditions, []);
+  assert.deepEqual(hit.planningState.profession[STATE.SELF_CONDITIONS], []);
   assert.equal(observedRuntime(hit).profession.core.plagueSendingArmed, false);
   assert.ok(
     hit.resolvedEvents.some(
@@ -285,7 +291,7 @@ test('Nefarious Favor cleanses one condition type and F5 transfers only on an ac
   const missed = run([cast(ID.NEFARIOUS_FAVOR), { ...cast(ID.DESERT_SHROUD), offTarget: true }, wait(1000)], config, {
     profession
   });
-  assert.equal(missed.planningState.profession.selfConditions.length, 1);
+  assert.equal(missed.planningState.profession[STATE.SELF_CONDITIONS].length, 1);
   assert.equal(observedRuntime(missed).profession.core.plagueSendingArmed, true);
 });
 

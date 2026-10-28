@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { resolveAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
@@ -37,15 +38,15 @@ test('Firebrand preview uses selected page tuning and removes old resource trait
   for (const selectedTraitIds of [[], [REWORK.BASTION], [REWORK.DELIVERANCE]]) {
     const result = run([wait(1)], { selectedTraitIds });
     assert.deepEqual(result.warnings, []);
-    const pages = result.planningState.profession.tomePages;
+    const pages = result.planningState.profession[STATE.TOME_PAGES];
     assert.equal(pages.maximum, previewPages.maximumStacks);
     assert.equal(pages.value, previewPages.maximumStacks);
     assert.equal(pages.interval, previewPages.pulseInterval);
   }
 
-  assert.equal(run([wait(1)], { initialTomePages: 3 }).planningState.profession.tomePages.value, 3);
+  assert.equal(run([wait(1)], { initialTomePages: 3 }).planningState.profession[STATE.TOME_PAGES].value, 3);
   const live = runGuardian([wait(1)], { specialization: 'Firebrand' });
-  assert.equal(live.planningState.profession.tomePages.maximum, livePages.maximumStacks);
+  assert.equal(live.planningState.profession[STATE.TOME_PAGES].maximum, livePages.maximumStacks);
   assert.equal(profession.catalog.balanceProfilesById.get(TRAIT.PURITY_OF_WORD).maximumStacks, livePages.maximumStacks);
 });
 
@@ -73,7 +74,7 @@ test('starting page limits follow current build traits and patch without requiri
 
     const staleMaximum = expectedMaximum === 8 ? 5 : 8;
     const projectedPages = resourceDefinitions('Firebrand', {
-      tomePages: { maximum: staleMaximum, value: 2 }
+      [STATE.TOME_PAGES]: { maximum: staleMaximum, value: 2 }
     }).find(({ id }) => id === 'pages');
     assert.equal(projectedPages.maximum, staleMaximum);
     assert.equal(projectedPages.value, 2);
@@ -336,7 +337,7 @@ test('Swift Scholar refunds grant selected Ashes or Quickness while other page g
       initialTomePages: 0
     });
     assert.deepEqual(other.warnings, []);
-    assert.ok(other.planningState.profession.tomePages.value > 0);
+    assert.ok(other.planningState.profession[STATE.TOME_PAGES].value > 0);
     assert.ok(!other.procSteps.some((step) => step.skill === 'Fervid Conviction'));
     assert.ok(!other.events.some((event) => event.traitId === TRAIT.STALWART_SPEED));
     assert.ok(!other.events.some((event) => event.condition === 'Slow'));
@@ -636,7 +637,7 @@ test('one eligible personal hit spends one charge for the selected Burning paylo
     }
   );
   const grant = result.events.find((event) => event.kind === 'ashes-of-the-just');
-  assert.equal(result.planningState.profession.ashes.charges, grant.stacks - 1);
+  assert.equal(result.planningState.profession[STATE.ASHES].charges, grant.stacks - 1);
   const burns = result.resolvedEvents.filter((event) => event.sourceId === 'guardian.ashes-of-the-just');
   assert.equal(
     burns.reduce((sum, burn) => sum + burn.stacks, 0),

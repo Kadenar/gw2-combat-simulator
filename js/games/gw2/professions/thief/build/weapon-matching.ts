@@ -1,8 +1,8 @@
 import { WEAPON } from '#gw2/platform/constants.js';
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
-import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from '#gw2/professions/thief/types.js';
+import type { ThiefSkill, ThiefPlanningState, ThiefWeaponMatcherContext } from '#gw2/professions/thief/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /**
  * A palette that supplies its projected profession state shows only the rifle-stance and spear-chain variant occupying
@@ -12,12 +12,12 @@ import type { ThiefSkill, ThiefState, ThiefWeaponMatcherContext } from '#gw2/pro
 function matchesThiefVariant(skill: ThiefSkill, context: ThiefWeaponMatcherContext): boolean {
   if (!context.professionState) return true;
 
-  const professionState = flattenProfessionState(context.professionState) as unknown as Partial<ThiefState>;
+  const professionState = context.professionState as Partial<ThiefPlanningState>;
 
   if (
     skill.weapon === WEAPON.RIFLE &&
     !skill.stealthAttack &&
-    Boolean(skill.kneelSkill) !== Boolean(professionState.kneeling)
+    Boolean(skill.kneelSkill) !== Boolean(professionState[STATE.KNEELING])
   )
     return false;
 
@@ -25,7 +25,7 @@ function matchesThiefVariant(skill: ThiefSkill, context: ThiefWeaponMatcherConte
   return (
     spearChainStage == null ||
     Boolean(context.weaponBarPreview) ||
-    (professionState.spearChainStage || 0) === spearChainStage
+    (professionState[STATE.SPEAR_CHAIN_STAGE] || 0) === spearChainStage
   );
 }
 

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
@@ -61,13 +62,13 @@ test('Firebrand dormancy has one Core owner and a detached public observation', 
   assert.notEqual(profession.core.virtueReadyAt, independent.core.virtueReadyAt);
   profession.core.virtueReadyAt.justice = 20;
   const projected = projectObservedState(guardianProfession, { profession, config, time: 5 });
-  assert.deepEqual(projected.virtueReadyAt, { justice: 20, resolve: 0, courage: 0 });
+  assert.deepEqual(projected[STATE.VIRTUE_READY_AT], { justice: 20, resolve: 0, courage: 0 });
   assert.equal(Object.hasOwn(profession.specialization.state, 'virtueReadyAt'), false);
   for (const state of [profession.core, profession.specialization.state, projected]) {
     assert.equal(Object.hasOwn(state, 'tomeDormantReadyAt'), false);
   }
 
-  projected.virtueReadyAt.justice = 0;
+  projected[STATE.VIRTUE_READY_AT].justice = 0;
   assert.equal(profession.core.virtueReadyAt.justice, 20);
   assert.equal(independent.core.virtueReadyAt.justice, 0);
 });
@@ -91,16 +92,16 @@ test('Renewed Focus restores Firebrand pages and dormancy only on completion', (
       assert.deepEqual(result.warnings, []);
       const state = result.planningState.profession;
       const focus = result.events.find((event) => event.type === 'action' && event.skillName === 'Renewed Focus');
-      assert.equal(state.tomePages.value, state.tomePages.maximum - Number(interrupted));
+      assert.equal(state[STATE.TOME_PAGES].value, state[STATE.TOME_PAGES].maximum - Number(interrupted));
       // Refilling pages must preserve the regeneration phase established by the earlier spend.
       const spent = result.events.find(
         (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.SEARING_SPELL
       );
-      assert.equal(state.tomePages.nextAt, spent.endsAt + state.tomePages.interval);
-      assert.equal(state.virtueReadyAt.justice > focus.endsAt, interrupted);
+      assert.equal(state[STATE.TOME_PAGES].nextAt, spent.endsAt + state[STATE.TOME_PAGES].interval);
+      assert.equal(state[STATE.VIRTUE_READY_AT].justice > focus.endsAt, interrupted);
 
       if (!interrupted) {
-        for (const readyAt of Object.values(state.virtueReadyAt)) assert.equal(readyAt, focus.endsAt);
+        for (const readyAt of Object.values(state[STATE.VIRTUE_READY_AT])) assert.equal(readyAt, focus.endsAt);
       }
     }
   }

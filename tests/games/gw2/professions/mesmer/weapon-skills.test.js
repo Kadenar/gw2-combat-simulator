@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
@@ -67,7 +68,7 @@ test('Mind the Gap preserves its deferred clone when shattering on its impact fr
       selectedTraitIds: [TRAIT.DUNE_CLOAK]
     })
   );
-  assert.equal(result.planningState.profession.resource, 1);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 1);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -82,7 +83,7 @@ test('Mesmer spear skills 3, 4, and 5 consume Clarity', () => {
       })
     );
 
-    assert.equal(result.planningState.profession.clarityRemaining, 0, consumer);
+    assert.equal(result.planningState.profession[STATE.CLARITY_REMAINING], 0, consumer);
   }
 });
 
@@ -193,8 +194,8 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
     counter.breakdown.some((entry) => entry.name === 'Illusionary Counter'),
     false
   );
-  assert.equal(counter.planningState.profession.resource, 0);
-  assert.ok(counter.planningState.profession.availableFlips[ID.COUNTERSPELL]);
+  assert.equal(counter.planningState.profession[STATE.RESOURCE], 0);
+  assert.ok(counter.planningState.profession[STATE.AVAILABLE_FLIPS][ID.COUNTERSPELL]);
   assert.equal(
     counter.resolvedEvents.some(
       (event) =>
@@ -211,15 +212,15 @@ test('Illusionary Counter arms one Counterspell without generating clones itself
   const flipped = simulateMesmer(['Illusionary Counter', 'Counterspell', 'Counterspell'], config);
 
   assert.equal(flipped.steps.filter((step) => !step.invalid).length, 2);
-  assert.equal(flipped.planningState.profession.resource, 1);
-  assert.equal(flipped.planningState.profession.availableFlips[ID.COUNTERSPELL], undefined);
+  assert.equal(flipped.planningState.profession[STATE.RESOURCE], 1);
+  assert.equal(flipped.planningState.profession[STATE.AVAILABLE_FLIPS][ID.COUNTERSPELL], undefined);
   assert.ok(flipped.breakdown.some((entry) => entry.sourceSkill === 'Counterspell'));
 
   const interrupted = simulateMesmer(
     ['Illusionary Counter', { name: 'Counterspell', interruptMs: 360 }, 'Swap Weapons'],
     config
   );
-  assert.equal(interrupted.planningState.profession.resource, 1);
+  assert.equal(interrupted.planningState.profession[STATE.RESOURCE], 1);
   assert.ok(
     interrupted.resolvedEvents.some(
       (event) => event.type === 'condition' && event.skillName === 'Counterspell' && event.condition === 'Confusion'
@@ -258,7 +259,7 @@ test('requested weapon flips require and consume their parent sequence skill', (
       flip
     );
     assert.equal(
-      result.planningState.profession.availableFlips[
+      result.planningState.profession[STATE.AVAILABLE_FLIPS][
         mesmerCatalog.skills.find((candidate) => candidate.name === flip).id
       ],
       undefined,
@@ -278,10 +279,10 @@ test('Illusionary Riposte enables Counter Blade without block rewards', () => {
       assert.deepEqual(result.warnings, []);
       assert.equal(
         specialization === 'Virtuoso'
-          ? result.planningState.profession.blades.value
+          ? result.planningState.profession[STATE.BLADES].value
           : specialization === 'Troubadour'
-            ? result.planningState.profession.notes.value
-            : result.planningState.profession.resource,
+            ? result.planningState.profession[STATE.NOTES].value
+            : result.planningState.profession[STATE.RESOURCE],
         0
       );
       assert.ok(result.steps.some((step) => step.skill === 'Counter Blade' && !step.invalid));
@@ -375,7 +376,7 @@ test('cancelled Inspiring Imagery creates neither a field nor boons', () => {
     ),
     false
   );
-  assert.equal(result.planningState.profession.availableFlips[ID.ABSTRACTION], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.ABSTRACTION], undefined);
 });
 
 // The delayed explosion uses its authored cast-start offset and keeps Burning on the same impact.

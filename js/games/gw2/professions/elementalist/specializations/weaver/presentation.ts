@@ -1,3 +1,9 @@
+/**
+ * Weaver presentation contract: palette identity, the rotation
+ * state snapshot, timeline and event-log labels, and the custom weapon palette
+ * that renders the main-hand / off-hand split. Everything here is a read-only
+ * projection of scheduler or end state; none of it may mutate the simulation.
+ */
 import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
@@ -10,16 +16,10 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { elementalistWeaponGroups } from '#gw2/professions/elementalist/core/weapon-groups.js';
 import type {
-  ElementalistState,
   ElementalistUiContext,
-  ElementalistUiSlice
+  ElementalistUiSlice,
+  ElementalistPlanningState
 } from '#gw2/professions/elementalist/types.js';
-/**
- * Weaver presentation contract: palette identity, the rotation
- * state snapshot, timeline and event-log labels, and the custom weapon palette
- * that renders the main-hand / off-hand split. Everything here is a read-only
- * projection of scheduler or end state; none of it may mutate the simulation.
- */
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type {
@@ -45,6 +45,7 @@ import {
   weaverDualAttunements,
   weaverWeaponAttunementAvailable
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Unravel and its F5 palette group only exist when the trait is selected.
 function hasElementsOfRage(context: ElementalistUiContext & ProfessionCatalogContext): boolean {
@@ -61,7 +62,7 @@ function isCarriedAutoattackSkill(
   skill: Skill
 ): boolean {
   const state = elementalistUiState(context);
-  const carryover = state.autoattackCarryover;
+  const carryover = state[STATE.AUTOATTACK_CARRYOVER];
   const root = Number(carryover?.root);
 
   if (!Number.isFinite(root) || Number(skill.chainRoot) !== root) return false;
@@ -69,7 +70,7 @@ function isCarriedAutoattackSkill(
   if ((carryover?.attunement || '') !== String(skill.attunement || '')) return false;
 
   const chains: ProfessionWeaponPaletteRenderContext['autoattackChains'] =
-    state.autoattackChains || context.autoattackChains || {};
+    state[STATE.AUTOATTACK_CHAINS] || context.autoattackChains || {};
   const expected = chains[String(root)] ?? root;
   return skill.id === expected;
 }
@@ -125,9 +126,9 @@ function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSna
   // so stance follow-ups and the temporary single-attunement override are easy to time.
   for (const [id, label, expiresAt] of [
     ['elements-of-rage', 'Elements of Rage', rage ? at + rage.remaining : 0],
-    ['weave-self', 'Weave Self', state.weaveSelfUntil || 0],
-    ['perfect-weave', 'Perfect Weave', state.perfectWeaveUntil || 0],
-    ['unravel', 'Unravel', state.unravelUntil || 0]
+    ['weave-self', 'Weave Self', state[STATE.WEAVE_SELF_UNTIL] || 0],
+    ['perfect-weave', 'Perfect Weave', state[STATE.PERFECT_WEAVE_UNTIL] || 0],
+    ['unravel', 'Unravel', state[STATE.UNRAVEL_UNTIL] || 0]
   ] as const) {
     const remaining = expiresAt - at;
 
@@ -265,7 +266,7 @@ function elementRowsHtml(
 // keeping the optional cooldown inventory behind a native disclosure.
 // The palette dispatcher invokes this renderer only for the selected Weaver specialization.
 function renderWeaverWeaponPalette(
-  context: ProfessionWeaponPaletteRenderContext<Partial<ElementalistState>>
+  context: ProfessionWeaponPaletteRenderContext<Partial<ElementalistPlanningState>>
 ): ProfessionWeaponPaletteView | null {
   const skills = context.skills;
 
@@ -273,8 +274,8 @@ function renderWeaverWeaponPalette(
 
   const state = context.professionState;
   const build = context.build;
-  const primaryAttunement = state?.primaryAttunement || build?.startAttunement || 'Fire';
-  const secondaryAttunement = state?.secondaryAttunement || build?.secondaryAttunement || primaryAttunement;
+  const primaryAttunement = state?.[STATE.PRIMARY_ATTUNEMENT] || build?.startAttunement || 'Fire';
+  const secondaryAttunement = state?.[STATE.SECONDARY_ATTUNEMENT] || build?.secondaryAttunement || primaryAttunement;
   const autoattackChains = context.autoattackChains;
   const isAvailable = context.isSkillAvailable;
   const unavailableMessage = context.unavailableMessage;
@@ -287,7 +288,7 @@ function renderWeaverWeaponPalette(
         skill,
         primaryAttunement,
         secondaryAttunement,
-        (state?.unravelUntil || 0) > (context.time ?? 0)
+        (state?.[STATE.UNRAVEL_UNTIL] || 0) > (context.time ?? 0)
       )
     );
   const currentPrimarySkills = layout.primaryRows.find((row) => row.attunement === primaryAttunement)?.skills || [];
@@ -458,7 +459,7 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
       return {
         tileActive:
           (skill.id === ID.TAILORED_VICTORY) ===
-          (elementalistUiState(context).perfectWeaveUntil || 0) > (context.time || 0)
+          (elementalistUiState(context)[STATE.PERFECT_WEAVE_UNTIL] || 0) > (context.time || 0)
       };
   },
   paletteGroups: (context: ElementalistUiContext & ProfessionCatalogContext) =>

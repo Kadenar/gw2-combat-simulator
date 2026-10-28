@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { CONTROL } from '#gw2/platform/constants.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -43,7 +44,7 @@ test('Maul palette selects the player variant only while Soulbeast is merged', (
       assert.equal(
         rangerAppAdapter.isSkillAvailable(rangerCatalog.skillsById.get(id), {
           specialization,
-          professionState: { beastmodeActive }
+          professionState: { [STATE.BEASTMODE_ACTIVE]: beastmodeActive }
         }),
         id === expectedId
       );
@@ -141,11 +142,11 @@ test('Enduring Swing grants 15 capped endurance on completion and none when inte
       { type: 'cast', skillId: ID.ENDURING_SWING, ...(interrupted ? { interruptAfterMs: 50 } : {}) }
     ]);
     const action = result.events.find((event) => event.type === 'action' && event.skillId === ID.ENDURING_SWING);
-    close(result.planningState.profession.endurance.value, 50 + action.endsAt * 5 + (interrupted ? 0 : 15));
+    close(result.planningState.profession[STATE.ENDURANCE].value, 50 + action.endsAt * 5 + (interrupted ? 0 : 15));
   }
 
   const capped = simulate('Core', [ID.SLASH_ID_12474, ID.SLICE, ID.ENDURING_SWING]);
-  assert.equal(capped.planningState.profession.endurance.value, 100);
+  assert.equal(capped.planningState.profession[STATE.ENDURANCE].value, 100);
 });
 
 test('Maul grants the active pet 50% on its next strike without changing later strikes', () => {

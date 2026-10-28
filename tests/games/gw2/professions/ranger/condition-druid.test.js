@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
@@ -476,15 +477,15 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
       ['Eclipse', 1, 4]
     ]
   );
-  assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
-  assert.equal(result.planningState.profession.astralClock.value > 0, true);
+  assert.equal(result.planningState.profession[STATE.CELESTIAL_AVATAR_ENDS_AT], null);
+  assert.equal(result.planningState.profession[STATE.ASTRAL_CLOCK].value > 0, true);
 
   const naturalMender = simulate([{ type: 'wait', durationMs: 6000 }], {
     initialAstralForce: 0,
     selectedTraitIds: [TRAIT.NATURAL_MENDER]
   });
 
-  assert.equal(naturalMender.planningState.profession.astralClock.value, 16);
+  assert.equal(naturalMender.planningState.profession[STATE.ASTRAL_CLOCK].value, 16);
 
   const convergence = simulate(
     ['Celestial Avatar', 'Natural Convergence', 'Release Celestial Avatar', { type: 'wait', durationMs: 8000 }],
@@ -592,7 +593,7 @@ test('Seed of Life detonates with Eclipse after releasing Celestial Avatar', () 
     (event) => event.sourceId === TRAIT.ECLIPSE && event.condition === 'Poisoned'
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
+  assert.equal(result.planningState.profession[STATE.CELESTIAL_AVATAR_ENDS_AT], null);
   assert.ok(blind.at > release.end / 1000);
   assert.equal(
     poison.reduce((sum, event) => sum + event.stacks, 0),
@@ -691,7 +692,7 @@ test('legacy healing-rate assumptions no longer generate Astral Force', () => {
     professionAssumptions: { astralForceHealingEventsPerSecond: 2 }
   });
 
-  assert.equal(result.planningState.profession.astralClock.value, 16);
+  assert.equal(result.planningState.profession[STATE.ASTRAL_CLOCK].value, 16);
 });
 
 test('Astral Force follows landed direct damage and excludes pet damage', () => {
@@ -723,8 +724,8 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
   );
 
   assert.equal(
-    withEclipse.planningState.profession.astralClock.value,
-    withoutEclipse.planningState.profession.astralClock.value
+    withEclipse.planningState.profession[STATE.ASTRAL_CLOCK].value,
+    withoutEclipse.planningState.profession[STATE.ASTRAL_CLOCK].value
   );
 
   const eclipseDamage = simulate(["Viper's Nest", 'Celestial Avatar'], {

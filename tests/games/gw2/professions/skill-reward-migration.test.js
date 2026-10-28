@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -48,7 +49,7 @@ test('Weighty Terms side effects preserve Slow attribution and page restoration'
   assert.equal(slow[0].name, 'Weighty Terms — Slow');
   assert.equal(slow[0].activationId, cast.activationId);
   assert.equal(slow[0].at, cast.endsAt);
-  assert.equal(result.planningState.profession.tomePages.value, 2);
+  assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 2);
 });
 
 // Outcome selection must spend Luck once and preserve the selected skill's outcome payload even on cancelled uses.
@@ -129,7 +130,7 @@ test('Mental Collapse uses its normal effect list for the Clarity-gated stun', (
     result.events.some((event) => event.type === 'control' && event.skillId === MESMER.MENTAL_COLLAPSE),
     false
   );
-  assert.equal(result.planningState.profession.clarityRemaining, 0);
+  assert.equal(result.planningState.profession[STATE.CLARITY_REMAINING], 0);
   assert.equal(observedRuntime(result).cooldownController.hasCooldown(MESMER.MIND_THE_GAP), false);
 });
 
@@ -166,7 +167,7 @@ test('Mind the Gap applies its authored Clarity duration and respects effect rem
       ]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.clarityRemaining, removed || cancelled ? 0 : 1000);
+    assert.equal(result.planningState.profession[STATE.CLARITY_REMAINING], removed || cancelled ? 0 : 1000);
     const proc = result.events.find((event) => event.type === 'proc' && event.name === 'Clarity');
     assert.equal(Boolean(proc), !removed && !cancelled);
 
@@ -329,7 +330,7 @@ test('Ether Clone uses its selected condition action at the clone cap and grants
       }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.resource, initialResource);
+    assert.equal(result.planningState.profession[STATE.RESOURCE], initialResource);
     const conditions = result.events.filter(
       (event) => event.type === 'condition' && event.skillId === MESMER.ETHER_CLONE
     );

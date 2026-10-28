@@ -200,7 +200,11 @@ The [platform ownership guide](../../js/games/gw2/platform/README.md) documents 
 - Pending work is invisible to historical queries until it executes.
 - Score and detailed modes share mechanics. Detailed mode retains steps, reports, APM, and optional diagnostics.
 - `planningState` captures resources, cooldowns, ammo, weapon set, and public profession state at the observation end.
-  After target death, authored commands continue while hostile effects and hit-dependent grants are suppressed.
+  Native `planningState.profession` records use stable `PROFESSION_STATE_IDS` constants. Core and active-elite
+  projectors select facts from their owners, detach mutable values, and reject duplicate IDs during composition. Runtime
+  field names and UI labels are separate contracts; public types are inferred from projector return values. See
+  [Rotation state snapshots](./ROTATION_STATE_SNAPSHOT.md#exposing-runtime-state). After target death, authored commands
+  continue while hostile effects and hit-dependent grants are suppressed.
 - The planning observation is deeply detached and is not a checkpoint. Combat reports stop at `combatEndTime`.
 - Rotation duration follows accepted commands, reservations, and final input recovery. Rotation, tail, and absolute
   observation policies bound delayed work without recursively extending the rotation.

@@ -13,9 +13,10 @@ import {
   REVENANT_ENERGY_REGENERATION,
   revenantStartingEnergy
 } from '#gw2/professions/revenant/core/resource-values.js';
-import { flattenProfessionState, projectPublicProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface RevenantUpkeepState {
   skillId: SkillId;
@@ -91,35 +92,36 @@ export function createRevenantCoreState(config: RevenantConfig): RevenantCoreSta
   };
 }
 
-// Core publishes only state shared by every Revenant build; elite state is projected by its owning module.
-const REVENANT_CORE_PUBLIC_END_STATE_KEYS: readonly (keyof RevenantCoreState)[] = Object.freeze([
-  'energy',
-  'activeLegendId',
-  'selectedLegendIds',
-  'activeUpkeeps',
-  'availableFlips',
-  'autoattackChains',
-  'endurance',
-
-  'enchantedDaggers',
-  'battleScars',
-  'crushingAbyss',
-  'combatBeganAt',
-  'selfConditions'
-]);
-
-// Core fields have no inactive fallbacks; their values come from the live state.
-const REVENANT_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
-  keys: REVENANT_CORE_PUBLIC_END_STATE_KEYS,
-  defaults: {}
-});
-
 /** Derive the shared loadout identity from the current legend without storing a second live identity. */
 export function projectRevenantPlanningState(input: Gw2PlanningStateInput) {
-  const state = projectPublicProfessionState(
-    flattenProfessionState(input.profession) as unknown as RevenantCoreState,
-    REVENANT_CORE_PUBLIC_STATE_PROJECTION.keys,
-    REVENANT_CORE_PUBLIC_STATE_PROJECTION.defaults
-  );
-  return { ...state, activeLoadoutId: state.activeLegendId };
+  const state = cloneStateFields((input.profession as { core: ReturnType<typeof createRevenantCoreState> }).core, [
+    'energy',
+    'activeLegendId',
+    'selectedLegendIds',
+    'activeUpkeeps',
+    'availableFlips',
+    'autoattackChains',
+    'endurance',
+
+    'enchantedDaggers',
+    'battleScars',
+    'crushingAbyss',
+    'combatBeganAt',
+    'selfConditions'
+  ]);
+  return {
+    [STATE.ENERGY]: state.energy,
+    [STATE.ACTIVE_LEGEND_ID]: state.activeLegendId,
+    [STATE.SELECTED_LEGEND_IDS]: state.selectedLegendIds,
+    [STATE.ACTIVE_UPKEEPS]: state.activeUpkeeps,
+    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
+    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
+    [STATE.ENDURANCE]: state.endurance,
+    [STATE.ENCHANTED_DAGGERS]: state.enchantedDaggers,
+    [STATE.BATTLE_SCARS]: state.battleScars,
+    [STATE.CRUSHING_ABYSS]: state.crushingAbyss,
+    [STATE.COMBAT_BEGAN_AT]: state.combatBeganAt,
+    [STATE.SELF_CONDITIONS]: state.selfConditions,
+    [STATE.ACTIVE_LOADOUT_ID]: state.activeLegendId
+  };
 }

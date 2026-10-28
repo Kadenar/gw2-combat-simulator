@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -52,7 +53,7 @@ test('audited weapon flip families project one live palette identity', () => {
       results: {
         planningState: {
           atSeconds: 0,
-          profession: { availableFlips: {} }
+          profession: { [STATE.AVAILABLE_FLIPS]: {} }
         }
       }
     };
@@ -65,7 +66,7 @@ test('audited weapon flip families project one live palette identity', () => {
       `${parent.name} should display before its follow-up is armed`
     );
 
-    app.results.planningState.profession.availableFlips[child.id] = armSkillFlip({}, 0, 0, Infinity);
+    app.results.planningState.profession[STATE.AVAILABLE_FLIPS][child.id] = armSkillFlip({}, 0, 0, Infinity);
     assert.deepEqual(
       displayedSkillTiles(app, [parent]).map((skill) => skill.id),
       [child.id],

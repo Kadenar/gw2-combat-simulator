@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -34,10 +35,9 @@ function createHammerApp(hammerOrbs) {
         // Orb state changes independently of the canonical ammo projection.
         ammoBySkillId: {},
         profession: {
-          primaryAttunement: 'Fire',
-          secondaryAttunement: null,
-          autoattackChains: {},
-          hammerOrbs
+          [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
+          [STATE.AUTOATTACK_CHAINS]: {},
+          [STATE.HAMMER_ORBS]: hammerOrbs
         }
       }
     }

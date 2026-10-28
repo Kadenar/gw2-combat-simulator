@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -55,7 +56,7 @@ test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a 
     headButt.events.some((event) => event.type === 'action' && event.cancelled),
     true
   );
-  assert.equal(headButt.planningState.profession.adrenaline.value, 0);
+  assert.equal(headButt.planningState.profession[STATE.ADRENALINE].value, 0);
   const config = { initialResource: 30, primaryWeapon: 'Greatsword', selectedSkillIds: [30189] };
   const primed = simulate('Berserker', ['Berserk', 'Arc Divider'], config);
   const cancelled = simulate(
@@ -64,7 +65,10 @@ test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a 
     config
   );
   assert.deepEqual(cancelled.warnings, []);
-  assert.equal(cancelled.planningState.profession.adrenaline.value, primed.planningState.profession.adrenaline.value);
+  assert.equal(
+    cancelled.planningState.profession[STATE.ADRENALINE].value,
+    primed.planningState.profession[STATE.ADRENALINE].value
+  );
   assert.equal(
     cancelled.planningState.cooldowns[ID.ARC_DIVIDER].readyAt,
     primed.planningState.cooldowns[ID.ARC_DIVIDER].readyAt
@@ -72,7 +76,7 @@ test('cancelled Head Butt and Blood Reckoning cannot grant resources or reset a 
   const committed = simulate('Berserker', ['Berserk', 'Arc Divider', 'Blood Reckoning'], config);
   assert.deepEqual(committed.warnings, []);
   assert.equal(committed.planningState.cooldowns[ID.ARC_DIVIDER], undefined);
-  assert.equal(committed.planningState.profession.adrenaline.value, 10);
+  assert.equal(committed.planningState.profession[STATE.ADRENALINE].value, 10);
 });
 
 test('Invigorating Tempo grants capped adrenaline for each point of Motivation actually spent', () => {
@@ -133,7 +137,7 @@ test('all accepted Staff and Spear burst variants spend resources and grant firs
         selectedTraitIds: [TRAIT.BERSERKERS_POWER]
       });
       assert.deepEqual(result.warnings, [], `${specialization}: ${skillId}`);
-      assert.equal(result.planningState.profession.adrenaline.value, remaining, `${specialization}: ${skillId}`);
+      assert.equal(result.planningState.profession[STATE.ADRENALINE].value, remaining, `${specialization}: ${skillId}`);
       assert.equal(
         result.events.some((event) => event.kind === 'berserkers-power'),
         true
@@ -153,7 +157,8 @@ test('Axe Mastery adds adrenaline only to critical axe hits, including burst and
     const result = simulate(specialization, rotation, { ...config, selectedTraitIds: [TRAIT.AXE_MASTERY] });
     assert.deepEqual(result.warnings, []);
     assert.equal(
-      result.planningState.profession.adrenaline.value - baseline.planningState.profession.adrenaline.value,
+      result.planningState.profession[STATE.ADRENALINE].value -
+        baseline.planningState.profession[STATE.ADRENALINE].value,
       2
     );
   }
@@ -168,18 +173,19 @@ test('Axe Mastery adds adrenaline only to critical axe hits, including burst and
       selectedTraitIds: [TRAIT.AXE_MASTERY]
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.adrenaline.value, 1);
+    assert.equal(result.planningState.profession[STATE.ADRENALINE].value, 1);
   }
 });
 
 test('Axe Mastery follows the live cap and Bladesworn resource conversion', () => {
   // Compare actual critical hits so ordinary hit grants and Flow recovery retain their own ownership.
   const config = { primaryWeapon: 'Axe', selectedTraitIds: [TRAIT.AXE_MASTERY], initialResource: 29 };
-  assert.equal(simulate('Core', ['Chop'], config).planningState.profession.adrenaline.value, 30);
+  assert.equal(simulate('Core', ['Chop'], config).planningState.profession[STATE.ADRENALINE].value, 30);
   const trained = simulate('Bladesworn', ['Chop'], config);
   const bare = simulate('Bladesworn', ['Chop'], { ...config, selectedTraitIds: [] });
   assert.ok(
-    Math.abs(trained.planningState.profession.flow.value - bare.planningState.profession.flow.value - 2) < 1e-9
+    Math.abs(trained.planningState.profession[STATE.FLOW].value - bare.planningState.profession[STATE.FLOW].value - 2) <
+      1e-9
   );
 });
 
@@ -316,7 +322,10 @@ test('endurance integration and Dodge readiness follow actual pooled Vigor windo
 
     for (const durations of [[10000], [1000, 1000, 2000, 6000], [30000]]) {
       const result = run(durations.map((durationMs) => ({ type: 'wait', durationMs })));
-      assert.equal(result.planningState.profession.endurance.value, durations[0] === 30000 ? 100 : expectedEndurance);
+      assert.equal(
+        result.planningState.profession[STATE.ENDURANCE].value,
+        durations[0] === 30000 ? 100 : expectedEndurance
+      );
     }
 
     const dodge = run(['Dodge']);

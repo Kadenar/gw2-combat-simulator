@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
@@ -40,7 +41,7 @@ test('generic resource spending retains the recorded amount and planning capacit
   const rows = simulationEventLogRows({
     events: [{ type: 'resource', resource: 'clones', amount: -2, value: 1, at: 0 }],
     resolvedEvents: [],
-    planningState: { profession: { resourceDefinition: { maximum: 3 } } }
+    planningState: { profession: { [STATE.RESOURCE_DEFINITION]: { maximum: 3 } } }
   });
   assert.equal(rows[0].description, 'CLONES SPENT x2 -> 1/3');
 });

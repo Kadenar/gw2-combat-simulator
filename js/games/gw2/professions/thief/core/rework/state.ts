@@ -1,11 +1,9 @@
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import {
-  createThiefCoreState,
-  THIEF_CORE_PUBLIC_STATE_PROJECTION,
-  type ThiefCoreState
-} from '#gw2/professions/thief/core/state.js';
+import { createThiefCoreState, type ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface ThiefCoreReworkState extends ThiefCoreState {
   /** Refreshing mobility leaves one pending attack reward, never accumulated charges. */
@@ -27,8 +25,27 @@ export function reworkCoreState(runtime: Pick<ThiefRuntime, 'profession'>): Thie
   return runtime.profession.core as ThiefCoreReworkState;
 }
 
-/** UI observations expose the pending reward; simulation prefixes are still rerun from their inputs. */
-export const THIEF_CORE_REWORK_PUBLIC_STATE_PROJECTION = {
-  ...THIEF_CORE_PUBLIC_STATE_PROJECTION,
-  keys: [...THIEF_CORE_PUBLIC_STATE_PROJECTION.keys, 'deftInitiationArmed']
-};
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectThiefCoreReworkPlanningState(input: Gw2PlanningStateInput) {
+  const state = (input.profession as { core: ReturnType<typeof createThiefCoreReworkState> }).core;
+  return structuredClone({
+    [STATE.INITIATIVE]: state.initiative,
+    [STATE.STEALTH_STARTED_AT]: state.stealthStartedAt,
+    [STATE.STEALTH_UNTIL]: state.stealthUntil,
+    [STATE.REVEALED_UNTIL]: state.revealedUntil,
+    [STATE.STORED_STOLEN_SKILL_IDS]: state.storedStolenSkillIds,
+    [STATE.STORED_STOLEN_SKILL_COUNT]: state.storedStolenSkillCount,
+    [STATE.KNEELING]: state.kneeling,
+    [STATE.ENDURANCE]: state.endurance,
+    [STATE.LEAD_ATTACK_EXPIRATIONS]: state.leadAttackExpirations,
+    [STATE.SPEAR_CHAIN_STAGE]: state.spearChainStage,
+    [STATE.SPEAR_PREVIOUS_SKILL_ID]: state.spearPreviousSkillId,
+    [STATE.SPINNING_AXES]: state.spinningAxes,
+    [STATE.OUTBOUND_AXES]: state.outboundAxes,
+    [STATE.VENOM_CHARGE_BATCHES]: state.venomChargeBatches,
+    [STATE.ACTIVE_THIEVES_GUILD]: state.activeThievesGuild,
+    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
+    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
+    [STATE.DEFT_INITIATION_ARMED]: state.deftInitiationArmed
+  });
+}

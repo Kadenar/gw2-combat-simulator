@@ -21,11 +21,12 @@ import type {
 import type {
   GuardianResolverEvent,
   GuardianSkill,
-  GuardianState,
+  GuardianPlanningState,
   GuardianUiContext,
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Render actual weapon-bar transitions at their executed boundary. */
 function luminaryEventLogRow(
@@ -80,7 +81,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
   const items: RotationStateSnapshotItem[] = [];
   const state = professionState(context);
   // Expose Light Aura while it can still be consumed by Luminary skills.
-  const lightAuraRemaining = (state.lightAuraUntil || 0) - at;
+  const lightAuraRemaining = (state[STATE.LIGHT_AURA_UNTIL] || 0) - at;
 
   if (lightAuraRemaining > 0) {
     items.push({
@@ -91,13 +92,13 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
     });
   }
 
-  const effulgentRemaining = (state.effulgentActiveUntil || 0) - at;
+  const effulgentRemaining = (state[STATE.EFFULGENT_ACTIVE_UNTIL] || 0) - at;
 
   if (effulgentRemaining > 0) {
     // Display the selected cap, including patches that allow more than the baseline stack count.
     const skill = requireSkillFromContext(context.balanceContext, GUARDIAN_SKILL_IDS.EFFULGENT_STANCE);
     const maximum = requireBalanceNumber(skill.maximumStacks, `skill=${skill.id} field=maximumStacks`);
-    const stacks = boundedInteger(state.effulgentStacks || 0, 0, 0, maximum);
+    const stacks = boundedInteger(state[STATE.EFFULGENT_STACKS] || 0, 0, 0, maximum);
     items.push({
       id: 'luminary-effulgent-stance',
       label: 'Effulgent Stance',
@@ -233,7 +234,8 @@ export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>
       if (skill.id === GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE || skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE)
         return {
           tileActive:
-            (skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE) === Boolean(professionState(context).radiantForge)
+            (skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE) ===
+            Boolean(professionState(context)[STATE.RADIANT_FORGE])
         };
     },
     effectPresentations: luminaryEffectPresentations,
@@ -261,7 +263,7 @@ export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>
   });
 }
 
-function professionState(context: GuardianUiContext): Partial<GuardianState> {
+function professionState(context: GuardianUiContext): Partial<GuardianPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }

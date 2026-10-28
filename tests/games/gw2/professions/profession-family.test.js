@@ -1,4 +1,5 @@
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -192,13 +193,22 @@ test('elite event presentation is owned by the active specialization', () => {
     const activeRuntime = family.resolveProfession(activeConfig);
     const activeState = activeRuntime.createState(activeConfig);
     const coreRow = family.ui.eventLogRow?.(
-      { config: coreConfig, professionState: flattenProfessionState(coreState) },
+      {
+        config: coreConfig,
+        professionState: projectObservedState(family, { profession: coreState, config: coreConfig })
+      },
       event
     );
 
     assert.equal(coreRow?.description, undefined, `${family.id}/Core must not present ${event.type}`);
     assert.notEqual(
-      family.ui.eventLogRow?.({ config: activeConfig, professionState: flattenProfessionState(activeState) }, event),
+      family.ui.eventLogRow?.(
+        {
+          config: activeConfig,
+          professionState: projectObservedState(family, { profession: activeState, config: activeConfig })
+        },
+        event
+      ),
       undefined,
       `${family.id}/${specialization} must present ${event.type}`
     );
@@ -696,7 +706,7 @@ test('Necromancer presentation exposes only active specialization resources', ()
         config,
         // Resource capacities must use the same selected balance catalog as the runtime.
         catalog: runtime.catalog,
-        professionState: flattenProfessionState(state)
+        professionState: projectObservedState(necromancerProfession, { profession: state, config })
       })
       .map((resource) => resource.id);
 
@@ -712,7 +722,14 @@ test('Necromancer public projection omits inactive specialization resources', ()
   });
 
   // Core publishes no fields owned by inactive specialization modules.
-  for (const key of ['blight', 'blightExpiries', 'shades', 'activeSpirits', 'soulTwistingAvailable', 'meltdownUntil'])
+  for (const key of [
+    STATE.BLIGHT,
+    STATE.BLIGHT_EXPIRIES,
+    STATE.SHADES,
+    STATE.ACTIVE_SPIRITS,
+    STATE.SOUL_TWISTING_AVAILABLE,
+    STATE.MELTDOWN_UNTIL
+  ])
     assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });
 
@@ -828,7 +845,7 @@ test('Guardian presentation and public projection preserve their contracts', () 
       .resourceViews({
         catalog: runtime.catalog,
         config,
-        professionState: flattenProfessionState(state)
+        professionState: projectObservedState(guardianProfession, { profession: state, config })
       })
       .map((resource) => resource.id);
 
@@ -836,7 +853,7 @@ test('Guardian presentation and public projection preserve their contracts', () 
     const paletteIds = guardianProfession.ui
       .paletteGroups({
         config,
-        professionState: flattenProfessionState(state)
+        professionState: projectObservedState(guardianProfession, { profession: state, config })
       })
       .map((group) => group.id);
 
@@ -851,7 +868,7 @@ test('Guardian presentation and public projection preserve their contracts', () 
   });
 
   // Core publishes no fields owned by inactive specialization modules.
-  for (const key of ['activeTome', 'tomePages', 'radiantForge', 'radiantWeaponsUsed'])
+  for (const key of [STATE.ACTIVE_TOME, STATE.TOME_PAGES, STATE.RADIANT_FORGE, STATE.RADIANT_WEAPONS_USED])
     assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });
 
@@ -945,7 +962,7 @@ test('Mesmer presentation and ammo output expose only the active specialization 
     const resources = mesmerProfession.ui.resourceViews({
       catalog: runtime.catalog,
       config,
-      professionState: flattenProfessionState(state)
+      professionState: projectObservedState(mesmerProfession, { profession: state, config })
     });
 
     // Only Mirage and Troubadour expose dodge endurance alongside their primary resource.
@@ -1063,7 +1080,7 @@ test('Revenant presentation and public projection preserve their contracts', () 
     const resourceIds = revenantProfession.ui
       .resourceViews({
         config,
-        professionState: flattenProfessionState(state)
+        professionState: projectObservedState(revenantProfession, { profession: state, config })
       })
       .map((resource) => resource.id);
 
@@ -1078,7 +1095,7 @@ test('Revenant presentation and public projection preserve their contracts', () 
   });
 
   // Core publishes no fields owned by inactive specialization modules.
-  for (const key of ['affinity', 'kallasFervor'])
+  for (const key of [STATE.AFFINITY, STATE.KALLAS_FERVOR])
     assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });
 
@@ -1240,14 +1257,14 @@ test('Engineer presentation and public projection preserve their contracts', () 
     const resourceIds = engineerProfession.ui
       .resourceViews({
         config,
-        professionState: flattenProfessionState(state)
+        professionState: projectObservedState(engineerProfession, { profession: state, config })
       })
       .map((resource) => resource.id);
     const uiContext = {
       catalog: engineerProfession.catalog,
       config,
       specialization: active,
-      professionState: flattenProfessionState(state)
+      professionState: projectObservedState(engineerProfession, { profession: state, config })
     };
 
     assert.equal(resourceIds.includes('heat'), active === 'Holosmith', active);
@@ -1272,6 +1289,6 @@ test('Engineer presentation and public projection preserve their contracts', () 
   });
 
   // Core publishes no fields owned by inactive specialization modules.
-  for (const key of ['heat', 'photonForgeActive', 'mech', 'selectedMorphSkillIds'])
+  for (const key of [STATE.HEAT, STATE.PHOTON_FORGE_ACTIVE, STATE.MECH, STATE.SELECTED_MORPH_SKILL_IDS])
     assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });

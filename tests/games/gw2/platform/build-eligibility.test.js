@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { paletteAvailability } from '#gw2/app/rotation/palette/model.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
@@ -26,7 +27,10 @@ test('shared eligibility precedes profession filters and cast state changes', ()
       defineNativeModule({
         id: 'Core',
         data: { generatedSkills: [weapon, excluded, wrongSpecialization] },
-        state: { create: () => ({ resource: 10 }) },
+        state: {
+          create: () => ({ resource: 10 }),
+          project: ({ profession }) => ({ [STATE.RESOURCE]: profession.core.resource })
+        },
         hooks: {
           availability() {
             stateChecks++;
@@ -72,14 +76,14 @@ test('shared eligibility precedes profession filters and cast state changes', ()
     ]
   });
   assert.equal(stateChecks, 1, 'Only the castable weapon is queried by planning capture');
-  assert.equal(rejected.planningState.profession.resource, 10);
+  assert.equal(rejected.planningState.profession[STATE.RESOURCE], 10);
   assert.equal(Object.keys(rejected.planningState.cooldowns).length, 0);
   assert.ok(rejected.steps.every((step) => step.invalid));
   assert.equal(rejected.warnings.length, 2);
 
   const accepted = simulateGw2({ profession, config: context, rotation: [{ type: 'cast', skillId: weapon.id }] });
   assert.deepEqual(accepted.warnings, []);
-  assert.equal(accepted.planningState.profession.resource, 9);
+  assert.equal(accepted.planningState.profession[STATE.RESOURCE], 9);
   assert.ok(accepted.planningState.cooldowns[weapon.id].readyAt > 0);
 });
 

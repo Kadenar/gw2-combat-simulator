@@ -33,12 +33,13 @@ import type {
   EngineerUiSelection,
   EngineerUiSlice
 } from '#gw2/professions/engineer/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Reads the current three Morph selections, preferring the editable build over simulated state. */
 function selectedMorphIds(context: EngineerUiContext): number[] {
-  return [...(context.build?.selectedMorphSkillIds || engineerUiState(context).selectedMorphSkillIds || [])].map(
-    Number
-  );
+  return [
+    ...(context.build?.selectedMorphSkillIds || engineerUiState(context)[STATE.SELECTED_MORPH_SKILL_IDS] || [])
+  ].map(Number);
 }
 
 /** Projects the selected protocols and trait-selected Evolve, preferring the editable build. */
@@ -138,7 +139,7 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   // Evolve is state-backed, so its remaining duration comes directly from the specialization snapshot.
-  const evolveRemaining = (state.evolvedUntil || 0) - at;
+  const evolveRemaining = (state[STATE.EVOLVED_UNTIL] || 0) - at;
 
   if (evolveRemaining > 0) {
     items.push({
@@ -153,10 +154,10 @@ function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshot
   const strains: [string, number][] = [
     ['Resiliant', activeBuffRemaining(context, 'engineer.resiliant-strain', at)],
     ['Replicating', activeBuffRemaining(context, 'engineer.replicating-strain', at)],
-    ['Rapacious', (state.rapaciousUntil || 0) - at],
-    ['Predator', (state.predatorUntil || 0) - at],
-    ['Titanic', (state.titanicUntil || 0) - at],
-    ['Berserker', (state.berserkerUntil || 0) - at]
+    ['Rapacious', (state[STATE.RAPACIOUS_UNTIL] || 0) - at],
+    ['Predator', (state[STATE.PREDATOR_UNTIL] || 0) - at],
+    ['Titanic', (state[STATE.TITANIC_UNTIL] || 0) - at],
+    ['Berserker', (state[STATE.BERSERKER_UNTIL] || 0) - at]
   ];
   const activeStrains = strains.filter(([, remaining]) => remaining > 0);
 

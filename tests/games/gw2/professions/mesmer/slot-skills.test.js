@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -133,7 +134,7 @@ test('Signet of the Ether does not generate a clone', () => {
     })
   );
 
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 0);
   assert.equal(
     result.events.some((event) => event.type === 'resource' && event.reason === 'Signet of the Ether'),
     false
@@ -150,7 +151,7 @@ test('shift-queued Mirror Images after an instant action still grants clones', (
   const result = simulateMesmer(['Feedback', { name: 'Mirror Images', offset: 100 }], config);
 
   assert.equal(result.planningState.atSeconds * 1000, 120);
-  assert.equal(result.planningState.profession.resource, 2);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 2);
 });
 
 test('shift-queued Mirror Images after a resource-generating cast grants both clones', () => {
@@ -172,7 +173,7 @@ test('shift-queued Mirror Images after a resource-generating cast grants both cl
   );
 
   assert.equal(mirrorImagesResource?.amount, 2);
-  assert.equal(result.planningState.profession.resource, 3);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 3);
 });
 
 test('clones from shift-queued Mirror Images are available to the next shatter', () => {
@@ -186,7 +187,7 @@ test('clones from shift-queued Mirror Images are available to the next shatter',
 
   assert.equal(result.steps.length, 3);
   assert.equal(result.steps[2].start, 120);
-  assert.equal(result.planningState.profession.resource, 0);
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 0);
 });
 
 // The healing mantra uses the same prepared flip lifecycle, with an independent ammo pool and use lockout.
@@ -198,7 +199,7 @@ test('Power Return starts prepared, respects its recharge and use lockout, and e
   const primed = simulateMesmer([], config);
   assert.equal(primed.planningState.ammoBySkillId[ID.POWER_RETURN].charges, 2);
   assert.equal(primed.planningState.ammoBySkillId[ID.POWER_RETURN].maximum, 2);
-  assert.equal(primed.planningState.profession.availableFlips[ID.POWER_RETURN].expiresAt, null);
+  assert.equal(primed.planningState.profession[STATE.AVAILABLE_FLIPS][ID.POWER_RETURN].expiresAt, null);
   const used = simulateMesmer(['Power Return'], config);
   assert.deepEqual(used.warnings, []);
   assert.equal(used.planningState.ammoBySkillId[ID.POWER_RETURN].charges, 1);
@@ -210,7 +211,7 @@ test('Power Return starts prepared, respects its recharge and use lockout, and e
   const accepted = exhausted.steps.filter((step) => !step.invalid);
   assert.equal(accepted.length, 2);
   assert.equal(accepted[1].start - accepted[0].start, 800);
-  assert.equal(exhausted.planningState.profession.availableFlips[ID.POWER_RETURN], undefined);
+  assert.equal(exhausted.planningState.profession[STATE.AVAILABLE_FLIPS][ID.POWER_RETURN], undefined);
   assert.equal(exhausted.planningState.ammoBySkillId[ID.POWER_RETURN], undefined);
   assert.match(exhausted.warnings.at(-1).message, /Mantra of Recovery is not active/);
 });
@@ -231,7 +232,7 @@ test('Mantra of Recovery and Mantra of Pain prepare only their own flips', () =>
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.ammoBySkillId[flip].charges, 2);
     assert.equal(result.planningState.ammoBySkillId[other].charges, 1);
-    assert.equal(result.planningState.profession.availableFlips[flip].expiresAt, null);
+    assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][flip].expiresAt, null);
     // Only prepared flips own charges; preparation must never leave a second pool on either parent.
     assert.equal(result.planningState.ammoBySkillId[ID.MANTRA_OF_RECOVERY], undefined);
     assert.equal(result.planningState.ammoBySkillId[ID.MANTRA_OF_PAIN], undefined);
@@ -276,7 +277,7 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
   );
   assert.equal(result.steps[0].start, 0);
   assert.equal(result.steps[1].start, 0);
-  assert.equal(result.planningState.profession.availableFlips[ID.POWER_SPIKE], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.POWER_SPIKE], undefined);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE], undefined);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE], undefined);
   assert.match(result.warnings.at(-1).message, /Mantra of Pain is not active/);
@@ -292,8 +293,8 @@ test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
     result.steps.map((step) => step.skill),
     ['Power Spike', 'Power Spike', 'Mantra of Pain', 'Power Spike']
   );
-  assert.ok(result.planningState.profession.availableFlips[ID.POWER_SPIKE]);
-  assert.equal(result.planningState.profession.availableFlips[ID.POWER_SPIKE].expiresAt, null);
+  assert.ok(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.POWER_SPIKE]);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.POWER_SPIKE].expiresAt, null);
   assert.deepEqual(
     {
       charges: result.planningState.ammoBySkillId[ID.POWER_SPIKE].charges,
@@ -320,7 +321,7 @@ test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulat
   // Only the two opener spikes are simulated; the woven one is skipped, so the
   // refilled mantra keeps both charges.
   assert.equal(result.steps.filter((step) => step.skill === 'Power Spike' && !step.invalid).length, 2);
-  assert.equal(result.planningState.profession.availableFlips[ID.POWER_SPIKE].expiresAt, null);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.POWER_SPIKE].expiresAt, null);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE].charges, 2);
   assert.match(result.warnings.at(-1).message, /Mantra of Pain is still channeling/);
 });

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -106,8 +107,8 @@ test('native upkeep recurrence terminates at starvation inside a finite tail', (
     target
   })('Core', ['Impossible Odds'], {}, { kind: 'tail', durationMs: 50_000 });
 
-  assert.equal(result.planningState.profession.activeUpkeeps.length, 0);
-  assert.ok(Math.abs(result.planningState.profession.energy.value - 25) < 0.01);
+  assert.equal(result.planningState.profession[STATE.ACTIVE_UPKEEPS].length, 0);
+  assert.ok(Math.abs(result.planningState.profession[STATE.ENERGY].value - 25) < 0.01);
   assert.ok(result.dpsWindow > result.rotationEndTime);
   assert.equal(
     result.events.every((event) => event.at <= result.rotationEndTime + 50),

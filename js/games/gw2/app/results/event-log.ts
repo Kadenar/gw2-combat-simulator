@@ -1,5 +1,5 @@
-import { ACTOR } from '#gw2/platform/constants.js';
 /** Maps simulation events to display rows and mounts the rotation event-log view. */
+import { ACTOR } from '#gw2/platform/constants.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
@@ -21,6 +21,7 @@ import {
   eventLogSource,
   minionAttackerLabel
 } from '#gw2/app/results/event-ownership.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 interface NormalizedEventLogDescriptor extends EventLogDescriptor {
   readonly className: string;
@@ -137,10 +138,7 @@ export function simulationEventLogRows(
       profession,
       specialization
     }) || [];
-  const resourceDefinition =
-    planningState.resourceDefinition && typeof planningState.resourceDefinition === 'object'
-      ? planningState.resourceDefinition
-      : {};
+  const resourceDefinition = planningState[STATE.RESOURCE_DEFINITION] ?? {};
   const push = (
     event: SimulationEvent,
     type: string,

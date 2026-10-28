@@ -19,10 +19,11 @@ import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianSkill,
-  GuardianState,
+  GuardianPlanningState,
   GuardianUiContext,
   GuardianUiSlice
 } from '#gw2/professions/guardian/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Simulation time (seconds) of the rotation point being inspected. */
 export function guardianSnapshotAt(context: GuardianUiContext = {}): number {
@@ -34,7 +35,7 @@ export function formatSecondsRemaining(seconds: number): string {
   return `${Math.max(0, seconds).toFixed(1)}s`;
 }
 
-export function guardianUiState(context: GuardianUiContext = {}): Partial<GuardianState> {
+export function guardianUiState(context: GuardianUiContext = {}): Partial<GuardianPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
@@ -43,7 +44,10 @@ export function guardianUiState(context: GuardianUiContext = {}): Partial<Guardi
 function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
   const state = guardianUiState(context);
   const at = guardianSnapshotAt(context);
-  const expirations = activeSymbolicAvengerExpirations(state, at);
+  const expirations = activeSymbolicAvengerExpirations(
+    { symbolicAvengerExpirations: state[STATE.SYMBOLIC_AVENGER_EXPIRATIONS] },
+    at
+  );
   const remaining = Math.max(0, ...expirations) - at;
   const stacks = expirations.length;
   return remaining > 0 && stacks > 0
@@ -66,7 +70,7 @@ export function guardianUiSkillIds(
   ids: readonly SkillId[],
   context: GuardianUiContext = {}
 ): SkillId[] {
-  const activeFlips = guardianUiState(context).availableFlips ?? {};
+  const activeFlips = guardianUiState(context)[STATE.AVAILABLE_FLIPS] ?? {};
   return ids.flatMap((id) => {
     const skill = catalog.skillsById.get(id);
 

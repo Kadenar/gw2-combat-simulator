@@ -33,7 +33,17 @@ export interface EngineerConfig extends Gw2Config {
   readonly selectedMorphSkillIds?: readonly number[];
 }
 
-export interface EngineerState extends EngineerCoreState, ScrapperState, HolosmithState, MechanistState, AmalgamState {}
+/** Public consumers receive only the ID/value pairs published by active owners. */
+export type EngineerPlanningState = ReturnType<
+  typeof import('#gw2/professions/engineer/core/state.js').projectEngineerCorePlanningState
+> &
+  ReturnType<typeof import('#gw2/professions/engineer/specializations/amalgam/state.js').projectAmalgamPlanningState> &
+  ReturnType<
+    typeof import('#gw2/professions/engineer/specializations/holosmith/state.js').projectHolosmithPlanningState
+  > &
+  ReturnType<
+    typeof import('#gw2/professions/engineer/specializations/mechanist/state.js').projectMechanistPlanningState
+  >;
 
 export interface EngineerRuntimeState {
   core: EngineerCoreState;
@@ -102,7 +112,7 @@ export interface EngineerModifierContext extends Gw2ModifierContext {
 }
 
 export interface EngineerUiContext extends Omit<
-  ProfessionUiCallbackContext<Partial<EngineerState>>,
+  ProfessionUiCallbackContext<Partial<EngineerPlanningState>>,
   'build' | 'skill'
 > {
   readonly config?: EngineerConfig;
@@ -112,7 +122,7 @@ export interface EngineerUiContext extends Omit<
 }
 
 /** UI slice whose callbacks read Engineer end-state projections. */
-export type EngineerUiSlice = Partial<ProfessionUiContract<Partial<EngineerState>>>;
+export type EngineerUiSlice = Partial<ProfessionUiContract<Partial<EngineerPlanningState>>>;
 
 export interface EngineerUiSelection {
   readonly key?: string;

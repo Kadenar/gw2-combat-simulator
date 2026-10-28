@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
@@ -33,7 +34,7 @@ function recover(waits, events, config = {}) {
 
 test('Engineer endurance uses self Vigor applications and expiry', () => {
   const result = recover([6000], [vigor(2, 2), vigor(0, 20, false)]);
-  assert.equal(result.planningState.profession.endurance.value, 35);
+  assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 35);
   assert.equal(observedRuntime(result).endurance.readyAt(50), 9);
 });
 
@@ -54,15 +55,15 @@ test('Engineer endurance uses pooled Vigor duration and actual extensions', () =
       }
     ]
   );
-  assert.equal(result.planningState.profession.endurance.value, 52.5);
+  assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 52.5);
 });
 
 test('Engineer preserves Adrenal Implant, permanent Vigor and its endurance cap', () => {
   const traits = { selectedTraitIds: [TRAIT.ADRENAL_IMPLANT] };
-  assert.equal(recover([6000], [vigor(2, 2)], traits).planningState.profession.endurance.value, 42.5);
+  assert.equal(recover([6000], [vigor(2, 2)], traits).planningState.profession[STATE.ENDURANCE].value, 42.5);
   const config = { ...traits, boons: { vigor: true } };
-  assert.equal(recover([6000], [vigor(2, 2)], config).planningState.profession.endurance.value, 52.5);
-  assert.equal(recover([30000], [], config).planningState.profession.endurance.value, 100);
+  assert.equal(recover([6000], [vigor(2, 2)], config).planningState.profession[STATE.ENDURANCE].value, 52.5);
+  assert.equal(recover([30000], [], config).planningState.profession[STATE.ENDURANCE].value, 100);
 });
 
 test('Adrenal Implant owns its patchable bonus alongside shared base endurance rules', () => {
@@ -83,6 +84,6 @@ test('Adrenal Implant owns its patchable bonus alongside shared base endurance r
         }
       }
     );
-    assert.equal(result.planningState.profession.endurance.value, 4 * 5 * (1.5 + bonus));
+    assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 4 * 5 * (1.5 + bonus));
   }
 });

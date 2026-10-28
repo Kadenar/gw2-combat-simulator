@@ -10,12 +10,13 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import type { SoulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerSkill, RangerUiContext, RangerUiSlice } from '#gw2/professions/ranger/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const BEASTMODE_TOGGLE_IDS = new Set<SkillId>([ID.BEASTMODE, ID.LEAVE_BEASTMODE]);
 
 function beastmodeActive(context: RangerUiContext): boolean {
   // Treat missing state as active: initial state starts in Beastmode, so undefined means merged.
-  return rangerUiState(context).beastmodeActive !== false;
+  return rangerUiState(context)[STATE.BEASTMODE_ACTIVE] !== false;
 }
 
 function paletteGroups(
@@ -42,7 +43,7 @@ function paletteGroups(
 
 /** Shows One Wolf Pack only while its extra-strike window remains active. */
 function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
-  const remaining = (rangerUiState(context).oneWolfPackUntil || 0) - Math.max(0, context.atSeconds || 0);
+  const remaining = (rangerUiState(context)[STATE.ONE_WOLF_PACK_UNTIL] || 0) - Math.max(0, context.atSeconds || 0);
   return remaining > 0
     ? [
         {

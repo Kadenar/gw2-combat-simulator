@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -39,7 +40,7 @@ test('Unstable Skritt Bomb is a visible profession mechanic granted only by Scuf
 test('using the bomb consumes the held Scuffle grant and resolves its strike and control', () => {
   const result = runThief([ID.SKRITT_SCUFFLE, ID.UNSTABLE_SKRITT_BOMB], config);
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.artifactUsesRemaining, 0);
+  assert.equal(result.planningState.profession[STATE.ARTIFACT_USES_REMAINING], 0);
   assert.equal(bombReady(result), false);
   assert.equal(result.planningState.availability[ID.CHAK_SHIELD].ready, false);
   const strike = result.events.find((event) => event.type === 'damage' && event.skillId === ID.UNSTABLE_SKRITT_BOMB);

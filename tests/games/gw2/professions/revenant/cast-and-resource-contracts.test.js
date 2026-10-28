@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { RAZORCLAW_PROC_ID } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
@@ -47,8 +48,8 @@ test('Conduit affinity initializes empty and exposes the selected cap through de
     assert.equal(pool.value, 0, 'precombat grants and time alone cannot accrue affinity');
     assert.equal(pool.maximum, Math.max(1, maximumStacks));
     assert.equal(pool.rate, 0);
-    assert.deepEqual(result.planningState.profession.affinity, pool);
-    assert.notEqual(result.planningState.profession.affinity, pool);
+    assert.deepEqual(result.planningState.profession[STATE.AFFINITY], pool);
+    assert.notEqual(result.planningState.profession[STATE.AFFINITY], pool);
     assert.equal(Object.hasOwn(specialization(result), 'affinityMaximum'), false);
     for (const professionState of [undefined, result.planningState.profession]) {
       const meter = revenantProfession.ui
@@ -243,27 +244,27 @@ for (const [spec, name, legend, config = {}] of [
       false
     );
     const state = result.planningState.profession;
-    assert.equal(state.enchantedDaggers.charges, 0);
+    assert.equal(state[STATE.ENCHANTED_DAGGERS].charges, 0);
 
     if (spec === 'Renegade') {
-      assert.equal(state.razorclawsRage.charges, 0);
+      assert.equal(state[STATE.RAZORCLAWS_RAGE].charges, 0);
       assert.equal(planningBuffStacks(result.planningState, 'band-together'), 0);
     } else {
       assert.equal(Object.hasOwn(state, 'razorclawsRage'), false);
       assert.equal(Object.hasOwn(state, 'bandTogether'), false);
     }
 
-    if (spec === 'Conduit') assert.equal(state.beguilingHazeCharges, 0);
+    if (spec === 'Conduit') assert.equal(state[STATE.BEGUILING_HAZE_CHARGES], 0);
     else assert.equal(Object.hasOwn(state, 'beguilingHazeCharges'), false);
 
-    assert.equal(state.crushingAbyss.length, 0);
-    assert.equal(state.activeUpkeeps.length, 0);
+    assert.equal(state[STATE.CRUSHING_ABYSS].length, 0);
+    assert.equal(state[STATE.ACTIVE_UPKEEPS].length, 0);
 
-    if (name === 'Ancient Echo') assert.equal(state.energy.value, 50 + result.rotationEndTime * 5);
+    if (name === 'Ancient Echo') assert.equal(state[STATE.ENERGY].value, 50 + result.rotationEndTime * 5);
 
-    if (name === 'Twin Moon Sweep') assert.equal(state.affinity.value, 0);
+    if (name === 'Twin Moon Sweep') assert.equal(state[STATE.AFFINITY].value, 0);
 
-    if (name === 'Dodge') assert.equal(state.endurance.value, 50 + result.rotationEndTime * 5);
+    if (name === 'Dodge') assert.equal(state[STATE.ENDURANCE].value, 50 + result.rotationEndTime * 5);
 
     if (name === 'Beguiling Haze') assert.equal(specialization(result).beguilingHazeRecharge, null);
   });
@@ -619,7 +620,7 @@ test('upkeep starvation cooldowns scale with Alacrity', () => {
     assert.deepEqual(result.warnings, []);
     // Five Energy remains after activation; the six-per-second drain against five regeneration empties it at one second.
     assert.equal(observedRuntime(result).cooldownController.readyAt(SKILL.IMPOSSIBLE_ODDS), 1 + 4 / 1.25);
-    assert.deepEqual(result.planningState.profession.activeUpkeeps, []);
+    assert.deepEqual(result.planningState.profession[STATE.ACTIVE_UPKEEPS], []);
   }
 });
 
@@ -629,9 +630,12 @@ test('Diminish Solace stops upkeep drain, retires its follow-up, and starts the 
   const released = simulate('Core', rotation, config);
   const recovered = simulate('Core', [...rotation, wait(2000)], config);
   assert.deepEqual(recovered.warnings, []);
-  assert.deepEqual(recovered.planningState.profession.activeUpkeeps, []);
-  assert.equal(recovered.planningState.profession.availableFlips[SKILL.DIMINISH_SOLACE], undefined);
-  assert.equal(recovered.planningState.profession.energy.value - released.planningState.profession.energy.value, 10);
+  assert.deepEqual(recovered.planningState.profession[STATE.ACTIVE_UPKEEPS], []);
+  assert.equal(recovered.planningState.profession[STATE.AVAILABLE_FLIPS][SKILL.DIMINISH_SOLACE], undefined);
+  assert.equal(
+    recovered.planningState.profession[STATE.ENERGY].value - released.planningState.profession[STATE.ENERGY].value,
+    10
+  );
   assert.equal(observedRuntime(released).cooldownController.readyAt(SKILL.PROTECTIVE_SOLACE), 5);
   const unavailable = simulate('Core', ['Diminish Solace'], config);
   assert.match(unavailable.warnings.map(({ message }) => message).join('\n'), /activate the matching upkeep/);

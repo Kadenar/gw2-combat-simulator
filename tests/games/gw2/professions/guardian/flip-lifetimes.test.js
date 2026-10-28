@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -35,7 +36,7 @@ test('Guardian weapon flips share exact deadlines across availability, snapshots
       if (id === ID.ZEALOTS_FLAME) assert.equal(native.availability(current, parent).ready, !active);
 
       const projected = projectObservedState(guardianProfession, { profession: runtime.profession, time: at });
-      assert.equal(Object.hasOwn(projected.availableFlips, flip.id), active);
+      assert.equal(Object.hasOwn(projected[STATE.AVAILABLE_FLIPS], flip.id), active);
       assert.equal(
         guardianUiSkillIds(guardianCatalog, [parent.id], {
           professionState: projected,
@@ -56,47 +57,48 @@ test('flip refresh replaces the old expiry and consuming it leaves no reusable w
   const config = { primaryWeapon: 'Greatsword' };
   const prefix = [ID.BINDING_BLADE, wait(1000), { type: 'cooldown-reset' }, ID.BINDING_BLADE];
   const armed = runGuardian(prefix, config);
-  const deadline = armed.planningState.profession.availableFlips[ID.PULL].expiresAt;
-  const old = runGuardian([ID.BINDING_BLADE], config).planningState.profession.availableFlips[ID.PULL].expiresAt;
+  const deadline = armed.planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL].expiresAt;
+  const old = runGuardian([ID.BINDING_BLADE], config).planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL]
+    .expiresAt;
   assert.ok(deadline > old);
   const survives = runGuardian([...prefix, wait((old - armed.rotationEndTime) * 1000)], config);
-  assert.equal(survives.planningState.profession.availableFlips[ID.PULL].expiresAt, deadline);
+  assert.equal(survives.planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL].expiresAt, deadline);
   const consumed = runGuardian([...prefix, ID.PULL], config);
   assert.deepEqual(consumed.warnings, []);
-  assert.equal(consumed.planningState.profession.availableFlips[ID.PULL], undefined);
+  assert.equal(consumed.planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL], undefined);
 });
 
 test('uncommitted parents and flips preserve prior state while committed atomic cancels arm and consume', () => {
   const config = { primaryWeapon: 'Greatsword' };
   const parent = guardianCatalog.skillsById.get(ID.BINDING_BLADE);
   const initial = runGuardian([ID.BINDING_BLADE], config);
-  const deadline = initial.planningState.profession.availableFlips[ID.PULL].expiresAt;
+  const deadline = initial.planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL].expiresAt;
   const preserved = runGuardian(
     [ID.BINDING_BLADE, { type: 'cooldown-reset' }, { skillId: ID.BINDING_BLADE, interruptAfterMs: 1 }],
     config
   );
-  assert.equal(preserved.planningState.profession.availableFlips[ID.PULL].expiresAt, deadline);
+  assert.equal(preserved.planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL].expiresAt, deadline);
   const committed = runGuardian(
     [{ skillId: ID.BINDING_BLADE, interruptAfterMs: parent.interruptCommitMs }, ID.PULL],
     config
   );
   assert.deepEqual(committed.warnings, []);
-  assert.equal(committed.planningState.profession.availableFlips[ID.PULL], undefined);
+  assert.equal(committed.planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL], undefined);
 });
 
 test('specialization flips use the live parent deadline and forge flips persist until form exit', () => {
   const willbender = runGuardian([ID.FLASH_COMBO], { specialization: 'Willbender' });
   const completed = willbender.events.find((event) => event.type === 'action').endsAt;
-  assert.equal(willbender.planningState.profession.availableFlips[ID.REPOSE].expiresAt, completed + 6);
+  assert.equal(willbender.planningState.profession[STATE.AVAILABLE_FLIPS][ID.REPOSE].expiresAt, completed + 6);
   const dragonhunter = runGuardian([ID.SPEAR_OF_JUSTICE], { specialization: 'Dragonhunter' });
   assert.equal(
-    dragonhunter.planningState.profession.availableFlips[ID.HUNTERS_VERDICT].expiresAt,
-    dragonhunter.planningState.profession.tetherUntil
+    dragonhunter.planningState.profession[STATE.AVAILABLE_FLIPS][ID.HUNTERS_VERDICT].expiresAt,
+    dragonhunter.planningState.profession[STATE.TETHER_UNTIL]
   );
   const forge = runGuardian([ID.ENTER_RADIANT_FORGE, wait(19000)], { specialization: 'Luminary' });
-  assert.equal(forge.planningState.profession.availableFlips[ID.EXIT_RADIANT_FORGE].expiresAt, null);
+  assert.equal(forge.planningState.profession[STATE.AVAILABLE_FLIPS][ID.EXIT_RADIANT_FORGE].expiresAt, null);
   const expired = runGuardian([ID.ENTER_RADIANT_FORGE, wait(20000)], { specialization: 'Luminary' });
-  assert.equal(expired.planningState.profession.availableFlips[ID.EXIT_RADIANT_FORGE], undefined);
+  assert.equal(expired.planningState.profession[STATE.AVAILABLE_FLIPS][ID.EXIT_RADIANT_FORGE], undefined);
 });
 
 test('Binding Blade expiry hides Pull without removing the final tether damage packet', () => {
@@ -107,7 +109,7 @@ test('Binding Blade expiry hides Pull without removing the final tether damage p
     (event) => event.name === 'Binding Blade — Tether' && event.at === action.endsAt + 10
   );
   assert.ok(final?.damage > 0);
-  assert.equal(result.planningState.profession.availableFlips[ID.PULL], undefined);
+  assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL], undefined);
 });
 
 // Removing the old fallback must retain ordinary staff-chain and Truth/Echo windows outside managed mantra ammo.

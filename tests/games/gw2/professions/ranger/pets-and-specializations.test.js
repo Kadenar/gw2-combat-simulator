@@ -1,4 +1,5 @@
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import {
@@ -17,10 +18,6 @@ import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { DRUID_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/druid/state.js';
-import { GALESHOT_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/galeshot/state.js';
-import { SOULBEAST_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { UNTAMED_PUBLIC_STATE_PROJECTION } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -61,36 +58,19 @@ test('Ranger scheduler snapshots expose flat profession state', () => {
 
   assert.equal(result.planningState.profession.core, undefined);
   assert.equal(result.planningState.profession.specialization, undefined);
-  assert.equal(rangerPetForState(result.planningState.profession).name, 'Lynx');
-  assert.equal(result.planningState.profession.beastmodeActive, true);
+  assert.equal(activeRangerUiPet({ professionState: result.planningState.profession }).name, 'Lynx');
+  assert.equal(result.planningState.profession[STATE.BEASTMODE_ACTIVE], true);
 });
 
 test('Ranger public state is composed from Core and specialization-owned manifests', () => {
   // Expected public fields stay independent of the production projection manifest.
-  const coreKeys = [
-    'activePetSlot',
-    'petNames',
-    'endurance',
-    'availableFlips',
-    'stealthStartedAt',
-    'stealthUntil',
-    'revealedUntil',
-    'autoattackChains',
-    'winterBiteReady',
-    'quickDraw',
-    'sharpeningStoneGrants',
-    'pet'
-  ];
-  for (const [specialization, projection] of [
-    ['Druid', DRUID_PUBLIC_STATE_PROJECTION],
-    ['Soulbeast', SOULBEAST_PUBLIC_STATE_PROJECTION],
-    ['Untamed', UNTAMED_PUBLIC_STATE_PROJECTION],
-    ['Galeshot', GALESHOT_PUBLIC_STATE_PROJECTION]
-  ]) {
+  for (const specialization of ['Druid', 'Soulbeast', 'Untamed', 'Galeshot']) {
     const runtime = rangerProfession.runtimeFor({ specialization });
     const state = runtime.createState({ specialization });
     const projected = runtime.projectPlanningState({ profession: state, time: 0 });
-    assert.deepEqual(Object.keys(projected).sort(), [...new Set([...coreKeys, ...projection.keys])].sort());
+    assert.ok(Object.keys(projected).every((key) => Object.values(STATE).includes(key)));
+    assert.equal(Object.hasOwn(projected, 'player'), false);
+    assert.equal(Object.hasOwn(projected, 'nextPetInstance'), false);
   }
 });
 
@@ -314,8 +294,11 @@ test('Core Ranger exposes only the selected pet Beast skill', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(rangerPetForState(result.planningState.profession).name, 'Lynx');
-  assert.equal(rangerPetForState(result.planningState.profession).skillIds.includes(ID.RENDING_POUNCE), true);
+  assert.equal(activeRangerUiPet({ professionState: result.planningState.profession }).name, 'Lynx');
+  assert.equal(
+    activeRangerUiPet({ professionState: result.planningState.profession }).skillIds.includes(ID.RENDING_POUNCE),
+    true
+  );
   assert.equal(result.totalDamage > 0, true);
 
   const swapped = simulate('Core', ['Swap Weapons'], { primaryWeapon: 'Longbow', weaponSet2Primary: 'Axe' });
@@ -344,8 +327,8 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
   const carrionContext = {
     specialization: 'Core',
     professionState: {
-      petNames: ['Carrion Devourer', 'Lynx'],
-      activePetSlot: 1
+      [STATE.PET_NAMES]: ['Carrion Devourer', 'Lynx'],
+      [STATE.ACTIVE_PET_SLOT]: 1
     }
   };
   const carrionPalette = rangerProfession.ui.paletteGroups(carrionContext).find((group) => group.id === 'ranger-pet');
@@ -357,7 +340,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
 
   const endurance = rangerProfession.ui.resourceViews({
     specialization: 'Galeshot',
-    professionState: { endurance: { value: 35, maximum: 100, updatedAt: 0, rate: 0 } }
+    professionState: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, rate: 0 } }
   })[0];
 
   assert.equal(endurance.value, 35);
@@ -367,7 +350,10 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
     adapter: { eliteSpecialization: () => 'Core' },
     build: { initialResource: 0 },
     results: {
-      planningState: { availability: {}, profession: { endurance: { value: 35, maximum: 100, updatedAt: 0, rate: 0 } } }
+      planningState: {
+        availability: {},
+        profession: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, rate: 0 } }
+      }
     }
   };
 
@@ -761,7 +747,7 @@ test('Galeshot regenerates one arrow every five seconds regardless of permanent 
         initialArrows: 0,
         boons: { alacrity }
       });
-      assert.equal(result.planningState.profession.arrows.value, arrows);
+      assert.equal(result.planningState.profession[STATE.ARROWS].value, arrows);
     }
   }
 });
@@ -817,7 +803,7 @@ test("Core Ranger arms Winter's Bite readiness on cast commit", () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.winterBiteReady, true);
+  assert.equal(result.planningState.profession[STATE.WINTER_BITE_READY], true);
 });
 
 test('Druid gates, drains, and releases Celestial Avatar', () => {
@@ -830,14 +816,14 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
   const entered = simulate('Druid', ['Celestial Avatar']);
 
   assert.deepEqual(entered.warnings, []);
-  assert.equal(entered.planningState.profession.astralClock.value, 100);
-  assert.equal(entered.planningState.profession.celestialAvatarEndsAt !== null, true);
-  assert.equal(entered.planningState.profession.availableFlips[ID.RELEASE_CELESTIAL_AVATAR]?.expiresAt, 15);
+  assert.equal(entered.planningState.profession[STATE.ASTRAL_CLOCK].value, 100);
+  assert.equal(entered.planningState.profession[STATE.CELESTIAL_AVATAR_ENDS_AT] !== null, true);
+  assert.equal(entered.planningState.profession[STATE.AVAILABLE_FLIPS][ID.RELEASE_CELESTIAL_AVATAR]?.expiresAt, 15);
 
   const draining = simulate('Druid', ['Celestial Avatar', { type: 'wait', durationMs: 5000 }]);
 
-  assert.equal(draining.planningState.profession.astralClock.value, 100 * (10 / 15));
-  assert.equal(draining.planningState.profession.celestialAvatarEndsAt !== null, true);
+  assert.equal(draining.planningState.profession[STATE.ASTRAL_CLOCK].value, 100 * (10 / 15));
+  assert.equal(draining.planningState.profession[STATE.CELESTIAL_AVATAR_ENDS_AT] !== null, true);
   assert.equal(draining.planningState.availability[ID.RELEASE_CELESTIAL_AVATAR].ready, true);
 
   const result = simulate('Druid', ['Celestial Avatar', 'Natural Convergence', 'Release Celestial Avatar']);
@@ -845,11 +831,15 @@ test('Druid gates, drains, and releases Celestial Avatar', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.ok(
-    Math.abs(result.planningState.profession.astralClock.value - 100 * ((15 - naturalConvergenceDuration) / 15) * 0.5) <
-      0.01
+    Math.abs(
+      result.planningState.profession[STATE.ASTRAL_CLOCK].value - 100 * ((15 - naturalConvergenceDuration) / 15) * 0.5
+    ) < 0.01
   );
-  assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
-  assert.equal(Object.hasOwn(result.planningState.profession.availableFlips, ID.RELEASE_CELESTIAL_AVATAR), false);
+  assert.equal(result.planningState.profession[STATE.CELESTIAL_AVATAR_ENDS_AT], null);
+  assert.equal(
+    Object.hasOwn(result.planningState.profession[STATE.AVAILABLE_FLIPS], ID.RELEASE_CELESTIAL_AVATAR),
+    false
+  );
   assert.equal(result.totalDamage > 0, true);
 });
 
@@ -868,14 +858,14 @@ test("Soulbeast starts merged and grants only the selected pet's Beast skills", 
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.beastmodeActive, true);
-  assert.equal(rangerPetForState(result.planningState.profession).archetype, 'Ferocious');
+  assert.equal(result.planningState.profession[STATE.BEASTMODE_ACTIVE], true);
+  assert.equal(activeRangerUiPet({ professionState: result.planningState.profession }).archetype, 'Ferocious');
   assert.equal(result.totalDamage > 0, true);
 
   const leftBeastmode = simulate('Soulbeast', ['Leave Beastmode', ID.SMOKE_ASSAULT], { selectedPet: 'Smokescale' });
 
   assert.match(leftBeastmode.warnings[0].message, /enter Beastmode/);
-  assert.equal(leftBeastmode.planningState.profession.beastmodeActive, false);
+  assert.equal(leftBeastmode.planningState.profession[STATE.BEASTMODE_ACTIVE], false);
 });
 
 test('Soulbeast owns merged pet suspension and restores the pet after leaving Beastmode', () => {
@@ -901,8 +891,8 @@ test('Soulbeast owns merged pet suspension and restores the pet after leaving Be
   });
 
   assert.deepEqual(swapped.warnings, []);
-  assert.equal(rangerPetForState(swapped.planningState.profession).name, 'Smokescale');
-  assert.equal(rangerPetForState(swapped.planningState.profession).archetype, 'Ferocious');
+  assert.equal(activeRangerUiPet({ professionState: swapped.planningState.profession }).name, 'Smokescale');
+  assert.equal(activeRangerUiPet({ professionState: swapped.planningState.profession }).archetype, 'Ferocious');
 });
 
 test("Soulbeast applies Sic 'Em to the merged ranger and to the pet while unmerged", () => {
@@ -1074,8 +1064,8 @@ test('Untamed Hammer variants follow unleash state instead of build selections',
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.rangerUnleashed, false);
-  assert.equal(result.planningState.profession.ambushReadyUntil > 0, true);
+  assert.equal(result.planningState.profession[STATE.RANGER_UNLEASHED], false);
+  assert.equal(result.planningState.profession[STATE.AMBUSH_READY_UNTIL] > 0, true);
   assert.equal(result.totalDamage > 0, true);
 
   const standardWhileUnleashed = simulate('Untamed', ['Unleash Ranger', 'Wild Swing'], { primaryWeapon: 'Hammer' });
@@ -1120,7 +1110,7 @@ test('Untamed Hammer previews and availability follow initial and live states fo
     const config = { specialization: 'Untamed', initialUntamedState: rangerUnleashed ? 'Ranger' : 'Pet' };
     for (const professionState of [undefined, { rangerUnleashed: !rangerUnleashed }]) {
       const context = { config, professionState, catalog: rangerCatalog };
-      const active = professionState?.rangerUnleashed ?? rangerUnleashed;
+      const active = professionState?.[STATE.RANGER_UNLEASHED] ?? rangerUnleashed;
       for (const pair of RANGER_HAMMER_VARIANT_PAIRS) {
         for (const [index, id] of pair.entries()) {
           const skill = rangerCatalog.skillsById.get(id);
@@ -1150,7 +1140,7 @@ test('Untamed exposes and executes all three natural pet commands only with the 
     ...config,
     specializations: [...defaults.specializations.slice(0, 2), { name: 'Untamed', traits: '1-1-1' }]
   };
-  const context = { build, specialization: 'Untamed', professionState: { rangerUnleashed: true } };
+  const context = { build, specialization: 'Untamed', professionState: { [STATE.RANGER_UNLEASHED]: true } };
   const petSkills = rangerProfession.ui.paletteGroups(context).find((group) => group.id === 'ranger-pet').skillIds;
   assert.deepEqual(petSkills, [...commands, ID.PET_SWAP]);
   for (const skillId of commands) {
@@ -1246,9 +1236,9 @@ test('Ranger Hammer autoattacks advance their palette chain', () => {
   const afterSlam = simulate('Soulbeast', ['Hammer Strike', 'Hammer Slam'], config);
   const afterSmash = simulate('Soulbeast', ['Hammer Strike', 'Hammer Slam', 'Heavy Smash'], config);
 
-  assert.equal(afterStrike.planningState.profession.autoattackChains[ID.HAMMER_STRIKE], ID.HAMMER_SLAM);
-  assert.equal(afterSlam.planningState.profession.autoattackChains[ID.HAMMER_STRIKE], ID.HEAVY_SMASH);
-  assert.equal(afterSmash.planningState.profession.autoattackChains[ID.HAMMER_STRIKE], undefined);
+  assert.equal(afterStrike.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.HAMMER_STRIKE], ID.HAMMER_SLAM);
+  assert.equal(afterSlam.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.HAMMER_STRIKE], ID.HEAVY_SMASH);
+  assert.equal(afterSmash.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.HAMMER_STRIKE], undefined);
 
   const build = {
     ...createRangerBuildDefaults(),
@@ -1351,8 +1341,8 @@ test('Untamed starts in the selected unleashed state', () => {
   const pet = simulate('Untamed', [], { initialUntamedState: 'Pet' });
   const ranger = simulate('Untamed', [], { initialUntamedState: 'Ranger' });
 
-  assert.equal(pet.planningState.profession.rangerUnleashed, false);
-  assert.equal(ranger.planningState.profession.rangerUnleashed, true);
+  assert.equal(pet.planningState.profession[STATE.RANGER_UNLEASHED], false);
+  assert.equal(ranger.planningState.profession[STATE.RANGER_UNLEASHED], true);
 
   const availability = (planningState, skillId) => planningState.availability[skillId].ready;
 
@@ -1378,13 +1368,13 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
   );
   assert.equal(observedRuntime(result).cooldownController.readyAt(ID.UNLEASH_RANGER), 2);
   assert.equal(observedRuntime(result).cooldownController.readyAt(ID.UNLEASH_PET), 2);
-  assert.equal(result.planningState.profession.ambushReadyUntil, 5);
+  assert.equal(result.planningState.profession[STATE.AMBUSH_READY_UNTIL], 5);
 
   const suppressed = simulate('Untamed', ['Unleash Pet', 'Unleash Ranger', 'Unleash Pet', 'Unleash Ranger'], {
     initialUntamedState: 'Ranger'
   });
 
-  assert.equal(suppressed.planningState.profession.ambushReadyUntil, 5);
+  assert.equal(suppressed.planningState.profession[STATE.AMBUSH_READY_UNTIL], 5);
 
   const refreshed = simulate(
     'Untamed',
@@ -1392,7 +1382,7 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
     { initialUntamedState: 'Ranger' }
   );
 
-  assert.equal(refreshed.planningState.profession.ambushReadyUntil, 14.04);
+  assert.equal(refreshed.planningState.profession[STATE.AMBUSH_READY_UNTIL], 14.04);
 });
 
 // Both ambushes use the flat siphon formula and retain separate breakdown attribution.

@@ -5,6 +5,8 @@ import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface EngineerCoreState {
   endurance: ResourceClock;
@@ -21,23 +23,6 @@ export interface EngineerCoreState {
   explosiveEntranceFired: boolean;
   aimAssistedRocketCount: number;
 }
-
-// Core owns the stable public fields that exist for every Engineer runtime.
-const ENGINEER_CORE_PUBLIC_END_STATE_KEYS = Object.freeze([
-  'endurance',
-
-  'activeKit',
-  'availableFlips',
-  'autoattackChains',
-  'lightningRodChargeExpiries',
-  'kineticCharges'
-] as const satisfies readonly (keyof EngineerCoreState)[]);
-
-// Core fields have no inactive fallbacks; their values come from the live state.
-export const ENGINEER_CORE_PUBLIC_STATE_PROJECTION = Object.freeze({
-  keys: ENGINEER_CORE_PUBLIC_END_STATE_KEYS,
-  defaults: {}
-});
 
 /** Normalizes canonical trait IDs for state initialization and runtime membership checks. */
 export function selectedEngineerTraits(config: EngineerConfig = {}): Set<SkillId> {
@@ -60,4 +45,17 @@ export function createEngineerCoreState(): EngineerCoreState {
     explosiveEntranceFired: false,
     aimAssistedRocketCount: 0
   };
+}
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectEngineerCorePlanningState(input: Gw2PlanningStateInput) {
+  const state = (input.profession as { core: ReturnType<typeof createEngineerCoreState> }).core;
+  return structuredClone({
+    [STATE.ENDURANCE]: state.endurance,
+    [STATE.ACTIVE_KIT]: state.activeKit,
+    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
+    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
+    [STATE.LIGHTNING_ROD_CHARGE_EXPIRIES]: state.lightningRodChargeExpiries,
+    [STATE.KINETIC_CHARGES]: state.kineticCharges
+  });
 }

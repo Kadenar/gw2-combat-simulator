@@ -22,6 +22,7 @@ import { enhancedCapacityMaximumHeat } from '#gw2/professions/engineer/specializ
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 import type { EngineerResolverEvent, EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const HEAT_STATE_REASONS = new Set<string>([
   'enter-forge',
@@ -103,7 +104,8 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
     paletteOverride: (context, skill) => {
       if (skill.id === ID.ENGAGE_PHOTON_FORGE || skill.id === ID.DEACTIVATE_PHOTON_FORGE)
         return {
-          tileActive: (skill.id === ID.DEACTIVATE_PHOTON_FORGE) === Boolean(engineerUiState(context).photonForgeActive)
+          tileActive:
+            (skill.id === ID.DEACTIVATE_PHOTON_FORGE) === Boolean(engineerUiState(context)[STATE.PHOTON_FORGE_ACTIVE])
         };
     },
     eventLogRow: holosmithEventLogRow,
@@ -160,14 +162,15 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
     resourceViews: (context: EngineerUiContext): ProfessionResourceView[] => {
       const state = engineerUiState(context);
       // Use the observed clock capacity, or selected traits before an initial result exists.
-      const maximum = state.heat?.maximum ?? enhancedCapacityMaximumHeat(context.config ?? {}, context.balanceContext);
+      const maximum =
+        state[STATE.HEAT]?.maximum ?? enhancedCapacityMaximumHeat(context.config ?? {}, context.balanceContext);
       return [
         {
           id: 'heat',
           singular: 'heat',
           plural: 'heat',
           maximum,
-          value: state.heat?.value ?? context.initialHeat ?? 0,
+          value: state[STATE.HEAT]?.value ?? context.initialHeat ?? 0,
           startMaximum: maximum,
           canStart: true,
           buildKey: 'initialHeat',
@@ -175,7 +178,7 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
           displayMode: 'bar',
           pipStyle: 'compact-profession-resource-holosmith-heat',
           shortLabel: 'Heat',
-          statusLabel: state.overheated ? 'Overheated' : 'Current'
+          statusLabel: state[STATE.OVERHEATED] ? 'Overheated' : 'Current'
         }
       ];
     }

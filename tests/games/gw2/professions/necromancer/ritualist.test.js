@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
@@ -136,9 +137,9 @@ test('the Ritualist palette reads detached live spirit availability without expo
   }
 
   // Public collections are detached from the live owner.
-  assert.deepEqual(summoned.planningState.profession.activeSpirits, { anguish: true });
-  assert.deepEqual(exited.planningState.profession.activeSpirits, {});
-  delete summoned.planningState.profession.activeSpirits.anguish;
+  assert.deepEqual(summoned.planningState.profession[STATE.ACTIVE_SPIRITS], { anguish: true });
+  assert.deepEqual(exited.planningState.profession[STATE.ACTIVE_SPIRITS], {});
+  delete summoned.planningState.profession[STATE.ACTIVE_SPIRITS].anguish;
   assert.ok(state(summoned).activeSpirits.anguish);
 });
 
@@ -387,12 +388,12 @@ test('spirit creation commits once and Soul Twisting refunds only the first comp
   assert.equal(state(result).activeSpirits.anguish.generation, 2);
   assert.equal(state(result).soulTwistingAvailable, false);
   assert.ok(observedRuntime(result).cooldownController.readyAt(ID.ANGUISH) > result.planningState.atSeconds);
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 56.64);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 56.64);
   assert.deepEqual(result.warnings, []);
   const interrupted = run([cast(ID.RITUALISTS_SHROUD), { ...cast(ID.ANGUISH), interruptAfterMs: 100 }], { config });
   assert.deepEqual(state(interrupted).activeSpirits, {});
   assert.equal(state(interrupted).soulTwistingAvailable, true);
-  assert.equal(lifeForcePercent(interrupted.planningState.profession.lifeForce), 39.64);
+  assert.equal(lifeForcePercent(interrupted.planningState.profession[STATE.LIFE_FORCE]), 39.64);
 });
 
 test('exit preserves committed attacks while autonomous spirit work ends on exit or Lingering depletion', () => {
@@ -408,13 +409,13 @@ test('exit preserves committed attacks while autonomous spirit work ends on exit
   const living = run(rotation.slice(0, 3), { config });
   assert.deepEqual(Object.keys(state(living).activeSpirits), ['anguish']);
   assert.equal(
-    living.planningState.profession.lifeForce.rate,
-    (-living.planningState.profession.lifeForce.maximum * 3) / 100
+    living.planningState.profession[STATE.LIFE_FORCE].rate,
+    (-living.planningState.profession[STATE.LIFE_FORCE].maximum * 3) / 100
   );
   const depleted = run([...rotation, cast(ID.INNERVATE_ANGUISH)], { config });
   assert.deepEqual(state(depleted).activeSpirits, {});
-  assert.equal(lifeForcePercent(depleted.planningState.profession.lifeForce), 0);
-  assert.equal(depleted.planningState.profession.lifeForce.rate, 0);
+  assert.equal(lifeForcePercent(depleted.planningState.profession[STATE.LIFE_FORCE]), 0);
+  assert.equal(depleted.planningState.profession[STATE.LIFE_FORCE].rate, 0);
   assert.equal(depleted.steps.at(-1).invalid, true);
 });
 
@@ -476,11 +477,11 @@ test('Innervate requires its live spirit and grants life force once even when ho
   const config = { ...base, initialResource: 50 };
   const rotation = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), { ...cast(ID.INNERVATE_ANGUISH), offTarget: true }];
   const result = run(rotation, { config });
-  assert.equal(lifeForcePercent(result.planningState.profession.lifeForce), 58.32);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 58.32);
   assert.ok(result.resolvedEvents.some((event) => event.kind === 'might' && event.skillId === ID.INNERVATE_ANGUISH));
   assert.equal(
     lifeForcePercent(
-      run([...rotation.slice(0, 2), cast(ID.INNERVATE_ANGUISH)], { config }).planningState.profession.lifeForce
+      run([...rotation.slice(0, 2), cast(ID.INNERVATE_ANGUISH)], { config }).planningState.profession[STATE.LIFE_FORCE]
     ),
     58.32
   );
@@ -489,16 +490,16 @@ test('Innervate requires its live spirit and grants life force once even when ho
 test('creature traits observe actual Core minion and staggered horror creation with independent strike multipliers', () => {
   const config = { ...base, initialResource: 0, selectedTraitIds: [TRAIT.BOON_OF_CREATION, TRAIT.EXPLOSIVE_GROWTH] };
   const minions = run([cast(ID.SUMMON_BONE_MINIONS)], { config });
-  assert.equal(lifeForcePercent(minions.planningState.profession.lifeForce), 20);
+  assert.equal(lifeForcePercent(minions.planningState.profession[STATE.LIFE_FORCE]), 20);
   assert.equal(
     minions.resolvedEvents.filter((event) => event.sourceId === TRAIT.EXPLOSIVE_GROWTH && event.type === 'damage')
       .length,
     1
   );
   const horrors = run([cast(ID.LICH_FORM), cast(ID.SUMMON_MADNESS)], { config });
-  assert.equal(lifeForcePercent(horrors.planningState.profession.lifeForce), 10);
+  assert.equal(lifeForcePercent(horrors.planningState.profession[STATE.LIFE_FORCE]), 10);
   const later = run([cast(ID.LICH_FORM), cast(ID.SUMMON_MADNESS), wait(1000)], { config });
-  assert.ok(lifeForcePercent(later.planningState.profession.lifeForce) > 10);
+  assert.ok(lifeForcePercent(later.planningState.profession[STATE.LIFE_FORCE]) > 10);
   const rotation = [cast(ID.SUMMON_SHADOW_FIEND), wait(3000)];
   const normal = run(rotation);
   const stronger = run(rotation, { config: { ...base, selectedTraitIds: [TRAIT.SPIRITS_STRENGTH] } });

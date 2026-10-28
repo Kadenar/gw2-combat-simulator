@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import assert from 'node:assert/strict';
@@ -110,7 +111,8 @@ function chainProfession(autoattackChains) {
       ]
     },
     state: {
-      create: () => ({ autoattackChains: {} })
+      create: () => ({ autoattackChains: {} }),
+      project: ({ profession }) => ({ [STATE.AUTOATTACK_CHAINS]: structuredClone(profession.core.autoattackChains) })
     },
     hooks: {}
   });
@@ -124,7 +126,7 @@ function chainProfession(autoattackChains) {
 }
 
 function chainState(result) {
-  return result.planningState.profession.autoattackChains;
+  return result.planningState.profession[STATE.AUTOATTACK_CHAINS];
 }
 
 // Live cases use canonical cast commitments even when target effects miss or reporting is disabled.
@@ -139,25 +141,25 @@ const runChain = (rotation, profession = chainProfession().runtimeFor(chainConfi
 test('live chains reject out-of-order steps and commit each completion once', () => {
   const rejected = runChain([cast(3)]);
   assert.equal(rejected.warnings.length, 1);
-  assert.deepEqual(rejected.planningState.profession.autoattackChains, {});
+  assert.deepEqual(rejected.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
   const advanced = runChain([cast(1), cast(2)]);
   assert.deepEqual(advanced.warnings, []);
-  assert.deepEqual(advanced.planningState.profession.autoattackChains, { 1: 3 });
+  assert.deepEqual(advanced.planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 3 });
   const rotation = [cast(1), cast(2), cast(3)];
   const complete = runChain(rotation);
-  assert.deepEqual(complete.planningState.profession.autoattackChains, {});
+  assert.deepEqual(complete.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
   assert.deepEqual(complete.warnings, []);
   assert.equal(runChain(rotation, undefined, { output: 'score' }).totalDamage, complete.totalDamage);
 });
 
 test('live chain interruptions use selected packet boundaries, including travel and cast-end ties', () => {
   for (const interrupting of [cast(7), cast(7, { offTarget: true }), cast(11)])
-    assert.deepEqual(runChain([cast(1), interrupting]).planningState.profession.autoattackChains, {});
+    assert.deepEqual(runChain([cast(1), interrupting]).planningState.profession[STATE.AUTOATTACK_CHAINS], {});
   for (const preserving of [cast(8), cast(9), cast(10), cast(12), cast(7, { impactDelayMs: 2000 })])
-    assert.deepEqual(runChain([cast(1), preserving]).planningState.profession.autoattackChains, { 1: 2 });
+    assert.deepEqual(runChain([cast(1), preserving]).planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 2 });
   const native = chainProfession().runtimeFor(chainConfig);
   const removed = { ...native, modifyEffects: (_runtime, cast, effects) => (cast.skill.id === 7 ? [] : effects) };
-  assert.deepEqual(runChain([cast(1), cast(7)], removed).planningState.profession.autoattackChains, { 1: 2 });
+  assert.deepEqual(runChain([cast(1), cast(7)], removed).planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 2 });
 });
 
 test('live native composition keeps overrides scoped to their pending root', () => {
@@ -165,7 +167,7 @@ test('live native composition keeps overrides scoped to their pending root', () 
     overrides: [{ id: 'preserve-a', chainRootIds: [1], decision: 'preserve' }]
   }).runtimeFor(chainConfig);
   const result = runChain([cast(1), cast(4), cast(7)], profession);
-  assert.deepEqual(result.planningState.profession.autoattackChains, { 1: 2 });
+  assert.deepEqual(result.planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 2 });
   assert.deepEqual(result.warnings, []);
 });
 

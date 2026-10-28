@@ -11,6 +11,7 @@ import {
 } from '#gw2/professions/mesmer/core/presentation.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const MIRAGE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
@@ -58,8 +59,8 @@ export const mirageUi: MesmerUiSlice = Object.freeze({
       id: 'endurance',
       singular: 'endurance',
       plural: 'endurance',
-      maximum: mesmerUiState(context).endurance?.maximum ?? context.resources!.endurance!.maximum,
-      value: mesmerUiState(context).endurance?.value ?? ENDURANCE.maximum,
+      maximum: mesmerUiState(context)[STATE.ENDURANCE]?.maximum ?? context.resources!.endurance!.maximum,
+      value: mesmerUiState(context)[STATE.ENDURANCE]?.value ?? ENDURANCE.maximum,
       canStart: false,
       step: 1,
       displayMode: 'bar',

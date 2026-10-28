@@ -12,17 +12,18 @@ import type { RotationStateSnapshotItem } from '#gw2/platform/profession-present
 import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Reports both the legend-derived Cosmic Wisdom form and its remaining duration. */
 function conduitStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
-  const remaining = (state.cosmicWisdomUntil || 0) - Math.max(0, context.atSeconds || 0);
-  return remaining > 0 && state.conduitForm
+  const remaining = (state[STATE.COSMIC_WISDOM_UNTIL] || 0) - Math.max(0, context.atSeconds || 0);
+  return remaining > 0 && state[STATE.CONDUIT_FORM]
     ? [
         {
           id: 'conduit-cosmic-wisdom',
           label: 'Cosmic Wisdom',
-          value: `${state.conduitForm} · ${remaining.toFixed(1)}s`,
+          value: `${state[STATE.CONDUIT_FORM]} · ${remaining.toFixed(1)}s`,
           title: 'Active Cosmic Wisdom form and time remaining'
         }
       ]
@@ -80,9 +81,9 @@ export const conduitUi: RevenantUiSlice = Object.freeze({
       plural: 'affinity',
       // Runtime meters use the canonical cap; build-only controls read the same selected profile.
       maximum:
-        revenantUiState(context).affinity?.maximum ??
+        revenantUiState(context)[STATE.AFFINITY]?.maximum ??
         Math.max(1, balanceNumberFromContext(context, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks')),
-      value: revenantUiState(context).affinity?.value ?? 0,
+      value: revenantUiState(context)[STATE.AFFINITY]?.value ?? 0,
       // Affinity cannot be manually set by the user; it is always gained through gameplay actions.
       canStart: false,
       step: 1,

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -9,15 +10,15 @@ import { withProfile } from '#tests/helpers/catalog-overrides.js';
 // Small real balances keep their cooling owner, and only a full bar triggers the overheat transition.
 test('Holosmith does not discard small heat or overheat below capacity', () => {
   const cooling = runEngineer([], { specialization: 'Holosmith', initialHeat: 0.00005 });
-  assert.equal(cooling.planningState.profession.heat.value, 0.00005);
+  assert.equal(cooling.planningState.profession[STATE.HEAT].value, 0.00005);
   assert.notEqual(observedRuntime(cooling).profession.specialization.state.passiveHeatAt, null);
   const almostFull = runEngineer([ID.ENGAGE_PHOTON_FORGE, { type: 'wait', durationMs: 100 }], {
     specialization: 'Holosmith',
     initialHeat: 99.99995
   });
   assert.deepEqual(almostFull.warnings, []);
-  assert.equal(almostFull.planningState.profession.heat.value, 100);
-  assert.equal(almostFull.planningState.profession.overheated, false);
+  assert.equal(almostFull.planningState.profession[STATE.HEAT].value, 100);
+  assert.equal(almostFull.planningState.profession[STATE.OVERHEATED], false);
 });
 
 // Capacity is selected before the initial balance and cooling anchor, and public observations own no live pool.
@@ -39,9 +40,9 @@ test('Holosmith initializes one capped heat clock before preheated cooling', () 
     assert.equal(state.overheated, false);
     assert.equal(Object.hasOwn(state, 'maximumHeat'), false);
     assert.equal(Object.hasOwn(projected, 'maximumHeat'), false);
-    assert.notEqual(projected.heat, state.heat);
+    assert.notEqual(projected[STATE.HEAT], state.heat);
     runtime.resourceController.replace('heat', 0);
-    assert.equal(projected.heat.value, maximum);
+    assert.equal(projected[STATE.HEAT].value, maximum);
     const view = engineerProfession.ui
       .resourceViews({ specialization: 'Holosmith', professionState: projected })
       .find((entry) => entry.id === 'heat');
@@ -51,7 +52,7 @@ test('Holosmith initializes one capped heat clock before preheated cooling', () 
   }
 
   const empty = runEngineer([], { specialization: 'Holosmith', initialHeat: -10 });
-  assert.equal(empty.planningState.profession.heat.value, 0);
+  assert.equal(empty.planningState.profession[STATE.HEAT].value, 0);
   assert.equal(observedRuntime(empty).profession.specialization.state.forgeExitedAt, null);
   assert.equal(observedRuntime(empty).profession.specialization.state.passiveHeatAt, null);
 });
@@ -68,8 +69,8 @@ test('passive heat retains per-tick nine-decimal rounding with patched rates', (
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.heat.value, 0.133333332);
-  assert.equal(result.planningState.profession.heat.rate, 0);
+  assert.equal(result.planningState.profession[STATE.HEAT].value, 0.133333332);
+  assert.equal(result.planningState.profession[STATE.HEAT].rate, 0);
 });
 
 // Venting a nearly empty pool must spend only the available heat and retain its combat packet ordering.
@@ -80,7 +81,7 @@ test('Vent Exhaust floors a small heat balance after emitting its packets', () =
     selectedTraitIds: [TRAIT.THERMAL_RELEASE_VALVE]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.heat.value, 0);
+  assert.equal(result.planningState.profession[STATE.HEAT].value, 0);
   const heat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'vent-exhaust');
   const strike = result.events.find((event) => event.type === 'damage' && event.skillId === ID.VENT_EXHAUST);
   assert.equal(heat.heat, 0);

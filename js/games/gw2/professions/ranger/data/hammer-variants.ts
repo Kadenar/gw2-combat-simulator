@@ -4,9 +4,10 @@
  */
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
-import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+import type { RangerConfig, RangerPlanningState } from '#gw2/professions/ranger/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export const RANGER_HAMMER_VARIANT_PAIRS: readonly (readonly [number, number])[] = Object.freeze([
   Object.freeze([ID.WILD_SWING, ID.UNLEASHED_WILD_SWING]) as readonly [number, number],
@@ -42,9 +43,10 @@ export function rangerHammerSkillIds(context: Gw2WeaponMatcherContext & { readon
   }
 
   const state = context.state as { readonly profession?: unknown } | undefined;
-  const profession: Partial<RangerState> = flattenProfessionState(state?.profession || context.professionState);
+  const live = readProfessionSpecializationState<{ rangerUnleashed: boolean }>(state?.profession, 'Untamed');
+  const profession = context.professionState as Partial<RangerPlanningState> | undefined;
   const rangerUnleashed =
-    profession.rangerUnleashed ??
+    (state?.profession ? live?.rangerUnleashed : profession?.[STATE.RANGER_UNLEASHED]) ??
     (context.build?.initialUntamedState ?? context.config?.initialUntamedState) === 'Ranger';
   return RANGER_HAMMER_VARIANT_PAIRS.map((pair) => pair[rangerUnleashed ? 1 : 0]);
 }

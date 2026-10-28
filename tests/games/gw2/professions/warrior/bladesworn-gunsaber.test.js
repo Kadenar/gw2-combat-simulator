@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -40,14 +41,14 @@ test('Gunsaber equip and stow count as weapon swaps', () => {
   );
   assert.ok(swaps.every((event) => event.weaponSet === 1));
   assert.equal(result.planningState.activeWeaponSet, 1);
-  assert.equal(result.planningState.profession.gunsaberActive, true);
+  assert.equal(result.planningState.profession[STATE.GUNSABER_ACTIVE], true);
 });
 
 test('Dragon Trigger does not swap again when Gunsaber is already active', () => {
   const result = simulate([ID.UNSHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
 
   assert.equal(result.events.filter((event) => event.type === 'sigil_swap').length, 1);
-  assert.equal(result.planningState.profession.gunsaberActive, true);
+  assert.equal(result.planningState.profession[STATE.GUNSABER_ACTIVE], true);
 });
 
 test('Gunsaber equip and stow put the opposite action on a five-second cooldown', () => {
@@ -95,7 +96,7 @@ test('casting a skill with a cast bar exits Dragon Trigger', () => {
   assert.equal(result.steps.find((step) => step.ri === 2).invalid, undefined);
   assert.equal(slash.invalid, true);
   assert.match(slash.invalidReason, /Enter Dragon Trigger/);
-  assert.equal(result.planningState.profession.gunsaberActive, true);
+  assert.equal(result.planningState.profession[STATE.GUNSABER_ACTIVE], true);
 });
 
 test('Gunsaber swaps and Dragon Trigger entry leave both swap actions ready before combat', () => {

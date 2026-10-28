@@ -17,6 +17,7 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(
@@ -34,7 +35,7 @@ function antiquaryStateSnapshot(
     )
   ) {
     const threshold = balanceNumberFromContext(context.balanceContext, TRAIT.PRODIGIOUS_PINCHER, 'threshold');
-    const spent = Math.max(0, state.initiativeSpentSincePilfer || 0);
+    const spent = Math.max(0, state[STATE.INITIATIVE_SPENT_SINCE_PILFER] || 0);
     items.push({
       id: 'antiquary-prodigious-pincher',
       label: 'Prodigious Pincher',
@@ -43,7 +44,7 @@ function antiquaryStateSnapshot(
     });
   }
 
-  const nextPilferRemaining = (state.nextSkrittScufflePilferAt || 0) - at;
+  const nextPilferRemaining = (state[STATE.NEXT_SKRITT_SCUFFLE_PILFER_AT] || 0) - at;
 
   if (nextPilferRemaining > 0) {
     items.push({
@@ -54,7 +55,7 @@ function antiquaryStateSnapshot(
     });
   }
 
-  const combatHigh = purgeExpiredStacks(state.combatHighExpirations || [], at);
+  const combatHigh = purgeExpiredStacks(state[STATE.COMBAT_HIGH_EXPIRATIONS] || [], at);
 
   if (combatHigh.length > 0) {
     const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.COMBAT_HIGH, 'maximumStacks');
@@ -68,9 +69,9 @@ function antiquaryStateSnapshot(
   }
 
   const timedEffects: readonly [string, string, number][] = [
-    ['antiquary-exhilarating-ephemera', 'Exhilarating Ephemera', state.antiquaryDamageUntil || 0],
-    ['antiquary-kryptis-turret', 'Kryptis Turret', state.kryptisDamageUntil || 0],
-    ['antiquary-forged-surfer-dash', 'Forged Surfer Dash', state.forgedSurferBombDropUntil || 0]
+    ['antiquary-exhilarating-ephemera', 'Exhilarating Ephemera', state[STATE.ANTIQUARY_DAMAGE_UNTIL] || 0],
+    ['antiquary-kryptis-turret', 'Kryptis Turret', state[STATE.KRYPTIS_DAMAGE_UNTIL] || 0],
+    ['antiquary-forged-surfer-dash', 'Forged Surfer Dash', state[STATE.FORGED_SURFER_BOMB_DROP_UNTIL] || 0]
   ];
   for (const [id, label, expiresAt] of timedEffects) {
     const remaining = expiresAt - at;
@@ -91,10 +92,10 @@ function antiquaryStateSnapshot(
   }
 
   // Artifact charge displays read canonical grants without expiring the live owner.
-  const chakRefunds = activeChargeGrants(state.chakInitiativeRefunds || [], at);
+  const chakRefunds = activeChargeGrants(state[STATE.CHAK_INITIATIVE_REFUNDS] || [], at);
   for (const [id, label, grant] of [
-    ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state.bonusStealthAttack],
-    ['antiquary-mistburn-mortar', 'Mistburn Mortar', state.mistburn],
+    ['antiquary-metal-legion-guitar', 'Metal Legion Guitar', state[STATE.BONUS_STEALTH_ATTACK]],
+    ['antiquary-mistburn-mortar', 'Mistburn Mortar', state[STATE.MISTBURN]],
     [
       'antiquary-chak-shield',
       'Chak Shield',
@@ -120,7 +121,10 @@ function antiquaryStateSnapshot(
     });
   }
 
-  const holoExpiries = purgeExpiredStacks((state.holoUtilityCooldownReductionExpirations || []).map(Number), at);
+  const holoExpiries = purgeExpiredStacks(
+    (state[STATE.HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS] || []).map(Number),
+    at
+  );
 
   if (holoExpiries.length) {
     items.push({
@@ -163,7 +167,7 @@ export const antiquaryUi = Object.freeze({
   },
   // Antiquary's starting grant and displayed inventory are artifacts, owned by this specialization.
   resourceViews: (context: ThiefUiContext) => [
-    preStealResourceView(context.professionState?.artifactUsesRemaining || 0)
+    preStealResourceView(context.professionState?.[STATE.ARTIFACT_USES_REMAINING] || 0)
   ],
   // Reshuffle is queue-only; this veto affects direct palette insertion, never runtime legality.
   paletteOverride: (context: ThiefUiContext & ProfessionCatalogContext, skill: ThiefSkill) => {

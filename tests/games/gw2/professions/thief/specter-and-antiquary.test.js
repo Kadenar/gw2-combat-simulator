@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
@@ -32,7 +33,7 @@ test('Antiquary completion preserves rolled initiative and the consumed artifact
     selectedSkillIds: [77230]
   });
   assert.deepEqual(coins.warnings, []);
-  assert.equal(coins.planningState.profession.initiative.value, 5);
+  assert.equal(coins.planningState.profession[STATE.INITIATIVE].value, 5);
   const artifact = runThief(['Skritt Swipe', 'Mistburn Mortar'], {
     specialization: 'Antiquary',
     selectedTraitIds: [TRAIT.POSSESSIVE_HOARDER]
@@ -163,8 +164,8 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
   const inactiveGroups = thiefProfession.ui.paletteGroups({
     specialization: 'Specter',
     professionState: {
-      shadowClock: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
-      shadowShroudActive: false
+      [STATE.SHADOW_CLOCK]: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
+      [STATE.SHADOW_SHROUD_ACTIVE]: false
     }
   });
 
@@ -192,10 +193,10 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.equal(result.planningState.profession.shadowShroudActive, false);
-  assert.deepEqual(result.planningState.profession.storedStolenSkillIds, []);
-  assert.equal(result.planningState.profession.storedStolenSkillCount, 0);
-  assert.ok(result.planningState.profession.shadowClock.value > 0);
+  assert.equal(result.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], false);
+  assert.deepEqual(result.planningState.profession[STATE.STORED_STOLEN_SKILL_IDS], []);
+  assert.equal(result.planningState.profession[STATE.STORED_STOLEN_SKILL_COUNT], 0);
+  assert.ok(result.planningState.profession[STATE.SHADOW_CLOCK].value > 0);
   assert.equal(result.events.filter((event) => event.type === 'sigil_swap').length, 0);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'weapon_set').map((event) => event.skillId),
@@ -208,20 +209,20 @@ test('Specter Shadow Shroud ends rifle kneeling and its initiative regeneration 
   const config = { primaryWeapon: 'Rifle', secondaryWeapon: '', initialShadowForce: 100 };
   const kneeling = simulate('Specter', ['Kneel'], config);
   assert.deepEqual(kneeling.warnings, []);
-  assert.equal(kneeling.planningState.profession.kneeling, true);
-  assert.equal(kneeling.planningState.profession.initiative.rate, 4 / 3);
+  assert.equal(kneeling.planningState.profession[STATE.KNEELING], true);
+  assert.equal(kneeling.planningState.profession[STATE.INITIATIVE].rate, 4 / 3);
 
   const shrouded = simulate('Specter', ['Kneel', 'Enter Shadow Shroud'], config);
   assert.deepEqual(shrouded.warnings, []);
-  assert.equal(shrouded.planningState.profession.shadowShroudActive, true);
-  assert.equal(shrouded.planningState.profession.kneeling, false);
-  assert.equal(shrouded.planningState.profession.initiative.rate, 1);
+  assert.equal(shrouded.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], true);
+  assert.equal(shrouded.planningState.profession[STATE.KNEELING], false);
+  assert.equal(shrouded.planningState.profession[STATE.INITIATIVE].rate, 1);
 
   const exited = simulate('Specter', ['Kneel', 'Enter Shadow Shroud', 'Exit Shadow Shroud', 'Brutal Aim'], config);
   assert.deepEqual(exited.warnings, []);
-  assert.equal(exited.planningState.profession.shadowShroudActive, false);
-  assert.equal(exited.planningState.profession.kneeling, false);
-  assert.equal(exited.planningState.profession.initiative.rate, 1);
+  assert.equal(exited.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], false);
+  assert.equal(exited.planningState.profession[STATE.KNEELING], false);
+  assert.equal(exited.planningState.profession[STATE.INITIATIVE].rate, 1);
 });
 
 test('Specter can use its shroud autoattack while stealth is active', () => {
@@ -231,7 +232,7 @@ test('Specter can use its shroud autoattack while stealth is active', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.ok(result.events.some((event) => event.type === 'damage' && event.skillName === 'Haunt Shot'));
-  assert.ok(result.planningState.profession.revealedUntil > 0);
+  assert.ok(result.planningState.profession[STATE.REVEALED_UNTIL] > 0);
 });
 
 test('Specter automatically leaves Shadow Shroud when shadow force depletes', () => {
@@ -239,8 +240,8 @@ test('Specter automatically leaves Shadow Shroud when shadow force depletes', ()
     initialShadowForce: 1
   });
 
-  assert.equal(result.planningState.profession.shadowShroudActive, false);
-  assert.equal(result.planningState.profession.shadowClock.value, 0);
+  assert.equal(result.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], false);
+  assert.equal(result.planningState.profession[STATE.SHADOW_CLOCK].value, 0);
   assert.deepEqual(
     result.events.filter((event) => event.type === 'weapon_set').map((event) => event.skillId),
     [ID.ENTER_SHADOW_SHROUD, DEPLETED]
@@ -309,8 +310,8 @@ test('manual Shadow Shroud exit cancels depletion and preserves remaining force'
     result.events.some((event) => event.sourceId === DEPLETED),
     false
   );
-  assert.equal(result.planningState.profession.shadowClock.value, 0.96);
-  assert.equal(result.planningState.profession.shadowShroudActive, false);
+  assert.equal(result.planningState.profession[STATE.SHADOW_CLOCK].value, 0.96);
+  assert.equal(result.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], false);
 });
 
 test('Specter percentage drain is independent of vitality and observation boundaries', () => {
@@ -323,7 +324,7 @@ test('Specter percentage drain is independent of vitality and observation bounda
         { initialShadowForce: 100, attributeInputs: baseAttributeInputs({ vitality }) }
       );
       assert.deepEqual(result.warnings, []);
-      assert.equal(result.planningState.profession.shadowClock.value, 98);
+      assert.equal(result.planningState.profession[STATE.SHADOW_CLOCK].value, 98);
     }
   }
 });
@@ -337,7 +338,7 @@ test('Specter force gains cap at 100 and do not drain outside shroud', () => {
       secondaryWeapon: 'Dagger'
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.shadowClock.value, 100);
+    assert.equal(result.planningState.profession[STATE.SHADOW_CLOCK].value, 100);
   }
 });
 
@@ -353,7 +354,7 @@ test('Dagger attacks restore endurance and apply Shadow Shot blindness', () => {
     { type: 'wait', durationMs: chain.planningState.atSeconds * 1000 - dodged.planningState.atSeconds * 1000 }
   ]);
   assert.equal(
-    chain.planningState.profession.endurance.value - regenerated.planningState.profession.endurance.value,
+    chain.planningState.profession[STATE.ENDURANCE].value - regenerated.planningState.profession[STATE.ENDURANCE].value,
     10
   );
 
@@ -393,7 +394,7 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
     skillDamage(unmarked, 'Malicious Backstab'),
     1.5
   );
-  assert.equal(marked.planningState.profession.malice.value, 2);
+  assert.equal(marked.planningState.profession[STATE.MALICE].value, 2);
 
   const rifleConfig = {
     selectedSkillIds: [45508],
@@ -419,7 +420,7 @@ test('Stealth attacks gain positional damage and consume malice for bonus damage
     skillDamage(unmarkedRifle, "Malicious Death's Judgment"),
     1.4
   );
-  assert.equal(markedRifle.planningState.profession.malice.value, 2);
+  assert.equal(markedRifle.planningState.profession[STATE.MALICE].value, 2);
 });
 
 test('Revealed Training does not empower the stealth attack that reveals the thief', () => {
@@ -520,7 +521,7 @@ test('interrupted scepter autos advance only after a packet lands', () => {
         packets.map((event) => event.at)
       );
       assert.equal(
-        result.planningState.profession.autoattackChains[ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT,
+        result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT,
         expectedHits ? next : skillId
       );
     }
@@ -538,7 +539,7 @@ test('scepter autoattack progress survives other damaging skill casts', () => {
       secondaryWeapon: 'Pistol'
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.autoattackChains[ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT, expected);
+    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT, expected);
   }
 });
 
@@ -559,7 +560,7 @@ test('scepter chain expires three seconds after its last successful cast complet
       secondaryWeapon: 'Pistol'
     });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.autoattackChains[ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT, expected);
+    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.SHADOW_BOLT] ?? ID.SHADOW_BOLT, expected);
   }
 
   const expired = simulate('Specter', ['Shadow Bolt', wait(3000), 'Double Bolt'], {
@@ -579,17 +580,18 @@ test('Measured Shot arms an Endless Night flip that is consumed or expires', () 
   const measuredShot = armed.events.find((event) => event.type === 'action' && event.skillId === ID.MEASURED_SHOT);
 
   assert.ok(
-    Math.abs(armed.planningState.profession.availableFlips[ID.ENDLESS_NIGHT]?.expiresAt - measuredShot.endsAt - 5) <
-      1e-9
+    Math.abs(
+      armed.planningState.profession[STATE.AVAILABLE_FLIPS][ID.ENDLESS_NIGHT]?.expiresAt - measuredShot.endsAt - 5
+    ) < 1e-9
   );
 
   const channel = simulate('Specter', ['Measured Shot', 'Endless Night'], config, observationTail(2000));
 
   assert.deepEqual(channel.warnings, []);
-  assert.equal(channel.planningState.profession.availableFlips[ID.ENDLESS_NIGHT], undefined);
+  assert.equal(channel.planningState.profession[STATE.AVAILABLE_FLIPS][ID.ENDLESS_NIGHT], undefined);
 
   const expired = simulate('Specter', ['Measured Shot', { type: 'wait', durationMs: 5000 }], config);
-  assert.equal(expired.planningState.profession.availableFlips[ID.ENDLESS_NIGHT], undefined);
+  assert.equal(expired.planningState.profession[STATE.AVAILABLE_FLIPS][ID.ENDLESS_NIGHT], undefined);
 });
 
 test('Twilight Combo activates Deadly Ambition once for the dual-wield cast', () => {
@@ -659,7 +661,7 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
   ]) {
     const result = simulate('Specter', ['Siphon'], { selectedTraitIds });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.shadowClock.value, expectedGain);
+    assert.equal(result.planningState.profession[STATE.SHADOW_CLOCK].value, expectedGain);
   }
 
   const initiative = simulate('Specter', ['Shadow Sap'], {
@@ -667,7 +669,7 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
     secondaryWeapon: 'Dagger'
   });
 
-  assert.equal(initiative.planningState.profession.shadowClock.value, 4);
+  assert.equal(initiative.planningState.profession[STATE.SHADOW_CLOCK].value, 4);
 
   const reduced = simulate('Specter', ['Siphon'], {
     selectedTraitIds: [TRAIT.LEAD_ATTACKS, TRAIT.SLEIGHT_OF_HAND]
@@ -718,7 +720,7 @@ test('Improvisation and Prolific Plunderer each add one Skritt Swipe artifact us
   ]) {
     const result = simulate('Antiquary', ['Skritt Swipe'], { selectedTraitIds });
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.artifactUsesRemaining, expectedUses);
+    assert.equal(result.planningState.profession[STATE.ARTIFACT_USES_REMAINING], expectedUses);
   }
 });
 
@@ -732,8 +734,8 @@ test('Larcenous Torment keeps its life siphon but grants no force inside Shadow 
   });
   assert.deepEqual(larcenous.warnings, []);
   assert.equal(
-    larcenous.planningState.profession.shadowClock.value,
-    baseline.planningState.profession.shadowClock.value
+    larcenous.planningState.profession[STATE.SHADOW_CLOCK].value,
+    baseline.planningState.profession[STATE.SHADOW_CLOCK].value
   );
   assert.equal(
     observedRuntime(larcenous).resourceController.value('shadowForce'),
@@ -836,7 +838,7 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
       .filter((skill) =>
         thiefWeaponSkillMatchesSet(skill, ['Spear', ''], {
           catalog: thiefCatalog,
-          professionState: { spearChainStage: stage }
+          professionState: { [STATE.SPEAR_CHAIN_STAGE]: stage }
         })
       )
       .map((skill) => skill.name);
@@ -854,7 +856,7 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
         activeCatalog: thiefCatalog,
         weaponData: thiefAppAdapter.weaponData,
         results: {
-          planningState: { availability: {}, activeWeaponSet: 1, profession: { spearChainStage: stage } }
+          planningState: { availability: {}, activeWeaponSet: 1, profession: { [STATE.SPEAR_CHAIN_STAGE]: stage } }
         }
       },
       1
@@ -870,7 +872,7 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
       .filter((skill) =>
         thiefWeaponSkillMatchesSet(skill, ['Spear', ''], {
           catalog: thiefCatalog,
-          professionState: { spearChainStage: 0 },
+          professionState: { [STATE.SPEAR_CHAIN_STAGE]: 0 },
           weaponBarPreview: true
         })
       )
@@ -905,13 +907,13 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
   };
   const afterAutoattack = simulate('Core', ['Barbed Spear'], spearConfig);
 
-  assert.equal(afterAutoattack.planningState.profession.spearChainStage, 0);
-  assert.equal(afterAutoattack.planningState.profession.spearPreviousSkillId, null);
+  assert.equal(afterAutoattack.planningState.profession[STATE.SPEAR_CHAIN_STAGE], 0);
+  assert.equal(afterAutoattack.planningState.profession[STATE.SPEAR_PREVIOUS_SKILL_ID], null);
 
   const afterLeadAndAutoattack = simulate('Core', ['Mantis Sting', 'Barbed Spear'], spearConfig);
 
-  assert.equal(afterLeadAndAutoattack.planningState.profession.spearChainStage, 1);
-  assert.equal(afterLeadAndAutoattack.planningState.profession.spearPreviousSkillId, ID.MANTIS_STING);
+  assert.equal(afterLeadAndAutoattack.planningState.profession[STATE.SPEAR_CHAIN_STAGE], 1);
+  assert.equal(afterLeadAndAutoattack.planningState.profession[STATE.SPEAR_PREVIOUS_SKILL_ID], ID.MANTIS_STING);
   const stealthFinisher = simulate(
     'Core',
     ['Unsuspecting Strike', 'Vampiric Slash', 'Shattering Assault', 'Ashen Assault'],
@@ -1029,7 +1031,7 @@ test('Mistburn charges are spent once by later player strikes, never by the Mort
   );
   assert.equal(procs.length, 5);
   assert.ok(procs.every((event) => event.triggeredBy !== 'Mistburn Mortar'));
-  assert.equal(result.planningState.profession.mistburn.charges, 0);
+  assert.equal(result.planningState.profession[STATE.MISTBURN].charges, 0);
 });
 
 test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic', () => {
@@ -1047,7 +1049,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   });
 
   assert.equal(artifact.warnings.length, 0);
-  assert.equal(artifact.planningState.profession.artifactUsesRemaining, 0);
+  assert.equal(artifact.planningState.profession[STATE.ARTIFACT_USES_REMAINING], 0);
   assert.ok(artifact.totalDamage > 0);
 
   // Only Card Swap grants Reshuffle; without it the command is rejected before any artifact state changes.
@@ -1070,7 +1072,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
 
   assert.deepEqual(reshuffled.warnings, []);
   assert.deepEqual(
-    reshuffled.planningState.profession.artifactSlots.map((slot) => slot.skillId),
+    reshuffled.planningState.profession[STATE.ARTIFACT_SLOTS].map((slot) => slot.skillId),
     [...THIEF_ARTIFACT_IDS.OFFENSIVE, ...THIEF_ARTIFACT_IDS.DEFENSIVE]
   );
 
@@ -1195,7 +1197,7 @@ test('Thieves Guild summons specialization-specific thieves and expires', () => 
   );
 
   assert.ok(summonPackets.length > 0);
-  assert.equal(lifetime.planningState.profession.activeThievesGuild, null);
+  assert.equal(lifetime.planningState.profession[STATE.ACTIVE_THIEVES_GUILD], null);
   assert.deepEqual(
     [...new Set(summonPackets.map((event) => event.skillWeapon))].sort(),
     ['Pistol', 'Dagger', 'Scepter'].sort()
@@ -1309,7 +1311,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   const swipe = simulate('Antiquary', ['Skritt Swipe'], config);
 
   assert.deepEqual(
-    swipe.planningState.profession.artifactSlots.map((slot) => slot.skillId),
+    swipe.planningState.profession[STATE.ARTIFACT_SLOTS].map((slot) => slot.skillId),
     expectedArtifactIds
   );
   const paletteGroups = thiefProfession.ui.paletteGroups({
@@ -1335,7 +1337,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   const picked = simulate('Antiquary', ['Skritt Swipe', 'Mistburn Mortar'], config);
 
   assert.equal(picked.warnings.length, 0);
-  assert.equal(picked.planningState.profession.artifactUsesRemaining, 0);
+  assert.equal(picked.planningState.profession[STATE.ARTIFACT_USES_REMAINING], 0);
   // Spent artifacts stay listed; captured runtime verdicts grey them out, so a used artifact is disabled.
   const spentContext = {
     specialization: 'Antiquary',
@@ -1355,7 +1357,7 @@ test('Antiquary exposes every artifact from Swipe and Scuffle', () => {
   const scuffle = simulate('Antiquary', ['Skritt Scuffle', { type: 'wait', durationMs: 5200 }], config);
 
   assert.deepEqual(
-    scuffle.planningState.profession.artifactSlots.map((slot) => slot.skillId),
+    scuffle.planningState.profession[STATE.ARTIFACT_SLOTS].map((slot) => slot.skillId),
     [...expectedArtifactIds, ...THIEF_ARTIFACT_IDS.SCUFFLE_ONLY]
   );
 });
@@ -1424,12 +1426,12 @@ test('Meticulous Custodian upgrades artifact packets and effect durations', () =
   const turret = artifact('Summon Kryptis Turret', true);
   const sunCrystal = artifact('Zephyrite Sun Crystal', true);
   assert.ok(
-    mortar.planningState.profession.mistburn.expiresAt >
-      artifact('Mistburn Mortar').planningState.profession.mistburn.expiresAt
+    mortar.planningState.profession[STATE.MISTBURN].expiresAt >
+      artifact('Mistburn Mortar').planningState.profession[STATE.MISTBURN].expiresAt
   );
   assert.ok(
-    turret.planningState.profession.kryptisDamageUntil >
-      artifact('Summon Kryptis Turret').planningState.profession.kryptisDamageUntil
+    turret.planningState.profession[STATE.KRYPTIS_DAMAGE_UNTIL] >
+      artifact('Summon Kryptis Turret').planningState.profession[STATE.KRYPTIS_DAMAGE_UNTIL]
   );
   assert.ok(sunCrystal.conditionDamage > artifact('Zephyrite Sun Crystal').conditionDamage * 1.8);
 });

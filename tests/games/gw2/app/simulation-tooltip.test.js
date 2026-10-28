@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
@@ -665,7 +666,7 @@ test('Necromancer condition handlers and tooltips share selected skill effects',
   );
   assert.ok(torment.every((event) => event.duration === 7));
   // The accepted strike counts existing Chilled before applying its own Torment, using the patched gain.
-  assert.equal(lifeForcePercent(darkness.planningState.profession.lifeForce), 10);
+  assert.equal(lifeForcePercent(darkness.planningState.profession[STATE.LIFE_FORCE]), 10);
   const corruption = simulate('Core', ['Blood Is Power'], {
     patchId: 'condition-tooltips',
     selectedSkillIds: [10544]
@@ -721,7 +722,9 @@ test('condition-transfer tooltips expose the same limits used by combat', () => 
     ],
     ['Bleeding']
   );
-  assert.ok(result.planningState.profession.selfConditions.some((condition) => condition.condition === 'Torment'));
+  assert.ok(
+    result.planningState.profession[STATE.SELF_CONDITIONS].some((condition) => condition.condition === 'Torment')
+  );
 });
 
 // The selected proc profile must drive both displayed and emitted condition stacks.
@@ -904,7 +907,7 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
       const buff = result.events.find((event) => event.type === 'buff' && event.skillName === 'Berserker Strain');
       assert.equal(buff?.stacks, stacks);
       assert.equal(buff.duration, duration);
-      assert.equal(result.planningState.profession.berserkerUntil, buff.at + duration);
+      assert.equal(result.planningState.profession[STATE.BERSERKER_UNTIL], buff.at + duration);
     }
   }
 });

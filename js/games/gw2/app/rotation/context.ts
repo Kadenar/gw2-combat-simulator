@@ -1,17 +1,18 @@
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 
 /** Shared projection fields consumed by rotation views; professions own the remaining state. */
 export interface RotationProfessionState {
-  readonly primaryAttunement?: string;
-  readonly resource?: number;
-  readonly resourceDefinition?: { readonly maximum?: number };
-  readonly availableFlips?: Readonly<SkillFlipWindows>;
-  readonly autoattackChains?: Readonly<Record<string, SkillId>>;
-  readonly availableAmbush?: { readonly name?: string } | null;
+  readonly [STATE.PRIMARY_ATTUNEMENT]?: string;
+  readonly [STATE.RESOURCE]?: number;
+  readonly [STATE.RESOURCE_DEFINITION]?: { readonly maximum?: number };
+  readonly [STATE.AVAILABLE_FLIPS]?: Readonly<SkillFlipWindows>;
+  readonly [STATE.AUTOATTACK_CHAINS]?: Readonly<Record<string, SkillId>>;
+  readonly [STATE.AVAILABLE_AMBUSH]?: { readonly name?: string } | null;
 }
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
-import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 type RotationPlanningState = ProfessionAppResult['planningState'];
 

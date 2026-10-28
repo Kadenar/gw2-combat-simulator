@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -30,10 +31,10 @@ test('manual and automatic Continuum exits leave autoattack chains at their live
       for (const exit of [['Continuum Shift'], [{ type: 'wait', durationMs: 7000 }]]) {
         const after = simulateMesmer([...rotation, ...exit], config);
         assert.deepEqual(after.warnings, []);
-        assert.equal(after.planningState.profession.continuumActive, false);
+        assert.equal(after.planningState.profession[STATE.CONTINUUM_ACTIVE], false);
         assert.equal(
-          after.planningState.profession.autoattackChains[root],
-          before.planningState.profession.autoattackChains[root]
+          after.planningState.profession[STATE.AUTOATTACK_CHAINS][root],
+          before.planningState.profession[STATE.AUTOATTACK_CHAINS][root]
         );
       }
     }
@@ -133,9 +134,9 @@ test('Illusionary Reversion refunds one clone only after shattering three', () =
     initialResource: 3
   });
 
-  assert.equal(fullShatter.planningState.profession.resource, 1);
-  assert.equal(partialShatter.planningState.profession.resource, 0);
-  assert.equal(continuumSplit.planningState.profession.resource, 1);
+  assert.equal(fullShatter.planningState.profession[STATE.RESOURCE], 1);
+  assert.equal(partialShatter.planningState.profession[STATE.RESOURCE], 0);
+  assert.equal(continuumSplit.planningState.profession[STATE.RESOURCE], 1);
   assert.ok(
     simulationEventLogRows(fullShatter).some((event) =>
       event.description.includes('CLONE SPAWNED x1 -> 1/3 [Illusionary Reversion] (Clone #4 [Dagger])')

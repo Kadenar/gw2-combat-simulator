@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -26,7 +27,7 @@ test('spear stealth choice is consumed on activation even when the attack is can
     const result = simulate('Soulbeast', [ID.PANTHERS_PROWL, cast(ID.WOLFS_ONSLAUGHT, interrupt), ID.FALCONS_STOOP]);
     assert.deepEqual(result.warnings, []);
     assert.ok(strike(result, ID.FALCONS_STOOP));
-    assert.deepEqual(result.planningState.profession.availableFlips, {});
+    assert.deepEqual(result.planningState.profession[STATE.AVAILABLE_FLIPS], {});
     const attempt = result.steps.find((step) => step.skillId === ID.WOLFS_ONSLAUGHT);
     const contacts = result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.skillId === ID.WOLFS_ONSLAUGHT

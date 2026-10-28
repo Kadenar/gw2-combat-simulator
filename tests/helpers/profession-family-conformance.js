@@ -1,4 +1,3 @@
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import assert from 'node:assert/strict';
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
@@ -168,7 +167,14 @@ export function assertProfessionFamilyConformance({ family, core, specialization
         : {},
       config,
       build: family.createBuildDefaults(),
-      professionState: flattenProfessionState(state),
+      // Conformance callbacks receive the actual public schema, not flattened runtime fields.
+      professionState: runtime.projectPlanningState({
+        profession: state,
+        config,
+        catalog: runtime.catalog,
+        time: 0,
+        activeWeaponSet: 1
+      }),
       time: 0
     };
     const activePresentations = [

@@ -1,11 +1,10 @@
-import {
-  defineProfessionSpecializationState,
-  definePublicStateDefaults
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /**
  * Catalyst combat bookkeeping: Jade Sphere energy, the per-attunement sphere
@@ -35,12 +34,14 @@ export const catalystState = defineProfessionSpecializationState('Catalyst', ():
   shatteringIceUntil: 0
 }));
 
-// Catalyst exposes active stack expiries alongside its resource and sphere timing so
-// insertion-aware UI can report the exact Elemental Empowerment stack count.
-export const CATALYST_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  catalystEnergy: createResourceClock(),
-  elementalEmpowermentExpiries: [],
-  empoweringAuras: { stacks: 0, expiresAt: 0 },
-  sphereActiveUntil: 0,
-  sphereExpiry: { Fire: 0, Water: 0, Air: 0, Earth: 0 }
-} satisfies Partial<CatalystState>);
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectCatalystPlanningState(input: Gw2PlanningStateInput) {
+  const state = catalystState.from(input);
+  return structuredClone({
+    [STATE.CATALYST_ENERGY]: state.catalystEnergy,
+    [STATE.ELEMENTAL_EMPOWERMENT_EXPIRIES]: state.elementalEmpowermentExpiries,
+    [STATE.EMPOWERING_AURAS]: state.empoweringAuras,
+    [STATE.SPHERE_ACTIVE_UNTIL]: state.sphereActiveUntil,
+    [STATE.SPHERE_EXPIRY]: state.sphereExpiry
+  });
+}

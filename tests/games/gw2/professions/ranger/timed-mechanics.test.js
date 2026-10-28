@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -27,7 +28,7 @@ test('Natural Mender preserves Avatar affordability without accumulating action-
   // Three actual grants fill the bar; the third authored boundary rounds once to the action grid.
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps[0].start, 760);
-  assert.equal(result.planningState.profession.astralClock.value, 100);
+  assert.equal(result.planningState.profession[STATE.ASTRAL_CLOCK].value, 100);
 });
 
 // Long waits must process the exit before subsequent Natural Mender recovery.
@@ -46,8 +47,8 @@ test('Celestial Avatar expires at its deadline and recovers force afterward', ()
       result.events.filter(({ type, kind }) => type === 'buff' && kind === 'natural-balance').map(({ at }) => at),
       [0, 15]
     );
-    assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
-    assert.equal(result.planningState.profession.astralClock.value, expectedForce);
+    assert.equal(result.planningState.profession[STATE.CELESTIAL_AVATAR_ENDS_AT], null);
+    assert.equal(result.planningState.profession[STATE.ASTRAL_CLOCK].value, expectedForce);
   }
 });
 
@@ -63,7 +64,7 @@ test('manual Avatar exit cancels automatic exit and retains half the remaining f
     result.events.filter(({ type }) => type === 'sigil_swap').map(({ at }) => at),
     [0, 3]
   );
-  assert.equal(result.planningState.profession.astralClock.value, 80);
+  assert.equal(result.planningState.profession[STATE.ASTRAL_CLOCK].value, 80);
 });
 
 test('Avatar depletion schedules an earlier exit than the duration limit', () => {
@@ -84,8 +85,8 @@ test('Avatar depletion schedules an earlier exit than the duration limit', () =>
     result.events.filter((event) => event.type === 'sigil_swap').map((event) => event.at),
     [0, 3]
   );
-  assert.equal(result.planningState.profession.astralClock.value, 16);
-  assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
+  assert.equal(result.planningState.profession[STATE.ASTRAL_CLOCK].value, 16);
+  assert.equal(result.planningState.profession[STATE.CELESTIAL_AVATAR_ENDS_AT], null);
 });
 
 // A lifetime at time zero is still active until its queued exit commits; null alone means inactive.
@@ -113,7 +114,7 @@ test('Avatar lifetime remains present at its exact deadline until exit cleanup c
     );
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(transitions, [null]);
-    assert.equal(result.planningState.profession.celestialAvatarEndsAt, null);
+    assert.equal(result.planningState.profession[STATE.CELESTIAL_AVATAR_ENDS_AT], null);
   }
 });
 

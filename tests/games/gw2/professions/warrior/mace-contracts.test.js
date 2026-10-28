@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -18,7 +19,7 @@ test('Counterblow arms one temporary Tactical Blow without dealing damage or gra
     block.events.some((event) => event.type === 'damage'),
     false
   );
-  assert.equal(block.planningState.profession.adrenaline.value, 0);
+  assert.equal(block.planningState.profession[STATE.ADRENALINE].value, 0);
 
   const flipped = simulate('Core', [ID.COUNTERBLOW, ID.TACTICAL_BLOW, ID.TACTICAL_BLOW]);
   assert.deepEqual(
@@ -26,8 +27,8 @@ test('Counterblow arms one temporary Tactical Blow without dealing damage or gra
     [ID.COUNTERBLOW, ID.TACTICAL_BLOW]
   );
   assert.equal(flipped.steps[1].start, block.steps[0].end);
-  assert.equal(flipped.planningState.profession.adrenaline.value, 6); // Five from the skill plus one ordinary strike.
-  assert.equal(flipped.planningState.profession.availableFlips[ID.TACTICAL_BLOW], undefined);
+  assert.equal(flipped.planningState.profession[STATE.ADRENALINE].value, 6); // Five from the skill plus one ordinary strike.
+  assert.equal(flipped.planningState.profession[STATE.AVAILABLE_FLIPS][ID.TACTICAL_BLOW], undefined);
   assert.ok(flipped.planningState.cooldowns[ID.COUNTERBLOW].remaining > 0);
 
   for (const rotation of [

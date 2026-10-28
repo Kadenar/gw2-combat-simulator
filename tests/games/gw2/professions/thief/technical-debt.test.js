@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
@@ -24,10 +25,11 @@ function patched(balanceProfiles) {
 
 // Initialized pools and tooltips follow the selected trait cap.
 test('Maleficent Seven owns the raised malice cap in previews and tooltips', () => {
-  assert.equal(runThief([], { specialization: 'Deadeye' }).planningState.profession.malice.maximum, 5);
+  assert.equal(runThief([], { specialization: 'Deadeye' }).planningState.profession[STATE.MALICE].maximum, 5);
   assert.equal(
-    runThief([], { specialization: 'Deadeye', selectedTraitIds: [TRAIT.MALEFICENT_SEVEN] }).planningState.profession
-      .malice.maximum,
+    runThief([], { specialization: 'Deadeye', selectedTraitIds: [TRAIT.MALEFICENT_SEVEN] }).planningState.profession[
+      STATE.MALICE
+    ].maximum,
     7
   );
   const context = patched({

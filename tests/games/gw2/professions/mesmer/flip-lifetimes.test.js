@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observeGw2Runtime, observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import assert from 'node:assert/strict';
@@ -70,7 +71,7 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
           config: context.config,
           time: context.time
         });
-        assert.equal(Boolean(projected.availableFlips[ID.COUNTERSPELL]), visible);
+        assert.equal(Boolean(projected[STATE.AVAILABLE_FLIPS][ID.COUNTERSPELL]), visible);
 
         // Eligibility closes at the deadline even though priority-50 cleanup has not run yet.
         if (at === 0.5) assert.ok(context.profession.core.availableFlips[ID.COUNTERSPELL]);

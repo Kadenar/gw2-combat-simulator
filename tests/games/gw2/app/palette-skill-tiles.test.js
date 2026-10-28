@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { observeGw2Runtime, observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
@@ -54,7 +55,7 @@ test('Mirage dodge markup exposes projected endurance instead of ammo', async ()
   const profession = await loadProfession('mesmer');
   const app = projectionApp(profession, {
     specialization: 'Mirage',
-    professionState: { endurance: { value: 7.5, maximum: 100, updatedAt: 0, rate: 0 } }
+    professionState: { [STATE.ENDURANCE]: { value: 7.5, maximum: 100, updatedAt: 0, rate: 0 } }
   });
   const skill = profession.catalog.skillsById.get(-1);
   const markup = paletteSkillHtml(paletteSkillView(app, skill));
@@ -218,7 +219,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
 test('a denied follow-up stays in the shared palette slot', () => {
   const root = { id: 990010, name: 'Root', type: 'Weapon', flipSkillId: 990011 };
   const followup = { id: 990011, name: 'Follow-up', type: 'Weapon', flipParentId: 990010 };
-  const app = catalogApp([root, followup], { availableFlips: { [followup.id]: armSkillFlip({}, 0, 0, 10) } });
+  const app = catalogApp([root, followup], { [STATE.AVAILABLE_FLIPS]: { [followup.id]: armSkillFlip({}, 0, 0, 10) } });
   app.results.planningState.availability[followup.id] = {
     ready: false,
     code: 'fixture.cost',
@@ -363,7 +364,7 @@ for (const [label, skills, states] of [
 ]) {
   test(`shared ${label} selects one live tile from the full family or its root alone`, () => {
     for (const [availableFlips, expected] of states) {
-      const app = catalogApp(skills, { availableFlips });
+      const app = catalogApp(skills, { [STATE.AVAILABLE_FLIPS]: availableFlips });
       for (const input of [skills, [skills[0]]]) {
         assert.deepEqual(
           displayedSkillTiles(app, input).map((skill) => skill.id),
@@ -391,8 +392,8 @@ test('autoattack links, replacements, and excluded flips never expand a root-onl
       { id: 2, name: 'Excluded', flipParentId: 1, ...child }
     ];
     const app = catalogApp(skills, {
-      availableFlips: { 2: armSkillFlip({}, 0, 0, Infinity) },
-      autoattackChains: { 1: 2 }
+      [STATE.AVAILABLE_FLIPS]: { 2: armSkillFlip({}, 0, 0, Infinity) },
+      [STATE.AUTOATTACK_CHAINS]: { 1: 2 }
     });
     assert.deepEqual(
       displayedSkillTiles(app, [skills[0]]).map((skill) => skill.id),
@@ -415,7 +416,7 @@ test('every profession catalog projects tiles and active autoattack stages', asy
       assert.equal(displayedSkillTiles(baseApp, skills)[0].id, chain[0], `${option.id}: ${skills[0].name}`);
       for (const skill of skills) {
         const app = projectionApp(profession, {
-          professionState: { autoattackChains: { [chain[0]]: skill.id } },
+          professionState: { [STATE.AUTOATTACK_CHAINS]: { [chain[0]]: skill.id } },
           useProfessionUi: false
         });
         assert.deepEqual(
@@ -462,98 +463,131 @@ test('stateful transforms select one live tile across professions', async () => 
     await Promise.all(professionOptions.map(async (option) => [option.id, await loadProfession(option.id)]))
   );
   const cases = [
-    ['necromancer', 'Core', { activeShroud: '' }, ['Death Shroud', 'End Death Shroud'], 'Death Shroud'],
-    ['necromancer', 'Core', { activeShroud: 'death' }, ['Death Shroud', 'End Death Shroud'], 'End Death Shroud'],
+    ['necromancer', 'Core', { [STATE.ACTIVE_SHROUD]: '' }, ['Death Shroud', 'End Death Shroud'], 'Death Shroud'],
+    [
+      'necromancer',
+      'Core',
+      { [STATE.ACTIVE_SHROUD]: 'death' },
+      ['Death Shroud', 'End Death Shroud'],
+      'End Death Shroud'
+    ],
     [
       'warrior',
       'Bladesworn',
-      { gunsaberActive: false },
+      { [STATE.GUNSABER_ACTIVE]: false },
       ['Unsheathe Gunsaber', 'Sheathe Gunsaber'],
       'Unsheathe Gunsaber'
     ],
-    ['warrior', 'Bladesworn', { gunsaberActive: true }, ['Unsheathe Gunsaber', 'Sheathe Gunsaber'], 'Sheathe Gunsaber'],
+    [
+      'warrior',
+      'Bladesworn',
+      { [STATE.GUNSABER_ACTIVE]: true },
+      ['Unsheathe Gunsaber', 'Sheathe Gunsaber'],
+      'Sheathe Gunsaber'
+    ],
     [
       'engineer',
       'Holosmith',
-      { photonForgeActive: false },
+      { [STATE.PHOTON_FORGE_ACTIVE]: false },
       ['Engage Photon Forge', 'Deactivate Photon Forge'],
       'Engage Photon Forge'
     ],
     [
       'engineer',
       'Holosmith',
-      { photonForgeActive: true },
+      { [STATE.PHOTON_FORGE_ACTIVE]: true },
       ['Engage Photon Forge', 'Deactivate Photon Forge'],
       'Deactivate Photon Forge'
     ],
     [
       'thief',
       'Specter',
-      { shadowClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, shadowShroudActive: false },
+      {
+        [STATE.SHADOW_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, rate: 0 },
+        [STATE.SHADOW_SHROUD_ACTIVE]: false
+      },
       ['Enter Shadow Shroud'],
       'Enter Shadow Shroud'
     ],
     [
       'thief',
       'Specter',
-      { shadowClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, shadowShroudActive: true },
+      { [STATE.SHADOW_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, [STATE.SHADOW_SHROUD_ACTIVE]: true },
       ['Enter Shadow Shroud'],
       'Exit Shadow Shroud'
     ],
     [
       'ranger',
       'Druid',
-      { astralClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, celestialAvatarEndsAt: null },
+      {
+        [STATE.ASTRAL_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, rate: 0 },
+        [STATE.CELESTIAL_AVATAR_ENDS_AT]: null
+      },
       ['Celestial Avatar'],
       'Celestial Avatar'
     ],
     [
       'ranger',
       'Druid',
-      { astralClock: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, celestialAvatarEndsAt: 15 },
+      {
+        [STATE.ASTRAL_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, rate: 0 },
+        [STATE.CELESTIAL_AVATAR_ENDS_AT]: 15
+      },
       ['Celestial Avatar'],
       'Release Celestial Avatar'
     ],
-    ['ranger', 'Untamed', { rangerUnleashed: false }, ['Unleash Ranger'], 'Unleash Ranger'],
-    ['ranger', 'Untamed', { rangerUnleashed: true }, ['Unleash Ranger'], 'Unleash Pet'],
-    ['ranger', 'Soulbeast', { beastmodeActive: false }, ['Beastmode'], 'Beastmode'],
-    ['ranger', 'Soulbeast', { beastmodeActive: true }, ['Beastmode'], 'Leave Beastmode'],
-    ['ranger', 'Galeshot', { cycloneBowActive: false }, ['Summon Cyclone Bow'], 'Summon Cyclone Bow'],
-    ['ranger', 'Galeshot', { cycloneBowActive: true }, ['Summon Cyclone Bow'], 'Dismiss Cyclone Bow'],
+    ['ranger', 'Untamed', { [STATE.RANGER_UNLEASHED]: false }, ['Unleash Ranger'], 'Unleash Ranger'],
+    ['ranger', 'Untamed', { [STATE.RANGER_UNLEASHED]: true }, ['Unleash Ranger'], 'Unleash Pet'],
+    ['ranger', 'Soulbeast', { [STATE.BEASTMODE_ACTIVE]: false }, ['Beastmode'], 'Beastmode'],
+    ['ranger', 'Soulbeast', { [STATE.BEASTMODE_ACTIVE]: true }, ['Beastmode'], 'Leave Beastmode'],
+    ['ranger', 'Galeshot', { [STATE.CYCLONE_BOW_ACTIVE]: false }, ['Summon Cyclone Bow'], 'Summon Cyclone Bow'],
+    ['ranger', 'Galeshot', { [STATE.CYCLONE_BOW_ACTIVE]: true }, ['Summon Cyclone Bow'], 'Dismiss Cyclone Bow'],
     [
       'ranger',
       'Galeshot',
-      { cycloneBowActive: true, windForce: { value: 0, maximum: 5, rate: 0, updatedAt: 0 } },
+      { [STATE.CYCLONE_BOW_ACTIVE]: true, [STATE.WIND_FORCE]: { value: 0, maximum: 5, rate: 0, updatedAt: 0 } },
       ['Keen Shot'],
       'Keen Shot'
     ],
     [
       'ranger',
       'Galeshot',
-      { cycloneBowActive: true, windForce: { value: 5, maximum: 5, rate: 0, updatedAt: 0 } },
+      { [STATE.CYCLONE_BOW_ACTIVE]: true, [STATE.WIND_FORCE]: { value: 5, maximum: 5, rate: 0, updatedAt: 0 } },
       ['Keen Shot'],
       'Hawkeye'
     ],
-    ['elementalist', 'Core', { primaryAttunement: 'Earth', availableFlips: {} }, ['Rock Barrier'], 'Rock Barrier'],
     [
       'elementalist',
       'Core',
-      { primaryAttunement: 'Earth', availableFlips: { 5780: armSkillFlip({}, 0, 0, 30) } },
+      { [STATE.PRIMARY_ATTUNEMENT]: 'Earth', [STATE.AVAILABLE_FLIPS]: {} },
+      ['Rock Barrier'],
+      'Rock Barrier'
+    ],
+    [
+      'elementalist',
+      'Core',
+      { [STATE.PRIMARY_ATTUNEMENT]: 'Earth', [STATE.AVAILABLE_FLIPS]: { 5780: armSkillFlip({}, 0, 0, 30) } },
       ['Rock Barrier'],
       'Hurl'
     ],
-    ['elementalist', 'Core', { primaryAttunement: 'Earth', activeAuras: [] }, ['Magnetic Aura'], 'Magnetic Aura'],
     [
       'elementalist',
       'Core',
-      { primaryAttunement: 'Earth', activeAuras: [{ type: 'Magnetic Aura', expiresAt: 30 }] },
+      { [STATE.PRIMARY_ATTUNEMENT]: 'Earth', [STATE.ACTIVE_AURAS]: [] },
+      ['Magnetic Aura'],
+      'Magnetic Aura'
+    ],
+    [
+      'elementalist',
+      'Core',
+      { [STATE.PRIMARY_ATTUNEMENT]: 'Earth', [STATE.ACTIVE_AURAS]: [{ type: 'Magnetic Aura', expiresAt: 30 }] },
       ['Magnetic Aura'],
       'Transmute Earth'
     ],
-    ['elementalist', 'Weaver', { perfectWeaveUntil: 0 }, ['Weave Self'], 'Weave Self'],
-    ['elementalist', 'Weaver', { perfectWeaveUntil: 30 }, ['Weave Self'], 'Tailored Victory'],
-    ['guardian', 'Luminary', { radiantForge: false }, ['Enter Radiant Forge'], 'Enter Radiant Forge'],
-    ['guardian', 'Luminary', { radiantForge: true }, ['Enter Radiant Forge'], 'Exit Radiant Forge']
+    ['elementalist', 'Weaver', { [STATE.PERFECT_WEAVE_UNTIL]: 0 }, ['Weave Self'], 'Weave Self'],
+    ['elementalist', 'Weaver', { [STATE.PERFECT_WEAVE_UNTIL]: 30 }, ['Weave Self'], 'Tailored Victory'],
+    ['guardian', 'Luminary', { [STATE.RADIANT_FORGE]: false }, ['Enter Radiant Forge'], 'Enter Radiant Forge'],
+    ['guardian', 'Luminary', { [STATE.RADIANT_FORGE]: true }, ['Enter Radiant Forge'], 'Exit Radiant Forge']
   ];
 
   for (const [professionId, specialization, state, names, expected] of cases) {
@@ -590,7 +624,11 @@ test('Untamed ambush tiles glow only while their window is open and recharge is 
       [3, false, 0, false],
       [3, true, 1000, false]
     ]) {
-      const context = { specialization: 'Untamed', time, professionState: { rangerUnleashed, ambushReadyUntil: 4 } };
+      const context = {
+        specialization: 'Untamed',
+        time,
+        professionState: { [STATE.RANGER_UNLEASHED]: rangerUnleashed, [STATE.AMBUSH_READY_UNTIL]: 4 }
+      };
       const app = projectionApp(profession, { ...context, cooldowns: { [skill.id]: { remaining, readyAt: 4000 } } });
       const planning = planningFixture(profession, { specialization: 'Untamed' }, (runtime) => {
         Object.assign(runtime.profession.specialization.state, { rangerUnleashed, ambushReadyUntil: time < 4 ? 4 : 0 });
@@ -626,7 +664,7 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
   const profession = await loadProfession('elementalist');
   const app = projectionApp(profession, {
     specialization: 'Core',
-    professionState: { availableFlips: {} },
+    professionState: { [STATE.AVAILABLE_FLIPS]: {} },
     time: 1,
     cooldowns: {
       [profession.catalog.skillsById.get(5695).id]: { remaining: 8000, readyAt: 9000 }
@@ -671,7 +709,7 @@ test('Holosmith Forge tiles follow weapon slots for normal and Storm autos', asy
   for (const storm of [false, true]) {
     const app = projectionApp(profession, {
       specialization: 'Holosmith',
-      professionState: { photonForgeActive: true }
+      professionState: { [STATE.PHOTON_FORGE_ACTIVE]: true }
     });
     app.build.specializations = [{ name: 'Holosmith', traits: storm ? '1-1-1' : '1-2-1' }];
     const group = profession.ui
@@ -694,8 +732,8 @@ test('Herald legend-dependent True Nature variants use one shared Facet tile', a
   const profession = await loadProfession('revenant');
   const project = (availableFlips) => {
     const professionState = {
-      activeLegendId: 'LegendaryAssassin',
-      availableFlips
+      [STATE.ACTIVE_LEGEND_ID]: 'LegendaryAssassin',
+      [STATE.AVAILABLE_FLIPS]: availableFlips
     };
     const app = projectionApp(profession, {
       specialization: 'Herald',

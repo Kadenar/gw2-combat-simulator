@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { paletteSkillView, weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
@@ -117,7 +118,7 @@ test('Tempest mechanics execute through native hooks', () => {
     ['Air', 'Fire']
   );
   assert.ok(swaps[1].at >= observedRuntime(result).cooldownController.readyAt(overload.skillId));
-  assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
+  assert.equal(result.planningState.profession[STATE.PRIMARY_ATTUNEMENT], 'Fire');
 });
 
 test('Tempest overloads activate Relic of Fireworks as profession mechanics', () => {
@@ -211,8 +212,8 @@ test('Catalyst mechanics execute through native hooks', () => {
     initialCatalystEnergy: 30
   });
 
-  assert.equal(result.planningState.profession.catalystEnergy.value, 20);
-  assert.equal(result.planningState.profession.catalystEnergy.maximum, 30);
+  assert.equal(result.planningState.profession[STATE.CATALYST_ENERGY].value, 20);
+  assert.equal(result.planningState.profession[STATE.CATALYST_ENERGY].maximum, 30);
   assert.equal(
     resolvedAndScheduledEvents(result).some(
       (event) => event.type === 'combo' && event.fieldType === 'Fire' && event.finisherType === 'Blast'
@@ -669,9 +670,9 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
         // Cooldown-only fixtures still provide the canonical empty ammo projection.
         ammoBySkillId: {},
         profession: {
-          primaryAttunement: 'Fire',
-          secondaryAttunement: 'Water',
-          autoattackChains: {}
+          [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
+          [STATE.SECONDARY_ATTUNEMENT]: 'Water',
+          [STATE.AUTOATTACK_CHAINS]: {}
         }
       }
     }
@@ -872,7 +873,10 @@ test('Evoker derives F5 from the selected familiar', () => {
   const context = {
     build,
     specialization: 'Evoker',
-    professionState: { element: 'Air', empoweredCharges: { value: 0, maximum: 3, rate: 0, updatedAt: 0 } },
+    professionState: {
+      [STATE.ELEMENT]: 'Air',
+      [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, rate: 0, updatedAt: 0 }
+    },
     catalog: elementalistCatalog
   };
   const f5 = (professionState) =>
@@ -880,12 +884,14 @@ test('Evoker derives F5 from the selected familiar', () => {
       .paletteGroups({ ...context, professionState })
       .find((group) => group.id === 'elementalist-evoker-familiars');
 
-  assert.deepEqual(f5({ element: 'Air', empoweredCharges: { value: 0, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds, [
-    elementalistCatalog.skillsById.get(77370).id
-  ]);
-  assert.deepEqual(f5({ element: 'Air', empoweredCharges: { value: 3, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds, [
-    elementalistCatalog.skillsById.get(77089).id
-  ]);
+  assert.deepEqual(
+    f5({ [STATE.ELEMENT]: 'Air', [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds,
+    [elementalistCatalog.skillsById.get(77370).id]
+  );
+  assert.deepEqual(
+    f5({ [STATE.ELEMENT]: 'Air', [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds,
+    [elementalistCatalog.skillsById.get(77089).id]
+  );
 
   // Before a result exists, the F5 palette follows the build's configured familiar.
   build.evokerElement = 'Earth';
@@ -902,7 +908,10 @@ test('Evoker skill selections update the configured familiar independently of si
   const context = {
     build,
     specialization: 'Evoker',
-    professionState: { element: 'Earth', empoweredCharges: { value: 3, maximum: 3, rate: 0, updatedAt: 0 } },
+    professionState: {
+      [STATE.ELEMENT]: 'Earth',
+      [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, rate: 0, updatedAt: 0 }
+    },
     catalog: elementalistCatalog
   };
   const ui = elementalistProfession.ui;
@@ -952,9 +961,9 @@ test('Evoker layers familiar charges beside F5', () => {
     ]
   });
   const professionState = {
-    element: 'Air',
-    familiarCharges: { value: 4, maximum: 6, rate: 0, updatedAt: 0 },
-    empoweredCharges: { value: 2, maximum: 3, rate: 0, updatedAt: 0 }
+    [STATE.ELEMENT]: 'Air',
+    [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, rate: 0, updatedAt: 0 },
+    [STATE.EMPOWERED_CHARGES]: { value: 2, maximum: 3, rate: 0, updatedAt: 0 }
   };
   const context = {
     build,
@@ -998,8 +1007,8 @@ test('Evoker layers familiar charges beside F5', () => {
         availability: {},
         profession: {
           ...professionState,
-          familiarCharges: { value: 6, maximum: 6, rate: 0, updatedAt: 0 },
-          empoweredCharges: { value: 0, maximum: 3, rate: 0, updatedAt: 0 }
+          [STATE.FAMILIAR_CHARGES]: { value: 6, maximum: 6, rate: 0, updatedAt: 0 },
+          [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, rate: 0, updatedAt: 0 }
         }
       }
     }
@@ -1015,8 +1024,8 @@ test('Evoker layers familiar charges beside F5', () => {
         availability: {},
         profession: {
           ...professionState,
-          familiarCharges: { value: 4, maximum: 6, rate: 0, updatedAt: 0 },
-          empoweredCharges: { value: 3, maximum: 3, rate: 0, updatedAt: 0 }
+          [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, rate: 0, updatedAt: 0 },
+          [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, rate: 0, updatedAt: 0 }
         }
       }
     }
@@ -1122,7 +1131,7 @@ test('core attunements enforce and report their individual recharge', () => {
     swaps.map((step) => step.start),
     [0, 1040, 6800]
   );
-  assert.equal(result.planningState.profession.primaryAttunement, 'Fire');
+  assert.equal(result.planningState.profession[STATE.PRIMARY_ATTUNEMENT], 'Fire');
   assert.ok(result.planningState.cooldowns[5494].remaining > 1000);
   assert.ok(result.planningState.cooldowns[5493].remaining > 1000);
   const waterAvailability = result.planningState.availability[elementalistCatalog.skillsById.get(5493).id];
@@ -1212,7 +1221,7 @@ test('Unravel resets the current Weaver recharge, fully attunes for five seconds
       [6.4, 'Air Attunement', undefined, 'Air', 'Earth']
     ]
   );
-  assert.equal(result.planningState.profession.unravelUntil, 5);
+  assert.equal(result.planningState.profession[STATE.UNRAVEL_UNTIL], 5);
   assert.deepEqual(
     result.events
       .filter((event) => event.type === 'buff' && event.kind === 'elements of rage')

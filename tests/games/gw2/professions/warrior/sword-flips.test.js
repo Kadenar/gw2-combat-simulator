@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -48,7 +49,7 @@ for (const [parentId, childId] of [
     const consumed = simulate('Core', [parentId, childId]);
     assert.deepEqual(consumed.warnings, []);
     assertDisplayed(consumed, parentId, childId, parentId);
-    assert.equal(consumed.planningState.profession.availableFlips[childId], undefined);
+    assert.equal(consumed.planningState.profession[STATE.AVAILABLE_FLIPS][childId], undefined);
     assert.equal(consumed.planningState.availability[childId].ready, false);
     assert.ok(consumed.planningState.cooldowns[parentId].remaining > 0);
 

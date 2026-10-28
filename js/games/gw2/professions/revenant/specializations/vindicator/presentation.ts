@@ -17,6 +17,7 @@ import {
   VINDICATOR_DODGE_MS
 } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Sentinel string used as a skill ID/name for the synthetic palette entry; never maps to a real skill.
 export const VINDICATOR_DODGE_AUTO_ACTION = '__vindicator_dodge_auto';
@@ -102,7 +103,7 @@ function resolveVindicatorPaletteAction(
 
 /** Shows the armed Reaver's Curse window until the next dodge consumes it. */
 function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
-  const expiresAt = revenantUiState(context).reaversCurseUntil || 0;
+  const expiresAt = revenantUiState(context)[STATE.REAVERS_CURSE_UNTIL] || 0;
   const remaining = expiresAt - Math.max(0, context.atSeconds || 0);
   // A landing exactly at expiry can still consume the armed charge.
   return expiresAt > 0 && remaining >= 0
@@ -146,8 +147,8 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
         singular: 'endurance',
         plural: 'endurance',
         // Capacity is the shared Revenant bound used by live recovery.
-        maximum: state.endurance?.maximum ?? ENDURANCE.maximum,
-        value: state.endurance?.value ?? ENDURANCE.maximum,
+        maximum: state[STATE.ENDURANCE]?.maximum ?? ENDURANCE.maximum,
+        value: state[STATE.ENDURANCE]?.value ?? ENDURANCE.maximum,
         canStart: false,
         step: 1,
         displayMode: 'bar',

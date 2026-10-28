@@ -1,7 +1,7 @@
+// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { ACTOR, RECIPIENT, BOON } from '#gw2/platform/constants.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-// Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -145,7 +145,7 @@ const lingeringSpirits = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) => balanceNumberFromContext(context, TRAIT.LINGERING_SPIRITS, 'damageIncrease'),
-      when: (context) => Boolean(necromancerRuntimeSpecializationState(context, 'Ritualist').activeSpirits?.anguish)
+      when: (context) => Boolean(necromancerRuntimeSpecializationState(context, 'Ritualist')?.activeSpirits?.anguish)
     }
   ]
 });

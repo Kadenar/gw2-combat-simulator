@@ -1,8 +1,8 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createProfessionBuildAttributeRules, createCalculateAttributes } from '#tests/helpers/build-attributes.js';
-import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
+import { activeRangerUiPet } from '#gw2/professions/ranger/core/presentation.js';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
@@ -207,6 +207,8 @@ describe('Ranger skill-bar selections', () => {
 
   test('Untamed exposes pet selections and reserves Hammer selections for other specializations', () => {
     const build = createRangerBuildDefaults();
+    const config = { specialization: 'Untamed' };
+    const runtime = rangerProfession.runtimeFor(config);
     const untamedContext = {
       build,
       specialization: 'Untamed',
@@ -216,9 +218,13 @@ describe('Ranger skill-bar selections', () => {
         selectedHammerSkillIds: build.selectedHammerSkillIds,
         initialUntamedState: build.initialUntamedState
       },
-      professionState: flattenProfessionState(
-        rangerProfession.resolveProfession({ specialization: 'Untamed' }).createState({ specialization: 'Untamed' })
-      )
+      professionState: runtime.projectPlanningState({
+        profession: runtime.createState(config),
+        config,
+        catalog: runtime.catalog,
+        time: 0,
+        activeWeaponSet: 1
+      })
     };
 
     assert.equal(
@@ -258,7 +264,13 @@ describe('Ranger skill-bar selections', () => {
           selectedHammerSkillIds: build.selectedHammerSkillIds
         },
         catalog: rangerCatalog,
-        professionState: flattenProfessionState(runtime.createState({ specialization }))
+        professionState: runtime.projectPlanningState({
+          profession: runtime.createState({ specialization }),
+          config: { specialization },
+          catalog: runtime.catalog,
+          time: 0,
+          activeWeaponSet: 1
+        })
       };
       const hammer = rangerProfession.ui
         .skillBarGroups(context)
@@ -334,9 +346,9 @@ describe('Galeshot Cyclone Bow', () => {
     );
 
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.profession.cycloneBowActive, true);
-    assert.equal(result.planningState.profession.windForce.value, 0);
-    assert.equal(result.planningState.profession.arrows.value < 8, true);
+    assert.equal(result.planningState.profession[STATE.CYCLONE_BOW_ACTIVE], true);
+    assert.equal(result.planningState.profession[STATE.WIND_FORCE].value, 0);
+    assert.equal(result.planningState.profession[STATE.ARROWS].value < 8, true);
     assert.equal(result.totalDamage > 0, true);
 
     const keenBlocked = simulate('Galeshot', [
@@ -363,11 +375,17 @@ describe('Galeshot Cyclone Bow', () => {
       "Quarry's Peril",
       'Supersonic Arrow'
     ]);
+    const config = { specialization: 'Galeshot' };
+    const runtime = rangerProfession.runtimeFor(config);
     const inactiveContext = {
       specialization: 'Galeshot',
-      professionState: flattenProfessionState(
-        rangerProfession.resolveProfession({ specialization: 'Galeshot' }).createState({ specialization: 'Galeshot' })
-      )
+      professionState: runtime.projectPlanningState({
+        profession: runtime.createState(config),
+        config,
+        catalog: runtime.catalog,
+        time: 0,
+        activeWeaponSet: 1
+      })
     };
     const galeshotPaletteGroups = rangerProfession.ui.paletteGroups(inactiveContext);
 
@@ -437,7 +455,16 @@ describe('Galeshot Cyclone Bow', () => {
     assert.doesNotMatch(paletteElement.innerHTML, /title="[^"]*(?:arrows|Wind Force): \d+\/(?:8|5)"/);
     const dismiss = rangerCatalog.skillsById.get(ID.DISMISS_CYCLONE_BOW);
 
+    // Both sides of the mode transition must come from projected state, not a missing-field default.
+    assert.equal(inactiveContext.professionState[STATE.CYCLONE_BOW_ACTIVE], false);
     assert.equal(rangerProfession.ui.paletteOverride(inactiveContext, dismiss).tileActive, false);
+    assert.equal(
+      rangerProfession.ui.paletteOverride(
+        { specialization: 'Galeshot', professionState: charged.planningState.profession },
+        dismiss
+      ).tileActive,
+      true
+    );
 
     assert.equal(charged.planningState.availability[ID.KEEN_SHOT].ready, false);
     assert.equal(charged.planningState.availability[ID.HAWKEYE].ready, true);
@@ -828,10 +855,13 @@ test('Ranger pet-swap and Marksmanship traits resolve at their combat timings', 
   });
 
   assert.deepEqual(swapped.warnings, []);
-  assert.equal(swapped.planningState.profession.activePetSlot, 2);
-  assert.equal(rangerPetForState(swapped.planningState.profession).name, 'Fanged Iboga');
-  assert.deepEqual(swapped.planningState.profession.petNames, ['Carrion Devourer', 'Fanged Iboga']);
-  assert.equal(rangerPetForState(swapped.planningState.profession).skillIds.includes(ID.CONSUMING_BITE), true);
+  assert.equal(swapped.planningState.profession[STATE.ACTIVE_PET_SLOT], 2);
+  assert.equal(activeRangerUiPet({ professionState: swapped.planningState.profession }).name, 'Fanged Iboga');
+  assert.deepEqual(swapped.planningState.profession[STATE.PET_NAMES], ['Carrion Devourer', 'Fanged Iboga']);
+  assert.equal(
+    activeRangerUiPet({ professionState: swapped.planningState.profession }).skillIds.includes(ID.CONSUMING_BITE),
+    true
+  );
   assert.equal(
     swapped.events.some(
       (event) =>

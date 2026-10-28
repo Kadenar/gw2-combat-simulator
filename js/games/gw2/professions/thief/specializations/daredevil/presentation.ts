@@ -5,6 +5,7 @@ import type { RotationStateSnapshotItem } from '#gw2/platform/profession-present
 import { thiefStealPaletteGroups } from '#gw2/professions/thief/core/presentation.js';
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Show dodge damage bonuses only while their projected post-dodge windows are active. */
 function daredevilStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
@@ -39,7 +40,7 @@ export const daredevilUi = Object.freeze({
   },
   // This module owns access to Daredevil's starting stolen-skill inventory.
   resourceViews: (context: ThiefUiContext) => [
-    preStealResourceView(context.professionState?.storedStolenSkillCount || 0)
+    preStealResourceView(context.professionState?.[STATE.STORED_STOLEN_SKILL_COUNT] || 0)
   ],
   rotationStateSnapshot: daredevilStateSnapshot,
   paletteGroups: () => thiefStealPaletteGroups()

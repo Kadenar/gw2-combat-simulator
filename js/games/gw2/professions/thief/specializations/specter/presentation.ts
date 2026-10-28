@@ -1,6 +1,7 @@
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const SHADOW_SHROUD_SKILL_IDS = Object.freeze([
   ID.HAUNT_SHOT,
@@ -20,7 +21,9 @@ export const specterUi = Object.freeze({
   // Mode identity remains visible independently of remaining Shadow Force.
   paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
     if (skill.id === ID.ENTER_SHADOW_SHROUD || skill.id === ID.EXIT_SHADOW_SHROUD)
-      return { tileActive: (skill.id === ID.EXIT_SHADOW_SHROUD) === Boolean(thiefUiState(context).shadowShroudActive) };
+      return {
+        tileActive: (skill.id === ID.EXIT_SHADOW_SHROUD) === Boolean(thiefUiState(context)[STATE.SHADOW_SHROUD_ACTIVE])
+      };
   },
   paletteGroups: () => [
     {
@@ -49,7 +52,7 @@ export const specterUi = Object.freeze({
         singular: 'shadow force',
         plural: 'shadow force',
         maximum: 100,
-        value: state.shadowClock?.value ?? context.initialShadowForce ?? 0,
+        value: state[STATE.SHADOW_CLOCK]?.value ?? context.initialShadowForce ?? 0,
         startMaximum: 100,
         canStart: true,
         buildKey: 'initialShadowForce',
@@ -58,7 +61,7 @@ export const specterUi = Object.freeze({
         pipStyle: 'compact-profession-resource-specter-shadow-force',
         shortLabel: 'SF',
         // Label changes while shroud is active to signal the bar is draining.
-        statusLabel: state.shadowShroudActive ? 'Shroud' : 'Current'
+        statusLabel: state[STATE.SHADOW_SHROUD_ACTIVE] ? 'Shroud' : 'Current'
       }
     ];
   }

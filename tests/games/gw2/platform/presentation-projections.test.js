@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createProfessionFamilyUi, uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
@@ -99,7 +100,7 @@ test('Weaver single dual group is authoritative and utility variants follow live
   };
   assert.deepEqual(
     ui.paletteSelectedSlotSkills(
-      { specialization: 'Weaver', build, catalog, professionState: { primaryAttunement: 'Water' } },
+      { specialization: 'Weaver', build, catalog, professionState: { [STATE.PRIMARY_ATTUNEMENT]: 'Water' } },
       [fire]
     ),
     [water]

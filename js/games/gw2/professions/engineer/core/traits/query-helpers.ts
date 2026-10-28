@@ -6,7 +6,8 @@ import {
   targetHealthFraction
 } from '#gw2/platform/combat/query/runtime-query.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { EngineerSimulationEvent, EngineerState } from '#gw2/professions/engineer/types.js';
+import type { EngineerSimulationEvent } from '#gw2/professions/engineer/types.js';
+import type { EngineerCoreState } from '#gw2/professions/engineer/core/state.js';
 
 /** Narrows the active modifier event to Engineer's extended simulation event shape. */
 export function engineerEvent(context: Gw2ModifierContext): EngineerSimulationEvent | undefined {
@@ -14,8 +15,8 @@ export function engineerEvent(context: Gw2ModifierContext): EngineerSimulationEv
 }
 
 /** Reads Core state from the live simulation or the isolated attribute preview. */
-export function engineerRuntimeState(context: Gw2ModifierContext): Partial<EngineerState> {
-  return readProfessionCoreState<EngineerState>(
+export function engineerRuntimeState(context: Gw2ModifierContext): Partial<EngineerCoreState> {
+  return readProfessionCoreState<EngineerCoreState>(
     context.runtime?.profession ?? (context.state as { readonly profession?: unknown } | undefined)?.profession
   );
 }

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -308,8 +309,8 @@ test('Evoker mechanics execute through native hooks', () => {
     initialEvokerEmpowered: 3
   });
 
-  assert.equal(result.planningState.profession.familiarCharges.maximum, 6);
-  assert.equal(result.planningState.profession.empoweredCharges.value, 0);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].maximum, 6);
+  assert.equal(result.planningState.profession[STATE.EMPOWERED_CHARGES].value, 0);
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Electric Enchantment')
       .length,
@@ -336,7 +337,7 @@ test('Evoker weapon skills build familiar charges', () => {
 
   assert.ok(charge);
   assert.equal(charge.change, 2);
-  assert.equal(result.planningState.profession.familiarCharges.value, 2);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 2);
 });
 
 test('Fire-specialized Evoker gives Sunspot and Flame Expulsion independent cooldowns', () => {
@@ -500,8 +501,8 @@ test('Evoker can cast a basic familiar after configured start charges fill', () 
     result.events.some((event) => event.type === 'action' && event.skillName === 'Ignite'),
     true
   );
-  assert.equal(result.planningState.profession.familiarCharges.value, 0);
-  assert.equal(result.planningState.profession.empoweredCharges.value, 1);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 0);
+  assert.equal(result.planningState.profession[STATE.EMPOWERED_CHARGES].value, 1);
 });
 
 test('Evoker preserves off-attunement recharge while waiting for a swap', () => {
@@ -570,8 +571,8 @@ test('Evoker does not award a completed parent charge grant twice', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.familiarCharges.value, 0);
-  assert.equal(result.planningState.profession.empoweredCharges.value, 1);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 0);
+  assert.equal(result.planningState.profession[STATE.EMPOWERED_CHARGES].value, 1);
 });
 
 test('Evoker spends a completed Rejuvenate refill only once', () => {
@@ -592,8 +593,8 @@ test('Evoker spends a completed Rejuvenate refill only once', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.familiarCharges.value, 0);
-  assert.equal(result.planningState.profession.empoweredCharges.value, 1);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 0);
+  assert.equal(result.planningState.profession[STATE.EMPOWERED_CHARGES].value, 1);
 });
 
 test('Evoker queues early familiar inputs only when pending charges can make them available', () => {
@@ -618,10 +619,10 @@ test('Evoker queues early familiar inputs only when pending charges can make the
 
       if (initialEvokerCharges === 4) {
         assert.equal(familiar.at, parent.endsAt);
-        assert.equal(result.planningState.profession.familiarCharges.value, 0);
+        assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 0);
       } else {
         assert.ok(familiar.at < parent.endsAt);
-        assert.equal(result.planningState.profession.familiarCharges.value, 2);
+        assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 2);
       }
     }
   }
@@ -664,7 +665,7 @@ test('Evasive Arcana does not grant Evoker familiar charges', () => {
     result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Flame Burst (trait)'),
     true
   );
-  assert.equal(result.planningState.profession.familiarCharges.value, 0);
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 0);
 });
 
 test('Evoker familiar grants enchant only hits at or after the grant', () => {
@@ -720,8 +721,8 @@ test('Specialized Elements forces and locks the selected attunement', () => {
     evokerElement: 'Air'
   });
 
-  assert.equal(result.planningState.profession.primaryAttunement, 'Air');
-  assert.equal(result.planningState.profession.familiarCharges.maximum, 6);
+  assert.equal(result.planningState.profession[STATE.PRIMARY_ATTUNEMENT], 'Air');
+  assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].maximum, 6);
   assert.equal(
     result.events.some((event) => event.type === 'elementalist.attunement'),
     false

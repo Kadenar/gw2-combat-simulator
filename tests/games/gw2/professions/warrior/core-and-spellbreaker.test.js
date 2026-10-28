@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { bloodReaction } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
 import { attackersInsight } from '#gw2/professions/warrior/specializations/spellbreaker/traits/index.js';
@@ -188,8 +189,8 @@ test('Warrior core and elite profession resources remain isolated', () => {
     ['Bladesworn', 0]
   ]) {
     const state = simulate(specialization, [], { initialResource: 100 }).planningState.profession;
-    assert.equal(state.adrenaline.maximum, maximumAdrenaline, specialization);
-    assert.equal(state.adrenaline.value, maximumAdrenaline, specialization);
+    assert.equal(state[STATE.ADRENALINE].maximum, maximumAdrenaline, specialization);
+    assert.equal(state[STATE.ADRENALINE].value, maximumAdrenaline, specialization);
   }
 });
 
@@ -367,7 +368,7 @@ test('Bladesworn gunsaber autos follow the standard autoattack chain display', (
     return chain.map((skillId) =>
       autoattackChainSkillAvailable(
         warriorCatalog.skillsById.get(skillId),
-        result.planningState.profession.autoattackChains
+        result.planningState.profession[STATE.AUTOATTACK_CHAINS]
       )
     );
   };
@@ -440,7 +441,7 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
       .resourceViews({
         catalog: warriorCatalog,
         specialization,
-        professionState: { adrenaline: { value: 0, maximum, rate: 0, updatedAt: 0 } }
+        professionState: { [STATE.ADRENALINE]: { value: 0, maximum, rate: 0, updatedAt: 0 } }
       })
       .find((view) => view.id === 'adrenaline');
 
@@ -508,7 +509,7 @@ test('Core bursts require and consume adrenaline', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.totalDamage > 0, true);
-  assert.equal(result.planningState.profession.adrenaline.value < 30, true);
+  assert.equal(result.planningState.profession[STATE.ADRENALINE].value < 30, true);
 });
 
 test('Core Warrior weapon swap toggles the active set', () => {
@@ -550,7 +551,7 @@ test('Berserker gates primal bursts behind berserk mode', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.notEqual(result.planningState.profession.berserkUntil, null);
+  assert.notEqual(result.planningState.profession[STATE.BERSERK_UNTIL], null);
   assert.equal(result.totalDamage > 0, true);
 });
 
@@ -591,8 +592,8 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.adrenaline.maximum, 10);
-  assert.equal(result.planningState.profession.berserkUntil, 25);
+  assert.equal(result.planningState.profession[STATE.ADRENALINE].maximum, 10);
+  assert.equal(result.planningState.profession[STATE.BERSERK_UNTIL], 25);
   assert.equal(
     result.events.some((event) => event.kind === 'quickness' && event.duration === 3),
     true
@@ -768,8 +769,8 @@ test('Spellbreaker uses its reduced adrenaline cap for Full Counter', () => {
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.adrenaline.maximum, 20);
-  assert.equal(result.planningState.profession.adrenaline.value < 20, true);
+  assert.equal(result.planningState.profession[STATE.ADRENALINE].maximum, 20);
+  assert.equal(result.planningState.profession[STATE.ADRENALINE].value < 20, true);
   assert.equal(result.totalDamage, 0);
   assert.equal(
     result.events.some((event) => event.type === 'damage' && event.skillId === ID.FULL_COUNTER),
@@ -946,7 +947,7 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
   });
 
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.planningState.profession.attackerInsightExpiries.length, 1);
+  assert.equal(result.planningState.profession[STATE.ATTACKER_INSIGHT_EXPIRIES].length, 1);
   assert.equal(
     result.events.some(
       (event) =>
@@ -989,8 +990,8 @@ test('Spellbreaker control grants independent Insight stacks and No Escape', () 
     target: { defiant: true }
   });
 
-  assert.equal(kick.planningState.profession.attackerInsightExpiries.length, 2);
-  assert.equal(kick.planningState.profession.attackerInsightExpiries.length, 2);
+  assert.equal(kick.planningState.profession[STATE.ATTACKER_INSIGHT_EXPIRIES].length, 2);
+  assert.equal(kick.planningState.profession[STATE.ATTACKER_INSIGHT_EXPIRIES].length, 2);
 });
 
 test('Peak Performance buffs Kick and Leg Specialist requires impairment', () => {
@@ -1058,7 +1059,8 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
   });
 
   assert.equal(
-    traitControl.planningState.profession.adrenaline.value - baselineControl.planningState.profession.adrenaline.value,
+    traitControl.planningState.profession[STATE.ADRENALINE].value -
+      baselineControl.planningState.profession[STATE.ADRENALINE].value,
     7
   );
   const stability = traitControl.events.find(

@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import assert from 'node:assert/strict';
@@ -223,7 +224,7 @@ test('a time-zero attunement swap still enforces overload singularity', () => {
   const app = createTempestApp(['Fire Attunement', 'Overload Fire']);
   const overload = app.results.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
 
-  assert.equal(app.results.planningState.profession.attunementEnteredAt, 0);
+  assert.equal(app.results.planningState.profession[STATE.ATTUNEMENT_ENTERED_AT], 0);
   assert.equal(overload.at, 4.8);
 });
 

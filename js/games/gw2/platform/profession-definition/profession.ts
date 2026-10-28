@@ -70,6 +70,7 @@ import {
 } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
+import { composePlanningState } from '#gw2/platform/profession-definition/state.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ResourcePolicies & { readonly endurance?: EndurancePolicy };
@@ -579,7 +580,7 @@ export function defineNativeProfession<
         ...(projectors.length
           ? {
               projectPlanningState: (input: unknown) =>
-                Object.assign({}, ...projectors.map((project) => project(input)))
+                composePlanningState(projectors.map((project) => project(input)))
             }
           : {})
       },

@@ -16,6 +16,7 @@ import { GUARDIAN_TRAIT_IDS as WILLBENDER_TRAIT } from '#gw2/professions/guardia
 import type { GuardianUiContext, GuardianUiSlice, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const VIRTUE_IDS = Object.freeze([
   GUARDIAN_SKILL_IDS.RUSHING_JUSTICE,
@@ -29,9 +30,9 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   for (const [id, label, expiresAt] of [
-    ['willbender-rushing-justice', 'Rushing Justice', state.justiceUntil || 0],
-    ['willbender-flowing-resolve', 'Flowing Resolve', state.resolveUntil || 0],
-    ['willbender-crashing-courage', 'Crashing Courage', state.courageUntil || 0]
+    ['willbender-rushing-justice', 'Rushing Justice', state[STATE.JUSTICE_UNTIL] || 0],
+    ['willbender-flowing-resolve', 'Flowing Resolve', state[STATE.RESOLVE_UNTIL] || 0],
+    ['willbender-crashing-courage', 'Crashing Courage', state[STATE.COURAGE_UNTIL] || 0]
   ] as const) {
     const remaining = expiresAt - at;
 
@@ -41,12 +42,12 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
     items.push({ id, label, value: formatSecondsRemaining(remaining), title: `${label} active window` });
   }
 
-  const lethalRemaining = (state.lethalTempo?.expiresAt || 0) - at;
+  const lethalRemaining = (state[STATE.LETHAL_TEMPO]?.expiresAt || 0) - at;
   const maximum = balanceNumberFromContext(context.balanceContext, WILLBENDER_TRAIT.LETHAL_TEMPO, 'maximumStacks');
-  const lethalStacks = boundedInteger(activeRefreshedStacks(state.lethalTempo, at, 'inclusive'), 0, 0, maximum);
+  const lethalStacks = boundedInteger(activeRefreshedStacks(state[STATE.LETHAL_TEMPO], at, 'inclusive'), 0, 0, maximum);
 
   // Lethal Tempo remains available for damage and refreshes on its final tick.
-  if ((state.lethalTempo?.expiresAt || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
+  if ((state[STATE.LETHAL_TEMPO]?.expiresAt || 0) > 0 && lethalRemaining >= 0 && lethalStacks > 0) {
     items.push({
       id: 'willbender-lethal-tempo',
       label: 'Lethal Tempo',

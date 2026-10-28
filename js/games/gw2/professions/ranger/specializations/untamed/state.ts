@@ -1,13 +1,9 @@
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import {
-  flattenProfessionState,
-  projectPublicProfessionState,
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
-import type { RangerConfig, RangerState } from '#gw2/professions/ranger/types.js';
+import { defineProfessionSpecializationState, cloneStateFields } from '#gw2/platform/profession-definition/state.js';
+import type { RangerConfig } from '#gw2/professions/ranger/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export type RangerInitialUntamedState = 'Pet' | 'Ranger';
 
@@ -21,13 +17,6 @@ export interface UntamedState {
 
   untamedActivationClaims: ActivationClaims;
 }
-
-// Untamed owns its public unleash, ambush, and resolver-driven Ferocious Symbiosis projection.
-export const UNTAMED_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  rangerUnleashed: false,
-  ambushReadyUntil: 0,
-  ferociousSymbiosisPlayer: { stacks: 0, expiresAt: 0 }
-} satisfies Partial<RangerState>);
 
 export function createUntamedState(config: RangerConfig = {}): UntamedState {
   return {
@@ -48,13 +37,17 @@ export const untamedState = defineProfessionSpecializationState('Untamed', creat
 
 /** Detach public fields before hiding expired ambushes, leaving private activation claims untouched. */
 export function projectUntamedPlanningState(input: Gw2PlanningStateInput) {
-  const state = projectPublicProfessionState(
-    flattenProfessionState(input.profession) as unknown as UntamedState,
-    UNTAMED_PUBLIC_STATE_PROJECTION.keys,
-    UNTAMED_PUBLIC_STATE_PROJECTION.defaults
-  );
+  const state = cloneStateFields(untamedState.from(input), [
+    'rangerUnleashed',
+    'ambushReadyUntil',
+    'ferociousSymbiosisPlayer'
+  ]);
 
   if (state.ambushReadyUntil <= input.time) state.ambushReadyUntil = 0;
 
-  return state;
+  return {
+    [STATE.RANGER_UNLEASHED]: state.rangerUnleashed,
+    [STATE.AMBUSH_READY_UNTIL]: state.ambushReadyUntil,
+    [STATE.FEROCIOUS_SYMBIOSIS_PLAYER]: state.ferociousSymbiosisPlayer
+  };
 }

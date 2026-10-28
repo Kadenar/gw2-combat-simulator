@@ -1,3 +1,4 @@
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import {
   galeshotControlAccepted,
   missileResolved,
@@ -54,8 +55,8 @@ test('Wind Force survives dismissal as pending work and grants once at the selec
   ]);
   assert.equal(state(result).windForce.maximum, 2.5);
   assert.equal(state(result).windForce.rate, 0);
-  assert.deepEqual(result.planningState.profession.windForce, state(result).windForce);
-  assert.notEqual(result.planningState.profession.windForce, state(result).windForce);
+  assert.deepEqual(result.planningState.profession[STATE.WIND_FORCE], state(result).windForce);
+  assert.notEqual(result.planningState.profession[STATE.WIND_FORCE], state(result).windForce);
 });
 
 // Cast cancellation retains its original grant gate, and Hawkeye clears the full pool at its accepted start.

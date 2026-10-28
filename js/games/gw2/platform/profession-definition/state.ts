@@ -1,6 +1,27 @@
-import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { DynamicFields } from '#kernel/core/dynamic-fields.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
+
+/** Clone only selected live fields so projection normalization cannot mutate owners or copy private bookkeeping. */
+export function cloneStateFields<TState extends object, const TKey extends keyof TState>(
+  state: TState,
+  keys: readonly TKey[]
+): Pick<TState, TKey> {
+  return structuredClone(Object.fromEntries(keys.map((key) => [key, state[key]]))) as Pick<TState, TKey>;
+}
+
+/** Reject overlapping public identities so module order cannot silently replace another owner's observation. */
+export function composePlanningState(projections: readonly object[]): object {
+  const result: Record<string, unknown> = {};
+  for (const projection of projections) {
+    for (const [id, value] of Object.entries(projection)) {
+      if (Object.hasOwn(result, id)) throw new TypeError(`Duplicate planning state ID: ${id}`);
+
+      result[id] = value;
+    }
+  }
+
+  return result;
+}
 
 /**
  * Profession state ownership helpers. Keeps Core and active-specialization
@@ -8,8 +29,8 @@ import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
  */
 
 /**
- * Flattens Core plus the active specialization solely for stable public
- * projections and event snapshots. Runtime mechanics use the nested state.
+ * Flattens runtime slices for generic observations and internal test snapshots.
+ * Native profession planning projectors select their own fields under registered IDs.
  */
 export function flattenProfessionState(professionState: unknown): UnvalidatedFields {
   if (!professionState || typeof professionState !== 'object') return {};
@@ -62,30 +83,6 @@ export function readProfessionSpecializationState<TState extends object = Dynami
   }
 
   return specialization.state;
-}
-
-/** Declares public fields and display defaults for the owning module, separate from live state initialization. */
-export function definePublicStateDefaults<TDefaults extends object>(defaults: TDefaults) {
-  return Object.freeze({
-    keys: Object.freeze(Object.keys(defaults) as Extract<keyof TDefaults, string>[]),
-    defaults: Object.freeze(defaults)
-  });
-}
-
-/** Selects and clones the declared public fields while supplying defaults only for missing state. */
-export function projectPublicProfessionState<TState extends object, TKey extends keyof TState>(
-  flatState: TState,
-  keys: readonly TKey[],
-  defaults?: Readonly<Partial<TState>>
-): UnvalidatedFields & Pick<TState, TKey> {
-  const state = flatState as UnvalidatedFields;
-  const fallback = (defaults || {}) as UnvalidatedFields;
-  return Object.fromEntries(
-    keys.map((key) => {
-      const name = String(key);
-      return [name, structuredClone(Object.hasOwn(state, name) ? state[name] : fallback[name])];
-    })
-  ) as UnvalidatedFields & Pick<TState, TKey>;
 }
 
 type ProfessionStateContext<TRuntimeState> = {
@@ -184,17 +181,4 @@ export function defineProfessionSpecializationState<
       return specializationStateForKind(context, kind) as TState;
     }
   });
-}
-
-/** Projects only a module's declared public fields; inactive modules contribute no fields or defaults. */
-export function createPublicStateProjector<const TKey extends string>(projection: {
-  readonly keys: readonly TKey[];
-  readonly defaults: Readonly<Partial<Record<TKey, unknown>>>;
-}): (input: Gw2PlanningStateInput) => Record<TKey, unknown> {
-  return ({ profession }) =>
-    projectPublicProfessionState(
-      flattenProfessionState(profession) as Record<TKey, unknown>,
-      projection.keys,
-      projection.defaults
-    );
 }

@@ -7,6 +7,7 @@ import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { selectedMechCommands } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { EngineerUiContext, EngineerUiSlice } from '#gw2/professions/engineer/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Prefer the editable build's traits, but fall back to simulation state when a
 // historical result is inspected without a complete build projection.
@@ -14,7 +15,7 @@ function mechanistCommandSkills(context: EngineerUiContext & ProfessionCatalogCo
   const activeTraits = selectedTraits(context.catalog, context.build?.specializations || []);
   return activeTraits.length
     ? selectedMechCommands(new Set(activeTraits.map((trait) => trait.id)))
-    : [...(engineerUiState(context).mech?.commandSkillIds || [])];
+    : [...(engineerUiState(context)[STATE.MECH]?.commandSkillIds || [])];
 }
 
 export const mechanistUi: EngineerUiSlice = Object.freeze({

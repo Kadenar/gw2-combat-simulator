@@ -1,9 +1,8 @@
 import type { RevenantTimedStack } from '#gw2/professions/revenant/types.js';
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import {
-  definePublicStateDefaults,
-  defineProfessionSpecializationState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface RenegadeState {
   kallasFervor: RevenantTimedStack[];
@@ -11,15 +10,6 @@ export interface RenegadeState {
   /** Each assumed ally's own Razorclaw grant, keyed by ally index; the allied controller supplies only strikes. */
   alliedRazorclawsRage: Record<number, ChargeGrant>;
 }
-
-export const RENEGADE_PUBLIC_STATE_PROJECTION = definePublicStateDefaults({
-  kallasFervor: [],
-  razorclawsRage: {
-    charges: 0,
-    expiresAt: 0,
-    readyAt: 0
-  }
-} satisfies Partial<RenegadeState>);
 
 function createRenegadeState(): RenegadeState {
   return {
@@ -36,3 +26,12 @@ function createRenegadeState(): RenegadeState {
 }
 
 export const renegadeState = defineProfessionSpecializationState('Renegade', createRenegadeState);
+
+/** Publish detached, typed observations from this module's owner under stable public IDs. */
+export function projectRenegadePlanningState(input: Gw2PlanningStateInput) {
+  const state = renegadeState.from(input);
+  return structuredClone({
+    [STATE.KALLAS_FERVOR]: state.kallasFervor,
+    [STATE.RAZORCLAWS_RAGE]: state.razorclawsRage
+  });
+}

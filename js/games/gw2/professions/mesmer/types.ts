@@ -1,20 +1,13 @@
-import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { StrikeEffect } from '#gw2/platform/effects/types.js';
-import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-
 import type { AmmoObservation } from '#gw2/platform/execution/cooldown-contracts.js';
-import type {
-  MesmerResourceDefinition,
-  MesmerResourceSpendDetails
-} from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
+import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type {
   MesmerShatterResolution,
   MesmerShatterResolverRequest,
@@ -24,15 +17,10 @@ import type { MesmerCoreState } from '#gw2/professions/mesmer/core/state.js';
 import type { MesmerChronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerMirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
 import type { MesmerTroubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
-import type { MesmerProjectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/types.js';
 import type { MesmerVirtuosoState } from '#gw2/professions/mesmer/specializations/virtuoso/state.js';
 
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-
-/** Composes family state from the state contracts owned by Core and each specialization. */
-interface MesmerProfessionState
-  extends MesmerCoreState, MesmerChronomancerState, MesmerMirageState, MesmerVirtuosoState, MesmerTroubadourState {}
 
 export interface MesmerRuntimeState {
   core: MesmerCoreState;
@@ -44,23 +32,18 @@ export interface MesmerRuntimeState {
     | { kind: 'Troubadour'; state: MesmerTroubadourState };
 }
 
-interface MesmerPlanningState {
-  readonly endurance?: ResourceClock;
-  readonly resource?: number;
-  readonly resourceDefinition?: MesmerResourceDefinition;
-  readonly clarityRemaining: number;
-  readonly availableAmbush?: {
-    readonly name: string;
-    readonly source: string;
-    readonly expiresAt: number;
-    readonly remaining: number;
-  } | null;
-  readonly activeInstruments?: readonly MesmerProjectedInstrument[];
-  readonly availableFlips: Readonly<SkillFlipWindows>;
-  readonly autoattackChains: Readonly<Record<string, SkillId>>;
-  readonly continuumActive?: boolean;
-  readonly continuumRemaining?: number;
-}
+/** Public consumers receive only the ID/value pairs published by active owners. */
+export type MesmerPlanningState = ReturnType<
+  typeof import('#gw2/professions/mesmer/core/state.js').projectMesmerCorePlanningState
+> &
+  ReturnType<
+    typeof import('#gw2/professions/mesmer/specializations/chronomancer/state.js').projectChronomancerPlanningState
+  > &
+  ReturnType<typeof import('#gw2/professions/mesmer/specializations/mirage/state.js').projectMiragePlanningState> &
+  ReturnType<
+    typeof import('#gw2/professions/mesmer/specializations/troubadour/state.js').projectTroubadourPlanningState
+  > &
+  ReturnType<typeof import('#gw2/professions/mesmer/specializations/virtuoso/state.js').projectVirtuosoPlanningState>;
 
 interface MesmerSpecializationSelection {
   readonly name: string;
@@ -94,9 +77,7 @@ export type MesmerResolverEvent = Gw2ResolverEvent & {
 /** Mesmer owners mutate their profession state and request shared changes through engine services. */
 export type MesmerRuntime = MechanicContext<MesmerRuntimeState, MesmerSkill>;
 
-/** UI callbacks read both live state and the named public projection fields. */
-export type MesmerUiState = Partial<MesmerProfessionState> &
-  Partial<Omit<MesmerPlanningState, keyof MesmerProfessionState>>;
+export type MesmerUiState = Partial<MesmerPlanningState>;
 
 export interface MesmerUiContext extends Omit<ProfessionUiCallbackContext<MesmerUiState>, 'build'> {
   readonly config?: Partial<MesmerConfig>;
@@ -104,7 +85,7 @@ export interface MesmerUiContext extends Omit<ProfessionUiCallbackContext<Mesmer
 }
 
 /** UI slice whose callbacks read Mesmer end-state projections. */
-export type MesmerUiSlice = Partial<ProfessionUiContract<Partial<MesmerProfessionState>>>;
+export type MesmerUiSlice = Partial<ProfessionUiContract<MesmerUiState>>;
 
 /** Adds ambush damage and status scheduling to the shared strike definition. */
 export interface MesmerAmbushStrike extends Partial<StrikeEffect> {

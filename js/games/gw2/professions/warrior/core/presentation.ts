@@ -29,7 +29,13 @@ import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
-import type { WarriorSkill, WarriorState, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import type {
+  WarriorSkill,
+  WarriorPlanningState,
+  WarriorUiContext,
+  WarriorUiSlice
+} from '#gw2/professions/warrior/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
   [WEAPON.AXE]: ID.EVISCERATE,
@@ -44,7 +50,7 @@ const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Objec
   [WEAPON.SWORD]: ID.BLOODTHIRSTER
 });
 
-export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorState> {
+export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
@@ -119,14 +125,14 @@ export function warriorAdrenalineResourceViews(
   startingMaximum = 30
 ): ProfessionResourceView[] {
   const state = warriorUiState(context);
-  const maximum = state.adrenaline?.maximum ?? startingMaximum;
+  const maximum = state[STATE.ADRENALINE]?.maximum ?? startingMaximum;
   return [
     {
       id: 'adrenaline',
       singular: 'adrenaline',
       plural: 'adrenaline',
       maximum,
-      value: Number(state.adrenaline?.value ?? context.initialResource ?? 0),
+      value: Number(state[STATE.ADRENALINE]?.value ?? context.initialResource ?? 0),
       startMaximum: maximum,
       canStart: true,
       buildKey: 'initialResource',

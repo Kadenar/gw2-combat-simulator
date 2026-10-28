@@ -20,6 +20,7 @@ import {
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { BerserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 const SKILLS = Object.freeze([ID.BERSERK]);
 const BERSERKER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
@@ -81,9 +82,9 @@ export const berserkerUi: WarriorUiSlice = Object.freeze({
   resourceViews: warriorAdrenalineResourceViews,
   rotationStateSnapshot: (context: WarriorUiContext) => {
     const state = warriorUiState(context);
-    const remaining = (state.berserkUntil ?? 0) - warriorSnapshotAt(context);
+    const remaining = (state[STATE.BERSERK_UNTIL] ?? 0) - warriorSnapshotAt(context);
 
-    if (state.berserkUntil == null || remaining <= 0) return [];
+    if (state[STATE.BERSERK_UNTIL] == null || remaining <= 0) return [];
 
     const items: RotationStateSnapshotItem[] = [
       {
