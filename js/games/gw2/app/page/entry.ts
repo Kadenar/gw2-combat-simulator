@@ -62,7 +62,10 @@ function mountStickyHeader(root: Document): void {
   if (!header || !appRoot) return;
 
   const updateHeaderHeight = () => {
-    appRoot.style.setProperty('--profession-header-height', `${Math.ceil(header.getBoundingClientRect().height)}px`);
+    const height = Math.ceil(header.getBoundingClientRect().height);
+    appRoot.style.setProperty('--profession-header-height', `${height}px`);
+    // Let wrapped headers scroll away when they would consume most of a short viewport.
+    header.classList.toggle('simulator-header-unpinned', height > (root.defaultView?.innerHeight ?? 0) / 2);
   };
 
   const updateHeaderSurface = () => {
@@ -80,12 +83,11 @@ function mountStickyHeader(root: Document): void {
 
   root.defaultView?.addEventListener('scroll', updateHeaderSurface, { passive: true });
   root.defaultView?.addEventListener(EMBED_VISIBLE_TOP_EVENT, updateHeaderSurface);
+  root.defaultView?.addEventListener('resize', updateHeaderHeight);
   const ResizeObserverConstructor = root.defaultView?.ResizeObserver;
 
   if (ResizeObserverConstructor) {
     new ResizeObserverConstructor(updateHeaderHeight).observe(header);
-  } else {
-    root.defaultView?.addEventListener('resize', updateHeaderHeight);
   }
 }
 

@@ -102,11 +102,25 @@ test('shared modals stay visible in a scrolled iframe and release viewport track
     const dialog = frame.locator(dialogSelector);
     await trigger.focus();
     await trigger.scrollIntoViewIfNeeded();
-    const hostScroll = await page.evaluate(() => scrollY);
-    await trigger.click();
+    let opener = trigger;
 
-    if (dialogSelector === '.build-rename-dialog')
-      await frame.locator('#build-switcher-menu').getByRole('button', { name: 'Rename', exact: true }).click();
+    if (dialogSelector === '.build-rename-dialog') {
+      await trigger.click();
+      opener = frame.locator('#build-switcher-menu').getByRole('button', { name: 'Rename', exact: true });
+    }
+
+    // Capture after click actionability scrolling, but before the opener runs, to isolate modal autofocus.
+    await opener.evaluate((element) => {
+      element.addEventListener(
+        'click',
+        () => {
+          window.dialogHostScroll = window.parent.scrollY;
+        },
+        { once: true, capture: true }
+      );
+    });
+    await opener.click();
+    const hostScroll = await frame.locator('body').evaluate(() => window.dialogHostScroll);
 
     await expect(dialog).toBeVisible();
     expect(await page.evaluate(() => scrollY)).toBe(hostScroll);

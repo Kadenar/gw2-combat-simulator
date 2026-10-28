@@ -88,6 +88,11 @@ header {
   text-align: left;
 }
 
+/* Keep controls reachable when a wrapped header would cover most of the viewport. */
+:is(body[data-profession], .landing-page) #app > header.simulator-header-unpinned {
+  position: static;
+}
+
 /* Separate workspace identity, tool navigation, and build context in one sticky surface. */
 body[data-profession] #app > header {
   display: flex;
