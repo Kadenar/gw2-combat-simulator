@@ -80,6 +80,13 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
         condition: CONDITION.IMMOBILIZED,
         stacks: 1,
         duration: 5
+      },
+      {
+        // Keep the vulnerability application and generated tooltip on the same skill payload.
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 5,
+        duration: 6
       }
     ]
   }

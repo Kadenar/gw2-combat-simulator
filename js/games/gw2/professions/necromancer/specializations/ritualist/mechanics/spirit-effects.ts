@@ -66,6 +66,8 @@ export function queueNightmareWeapon(
         source: 'Weapon Spell',
         sourceId: ID.NIGHTMARE_WEAPON,
         actorType: ACTOR.EFFECT,
+        // Personal siphons inherit the caster's life-steal bonuses; shared grants belong to their recipients.
+        ...(recipient === 'personal' ? { ownerActorType: ACTOR.PLAYER } : {}),
         skillId: ID.NIGHTMARE_WEAPON,
         skillWeapon: 'Unequipped',
         canCrit: false,
@@ -140,6 +142,8 @@ export function queueSplinterWeapon(
       source: 'Weapon Spell',
       sourceId: ID.SPLINTER_WEAPON,
       actorType: ACTOR.EFFECT,
+      // The caster owns Splinter damage even when a companion or ally consumes the grant.
+      ownerActorType: ACTOR.PLAYER,
       skillId: ID.SPLINTER_WEAPON,
       skillWeapon: 'Unequipped',
       triggeredBy: event.skillName,

@@ -263,6 +263,8 @@ function queueBloodMagicLifeSteal(
       source: 'Trait',
       sourceId: traitId,
       actorType: ACTOR.EFFECT,
+      // Only the player's own siphons inherit player damage bonuses; allied and minion recipients do not.
+      ...(event.actorType === ACTOR.PLAYER && event.allyIndex == null ? { ownerActorType: ACTOR.PLAYER } : {}),
       skillWeapon: 'Unequipped',
       canCrit: false,
       damageKind: 'life-steal',

@@ -1,11 +1,9 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { expireCharges } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  balanceNumberFromContext,
   effectNumber,
   requireEffect,
   requireSkillFromContext,
@@ -16,7 +14,7 @@ import {
   consumeSoulShards,
   necromancerSoulShardMaximum
 } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -53,6 +51,8 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
       source: 'necromancer',
       sourceId: ID.SOUL_SHARDS,
       actorType: ACTOR.EFFECT,
+      // Soul Barbs resolves through the same player-owned siphon path as skills and food.
+      ownerActorType: ACTOR.PLAYER,
       skillId: ID.SOUL_SHARDS,
       skillName: 'Soul Shards',
       // The consumed shard owns its siphon even when a weapon hit supplies the causal parent.
@@ -63,7 +63,6 @@ export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEve
       skillWeapon: 'Unequipped',
       flatStrikeBase: effectNumber(skill, strike, 'flatStrikeBase'),
       flatStrikePowerCoeff: effectNumber(skill, strike, 'flatStrikePowerCoeff'),
-      flatStrikeMultiplier: soulBarbsSiphonMultiplier(runtime),
       flatStrikeHealthThreshold: skillNumber(skill, 'threshold'),
       flatStrikeThresholdMultiplier: skillNumber(skill, 'damageMultiplier'),
       canCrit: strike.canCrit !== false,
@@ -83,11 +82,3 @@ const soulShardTasks = {
 export const soulShardLifecycle = {
   tasks: soulShardTasks
 } satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
-
-/** Siphon packets apply the same active Soul Barbs window outside ordinary strike modifiers. */
-function soulBarbsSiphonMultiplier(runtime: NecromancerRuntime): number {
-  return hasTrait(runtime, TRAIT.SOUL_BARBS) &&
-    runtime.combat.activeBuffStacks('necromancer-soul-barbs', runtime.time, 1) > 0
-    ? 1 + balanceNumberFromContext(runtime, TRAIT.SOUL_BARBS, 'damageIncrease')
-    : 1;
-}

@@ -205,6 +205,8 @@ function summonExplosiveGrowth(
         source: 'Trait',
         sourceId: TRAIT.EXPLOSIVE_GROWTH,
         actorType: ACTOR.EFFECT,
+        // Summoning triggers the proc, but the player owns its outgoing damage modifiers.
+        ownerActorType: ACTOR.PLAYER,
         skillId: TRAIT.EXPLOSIVE_GROWTH,
         skillName: 'Explosive Growth',
         parentSkillName: skill.name,

@@ -667,6 +667,7 @@ export function emitVampirismPassive(runtime: NecromancerRuntime): void {
         source: 'necromancer',
         sourceId: id,
         actorType: ACTOR.EFFECT,
+        ownerActorType: ACTOR.PLAYER,
         skillId: id,
         skillName: strike.name,
         // Periodic signet siphons are passive procs, not consequences of the currently measured cast.

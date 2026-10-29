@@ -4,8 +4,10 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { EffectEventBase } from '#gw2/platform/effects/materializer.js';
+import { isFlatLifeStealPacket } from '#gw2/platform/effects/packet-builders.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -151,6 +153,26 @@ export const soulBarbs = defineTrait({
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.1,
     duration: 15
+  },
+  lifetime: {
+    reactions: {
+      // Life steal bypasses strike modifiers, so apply the live player bonus once at damage resolution.
+      'damage.resolving'(runtime, event) {
+        if (
+          !hasTrait(runtime, TRAIT.SOUL_BARBS) ||
+          !isFlatLifeStealPacket(event) ||
+          !isGw2PlayerModifierOwnedEvent(event) ||
+          runtime.combat.activeBuffStacks('necromancer-soul-barbs', event.at, 1) === 0
+        )
+          return;
+
+        return {
+          flatStrikeMultiplier:
+            (event.flatStrikeMultiplier ?? 1) *
+            (1 + balanceNumberFromContext(runtime, TRAIT.SOUL_BARBS, 'damageIncrease'))
+        };
+      }
+    }
   },
   modifierRules: [
     {
