@@ -31,24 +31,23 @@ test('gear artwork follows the active specialization', async ({ page }) => {
 // Exercise visible choices so the regrouped controls must still update the saved build.
 async function chooseEquipment(page, selector, value) {
   const display = page.locator('.gear-select-display').filter({ has: page.locator(selector) });
-  const editor = display.locator('xpath=ancestor::*[contains(@class,"weapon-editor")]');
-
-  if ((await editor.count()) && !(await editor.isVisible())) {
-    await page
-      .locator(`[popovertarget="${await editor.getAttribute('id')}"]`)
-      .first()
-      .click();
-  }
-
   await display.locator('.gear-select-trigger').click();
   // Match the saved value exactly so empty weapon slots and similarly named choices remain selectable.
   await display.locator(`[role="option"][data-value="${value}"]`).click();
   await expect(page.locator(selector)).toHaveValue(value);
+}
 
-  if ((await editor.count()) && (await editor.isVisible())) {
-    await page.keyboard.press('Escape');
-    await expect(editor).toBeHidden();
-  }
+// Apply weapon and stat drafts through the same visible editor used by pointer and keyboard users.
+async function chooseWeapon(page, set, slot, { weapon, prefix }) {
+  const editor = page.locator(`#weapon-editor-${set}-${slot}`);
+  await page.locator(`.weapon-icon-trigger[popovertarget="weapon-editor-${set}-${slot}"]`).click();
+
+  if (weapon !== undefined) await editor.locator(`input[name="weapon"][value="${weapon}"]`).check();
+
+  if (prefix !== undefined) await editor.locator(`input[name="weapon-prefix"][value="${prefix}"]`).check();
+
+  await editor.getByRole('button', { name: 'Apply', exact: true }).click();
+  await expect(editor).toBeHidden();
 }
 
 // Replacement edits the equipped slot, preserves queued casts, and remains accessible without a mouse.
@@ -281,8 +280,8 @@ test('both weapon sets keep their own stats and sigils when switching handedness
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   for (const set of [1, 2]) {
     const section = page.getByRole('region', { name: `Weapon set ${set}`, exact: true });
-    await chooseEquipment(page, `#sel-mh${set}`, 'Sword');
-    await chooseEquipment(page, `#sel-oh${set}`, 'Focus');
+    await chooseWeapon(page, set, 0, { weapon: 'Sword' });
+    await chooseWeapon(page, set, 1, { weapon: 'Focus' });
     await expect(section.locator('.weapon-slot:visible')).toHaveCount(2);
     const mainHand = await section.locator('.weapon-slot').nth(0).boundingBox();
     const offHand = await section.locator('.weapon-slot').nth(1).boundingBox();
@@ -292,18 +291,18 @@ test('both weapon sets keep their own stats and sigils when switching handedness
       await expect(section.locator('.weapon-slot').nth(slot).locator('.weapon-sigil')).toHaveCount(1);
     }
 
-    await chooseEquipment(page, `#sel-stat${set}-1`, "Viper's");
-    await chooseEquipment(page, `#sel-stat${set}-2`, "Berserker's");
+    await chooseWeapon(page, set, 0, { prefix: "Viper's" });
+    await chooseWeapon(page, set, 1, { prefix: "Berserker's" });
     await chooseEquipment(page, `#sel-sig${set}-1`, 'Force');
     await chooseEquipment(page, `#sel-sig${set}-2`, 'Impact');
-    await chooseEquipment(page, `#sel-mh${set}`, 'Greatsword');
+    await chooseWeapon(page, set, 0, { weapon: 'Greatsword' });
     await expect(section.locator('.weapon-slot:visible')).toHaveCount(1);
     await expect(section.locator('.weapon-slot:visible .weapon-sigil')).toHaveCount(2);
-    await expect(page.locator(`#sel-oh${set}`)).toBeDisabled();
-    await expect(page.locator(`#sel-stat${set}-1`)).toHaveValue("Viper's");
-    await chooseEquipment(page, `#sel-mh${set}`, 'Sword');
-    await expect(page.locator(`#sel-oh${set}`)).toBeEnabled();
-    await expect(page.locator(`#sel-stat${set}-2`)).toHaveValue("Berserker's");
+    await expect(section.locator('.weapon-slot').nth(1)).toBeHidden();
+    await expect(section.locator('.weapon-row .gear-equipped-name').first()).toHaveText("Viper's");
+    await chooseWeapon(page, set, 0, { weapon: 'Sword' });
+    await expect(section.locator('.weapon-slot').nth(1)).toBeVisible();
+    await expect(section.locator('.weapon-row .gear-equipped-name').nth(1)).toHaveText("Berserker's");
     await expect(page.locator(`#sel-sig${set}-1`)).toHaveValue('Force');
     await expect(page.locator(`#sel-sig${set}-2`)).toHaveValue('Impact');
   }
@@ -317,7 +316,7 @@ test('both weapon sets keep their own stats and sigils when switching handedness
       return [b.gear.Weapon1, b.gear.Weapon2, ...b.alternateWeaponPrefixes, ...b.weaponSigils.flat(), b.gear.Ring1];
     })
   ).toEqual(["Viper's", "Berserker's", "Viper's", "Berserker's", 'Force', 'Impact', 'Force', 'Impact', 'Celestial']);
-  await chooseEquipment(page, '#sel-mh2', '');
+  await chooseWeapon(page, 2, 0, { weapon: '' });
   await expect(page.locator('.weapon-set').nth(1).locator('.weapon-sigil:visible')).toHaveCount(0);
   await expect(page.locator('#attribute-preview .attribute-effects-title')).toBeVisible();
 });

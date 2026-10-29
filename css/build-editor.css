@@ -1287,8 +1287,7 @@ body[data-profession] #app {
 }
 
 .gear-set-all {
-  display: grid;
-  grid-template-columns: auto minmax(0, 135px);
+  display: flex;
   min-width: 0;
   align-items: center;
   gap: 8px;
@@ -1429,12 +1428,6 @@ body[data-profession] #app {
   object-fit: cover;
 }
 
-.weapon-controls {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 5px;
-}
-
 /* Icon buttons retain visible equipped labels without permanent dropdown fields. */
 .gear-panel .gear-icon-row {
   grid-template-columns: 36px minmax(0, 1fr);
@@ -1478,16 +1471,221 @@ body[data-profession] #app {
   font-size: 12px;
 }
 
-.gear-panel .weapon-editor {
-  padding: 12px;
-}
-
-.weapon-editor-heading {
+.equipment-editor-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+/* Draft editors expose both decisions together and keep Apply visible while the choices scroll. */
+.gear-panel .equipment-editor {
+  width: min(720px, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  padding: 16px;
+  font-size: 12px;
+}
+
+.equipment-editor form {
+  display: flex;
+  flex-direction: column;
+  height: min(540px, calc(100dvh - 50px));
+  min-height: 0;
+}
+
+/* Weapon editing stays compact; longer weapon catalogs and stat lists scroll inside the editor. */
+.weapon-editor form {
+  height: min(440px, calc(100dvh - 50px));
+}
+
+.equipment-editor-body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.equipment-editor-body > *,
+.equipment-editor fieldset {
+  min-width: 0;
+  min-height: 0;
+}
+
+.equipment-slot-picker,
+.equipment-weapon-picker {
+  overflow-y: auto;
+}
+
+.equipment-editor fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.equipment-editor legend {
+  margin-bottom: 8px;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.equipment-slot-picker fieldset + fieldset {
+  margin-top: 12px;
+}
+
+.equipment-quick-select,
+.equipment-editor-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.equipment-quick-select {
+  margin-bottom: 12px;
+}
+
+.equipment-editor-footer {
+  flex-shrink: 0;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.equipment-editor-footer .btn {
+  white-space: normal;
+}
+
+.equipment-editor-summary {
+  flex: 1 1 140px;
+  overflow-wrap: anywhere;
+}
+
+.equipment-weapon-grid {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+/* Start weapon choices beneath their heading and center artwork independently of the radio. */
+.equipment-weapon-picker {
+  display: flex;
+  flex-direction: column;
+}
+
+.equipment-weapon-grid .equipment-choice {
+  position: relative;
+  justify-content: center;
+  padding: 10px 20px;
+  text-align: center;
+}
+
+.equipment-weapon-grid .equipment-choice > span {
+  justify-items: center;
+}
+
+.equipment-weapon-grid .equipment-choice input {
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  margin: 0;
+  transform: translateY(-50%);
+}
+
+.equipment-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--menu-option-radius);
+  cursor: pointer;
+}
+
+.equipment-choice[hidden],
+.equipment-prefix-group[hidden] {
+  display: none;
+}
+
+.equipment-choice > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  overflow-wrap: anywhere;
+}
+
+.equipment-choice input {
+  flex: 0 0 auto;
+  accent-color: var(--accent);
+}
+
+.equipment-choice:has(input:checked) {
+  background: color-mix(in srgb, var(--accent) 20%, var(--menu-surface));
+  border-color: var(--accent);
+}
+
+.equipment-choice:is(:hover, :focus-within) {
+  background: color-mix(in srgb, var(--accent) 12%, var(--menu-surface));
+}
+
+.equipment-choice:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.equipment-prefix-picker .dropdown-search {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* The stat list fills the same row as the gear instead of stopping at a fixed shorter height. */
+.equipment-prefix-picker {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.equipment-prefix-picker .dropdown-search {
+  flex-shrink: 0;
+}
+
+.equipment-prefix-results {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+@media (max-width: 560px) {
+  .equipment-editor-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    overflow-y: auto;
+  }
+
+  .equipment-slot-picker,
+  .equipment-weapon-picker {
+    overflow-y: visible;
+  }
+
+  .equipment-prefix-picker {
+    height: auto;
+  }
+
+  .equipment-prefix-results {
+    flex: none;
+    height: auto;
+    max-height: min(390px, 45dvh);
+  }
+
+  .equipment-weapon-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .weapon-select {

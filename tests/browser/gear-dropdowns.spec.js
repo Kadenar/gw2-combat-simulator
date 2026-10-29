@@ -3,40 +3,33 @@ import { expect, test } from '@playwright/test';
 test.describe('touch equipment pickers', () => {
   test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
 
-  // Opening and dismissing touch pickers must never focus native selects or search until explicitly requested.
+  // Touch users can browse both choices without opening a keyboard until they tap Search.
   test('weapon configuration waits for a search tap and preserves keyboard access', async ({ page }) => {
     const launcher = page.locator('.weapon-icon-trigger').first();
     const editor = page.locator('#weapon-editor-1-0');
-    const weapon = page.locator('#sel-mh1').locator('..').locator('.gear-select-trigger');
     await launcher.tap();
     await expect(editor).toBeVisible();
-    await expect(weapon).toBeFocused();
-    for (const id of ['sel-mh1', 'sel-stat1-1']) {
-      const display = page.locator(`#${id}`).locator('..');
-      const trigger = display.locator('.gear-select-trigger');
-      const search = display.getByRole('searchbox');
-      await trigger.tap();
-      await expect(search).toBeVisible();
-      await expect(trigger).toBeFocused();
-      await trigger.tap();
-      await expect(search).toBeHidden();
-      await expect(trigger).toBeFocused();
-      await trigger.tap();
-      await search.tap();
-      await expect(search).toBeFocused();
-      await search.fill('zzzzzz');
-      await expect(display.getByRole('status')).toHaveText('No matching choices');
-      await search.press('Escape');
-      await expect(trigger).toBeFocused();
-      await trigger.press('Enter');
-      await expect(search).toBeFocused();
-      await expect(search).toHaveValue('');
-      await search.press('Escape');
-    }
-
-    await editor.getByRole('button', { name: 'Close weapon picker' }).tap();
+    await expect(editor.locator('input[name="weapon"]:checked')).toBeFocused();
+    const search = editor.getByRole('searchbox', { name: 'Search stats' });
+    await expect(search).toBeVisible();
+    await expect(search).not.toBeFocused();
+    await search.tap();
+    await expect(search).toBeFocused();
+    await search.fill('zzzzzz');
+    await expect(editor.getByRole('status')).toHaveText('No matching choices');
+    await search.press('Escape');
     await expect(editor).toBeHidden();
     await expect(launcher).toBeFocused();
+    await launcher.press('Enter');
+    await expect(search).toHaveValue('');
+    await search.fill('viper');
+    await search.press('ArrowDown');
+    await expect(editor.locator('input[name="weapon-prefix"][value="Viper\'s"]')).toBeFocused();
+    await page.keyboard.press('Space');
+    await editor.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(editor).toBeHidden();
+    await expect(launcher).toBeFocused();
+    expect(await page.evaluate(() => window.professionApp.build.gear.Weapon1)).toBe("Viper's");
   });
 });
 
@@ -45,22 +38,32 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
 });
 
-// Escape dismisses the innermost open picker, then the weapon editor once its picker is closed.
-test('Escape closes nested weapon pickers one level at a time', async ({ page }) => {
+// Escape discards a weapon draft and returns focus to its launcher; reopening starts from equipped values.
+test('Escape cancels the weapon editor and restores focus', async ({ page }) => {
   const launcher = page.locator('.weapon-icon-trigger').first();
   const editor = page.locator('#weapon-editor-1-0');
-  const display = page.locator('#sel-mh1').locator('..');
-  const trigger = display.locator('.gear-select-trigger');
-  const search = display.getByRole('searchbox');
+  const before = await page.evaluate(() => ({
+    weapons: window.professionApp.build.weapons,
+    prefix: window.professionApp.build.gear.Weapon1
+  }));
   await launcher.click();
-  await trigger.click();
-  await expect(search).toBeFocused();
-  await page.keyboard.press('Escape');
-  await expect(search).toBeHidden();
-  await expect(editor).toBeVisible();
-  await expect(trigger).toBeFocused();
+  await editor.locator('input[name="weapon"]:not(:checked)').last().check();
+  const search = editor.getByRole('searchbox', { name: 'Search stats' });
+  await search.fill('viper');
+  await search.press('Enter');
   await page.keyboard.press('Escape');
   await expect(editor).toBeHidden();
+  await expect(launcher).toBeFocused();
+  expect(
+    await page.evaluate(() => ({
+      weapons: window.professionApp.build.weapons,
+      prefix: window.professionApp.build.gear.Weapon1
+    }))
+  ).toEqual(before);
+  await launcher.click();
+  await expect(editor.locator('input[name="weapon"]:checked')).toHaveValue(before.weapons[0]);
+  await expect(editor.locator('input[name="weapon-prefix"]:checked')).toHaveValue(before.prefix);
+  await editor.getByRole('button', { name: 'Close editor' }).click();
   await expect(launcher).toBeFocused();
 });
 

@@ -1,3 +1,5 @@
+// Render equipped items and delegate draft-based bulk and weapon edits to their dedicated editors.
+import { bindWeaponEditors, gearSlotLabel, renderBulkStatsEditor } from '#gw2/app/build/panels/equipment-editors.js';
 import { createProcRateControl } from '#gw2/app/build/panels/proc-rates.js';
 import { ARMOR_ICONS, EQUIPMENT_ICONS, GEAR_ICONS, INFUSION_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import {
@@ -13,8 +15,6 @@ import {
   bindCandidatePickers,
   candidatePicker,
   enhanceDetailedSelect,
-  positionGearPopover,
-  setEquipmentTooltip,
   updatePicker
 } from '#gw2/app/shared/equipment/picker.js';
 import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
@@ -45,10 +45,6 @@ function equipmentIcon(source?: string): string {
 // Short section headings separate related controls without repeating what each select already communicates.
 function sectionHeading(label: string): string {
   return `<div class="gear-section-heading">${label}</div>`;
-}
-
-function gearSlotLabel(slot: string): string {
-  return slot === 'Leggins' ? 'Leggings' : slot === 'Back' ? 'Back item' : slot.replace(/(\d)$/, ' $1');
 }
 
 // The native select remains the state source while the visible trigger keeps the closed control compact.
@@ -82,7 +78,6 @@ function selectRow(label: string, id: string, selectedLabel: string, optionsHtml
 
 export function renderGear(app: ProfessionAppState): void {
   const b = app.build;
-  const openWeaponEditor = document.querySelector('.weapon-editor:popover-open')?.id;
   const entry = getProfessionEntry(app.adapter.id);
   const slotIcon = (slot: string): string =>
     ARMOR_ICONS[entry?.armorWeight || 'light']?.[slot] || GEAR_ICONS[slot.replace(/\d$/, '')] || '';
@@ -116,15 +111,7 @@ export function renderGear(app: ProfessionAppState): void {
     );
   };
 
-  // Keep the bulk prefix action in the header so the equipment column contains only per-slot rows.
-  requiredElement('gear-set-all').innerHTML = `<span>Set all</span>
-      ${compactSelect(
-        'Choose prefix',
-        `<select class="gear-select" id="sel-set-all" aria-label="Set all equipment stats">
-        <option value="">Choose prefix</option>
-        ${groupedOptionsHtml(PREFIX_GROUPS, '', (name) => prefixOptionLabel(name))}
-      </select>`
-      )}`;
+  renderBulkStatsEditor(app);
   requiredElement('gear-slots').innerHTML = GEAR_SLOTS.slice(0, 6).map(gearPrefixRow).join('');
   // Group backpack/accessories above amulet/rings without a heading so the slots align with armor.
   requiredElement('trinket-slots').innerHTML =
@@ -143,31 +130,6 @@ export function renderGear(app: ProfessionAppState): void {
       app.changed(true, false);
     });
   });
-  const setAllSelect = document.getElementById('sel-set-all');
-
-  if (setAllSelect instanceof HTMLSelectElement) {
-    setAllSelect.addEventListener('change', () => {
-      const value = setAllSelect.value;
-
-      if (!value) return;
-
-      for (const slot of GEAR_SLOTS) {
-        b.gear[slot] = value;
-      }
-
-      b.alternateWeaponPrefixes[0] = value;
-      b.alternateWeaponPrefixes[1] = value;
-
-      app.changed();
-    });
-  }
-
-  const mainHands = Object.entries(app.weaponData)
-    .filter(([, data]) => ['mh', 'mh+oh', '2h'].includes(data.wielding))
-    .map(([name]) => name);
-  const offHands = Object.entries(app.weaponData)
-    .filter(([, data]) => ['oh', 'mh+oh'].includes(data.wielding))
-    .map(([name]) => name);
   // Keep each weapon's stats and sigils together; a two-handed weapon owns both sigil sockets.
   const weaponSetRows = (
     setNumber: number,
@@ -197,28 +159,11 @@ export function renderGear(app: ProfessionAppState): void {
         .map((slot) => {
           const hidden = slot === 1 && (twoHanded || unequipped);
           const label = slot === 0 ? (twoHanded ? 'Two hand' : 'Main hand') : 'Off hand';
-          const statSlot = twoHanded && slot === 0 ? 'Weapon2H' : `Weapon${slot + 1}`;
           return `<div class="weapon-slot"${hidden ? ' hidden' : ''}>
           <div class="gear-row gear-icon-row weapon-row">
             <button type="button" class="gear-select-trigger gear-icon-trigger weapon-icon-trigger" popovertarget="weapon-editor-${setNumber}-${slot}" aria-haspopup="dialog" aria-expanded="false" aria-label="Edit weapon set ${setNumber} ${label.toLowerCase()}" ${weaponTooltip(setNumber, slot, prefixes[slot])}>${equipmentIcon(GEAR_ICONS[weapons[slot]])}</button>
             <span class="gear-item-caption"><span class="gear-label">${label} &middot; ${escapeHtml(weapons[slot] || 'None')}</span><span class="gear-equipped-name">${unequipped ? 'Unequipped' : escapeHtml(prefixes[slot])}</span></span>
-            <div id="weapon-editor-${setNumber}-${slot}" class="weapon-editor gear-select-menu" popover="auto" role="dialog" aria-label="Weapon set ${setNumber} ${label.toLowerCase()}">
-              <div class="weapon-editor-heading"><strong>${label} &middot; Set ${setNumber}</strong><button type="button" class="btn btn-io" popovertarget="weapon-editor-${setNumber}-${slot}" popovertargetaction="hide" aria-label="Close weapon picker">&times;</button></div>
-              <div class="weapon-controls">
-              <label for="sel-${slot === 0 ? 'mh' : 'oh'}${setNumber}">Weapon</label>
-              <select id="sel-${slot === 0 ? 'mh' : 'oh'}${setNumber}" class="gear-select" aria-label="Weapon set ${setNumber} ${label.toLowerCase()}"${hidden ? ' disabled' : ''}>
-                ${slot === 0 && allowEmpty ? optionHtml('', weapons[0], 'None') : ''}
-                ${(slot === 0 ? mainHands : offHands).map((name) => optionHtml(name, weapons[slot])).join('')}
-              </select>
-              <label for="sel-stat${setNumber}-${slot + 1}"${unequipped ? ' hidden' : ''}>Stats</label>
-              <div${unequipped ? ' hidden' : ''}>${compactSelect(
-                prefixes[slot],
-                `<select class="gear-select weapon-prefix" id="sel-stat${setNumber}-${slot + 1}" data-set="${setNumber}" data-slot="${slot}" aria-label="Weapon set ${setNumber} ${label.toLowerCase()} stats">
-                ${groupedOptionsHtml(PREFIX_GROUPS, prefixes[slot], (name) => prefixOptionLabel(name, statSlot))}
-              </select>`
-              )}</div>
-              </div>
-            </div>
+            <div id="weapon-editor-${setNumber}-${slot}" class="weapon-editor equipment-editor gear-select-menu" data-set="${setNumber}" data-slot="${slot}" popover="auto" role="dialog" aria-label="Weapon set ${setNumber} ${label.toLowerCase()}"></div>
           </div>
           <div class="weapon-sigils"${unequipped ? ' hidden' : ''}>${slot === 0 ? sigilRow(0) + (twoHanded ? sigilRow(1) : '') : twoHanded ? '' : sigilRow(1)}</div>
         </div>`;
@@ -243,60 +188,7 @@ export function renderGear(app: ProfessionAppState): void {
       })
     );
   });
-  document.querySelectorAll('.weapon-prefix').forEach((select) => {
-    if (!(select instanceof HTMLSelectElement)) return;
-
-    select.addEventListener('change', () => {
-      const setNumber = Number(select.dataset.set);
-      const slot = Number(select.dataset.slot);
-
-      if (![1, 2].includes(setNumber) || ![0, 1].includes(slot)) return;
-
-      if (setNumber === 1) {
-        b.gear[`Weapon${slot + 1}`] = select.value;
-      } else {
-        b.alternateWeaponPrefixes[slot] = select.value;
-      }
-
-      const caption = select.closest('.weapon-row')?.querySelector('.gear-equipped-name');
-
-      if (caption) caption.textContent = select.value;
-
-      const trigger = select.closest('.weapon-row')?.querySelector<HTMLElement>('.weapon-icon-trigger');
-
-      if (trigger) setEquipmentTooltip(trigger, weaponTooltip(setNumber, slot, select.value));
-
-      app.changed(true, false);
-    });
-  });
-  const bindWeaponSet = (setNumber: number, weapons: string[]): void => {
-    const mainHand = requiredSelect(`sel-mh${setNumber}`);
-    mainHand.addEventListener('change', () => {
-      weapons[0] = mainHand.value;
-
-      if (!mainHand.value) {
-        weapons[1] = '';
-        b.startingWeaponSet = 1;
-        app.attributeWeaponSet = 1;
-      } else if (app.weaponData[mainHand.value]?.wielding === '2h') {
-        weapons[1] = '';
-      } else if (!weapons[1]) {
-        weapons[1] =
-          app.adapter.defaultOffhand({
-            mainHand: mainHand.value,
-            offHands
-          }) ||
-          offHands[0] ||
-          '';
-      }
-
-      app.changed();
-    });
-    const offHand = requiredSelect(`sel-oh${setNumber}`);
-    offHand.addEventListener('change', () => {
-      weapons[1] = offHand.value;
-      app.changed();
-    });
+  const bindWeaponSet = (setNumber: number): void => {
     for (const slot of [0, 1]) {
       const sigil = requiredSelect(`sel-sig${setNumber}-${slot + 1}`);
       sigil.addEventListener('change', () => {
@@ -306,8 +198,8 @@ export function renderGear(app: ProfessionAppState): void {
     }
   };
 
-  bindWeaponSet(1, b.weapons);
-  bindWeaponSet(2, b.alternateWeapons);
+  bindWeaponSet(1);
+  bindWeaponSet(2);
 
   requiredElement('consumable-info').innerHTML = `${sectionHeading('Consumables')}
             ${selectRow('Food', 'sel-food', b.food, groupedOptionsHtml(FOOD_GROUPS, b.food, foodOptionLabel), EQUIPMENT_ICONS[b.food] || '')}
@@ -434,27 +326,8 @@ export function renderGear(app: ProfessionAppState): void {
                 icon: slotIcon(slot),
                 rune: GEAR_SLOTS.slice(0, 6).includes(slot) ? b.rune : ''
               })
-          : select.matches('.weapon-prefix')
-            ? (prefix: string) => weaponTooltip(Number(select.dataset.set), Number(slot), prefix)
-            : undefined;
+          : undefined;
       enhanceDetailedSelect(select, index, describe);
     });
-  document.querySelectorAll<HTMLButtonElement>('.weapon-icon-trigger').forEach((trigger) => {
-    const menu = document.getElementById(trigger.getAttribute('popovertarget')!)!;
-    trigger.addEventListener('click', (event) => {
-      event.preventDefault();
-
-      if (menu.matches(':popover-open')) menu.hidePopover();
-      else {
-        trigger.focus();
-        menu.showPopover();
-        positionGearPopover(menu, trigger);
-        // Focus the visible control so iOS does not open the hidden native select.
-        menu.querySelector<HTMLButtonElement>('.weapon-controls .gear-select-trigger')?.focus({ preventScroll: true });
-      }
-    });
-    menu.addEventListener('toggle', () => trigger.setAttribute('aria-expanded', String(menu.matches(':popover-open'))));
-
-    if (menu.id === openWeaponEditor) trigger.click();
-  });
+  bindWeaponEditors(app);
 }
