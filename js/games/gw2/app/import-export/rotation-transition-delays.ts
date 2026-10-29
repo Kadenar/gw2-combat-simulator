@@ -1,4 +1,4 @@
-/** Validate exported workspace delays and explain their effect before a build import is applied. */
+/** Validate the timing settings carried by a rotation and explain their effect before it is imported. */
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import {
   normalizeTransitionDelays,
@@ -15,7 +15,7 @@ const DELAY_LABELS = {
 };
 
 /** Absent metadata leaves workspace settings alone; explicit malformed values must not reset them. */
-export function readBuildTransitionDelays(payload: unknown): TransitionDelays | null {
+export function readRotationTransitionDelays(payload: unknown): TransitionDelays | null {
   if (!payload || typeof payload !== 'object' || !Object.hasOwn(payload, 'transitionDelays')) return null;
 
   const delays = (payload as { transitionDelays: unknown }).transitionDelays;
@@ -29,13 +29,13 @@ export function readBuildTransitionDelays(payload: unknown): TransitionDelays | 
       return typeof value !== 'number' || !Number.isFinite(value) || value < 0;
     })
   )
-    throw new Error('Build transition delays must include every delay as a finite, non-negative number.');
+    throw new Error('Rotation transition delays must include every delay as a finite, non-negative number.');
 
   return normalizeTransitionDelays(delays);
 }
 
 /** Only announce actual changes, with the persistence scope of the destination workspace. */
-export function buildTransitionDelayNotices(
+export function rotationTransitionDelayNotices(
   delays: TransitionDelays | null | undefined,
   app: ProfessionAppState
 ): string[] {

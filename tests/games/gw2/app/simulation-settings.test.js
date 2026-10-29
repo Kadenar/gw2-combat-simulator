@@ -14,7 +14,7 @@ import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settin
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 import { createBuildTab, emptyBuildTabSession } from '#gw2/app/build/state/workspace.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
-import { getBuildExportPayload } from '#gw2/app/import-export/files.js';
+import { getBuildWithRotationExportPayload } from '#gw2/app/import-export/files.js';
 import { captureGearOptimizerRequest, createOptimizerEvaluator } from '#gw2/app/optimizer/gear/search.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { beginRotationComparison, setRotationReference } from '#gw2/app/rotation/comparison-state.js';
@@ -264,13 +264,13 @@ for (const action of [...TRANSITION_DELAY_KEYS, 'Apply 100 ms to all', 'Clear al
 }
 
 // Importing settings follows the same shared-cache and persistence contract as editing the workspace controls.
-test('accepted build delay metadata persists workspace settings and invalidates inactive comparison results', (t) => {
+test('accepted rotation delay metadata persists workspace settings and invalidates inactive comparison results', (t) => {
   const { app, tab, settle } = settingsWorkspace(t);
   const delays = normalizeTransitionDelays({ weaponSwapMs: 150 });
-  const preview = previewBuildFileImport(getBuildExportPayload(app.build, delays), 'build.json', app);
+  const preview = previewBuildFileImport(getBuildWithRotationExportPayload(app.build, delays), 'build.json', app);
   assert.equal(tab.resultsFresh, true);
   assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 0);
-  applyBuildFileImport(app, preview, { build: true, rotation: false });
+  applyBuildFileImport(app, preview, { build: true, rotation: true });
   assert.deepEqual(loadSimulationSettings().transitionDelays, delays);
   assert.equal(tab.resultsFresh, false);
   assert.equal(tab.session.rotationComparison.referenceStatus, 'queued');

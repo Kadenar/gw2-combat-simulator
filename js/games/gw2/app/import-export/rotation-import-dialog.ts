@@ -1,9 +1,5 @@
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
-import {
-  buildTransitionDelayNotices,
-  readBuildTransitionDelays
-} from '#gw2/app/import-export/build-transition-delays.js';
 import { readJsonFile } from '#gw2/app/import-export/files.js';
 import {
   bindImportFileSources,
@@ -19,6 +15,10 @@ import {
   readWingmanRotationUrl
 } from '#gw2/app/import-export/logs/dps-report-rotation-import.js';
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/import-export/logs/evtc-rotation-import.js';
+import {
+  readRotationTransitionDelays,
+  rotationTransitionDelayNotices
+} from '#gw2/app/import-export/rotation-transition-delays.js';
 import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
 import type { RotationReferenceDescriptor } from '#gw2/app/rotation/comparison-state.js';
 import { applyTransitionDelays } from '#gw2/app/simulation/settings.js';
@@ -77,14 +77,14 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
     const rotation = getRotationItems(imported);
 
     if (rotation) {
-      const transitionDelays = readBuildTransitionDelays(imported);
+      const transitionDelays = readRotationTransitionDelays(imported);
       // Unique authored names are decoded at this boundary; ambiguous variants require explicit IDs.
       return {
         transitionDelays,
         rotation: normalizeImportedRotation(rotation, app),
         actionCount: rotation.length,
         description: `Loaded ${file.name}`,
-        warnings: buildTransitionDelayNotices(transitionDelays, app),
+        warnings: rotationTransitionDelayNotices(transitionDelays, app),
         observations: []
       };
     }
@@ -159,7 +159,7 @@ export async function previewManifestRotation(
 
   const savedRotation = await fetchJsonAsset(preset.rotation);
   const items = getRotationItems(savedRotation);
-  const transitionDelays = readBuildTransitionDelays(savedRotation);
+  const transitionDelays = readRotationTransitionDelays(savedRotation);
 
   if (!items) throw new Error('Rotation array missing.');
 
@@ -179,7 +179,7 @@ export async function previewManifestRotation(
         ...(preset.patchPreview ? { [preset.patchPreview.patchId]: preset.patchPreview.benchmarkDps } : {})
       }
     },
-    warnings: buildTransitionDelayNotices(transitionDelays, app),
+    warnings: rotationTransitionDelayNotices(transitionDelays, app),
     observations: []
   };
 }

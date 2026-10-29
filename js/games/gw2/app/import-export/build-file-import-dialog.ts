@@ -14,6 +14,7 @@ import {
   renderImportNotices,
   requiredDialogPart
 } from '#gw2/app/import-export/import-dialog.js';
+import { rotationTransitionDelayNotices } from '#gw2/app/import-export/rotation-transition-delays.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { ensureDocumentStyles } from '#ui/shared/dom.js';
@@ -165,7 +166,24 @@ export function bindBuildFileImportDialog(app: ProfessionAppState, fileInput: HT
 
   const syncApply = (): void => {
     const { build, rotation } = selection();
-    elements.applyButton.disabled = loading || !preview || (!build && !rotation);
+    const rotationError = rotation ? preview?.rotationError : null;
+
+    // Leave the build usable while making the selected rotation's validation failure visible and blocking Apply.
+    if (preview) {
+      elements.error.hidden = !rotationError;
+      elements.error.textContent = rotationError
+        ? `${rotationError}${preview.build ? ' Deselect Rotation to import only the build.' : ''}`
+        : '';
+    }
+
+    // Describe timing changes only while the user has selected the rotation that owns them.
+    renderImportNotices(
+      elements.warnings,
+      preview
+        ? [...preview.warnings, ...(rotation ? rotationTransitionDelayNotices(preview.transitionDelays, app) : [])]
+        : []
+    );
+    elements.applyButton.disabled = loading || !preview || (!build && !rotation) || Boolean(rotationError);
     elements.applyButton.textContent =
       build && rotation ? 'Apply build + rotation' : rotation ? 'Apply rotation' : 'Apply build';
   };
@@ -203,7 +221,6 @@ export function bindBuildFileImportDialog(app: ProfessionAppState, fileInput: HT
         elements.rotationDetail,
         next.rotation && document.createTextNode(`${actions} action${actions === 1 ? '' : 's'}`)
       );
-      renderImportNotices(elements.warnings, next.warnings);
       elements.parts.hidden = false;
       elements.status.classList.add('is-success');
       elements.status.textContent =

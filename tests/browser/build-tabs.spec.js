@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
 async function openWorkspace(page, viewport = { width: 1440, height: 1000 }) {
@@ -630,6 +631,10 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
 // Both export buttons accept custom names without losing JSON extensions or cancellation.
 test('build and rotation exports allow custom file names', async ({ page }) => {
   await openWorkspace(page);
+  const delays = await page.evaluate(() => {
+    window.professionApp.simulationSettings.transitionDelays.weaponSwapMs = 150;
+    return window.professionApp.simulationSettings.transitionDelays;
+  });
   const downloads = [];
   page.on('download', (download) => downloads.push(download));
   const dialog = page.getByRole('dialog', { name: 'Export file', exact: true });
@@ -651,7 +656,14 @@ test('build and rotation exports allow custom file names', async ({ page }) => {
     await input.fill(`  My ${kind}  `);
     const download = page.waitForEvent('download');
     await input.press('Enter');
-    expect((await download).suggestedFilename()).toBe(`My ${kind}.json`);
+    const exported = await download;
+    expect(exported.suggestedFilename()).toBe(`My ${kind}.json`);
+    // Exercise the actual button/download boundary; Node covers the full metadata and import matrix.
+    const payload = JSON.parse(await readFile(await exported.path(), 'utf8'));
+
+    if (kind === 'rotation') expect(payload.transitionDelays).toEqual(delays);
+    else expect(payload).not.toHaveProperty('transitionDelays');
+
     await expect(dialog).toHaveCount(0);
   }
 
@@ -680,14 +692,46 @@ test('narrow strip exports, imports, resets, and closes builds', async ({ page }
     buffer: Buffer.from(
       JSON.stringify({
         ...original,
+        rotation: [{ type: 'wait', durationMs: 200 }],
         targetArmor: 2400,
         transitionDelays: { weaponSwapMs: 150, forgeEntryMs: 0, forgeExitMs: 0, shroudEntryMs: 0, shroudExitMs: 0 }
       })
     )
   };
-  await (await chooser).setFiles(importedFile);
+  // Invalid rotation metadata must leave the independent build selectable through the native dialog.
+  await (
+    await chooser
+  ).setFiles({
+    ...importedFile,
+    buffer: Buffer.from(
+      JSON.stringify({
+        ...original,
+        targetArmor: 2300,
+        rotation: [{ type: 'wait', durationMs: 200 }],
+        transitionDelays: { weaponSwapMs: -1 }
+      })
+    )
+  });
   const apply = importDialog.locator('[data-build-file-apply]');
+  await expect(importDialog.locator('[data-build-file-error]')).toContainText('Rotation transition delays');
+  await expect(apply).toBeDisabled();
+  await importDialog.locator('[data-build-file-apply-rotation]').uncheck();
+  await expect(importDialog.locator('[data-build-file-error]')).toBeHidden();
   await expect(apply).toBeEnabled();
+  await importDialog.locator('[data-build-file-apply-rotation]').check();
+  await expect(apply).toBeDisabled();
+  await importDialog.locator('[data-build-file-apply-rotation]').uncheck();
+  await apply.click();
+  await expect(importDialog).toBeHidden();
+  expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2300);
+  expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual(original.rotation);
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(0);
+  await page.locator('#btn-import-build').click();
+  await page.locator('#import-file-input').setInputFiles(importedFile);
+  await expect(apply).toBeEnabled();
+  await importDialog.locator('[data-build-file-apply-rotation]').uncheck();
+  await expect(importDialog.getByRole('list', { name: 'Import notices' })).toBeHidden();
+  await importDialog.locator('[data-build-file-apply-rotation]').check();
   await expect(importDialog.getByRole('list', { name: 'Import notices' })).toContainText('weapon swap 150 ms');
   await expect(importDialog.getByRole('list', { name: 'Import notices' })).toContainText(
     'Golem settings for every profession'

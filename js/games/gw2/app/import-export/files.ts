@@ -1,6 +1,7 @@
 // File I/O utilities for import/export of builds and rotations.
 
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { normalizeTransitionDelays, type TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
@@ -134,14 +135,14 @@ export function readJsonFile(file: File): Promise<unknown> {
  * Shallow copy of the
  * build without the `rotation` property.
  */
-export function getBuildExportPayload(
-  build: Gw2CanonicalBuild,
-  transitionDelays?: TransitionDelays
-): Omit<Gw2CanonicalBuild, 'rotation'> & { transitionDelays: TransitionDelays } {
+export function getBuildExportPayload(build: Gw2CanonicalBuild): Omit<Gw2CanonicalBuild, 'rotation'> {
   const { rotation: _rotation, ...payload } = build;
-  const delays = normalizeTransitionDelays(transitionDelays);
-  // Zero is an explicit timing choice too; every export carries a complete workspace snapshot.
-  return { ...payload, transitionDelays: delays };
+  return payload;
+}
+
+/** A rotation carries the complete timing settings used to run it, including explicit zero delays. */
+export function getRotationExportPayload(rotation: readonly RotationCommand[], transitionDelays?: TransitionDelays) {
+  return { rotation: structuredClone([...rotation]), transitionDelays: normalizeTransitionDelays(transitionDelays) };
 }
 
 /**
@@ -154,5 +155,5 @@ export function getBuildWithRotationExportPayload(
   build: Gw2CanonicalBuild,
   transitionDelays?: TransitionDelays
 ): Gw2CanonicalBuild & { transitionDelays: TransitionDelays } {
-  return { ...getBuildExportPayload(build, transitionDelays), rotation: structuredClone(build.rotation) };
+  return { ...getBuildExportPayload(build), ...getRotationExportPayload(build.rotation, transitionDelays) };
 }

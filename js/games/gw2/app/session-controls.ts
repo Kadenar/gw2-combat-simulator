@@ -3,7 +3,8 @@ import { bindBuildFileImportDialog } from '#gw2/app/import-export/build-file-imp
 import {
   downloadJson,
   getBuildExportPayload,
-  getBuildWithRotationExportPayload
+  getBuildWithRotationExportPayload,
+  getRotationExportPayload
 } from '#gw2/app/import-export/files.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
@@ -79,7 +80,7 @@ export function bindSessionControls(app: ProfessionAppState): void {
       {
         label: 'Build only',
         filename: app.adapter.filenames.build,
-        payload: getBuildExportPayload(app.build, app.simulationSettings?.transitionDelays)
+        payload: getBuildExportPayload(app.build)
       },
       {
         label: 'Build + rotation',
@@ -97,9 +98,10 @@ export function bindSessionControls(app: ProfessionAppState): void {
   });
   app.adapter.buildEditor.bindControls?.(app);
   requiredElement('btn-export-rotation').addEventListener('click', () =>
-    downloadJson(app.adapter.filenames.rotation, {
-      rotation: app.build.rotation
-    })
+    downloadJson(
+      app.adapter.filenames.rotation,
+      getRotationExportPayload(app.build.rotation, app.simulationSettings?.transitionDelays)
+    )
   );
   const rotationFileInput = requiredInput('rotation-file-input');
   bindRotationImportDialog(app, requiredElement('btn-import-rotation'), rotationFileInput);
