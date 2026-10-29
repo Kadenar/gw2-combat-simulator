@@ -446,13 +446,14 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   }
 });
 
-/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
+/** Spirit bonuses add together, then scale Essence Blast separately from other outgoing damage bonuses. */
 export const essenceBlastSpiritModifier: Gw2ModifierRule = {
   id: 'necromancer.essence-blast-active-spirits',
   target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'damage-additive',
+  operation: 'multiply',
   parameters: { damagePerSpirit: 0.15 },
-  amount: (context, _target, parameters) => (context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
+  factor: (context, _target, parameters) =>
+    1 + (context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
   when: (context) =>
     skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.ESSENCE_BLAST &&
     (context.event?.metadata?.activeSpirits || 0) > 0
