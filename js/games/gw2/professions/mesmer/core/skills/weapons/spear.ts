@@ -30,7 +30,8 @@ export const MESMER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Parti
   [ID.PSYSTRIKE]: {
     nextChainId: ID.MIND_PIERCE,
     castTimeMs: 520,
-    interruptCommitMs: 480,
+    // Preserve the landed strike and chain advance when recovery is interrupted at 440 ms.
+    interruptCommitMs: 440,
     effects: [
       {
         type: 'strike',

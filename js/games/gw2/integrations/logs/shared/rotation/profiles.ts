@@ -2,6 +2,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_IDENTITIES } from '#gw2/profession-identities.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST_ID } from '#gw2/professions/elementalist/data/ids.js';
+import { MESMER_SKILL_IDS as MESMER_ID } from '#gw2/professions/mesmer/data/ids.js';
 
 export interface RotationActionIdentity {
   readonly name: string;
@@ -40,12 +41,18 @@ const overrides: Partial<Record<keyof typeof PROFESSION_IDENTITIES, RotationProf
       troubadour: { name: 'Dodge', skillId: SHARED_SKILL_IDS.DODGE }
     },
     aliases: { dodge: 'Dodge / Mirage Cloak' },
+    // Current logs use the shared Bladecall cast ID outside Virtuoso too; replay needs the clone-generating variant.
+    skillIdAliases: { [MESMER_ID.BLADECALL]: MESMER_ID.BLADECALL_NON_VIRTUOSO },
     skillIdAliasesBySpecialization: {
       core: { [-63]: 10191, 49068: 10191 },
       chronomancer: { 56925: 56930 },
       // EI's synthetic identities resolve to existing actions; shared cloak source selection runs before this lookup.
       mirage: { [-63]: 10191, 49068: 10191 },
-      virtuoso: { 62560: 69311, 62586: 62617 }
+      virtuoso: {
+        [MESMER_ID.BLADECALL_NON_VIRTUOSO]: MESMER_ID.BLADECALL,
+        [MESMER_ID.BLADECALL]: MESMER_ID.BLADECALL,
+        62586: 62617
+      }
     }
   },
   revenant: {

@@ -43,12 +43,15 @@ export function resolveCloneShatter(
         },
         { metadata: { shatterTraitEligible: strikeIndex === 0 } }
       ).forEach((packet) => {
+        // The player's explosion precedes shatter rewards; clone explosions observe the newly granted buffs.
+        // Keep this causal order without inventing travel distances for individual clones.
+        const priority = packet.hitIndex === 1 ? Number(packet.priority ?? 0) : 6;
         context.effects.emit({
           ...delivery,
           kind: 'packet',
           event: packet,
           owner: mesmerPacketOwner(packet),
-          priority: Number(packet.priority ?? 0)
+          priority
         });
       });
     }

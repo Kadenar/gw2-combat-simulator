@@ -6,26 +6,26 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
-        "benchmarkDps": 43809,
+        "benchmarkDps": 43776,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-greatsword-dagger-sword",
         "upToDate": true,
         "benchmarkApm": 99.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 52534, "phase": 52534 },
-          "80-60": { "cumulative": 45685, "phase": 40278 },
-          "60-40": { "cumulative": 43200, "phase": 38912 },
-          "40-20": { "cumulative": 43242, "phase": 43367 },
-          "20-0": { "cumulative": 43809, "phase": 43809 }
+          "100-80": { "cumulative": 52539, "phase": 52539 },
+          "80-60": { "cumulative": 45671, "phase": 40249 },
+          "60-40": { "cumulative": 43157, "phase": 38818 },
+          "40-20": { "cumulative": 43208, "phase": 43364 },
+          "20-0": { "cumulative": 43776, "phase": 43776 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 38867,
+          "benchmarkDps": 38814,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 49229, "phase": 49229 },
-            "80-60": { "cumulative": 40691, "phase": 34723 },
-            "60-40": { "cumulative": 39794, "phase": 38091 },
-            "40-20": { "cumulative": 37898, "phase": 33159 },
-            "20-0": { "cumulative": 38867, "phase": 38867 }
+            "100-80": { "cumulative": 49224, "phase": 49224 },
+            "80-60": { "cumulative": 40666, "phase": 34685 },
+            "60-40": { "cumulative": 39727, "phase": 37946 },
+            "40-20": { "cumulative": 37846, "phase": 33135 },
+            "20-0": { "cumulative": 38814, "phase": 38814 }
           }
         }
       },
@@ -33,26 +33,26 @@
         "label": "Power (Spear-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
-        "benchmarkDps": 44071,
+        "benchmarkDps": 43921,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-spear-dagger-sword",
         "upToDate": true,
         "benchmarkApm": 100.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 50551, "phase": 50551 },
-          "80-60": { "cumulative": 42694, "phase": 36769 },
-          "60-40": { "cumulative": 42473, "phase": 42051 },
-          "40-20": { "cumulative": 43683, "phase": 47866 },
-          "20-0": { "cumulative": 44071, "phase": 44071 }
+          "100-80": { "cumulative": 50526, "phase": 50526 },
+          "80-60": { "cumulative": 42776, "phase": 36937 },
+          "60-40": { "cumulative": 42295, "phase": 41372 },
+          "40-20": { "cumulative": 43541, "phase": 47839 },
+          "20-0": { "cumulative": 43921, "phase": 43921 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 40172,
+          "benchmarkDps": 39976,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 46458, "phase": 46458 },
-            "80-60": { "cumulative": 40776, "phase": 36377 },
-            "60-40": { "cumulative": 39404, "phase": 36880 },
-            "40-20": { "cumulative": 38955, "phase": 37673 },
-            "20-0": { "cumulative": 40172, "phase": 40172 }
+            "100-80": { "cumulative": 45788, "phase": 45788 },
+            "80-60": { "cumulative": 40689, "phase": 36611 },
+            "60-40": { "cumulative": 39066, "phase": 36139 },
+            "40-20": { "cumulative": 38795, "phase": 38007 },
+            "20-0": { "cumulative": 39976, "phase": 39976 }
           }
         }
       },
@@ -92,25 +92,51 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-greatsword-bench.json",
-        "benchmarkDps": 40987,
+        "benchmarkDps": 40927,
         "upToDate": true,
         "benchmarkApm": 111.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41521, "phase": 41521 },
-          "80-60": { "cumulative": 40624, "phase": 39728 },
-          "60-40": { "cumulative": 40915, "phase": 41491 },
-          "40-20": { "cumulative": 41416, "phase": 43086 },
-          "20-0": { "cumulative": 40987, "phase": 39373 }
+          "100-80": { "cumulative": 41760, "phase": 41760 },
+          "80-60": { "cumulative": 40729, "phase": 39701 },
+          "60-40": { "cumulative": 40875, "phase": 41163 },
+          "40-20": { "cumulative": 41129, "phase": 41938 },
+          "20-0": { "cumulative": 40927, "phase": 40123 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 40987,
+          "benchmarkDps": 40927,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41521, "phase": 41521 },
-            "80-60": { "cumulative": 40624, "phase": 39728 },
-            "60-40": { "cumulative": 40915, "phase": 41491 },
-            "40-20": { "cumulative": 41416, "phase": 43086 },
-            "20-0": { "cumulative": 40987, "phase": 39373 }
+            "100-80": { "cumulative": 41760, "phase": 41760 },
+            "80-60": { "cumulative": 40729, "phase": 39701 },
+            "60-40": { "cumulative": 40875, "phase": 41163 },
+            "40-20": { "cumulative": 41129, "phase": 41938 },
+            "20-0": { "cumulative": 40927, "phase": 40123 }
+          }
+        }
+      },
+      {
+        "label": "Power (Spear-Dagger/Sword)",
+        "build": "data/gw2/builds/mesmer/b-power-mirage-spear-dagger-sword.json",
+        "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-dagger-sword-bench.json",
+        "upToDate": true,
+        "benchmarkDps": 43294,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 41424, "phase": 41424 },
+          "80-60": { "cumulative": 41413, "phase": 41402 },
+          "60-40": { "cumulative": 42254, "phase": 44002 },
+          "40-20": { "cumulative": 42032, "phase": 41360 },
+          "20-0": { "cumulative": 43294, "phase": 49139 }
+        },
+        "benchmarkApm": 112.1,
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 43294,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 41424, "phase": 41424 },
+            "80-60": { "cumulative": 41413, "phase": 41402 },
+            "60-40": { "cumulative": 42254, "phase": 44002 },
+            "40-20": { "cumulative": 42032, "phase": 41360 },
+            "20-0": { "cumulative": 43294, "phase": 49139 }
           }
         }
       },

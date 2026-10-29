@@ -9,7 +9,8 @@ const daggerCloneAttack = {
   name: 'Clone: Flying Cutter',
   coefficient: 0.5,
   hits: 1,
-  firstAttackDelay: 1.16,
+  // Include the clone's startup and projectile travel before its first impact.
+  firstAttackDelay: 1.56,
   interval: 1.6,
   weaponStrength: 26.5
 } satisfies MesmerCloneAttack;
@@ -57,27 +58,30 @@ const scepterCloneAttack = {
 /** Spear clones retain their own attack strength, payloads, and cadence independently of player attacks. */
 const spearCloneAttack = {
   weaponStrength: 26.3,
+  // Clone startup and the pause before restarting the chain prevent excess Sharper Images procs.
+  firstAttackDelay: 1.68,
   sequence: [
     {
       id: ID.PSYCUT,
       name: 'Clone: Psycut',
       coefficient: 1,
       hits: 1,
-      interval: 0.6
+      interval: 1.64
     },
     {
       id: ID.PSYSTRIKE,
       name: 'Clone: Psystrike',
       coefficient: 1,
       hits: 1,
-      interval: 0.78
+      interval: 0.64
     },
     {
       id: ID.MIND_PIERCE,
       name: 'Clone: Mind Pierce',
-      coefficient: 1.5,
+      // The clone finisher retains the clone's basic strike strength, unlike the player's finisher.
+      coefficient: 1,
       hits: 1,
-      interval: 0.84
+      interval: 0.92
     }
   ]
 } satisfies MesmerCloneAttack;

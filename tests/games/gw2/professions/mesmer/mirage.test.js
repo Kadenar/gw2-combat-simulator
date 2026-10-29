@@ -557,6 +557,97 @@ test('Mirage support and cloak traits emit their current effects', () => {
   );
 });
 
+// Shatter rewards belong between the player's explosion and the explosions contributed by consumed clones.
+test('Phantom Pain strengthens clone shatter explosions after the player explosion', () => {
+  const run = (selectedTraitIds) =>
+    simulateMesmer(['Mind Wrack'], {
+      specialization: 'Mirage',
+      initialResource: 3,
+      selectedTraitIds
+    });
+  const baseline = run([]).resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.MIND_WRACK);
+  const result = run([TRAIT.PHANTOM_PAIN]);
+  const explosions = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && event.skillId === ID.MIND_WRACK
+  );
+  assert.equal(explosions[0].damage, baseline[0].damage);
+  for (const explosion of explosions.slice(1)) {
+    assertFlooredDamageMultiplier(explosion.damage, baseline[0].damage, 1.25);
+  }
+
+  assert.equal(result.planningState.profession[STATE.RESOURCE], 0);
+});
+
+// The utility grants clone ambushes itself; the trait must neither gate them nor duplicate their delivery.
+test('Illusionary Ambush commands existing clones without requiring Infinite Horizon', () => {
+  const run = (selectedTraitIds) =>
+    simulateMesmer(['Illusionary Ambush', { name: '__wait', waitMs: 2000 }], {
+      specialization: 'Mirage',
+      primaryWeapon: 'Dagger',
+      initialResource: 1,
+      selectedTraitIds
+    });
+  const packets = (result) =>
+    result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === ID.PHANTOM_RAZOR && event.summonKind === 'clone'
+    );
+  const withoutHorizon = run([]);
+  const withHorizon = run([TRAIT.INFINITE_HORIZON]);
+  assert.deepEqual(withoutHorizon.warnings, []);
+  assert.deepEqual(withHorizon.warnings, []);
+  const owners = new Set(packets(withoutHorizon).map((event) => event.metadata.cloneId));
+  assert.equal(owners.size, 1);
+  assert.deepEqual(
+    packets(withoutHorizon).map((event) => event.metadata.cloneId),
+    packets(withHorizon).map((event) => event.metadata.cloneId)
+  );
+});
+
+// IA selects existing owners before Self-Deception; replacement cancels the oldest owner and never transfers its attack.
+test('Self-Deception does not add its new clone to Illusionary Ambush', () => {
+  for (const initialResource of [0, 1, 2, 3]) {
+    const result = simulateMesmer(['Illusionary Ambush', { name: '__wait', waitMs: 2000 }], {
+      specialization: 'Mirage',
+      primaryWeapon: 'Dagger',
+      initialResource,
+      selectedTraitIds: [TRAIT.SELF_DECEPTION]
+    });
+    assert.deepEqual(result.warnings, []);
+    const gains = result.events.filter((event) => event.type === 'resource');
+    const initialClones = gains.find((event) => event.reason === 'initial')?.created ?? [];
+    const newClones = gains
+      .filter((event) => event.reason === 'Self-Deception: Illusionary Ambush')
+      .flatMap((event) => event.created);
+    const owners = new Set(
+      result.resolvedEvents
+        .filter((event) => event.skillId === ID.PHANTOM_RAZOR && event.summonKind === 'clone')
+        .map((event) => event.metadata.cloneId)
+    );
+    assert.equal(newClones.length, initialResource ? 1 : 0);
+    assert.equal(
+      result.planningState.profession[STATE.RESOURCE],
+      initialResource ? Math.min(3, initialResource + 1) : 0
+    );
+    assert.deepEqual(owners, new Set(initialClones.slice(initialResource === 3 ? 1 : 0).map((clone) => clone.id)));
+    assert.ok(newClones.every((clone) => !owners.has(clone.id)));
+  }
+});
+
+// Pending clone-owned ambush payloads must disappear when their owner is consumed by a shatter.
+test('shattering an ambushing dagger clone cancels its pending strikes and conditions', () => {
+  const result = simulateMesmer(['Illusionary Ambush', 'Mind Wrack', { name: '__wait', waitMs: 2000 }], {
+    specialization: 'Mirage',
+    primaryWeapon: 'Dagger',
+    initialResource: 1,
+    selectedTraitIds: []
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.resolvedEvents.some((event) => event.skillId === ID.PHANTOM_RAZOR && event.summonKind === 'clone'),
+    false
+  );
+});
+
 test("Nomad's Endurance and Phantom Pain add together while excluding phantasm strikes", () => {
   const run = (selectedTraitIds) =>
     simulateMesmer(

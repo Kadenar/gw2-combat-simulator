@@ -547,7 +547,7 @@ function grantPhantomPain(
     attribution: { ...traitSource, actorType: ACTOR.EFFECT },
     announcement: { type: 'trait', name: profile.name, at, sourceSkill: skill.name, detail: '' }
   });
-  // The buff retains its announcement as cause and starts after the same-time shatter packets resolve.
+  // The buff follows the player's explosion and precedes clone explosions, retaining its announcement as cause.
   state.effects.emit({
     ...delivery,
     kind: 'packet',

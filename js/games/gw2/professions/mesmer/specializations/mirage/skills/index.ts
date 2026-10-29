@@ -354,22 +354,28 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
       ]
     },
     clone: {
-      coefficient: 3,
-      hits: 3,
-      atMs: 0,
-      castTimeMs: 0,
+      // Clone blades land after their windup; shattering the owner cancels unreleased damage and conditions.
+      ticks: [
+        { atMs: 880, coefficient: 1 },
+        { atMs: 960, coefficient: 1 },
+        { atMs: 1000, coefficient: 1 }
+      ],
+      castTimeMs: 880,
       conditions: [
         {
           type: 'condition',
           condition: CONDITION.BLEEDING,
-          duration: 7,
-          stacks: 1
+          // PvE's duration reduction applies to clone blades as well as player blades.
+          duration: 5,
+          stacks: 1,
+          atMs: 80
         },
         {
           type: 'condition',
           condition: CONDITION.TORMENT,
-          duration: 7,
-          stacks: 1
+          duration: 5,
+          stacks: 1,
+          atMs: 120
         }
       ]
     },

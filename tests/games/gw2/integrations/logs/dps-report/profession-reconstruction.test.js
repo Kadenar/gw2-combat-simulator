@@ -71,6 +71,42 @@ test('Troubadour imports preserve scepter chain availability across performances
   }
 });
 
+// Log IDs identify the cast; the logged specialization selects the executable Bladecall variant and resource owner.
+test('Bladecall imports select the specialization variant and replay its resource gain', () => {
+  for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
+    for (const rawSkillId of [MESMER_SKILL.BLADECALL, MESMER_SKILL.BLADECALL_NON_VIRTUOSO]) {
+      const expectedId = specialization === 'Virtuoso' ? MESMER_SKILL.BLADECALL : MESMER_SKILL.BLADECALL_NON_VIRTUOSO;
+      const report = reportFixture(
+        specialization === 'Core' ? 'Mesmer' : specialization,
+        [{ id: rawSkillId, skills: [{ castTime: 0, duration: 600 }] }],
+        { [`s${rawSkillId}`]: { name: 'Localized Bladecall' } },
+        3000
+      );
+      const imported = reconstructDpsReportRotation(report, mesmerCatalog);
+      const action = imported.actions.find((action) => action.rawSkillId === rawSkillId);
+      assert.equal(action.skillId, expectedId, specialization);
+      assert.equal(action.supportedByCatalog, true, specialization);
+      const replay = simulateMesmer([...imported.rotation, { type: 'wait', durationMs: 2000 }], {
+        specialization,
+        primaryWeapon: 'Dagger',
+        initialResource: 0
+      });
+      assert.deepEqual(replay.warnings, [], specialization);
+      assert.ok(
+        replay.steps.some((step) => step.skillId === expectedId && !step.invalid),
+        specialization
+      );
+      const gain = replay.events.find((event) => event.type === 'resource' && event.reason === 'Bladecall');
+      assert.equal(gain.value, 1, specialization);
+      assert.equal(
+        gain.resource,
+        specialization === 'Virtuoso' ? 'blades' : specialization === 'Troubadour' ? 'notes' : 'clones',
+        specialization
+      );
+    }
+  }
+});
+
 test('Mirage cloak sources import once without spending endurance or applying Dune Cloak twice', () => {
   // A minimal shatter proves both the resource contract and the cooldown effect of a single cloak application.
   const report = reportFixture(

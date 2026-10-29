@@ -239,9 +239,9 @@
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 58193, "phase": 58193 },
           "80-60": { "cumulative": 44149, "phase": 35235 },
-          "60-40": { "cumulative": 42888, "phase": 40562 },
-          "40-20": { "cumulative": 43484, "phase": 45364 },
-          "20-0": { "cumulative": 43666, "phase": 44402 }
+          "60-40": { "cumulative": 42887, "phase": 40559 },
+          "40-20": { "cumulative": 43483, "phase": 45364 },
+          "20-0": { "cumulative": 43666, "phase": 44406 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
@@ -249,8 +249,8 @@
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 53916, "phase": 53916 },
             "80-60": { "cumulative": 42143, "phase": 34546 },
-            "60-40": { "cumulative": 40308, "phase": 37053 },
-            "40-20": { "cumulative": 40053, "phase": 39323 },
+            "60-40": { "cumulative": 40307, "phase": 37050 },
+            "40-20": { "cumulative": 39701, "phase": 37969 },
             "20-0": { "cumulative": 40914, "phase": 40914 }
           }
         }
@@ -259,25 +259,25 @@
         "label": "Power (Greatsword - Sword/Sword - Hydro)",
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-hydro-bench.json",
-        "benchmarkDps": 42720,
+        "benchmarkDps": 42665,
         "upToDate": true,
         "benchmarkApm": 65.1,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 56764, "phase": 56764 },
           "80-60": { "cumulative": 43731, "phase": 35626 },
-          "60-40": { "cumulative": 41449, "phase": 37290 },
-          "40-20": { "cumulative": 40563, "phase": 38117 },
-          "20-0": { "cumulative": 42720, "phase": 53864 }
+          "60-40": { "cumulative": 41448, "phase": 37287 },
+          "40-20": { "cumulative": 40563, "phase": 38121 },
+          "20-0": { "cumulative": 42665, "phase": 53442 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 39920,
+          "benchmarkDps": 39919,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 51371, "phase": 51371 },
             "80-60": { "cumulative": 40546, "phase": 33347 },
-            "60-40": { "cumulative": 38573, "phase": 35137 },
-            "40-20": { "cumulative": 39424, "phase": 42152 },
-            "20-0": { "cumulative": 39920, "phase": 39920 }
+            "60-40": { "cumulative": 38572, "phase": 35134 },
+            "40-20": { "cumulative": 39423, "phase": 42152 },
+            "20-0": { "cumulative": 39919, "phase": 39919 }
           }
         }
       }
