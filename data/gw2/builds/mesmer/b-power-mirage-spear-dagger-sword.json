@@ -37,10 +37,6 @@
     {
       "stat": "Precision",
       "count": 6
-    },
-    {
-      "stat": "Condition Damage",
-      "count": 0
     }
   ],
   "specializations": [
@@ -66,6 +62,9 @@
   },
   "assumptions": {
     "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "criticalDamageMode": "averaged",
+    "permanentComboField": "none",
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -96,5 +95,7 @@
   "targetHealth": 4000000,
   "targetStartingHealthPercent": 100,
   "targetArmor": 2597,
-  "initialResource": 3
+  "initialResource": 3,
+  "precastRelics": [],
+  "initialThornsStacks": 0
 }

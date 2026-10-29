@@ -119,24 +119,24 @@
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-dagger-sword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-dagger-sword-bench.json",
         "upToDate": true,
-        "benchmarkDps": 43294,
+        "benchmarkDps": 42796,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41424, "phase": 41424 },
-          "80-60": { "cumulative": 41413, "phase": 41402 },
-          "60-40": { "cumulative": 42254, "phase": 44002 },
-          "40-20": { "cumulative": 42032, "phase": 41360 },
-          "20-0": { "cumulative": 43294, "phase": 49139 }
+          "100-80": { "cumulative": 42069, "phase": 42069 },
+          "80-60": { "cumulative": 41899, "phase": 41730 },
+          "60-40": { "cumulative": 41702, "phase": 41321 },
+          "40-20": { "cumulative": 41269, "phase": 39980 },
+          "20-0": { "cumulative": 42796, "phase": 50130 }
         },
-        "benchmarkApm": 112.1,
+        "benchmarkApm": 110.1,
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 43294,
+          "benchmarkDps": 42796,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41424, "phase": 41424 },
-            "80-60": { "cumulative": 41413, "phase": 41402 },
-            "60-40": { "cumulative": 42254, "phase": 44002 },
-            "40-20": { "cumulative": 42032, "phase": 41360 },
-            "20-0": { "cumulative": 43294, "phase": 49139 }
+            "100-80": { "cumulative": 42069, "phase": 42069 },
+            "80-60": { "cumulative": 41899, "phase": 41730 },
+            "60-40": { "cumulative": 41702, "phase": 41321 },
+            "40-20": { "cumulative": 41269, "phase": 39980 },
+            "20-0": { "cumulative": 42796, "phase": 50130 }
           }
         }
       },
