@@ -41,8 +41,9 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
     simulatorExcluded: true,
     castTimeMs: 0, // Effective autoattack strength fitted across both supplied logs after normalizing live damage modifiers.
     weaponStrength: 1510,
-    // Spawn-to-ready includes the spirit's activation delay and its opening animation.
-    initialBusyMs: 1920,
+    // Scheduling starts at cast completion, about 80 ms after spawn; the opening finishes 1840 ms later.
+    initialBusyMs: 1840,
+    resummonBusyMs: 1840,
     autoattackImpactDelayMs: 840,
     effects: [
       {
@@ -61,7 +62,9 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
     simulatorExcluded: true,
     castTimeMs: 0,
     weaponStrength: 1440,
-    initialBusyMs: 1440,
+    // Measured from cast completion: replacing an existing Wanderlust adds 120 ms before its opening finishes.
+    initialBusyMs: 1400,
+    resummonBusyMs: 1520,
     autoattackImpactDelayMs: 840,
     effects: [
       {
@@ -81,6 +84,9 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
     castTimeMs: 0,
     weaponStrength: 1440,
     initialBusyMs: 1640,
+    resummonBusyMs: 1640,
+    // Its commanded heal occupies the spirit even though healing packets are outside the damage simulation.
+    commandBusyMs: 1880,
     // Projectile travel adds some variation; use the later observed action tick at golem range.
     autoattackImpactDelayMs: 920,
     effects: [

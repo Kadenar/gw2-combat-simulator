@@ -29,7 +29,8 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
 import {
   INNERVATE,
-  ritualistSpiritActions
+  ritualistSpiritActions,
+  ritualistSpiritActionTasks
 } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-actions.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import {
@@ -124,7 +125,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
       : { ready: true };
   },
   sideEffectHandlers: ritualistSpiritActions,
-  tasks: ritualistSpiritTasks
+  tasks: { ...ritualistSpiritTasks, ...ritualistSpiritActionTasks }
 };
 
 /** Compose independent weapon-spell and spirit owners without hiding duplicate registries. */

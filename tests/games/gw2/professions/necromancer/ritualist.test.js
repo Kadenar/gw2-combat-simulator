@@ -397,11 +397,15 @@ test('spirit creation commits once and Soul Twisting refunds only the first comp
   assert.equal(lifeForcePercent(interrupted.planningState.profession[STATE.LIFE_FORCE]), 39.64);
 });
 
-test('exit preserves committed attacks while autonomous spirit work ends on exit or Lingering depletion', () => {
+// Despawning cancels unfinished spirit attacks, while the summon's independent Bond debuff persists.
+test('exit cancels spirit attacks while Lingering preserves creatures until depletion', () => {
   const rotation = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), cast(ID.EXIT_RITUALISTS_SHROUD), wait(5000)];
   const exited = run(rotation);
   assert.deepEqual(state(exited).activeSpirits, {});
-  assert.ok(exited.resolvedEvents.some((event) => event.type === 'damage' && event.source === 'Spirit'));
+  assert.equal(
+    exited.resolvedEvents.some((event) => event.metadata?.spiritAttackType === 'initial'),
+    false
+  );
   assert.equal(
     exited.resolvedEvents.some((event) => event.type === 'damage' && event.actorType === 'summon'),
     false
@@ -422,24 +426,32 @@ test('exit preserves committed attacks while autonomous spirit work ends on exit
 
 test('replacement cancels a prior spirit generation without resetting the shared autonomous cadence', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.SOUL_TWISTING] };
+  const baseline = run([cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(13000)], { config });
   const result = run([cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(7600), cast(ID.ANGUISH), wait(4500)], {
     config
   });
   const attacks = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.metadata?.spiritAttackType === 'autoattack'
   );
-  assert.equal(attacks.length, 1);
-  assert.equal(attacks[0].activationId.startsWith('cast:3:'), true);
-  assert.equal(state(result).spiritAutoAnchorAt, 7.92);
+  const original = baseline.resolvedEvents.filter((event) => event.metadata?.spiritAttackType === 'autoattack');
+  assert.equal(attacks.length, original.length - 1);
+  assert.equal(attacks.at(-1).activationId.startsWith('cast:3:'), true);
+  assert.ok(attacks.every((event) => original.some((other) => other.at === event.at)));
+  assert.equal(state(result).spiritAutoAnchorAt, state(baseline).spiritAutoAnchorAt);
 });
 
-test('Summon Spirits checks its initial window and busy state before an autonomous attack can start', () => {
+// Summon Spirits ignores an unfinished opening, but a later accepted command occupies the spirit's next opportunity.
+test('Summon Spirits preserves the initial attack and skips busy autoattack opportunities', () => {
   const immediate = run([cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), cast(ID.SUMMON_SPIRITS), wait(1500)]);
   assert.equal(
     immediate.events.some((event) => event.metadata?.spiritAttackType === 'summon-spirits'),
     false
   );
-  const result = run([cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(7200), cast(ID.SUMMON_SPIRITS), wait(1800)]);
+  assert.equal(
+    immediate.resolvedEvents.some((event) => event.metadata?.spiritAttackType === 'initial'),
+    true
+  );
+  const result = run([cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(3200), cast(ID.SUMMON_SPIRITS), wait(1800)]);
   assert.ok(
     result.resolvedEvents.some(
       (event) => event.type === 'damage' && event.metadata?.spiritAttackType === 'summon-spirits'
@@ -455,7 +467,7 @@ test('Summon Spirits checks its initial window and busy state before an autonomo
 // A commanded attack can make a spirit busy after its autonomous animation starts but before its impact arrives.
 test('busy spirits suppress an in-flight autonomous impact without shifting later attacks', () => {
   const pulseInterval = necromancerProfession.catalog.balanceProfilesById.get(TRAIT.SPAWNING_POWER).pulseInterval;
-  const opening = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(7400)];
+  const opening = [cast(ID.RITUALISTS_SHROUD), cast(ID.ANGUISH), wait(3600)];
   const baseline = run([...opening, wait(pulseInterval * 2000)]);
   const commanded = run([...opening, cast(ID.SUMMON_SPIRITS), wait(pulseInterval * 2000)]);
   const autos = (result) => result.resolvedEvents.filter((event) => event.metadata?.spiritAttackType === 'autoattack');

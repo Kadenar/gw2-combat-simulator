@@ -19,6 +19,8 @@ test('Wanderlust omits minion knockdown while its player controls still apply', 
   const commanded = simulate([
     "Ritualist's Shroud",
     'Wanderlust',
+    // Let the protected opening finish so this command can produce its control packet.
+    { type: 'wait', durationMs: 2000 },
     'Summon Spirits',
     { type: 'wait', durationMs: 1000 }
   ]);

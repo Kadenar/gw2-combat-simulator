@@ -91,7 +91,7 @@ test('Ritualist party policy uses live companion eligibility and preserves the t
     activationId: 'preservation',
     generation: 1,
     started: false,
-    initialUntil: 0,
+    actionGeneration: 0,
     busyUntil: 0
   };
   const summoned = emit();

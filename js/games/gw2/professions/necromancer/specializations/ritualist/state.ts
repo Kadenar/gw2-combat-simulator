@@ -23,13 +23,12 @@ export interface RitualistState {
       activationId: string;
       generation: number;
       started: boolean;
-      initialUntil: number;
+      actionGeneration: number;
       busyUntil: number;
     }
   >;
   spiritGeneration: number;
   spiritAutoAnchorAt: number;
-  resummonedSpiritAutoCycle: boolean;
   weaponSpells: Record<string, NecromancerWeaponSpellState>;
   soulTwistingAvailable: boolean;
   painfulBondLastPulseAt: number;
@@ -51,10 +50,8 @@ function createRitualistState(): RitualistState {
     painfulBondGeneration: 0,
     activeSpirits: {},
     spiritGeneration: 0,
-    // NaN signals "no anchor established yet"; the first summon uses the initial summon delay constant
+    // Each shroud entry establishes a new shared phase for both surviving and newly summoned spirits.
     spiritAutoAnchorAt: Number.NaN,
-    // A re-summon uses the shorter re-summon delay constant when establishing the next anchor.
-    resummonedSpiritAutoCycle: false,
     weaponSpells: {},
     soulTwistingAvailable: false,
     // NaN signals "no scheduled pulse emitted yet"; the next application pulses immediately.

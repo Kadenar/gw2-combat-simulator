@@ -35,7 +35,8 @@ test('new prefixes load in every gear slot and use ascended attribute budgets', 
       { Power: 'Power', Precision: 'Concentration', Toughness: 'Precision', Ferocity: 'Ferocity' }
     ],
     ["Knight's", "Berserker's", { Toughness: 'Power', Power: 'Precision', Precision: 'Ferocity' }],
-    ["Harrier's", "Berserker's", { Power: 'Power', 'Healing Power': 'Precision', Concentration: 'Ferocity' }]
+    ["Harrier's", "Berserker's", { Power: 'Power', 'Healing Power': 'Precision', Concentration: 'Ferocity' }],
+    ['Valkyrie', "Berserker's", { Power: 'Power', Vitality: 'Precision', Ferocity: 'Ferocity' }]
   ]) {
     assert.ok(PREFIXES.includes(prefix));
     const build = defaults();

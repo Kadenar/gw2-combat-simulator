@@ -151,25 +151,25 @@
         "build": "data/gw2/builds/necromancer/b-power-ritualist.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-ritualist-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-ritualist-greatsword-spear",
-        "benchmarkDps": 42877,
+        "benchmarkDps": 43305,
         "upToDate": true,
         "benchmarkApm": 87.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43073, "phase": 43073 },
-          "80-60": { "cumulative": 40482, "phase": 38070 },
-          "60-40": { "cumulative": 41394, "phase": 43354 },
-          "40-20": { "cumulative": 41464, "phase": 41675 },
-          "20-0": { "cumulative": 42877, "phase": 42877 }
+          "100-80": { "cumulative": 42959, "phase": 42959 },
+          "80-60": { "cumulative": 40611, "phase": 38425 },
+          "60-40": { "cumulative": 41651, "phase": 43887 },
+          "40-20": { "cumulative": 41707, "phase": 41878 },
+          "20-0": { "cumulative": 43305, "phase": 51174 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41126,
+          "benchmarkDps": 41420,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41484, "phase": 41484 },
-            "80-60": { "cumulative": 37993, "phase": 35016 },
-            "60-40": { "cumulative": 39189, "phase": 41819 },
-            "40-20": { "cumulative": 40176, "phase": 43453 },
-            "20-0": { "cumulative": 41126, "phase": 41126 }
+            "100-80": { "cumulative": 41385, "phase": 41385 },
+            "80-60": { "cumulative": 38427, "phase": 35860 },
+            "60-40": { "cumulative": 39582, "phase": 42119 },
+            "40-20": { "cumulative": 40258, "phase": 42438 },
+            "20-0": { "cumulative": 41420, "phase": 41420 }
           }
         }
       },
@@ -177,26 +177,26 @@
         "label": "Power Quickness (Spear / Greatsword)",
         "build": "data/gw2/builds/necromancer/b-power-quick-ritualist.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-quick-ritualist-bench.json",
-        "benchmarkDps": 36073,
+        "benchmarkDps": 36241,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-quickness-ritualist-greatsword-spear",
         "benchmarkApm": 87.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34493, "phase": 34493 },
-          "80-60": { "cumulative": 32642, "phase": 30984 },
-          "60-40": { "cumulative": 33428, "phase": 35125 },
-          "40-20": { "cumulative": 35348, "phase": 42719 },
-          "20-0": { "cumulative": 36073, "phase": 36073 }
+          "100-80": { "cumulative": 34859, "phase": 34859 },
+          "80-60": { "cumulative": 32642, "phase": 30682 },
+          "60-40": { "cumulative": 33875, "phase": 36646 },
+          "40-20": { "cumulative": 35446, "phase": 41134 },
+          "20-0": { "cumulative": 36241, "phase": 39827 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 36073,
+          "benchmarkDps": 36241,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 34493, "phase": 34493 },
-            "80-60": { "cumulative": 32642, "phase": 30984 },
-            "60-40": { "cumulative": 33428, "phase": 35125 },
-            "40-20": { "cumulative": 35348, "phase": 42719 },
-            "20-0": { "cumulative": 36073, "phase": 36073 }
+            "100-80": { "cumulative": 34859, "phase": 34859 },
+            "80-60": { "cumulative": 32642, "phase": 30682 },
+            "60-40": { "cumulative": 33875, "phase": 36646 },
+            "40-20": { "cumulative": 35446, "phase": 41134 },
+            "20-0": { "cumulative": 36241, "phase": 39827 }
           }
         }
       }

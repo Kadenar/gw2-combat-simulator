@@ -88,6 +88,24 @@ export const GEAR_STATS = {
     Weapon2: { Power: 125, Precision: 90, Ferocity: 90 },
     Weapon2H: { Power: 251, Precision: 179, Ferocity: 179 }
   },
+  // Valkyrie uses three-attribute ascended budgets with Power primary and Vitality/Ferocity secondary.
+  Valkyrie: {
+    Helm: { Power: 63, Vitality: 45, Ferocity: 45 },
+    Shoulders: { Power: 47, Vitality: 34, Ferocity: 34 },
+    Chest: { Power: 141, Vitality: 101, Ferocity: 101 },
+    Gloves: { Power: 47, Vitality: 34, Ferocity: 34 },
+    Leggins: { Power: 94, Vitality: 67, Ferocity: 67 },
+    Boots: { Power: 47, Vitality: 34, Ferocity: 34 },
+    Amulet: { Power: 157, Vitality: 108, Ferocity: 108 },
+    Ring1: { Power: 126, Vitality: 85, Ferocity: 85 },
+    Ring2: { Power: 126, Vitality: 85, Ferocity: 85 },
+    Accessory1: { Power: 110, Vitality: 74, Ferocity: 74 },
+    Accessory2: { Power: 110, Vitality: 74, Ferocity: 74 },
+    Back: { Power: 63, Vitality: 40, Ferocity: 40 },
+    Weapon1: { Power: 125, Vitality: 90, Ferocity: 90 },
+    Weapon2: { Power: 125, Vitality: 90, Ferocity: 90 },
+    Weapon2H: { Power: 251, Vitality: 179, Ferocity: 179 }
+  },
   "Zealot's": {
     Helm: { Power: 63, Precision: 45, 'Healing Power': 45 },
     Shoulders: { Power: 47, Precision: 34, 'Healing Power': 34 },

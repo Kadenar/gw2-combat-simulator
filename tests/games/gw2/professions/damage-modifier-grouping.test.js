@@ -155,7 +155,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
             activationId: 'anguish',
             generation: 1,
             started: false,
-            initialUntil: 0,
+            actionGeneration: 0,
             busyUntil: 0
           }
         }

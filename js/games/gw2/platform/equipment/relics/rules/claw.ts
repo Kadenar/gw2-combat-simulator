@@ -15,6 +15,12 @@ export const claw = defineRelic({
       name: 'Relic of the Claw'
     });
   },
-  // Claw follows outgoing modifier ownership so player-owned effect packets inherit its strike bonus.
-  strikeMultiplier: timedStrikeBuff('relic-claw', 1.07, isGw2PlayerModifierOwnedEvent)
+  // Ritualist spirit autoattacks inherit Claw's bonus; other attacks follow their existing modifier ownership.
+  strikeMultiplier: timedStrikeBuff(
+    'relic-claw',
+    1.07,
+    (event) =>
+      isGw2PlayerModifierOwnedEvent(event) ||
+      (event.summonKind === 'spirit' && event.metadata?.spiritAttackType === 'autoattack')
+  )
 });

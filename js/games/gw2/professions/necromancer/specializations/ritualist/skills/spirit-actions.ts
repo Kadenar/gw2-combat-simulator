@@ -3,6 +3,7 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
@@ -19,8 +20,8 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/attribution.js';
 import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
 import {
-  canActivateRitualistSpirit,
-  markRitualistSpiritBusy,
+  beginRitualistSpiritAction,
+  ritualistSpiritActionOwner,
   summonRitualistSpirit
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
 import { RITUALIST_SPIRIT_SKILL_IDS } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-projection.js';
@@ -29,6 +30,7 @@ import {
   type SpiritDefinition
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
+import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type {
   NecromancerRuntime,
   NecromancerRuntimeState,
@@ -43,6 +45,64 @@ export const INNERVATE = new Map<SkillId, string>([
 ]);
 
 /** Finite spirit attacks retain one activation and ordered secondary conditions while sharing common damage resolution. */
+function strikePackets(
+  runtime: NecromancerRuntime,
+  cast: RuntimeCast<NecromancerSkill>,
+  spirit: SpiritDefinition,
+  ticks: SpiritDefinition['summonTicks'],
+  attackType: string
+): SimulationEventBase[] {
+  return ticks.map((tick, index) => {
+    const at = canonicalTime(runtime.time + tick.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000);
+    return buildResolverStrike({
+      ...attribution(cast),
+      ...spiritFields(spirit.key, attackType),
+      at,
+      coefficient: tick.coefficient,
+      skillWeapon: 'Unequipped',
+      hitIndex: index + 1,
+      totalHits: ticks.length,
+      ...(attackType === 'summon-spirits'
+        ? {
+            sourceId: `ritualist.${spirit.key}.summon-spirits`,
+            weaponStrength: skillNumber(cast.skill, 'weaponStrength')
+          }
+        : {
+            weaponStrengthProfileId: 'transform.ritualist-shroud',
+            activationId: spirit.key === 'wanderlust' ? `${cast.id}:field` : cast.id,
+            name: spirit.key === 'wanderlust' ? 'Spirit of Wanderlust - Initial Attack' : cast.skill.name
+          })
+    });
+  });
+}
+
+const FIELD = 'ritualist.wanderlust-field';
+interface SpiritField {
+  events: SimulationEventBase[];
+  skillId: SkillId;
+  at: number;
+  attribution: ReturnType<typeof attribution>;
+}
+
+/** Once the field exists, its remaining pulses survive later spirit commands, replacements, and despawns. */
+export const ritualistSpiritActionTasks: NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']> =
+  {
+    [FIELD](runtime, data) {
+      const field = data as SpiritField;
+      for (const event of field.events) runtime.effects.emit({ kind: 'packet', event });
+      const opening = requireSkillFromContext(runtime, field.skillId);
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: opening,
+        effects: requireSkillAction(opening, 'opening').effects.filter((effect) => effect.type === 'condition'),
+        at: field.at,
+        attribution: { ...field.attribution, ...spiritFields('wanderlust', 'initial') },
+        transform: (event) => ({ ...event, name: `${opening.name} — ${event.condition}` })
+      });
+    }
+  };
+
+/** Pending spirit hits belong to the current attack even when their damage is attributed to the player. */
 function strikes(
   runtime: NecromancerRuntime,
   cast: RuntimeCast<NecromancerSkill>,
@@ -50,31 +110,8 @@ function strikes(
   ticks: SpiritDefinition['summonTicks'],
   attackType: string
 ): void {
-  for (const [index, tick] of ticks.entries()) {
-    const at = canonicalTime(runtime.time + tick.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000);
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildResolverStrike({
-        ...attribution(cast),
-        ...spiritFields(spirit.key, attackType),
-        at,
-        coefficient: tick.coefficient,
-        skillWeapon: 'Unequipped',
-        hitIndex: index + 1,
-        totalHits: ticks.length,
-        ...(attackType === 'summon-spirits'
-          ? {
-              sourceId: `ritualist.${spirit.key}.summon-spirits`,
-              weaponStrength: skillNumber(cast.skill, 'weaponStrength')
-            }
-          : {
-              weaponStrengthProfileId: 'transform.ritualist-shroud',
-              activationId: spirit.key === 'wanderlust' ? `${cast.id}:field` : cast.id,
-              name: spirit.key === 'wanderlust' ? 'Spirit of Wanderlust - Initial Attack' : cast.skill.name
-            })
-      })
-    });
-  }
+  for (const event of strikePackets(runtime, cast, spirit, ticks, attackType))
+    runtime.effects.emit({ kind: 'packet', event, owner: ritualistSpiritActionOwner(runtime, spirit.key) });
 }
 
 /** This skill family owns its actions; hooks retain registration and cross-owner ordering. */
@@ -129,6 +166,7 @@ export const ritualistSpiritActions: NonNullable<
         runtime.time + spirit.summonTicks[0].atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
       );
       const duration = effectNumber(profile, effect, 'duration');
+      // The summon grants Bond independently of whether its subsequent attack is interrupted.
       runtime.effects.emit({
         kind: 'packet',
         event: {
@@ -149,23 +187,24 @@ export const ritualistSpiritActions: NonNullable<
     const spirit = spiritDefinition(runtime, cast.skill.id)!;
     const key = spirit.key;
     summonRitualistSpirit(runtime, cast, spirit);
-    strikes(runtime, cast, spirit, spirit.lingeringTicks, 'initial');
     const first = spirit.lingeringTicks[0];
 
     if (first) {
-      const opening = cast.skill;
-      runtime.effects.emit({
-        kind: 'profile',
-        profile: opening,
-        effects: requireSkillAction(opening, 'opening').effects.filter((effect) => effect.type === 'condition'),
-        at: canonicalTime(runtime.time + first.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
-        attribution: { ...attribution(cast), ...spiritFields(key, 'initial') },
-        transform: (event) => ({
-          ...event,
-          name: `${cast.skill.name} — ${event.condition}`,
-          offTarget: cast.command.offTarget
-        })
-      });
+      const at = canonicalTime(runtime.time + first.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000);
+      // Cancellation before creation removes the whole field; its emitted pulses become independent afterward.
+      runtime.schedule(
+        FIELD,
+        Math.min(ritualistState.from(runtime).activeSpirits[key].busyUntil, at),
+        {
+          events: strikePackets(runtime, cast, spirit, spirit.lingeringTicks, 'initial'),
+          skillId: cast.skill.id,
+          at,
+          attribution: attribution(cast)
+        } satisfies SpiritField,
+        ritualistSpiritActionOwner(runtime, key),
+        // Complete field creation before an autoattack opportunity at the same boundary can replace the action.
+        -1
+      );
     }
   },
   'ritualist.summon-preservation'(runtime, context) {
@@ -217,13 +256,20 @@ export const ritualistSpiritActions: NonNullable<
     for (const id of RITUALIST_SPIRIT_SKILL_IDS) {
       const spirit = spiritDefinition(runtime, id)!;
 
-      if (!canActivateRitualistSpirit(runtime, spirit.key)) continue;
+      const actor = ritualistState.from(runtime).activeSpirits[spirit.key];
 
+      if (!actor) continue;
+
+      // Summon Spirits leaves the opening action intact; only subsequent actions can be replaced by its command.
+      if (actor.actionGeneration === 0 && actor.busyUntil > runtime.time) continue;
+
+      beginRitualistSpiritAction(runtime, spirit.key, spirit.activeDuration);
       strikes(runtime, cast, spirit, spirit.activeTicks, 'summon-spirits');
 
       if (spirit.key === 'wanderlust')
         runtime.effects.emit({
           kind: 'packet',
+          owner: ritualistSpiritActionOwner(runtime, spirit.key),
           event: {
             ...attribution(cast),
             ...spiritFields(spirit.key, 'summon-spirits'),
@@ -235,8 +281,6 @@ export const ritualistSpiritActions: NonNullable<
             )
           }
         });
-
-      markRitualistSpiritBusy(runtime, spirit);
     }
   }
 };

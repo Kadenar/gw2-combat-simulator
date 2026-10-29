@@ -1,7 +1,6 @@
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -25,16 +24,7 @@ import type {
 import { canonicalTime } from '#kernel/core/clock.js';
 
 const AUTO = 'ritualist.spirit-auto';
-const PACKET = 'ritualist.spirit-packet';
-// Initial and resummoned actors have distinct fixed startup delays before joining the shared attack cadence.
-const INITIAL_SPIRIT_ATTACK_DELAY_SECONDS = 7.36;
-const RESUMMONED_SPIRIT_ATTACK_DELAY_SECONDS = 4.14;
 const owner = (key: string, generation: number) => ({ id: `spirit:${key}`, generation });
-interface SpiritPacket {
-  key: string;
-  generation: number;
-  event: SimulationEventBase;
-}
 interface SpiritAuto {
   key: string;
   generation: number;
@@ -44,22 +34,33 @@ interface SpiritAuto {
   activationId: string;
 }
 
-/** Removing a spirit cancels autonomous work; already committed player attacks retain their separate lifetime. */
+/** Removing a spirit cancels its pending attacks and wakes; already created fields retain their own lifetime. */
 function clearSpirits(runtime: NecromancerRuntime): void {
   const state = ritualistState.from(runtime);
-  for (const key of Object.keys(state.activeSpirits))
+  for (const key of Object.keys(state.activeSpirits)) {
     runtime.cancelOwner(owner(key, state.activeSpirits[key].generation));
+    runtime.cancelOwner(ritualistSpiritActionOwner(runtime, key));
+  }
+
   state.activeSpirits = {};
   runtime.resourceController.refresh('lifeForce');
 }
 
-/** Only autonomous impacts belong to a spirit generation; player payloads use direct effect emission. */
-function queueAutonomousPacket(runtime: NecromancerRuntime, key: string, event: SimulationEventBase): void {
-  const generation = ritualistState.from(runtime).activeSpirits[key].generation;
-  runtime.schedule(PACKET, event.at, { key, generation, event }, owner(key, generation));
+/** Attack cancellation is independent of both damage attribution and the recurring spirit clock. */
+export function ritualistSpiritActionOwner(runtime: NecromancerRuntime, key: string) {
+  const actor = ritualistState.from(runtime).activeSpirits[key];
+  return { id: `spirit-action:${key}:${actor.generation}`, generation: actor.actionGeneration };
 }
 
-/** One autonomous wake per spirit advances the shared animation grid; both animation start and impact check busy state. */
+/** A replacement action cancels unfinished work without changing the creature or its next clock opportunity. */
+export function beginRitualistSpiritAction(runtime: NecromancerRuntime, key: string, duration: number): void {
+  const actor = ritualistState.from(runtime).activeSpirits[key];
+  runtime.cancelOwner(ritualistSpiritActionOwner(runtime, key));
+  actor.actionGeneration++;
+  actor.busyUntil = canonicalTime(runtime.time + duration);
+}
+
+/** Each spirit joins the same clock, skipping busy opportunities without delaying future attack starts. */
 function auto(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as SpiritAuto;
   const state = ritualistState.from(runtime);
@@ -77,11 +78,12 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
 
   const skill = runtime.helpers.skillsById.get(work.skillId)!;
 
-  if (!(state.activeSpirits[work.key].busyUntil > runtime.time))
-    queueAutonomousPacket(
-      runtime,
-      work.key,
-      buildResolverStrike({
+  if (!(state.activeSpirits[work.key].busyUntil > runtime.time)) {
+    beginRitualistSpiritAction(runtime, work.key, spirit.autoattackImpactDelayMs / 1000);
+    runtime.effects.emit({
+      kind: 'packet',
+      owner: ritualistSpiritActionOwner(runtime, work.key),
+      event: buildResolverStrike({
         at: canonicalTime(runtime.time + spirit.autoattackImpactDelayMs / 1000),
         source: 'Spirit',
         sourceId: skill.id,
@@ -97,7 +99,8 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
         ...spiritFields(work.key, 'autoattack'),
         activationId: `${work.activationId}:auto:${work.pulse}`
       })
-    );
+    });
+  }
 
   const interval = balanceNumberFromContext(runtime, TRAIT.SPAWNING_POWER, 'pulseInterval');
   const at = canonicalTime(work.anchor + (work.pulse + 1) * interval);
@@ -116,15 +119,19 @@ export function summonRitualistSpirit(
   const key = spirit.key;
   const previous = state.activeSpirits[key];
 
-  if (previous) runtime.cancelOwner(owner(key, previous.generation));
+  if (previous) {
+    runtime.cancelOwner(owner(key, previous.generation));
+    runtime.cancelOwner(ritualistSpiritActionOwner(runtime, key));
+  }
 
   state.activeSpirits[key] = {
     skillId: cast.skill.id,
     activationId: cast.id,
     generation: ++state.spiritGeneration,
     started: false,
-    initialUntil: canonicalTime(runtime.time + (key === 'anguish' ? 1.1 : 0)),
-    busyUntil: canonicalTime(runtime.time + spirit.initialBusyMs / 1000)
+    actionGeneration: 0,
+    // The opening's recovery depends on whether this cast replaces a live spirit; its shared clock is unchanged.
+    busyUntil: canonicalTime(runtime.time + (previous ? spirit.resummonBusyMs : spirit.initialBusyMs) / 1000)
   };
   runtime.resourceController.refresh('lifeForce');
   runtime.fireTrigger(ritualistSpiritCommitted, { cast });
@@ -135,7 +142,7 @@ export function summonRitualistSpirit(
   startRitualistSpirits(runtime);
 }
 
-/** Engagement establishes the first shared cadence from live spirits; subsequent summons join that cadence. */
+/** Newly engaged or replaced spirits join the existing clock after the current boundary. */
 export function startRitualistSpirits(runtime: NecromancerRuntime): void {
   if (!autonomousActionsAllowed(runtime)) return;
 
@@ -152,17 +159,6 @@ export function startRitualistSpirits(runtime: NecromancerRuntime): void {
     if (!(interval > 0) || !(spirit.attackCoefficient > 0)) continue;
 
     actor.started = true;
-
-    // Startup is a fixed actor lifecycle delay; Spawning Power still owns the repeating attack cadence.
-    if (!Number.isFinite(state.spiritAutoAnchorAt)) {
-      state.spiritAutoAnchorAt = canonicalTime(
-        runtime.time +
-          (state.resummonedSpiritAutoCycle
-            ? RESUMMONED_SPIRIT_ATTACK_DELAY_SECONDS
-            : INITIAL_SPIRIT_ATTACK_DELAY_SECONDS)
-      );
-      state.resummonedSpiritAutoCycle = false;
-    }
 
     const pulse = Math.max(0, Math.floor(canonicalTime(runtime.time - state.spiritAutoAnchorAt) / interval) + 1);
     runtime.schedule(
@@ -181,16 +177,22 @@ export function startRitualistSpirits(runtime: NecromancerRuntime): void {
   }
 }
 
-/** Entry preserves the resummon cadence choice; only depletion overrides Lingering Spirits on exit. */
+/** Shroud entry restarts the shared clock while preserving attacks already underway; ordinary summons retain its phase. */
 export function initializeRitualistSpiritLifecycle(runtime: NecromancerRuntime): void {
   registerNecromancerShroudLifecycle(runtime, 'ritualist.shroud', {
     onEnter(skill) {
       if (skill.shroudEntry !== 'ritualist') return;
 
       const state = ritualistState.from(runtime);
-      state.resummonedSpiritAutoCycle = Object.keys(state.activeSpirits).length > 0;
-      state.spiritAutoAnchorAt = NaN;
+
+      state.spiritAutoAnchorAt = runtime.time;
+      for (const [key, actor] of Object.entries(state.activeSpirits)) {
+        runtime.cancelOwner(owner(key, actor.generation));
+        actor.started = false;
+      }
+
       runtime.fireTrigger(ritualistShroudEntered);
+      startRitualistSpirits(runtime);
     },
     onExit: () => {
       if (!lingeringSpiritsActive(runtime)) clearSpirits(runtime);
@@ -199,35 +201,9 @@ export function initializeRitualistSpiritLifecycle(runtime: NecromancerRuntime):
   });
 }
 
-/** A spirit's initial attack window must finish before a commanded follow-up can be committed. */
-export function canActivateRitualistSpirit(runtime: NecromancerRuntime, key: string): boolean {
-  const state = ritualistState.from(runtime);
-  return Boolean(state.activeSpirits[key]) && !(state.activeSpirits[key].initialUntil > runtime.time);
-}
-
-/** A committed active attack suppresses autonomous starts and impacts without moving their shared cadence. */
-export function markRitualistSpiritBusy(runtime: NecromancerRuntime, spirit: SpiritDefinition): void {
-  const state = ritualistState.from(runtime);
-  state.activeSpirits[spirit.key].busyUntil = Math.max(
-    state.activeSpirits[spirit.key].busyUntil,
-    canonicalTime(runtime.time + spirit.activeDuration)
-  );
-}
-
-/** Hooks install the owner's tasks; stale generations and busy creatures cannot deliver autonomous impacts. */
+/** Creature-owned wakes survive action interruptions but end when that creature is removed. */
 export const ritualistSpiritTasks: NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']> = {
-  [AUTO]: auto,
-  [PACKET](runtime, data) {
-    const work = data as SpiritPacket;
-    const state = ritualistState.from(runtime);
-
-    if (
-      state.activeSpirits[work.key] &&
-      state.activeSpirits[work.key]?.generation === work.generation &&
-      !(state.activeSpirits[work.key].busyUntil > runtime.time)
-    )
-      runtime.effects.emit({ kind: 'packet', event: work.event });
-  }
+  [AUTO]: auto
 };
 
 /** Preserve the accepted spirit-committed boundary and its original reward order. */

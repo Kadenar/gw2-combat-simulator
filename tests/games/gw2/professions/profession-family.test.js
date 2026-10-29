@@ -616,7 +616,6 @@ const inactiveStateKeys = Object.freeze({
     'activeSpirits',
     'spiritGeneration',
     'spiritAutoAnchorAt',
-    'resummonedSpiritAutoCycle',
     'weaponSpells',
     'soulTwistingAvailable',
     'painfulBondLastPulseAt'

@@ -323,7 +323,6 @@ test('ready native professions expose deliberate public end-state keys', async (
       'minionAttackGenerations',
       'spiritGeneration',
       'spiritAutoAnchorAt',
-      'resummonedSpiritAutoCycle',
       'pendingShroudEntryId',
       'activeShroudEntryId',
       'activeShroudExitId',

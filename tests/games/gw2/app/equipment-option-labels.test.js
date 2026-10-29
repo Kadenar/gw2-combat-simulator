@@ -112,6 +112,7 @@ test('gear prefixes and sigils are sorted into Power and Condition groups', () =
         "Harrier's",
         "Knight's",
         'Marauder',
+        'Valkyrie',
         "Zealot's"
       ]
     },

@@ -17,6 +17,7 @@ import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 export interface SpiritDefinition {
   readonly key: string;
   readonly initialBusyMs: number;
+  readonly resummonBusyMs: number;
   readonly autoattackImpactDelayMs: number;
   readonly attackCoefficient: number;
   readonly attackWeaponStrength?: number;
@@ -46,6 +47,7 @@ export function spiritDefinition(context: NecromancerRuntime, skillId: SkillId):
   return {
     key,
     initialBusyMs: skillNumber(profile, 'initialBusyMs'),
+    resummonBusyMs: skillNumber(profile, 'resummonBusyMs'),
     autoattackImpactDelayMs: skillNumber(profile, 'autoattackImpactDelayMs'),
     // A removed autoattack leaves a zero coefficient, which disables the autonomous loop.
     attackCoefficient: autoattack ? effectNumber(profile, autoattack, 'coefficient') : 0,
@@ -53,6 +55,7 @@ export function spiritDefinition(context: NecromancerRuntime, skillId: SkillId):
     summonTicks: ticks(attacks.initial),
     lingeringTicks: ticks(attacks.lingering),
     activeTicks: ticks(active),
-    activeDuration: active ? effectNumber(profile, active, 'duration') : 0
+    // Defensive commands still interrupt attacks and keep their spirit busy until their animation completes.
+    activeDuration: active ? effectNumber(profile, active, 'duration') : skillNumber(profile, 'commandBusyMs') / 1000
   };
 }

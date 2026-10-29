@@ -137,8 +137,9 @@ test('spirit replacement skips its busy pulse without restarting the other spiri
   const originalAnguish = times(baseline, 'anguish');
   const replacedAnguish = times(replaced, 'anguish');
   assert.ok(originalAnguish.length >= 2);
-  assert.deepEqual(replacedAnguish, originalAnguish.slice(1));
-  assert.equal(replacedAnguish[0], times(replaced, 'wanderlust')[1]);
+  assert.equal(replacedAnguish.length, originalAnguish.length - 1);
+  assert.ok(replacedAnguish.every((at) => originalAnguish.includes(at)));
+  assert.equal(replacedAnguish.at(-1), times(replaced, 'wanderlust').at(-1));
 });
 
 test('Ritualist live spirit packets retain independent ownership and cadence', () => {
