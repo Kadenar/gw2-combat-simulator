@@ -180,7 +180,8 @@ const EXPECTED = {
     },
     rules: {
       'necromancer.anguish-conditional-damage': { strike: 'additive' },
-      'necromancer.essence-blast-active-spirits': { strike: 'additive' },
+      // Active spirits scale Essence Blast independently of additive outgoing damage bonuses.
+      'necromancer.essence-blast-active-spirits': { strike: 'multiplier' },
       'necromancer.ghastly-claws-vulnerability': { strike: 'multiplier' },
       'necromancer.life-siphon-bleeding-target': { strike: 'multiplier' },
       'necromancer.reaper-shout-melee': { strike: 'multiplier' }

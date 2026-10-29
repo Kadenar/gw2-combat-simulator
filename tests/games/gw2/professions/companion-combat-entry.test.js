@@ -92,7 +92,23 @@ for (const entry of cases) {
     assert.ok(normal.decisions.every(({ at }) => at >= 6));
     assert.deepEqual(repeated.decisions, normal.decisions);
     const longer = run(entry, { boundary: 8 });
-    assert.equal(Math.round((normal.decisions[0].at - 6) * 1e6), Math.round((longer.decisions[0].at - 8) * 1e6));
+
+    if (entry.name === 'spirit') {
+      // Engagement joins the existing shroud clock strictly after the boundary, without restarting its phase.
+      for (const simulation of [normal, longer]) {
+        const state = simulation.beforeStart.specialization.state;
+        assert.equal(state.activeSpirits.anguish.started, false);
+        assert.equal(simulation.decisions[0].data.anchor, state.spiritAutoAnchorAt);
+      }
+
+      assert.deepEqual(
+        longer.decisions[0],
+        normal.decisions.find(({ at }) => at > 8)
+      );
+    } else {
+      assert.equal(Math.round((normal.decisions[0].at - 6) * 1e6), Math.round((longer.decisions[0].at - 8) * 1e6));
+    }
+
     assert.equal(run(entry, { output: 'score' }).result.totalDamage, normal.result.totalDamage);
   });
 
