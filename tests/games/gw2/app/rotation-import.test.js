@@ -1,12 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
+import { getBuildWithRotationExportPayload } from '#gw2/app/import-export/files.js';
 import {
   applyRotationImportPreview,
   previewManifestRotation,
   previewRotationFile
 } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { setRotationReference } from '#gw2/app/rotation/comparison-state.js';
+import { recordRotationHistory, redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { mesmerAppAdapter as adapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 import { RANGER_SKILL_IDS } from '#gw2/professions/ranger/data/ids.js';
@@ -40,6 +44,52 @@ function appFor(line = 'Virtuoso') {
     changed() {}
   };
 }
+
+// Both entry points honor the same exported settings; rotation history intentionally leaves workspace preferences alone.
+test('combined exports import identical delays through either dialog and Undo preserves the imported settings', async () => {
+  for (const useBuildImport of [false, true]) {
+    for (const delay of [0, 150]) {
+      const app = appFor();
+      app.build.rotation = [{ type: 'wait', durationMs: 200 }];
+      app.simulationSettings = { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 100 }) };
+      app.changed = () => recordRotationHistory(app);
+      recordRotationHistory(app);
+      const rotation = [{ type: 'cast', skillId: 62617 }];
+      const delays = normalizeTransitionDelays({ weaponSwapMs: delay });
+      const payload = getBuildWithRotationExportPayload({ ...app.build, rotation }, delays);
+      const file = new File([JSON.stringify(payload)], 'combined.json', { type: 'application/json' });
+      const preview = useBuildImport
+        ? previewBuildFileImport(payload, file.name, app)
+        : await previewRotationFile(file, app);
+      assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 100);
+      assert.deepEqual(preview.transitionDelays, delays);
+      assert.ok(preview.warnings.some((notice) => notice.includes('every profession')));
+
+      if (useBuildImport) applyBuildFileImport(app, preview, { build: false, rotation: true });
+      else applyRotationImportPreview(app, preview);
+
+      assert.deepEqual(app.build.rotation, rotation);
+      assert.deepEqual(app.simulationSettings.transitionDelays, delays);
+      undoRotation(app);
+      assert.deepEqual(app.build.rotation, [{ type: 'wait', durationMs: 200 }]);
+      assert.deepEqual(app.simulationSettings.transitionDelays, delays);
+      redoRotation(app);
+      assert.deepEqual(app.build.rotation, rotation);
+      assert.deepEqual(app.simulationSettings.transitionDelays, delays);
+      assert.deepEqual((await previewRotationFile(file, app)).warnings, []);
+    }
+  }
+});
+
+test('rotation upload rejects incomplete delay metadata without changing the rotation or workspace', async () => {
+  const app = appFor();
+  app.simulationSettings = { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 100 }) };
+  const before = structuredClone(app.build);
+  const file = new File([JSON.stringify({ rotation: [], transitionDelays: { weaponSwapMs: 0 } })], 'partial.json');
+  await assert.rejects(previewRotationFile(file, app), /every delay/);
+  assert.deepEqual(app.build, before);
+  assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 100);
+});
 
 const sources = {
   file: async (_t, items, app) =>

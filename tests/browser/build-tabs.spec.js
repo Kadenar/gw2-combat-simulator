@@ -674,18 +674,35 @@ test('narrow strip exports, imports, resets, and closes builds', async ({ page }
   await expect(importDialog).toBeVisible();
   const chooser = page.waitForEvent('filechooser');
   await importDialog.getByRole('button', { name: 'Browse files', exact: true }).click();
-  await (
-    await chooser
-  ).setFiles({
+  const importedFile = {
     name: 'build.json',
     mimeType: 'application/json',
-    buffer: Buffer.from(JSON.stringify({ ...original, targetArmor: 2400 }))
-  });
+    buffer: Buffer.from(
+      JSON.stringify({
+        ...original,
+        targetArmor: 2400,
+        transitionDelays: { weaponSwapMs: 150, forgeEntryMs: 0, forgeExitMs: 0, shroudEntryMs: 0, shroudExitMs: 0 }
+      })
+    )
+  };
+  await (await chooser).setFiles(importedFile);
   const apply = importDialog.locator('[data-build-file-apply]');
+  await expect(apply).toBeEnabled();
+  await expect(importDialog.getByRole('list', { name: 'Import notices' })).toContainText('weapon swap 150 ms');
+  await expect(importDialog.getByRole('list', { name: 'Import notices' })).toContainText(
+    'Golem settings for every profession'
+  );
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(0);
+  // Preview and Cancel leave shared settings alone; only Apply accepts the exported values.
+  await importDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(0);
+  await page.locator('#btn-import-build').click();
+  await page.locator('#import-file-input').setInputFiles(importedFile);
   await expect(apply).toBeEnabled();
   await apply.click();
   await expect(importDialog).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(150);
   page.once('dialog', (dialog) => dialog.dismiss());
   await tabAction(page, 'Reset build');
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2400);
@@ -693,6 +710,7 @@ test('narrow strip exports, imports, resets, and closes builds', async ({ page }
   await tabAction(page, 'Reset build');
   await expect.poll(() => page.evaluate(() => window.professionApp.build.targetArmor)).toBe(original.targetArmor);
   await newBuild(page);
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(150);
   await closeBuild(page, 'New build');
   await page
     .getByRole('dialog', { name: 'Close this build?' })

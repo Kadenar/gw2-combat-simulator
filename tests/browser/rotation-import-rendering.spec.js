@@ -13,20 +13,35 @@ test('named rotations import through the Current file dialog and Reference manif
     return app.build;
   });
   await page.route('**/bug-002-build.json*', (route) => route.fulfill({ json: build }));
-  await page.route('**/bug-002-rotation.json*', (route) => route.fulfill({ json: ['Bladesong Harmony'] }));
+  const zeroDelays = { weaponSwapMs: 0, forgeEntryMs: 0, forgeExitMs: 0, shroudEntryMs: 0, shroudExitMs: 0 };
+  await page.route('**/bug-002-rotation.json*', (route) =>
+    route.fulfill({
+      json: { rotation: ['Bladesong Harmony'], transitionDelays: zeroDelays }
+    })
+  );
   await page.locator('#btn-import-rotation').click();
   const current = page.locator('.rotation-import-dialog[data-rotation-import-destination="current"]');
   await current.getByRole('tab', { name: 'Upload file', exact: true }).click();
   await page.locator('#rotation-file-input').setInputFiles({
     name: 'rotation.json',
     mimeType: 'application/json',
-    buffer: Buffer.from(JSON.stringify(['Bladesong Harmony']))
+    buffer: Buffer.from(
+      JSON.stringify({
+        ...build,
+        rotation: ['Bladesong Harmony'],
+        transitionDelays: { ...zeroDelays, weaponSwapMs: 150 }
+      })
+    )
   });
   await current.getByRole('button', { name: 'Review import', exact: true }).click();
   await expect(current.getByRole('button', { name: 'Apply rotation', exact: true })).toBeEnabled();
+  await expect(current.getByRole('list', { name: 'Import notices' })).toContainText('every profession');
+  await expect(current.getByRole('list', { name: 'Import notices' })).toContainText('Rotation Undo does not revert');
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(0);
   await current.getByRole('button', { name: 'Apply rotation', exact: true }).click();
   await expect(current).toBeHidden();
   await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(150);
   expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'cast', skillId: 62617 }]);
   await page.getByRole('button', { name: 'Compare', exact: true }).click();
   await page.locator('[data-comparison-empty-load]').click();
@@ -36,9 +51,11 @@ test('named rotations import through the Current file dialog and Reference manif
   await expect(presets).toBeEnabled();
   await presets.selectOption({ label: 'Named rotation' });
   await expect(reference.getByRole('button', { name: 'Use as reference', exact: true })).toBeEnabled();
+  await expect(reference.getByRole('list', { name: 'Import notices' })).toContainText('weapon swap 0 ms');
   await reference.getByRole('button', { name: 'Use as reference', exact: true }).click();
   await expect(reference).toBeHidden();
   await page.waitForFunction(() => window.professionApp.rotationComparison?.referenceStatus === 'fresh');
+  expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(0);
   expect(await page.evaluate(() => window.professionApp.rotationComparison.referenceRotation)).toEqual([
     { type: 'cast', skillId: 62617 }
   ]);

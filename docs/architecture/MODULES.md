@@ -227,6 +227,11 @@ grouping uses the first owning specialization/Core/family callback, including an
 `optimizer/` owns `view.ts`, `gear/`, and `relic-comparison/` on the same pattern. Consumers import the owning module
 directly. `simulation/settings.ts` owns the browser simulation settings contract and persistence, independently of saved
 build assumptions and workspace tabs. `build/panels/simulation-settings.ts` mounts the controls using that shared owner.
+Build exports include all workspace transition delays, including zero. Build and rotation import previews describe
+changes before Apply updates shared settings and invalidates cached results. Golem settings persist across every
+profession; boss settings stay within their scenario workspace. Matching values need no notice, and files without
+metadata leave settings unchanged. Explicit metadata must contain every current delay key. Rotation Undo/Redo changes
+only the rotation, retaining imported workspace settings; individual build tabs never store their own delays.
 
 Use `runner.ts`, `worker.ts`, and `panel.ts` for feature-local roles and descriptive names for everything else (for
 example `optimizer/gear/search.ts`, `fast-search.ts`, `search-space.ts`). These modules orchestrate simulation work;

@@ -5,6 +5,7 @@ import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
 import { getBuildExportPayload, getBuildWithRotationExportPayload } from '#gw2/app/import-export/files.js';
 import { loadManifestBuilds } from '#gw2/app/import-export/rotation-import-dialog.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 test('build file import detects which parts a file carries', async () => {
@@ -19,7 +20,7 @@ test('build file import detects which parts a file carries', async () => {
   };
 
   const combined = previewBuildFileImport(
-    getBuildWithRotationExportPayload({ ...source, rotation: [skill] }),
+    getBuildWithRotationExportPayload({ ...source, rotation: [skill] }, normalizeTransitionDelays(null)),
     'combined.json',
     app
   );
@@ -65,7 +66,10 @@ test('build file import clears the template highlight but keeps the tab reset ta
     workspace: { tabs: [tab], activeTabId: 'tab' }
   };
 
-  const rotationFile = getBuildWithRotationExportPayload({ ...source, rotation: [skill] });
+  const rotationFile = getBuildWithRotationExportPayload(
+    { ...source, rotation: [skill] },
+    normalizeTransitionDelays(null)
+  );
   applyBuildFileImport(app, previewBuildFileImport(rotationFile, 'combined.json', app), {
     build: false,
     rotation: true
@@ -120,7 +124,10 @@ test('build file import applies only the selected parts', async () => {
   const adapter = await loadProfessionAppAdapter('mesmer');
   const source = createDefaultBuild(adapter);
   const skill = Object.values(source.selectedSkillIds).find(Boolean);
-  const exported = getBuildWithRotationExportPayload({ ...source, rune: 'Krait', rotation: [skill] });
+  const exported = getBuildWithRotationExportPayload(
+    { ...source, rune: 'Krait', rotation: [skill] },
+    normalizeTransitionDelays(null)
+  );
   const importInto = (selection) => {
     const calls = [];
     const app = {
@@ -150,4 +157,110 @@ test('build file import applies only the selected parts', async () => {
   assert.deepEqual(rotationOnly.calls, [false]);
 
   assert.throws(() => importInto({ build: false, rotation: false }), /Choose the build/);
+});
+
+// Reviewing or cancelling an import cannot change shared settings; accepting either build part applies its metadata.
+test('build imports notify about workspace delays and apply them only with an accepted selection', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const source = createDefaultBuild(adapter);
+  source.rotation = [{ type: 'cast', skillId: Object.values(source.selectedSkillIds).find(Boolean) }];
+  const delays = normalizeTransitionDelays({ weaponSwapMs: 150, shroudExitMs: 200 });
+  for (const selection of [
+    { build: true, rotation: false },
+    { build: true, rotation: true },
+    { build: false, rotation: true }
+  ]) {
+    const settings = { transitionDelays: normalizeTransitionDelays({ forgeEntryMs: 100 }) };
+    const calls = [];
+    const app = {
+      adapter,
+      build: createDefaultBuild(adapter),
+      simulationSettings: settings,
+      workspace: { simulationSettings: settings, tabs: [] },
+      changed: (rebuild = true) => calls.push(rebuild)
+    };
+    const exported = selection.rotation
+      ? getBuildWithRotationExportPayload(source, delays)
+      : getBuildExportPayload(source, delays);
+    const preview = previewBuildFileImport(exported, 'build.json', app);
+    assert.ok(preview.warnings.some((notice) => notice.includes('weapon swap 150 ms')));
+    assert.ok(preview.warnings.some((notice) => notice.includes('Golem settings for every profession')));
+    assert.ok(preview.warnings.some((notice) => notice.includes('Rotation Undo does not revert')));
+    assert.equal(settings.transitionDelays.forgeEntryMs, 100);
+    assert.deepEqual(calls, []);
+    assert.throws(() => applyBuildFileImport(app, preview, { build: false, rotation: false }), /Choose/);
+    assert.equal(settings.transitionDelays.forgeEntryMs, 100);
+
+    applyBuildFileImport(app, preview, selection);
+    assert.deepEqual(settings.transitionDelays, delays);
+    assert.deepEqual(calls, [true]);
+    assert.equal(Object.hasOwn(app.build, 'transitionDelays'), false);
+    settings.transitionDelays.weaponSwapMs = 999;
+    assert.equal(preview.transitionDelays.weaponSwapMs, 150);
+    assert.equal(exported.transitionDelays.weaponSwapMs, 150);
+  }
+});
+
+test('build files without delay metadata preserve workspace settings without a missing-settings notice', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const settings = { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 150 }) };
+  const app = { adapter, build: createDefaultBuild(adapter), simulationSettings: settings, changed() {} };
+  const preview = previewBuildFileImport(app.build, 'build.json', app);
+  assert.equal(preview.transitionDelays, null);
+  assert.deepEqual(preview.warnings, []);
+  applyBuildFileImport(app, preview, { build: true, rotation: false });
+  assert.equal(settings.transitionDelays.weaponSwapMs, 150);
+});
+
+test('malformed build delay metadata rejects the preview without changing workspace settings', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const app = {
+    adapter,
+    build: createDefaultBuild(adapter),
+    simulationSettings: { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 150 }) }
+  };
+  for (const transitionDelays of [
+    null,
+    [],
+    { weaponSwapMs: 100 },
+    { ...normalizeTransitionDelays(), weaponSwapMs: -1 },
+    { ...normalizeTransitionDelays(), weaponSwapMs: Infinity },
+    { ...normalizeTransitionDelays(), weaponSwapMs: '150' }
+  ]) {
+    assert.throws(
+      () => previewBuildFileImport({ ...app.build, transitionDelays }, 'build.json', app),
+      /finite, non-negative/
+    );
+    assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 150);
+  }
+});
+
+test('zero-delay build exports clear nonzero preferences only on Apply and matching settings produce no notice', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const settings = { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 100 }) };
+  const app = { adapter, build: createDefaultBuild(adapter), simulationSettings: settings, changed() {} };
+  for (const exportBuild of [getBuildExportPayload, getBuildWithRotationExportPayload]) {
+    settings.transitionDelays = normalizeTransitionDelays({ weaponSwapMs: 100 });
+    const payload = exportBuild(app.build, normalizeTransitionDelays());
+    const preview = previewBuildFileImport(payload, 'build.json', app);
+    assert.ok(preview.warnings.some((notice) => notice.includes('weapon swap 0 ms')));
+    assert.equal(settings.transitionDelays.weaponSwapMs, 100);
+    applyBuildFileImport(app, preview, { build: true, rotation: false });
+    assert.deepEqual(settings.transitionDelays, normalizeTransitionDelays());
+    assert.deepEqual(previewBuildFileImport(payload, 'same.json', app).warnings, []);
+  }
+});
+
+test('boss import notices describe only the destination boss workspace', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const app = {
+    adapter,
+    build: createDefaultBuild(adapter),
+    simulationSettings: { transitionDelays: normalizeTransitionDelays() },
+    workspace: { scenario: {} }
+  };
+  const payload = getBuildExportPayload(app.build, normalizeTransitionDelays({ weaponSwapMs: 150 }));
+  const preview = previewBuildFileImport(payload, 'build.json', app);
+  assert.ok(preview.warnings.some((notice) => notice.includes('this boss workspace')));
+  assert.ok(preview.warnings.every((notice) => !notice.includes('every profession')));
 });

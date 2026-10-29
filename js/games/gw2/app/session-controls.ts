@@ -79,12 +79,12 @@ export function bindSessionControls(app: ProfessionAppState): void {
       {
         label: 'Build only',
         filename: app.adapter.filenames.build,
-        payload: getBuildExportPayload(app.build)
+        payload: getBuildExportPayload(app.build, app.simulationSettings?.transitionDelays)
       },
       {
         label: 'Build + rotation',
         filename: app.adapter.filenames.build.replace(/-build\.json$/i, '-build-rotation.json'),
-        payload: getBuildWithRotationExportPayload(app.build)
+        payload: getBuildWithRotationExportPayload(app.build, app.simulationSettings?.transitionDelays)
       }
     ]);
   });

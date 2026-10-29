@@ -2,6 +2,7 @@
 
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { normalizeTransitionDelays, type TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 /** One selectable export variant; its filename becomes the default name when chosen. */
 export interface JsonExportChoice {
@@ -133,9 +134,14 @@ export function readJsonFile(file: File): Promise<unknown> {
  * Shallow copy of the
  * build without the `rotation` property.
  */
-export function getBuildExportPayload(build: Gw2CanonicalBuild): Omit<Gw2CanonicalBuild, 'rotation'> {
+export function getBuildExportPayload(
+  build: Gw2CanonicalBuild,
+  transitionDelays?: TransitionDelays
+): Omit<Gw2CanonicalBuild, 'rotation'> & { transitionDelays: TransitionDelays } {
   const { rotation: _rotation, ...payload } = build;
-  return payload;
+  const delays = normalizeTransitionDelays(transitionDelays);
+  // Zero is an explicit timing choice too; every export carries a complete workspace snapshot.
+  return { ...payload, transitionDelays: delays };
 }
 
 /**
@@ -144,6 +150,9 @@ export function getBuildExportPayload(build: Gw2CanonicalBuild): Omit<Gw2Canonic
  * The flat shape stays readable by both importers: build import reads the build fields and the rotation
  * import reads the `rotation` array.
  */
-export function getBuildWithRotationExportPayload(build: Gw2CanonicalBuild): Gw2CanonicalBuild {
-  return { ...build, rotation: [...build.rotation] };
+export function getBuildWithRotationExportPayload(
+  build: Gw2CanonicalBuild,
+  transitionDelays?: TransitionDelays
+): Gw2CanonicalBuild & { transitionDelays: TransitionDelays } {
+  return { ...getBuildExportPayload(build, transitionDelays), rotation: structuredClone(build.rotation) };
 }

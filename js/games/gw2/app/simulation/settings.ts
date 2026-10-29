@@ -1,4 +1,10 @@
-import { normalizeTransitionDelays, type TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { invalidateInactiveBuildTabs } from '#gw2/app/build/state/workspace.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
+import {
+  normalizeTransitionDelays,
+  TRANSITION_DELAY_KEYS,
+  type TransitionDelays
+} from '#gw2/platform/execution/transition-lockouts.js';
 
 export interface SimulationSettings {
   transitionDelays: TransitionDelays;
@@ -31,4 +37,22 @@ export function saveSimulationSettings(settings: SimulationSettings): void {
   } catch {
     // Storage restrictions must not prevent the current session from using its simulation settings.
   }
+}
+
+/** Apply shared delays before the caller refreshes the active build, invalidating other tabs and their references. */
+export function applyTransitionDelays(app: ProfessionAppState, delays: TransitionDelays | null): boolean {
+  if (!delays) return false;
+
+  const settings = app.workspace?.simulationSettings ?? (app.simulationSettings ??= defaultSimulationSettings());
+  const next = normalizeTransitionDelays(delays);
+
+  if (TRANSITION_DELAY_KEYS.every((key) => settings.transitionDelays[key] === next[key])) return false;
+
+  settings.transitionDelays = next;
+
+  if (app.workspace?.scenario) app.workspace.persist?.();
+  else saveSimulationSettings(settings);
+
+  invalidateInactiveBuildTabs(app);
+  return true;
 }

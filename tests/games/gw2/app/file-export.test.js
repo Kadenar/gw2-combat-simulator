@@ -8,6 +8,7 @@ import {
   jsonExportFilename
 } from '#gw2/app/import-export/files.js';
 import { getRotationItems } from '#gw2/integrations/assets.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // Every export shares fallback, whitespace, and extension handling without requiring a browser download matrix.
@@ -47,10 +48,26 @@ test('build + rotation export stays readable by both importers', async () => {
   const adapter = await loadProfessionAppAdapter('mesmer');
   const build = { ...createDefaultBuild(adapter), rune: 'Krait', rotation: ['Keep this rotation'] };
 
-  const exported = getBuildWithRotationExportPayload(build);
+  const exported = getBuildWithRotationExportPayload(build, normalizeTransitionDelays(null));
   exported.rotation.push('Mutating the export');
 
   assert.deepEqual(build.rotation, ['Keep this rotation']);
   assert.deepEqual(getRotationItems(exported), ['Keep this rotation', 'Mutating the export']);
   assert.equal(replaceBuildConfiguration(exported, createDefaultBuild(adapter), adapter).rune, 'Krait');
+});
+
+// Zero delays are an explicit portable setting, and every export is detached from its workspace preferences.
+test('both build export options carry all workspace delays without modifying the build', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const build = createDefaultBuild(adapter);
+  for (const exportBuild of [getBuildExportPayload, getBuildWithRotationExportPayload]) {
+    const delays = normalizeTransitionDelays({ weaponSwapMs: 150 });
+    const exported = exportBuild(build, delays);
+    assert.deepEqual(exported.transitionDelays, delays);
+    delays.weaponSwapMs = 500;
+    assert.equal(exported.transitionDelays.weaponSwapMs, 150);
+    assert.equal(Object.hasOwn(build, 'transitionDelays'), false);
+    assert.deepEqual(exportBuild(build, normalizeTransitionDelays()).transitionDelays, normalizeTransitionDelays());
+    assert.deepEqual(exportBuild(build).transitionDelays, normalizeTransitionDelays());
+  }
 });

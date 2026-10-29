@@ -1,5 +1,9 @@
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
+import {
+  buildTransitionDelayNotices,
+  readBuildTransitionDelays
+} from '#gw2/app/import-export/build-transition-delays.js';
 import { readJsonFile } from '#gw2/app/import-export/files.js';
 import {
   bindImportFileSources,
@@ -17,6 +21,7 @@ import {
 import { isJsonRotationFile, readEvtcRotationFile } from '#gw2/app/import-export/logs/evtc-rotation-import.js';
 import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
 import type { RotationReferenceDescriptor } from '#gw2/app/rotation/comparison-state.js';
+import { applyTransitionDelays } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
 import { isDpsReportData } from '#gw2/integrations/logs/dps-report/parser.js';
@@ -24,6 +29,7 @@ import { isWingmanUrl } from '#gw2/integrations/logs/wingman/url.js';
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { ensureDocumentStyles } from '#ui/shared/dom.js';
 import { errorMessage } from '#ui/shared/errors.js';
@@ -33,6 +39,7 @@ type RotationImportDestination = 'current' | 'reference';
 type RotationImportSource = 'saved' | 'file' | 'link';
 
 export interface RotationImportPreview {
+  readonly transitionDelays?: TransitionDelays | null;
   readonly reference?: RotationReferenceDescriptor;
   readonly rotation: readonly RotationCommand[];
   readonly actionCount: number;
@@ -70,12 +77,14 @@ export async function previewRotationFile(file: File, app: ProfessionAppState): 
     const rotation = getRotationItems(imported);
 
     if (rotation) {
+      const transitionDelays = readBuildTransitionDelays(imported);
       // Unique authored names are decoded at this boundary; ambiguous variants require explicit IDs.
       return {
+        transitionDelays,
         rotation: normalizeImportedRotation(rotation, app),
         actionCount: rotation.length,
         description: `Loaded ${file.name}`,
-        warnings: [],
+        warnings: buildTransitionDelayNotices(transitionDelays, app),
         observations: []
       };
     }
@@ -148,7 +157,9 @@ export async function previewManifestRotation(
     );
   }
 
-  const items = getRotationItems(await fetchJsonAsset(preset.rotation));
+  const savedRotation = await fetchJsonAsset(preset.rotation);
+  const items = getRotationItems(savedRotation);
+  const transitionDelays = readBuildTransitionDelays(savedRotation);
 
   if (!items) throw new Error('Rotation array missing.');
 
@@ -156,6 +167,7 @@ export async function previewManifestRotation(
   const name = preset.section ? `${preset.section} · ${preset.label}` : preset.label;
   return {
     rotation,
+    transitionDelays,
     actionCount: rotation.length,
     description: `Loaded ${name}`,
     // Keep manifest context across shared-config refreshes; published figures never become event evidence.
@@ -167,7 +179,7 @@ export async function previewManifestRotation(
         ...(preset.patchPreview ? { [preset.patchPreview.patchId]: preset.patchPreview.benchmarkDps } : {})
       }
     },
-    warnings: [],
+    warnings: buildTransitionDelayNotices(transitionDelays, app),
     observations: []
   };
 }
@@ -282,8 +294,9 @@ export function manifestRotationMatchesBuild(
 
 /** Replaces the active rotation only after the user accepts a successfully reconstructed preview. */
 export function applyRotationImportPreview(app: ProfessionAppState, preview: RotationImportPreview): void {
-  app.build.rotation = [...preview.rotation];
-  app.changed(false);
+  app.build.rotation = structuredClone([...preview.rotation]);
+  const settingsChanged = applyTransitionDelays(app, preview.transitionDelays ?? null);
+  app.changed(settingsChanged);
 }
 
 const ROTATION_IMPORT_STYLES = `
@@ -697,6 +710,9 @@ export function bindRotationImportDialog(
     }
 
     if (destination === 'reference') {
+      // References share the workspace simulation settings with Current and every other build tab.
+      if (applyTransitionDelays(app, activePreview.transitionDelays ?? null)) app.changed();
+
       app.loadRotationReference(activePreview.rotation);
 
       // Keep display context beside the imported reference without changing the simulation API.

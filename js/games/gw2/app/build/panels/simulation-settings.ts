@@ -1,11 +1,6 @@
-import { invalidateInactiveBuildTabs } from '#gw2/app/build/state/workspace.js';
-import { saveSimulationSettings } from '#gw2/app/simulation/settings.js';
+import { applyTransitionDelays } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import {
-  normalizeTransitionDelays,
-  TRANSITION_DELAY_KEYS,
-  type TransitionDelays
-} from '#gw2/platform/execution/transition-lockouts.js';
+import { TRANSITION_DELAY_KEYS, type TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 /** Delay edits affect the active workspace and invalidate only its dependent build tabs. */
 export function mountSimulationSettings(app: ProfessionAppState, root: Document = document): void {
@@ -25,18 +20,8 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
   controls.className = 'perma-group-content';
   const settings = app.workspace!.simulationSettings;
   const update = (delays: TransitionDelays): void => {
-    const normalized = normalizeTransitionDelays(delays);
-
-    // Preserve valid caches for no-op inputs; changed shared delays refresh inactive tabs on their next activation.
-    if (TRANSITION_DELAY_KEYS.every((key) => normalized[key] === settings.transitionDelays[key])) return;
-
-    settings.transitionDelays = normalized;
-
-    if (app.workspace?.scenario) app.workspace.persist?.();
-    else saveSimulationSettings(settings);
-
-    invalidateInactiveBuildTabs(app);
-    app.changed();
+    // Manual edits and accepted imports share persistence and cache invalidation.
+    if (applyTransitionDelays(app, delays)) app.changed();
   };
 
   // Pair entry and exit delays so each transition can be compared and edited on one row.

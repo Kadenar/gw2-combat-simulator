@@ -1,10 +1,16 @@
 // Detects which parts a saved build file carries and applies only the parts the user chooses.
 
 import { replaceBuild, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
+import {
+  buildTransitionDelayNotices,
+  readBuildTransitionDelays
+} from '#gw2/app/import-export/build-transition-delays.js';
 import { manifestRotationMatchesBuild } from '#gw2/app/import-export/rotation-import-dialog.js';
+import { applyTransitionDelays } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { getRotationItems } from '#gw2/integrations/assets.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 export const BUILD_FILE_IMPORT_ACCEPT = '.json,application/json';
 
@@ -14,6 +20,7 @@ const BUILD_FIELDS = ['profession', 'specializations', 'selectedSkillIds', 'sele
 
 export interface BuildFileImportPreview {
   readonly fileName: string;
+  readonly transitionDelays: TransitionDelays | null;
   /** Imported build with any rotation normalized against its own specializations; null for rotation-only files. */
   readonly build: Gw2CanonicalBuild | null;
   /** Rotation items as saved; null when the file has no non-empty rotation. */
@@ -47,8 +54,11 @@ export function previewBuildFileImport(
     throw new Error('No build or rotation found in this file. Import combat logs with Load rotation.');
   }
 
-  const build = hasBuild ? replaceBuild(saved, app.adapter) : null;
-  const warnings: string[] = [];
+  const transitionDelays = readBuildTransitionDelays(saved);
+  // Export metadata belongs to the workspace and must never enter the canonical build or its tab snapshot.
+  const { transitionDelays: _transitionDelays, ...buildPayload } = saved as Record<string, unknown>;
+  const build = hasBuild ? replaceBuild(buildPayload, app.adapter) : null;
+  const warnings = buildTransitionDelayNotices(transitionDelays, app);
 
   if (rotation) {
     const normalized = (build ?? replaceBuildRotation(rotation, app.build, app.adapter)).rotation.length;
@@ -68,7 +78,7 @@ export function previewBuildFileImport(
     }
   }
 
-  return { fileName, build, rotation, warnings };
+  return { fileName, build, rotation, transitionDelays, warnings };
 }
 
 /**
@@ -91,13 +101,16 @@ export function applyBuildFileImport(
     if (!applyRotation) build.rotation = app.build.rotation;
 
     app.build = build;
+    // File settings change the shared workspace only after the reviewed import is accepted.
+    applyTransitionDelays(app, preview.transitionDelays);
     // The imported build is no longer the highlighted template; Reset still returns to the tab's loaded baseline.
     app.currentTemplate = null;
     app.changed();
   } else if (applyRotation) {
     // Normalizing through the current build resolves specialization-specific skill names before the first simulation.
     app.build.rotation = replaceBuildRotation(preview.rotation!, app.build, app.adapter).rotation;
-    app.changed(false);
+    const settingsChanged = applyTransitionDelays(app, preview.transitionDelays);
+    app.changed(settingsChanged);
   } else {
     throw new Error('Choose the build, the rotation, or both to apply.');
   }
