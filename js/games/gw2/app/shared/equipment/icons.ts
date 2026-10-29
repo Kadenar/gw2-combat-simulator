@@ -45,6 +45,8 @@ export const EQUIPMENT_ICONS: Readonly<Record<string, string>> = {
     'https://render.guildwars2.com/file/9B0D0173051264281BBA4F4B10D7514DF54105E2/2191074.png',
   'Furious Sharpening Stone': 'https://render.guildwars2.com/file/91AC9F70D30C5E3E22635DF4F30CAFA1F6F803A0/219361.png',
   'Furious Tuning Crystal': 'https://render.guildwars2.com/file/071410D26DC8480BA014C84A05EC7BE4DA0FDA5A/219373.png',
+  // Use the cheese item's icon in utility choices and equipped consumable tiles.
+  'Holographic Super Cheese': 'https://render.guildwars2.com/file/7893BE514D3CBB213C708008E65CA493F9403272/1964002.png',
   'Leviathan Tempering Oil': 'https://render.guildwars2.com/file/B32E4DAE9F7AE0732C22E5D2F299E9D1FD0514D3/3795950.png',
   'Magnanimous Tuning Crystal':
     'https://render.guildwars2.com/file/69DDBB1A79A104656C631204D4FC65C941D24319/1676541.png',

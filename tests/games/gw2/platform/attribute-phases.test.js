@@ -65,6 +65,16 @@ test('tuning crystals include flat Expertise grants without chaining converted E
   assert.deepEqual(pool, { Precision: 1633, Expertise: 703, Vitality: 1235 });
 });
 
+// Cheese grants both attributes independently, without converting its own Concentration bonus into Power.
+test('Holographic Super Cheese converts source attributes without chaining its bonuses', () => {
+  const pool = Object.freeze({ Precision: 1633, Concentration: 703 });
+  const resolved = resolveAttributeContributions(
+    { conversionPool: pool, conversions: equipmentAttributeConversions('Holographic Super Cheese') },
+    []
+  );
+  assert.deepEqual(resolved.utilityAttributes, { Power: 56, Concentration: 49 });
+});
+
 // The selected consumable's existing rules determine every source stat; no utility gets a special conversion path.
 test('utility conversion corrections cover Precision, Ferocity, Condition Damage, and Vitality', () => {
   const pool = { Power: 1000, Precision: 1000, Ferocity: 0, 'Condition Damage': 1000, Vitality: 1000, Toughness: 1000 };

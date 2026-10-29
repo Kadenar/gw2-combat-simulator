@@ -33,6 +33,10 @@ export const UTILITY_DATA = {
     { to: 'Power', from: 'Precision', percent: 3 },
     { to: 'Ferocity', from: 'Precision', percent: 3 }
   ],
+  'Holographic Super Cheese': [
+    { to: 'Power', from: 'Concentration', percent: 8 },
+    { to: 'Concentration', from: 'Precision', percent: 3 }
+  ],
   'Furious Tuning Crystal': [
     { to: 'Condition Damage', from: 'Precision', percent: 3 },
     { to: 'Expertise', from: 'Precision', percent: 3 }
@@ -79,6 +83,7 @@ export const UTILITY_GROUPS = [
     label: 'Power',
     items: [
       'Furious Sharpening Stone',
+      'Holographic Super Cheese',
       'Potion of Slaying',
       'Superior Sharpening Stone',
       'Toxic Sharpening Stone',
