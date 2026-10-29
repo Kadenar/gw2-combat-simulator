@@ -12,6 +12,7 @@ import { eagle } from '#gw2/platform/equipment/relics/rules/eagle.js';
 import { fireworks } from '#gw2/platform/equipment/relics/rules/fireworks.js';
 import { fractal } from '#gw2/platform/equipment/relics/rules/fractal.js';
 import { lastTyrant } from '#gw2/platform/equipment/relics/rules/last-tyrant.js';
+import { midnightKing } from '#gw2/platform/equipment/relics/rules/midnight-king.js';
 import { mirage } from '#gw2/platform/equipment/relics/rules/mirage.js';
 import { mistStranger } from '#gw2/platform/equipment/relics/rules/mist-stranger.js';
 import { mistburn } from '#gw2/platform/equipment/relics/rules/mistburn.js';
@@ -43,6 +44,7 @@ export const RELIC_RULES: Readonly<Record<number, Readonly<Gw2RelicRule>>> = Obj
   [RELIC_IDS.FRACTAL]: fractal,
   [RELIC_IDS.LAST_TYRANT]: lastTyrant,
   [RELIC_IDS.MISTBURN]: mistburn,
+  [RELIC_IDS.MIDNIGHT_KING]: midnightKing,
   [RELIC_IDS.MIST_STRANGER]: mistStranger,
   [RELIC_IDS.MIRAGE]: mirage,
   [RELIC_IDS.NOURYS]: nourys,

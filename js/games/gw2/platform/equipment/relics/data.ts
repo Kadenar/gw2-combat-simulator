@@ -8,6 +8,7 @@ export const RELIC_IDS = Object.freeze({
   BLOODSTONE: 104800,
   FIREWORKS: 100262,
   MISTBURN: 104994,
+  MIDNIGHT_KING: 101139,
   MIRAGE: 100158,
   MIST_STRANGER: 106206,
   NOURYS: 101191,
@@ -90,6 +91,14 @@ export const RELIC_DATA = {
     cooldown: 1,
     // Supply the relic artwork for optimizer results and equipment previews.
     icon: 'https://render.guildwars2.com/file/FFCB62CF19806066D21C0EA1BA43986C0DA2B6F3/3629399.png'
+  },
+  // Disable-triggered party boons support both strike and condition builds.
+  'Midnight King': {
+    id: RELIC_IDS.MIDNIGHT_KING,
+    category: 'Hybrid',
+    trigger: 'Disable an enemy (3 Might for 9s and Fury for 5s to yourself and nearby allies)',
+    cooldown: 1,
+    icon: 'https://render.guildwars2.com/file/C0602C3D27B10AC815D4B9F0DF0E4C3D23D12E9F/3187630.png'
   },
   Mirage: {
     id: RELIC_IDS.MIRAGE,
