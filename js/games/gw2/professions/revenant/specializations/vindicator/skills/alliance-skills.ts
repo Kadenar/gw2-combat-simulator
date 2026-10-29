@@ -93,7 +93,7 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
     cooldown: 12,
     energyCost: 20,
     legendId: 'LegendaryAlliance',
-    castTimeMs: 480,
+    castTimeMs: 600,
     interruptCommitMs: 400,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects(
