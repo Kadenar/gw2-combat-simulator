@@ -88,7 +88,8 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     effects: [
       {
         type: 'strike',
-        ticks: [360, 680].map((atMs) => ({ atMs, coefficient: 3 / 2 })),
+        // Both strikes land before cast recovery ends, matching the observed quickened hit offsets.
+        ticks: [280, 640].map((atMs) => ({ atMs, coefficient: 3 / 2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Electro-whirl',
