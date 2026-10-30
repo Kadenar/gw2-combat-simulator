@@ -10,9 +10,7 @@ export const ELEMENTALIST_STATE_IDS = Object.freeze({
   AUTOATTACK_CARRYOVER: 'gw2.elementalist.autoattack-carryover',
   ACTIVE_AURAS: 'gw2.elementalist.active-auras',
   PISTOL_BULLETS: 'gw2.elementalist.pistol-bullets',
-  DAZING_DISCHARGE_UNTIL: 'gw2.elementalist.dazing-discharge-until',
   HAMMER_ORBS: 'gw2.elementalist.hammer-orbs',
-  HAMMER_ORB_LAST_CAST_AT: 'gw2.elementalist.hammer-orb-last-cast-at',
   ETCHINGS: 'gw2.elementalist.etchings',
   CONJURE_EQUIPPED: 'gw2.elementalist.conjure-equipped',
   CONJURE_EXPIRES_AT: 'gw2.elementalist.conjure-expires-at',
@@ -21,11 +19,9 @@ export const ELEMENTALIST_STATE_IDS = Object.freeze({
   CATALYST_ENERGY: 'gw2.catalyst.catalyst-energy',
   ELEMENTAL_EMPOWERMENT_EXPIRIES: 'gw2.catalyst.elemental-empowerment-expiries',
   EMPOWERING_AURAS: 'gw2.catalyst.empowering-auras',
-  SPHERE_ACTIVE_UNTIL: 'gw2.catalyst.sphere-active-until',
   SPHERE_EXPIRY: 'gw2.catalyst.sphere-expiry',
   ELEMENT: 'gw2.evoker.element',
   FAMILIAR_CHARGES: 'gw2.evoker.familiar-charges',
   EMPOWERED_CHARGES: 'gw2.evoker.empowered-charges',
-  ELEMENTAL_BALANCE_PROGRESS: 'gw2.evoker.elemental-balance-progress',
   ELEMENTAL_BALANCE_UNTIL: 'gw2.evoker.elemental-balance-until'
 } as const);

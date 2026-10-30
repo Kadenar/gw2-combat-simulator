@@ -5,7 +5,6 @@ export const NECROMANCER_STATE_IDS = Object.freeze({
   SOUL_SHARD_GRANT: 'gw2.necromancer.soul-shard-grant',
   CARAPACE_EXPIRIES: 'gw2.necromancer.carapace-expiries',
   ACTIVE_MINIONS: 'gw2.necromancer.active-minions',
-  LICH_ENDS_AT: 'gw2.necromancer.lich-ends-at',
   BLIGHT: 'gw2.harbinger.blight',
   BLIGHT_EXPIRIES: 'gw2.harbinger.blight-expiries',
   CASCADING_CORRUPTION_STACKS: 'gw2.harbinger.cascading-corruption-stacks',

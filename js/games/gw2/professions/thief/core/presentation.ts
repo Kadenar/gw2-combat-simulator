@@ -280,7 +280,7 @@ export const thiefCoreUi = Object.freeze({
     };
   },
   // Equal-duration grants replace oldest stacks, so capping their active sum matches the engine's stack count.
-  effectPresentations: (_context: ThiefUiContext) => [
+  effectPresentations: () => [
     {
       id: 'thief-lead-attacks',
       kind: 'lead-attacks',

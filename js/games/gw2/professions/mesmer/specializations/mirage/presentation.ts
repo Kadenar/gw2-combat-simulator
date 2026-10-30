@@ -16,7 +16,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 const MIRAGE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
 /** Publishes Mirage-only timed effects and their chart limits. */
-function mirageEffectPresentations(_context: MesmerUiContext): ProfessionEffectPresentation[] {
+function mirageEffectPresentations(): ProfessionEffectPresentation[] {
   return [
     {
       id: 'mesmer-phantom-pain',

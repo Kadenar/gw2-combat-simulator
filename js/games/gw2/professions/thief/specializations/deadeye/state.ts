@@ -49,7 +49,6 @@ export function projectDeadeyePlanningState(input: Gw2PlanningStateInput) {
   const state = deadeyeState.from(input);
   return structuredClone({
     [STATE.MARKED_TARGET_ID]: state.markedTargetId,
-    [STATE.MARK_EXPIRES_AT]: state.markExpiresAt,
     [STATE.MARK_GENERATION]: state.markGeneration,
     [STATE.MALICE]: state.malice,
     [STATE.BONUS_STEALTH_ATTACK]: state.bonusStealthAttack,

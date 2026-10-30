@@ -128,7 +128,7 @@ function mesmerEventLogRow(
 const CORE_MECHANIC_SKILLS = Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]);
 
 /** Publishes Core Mesmer effect labels, colors, and patch-aware stack caps to result views. */
-function mesmerCoreEffectPresentations(_context: MesmerUiContext): ProfessionEffectPresentation[] {
+function mesmerCoreEffectPresentations(): ProfessionEffectPresentation[] {
   return [
     {
       id: 'mesmer-compounding-power',

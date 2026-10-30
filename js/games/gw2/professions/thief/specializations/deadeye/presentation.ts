@@ -7,7 +7,7 @@ import type {
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefUiState } from '#gw2/professions/thief/core/presentation.js';
@@ -29,7 +29,7 @@ function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
 
 export const deadeyeUi = Object.freeze({
   /** Expose selected Malice as damage scaling independent of how it was generated. */
-  skillDamageState(context: SkillDamagePreviewPreparation, _skill: Skill): SkillDamageState | null {
+  skillDamageState(context: SkillDamagePreviewPreparation): SkillDamageState | null {
     // Direct evaluation supplies damage state without prerequisite actions.
     return {
       assumptions: [`Malice: ${Number(context.values.malice ?? 0)}`]

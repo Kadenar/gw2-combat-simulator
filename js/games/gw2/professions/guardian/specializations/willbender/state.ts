@@ -41,11 +41,9 @@ export const willbenderState = defineProfessionSpecializationState('Willbender',
 export function projectWillbenderPlanningState(input: Gw2PlanningStateInput) {
   const state = willbenderState.from(input);
   return structuredClone({
-    [STATE.FLAME_VIRTUE]: state.flameVirtue,
     [STATE.JUSTICE_UNTIL]: state.justiceUntil,
     [STATE.RESOLVE_UNTIL]: state.resolveUntil,
     [STATE.COURAGE_UNTIL]: state.courageUntil,
-    [STATE.VIRTUE_HIT_COUNTS]: state.virtueHitCounts,
     [STATE.LETHAL_TEMPO]: state.lethalTempo
   });
 }

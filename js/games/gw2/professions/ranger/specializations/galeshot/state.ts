@@ -44,8 +44,6 @@ export function projectGaleshotPlanningState(input: Gw2PlanningStateInput) {
     [STATE.CYCLONE_BOW_ACTIVE]: state.cycloneBowActive,
     [STATE.ARROWS]: state.arrows,
     [STATE.WIND_FORCE]: state.windForce,
-    [STATE.GALE_FORCE_UNTIL]: state.galeForceUntil,
-    [STATE.MISTRAL_UNTIL]: state.mistralUntil,
-    [STATE.MISSILE_HITS]: state.missileHits
+    [STATE.MISTRAL_UNTIL]: state.mistralUntil
   });
 }

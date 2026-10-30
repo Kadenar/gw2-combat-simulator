@@ -8,17 +8,14 @@ import type {
   DpsReportSkillMetadata,
   ParsedDpsReport
 } from '#gw2/integrations/logs/dps-report/types.js';
-
-function record(value: unknown): value is Record<string, unknown> {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
+import { isRecord } from '#kernel/core/objects.js';
 
 function finite(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
 function parseCast(value: unknown): DpsReportCast {
-  if (!record(value) || !finite(value.castTime) || !finite(value.duration)) {
+  if (!isRecord(value) || !finite(value.castTime) || !finite(value.duration)) {
     throw new DpsReportError('INVALID_ROTATION_CAST', 'The Elite Insights report contains an invalid cast entry.');
   }
 
@@ -26,7 +23,7 @@ function parseCast(value: unknown): DpsReportCast {
 }
 
 function parseRotationGroup(value: unknown): DpsReportRotationGroup {
-  if (!record(value) || !finite(value.id) || !Array.isArray(value.skills)) {
+  if (!isRecord(value) || !finite(value.id) || !Array.isArray(value.skills)) {
     throw new DpsReportError(
       'INVALID_ROTATION_GROUP',
       'The Elite Insights report contains an invalid skill rotation group.'
@@ -41,7 +38,11 @@ function parseRotationGroup(value: unknown): DpsReportRotationGroup {
 
 /** Pet casts cross the same validation boundary as player casts before replay. */
 function parseMinion(value: unknown): DpsReportMinion {
-  if (!record(value) || typeof value.name !== 'string' || (value.rotation != null && !Array.isArray(value.rotation))) {
+  if (
+    !isRecord(value) ||
+    typeof value.name !== 'string' ||
+    (value.rotation != null && !Array.isArray(value.rotation))
+  ) {
     throw new DpsReportError('INVALID_MINION', 'The Elite Insights report contains an invalid minion entry.');
   }
 
@@ -53,7 +54,7 @@ function parseMinion(value: unknown): DpsReportMinion {
 
 function parsePlayer(value: unknown): DpsReportPlayer {
   if (
-    !record(value) ||
+    !isRecord(value) ||
     typeof value.name !== 'string' ||
     typeof value.profession !== 'string' ||
     !Array.isArray(value.rotation) ||
@@ -70,7 +71,7 @@ function parsePlayer(value: unknown): DpsReportPlayer {
 }
 
 function parsePhase(value: unknown): DpsReportPhase {
-  if (!record(value) || !finite(value.start) || !finite(value.end) || typeof value.name !== 'string') {
+  if (!isRecord(value) || !finite(value.start) || !finite(value.end) || typeof value.name !== 'string') {
     throw new DpsReportError('INVALID_PHASE', 'The Elite Insights report contains an invalid phase entry.');
   }
 
@@ -78,12 +79,12 @@ function parsePhase(value: unknown): DpsReportPhase {
 }
 
 function parseSkillMap(value: unknown): Readonly<Record<string, DpsReportSkillMetadata>> {
-  if (!record(value)) {
+  if (!isRecord(value)) {
     throw new DpsReportError('INVALID_SKILL_MAP', 'The Elite Insights report has no skill metadata map.');
   }
 
   for (const metadata of Object.values(value)) {
-    if (!record(metadata) || typeof metadata.name !== 'string') {
+    if (!isRecord(metadata) || typeof metadata.name !== 'string') {
       throw new DpsReportError('INVALID_SKILL_METADATA', 'The Elite Insights report contains invalid skill metadata.');
     }
   }
@@ -103,7 +104,7 @@ export function parseDpsReport(input: string | unknown): ParsedDpsReport {
     }
   }
 
-  if (!record(value) || !Array.isArray(value.players) || !Array.isArray(value.phases)) {
+  if (!isRecord(value) || !Array.isArray(value.players) || !Array.isArray(value.phases)) {
     throw new DpsReportError('INVALID_REPORT', 'The JSON is not an Elite Insights report with players and phases.');
   }
 
@@ -125,5 +126,5 @@ export function parseDpsReport(input: string | unknown): ParsedDpsReport {
 
 /** Cheap shape check lets the app distinguish EI JSON from saved rotation JSON. */
 export function isDpsReportData(value: unknown): boolean {
-  return record(value) && Array.isArray(value.players) && Array.isArray(value.phases) && record(value.skillMap);
+  return isRecord(value) && Array.isArray(value.players) && Array.isArray(value.phases) && isRecord(value.skillMap);
 }

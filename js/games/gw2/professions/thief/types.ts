@@ -40,7 +40,6 @@ export interface ThiefCanonicalBuild extends Gw2CanonicalBuild {
 }
 
 export interface ThiefConfig extends Gw2Config {
-  readonly assumptions?: ProfessionBuildAssumptions;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
   readonly selectedDodge?: ThiefDodge;
   readonly initialInitiative?: number;

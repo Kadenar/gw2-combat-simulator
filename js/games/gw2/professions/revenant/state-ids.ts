@@ -5,7 +5,6 @@ export const REVENANT_STATE_IDS = Object.freeze({
   SELECTED_LEGEND_IDS: 'gw2.revenant.selected-legend-ids',
   ACTIVE_UPKEEPS: 'gw2.revenant.active-upkeeps',
   ENCHANTED_DAGGERS: 'gw2.revenant.enchanted-daggers',
-  BATTLE_SCARS: 'gw2.revenant.battle-scars',
   CRUSHING_ABYSS: 'gw2.revenant.crushing-abyss',
   COMBAT_BEGAN_AT: 'gw2.revenant.combat-began-at',
   AFFINITY: 'gw2.conduit.affinity',

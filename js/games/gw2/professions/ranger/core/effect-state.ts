@@ -1,7 +1,7 @@
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 
 /** Core owns shared weapon, pet, and trait effects; selected elites register their own policies. */
-export function rangerBuffPolicies(_context: unknown): BuffStatePolicy[] {
+export function rangerBuffPolicies(): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'attack-of-opportunity-pet', maximumStacks: 1 },
     { kind: 'attack-of-opportunity-player', maximumStacks: 1 },

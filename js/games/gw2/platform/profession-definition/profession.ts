@@ -68,15 +68,10 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
+import { assertObject } from '#kernel/core/objects.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ResourcePolicies & { readonly endurance?: EndurancePolicy };
-
-function assertObject(value: object | null | undefined, label: string): void {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new TypeError(`${label} must be an object.`);
-  }
-}
 
 /** Every field a module shell may declare; `kind` is stamped by `defineNativeModule` itself. */
 const NATIVE_MODULE_FIELDS = Object.freeze([

@@ -102,8 +102,7 @@ export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
     'activeMinions',
     'availableFlips',
     'autoattackChains',
-    'selfConditions',
-    'lichEndsAt'
+    'selfConditions'
   ]);
   state.lifeForce.value = cappedResource(state.lifeForce.value, state.lifeForce.maximum);
   // Detached resource values obey the same selected capacity as live grants.
@@ -117,7 +116,6 @@ export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
     [STATE.SOUL_SHARD_GRANT]: state.soulShardGrant,
     [STATE.CARAPACE_EXPIRIES]: state.carapaceExpiries,
     [STATE.ACTIVE_MINIONS]: state.activeMinions,
-    [STATE.SELF_CONDITIONS]: state.selfConditions,
-    [STATE.LICH_ENDS_AT]: state.lichEndsAt
+    [STATE.SELF_CONDITIONS]: state.selfConditions
   };
 }

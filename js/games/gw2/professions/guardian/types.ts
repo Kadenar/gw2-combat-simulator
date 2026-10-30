@@ -20,7 +20,6 @@ export interface GuardianCanonicalBuild extends Gw2CanonicalBuild {
 
 export interface GuardianConfig extends Gw2Config {
   readonly initialTomePages?: number;
-  readonly specializations?: readonly (string | { readonly name?: string })[];
 }
 
 /** Public consumers receive only the ID/value pairs published by active owners. */

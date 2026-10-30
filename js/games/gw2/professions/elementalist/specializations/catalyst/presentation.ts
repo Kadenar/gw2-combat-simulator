@@ -77,7 +77,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
 }
 
 /** Publishes Catalyst effect presentation from its active balance profile. */
-function catalystEffectPresentations(_context: ElementalistUiContext): ProfessionEffectPresentation[] {
+function catalystEffectPresentations(): ProfessionEffectPresentation[] {
   return [
     {
       id: 'elementalist-elemental-empowerment',

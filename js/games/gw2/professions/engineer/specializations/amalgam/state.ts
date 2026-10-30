@@ -39,7 +39,6 @@ export function projectAmalgamPlanningState(input: Gw2PlanningStateInput) {
   return structuredClone({
     [STATE.SELECTED_MORPH_SKILL_IDS]: state.selectedMorphSkillIds,
     [STATE.EVOLVED_UNTIL]: state.evolvedUntil,
-    [STATE.WILLING_HOST_UNTIL]: state.willingHostUntil,
     [STATE.PLASMATIC_STATE_UNTIL]: state.plasmaticStateUntil,
     [STATE.RAPACIOUS_UNTIL]: state.rapaciousUntil,
     [STATE.PREDATOR_UNTIL]: state.predatorUntil,

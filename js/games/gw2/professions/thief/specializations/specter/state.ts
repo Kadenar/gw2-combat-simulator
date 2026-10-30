@@ -42,7 +42,6 @@ export function projectSpecterPlanningState(input: Gw2PlanningStateInput) {
   const state = specterState.from(input);
   return structuredClone({
     [STATE.SHADOW_CLOCK]: state.shadowClock,
-    [STATE.SHADOW_SHROUD_EXIT_READY_AT]: state.shadowShroudExitReadyAt,
     [STATE.SHADOW_SHROUD_ACTIVE]: state.shadowShroudActive
   });
 }

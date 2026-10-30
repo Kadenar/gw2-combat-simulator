@@ -57,8 +57,6 @@ export function projectLuminaryPlanningState(input: Gw2PlanningStateInput) {
     [STATE.RADIANT_FORGE_ENDS_AT]: state.radiantForgeEndsAt,
     [STATE.RADIANT_WEAPON]: state.radiantWeapon,
     [STATE.RADIANT_WEAPONS_USED]: state.radiantWeaponsUsed,
-    [STATE.EMPOWERED_ARMAMENTS_UNTIL]: state.empoweredArmamentsUntil,
-    [STATE.PIERCING_STANCE_UNTIL]: state.piercingStanceUntil,
     [STATE.LIGHT_AURA_UNTIL]: state.lightAuraUntil,
     [STATE.RADIANT_JUSTICE_ARMED]: state.radiantJusticeArmed,
     [STATE.RADIANT_RESOLVE_ARMED]: state.radiantResolveArmed,

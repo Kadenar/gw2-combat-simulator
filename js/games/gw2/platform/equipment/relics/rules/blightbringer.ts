@@ -18,7 +18,7 @@ export const blightbringer = defineRelic({
     count: 0,
     trackedActivations: new Set<string>()
   }),
-  condition(ctx, state, application, _helpers) {
+  condition(ctx, state, application) {
     if (application.condition !== CONDITION.POISONED || !isGw2PlayerActorEvent(application)) {
       return;
     }

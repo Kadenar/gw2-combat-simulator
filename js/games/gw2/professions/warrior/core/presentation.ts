@@ -216,7 +216,7 @@ function warriorCoreStateSnapshot(
 }
 
 /** Stack displays read the same profile cap as the damage formula. */
-function warriorCoreEffectPresentations(_context: WarriorUiContext): ProfessionEffectPresentation[] {
+function warriorCoreEffectPresentations(): ProfessionEffectPresentation[] {
   return [
     {
       id: 'warrior-berserkers-power',

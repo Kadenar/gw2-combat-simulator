@@ -41,7 +41,6 @@ export function projectCatalystPlanningState(input: Gw2PlanningStateInput) {
     [STATE.CATALYST_ENERGY]: state.catalystEnergy,
     [STATE.ELEMENTAL_EMPOWERMENT_EXPIRIES]: state.elementalEmpowermentExpiries,
     [STATE.EMPOWERING_AURAS]: state.empoweringAuras,
-    [STATE.SPHERE_ACTIVE_UNTIL]: state.sphereActiveUntil,
     [STATE.SPHERE_EXPIRY]: state.sphereExpiry
   });
 }

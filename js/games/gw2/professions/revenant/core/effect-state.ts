@@ -6,7 +6,7 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */
-export function revenantBuffPolicies(_context: unknown): BuffStatePolicy[] {
+export function revenantBuffPolicies(): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'rite-of-the-great-dwarf', maximumStacks: 1 },
     { kind: 'blocking', maximumStacks: 1 },

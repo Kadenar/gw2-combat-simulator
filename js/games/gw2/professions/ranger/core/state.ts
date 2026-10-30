@@ -74,6 +74,7 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
   };
 }
 
+/** Detach consumed public observations while leaving private proc grants with the runtime owner. */
 export function projectRangerCoreState(input: Gw2PlanningStateInput) {
   const { pet } = readProfessionCoreState<RangerCoreState>(input.profession);
   const state = cloneStateFields((input.profession as { core: RangerCoreState }).core, [
@@ -84,7 +85,6 @@ export function projectRangerCoreState(input: Gw2PlanningStateInput) {
     'petNames',
     'winterBiteReady',
     'quickDraw',
-    'sharpeningStoneGrants',
     'stealthStartedAt',
     'stealthUntil',
     'revealedUntil'
@@ -97,7 +97,6 @@ export function projectRangerCoreState(input: Gw2PlanningStateInput) {
     [STATE.PET_NAMES]: state.petNames,
     [STATE.WINTER_BITE_READY]: state.winterBiteReady,
     [STATE.QUICK_DRAW]: state.quickDraw,
-    [STATE.SHARPENING_STONE_GRANTS]: state.sharpeningStoneGrants,
     [STATE.STEALTH_STARTED_AT]: state.stealthStartedAt,
     [STATE.STEALTH_UNTIL]: state.stealthUntil,
     [STATE.REVEALED_UNTIL]: state.revealedUntil,

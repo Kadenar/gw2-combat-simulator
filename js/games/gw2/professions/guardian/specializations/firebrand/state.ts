@@ -59,8 +59,6 @@ export function projectFirebrandPlanningState(input: Gw2PlanningStateInput) {
     [STATE.TOME_PAGES]: state.tomePages,
     [STATE.ASHES]: state.ashes,
     [STATE.VIRTUE_READY_AT]: core.virtueReadyAt,
-    [STATE.SWIFT_SCHOLAR_TOME]: state.swiftScholarTome,
-    [STATE.SWIFT_SCHOLAR_COUNT]: state.swiftScholarCount,
-    [STATE.MANTRA_RECHARGE_READY_AT]: state.mantraRechargeReadyAt
+    [STATE.SWIFT_SCHOLAR_COUNT]: state.swiftScholarCount
   });
 }

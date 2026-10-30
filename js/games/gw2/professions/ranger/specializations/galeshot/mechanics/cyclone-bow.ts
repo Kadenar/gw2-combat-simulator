@@ -247,7 +247,7 @@ export const cycloneBowCompleted = defineTriggerPoint<{ readonly skill: RangerSk
 /** Keep bar transitions, arrow spending, delayed Wind Force, and ordered trait observations with Cyclone Bow. */
 export const cycloneBowLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
-  prepareDamageState(runtime, skill, _inputs) {
+  prepareDamageState(runtime, skill) {
     galeshotState.from(runtime).cycloneBowActive = Boolean(skill?.cycloneBowSkill);
   },
   resources: { arrows: galeshotArrows, windForce: galeshotWindForce },

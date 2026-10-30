@@ -3,15 +3,13 @@ import { THIEF_CORE_PROFILE_FIELDS, THIEF_CORE_SKILL_FIELDS } from '#gw2/profess
 import { thiefCoreReworkHooks } from '#gw2/professions/thief/core/rework/hooks.js';
 import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
 import { thiefCoreReworkUi } from '#gw2/professions/thief/core/rework/presentation.js';
-import {
-  createThiefCoreReworkState,
-  projectThiefCoreReworkPlanningState
-} from '#gw2/professions/thief/core/rework/state.js';
+import { createThiefCoreReworkState } from '#gw2/professions/thief/core/rework/state.js';
 import { acrobaticsReworkTraits } from '#gw2/professions/thief/core/rework/traits/acrobatics.js';
 import { twinFangsRework } from '#gw2/professions/thief/core/rework/traits/critical-strikes.js';
 import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
+import { projectThiefCorePlanningState } from '#gw2/professions/thief/core/state.js';
 import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
@@ -112,7 +110,8 @@ export const thiefCoreReworkModule = defineNativeModule({
   ],
   state: {
     create: createThiefCoreReworkState,
-    project: projectThiefCoreReworkPlanningState
+    // Rework-only combat bookkeeping stays private; both Core variants expose the same observations.
+    project: projectThiefCorePlanningState
   },
   modifiers: distractingThrowModifiers,
   hooks: thiefCoreReworkHooks,

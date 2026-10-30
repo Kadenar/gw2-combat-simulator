@@ -5,7 +5,7 @@ import { deathCarapaceEffectState } from '#gw2/professions/necromancer/core/trai
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Core owns shared weapon and trait effects; selected elites register their own policies. */
-export function necromancerBuffPolicies(_context: unknown): BuffStatePolicy[] {
+export function necromancerBuffPolicies(): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'necromancer-dread', maximumStacks: 1 },
     { kind: 'necromancer-soul-barbs', maximumStacks: 1 },

@@ -44,12 +44,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { patchableNumericFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types.js';
-
-function assertObject(value: object | null | undefined, label: string): void {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new TypeError(`${label} must be an object.`);
-  }
-}
+import { assertObject } from '#kernel/core/objects.js';
 
 function modifierAuthoringValue(value: Gw2ModifierRule['amount'] | Gw2ModifierRule['factor']): {
   readonly kind: 'static' | 'resolver' | 'absent';

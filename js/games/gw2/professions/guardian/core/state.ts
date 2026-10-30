@@ -69,8 +69,6 @@ export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
     'justiceActiveArmed',
     'autoattackChains',
     'availableFlips',
-    'symbolIgnitionStartsAt',
-    'symbolIgnitionUntil',
 
     'symbolicAvengerExpirations',
 
@@ -91,8 +89,6 @@ export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
     [STATE.AVAILABLE_FLIPS]: state.availableFlips,
     [STATE.JUSTICE_ACTIVE_ARMED]: state.justiceActiveArmed,
     [STATE.SYMBOLIC_AVENGER_EXPIRATIONS]: state.symbolicAvengerExpirations,
-    [STATE.SYMBOL_IGNITION_STARTS_AT]: state.symbolIgnitionStartsAt,
-    [STATE.SYMBOL_IGNITION_UNTIL]: state.symbolIgnitionUntil,
     [STATE.RESOLUTION_UNTIL]: state.resolutionUntil,
     [STATE.SPEAR_ILLUMINATED]: state.spearIlluminated,
     [STATE.SPEAR_LUMINANCE_UNTIL]: state.spearLuminanceUntil

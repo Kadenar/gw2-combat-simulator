@@ -1,15 +1,11 @@
-import { WingmanError } from '#gw2/integrations/logs/wingman/errors.js';
-
-function record(value: unknown): value is Record<string, unknown> {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
-
 // gw2wingman's getJson serves Elite Insights' HTML-embed log format, not the raw getJson
 // schema dps.report exposes. Per-player rotation is bucketed one array per phase, each cast a
 // tuple [atSeconds, skillId, durationMs, statusId, quickness] (EI GW2EIBuilders SkillCastDto),
 // and skillMap entries use EI's short html field names (aa/isSwap/notAccurate/traitProc/...).
 // This module reshapes that into the same {players[].rotation, phases, skillMap} document
 // dps-report/parser.ts validates, so every downstream reconstruction rule is shared verbatim.
+import { WingmanError } from '#gw2/integrations/logs/wingman/errors.js';
+import { isRecord } from '#kernel/core/objects.js';
 
 type WingmanCastTuple = readonly [number, number, number, number, number];
 
@@ -70,7 +66,7 @@ function fullFightPhaseIndex(phases: readonly unknown[]): number {
   let bestIndex = 0;
   let bestSpan = -Infinity;
   phases.forEach((phase, index) => {
-    if (!record(phase) || typeof phase.start !== 'number' || typeof phase.end !== 'number') return;
+    if (!isRecord(phase) || typeof phase.start !== 'number' || typeof phase.end !== 'number') return;
 
     const span = phase.end - phase.start;
 
@@ -86,7 +82,7 @@ function fullFightPhaseIndex(phases: readonly unknown[]): number {
 function normalizeSkillMap(rawMap: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const [key, metadata] of Object.entries(rawMap)) {
-    if (!record(metadata)) continue;
+    if (!isRecord(metadata)) continue;
 
     result[key] = {
       name: metadata.name,
@@ -103,11 +99,11 @@ function normalizeSkillMap(rawMap: Record<string, unknown>): Record<string, unkn
 }
 
 function normalizePlayer(value: unknown, phaseIndex: number): Record<string, unknown> {
-  if (!record(value) || typeof value.name !== 'string' || typeof value.profession !== 'string') {
+  if (!isRecord(value) || typeof value.name !== 'string' || typeof value.profession !== 'string') {
     throw new WingmanError('INVALID_PLAYER', 'The gw2wingman report contains an invalid player entry.');
   }
 
-  const details = record(value.details) ? value.details : {};
+  const details = isRecord(value.details) ? value.details : {};
   const rotationByPhase = Array.isArray(details.rotation) ? details.rotation : [];
   const fullFightRotation = Array.isArray(rotationByPhase[phaseIndex]) ? rotationByPhase[phaseIndex] : [];
 
@@ -122,17 +118,17 @@ function normalizePlayer(value: unknown, phaseIndex: number): Record<string, unk
 
 /** Converts the Wingman fields consumed by reconstruction into the shape dps-report/parser.ts validates. */
 export function normalizeWingmanReport(value: unknown): unknown {
-  if (!record(value) || typeof value.error === 'string') {
-    throw new WingmanError('REPORT_ERROR', `gw2wingman error: ${record(value) ? value.error : 'invalid payload'}`);
+  if (!isRecord(value) || typeof value.error === 'string') {
+    throw new WingmanError('REPORT_ERROR', `gw2wingman error: ${isRecord(value) ? value.error : 'invalid payload'}`);
   }
 
-  if (!Array.isArray(value.players) || !Array.isArray(value.phases) || !record(value.skillMap)) {
+  if (!Array.isArray(value.players) || !Array.isArray(value.phases) || !isRecord(value.skillMap)) {
     throw new WingmanError('INVALID_REPORT', 'The gw2wingman report has no players, phases or skill metadata.');
   }
 
   const phaseIndex = fullFightPhaseIndex(value.phases);
   const phases = value.phases.map((phase) => {
-    if (!record(phase) || typeof phase.start !== 'number' || typeof phase.end !== 'number') {
+    if (!isRecord(phase) || typeof phase.start !== 'number' || typeof phase.end !== 'number') {
       throw new WingmanError('INVALID_PHASE', 'The gw2wingman report contains an invalid phase entry.');
     }
 

@@ -5,7 +5,6 @@ export const ENGINEER_STATE_IDS = Object.freeze({
   KINETIC_CHARGES: 'gw2.engineer.kinetic-charges',
   SELECTED_MORPH_SKILL_IDS: 'gw2.amalgam.selected-morph-skill-ids',
   EVOLVED_UNTIL: 'gw2.amalgam.evolved-until',
-  WILLING_HOST_UNTIL: 'gw2.amalgam.willing-host-until',
   PLASMATIC_STATE_UNTIL: 'gw2.amalgam.plasmatic-state-until',
   RAPACIOUS_UNTIL: 'gw2.amalgam.rapacious-until',
   PREDATOR_UNTIL: 'gw2.amalgam.predator-until',

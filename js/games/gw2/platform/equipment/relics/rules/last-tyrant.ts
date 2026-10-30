@@ -18,7 +18,7 @@ const LAST_TYRANT_EXPLOSION_COEFFICIENT = 3;
 export const lastTyrant = defineRelic({
   damagePayload: emitDamagePayload,
   createState: () => ({ readyAt: 0, stackReadyAt: 0, stacks: 0 }),
-  condition(ctx, state, application, _helpers) {
+  condition(ctx, state, application) {
     // The explosion's own burning cannot feed Tyrant's Fury.
     if (
       application.condition !== CONDITION.BURNING ||

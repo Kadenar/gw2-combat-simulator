@@ -30,7 +30,6 @@ export interface NecromancerCanonicalBuild extends Gw2CanonicalBuild {
 export interface NecromancerConfig extends Gw2Config {
   readonly initialBlight?: number;
   readonly initialCascadingCorruptionStacks?: number;
-  readonly duration?: number;
   readonly professionAssumptions?: Readonly<Record<string, unknown>>;
 }
 

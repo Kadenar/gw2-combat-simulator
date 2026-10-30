@@ -9,7 +9,7 @@ import type {
   ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import {
   engineerToolbeltSkillIds,
   engineerUiState,
@@ -93,7 +93,7 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
     prepareSkillDamagePreview: ({ values }: SkillDamagePreviewPreparation) =>
       values.heat == null ? {} : { initialHeat: Number(values.heat) },
     /** Declare damage inputs without constructing prerequisite actions. */
-    skillDamageState(context: SkillDamagePreviewPreparation, _skill: PreviewSkill): SkillDamageState | null {
+    skillDamageState(context: SkillDamagePreviewPreparation): SkillDamageState | null {
       // Direct evaluation supplies damage state without prerequisite actions.
       return {
         assumptions: [`Solar Focusing Lens: ${Number(context.values.lensCharges ?? 0)} starting charges`]

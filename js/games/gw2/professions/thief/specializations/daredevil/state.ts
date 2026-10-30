@@ -44,7 +44,6 @@ function selectedDodge(config: ThiefConfig, traits: ReadonlySet<string | number>
 export function projectDaredevilPlanningState(input: Gw2PlanningStateInput) {
   const state = daredevilState.from(input);
   return structuredClone({
-    [STATE.SELECTED_DODGE]: state.selectedDodge,
     [STATE.WEAKENING_STRIKE_READY]: state.weakeningStrikeReady,
     [STATE.WEAKENING_STRIKE_EXPIRES_AT]: state.weakeningStrikeExpiresAt
   });

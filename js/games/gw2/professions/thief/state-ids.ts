@@ -24,16 +24,12 @@ export const THIEF_STATE_IDS = Object.freeze({
   CHAK_INITIATIVE_REFUNDS: 'gw2.antiquary.chak-initiative-refunds',
   HOLO_UTILITY_COOLDOWN_REDUCTION_EXPIRATIONS: 'gw2.antiquary.holo-utility-cooldown-reduction-expirations',
   FORGED_SURFER_BOMB_DROP_UNTIL: 'gw2.antiquary.forged-surfer-bomb-drop-until',
-  SELECTED_DODGE: 'gw2.daredevil.selected-dodge',
   WEAKENING_STRIKE_READY: 'gw2.daredevil.weakening-strike-ready',
   WEAKENING_STRIKE_EXPIRES_AT: 'gw2.daredevil.weakening-strike-expires-at',
   MARKED_TARGET_ID: 'gw2.deadeye.marked-target-id',
-  MARK_EXPIRES_AT: 'gw2.deadeye.mark-expires-at',
   MARK_GENERATION: 'gw2.deadeye.mark-generation',
   MALICE: 'gw2.deadeye.malice',
   MALEFICENT_SEVEN_TRIGGERED: 'gw2.deadeye.maleficent-seven-triggered',
   SHADOW_CLOCK: 'gw2.specter.shadow-clock',
-  SHADOW_SHROUD_EXIT_READY_AT: 'gw2.specter.shadow-shroud-exit-ready-at',
-  SHADOW_SHROUD_ACTIVE: 'gw2.specter.shadow-shroud-active',
-  DEFT_INITIATION_ARMED: 'gw2.thief.deft-initiation-armed'
+  SHADOW_SHROUD_ACTIVE: 'gw2.specter.shadow-shroud-active'
 } as const);

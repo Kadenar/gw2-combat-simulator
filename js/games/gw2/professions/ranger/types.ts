@@ -29,14 +29,12 @@ export interface RangerCanonicalBuild extends Gw2CanonicalBuild {
 }
 
 export interface RangerConfig extends Gw2Config {
-  readonly specializations?: readonly (string | { readonly name?: string })[];
   readonly initialAstralForce?: number;
   readonly initialArrows?: number;
   readonly selectedPet?: string;
   readonly selectedPet2?: string;
   readonly selectedHammerSkillIds?: readonly number[];
   readonly initialUntamedState?: RangerInitialUntamedState;
-  readonly assumptions?: ProfessionBuildAssumptions;
   readonly professionAssumptions?: ProfessionBuildAssumptions;
 }
 

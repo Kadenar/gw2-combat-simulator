@@ -104,7 +104,6 @@ export function projectRevenantPlanningState(input: Gw2PlanningStateInput) {
     'endurance',
 
     'enchantedDaggers',
-    'battleScars',
     'crushingAbyss',
     'combatBeganAt',
     'selfConditions'
@@ -118,7 +117,6 @@ export function projectRevenantPlanningState(input: Gw2PlanningStateInput) {
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
     [STATE.ENCHANTED_DAGGERS]: state.enchantedDaggers,
-    [STATE.BATTLE_SCARS]: state.battleScars,
     [STATE.CRUSHING_ABYSS]: state.crushingAbyss,
     [STATE.COMBAT_BEGAN_AT]: state.combatBeganAt,
     [STATE.SELF_CONDITIONS]: state.selfConditions,

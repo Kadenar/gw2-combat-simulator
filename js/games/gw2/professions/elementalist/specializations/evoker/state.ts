@@ -94,7 +94,6 @@ export function projectEvokerPlanningState(input: Gw2PlanningStateInput) {
     [STATE.ELEMENT]: state.element,
     [STATE.FAMILIAR_CHARGES]: state.familiarCharges,
     [STATE.EMPOWERED_CHARGES]: state.empoweredCharges,
-    [STATE.ELEMENTAL_BALANCE_PROGRESS]: state.elementalBalanceProgress,
     [STATE.ELEMENTAL_BALANCE_UNTIL]: state.elementalBalanceUntil
   });
 }

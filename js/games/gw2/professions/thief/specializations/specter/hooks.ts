@@ -18,7 +18,7 @@ import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types
 export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   buffPolicies: specterBuffPolicies,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
-  prepareDamageState(runtime, skill, _inputs) {
+  prepareDamageState(runtime, skill) {
     specterState.from(runtime).shadowShroudActive = Boolean(skill?.shadowShroudSkill);
   },
 

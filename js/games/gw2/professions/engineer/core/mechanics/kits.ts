@@ -47,7 +47,7 @@ export function engineerKitAvailability(
 /** Isolated damage queries select the kit bar needed by the requested occurrence. */
 const prepareEngineerKitDamageState: NonNullable<
   RuntimeHooks<EngineerRuntimeState, EngineerSkill>['prepareDamageState']
-> = (runtime, skill, _inputs) => {
+> = (runtime, skill) => {
   if (skill?.kitId != null) runtime.profession.core.activeKit = skill.kitId;
 };
 
