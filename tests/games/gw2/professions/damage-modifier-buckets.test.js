@@ -92,7 +92,7 @@ const EXPECTED = {
       'Object in Motion': { strike: 'multiplier' },
       'Shaped Charge': { strike: 'multiplier' },
       'Solar Focusing Lens': { strike: 'additive' },
-      'Symbiotic Synergy': { strike: 'additive' },
+      'Symbiotic Synergy': { strike: 'multiplier' },
       'Takedown Round': { strike: 'additive' },
       'Thermal Vision': { condition: 'additive' },
       'Willing Host': { strike: 'additive', condition: 'additive' }

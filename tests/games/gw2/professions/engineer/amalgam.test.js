@@ -467,6 +467,32 @@ test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
   assert.equal(morphSteps[1].start, evolveStep.end);
 });
 
+test('Symbiotic Synergy multiplies Morph damage independently of Willing Host', () => {
+  // The full 33% Morph bonus must survive another active damage bonus without boosting ordinary weapon hits.
+  const config = {
+    selectedMorphSkillIds: [76815, 76866, 76954],
+    selectedTraitIds: [TRAIT.WILLING_HOST],
+    target: { conditions: {} }
+  };
+  const rotation = [76815, 'Puncturing Jab'];
+  const baseline = simulate('Amalgam', rotation, config);
+  const traited = simulate('Amalgam', rotation, {
+    ...config,
+    selectedTraitIds: [...config.selectedTraitIds, TRAIT.SYMBIOTIC_SYNERGY]
+  });
+  const damage = (result, name) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name).damage;
+
+  assert.deepEqual(baseline.warnings, []);
+  assert.deepEqual(traited.warnings, []);
+  assertFlooredDamageMultiplier(
+    damage(traited, 'Offensive Protocol: Pierce'),
+    damage(baseline, 'Offensive Protocol: Pierce'),
+    1.33
+  );
+  assert.equal(damage(traited, 'Puncturing Jab'), damage(baseline, 'Puncturing Jab'));
+});
+
 test('Symbiotic Synergy boosts Thorns retaliation for every protocol slot', () => {
   // Retaliation retains its Morph identity after activation, so the trait boosts both immediate and delayed hits.
   for (const [slot, skillId] of [

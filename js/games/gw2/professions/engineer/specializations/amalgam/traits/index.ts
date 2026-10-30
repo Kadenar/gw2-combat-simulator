@@ -145,8 +145,8 @@ const symbioticSynergy = defineTrait({
     {
       id: 'engineer.symbiotic-synergy',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.SYMBIOTIC_SYNERGY, 'damageIncrease'),
+      operation: 'multiply',
+      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.SYMBIOTIC_SYNERGY, 'damageIncrease'),
       when: (context) => morphStrike(context)
     }
   ],

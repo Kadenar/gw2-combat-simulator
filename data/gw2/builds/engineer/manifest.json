@@ -38,25 +38,25 @@
         "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-symbiotic.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-hammer",
-        "benchmarkDps": 41451,
+        "benchmarkDps": 41795,
         "upToDate": true,
         "benchmarkApm": 102.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 50422, "phase": 50422 },
-          "80-60": { "cumulative": 41951, "phase": 35768 },
-          "60-40": { "cumulative": 42389, "phase": 43291 },
-          "40-20": { "cumulative": 40696, "phase": 36331 },
-          "20-0": { "cumulative": 41451, "phase": 41451 }
+          "100-80": { "cumulative": 52057, "phase": 52057 },
+          "80-60": { "cumulative": 42805, "phase": 36282 },
+          "60-40": { "cumulative": 42838, "phase": 42904 },
+          "40-20": { "cumulative": 41091, "phase": 36576 },
+          "20-0": { "cumulative": 41795, "phase": 41795 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41451,
+          "benchmarkDps": 41795,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 50422, "phase": 50422 },
-            "80-60": { "cumulative": 41951, "phase": 35768 },
-            "60-40": { "cumulative": 42389, "phase": 43291 },
-            "40-20": { "cumulative": 40696, "phase": 36331 },
-            "20-0": { "cumulative": 41451, "phase": 41451 }
+            "100-80": { "cumulative": 52057, "phase": 52057 },
+            "80-60": { "cumulative": 42805, "phase": 36282 },
+            "60-40": { "cumulative": 42838, "phase": 42904 },
+            "40-20": { "cumulative": 41091, "phase": 36576 },
+            "20-0": { "cumulative": 41795, "phase": 41795 }
           }
         }
       },
