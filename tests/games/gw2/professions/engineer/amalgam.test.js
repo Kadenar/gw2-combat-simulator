@@ -610,6 +610,57 @@ test('Evolve scales only its eligible static attribute pool', () => {
   );
 });
 
+test('Evolve includes eligible flat traits without scaling Might or conversion-ineligible traits', () => {
+  // Exercise the composed attribute rules so Chemical Rounds and Thermal Vision enter Evolve's pool,
+  // while Hybrid Vigor, No Scope, and Might retain their own conversion exclusions.
+  for (const [extraTraits, factor] of [
+    [[], 0.1],
+    [[TRAIT.DOUBLE_HELIX], 0.2]
+  ]) {
+    const config = {
+      selectedMorphSkillIds: [],
+      selectedTraitIds: [
+        TRAIT.CHEMICAL_ROUNDS,
+        TRAIT.THERMAL_VISION,
+        TRAIT.HYBRID_VIGOR,
+        TRAIT.NO_SCOPE,
+        ...extraTraits
+      ],
+      boons: { might: 25, fury: true }
+    };
+    const stats = (rotation) => {
+      const runtime = observedRuntime(simulate('Amalgam', rotation, config));
+      return runtime.query.statsAt(runtime.time, null, runtime);
+    };
+
+    const base = stats([{ type: 'wait', durationMs: 1000 }]);
+    const evolved = stats(['Evolve', { type: 'wait', durationMs: 1000 }]);
+
+    assert.equal(evolved.conditionDamage - base.conditionDamage, 1120 * factor);
+    assert.equal(evolved.expertise - base.expertise, 150 * factor);
+    assert.equal(evolved.power - base.power, 2000 * factor);
+    assert.equal(evolved.vitality - base.vitality, 1000 * factor);
+    assert.equal(evolved.ferocity - base.ferocity, 500 * factor);
+  }
+});
+
+test('Evolve rounds fractional attribute bonuses before derived calculations', () => {
+  // Fractional inputs expose rounding that integer-only conversion fixtures cannot exercise.
+  const result = simulate('Amalgam', ['Evolve', { type: 'wait', durationMs: 1000 }], {
+    selectedMorphSkillIds: [],
+    selectedTraitIds: [],
+    attributeInputs: baseAttributeInputs({ precision: 1675, expertise: 787, ferocity: 449, vitality: 1684 })
+  });
+  const runtime = observedRuntime(result);
+  const stats = runtime.query.statsAt(runtime.time, null, runtime);
+
+  assert.equal(stats.precision, 1843);
+  assert.equal(stats.expertise, 866);
+  assert.equal(stats.ferocity, 494);
+  // Reinforced Armor shares Vitality's conversion group, so the combined 15% rounds once.
+  assert.equal(stats.vitality, 1937);
+});
+
 test('Amalgam app config excludes temporary attributes from Evolve', () => {
   const canonical = createEngineerBuildDefaults();
 

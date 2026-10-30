@@ -38,25 +38,25 @@
         "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-symbiotic.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-hammer",
-        "benchmarkDps": 41787,
+        "benchmarkDps": 41789,
         "upToDate": true,
         "benchmarkApm": 102.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 52239, "phase": 52239 },
-          "80-60": { "cumulative": 42759, "phase": 36074 },
-          "60-40": { "cumulative": 42842, "phase": 43009 },
-          "40-20": { "cumulative": 41069, "phase": 36486 },
-          "20-0": { "cumulative": 41787, "phase": 41787 }
+          "100-80": { "cumulative": 52242, "phase": 52242 },
+          "80-60": { "cumulative": 42761, "phase": 36076 },
+          "60-40": { "cumulative": 42844, "phase": 43010 },
+          "40-20": { "cumulative": 41071, "phase": 36487 },
+          "20-0": { "cumulative": 41789, "phase": 41789 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41787,
+          "benchmarkDps": 41789,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 52239, "phase": 52239 },
-            "80-60": { "cumulative": 42759, "phase": 36074 },
-            "60-40": { "cumulative": 42842, "phase": 43009 },
-            "40-20": { "cumulative": 41069, "phase": 36486 },
-            "20-0": { "cumulative": 41787, "phase": 41787 }
+            "100-80": { "cumulative": 52242, "phase": 52242 },
+            "80-60": { "cumulative": 42761, "phase": 36076 },
+            "60-40": { "cumulative": 42844, "phase": 43010 },
+            "40-20": { "cumulative": 41071, "phase": 36487 },
+            "20-0": { "cumulative": 41789, "phase": 41789 }
           }
         }
       },
@@ -77,13 +77,13 @@
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41908,
+          "benchmarkDps": 41907,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 45524, "phase": 45524 },
-            "80-60": { "cumulative": 42820, "phase": 40370 },
-            "60-40": { "cumulative": 42809, "phase": 42786 },
-            "40-20": { "cumulative": 41809, "phase": 39088 },
-            "20-0": { "cumulative": 41908, "phase": 41908 }
+            "100-80": { "cumulative": 45522, "phase": 45522 },
+            "80-60": { "cumulative": 42819, "phase": 40369 },
+            "60-40": { "cumulative": 42807, "phase": 42784 },
+            "40-20": { "cumulative": 41808, "phase": 39087 },
+            "20-0": { "cumulative": 41907, "phase": 41907 }
           }
         }
       },
@@ -103,13 +103,13 @@
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42185,
+          "benchmarkDps": 42184,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 45903, "phase": 45903 },
-            "80-60": { "cumulative": 43457, "phase": 41146 },
-            "60-40": { "cumulative": 43137, "phase": 42504 },
-            "40-20": { "cumulative": 42180, "phase": 39561 },
-            "20-0": { "cumulative": 42185, "phase": 42185 }
+            "100-80": { "cumulative": 45902, "phase": 45902 },
+            "80-60": { "cumulative": 43456, "phase": 41145 },
+            "60-40": { "cumulative": 43135, "phase": 42503 },
+            "40-20": { "cumulative": 42179, "phase": 39560 },
+            "20-0": { "cumulative": 42184, "phase": 42184 }
           }
         }
       },
@@ -118,25 +118,25 @@
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-amalgam-two-kits-spear",
-        "benchmarkDps": 35748,
+        "benchmarkDps": 35779,
         "upToDate": true,
         "benchmarkApm": 114.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35685, "phase": 35685 },
-          "80-60": { "cumulative": 35446, "phase": 35212 },
-          "60-40": { "cumulative": 36082, "phase": 37439 },
-          "40-20": { "cumulative": 36189, "phase": 36509 },
-          "20-0": { "cumulative": 35748, "phase": 35748 }
+          "100-80": { "cumulative": 35715, "phase": 35715 },
+          "80-60": { "cumulative": 35612, "phase": 35510 },
+          "60-40": { "cumulative": 36108, "phase": 37140 },
+          "40-20": { "cumulative": 36217, "phase": 36547 },
+          "20-0": { "cumulative": 35779, "phase": 35779 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 35708,
+          "benchmarkDps": 35738,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 35018, "phase": 35018 },
-            "80-60": { "cumulative": 35394, "phase": 35780 },
-            "60-40": { "cumulative": 35869, "phase": 36858 },
-            "40-20": { "cumulative": 36148, "phase": 37011 },
-            "20-0": { "cumulative": 35708, "phase": 35708 }
+            "100-80": { "cumulative": 35386, "phase": 35386 },
+            "80-60": { "cumulative": 35428, "phase": 35470 },
+            "60-40": { "cumulative": 35894, "phase": 36864 },
+            "40-20": { "cumulative": 36176, "phase": 37050 },
+            "20-0": { "cumulative": 35738, "phase": 35738 }
           }
         }
       },
@@ -144,25 +144,25 @@
         "label": "Condition Alacrity (Pistol / Pistol - Tools)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
-        "benchmarkDps": 37542,
+        "benchmarkDps": 37808,
         "upToDate": true,
         "benchmarkApm": 110.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35982, "phase": 35982 },
-          "80-60": { "cumulative": 38275, "phase": 40855 },
-          "60-40": { "cumulative": 37730, "phase": 36648 },
-          "40-20": { "cumulative": 38037, "phase": 38966 },
-          "20-0": { "cumulative": 37542, "phase": 37542 }
+          "100-80": { "cumulative": 36020, "phase": 36020 },
+          "80-60": { "cumulative": 38316, "phase": 40901 },
+          "60-40": { "cumulative": 37772, "phase": 36693 },
+          "40-20": { "cumulative": 38082, "phase": 39019 },
+          "20-0": { "cumulative": 37808, "phase": 36713 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 37482,
+          "benchmarkDps": 37524,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 35916, "phase": 35916 },
-            "80-60": { "cumulative": 38211, "phase": 40794 },
-            "60-40": { "cumulative": 37457, "phase": 35991 },
-            "40-20": { "cumulative": 37977, "phase": 39597 },
-            "20-0": { "cumulative": 37482, "phase": 37482 }
+            "100-80": { "cumulative": 35954, "phase": 35954 },
+            "80-60": { "cumulative": 38252, "phase": 40840 },
+            "60-40": { "cumulative": 37710, "phase": 36633 },
+            "40-20": { "cumulative": 38022, "phase": 38967 },
+            "20-0": { "cumulative": 37524, "phase": 37524 }
           }
         }
       },
@@ -171,25 +171,25 @@
         "build": "data/gw2/builds/engineer/b-condi-amalgam-3kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-amalgam-3kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-amalgam-three-kits-spear",
-        "benchmarkDps": 43611,
+        "benchmarkDps": 43705,
         "upToDate": true,
         "benchmarkApm": 132.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 51638, "phase": 51638 },
-          "80-60": { "cumulative": 43362, "phase": 37056 },
-          "60-40": { "cumulative": 45279, "phase": 49712 },
-          "40-20": { "cumulative": 42576, "phase": 35991 },
-          "20-0": { "cumulative": 43611, "phase": 43611 }
+          "100-80": { "cumulative": 51866, "phase": 51866 },
+          "80-60": { "cumulative": 43466, "phase": 37066 },
+          "60-40": { "cumulative": 45396, "phase": 49860 },
+          "40-20": { "cumulative": 42767, "phase": 36232 },
+          "20-0": { "cumulative": 43705, "phase": 43705 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42975,
+          "benchmarkDps": 43045,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 50169, "phase": 50169 },
-            "80-60": { "cumulative": 42328, "phase": 36625 },
-            "60-40": { "cumulative": 44476, "phase": 49578 },
-            "40-20": { "cumulative": 42263, "phase": 36833 },
-            "20-0": { "cumulative": 42975, "phase": 42975 }
+            "100-80": { "cumulative": 50339, "phase": 50339 },
+            "80-60": { "cumulative": 42403, "phase": 36632 },
+            "60-40": { "cumulative": 44561, "phase": 49687 },
+            "40-20": { "cumulative": 42418, "phase": 36906 },
+            "20-0": { "cumulative": 43045, "phase": 43045 }
           }
         }
       }
