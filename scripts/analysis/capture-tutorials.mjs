@@ -1,3 +1,4 @@
+// Record the current Golem workflows with captions, then encode the reviewed frames as tutorial GIFs.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -42,7 +43,7 @@ async function begin(name, label, landing = false) {
 }
 
 async function frame(duration = 2200) {
-  // Put annotations in the active dialog's layer so native modal backdrops cannot cover the instructions.
+  // Keep annotations above native dialogs and menus so their top layers cannot cover the instructions.
   await page.evaluate(
     ({ title, caption, pointer }) => {
       document.getElementById('capture-annotation')?.remove();
@@ -63,7 +64,7 @@ async function frame(duration = 2200) {
       const cursor = document.createElement('div');
       cursor.style.cssText = `position:absolute;left:${pointer.x - 11}px;top:${pointer.y - 11}px;width:22px;height:22px;border:3px solid #ffdf7d;border-radius:50%;background:#ffdf7d33;box-shadow:0 0 0 2px #111`;
       overlay.append(banner, cursor);
-      (document.querySelector('dialog[open]') || document.body).append(overlay);
+      (document.querySelector('dialog[open], :popover-open') || document.body).append(overlay);
     },
     { title, caption, pointer }
   );
@@ -74,11 +75,10 @@ async function frame(duration = 2200) {
 
 async function show(text, locator, duration = 2600) {
   caption = text;
-  // The simulator header stays pinned to the top, so page content must land below it; header and dialog targets sit above it.
-  let headerBottom = 0;
 
+  // The simulator header stays pinned to the top, so page content must land below it; header and dialog targets sit above it.
   if (locator)
-    headerBottom = await locator.evaluate((el) => {
+    await locator.evaluate((el) => {
       const header = document.querySelector('#app > header');
       const covered =
         header && !header.contains(el) && !el.closest('dialog') ? header.getBoundingClientRect().height : 0;
@@ -88,12 +88,25 @@ async function show(text, locator, duration = 2600) {
       if (tall) el.style.scrollMarginTop = `${covered + 8}px`;
 
       el.scrollIntoView({ block: tall ? 'start' : 'center', behavior: 'instant' });
-      return covered;
     });
 
   await page.waitForTimeout(350);
 
   if (locator) {
+    // Scrolling compacts the header; measure its current edge and leave room above centered charts.
+    const headerBottom = await locator.evaluate((el) => {
+      const header = document.querySelector('#app > header');
+
+      if (!header || header.contains(el) || el.closest('dialog, :popover-open')) return 0;
+
+      const bottom = Math.max(0, header.getBoundingClientRect().bottom);
+      const top = el.getBoundingClientRect().top;
+
+      if (top < bottom + 8) window.scrollBy(0, top - bottom - 8);
+
+      return bottom;
+    });
+    await page.waitForTimeout(150);
     const box = await locator.boundingBox();
     assert.ok(
       box && box.y >= headerBottom - 1 && box.y + Math.min(box.height, 40) < 805,
@@ -154,18 +167,18 @@ try {
   );
   await ready();
   await loadTemplate(true);
-  await show('5. Review the loaded skills, traits and gear in Workspace.', page.locator('#traits-panel'));
+  await show('5. Review the loaded skills, traits and gear in Golem.', page.locator('#traits-panel'));
   await show('6. Scroll down to inspect the rotation and its live DPS.', page.locator('.rotation-section'));
-  await tab('Analysis');
+  await tab('Golem Analysis');
   await show(
-    '7. Open Analysis to see DPS, damage sources and conditions.',
+    '7. Open Golem Analysis to see DPS, damage sources and conditions.',
     page.locator('#analysis-dps-summary'),
     4000
   );
   await page.close();
 
   await begin('rotation-builder', 'Gear, traits & rotation builder');
-  await show('1. Start in Workspace to edit the build and its rotation.', page.locator('#traits-panel'));
+  await show('1. Start in Golem to edit the build and its rotation.', page.locator('#traits-panel'));
   const gear = page.locator('.gear-select-display').filter({ has: page.locator('.gear-prefix[data-slot="Helm"]') });
   await click(gear.locator('.gear-select-trigger'), '2. Click a gear slot to choose its stat prefix.');
   await click(
@@ -211,7 +224,16 @@ try {
   await (await download).saveAs(`${output}/example-rotation.json`);
   await click(page.locator('#btn-import-rotation'), '14. Load Rotation opens the file and combat-log import dialog.');
   await show(
-    '15. Load saved JSON, an EVTC log, or a dps.report link here.',
+    '15. Paste a dps.report or gw2wingman link to preview an import.',
+    page.locator('[data-rotation-import-report-input]'),
+    3500
+  );
+  await click(
+    page.getByRole('tab', { name: 'Upload file', exact: true }),
+    '16. Choose Upload file for saved JSON or an EVTC log.'
+  );
+  await show(
+    '17. Drop a file here, then review the import before applying it.',
     page.locator('[data-rotation-import-drop]'),
     3500
   );
@@ -219,7 +241,10 @@ try {
 
   await begin('analysis', 'Analysis tab');
   await loadTemplate();
-  await click(page.getByRole('link', { name: 'Analysis', exact: true }), '1. Load a rotation, then open Analysis.');
+  await click(
+    page.getByRole('link', { name: 'Golem Analysis', exact: true }),
+    '1. Load a rotation, then open Golem Analysis.'
+  );
   await show('2. Read duration, idle time, player damage and baseline DPS.', page.locator('#analysis-dps-summary'));
   await show(
     '3. Compare damage, DPS, average per cast, casts and hits.',
@@ -244,8 +269,8 @@ try {
     '7. Return to Full Fight for the complete timeline.'
   );
   await show(
-    '8. Toggle boons, conditions and buffs in Effects Over Time.',
-    page.locator('[data-role="chart-toggles"]')
+    '8. Toggle individual effects in Boons & Buffs Over Time.',
+    page.locator('[data-role="chart-toggles"]').first()
   );
   await click(
     page.locator('[data-effect-type="boon"] [data-toggle-action="none"]'),
@@ -260,9 +285,14 @@ try {
     page.locator('[data-role="effects-canvas"]'),
     3500
   );
+  await show(
+    '12. Inspect damaging conditions in their separate timeline.',
+    page.locator('[data-role="conditions-canvas"]'),
+    3500
+  );
   await expect(page.locator('.contrib-row').first()).toBeVisible({ timeout: 60_000 });
   await show(
-    '12. Modifier Contributions estimates DPS gained from each modifier.',
+    '13. Modifier Contributions estimates DPS gained from each modifier.',
     page.locator('.res-contributions h4'),
     4000
   );
@@ -284,13 +314,20 @@ try {
     page.getByRole('button', { name: 'Remove Precision from infusionStats', exact: true }),
     '4. Use one infusion stat for this example.'
   );
-  const relics = page.locator('#optimizer-add-relic');
-  await show('5. Add Thief as an alternative to the equipped Claw relic.', relics);
-  await relics.selectOption(await relics.locator('option[data-choice="Thief"]').getAttribute('value'));
-  await frame();
-  await show(
-    '6. Optional requirements constrain toughness and boon duration.',
-    page.locator('.optimizer-section').filter({ hasText: 'Requirements (optional)' })
+  // Use the visible searchable picker so the recording shows how users add equipment candidates.
+  const relics = page.locator('[data-picker="relic"]');
+  await click(
+    relics.getByRole('button', { name: 'Add relics', exact: true }),
+    '5. Open the relic picker to add another candidate.'
+  );
+  await relics.getByRole('searchbox').fill('Thief');
+  await click(
+    relics.getByRole('option').filter({ has: page.locator('.gear-option-name', { hasText: /^Thief$/ }) }),
+    '5. Add Thief as an alternative to the equipped Claw relic.'
+  );
+  await click(
+    page.locator('.optimizer-section summary').filter({ hasText: 'Requirements (optional)' }),
+    '6. Optional requirements constrain toughness and boon duration.'
   );
   await click(
     page.getByRole('button', { name: 'Run optimizer', exact: true }),
@@ -319,8 +356,16 @@ try {
   );
   await ready();
   await show('12. Scroll down to Relic break-even comparison.', page.locator('#optimizer-relic-comparison'));
-  const comparison = page.getByRole('combobox', { name: 'Comparison relic', exact: true });
-  await comparison.selectOption('Thorns');
+  const comparison = page.locator('#optimizer-relic-comparison');
+  await click(
+    comparison.getByRole('button', { name: 'Comparison relic', exact: true }),
+    '13. Open the comparison relic picker.'
+  );
+  await comparison.getByRole('searchbox').fill('Thorns');
+  await click(
+    comparison.getByRole('option').filter({ has: page.locator('.gear-option-name', { hasText: /^Thorns$/ }) }),
+    '13. Select Thorns to compare it with the equipped relic.'
+  );
   await show(
     '13. Choose a comparison relic; set starting stacks for Thorns.',
     page.locator('[data-role="relic-comparison-stacks"]')

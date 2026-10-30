@@ -94,7 +94,7 @@ function tutorialDialog(root: Document): HTMLDialogElement {
   dialog.id = TUTORIAL_DIALOG_ID;
   dialog.className = 'tutorial-dialog';
   dialog.setAttribute('aria-labelledby', 'simulator-tutorial-title');
-  // Each walkthrough includes written steps so reduced-motion users can follow the same workflow.
+  // Keep written steps aligned with the current Golem navigation and import tabs for reduced-motion users.
   dialog.innerHTML = `
     <div class="tutorial-dialog-shell">
       <div class="tutorial-dialog-header">
@@ -121,7 +121,7 @@ function tutorialDialog(root: Document): HTMLDialogElement {
         <div class="tutorial-guide-copy">
           <ol class="tutorial-step-list">
             <li><strong>Choose a profession</strong><span>Open the simulator for the profession you want to model.</span></li>
-            <li><strong>Load a template</strong><span>In Workspace, choose + New, then Browse templates. Select a template to load its gear, traits and matching rotation into a build tab.</span></li>
+            <li><strong>Load a template</strong><span>In Golem, choose + New, then Browse templates. Select a template to load its gear, traits and matching rotation into an open build.</span></li>
             <li><strong>Review the build and rotation</strong><span>Inspect skills, traits and gear, then scroll to Rotation Builder to review casts and live DPS.</span></li>
             <li><strong>Read the analysis</strong><span>Review DPS, damage sources, conditions, and modifier contributions.</span></li>
           </ol>
@@ -145,7 +145,7 @@ function tutorialDialog(root: Document): HTMLDialogElement {
             <li><strong>Queue skills manually</strong><span>Click available skills in the palette to add them to the timeline in order.</span></li>
             <li><strong>Review and refine</strong><span>Inspect the timeline, then use Undo, Redo, Clear, or the insertion cursor to make changes.</span></li>
             <li><strong>Save the rotation</strong><span>Use Save Rotation to download the current sequence as a portable JSON file.</span></li>
-            <li><strong>Load a rotation</strong><span>Use Load Rotation to restore saved JSON, import an EVTC combat log, or enter a dps.report link. Review combat-log imports before applying them.</span></li>
+            <li><strong>Load a rotation</strong><span>Use Load Rotation, then Upload file for saved JSON or an EVTC combat log, or Paste link for dps.report and gw2wingman links. Review imports before applying them.</span></li>
           </ol>
           <div class="tutorial-dialog-actions">
             <button type="button" class="btn tutorial-replay" data-tutorial-replay>Replay animation</button>
@@ -163,11 +163,11 @@ function tutorialDialog(root: Document): HTMLDialogElement {
         </div>
         <div class="tutorial-guide-copy">
           <ol class="tutorial-step-list">
-            <li><strong>Open combat analysis</strong><span>Load or build a rotation, then switch from Workspace to Analysis.</span></li>
+            <li><strong>Open combat analysis</strong><span>Load or build a rotation in Golem, then open Analysis.</span></li>
             <li><strong>Read the summary</strong><span>Check duration, idle time, player damage and baseline DPS.</span></li>
             <li><strong>Trace each damage source</strong><span>Compare strike, condition, total damage, DPS, casts, hits, and average damage per cast.</span></li>
             <li><strong>Inspect hits and phases</strong><span>Click a damage source to inspect individual hits. Hover the DPS chart and use Chart range to focus on a target-health phase or the full fight.</span></li>
-            <li><strong>Explore effects</strong><span>Toggle individual boons, conditions and buffs, or use All / None for a group. Hover Effects Over Time to inspect stacks along the rotation.</span></li>
+            <li><strong>Explore effects</strong><span>Toggle individual boons, conditions and buffs, or use All / None for a group. Hover Boons &amp; Buffs Over Time and Conditions Over Time to inspect stacks along the rotation.</span></li>
             <li><strong>Review modifier contributions</strong><span>Compare estimated DPS gains from individual modifiers. These estimates disable one modifier at a time and can be misleading if that breaks the rotation.</span></li>
           </ol>
           <aside class="tutorial-secondary-callout">
