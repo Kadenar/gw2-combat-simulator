@@ -1866,6 +1866,23 @@ export const SKILLS: readonly GuardianSkill[] = [
     nextChainId: null,
     flipSkillId: null
   },
+  // Supported shout metadata verified against the public API on 2026-10-30.
+  {
+    id: 9153,
+    name: '"Stand Your Ground!"',
+    description: 'Shout. Grant stability to yourself and allies.',
+    icon: 'https://render.guildwars2.com/file/7B3B7DFE6C2422C74891CE17E0A3EF15722805F8/103664.png',
+    type: 'Utility',
+    weapon: '',
+    slot: 'Utility',
+    specialization: '',
+    categories: ['Shout'],
+    cooldown: 24,
+    ammo: 0,
+    ammoRecharge: 0,
+    nextChainId: null,
+    flipSkillId: null
+  },
   {
     id: 9154,
     name: 'Renewed Focus',

@@ -1,10 +1,9 @@
+/** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 import { BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-
-/** Canonical Core guardian skill fragments grouped by their GW2 owner. */
 
 export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
   // Instant shouts share boons with the party while spent charges recharge independently of the use lockout.
@@ -28,6 +27,27 @@ export const GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     effects: [
       { type: 'boon', boon: BOON.PROTECTION, duration: 6, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.REGENERATION, duration: 6, audience: { recipients: RECIPIENT.PARTY } }
+    ]
+  },
+  // Party Stability and Resolution use normal boon delivery so relics and Firebrand traits can react.
+  [ID.STAND_YOUR_GROUND]: {
+    cooldown: 24,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'boon',
+        boon: BOON.RESOLUTION,
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      },
+      {
+        type: 'boon',
+        boon: BOON.STABILITY,
+        duration: 6,
+        stacks: 5,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
     ]
   },
   [ID.RECEIVE_THE_LIGHT]: {
