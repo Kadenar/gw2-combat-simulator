@@ -16,6 +16,8 @@ import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/t
 
 const PLASMATIC_STATE_CAST_TIME_MS = 480 + 480;
 const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
+// Flux State lands at 520 ms, then its field strikes and Bleeding recur together every 520 ms.
+const FLUX_STATE_FIELD_TICK_OFFSETS_MS = Array.from({ length: 12 }, (_, index) => 1040 + index * 520);
 
 /** Supplies Evolve and its state-dependent action identities to specialization composition. */
 export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
@@ -110,41 +112,41 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
   [ID.FLUX_STATE]: {
     cooldown: 50,
     castTimeMs: 640,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: [
+    // Commit before the animation ends so its remaining aftercast can be interrupted.
+    interruptCommitMs: 600,
+    // Once committed, the initial impact and persistent field keep their cast-start schedule after interruption.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
+        atMs: 520,
         coefficient: 2,
         hits: 1,
         name: 'Flux State — Packet 1',
         actorType: ACTOR.PLAYER
       },
-      ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-        {
-          type: 'strike',
-          // EVTC field packets land on a measured ~520 ms cadence; preserving
-          // it also prevents exact-boundary distortion for 0.5-second ICDs.
-          ticks: Array.from({ length: 12 }, (_, index) => ({ atMs: 520 + index * 520, coefficient: 9 / 12 })),
-          name: 'Storm Damage',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          ticks: [520, 1040, 1560, 2080, 2600, 3120, 3640, 4160, 4680, 5200, 5720, 6240].map((atMs) => ({
-            atMs,
-            condition: CONDITION.BLEEDING,
-            stacks: 1,
-            duration: 5
-          })),
-          actorType: ACTOR.PLAYER
-        }
-      ]),
+      {
+        type: 'strike',
+        ticks: FLUX_STATE_FIELD_TICK_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 9 / 12 })),
+        name: 'Storm Damage',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        ticks: FLUX_STATE_FIELD_TICK_OFFSETS_MS.map((atMs) => ({
+          atMs,
+          condition: CONDITION.BLEEDING,
+          stacks: 1,
+          duration: 5
+        })),
+        actorType: ACTOR.PLAYER
+      },
       {
         type: 'control',
+        atMs: 520,
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.PULL
       }
-    ]
+    ])
   },
   [ID.SOLID_STATE]: {
     cooldown: 25,

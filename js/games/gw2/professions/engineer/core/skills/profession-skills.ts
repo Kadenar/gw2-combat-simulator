@@ -71,7 +71,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     cooldown: 18,
     toolbeltParentId: ID.HEALING_TURRET,
     mechanicSlot: 1,
-    castTimeMs: 300,
+    castTimeMs: 400,
     comboFields: [
       {
         ownerId: 'engineer',

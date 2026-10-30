@@ -24,7 +24,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     cooldown: 0,
     kitId: ID.GRENADE_KIT,
     castTimeMs: 680,
-    interruptCommitMs: GRENADE_THROW_INTERRUPT_COMMIT_MS,
+    interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
     comboFinishers: [
       {

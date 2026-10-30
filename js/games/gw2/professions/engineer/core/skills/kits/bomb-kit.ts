@@ -171,8 +171,8 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     cooldown: 20,
     kitId: ID.BOMB_KIT,
     castTimeMs: 600,
-    // The placed bomb commits after 520 ms, so its delayed explosion and knockdown survive later interruption.
-    interruptCommitMs: 520,
+    // Placement commits at 480 ms; the persistent explosion and knockdown keep their original detonation time.
+    interruptCommitMs: 480,
     comboFinishers: [
       {
         ownerId: 'engineer',

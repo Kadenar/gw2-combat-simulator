@@ -4,10 +4,10 @@ import { WEAPON } from '#gw2/platform/constants.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
+import { resolveSelectedAmalgamMorphId } from '#gw2/professions/engineer/build/morphs.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as SKILL } from '#gw2/professions/engineer/data/ids.js';
 import {
-  AMALGAM_MORPH_KIND_BY_SKILL_ID,
   DEFAULT_AMALGAM_MORPHS,
   normalizeAmalgamMorphs,
   resolveAmalgamSkillId,
@@ -72,14 +72,11 @@ export function createEngineerBuildDefaults(): EngineerCanonicalBuild {
 
 /** Resolves morph casts to the selected slot so imported rotations follow the build's protocol layout. */
 function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly number[]): RotationCommand[] {
-  const selectedByKind = new Map(morphIds.map((id) => [AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id), id]));
   // Shared normalization resolves names and rejects malformed entries before protocol kinds select slot identities.
   return normalizeRotation(savedRotation, engineerCatalog).map((command) => {
     if (command.type !== 'cast') return command;
 
-    const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(command.skillId);
-    const selectedId = kind === undefined ? undefined : selectedByKind.get(kind);
-    return { ...command, skillId: selectedId ?? command.skillId };
+    return { ...command, skillId: resolveSelectedAmalgamMorphId(command.skillId, morphIds) };
   });
 }
 

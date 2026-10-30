@@ -50,11 +50,12 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Part
     cooldown: 0,
     kitId: ID.FLAMETHROWER,
     castTimeMs: 1720,
+    interruptMode: 'per-packet',
     effects: [
       {
         weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
-        ticks: [160, 360, 520, 680, 880, 1040, 1200, 1360, 1560, 1720].map((atMs) => ({ atMs, coefficient: 2.5 / 10 })),
+        ticks: [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 1480].map((atMs) => ({ atMs, coefficient: 2.5 / 10 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
         name: 'Flame Jet',
