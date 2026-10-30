@@ -60,19 +60,16 @@ export const inspiredVirtue = defineTrait({
           balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'damagePerBoon')
     }
   ],
-  // Each virtue grants its own party boon.
+  // Resolve's in-game regeneration is unconditional and is emitted by shared virtue completion.
   triggers: [
     onTriggerPoint(virtueActivated, {
+      when: (_runtime, { virtue }) => virtue !== 'resolve',
       run: (runtime: GuardianRuntime, { cast, virtue }: VirtueActivation) =>
         virtueBuff(
           runtime,
           cast,
           GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
-          virtue === 'justice'
-            ? boonKey(BOON.MIGHT)
-            : virtue === 'resolve'
-              ? boonKey(BOON.REGENERATION)
-              : boonKey(BOON.PROTECTION),
+          virtue === 'justice' ? boonKey(BOON.MIGHT) : boonKey(BOON.PROTECTION),
           true
         )
     })

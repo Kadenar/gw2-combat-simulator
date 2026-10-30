@@ -994,6 +994,33 @@ function illuminate(runtime, expiresAt, symbol = false) {
   runtime.schedule(GUARDIAN_SPEAR_EXPIRY, expiresAt, { symbol, expiresAt }, undefined, -220);
 }
 
+// Boon ownership is fixed at acceptance, even when illumination expires before the shock wave.
+test('Gleaming Disc always shares six Might and adds Fury only when illuminated at acceptance', () => {
+  for (const illuminated of [false, true]) {
+    const result = run(
+      [ID.GLEAMING_DISC, wait(2000)],
+      { primaryWeapon: 'Spear', allies: { count: 4 } },
+      {
+        initialize: (runtime) => {
+          if (illuminated) illuminate(runtime, 0.1);
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.skillId === ID.GLEAMING_DISC);
+    assert.deepEqual(
+      grants.map((event) => event.kind),
+      illuminated ? ['might', 'fury'] : ['might']
+    );
+    assert.equal(grants[0].stacks, 6);
+    for (const event of grants) {
+      assert.equal(event.duration, 10);
+      assert.equal(event.resolvedAudience.includesSelf, true);
+      assert.equal(event.resolvedAudience.alliedPlayerCount, 4);
+    }
+  }
+});
+
 test('spear captures illumination before expiry and enhances existing impacts without creating extra hits', () => {
   const result = run(
     [ID.GLEAMING_DISC, wait(2000)],

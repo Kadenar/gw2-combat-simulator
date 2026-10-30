@@ -1,12 +1,17 @@
+/**
+ * @fileoverview Implements shared Guardian virtue validation, activation and
+ * refresh events, plus the reusable resolver-time Justice burning contract.
+ */
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
   effectNumber,
@@ -24,11 +29,6 @@ import type {
   GuardianSkill,
   GuardianVirtue
 } from '#gw2/professions/guardian/types.js';
-
-/**
- * @fileoverview Implements shared Guardian virtue validation, activation and
- * refresh events, plus the reusable resolver-time Justice burning contract.
- */
 
 /** An accepted virtue activation; each owner has already admitted its own readiness and replacement rules. */
 export interface VirtueActivation {
@@ -244,9 +244,28 @@ export function completeVirtueActivation(
 
   if (!readyVirtueActivations.has(cast)) return;
 
-  runtime.fireTrigger(virtueActivated, { cast, virtue });
+  grantVirtueActivationRewards(runtime, cast, virtue);
 
   if (virtue === 'justice' && !deferJustice) runtime.fireTrigger(justiceActivated, { cast });
+}
+
+/** Share intrinsic and selected-trait rewards after each owner's readiness check, including Firebrand dormancy. */
+export function grantVirtueActivationRewards(
+  runtime: GuardianRuntime,
+  cast: RuntimeCast<GuardianSkill>,
+  virtue: GuardianVirtue
+): void {
+  // In-game Resolve grants Inspired Virtue's regeneration even without the trait; emit it once for every owner.
+  if (virtue === 'resolve')
+    emitTraitProfile(runtime, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, undefined, {
+      effect: { type: 'boon', name: 'regeneration' },
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id,
+      attribution: { actorType: ACTOR.PLAYER, audience: { recipients: RECIPIENT.PARTY } }
+    });
+
+  runtime.fireTrigger(virtueActivated, { cast, virtue });
 }
 
 /** Recharge-backed virtue projections follow the shared cast controller, including Alacrity and explicit resets. */

@@ -256,10 +256,23 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
         persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
-      }
+      },
+      // Both party boons belong to the delayed shock wave and include the caster.
+      ...impactEffects({ atMs: 1160, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
+        { type: 'boon', boon: BOON.MIGHT, stacks: 6, duration: 10, audience: { recipients: RECIPIENT.PARTY } },
+        { type: 'boon', boon: BOON.FURY, duration: 10, audience: { recipients: RECIPIENT.PARTY } }
+      ])
     ],
     // Capture illumination at acceptance and settle only that captured charge on commitment.
-    effectVariants: [illuminatedSpearVariant()],
+    effectVariants: [
+      illuminatedSpearVariant(),
+      // The shock wave always grants Might; only an illuminated disc also grants Fury.
+      {
+        when: () => true,
+        transform: (_runtime, _cast, effects) =>
+          effects.filter((effect) => effect.type !== 'boon' || effect.boon !== BOON.FURY)
+      }
+    ],
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.spear-illumination' } }]
   },
   [ID.SOLAR_STORM]: {

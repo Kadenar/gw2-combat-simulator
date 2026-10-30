@@ -463,8 +463,9 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
   ]);
 
   assert.deepEqual(
+    // The shock wave's boons do not participate in the illumination damage contract.
     expired.resolvedEvents
-      .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
+      .filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
       .map((event) => event.coefficient),
     [1.5, 1.5]
   );
@@ -478,7 +479,7 @@ test('Spear Helio Rush arms Illuminated and enhances the next spear skill', () =
 
   assert.deepEqual(
     preservedThroughFiller.resolvedEvents
-      .filter((event) => event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
+      .filter((event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.GLEAMING_DISC)
       .map((event) => event.coefficient),
     [1.5, 2.25]
   );

@@ -12,9 +12,9 @@ import { skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balanc
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {
+  grantVirtueActivationRewards,
   justiceActivated,
-  reactToJusticeHitWithOptions,
-  virtueActivated
+  reactToJusticeHitWithOptions
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { powerOfTheVirtuousRechargeMultiplier } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -70,7 +70,8 @@ function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, vi
     readyAt[virtue] = canonicalTime(
       runtime.time + skillNumberFromContext(runtime, TOMES[virtue], 'dormantCooldown') * multiplier
     );
-    runtime.fireTrigger(virtueActivated, { cast, virtue });
+    // Ready tomes receive the same unconditional Resolve regeneration as the other virtue owners.
+    grantVirtueActivationRewards(runtime, cast, virtue);
 
     if (virtue === 'justice') runtime.fireTrigger(justiceActivated, { cast });
   }

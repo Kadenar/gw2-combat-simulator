@@ -23,6 +23,7 @@ export const RELIC_IDS = Object.freeze({
   EAGLE: 104241,
   FRACTAL: 100153,
   LAST_TYRANT: 109942,
+  TYRIAN_HERO: 109998,
   VISIONARY: 110152,
   THORNS: 104424,
   THIEF: 100916,
@@ -198,6 +199,15 @@ export const RELIC_DATA = {
     trigger: "Inflict Burning at 5 Tyrant's Fury stacks (explosion: 3.0 strike placeholder, 2 Burning for 8s)",
     cooldown: 12,
     icon: 'https://render.guildwars2.com/file/DC0E5B235AA36102E0A9A9D32AAB24169B2CAE59/3806032.png'
+  },
+  // Shouts and commands supply party boons while Superspeed belongs only to the wearer.
+  'Tyrian Hero': {
+    id: RELIC_IDS.TYRIAN_HERO,
+    category: 'Hybrid',
+    trigger:
+      'Use a shout or command (3s personal Superspeed; 2 Might and Swiftness for 10s to yourself and nearby allies)',
+    cooldown: 0,
+    icon: 'https://render.guildwars2.com/file/7C1CE5C27D0AB8216D48E3D5DF30EE9780B7B398/3806033.png'
   },
   Visionary: {
     id: RELIC_IDS.VISIONARY,

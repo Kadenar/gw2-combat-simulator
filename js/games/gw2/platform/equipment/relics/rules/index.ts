@@ -23,6 +23,7 @@ import { skillUseStrikeRelic } from '#gw2/platform/equipment/relics/rules/shared
 import { steamshrieker } from '#gw2/platform/equipment/relics/rules/steamshrieker.js';
 import { thief } from '#gw2/platform/equipment/relics/rules/thief.js';
 import { thorns } from '#gw2/platform/equipment/relics/rules/thorns.js';
+import { tyrianHero } from '#gw2/platform/equipment/relics/rules/tyrian-hero.js';
 import { visionary } from '#gw2/platform/equipment/relics/rules/visionary.js';
 import type { Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 
@@ -52,6 +53,7 @@ export const RELIC_RULES: Readonly<Record<number, Readonly<Gw2RelicRule>>> = Obj
   [RELIC_IDS.SHACKLES]: shackles,
   [RELIC_IDS.STEAMSHRIEKER]: steamshrieker,
   [RELIC_IDS.THIEF]: thief,
+  [RELIC_IDS.TYRIAN_HERO]: tyrianHero,
   [RELIC_IDS.VISIONARY]: visionary,
   [RELIC_IDS.THORNS]: thorns
 });

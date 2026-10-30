@@ -229,8 +229,9 @@ test('Radiant Resolve empowers only the next completed staff equip', () => {
         'Luminous Staff'
       ]
     );
+    // Observe the staff empowerment separately from Resolve's unconditional activation regeneration.
     const regeneration = result.resolvedEvents.filter(
-      (event) => event.type === 'buff' && event.kind === 'regeneration'
+      (event) => event.type === 'buff' && event.kind === 'regeneration' && event.skillName === 'Luminous Staff'
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(regeneration.length, empowered ? 1 : 0);
@@ -243,7 +244,9 @@ test('Radiant Resolve empowers only the next completed staff equip', () => {
   );
   assert.equal(interrupted.planningState.profession[STATE.RADIANT_RESOLVE_ARMED], true);
   assert.equal(
-    interrupted.resolvedEvents.some((event) => event.type === 'buff' && event.kind === 'regeneration'),
+    interrupted.resolvedEvents.some(
+      (event) => event.type === 'buff' && event.kind === 'regeneration' && event.skillName === 'Luminous Staff'
+    ),
     false
   );
 });

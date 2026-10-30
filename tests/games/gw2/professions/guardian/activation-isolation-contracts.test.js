@@ -233,6 +233,30 @@ test('every Guardian virtue owner grants shared rewards once, and dormant tome r
       }
 });
 
+// The in-game F2 regeneration bug bypasses trait selection and isolation without duplicating the selected trait grant.
+test('every Guardian Resolve grants regeneration once independently of Inspired Virtue', () => {
+  for (const [specialization, id] of [
+    ['Core', ID.RESOLVE],
+    ['Dragonhunter', ID.WINGS_OF_RESOLVE],
+    ['Firebrand', ID.TOME_OF_RESOLVE],
+    ['Willbender', ID.FLOWING_RESOLVE],
+    ['Luminary', ID.RADIANT_RESOLVE]
+  ])
+    for (const selected of [false, true])
+      for (const traitTriggers of [false, true]) {
+        const { result } = run(
+          specialization,
+          [id, ...(specialization === 'Firebrand' ? [ID.STOW_TOME, id] : []), wait(1000)],
+          { traitTriggers, selectedTraitIds: selected ? [TRAIT.INSPIRED_VIRTUE] : [], allies: { count: 2 } }
+        );
+        const granted = result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'regeneration');
+        assert.equal(granted.length, 1, specialization);
+        assert.equal(granted[0].duration, 5, specialization);
+        assert.equal(granted[0].resolvedAudience.includesSelf, true);
+        assert.equal(granted[0].resolvedAudience.alliedPlayerCount, 2);
+      }
+});
+
 test('Lethal Tempo imports supplied stacks in isolation while new virtue rewards remain disabled', () => {
   for (const traitTriggers of [false, true]) {
     const { result, runtime } = run('Willbender', [ID.FLOWING_RESOLVE], {
