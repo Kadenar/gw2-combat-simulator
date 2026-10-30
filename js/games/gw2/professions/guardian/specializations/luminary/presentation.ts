@@ -13,11 +13,11 @@ import {
   formatSecondsRemaining,
   guardianSnapshotAt,
   guardianUiSkillIds,
-  guardianUiSkillsByMode
+  guardianUiSkillsByMode,
+  guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type {
-  GuardianPlanningState,
   GuardianResolverEvent,
   GuardianSkill,
   GuardianUiContext,
@@ -78,7 +78,7 @@ function formatStrikeBonus(value: number): string {
 function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
-  const state = professionState(context);
+  const state = guardianUiState(context);
   // Expose Light Aura while it can still be consumed by Luminary skills.
   const lightAuraRemaining = (state[STATE.LIGHT_AURA_UNTIL] || 0) - at;
 
@@ -234,7 +234,7 @@ export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>
         return {
           tileActive:
             (skill.id === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE) ===
-            Boolean(professionState(context)[STATE.RADIANT_FORGE])
+            Boolean(guardianUiState(context)[STATE.RADIANT_FORGE])
         };
     },
     effectPresentations: luminaryEffectPresentations,
@@ -260,9 +260,4 @@ export function bindLuminaryUi(catalog: Readonly<CanonicalCatalog<GuardianSkill>
       }
     ]
   });
-}
-
-function professionState(context: GuardianUiContext): Partial<GuardianPlanningState> {
-  // Presentation callers supply the flat projection for the inspected rotation point.
-  return context.professionState ?? {};
 }

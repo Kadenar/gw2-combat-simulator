@@ -59,7 +59,7 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
 }
 
 /** Labels Willbender's timed effects and treats refreshed states as replacements rather than additive grants. */
-function willbenderEffectPresentations(_context: GuardianUiContext): ProfessionEffectPresentation[] {
+function willbenderEffectPresentations(): ProfessionEffectPresentation[] {
   return [
     ...[
       ['justice', 'Rushing Justice'],

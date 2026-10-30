@@ -877,14 +877,26 @@ for (const [name, recharge, boons, duration] of [
   });
 }
 
-test('out-of-scope Guardian slot skills are absent and migrate out of saved builds', () => {
+// Supported boon shouts must remain available when loading a canonical saved build.
+test('"Stand Your Ground!" is available and retained in saved Guardian builds', () => {
+  const skillId = GUARDIAN_SKILL_IDS.STAND_YOUR_GROUND;
+  assert.equal(guardianCatalog.skillsById.get(skillId)?.name, '"Stand Your Ground!"');
+
+  const defaults = createGuardianBuildDefaults();
+  const build = migrateGuardianBuild({
+    ...defaults,
+    selectedSkillIds: { ...defaults.selectedSkillIds, Utility1: skillId }
+  });
+  assert.equal(build.selectedSkillIds.Utility1, skillId);
+});
+
+test('out-of-scope Guardian slot skills are absent and rejected in saved builds', () => {
   const excludedNames = [
     '"Save Yourselves!"',
     'Signet of Mercy',
     'Merciful Intervention',
     'Wall of Reflection',
     'Contemplation of Purity',
-    '"Stand Your Ground!"',
     'Stalwart Stance',
     'Mantra of Lore',
     'Hallowed Ground',

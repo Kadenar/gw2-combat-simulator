@@ -119,8 +119,6 @@ type ValueOf<T> = T[keyof T];
 
 export type BoonName = ValueOf<typeof BOON>;
 
-export type ConditionName = ValueOf<typeof CONDITION>;
-
 export type AuraName = ValueOf<typeof AURA>;
 
 export type ControlKind = ValueOf<typeof CONTROL>;
@@ -132,7 +130,3 @@ export type ComboFinisherType = ValueOf<typeof COMBO_FINISHER>;
 export type SimulationActorType = ValueOf<typeof ACTOR>;
 
 export type EffectRecipientScope = ValueOf<typeof RECIPIENT>;
-
-export type WeaponName = ValueOf<typeof WEAPON>;
-
-export type StatusKind = ValueOf<typeof STATUS>;

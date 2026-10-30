@@ -14,12 +14,12 @@ import {
   formatSecondsRemaining,
   guardianSnapshotAt,
   guardianUiSkillIds,
-  guardianUiSkillsByMode
+  guardianUiSkillsByMode,
+  guardianUiState
 } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
 import type {
-  GuardianPlanningState,
   GuardianResolverEvent,
   GuardianSkill,
   GuardianUiContext,
@@ -67,7 +67,7 @@ const TOME_DORMANCY_LABELS = Object.freeze([
 
 /** Display the live page clock and current tome's refund progress without inventing a second regeneration timer. */
 function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
-  const state = professionState(context);
+  const state = guardianUiState(context);
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const pages = state[STATE.TOME_PAGES];
@@ -102,7 +102,7 @@ function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapsh
 
 function dormantTomeClasses(context: GuardianUiContext): string {
   // Palette tint and countdowns observe the same projected deadlines used by passive mechanics.
-  const readyAt = professionState(context)[STATE.VIRTUE_READY_AT];
+  const readyAt = guardianUiState(context)[STATE.VIRTUE_READY_AT];
   const at = context.time ?? context.simulationTime ?? 0;
   // Project dormancy onto the existing Tome group so CSS can tint only the
   // affected opener while the skill remains available to equip.
@@ -165,7 +165,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
       }))
     ],
     resourceViews: (context: GuardianUiContext & ProfessionCatalogContext): ProfessionResourceView[] => {
-      const state = professionState(context);
+      const state = guardianUiState(context);
       // Starting limits follow the current build and patch, independently of an older simulation's projection.
       const tuningContext = {
         ...context,
@@ -214,9 +214,4 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
       ];
     }
   });
-}
-
-function professionState(context: GuardianUiContext): Partial<GuardianPlanningState> {
-  // Presentation callers supply the flat projection for the inspected rotation point.
-  return context.professionState ?? {};
 }

@@ -1,6 +1,4 @@
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { SimulationActorType } from '#gw2/platform/constants.js';
-import type { EffectMetadata } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -52,28 +50,17 @@ export interface GuardianRuntimeState {
     | { kind: 'Luminary'; state: GuardianLuminaryState };
 }
 
+/** Luminary strike payloads supply damage and timing; the shared builder owns Guardian attribution defaults. */
 export interface GuardianStrikeFields {
-  readonly skillWeapon?: string;
-  readonly triggeredBy?: string;
-  readonly activationId?: string;
-  readonly comboFields?: readonly { readonly ownerId: string; readonly fieldType: string; readonly duration: number }[];
-  readonly metadata?: EffectMetadata;
   readonly priority?: number;
   readonly offTarget?: boolean;
   readonly weaponStrengthProfileId?: string;
-  readonly willbenderFlames?: boolean;
   readonly at: number;
   readonly sourceId: SkillId;
   readonly skillId: SkillId | null;
   readonly skillName: string;
   readonly name: string;
   readonly coefficient: number;
-  readonly source?: string;
-  readonly actorType?: SimulationActorType;
-  readonly ownerActorType?: SimulationActorType;
-  readonly hits?: number;
-  readonly hitIndex?: number;
-  readonly totalHits?: number;
 }
 
 /** Shared full mechanic context; read-only and resolver consumers retain their narrower capabilities. */
