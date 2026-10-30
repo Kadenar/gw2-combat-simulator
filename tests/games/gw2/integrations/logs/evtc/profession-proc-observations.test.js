@@ -14,6 +14,7 @@ import { analyzeNecromancerBarbedPrecisionObservation } from '#gw2/integrations/
 import { analyzeRangerSharpenedEdgesObservation } from '#gw2/integrations/logs/evtc/rotation/professions/ranger/sharpened-edges-observation.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER_TRAIT } from '#gw2/professions/engineer/data/ids.js';
+import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { NECROMANCER_TRAIT_IDS as NECROMANCER_TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { RANGER_TRAIT_IDS as RANGER_TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -229,12 +230,35 @@ test('matches Shrapnel only when expertise-scaled Bleeding and Crippled applicat
   assert.deepEqual(result, {
     explosionHits: 4,
     matchedApplications: 2,
-    observedProcRate: 0.5,
     expectedProcChance: 0.33,
     expectedApplications: 1.32,
     matchedBleedingDurationsMs: [9_000],
     matchedCrippledDurationsMs: [1_500]
   });
+});
+
+test('Shrapnel pairing recognizes Evolved expertise without counting an unpaired Bleeding application', () => {
+  // The temporary expertise bonus must be evaluated through the same trait and Evolve declarations as combat.
+  const log = fixture([
+    event({ skillId: 5882 }),
+    condition(1_100, 736, 12_000),
+    condition(1_100, 721, 1_727),
+    condition(1_200, 736, 12_000),
+    condition(1_200, 721, 1_674),
+    condition(1_300, 736, 12_000)
+  ]);
+  const config = {
+    specialization: 'Amalgam',
+    selectedTraitIds: [ENGINEER_TRAIT.SHRAPNEL, ENGINEER_TRAIT.SERRATED_STEEL, ENGINEER_TRAIT.THERMAL_VISION],
+    attributeInputs: baseAttributeInputs({ expertise: 637, conditionDurationBonus: 15 })
+  };
+
+  assert.equal(analyzeEngineerShrapnelObservation(log, PLAYER, engineerCatalog, config)?.matchedApplications, 2);
+  assert.equal(
+    analyzeEngineerShrapnelObservation(log, PLAYER, engineerCatalog, { ...config, specialization: 'Core' })
+      ?.matchedApplications,
+    1
+  );
 });
 
 test('counts raw EVTC names for explosions whose catalog effects receive their flag at runtime', () => {

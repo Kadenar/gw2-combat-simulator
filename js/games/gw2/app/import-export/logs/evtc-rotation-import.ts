@@ -65,16 +65,17 @@ function bloodlustImportObservation(result: CriticalBleedingProcObservation | nu
   );
 }
 
+/** Missing Crippled partners cannot be treated as failed rolls, so paired Shrapnel evidence has no measured rate. */
 function shrapnelImportObservation(result: EngineerShrapnelObservation | null): RotationImportObservation[] {
-  return procImportObservation(
-    result,
-    'Shrapnel proc rate',
-    result?.explosionHits || 0,
-    'explosion hits',
-    result
-      ? `The applications are paired player-to-target Bleeding and Crippled records matching the active build's ${durationList(result.matchedBleedingDurationsMs)} and ${durationList(result.matchedCrippledDurationsMs)} durations.`
-      : ''
-  );
+  if (!result) return [];
+
+  return [
+    {
+      title: 'Shrapnel observations',
+      summary: `${result.matchedApplications} confirmed Bleeding/Crippled pairs (lower bound); ${result.explosionHits} explosion hits. Modeled chance ${percent(result.expectedProcChance)} (${result.expectedApplications.toFixed(2)} expected).`,
+      detail: `Pairs match the active build's ${durationList(result.matchedBleedingDurationsMs)} Bleeding and ${durationList(result.matchedCrippledDurationsMs)} Crippled durations. Missing Crippled partners prevent these pairs from establishing the total proc count or observed proc rate. EVTC does not name the originating trait, and Bleeding durations can overlap other sources.`
+    }
+  ];
 }
 
 function serratedSteelImportObservation(result: CriticalBleedingProcObservation | null): RotationImportObservation[] {

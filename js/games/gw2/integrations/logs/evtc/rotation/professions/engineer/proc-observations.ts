@@ -36,8 +36,8 @@ const EVENT_FLAGGED_EXPLOSION_NAMES = new Set([
 
 export interface EngineerShrapnelObservation {
   readonly explosionHits: number;
+  /** Paired records are a lower bound; a missing Crippled partner cannot establish a failed proc roll. */
   readonly matchedApplications: number;
-  readonly observedProcRate: number;
   readonly expectedProcChance: number;
   readonly expectedApplications: number;
   readonly matchedBleedingDurationsMs: readonly number[];
@@ -86,6 +86,20 @@ function expectedChance(profile: BalanceProfile): number | null {
   return chance > 0 ? chance : null;
 }
 
+/** Evolve changes expertise, so paired conditions can have both ordinary and Evolved durations in one log. */
+function engineerObservationAttributeSets(config: Gw2Config, catalog: Readonly<CanonicalCatalog>) {
+  const ordinary = observationAttributeSets(config, catalog, engineerProfession.attributeContributions);
+
+  if (config.specialization !== 'Amalgam') return ordinary;
+
+  return [
+    ...ordinary,
+    ...observationAttributeSets(config, catalog, engineerProfession.attributeContributions, {
+      profession: { specialization: { kind: 'Amalgam', state: { evolvedUntil: 1 } } }
+    })
+  ];
+}
+
 /** Match paired Shrapnel conditions using the selected profile's durations, including balance edits and removals. */
 export function analyzeEngineerShrapnelObservation(
   log: ParsedEvtc,
@@ -118,17 +132,18 @@ export function analyzeEngineerShrapnelObservation(
   const crippledEffect = profile.effects?.find(
     (effect) => effect.type === 'condition' && effect.condition?.toLowerCase() === CONDITION.CRIPPLED.toLowerCase()
   );
+  const attributes = engineerObservationAttributeSets(config, catalog);
   const matchedBleedingDurationsMs = expectedConditionDurationsMs(
     bleedingDuration(profile),
     CONDITION.BLEEDING,
     config,
-    observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
+    attributes
   );
   const matchedCrippledDurationsMs = expectedConditionDurationsMs(
     crippledEffect ? effectNumber(profile, crippledEffect, 'duration') : 0,
     CONDITION.CRIPPLED,
     config,
-    observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
+    attributes
   );
 
   if (!matchedBleedingDurationsMs.length || !matchedCrippledDurationsMs.length) return null;
@@ -152,7 +167,6 @@ export function analyzeEngineerShrapnelObservation(
   return {
     explosionHits,
     matchedApplications,
-    observedProcRate: matchedApplications / explosionHits,
     expectedProcChance,
     expectedApplications: explosionHits * expectedProcChance,
     matchedBleedingDurationsMs,
@@ -173,6 +187,6 @@ export function analyzeEngineerSerratedSteelObservation(
     catalog,
     config,
     TRAIT.SERRATED_STEEL,
-    observationAttributeSets(config, catalog, engineerProfession.attributeContributions)
+    engineerObservationAttributeSets(config, catalog)
   );
 }

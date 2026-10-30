@@ -9,6 +9,7 @@ import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { gw2ConditionDurationMultiplier } from '#gw2/platform/combat/formulas.js';
+import type { Gw2ModifierState } from '#gw2/platform/combat/modifiers.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -230,11 +231,12 @@ export function countPairedApplications(first: readonly ParsedEvtcEvent[], secon
   return matches;
 }
 
-/** Log inference shares ordinary declaration ownership and each equipment set's immutable seed. */
+/** Log inference shares ordinary declarations and can sample temporary profession states without a combat replay. */
 export function observationAttributeSets(
   config: Gw2Config,
   catalog: Readonly<CanonicalCatalog>,
-  calculate: Gw2AttributeContributionCalculator
+  calculate: Gw2AttributeContributionCalculator,
+  state?: Gw2ModifierState
 ): readonly Gw2Stats[] {
   return [1, 2].map((weaponSet) =>
     applyAttributeContributions(
@@ -242,7 +244,7 @@ export function observationAttributeSets(
       attributeSeed(config, weaponSet).commonTotals,
       calculate(
         attributeContext(
-          { config: { ...config, startingWeaponSet: weaponSet }, time: 0 },
+          { config: { ...config, startingWeaponSet: weaponSet }, time: 0, state },
           { catalog, modifierRulesById: new Map() }
         )
       )

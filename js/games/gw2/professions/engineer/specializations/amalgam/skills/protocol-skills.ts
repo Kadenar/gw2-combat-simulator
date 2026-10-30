@@ -321,7 +321,11 @@ const protect: Partial<AmalgamSkill> = {
   ]
 };
 
-/** Slot variants dispatch the same strain; only its canonical skill exposes the shared payload for patching. */
+/**
+ * Keep Morph activation on every slot, but expose shared strain tuning only on its owner.
+ * Thorns and Obliterate still grant their strain through `amalgamStrainOwnerId`;
+ * removing the duplicate payload prevents patches from targeting unused slot-local data.
+ */
 function withoutStrainPayload(skill: Partial<AmalgamSkill>): Partial<AmalgamSkill> {
   return {
     ...skill,
@@ -331,25 +335,39 @@ function withoutStrainPayload(skill: Partial<AmalgamSkill>): Partial<AmalgamSkil
   };
 }
 
+// Each protocol lists its in-game F2, F3, and F4 identities in slot order.
 export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<AmalgamSkill>>> = Object.freeze({
+  // Offensive: Shred (Predator Strain).
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: { ...shred, mechanicSlot: 2 },
   [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: { ...shred, mechanicSlot: 3 },
   [ID.OFFENSIVE_PROTOCOL_SHRED]: { ...shred, mechanicSlot: 4 },
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: { ...withoutStrainPayload(thorns), mechanicSlot: 2 },
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: { ...withoutStrainPayload(thorns), mechanicSlot: 3 },
-  [ID.DEFENSIVE_PROTOCOL_THORNS]: { ...thorns, rapaciousDuration: 8, rapaciousInternalCooldown: 0.48, mechanicSlot: 4 },
+
+  // Offensive: Demolish (Berserker Strain).
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: { ...demolish, mechanicSlot: 2 },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: { ...demolish, mechanicSlot: 3 },
   [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: { ...demolish, mechanicSlot: 4 },
+
+  // Offensive: Obliterate. The F4 entry owns shared Titanic Strain tuning.
   [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: { ...withoutStrainPayload(obliterate), mechanicSlot: 2 },
   [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: { ...withoutStrainPayload(obliterate), mechanicSlot: 3 },
   [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: { ...obliterate, titanicAttributePerStack: 5, mechanicSlot: 4 },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798]: { ...cleanse, mechanicSlot: 2 },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285]: { ...cleanse, mechanicSlot: 3 },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE]: { ...cleanse, mechanicSlot: 4 },
+
+  // Offensive: Pierce (Volatile Strain).
   [ID.OFFENSIVE_PROTOCOL_PIERCE]: { ...pierce, mechanicSlot: 2 },
   [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005]: { ...pierce, mechanicSlot: 3 },
   [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015]: { ...pierce, mechanicSlot: 4 },
+
+  // Defensive: Thorns. The F4 entry owns shared Rapacious Strain tuning.
+  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: { ...withoutStrainPayload(thorns), mechanicSlot: 2 },
+  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: { ...withoutStrainPayload(thorns), mechanicSlot: 3 },
+  [ID.DEFENSIVE_PROTOCOL_THORNS]: { ...thorns, rapaciousDuration: 8, rapaciousInternalCooldown: 0.52, mechanicSlot: 4 },
+
+  // Defensive: Cleanse (Replicating Strain).
+  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798]: { ...cleanse, mechanicSlot: 2 },
+  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285]: { ...cleanse, mechanicSlot: 3 },
+  [ID.DEFENSIVE_PROTOCOL_CLEANSE]: { ...cleanse, mechanicSlot: 4 },
+
+  // Defensive: Protect (Resiliant Strain).
   [ID.DEFENSIVE_PROTOCOL_PROTECT]: { ...protect, mechanicSlot: 2 },
   [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203]: { ...protect, mechanicSlot: 3 },
   [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358]: { ...protect, mechanicSlot: 4 }
