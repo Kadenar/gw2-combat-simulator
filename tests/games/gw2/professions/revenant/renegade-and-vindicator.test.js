@@ -1384,6 +1384,8 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
     adapter: {
       skillTooltip: revenantAppAdapter.skillTooltip,
       eliteSpecialization: () => 'Vindicator',
+      // Cursor previews use the manually controlled chain state for this palette-action fixture.
+      rotationPreviewAt: (app) => app.results,
       isSkillAvailable: () => true
     },
     changed: () => {
