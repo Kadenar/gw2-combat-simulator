@@ -20,7 +20,10 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
     autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     kitId: ID.BOMB_KIT,
-    castTimeMs: 360,
+    castTimeMs: 600,
+    // Once placement commits at 440 ms, retain the full cast lockout and delayed explosion.
+    interruptCommitMs: 440,
+    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         weaponStrengthProfileId: 'bundle.ascended',
@@ -28,6 +31,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
         ticks: [{ atMs: 1360, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
+        persistsAfterInterrupt: true,
         name: 'Bomb',
         actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
