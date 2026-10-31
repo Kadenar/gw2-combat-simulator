@@ -215,7 +215,6 @@ header h1 {
 .simulator-view-tabs {
   display: flex;
   align-items: center;
-  gap: 24px;
   max-width: 100%;
   border-bottom: 1px solid var(--border);
 }
@@ -342,7 +341,8 @@ a.simulator-view-tab:focus-visible {
 .simulator-view-tab {
   display: flex;
   min-height: 46px;
-  padding: 11px 0;
+  /* Put spacing inside each link so hover and focus cover the full click target. */
+  padding: 11px 12px;
   align-items: center;
   justify-content: center;
   border-bottom: 2px solid transparent;
@@ -374,12 +374,9 @@ a.simulator-view-tab:focus-visible {
     flex-wrap: wrap;
   }
 
-  .simulator-view-tabs {
-    gap: 20px;
-  }
-
   .simulator-view-tab {
     min-height: 40px;
+    padding-inline: 10px;
     font-size: 11px;
   }
 }
