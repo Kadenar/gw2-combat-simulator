@@ -157,14 +157,14 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, Partial<Mes
   },
   [ID.SAND_THROUGH_GLASS]: {
     rechargeAnchor: 'castStart',
-    // These instant Deceptions grant Mirage Cloak when their cast completes.
+    // Grant Mirage Cloak after the backward evade finishes, opening the ambush window.
     tasks: [
       {
         type: 'mesmer.mirage.grant-cloak',
         timingAnchor: 'castEnd'
       }
     ],
-    castTimeMs: 0,
+    castTimeMs: 560,
     effects: []
   },
   [ID.ILLUSIONARY_AMBUSH]: {
