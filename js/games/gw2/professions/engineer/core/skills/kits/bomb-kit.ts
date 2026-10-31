@@ -25,7 +25,7 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<
       {
         weaponStrengthProfileId: 'bundle.ascended',
         type: 'strike',
-        ticks: [{ atMs: 1000, coefficient: 1.2 }],
+        ticks: [{ atMs: 1360, coefficient: 1.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Bomb',
