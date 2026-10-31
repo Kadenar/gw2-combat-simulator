@@ -14,14 +14,12 @@ export interface RotationProfessionState {
   readonly [STATE.AVAILABLE_AMBUSH]?: { readonly name?: string } | null;
 }
 
-type RotationPlanningState = ProfessionAppResult['planningState'];
-
-const paletteStateCache = new WeakMap<
+const palettePreviewCache = new WeakMap<
   ProfessionAppState,
   {
     readonly result: ProfessionAppResult;
     readonly insertionIndex: number;
-    readonly state: RotationPlanningState;
+    readonly preview: ProfessionAppResult;
   }
 >();
 
@@ -30,7 +28,8 @@ export const professionPlanningState = (result: ProfessionAppResult | null | und
     ? (result.planningState.profession as RotationProfessionState)
     : {};
 
-export function palettePlanningState(app: ProfessionAppState): RotationPlanningState | null {
+/** Share one prefix simulation so cursor state and proc history cannot include actions after the cursor. */
+export function palettePlanningResult(app: ProfessionAppState): ProfessionAppResult | null {
   const result = app.results;
 
   if (!result) return null;
@@ -41,20 +40,23 @@ export function palettePlanningState(app: ProfessionAppState): RotationPlanningS
   // Appending still needs rotation-end availability when the displayed result includes a tail.
   const hasTail = (result.planningState?.atSeconds ?? 0) > result.rotationEndTime;
 
-  if ((insertionIndex === rotation.length && !hasTail) || typeof app.adapter?.rotationPlanningStateAt !== 'function') {
-    return result.planningState;
+  if (insertionIndex === rotation.length && !hasTail) {
+    return result;
   }
 
-  const cached = paletteStateCache.get(app);
+  const cached = palettePreviewCache.get(app);
 
   if (cached?.result === result && cached.insertionIndex === insertionIndex) {
-    return cached.state;
+    return cached.preview;
   }
 
-  const state = app.adapter.rotationPlanningStateAt(app, insertionIndex);
-  paletteStateCache.set(app, { result, insertionIndex, state });
-  return state;
+  const preview = app.adapter.rotationPreviewAt(app, insertionIndex);
+  palettePreviewCache.set(app, { result, insertionIndex, preview });
+  return preview;
 }
+
+export const palettePlanningState = (app: ProfessionAppState): ProfessionAppResult['planningState'] | null =>
+  palettePlanningResult(app)?.planningState ?? null;
 
 export const paletteProfessionState = (app: ProfessionAppState): RotationProfessionState => {
   const profession = palettePlanningState(app)?.profession;

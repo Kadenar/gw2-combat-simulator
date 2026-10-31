@@ -13,8 +13,8 @@ import {
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
-// The fourth qualifying blast consumes the native three-stack pool.
-const VOLATILITY_STACKS = 3;
+// Display progress toward the fourth blast, which consumes the three stored stacks.
+const VOLATILITY_TRIGGER_STACKS = 4;
 
 export const bloodstone = defineRelic({
   buffPolicies: [{ kind: 'bloodstone-fervor', name: 'Relic of Bloodstone', maximumStacks: 1 }],
@@ -31,14 +31,14 @@ export const bloodstone = defineRelic({
 
     const currentStacks = activeRefreshedStacks(state.refreshedStacks, event.at, 'exclusive');
 
-    if (currentStacks < VOLATILITY_STACKS) {
+    if (currentStacks < VOLATILITY_TRIGGER_STACKS - 1) {
       // Each blast renews all Volatility stacks; the next blast at cap still belongs to the Fervor transition.
       const buff = grantRefreshedStacks(
         state.refreshedStacks!,
         1,
         event.at,
         gw2EffectExpiresAt(event.at, 10),
-        VOLATILITY_STACKS,
+        VOLATILITY_TRIGGER_STACKS - 1,
         'exclusive'
       );
       state.refreshedStacks = buff;
@@ -49,9 +49,9 @@ export const bloodstone = defineRelic({
           name: 'Bloodstone Volatility',
           at: event.at,
           sourceSkill: event.skillName,
-          detail: `${buff.stacks}/3 stacks`,
+          detail: `${buff.stacks}/${VOLATILITY_TRIGGER_STACKS} stacks`,
           expiresAt: buff.expiresAt,
-          effectState: { stacks: buff.stacks, maximumStacks: VOLATILITY_STACKS }
+          effectState: { stacks: buff.stacks, maximumStacks: VOLATILITY_TRIGGER_STACKS }
         }
       });
       return;
@@ -68,7 +68,7 @@ export const bloodstone = defineRelic({
         sourceSkill: event.skillName,
         detail: 'stacks consumed',
         expiresAt: event.at,
-        effectState: { stacks: 0, maximumStacks: VOLATILITY_STACKS }
+        effectState: { stacks: 0, maximumStacks: VOLATILITY_TRIGGER_STACKS }
       }
     });
     emitDamagePayload(ctx, state, event);

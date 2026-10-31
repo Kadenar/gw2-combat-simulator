@@ -72,7 +72,7 @@ test('Carapace state tracking follows the inspected observation across Necromanc
           results: { planningState: { ...planningState, atSeconds: 10 }, rotationEndTime: 10 },
           adapter: {
             eliteSpecialization: () => specialization,
-            rotationPlanningStateAt: () => planningState
+            rotationPreviewAt: () => ({ planningState })
           },
           rotationInsertionIndex: 0
         };

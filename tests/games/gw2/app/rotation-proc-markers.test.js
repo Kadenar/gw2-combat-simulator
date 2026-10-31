@@ -237,7 +237,7 @@ test('relic consumption cancels stale timeouts and makes subsequent buildup a fr
     skill: 'Bloodstone Volatility',
     start,
     ...(expiresAt === undefined ? {} : { expiresAt }),
-    effectState: { stacks, maximumStacks: 3 }
+    effectState: { stacks, maximumStacks: 4 }
   });
   const result = {
     combatEndTime: 40,

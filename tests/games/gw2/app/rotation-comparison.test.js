@@ -406,8 +406,8 @@ test('comparison follows the insertion checkpoint and restores final metrics at 
     results: { dpsStartTime: 2 },
     rotationInsertionIndex: 1,
     adapter: {
-      rotationPlanningStateAt(_app, index) {
-        return { atSeconds: index === 0 ? 0 : 2.75 };
+      rotationPreviewAt(_app, index) {
+        return { planningState: { atSeconds: index === 0 ? 0 : 2.75 } };
       }
     }
   };

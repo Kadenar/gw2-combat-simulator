@@ -111,25 +111,6 @@ export function createProfessionRuntime({
     return withScenarioConfig(config, app.workspace?.scenario);
   }
 
-  function rotationPlanningStateAt(
-    app: ProfessionAppState,
-    insertionIndex: number
-  ): Gw2SimulationResult['planningState'] {
-    const rotation = app.build.rotation;
-    const index = clamp(rotation.length, 0, Math.floor(Number(insertionIndex) || 0));
-
-    // A tail-resolved result cannot supply availability at the insertion boundary.
-    if (
-      index === rotation.length &&
-      app.results &&
-      app.results.planningState.atSeconds === app.results.rotationEndTime
-    ) {
-      return app.results.planningState;
-    }
-
-    return rotationPreviewAt(app, index).planningState;
-  }
-
   /** Prefix and candidate previews use the same engine and inherited combat boundary, without an observation tail. */
   function rotationPreviewAt(
     app: ProfessionAppState,
@@ -200,7 +181,6 @@ export function createProfessionRuntime({
     randomDistributionRequest,
     relicComparisonRequest,
     calculateRandomDistribution,
-    rotationPlanningStateAt,
     rotationPreviewAt,
     baselineSimulationRequest,
     calculateBaselineSimulation

@@ -138,7 +138,6 @@ export interface ProfessionRuntimeApi {
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions
   ): RandomDistributionSummary;
-  rotationPlanningStateAt(app: ProfessionAppState, insertionIndex: number): Gw2SimulationResult['planningState'];
   /** Simulates a prefix and optional candidate commands with the original combat-start boundary. */
   rotationPreviewAt(
     app: ProfessionAppState,

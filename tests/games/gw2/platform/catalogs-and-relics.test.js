@@ -823,7 +823,7 @@ test('Relic of Bloodstone records three Volatility stacks before the fourth blas
 
   assert.deepEqual(
     volatility.map((step) => step.detail),
-    ['1/3 stacks', '2/3 stacks', '3/3 stacks', 'stacks consumed']
+    ['1/4 stacks', '2/4 stacks', '3/4 stacks', 'stacks consumed']
   );
   assert.equal(
     threeBlasts.procSteps.some((step) => step.skill === 'Relic of Bloodstone'),

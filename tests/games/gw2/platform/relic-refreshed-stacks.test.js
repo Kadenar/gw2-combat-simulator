@@ -55,6 +55,9 @@ test('Bloodstone refreshes Volatility until the fourth blast consumes it and blo
   combo(9);
   combo(18);
   assert.deepEqual(context.relic.state.refreshedStacks, { stacks: 3, expiresAt: 28 });
+  // Three stored stacks display progress toward the fourth blast that activates Fervor.
+  assert.equal(context.announcements.at(-1).announcement.detail, '3/4 stacks');
+  assert.deepEqual(context.announcements.at(-1).announcement.effectState, { stacks: 3, maximumStacks: 4 });
   combo(19, 'Leap');
   assert.equal(context.relic.state.refreshedStacks.stacks, 3);
   combo(20);

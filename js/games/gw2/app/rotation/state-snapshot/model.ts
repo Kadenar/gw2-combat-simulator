@@ -1,5 +1,5 @@
 /** Builds the app-owned snapshot at the insertion cursor or rotation end. */
-import { activeSpecialization, palettePlanningState } from '#gw2/app/rotation/context.js';
+import { activeSpecialization, palettePlanningResult } from '#gw2/app/rotation/context.js';
 import { procStackLabel } from '#gw2/app/rotation/timeline/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -39,7 +39,8 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
   readonly timeMs: number;
 } {
   const result = app.results;
-  const state = palettePlanningState(app);
+  const preview = palettePlanningResult(app);
+  const state = preview?.planningState;
   const timeMs = Number(state?.atSeconds || 0) * 1000;
   const rotationLength = app.build.rotation.length;
   const atInsertion = app.rotationInsertionIndex != null && app.rotationInsertionIndex !== rotationLength;
@@ -62,20 +63,27 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
 
   // Relic proc deadlines include refreshes and surviving precast buffs; ignore activations after the cursor.
   const relicExpirations = new Map<string, number>();
-  const relicStacks = new Map<string, { start: number; label: string }>();
-  for (const proc of result?.procSteps || []) {
-    if (proc.type !== 'relic_proc' || proc.start > timeMs || !(Number(proc.expiresAt) > timeMs)) continue;
+  const relicStacks = new Map<string, string>();
+  for (const proc of (preview?.procSteps || [])
+    .filter((step) => step.type === 'relic_proc' && step.start <= timeMs)
+    .sort((left, right) => left.start - right.start)) {
+    // Consumption ends the old pool immediately, even without a future expiration deadline.
+    if (proc.effectState?.stacks === 0) {
+      relicExpirations.delete(proc.skill);
+      relicStacks.delete(proc.skill);
+      continue;
+    }
+
+    if (!(Number(proc.expiresAt) > timeMs)) continue;
 
     relicExpirations.set(proc.skill, Math.max(relicExpirations.get(proc.skill) || 0, Number(proc.expiresAt)));
 
-    // Stack counts describe the latest activation at the cursor, even when proc records arrive out of order.
-    if (proc.start >= (relicStacks.get(proc.skill)?.start ?? -Infinity)) {
-      relicStacks.set(proc.skill, { start: proc.start, label: procStackLabel(proc) });
-    }
+    // Chronological replay keeps the latest stack count even when records arrive out of order.
+    relicStacks.set(proc.skill, procStackLabel(proc));
   }
 
   for (const [name, expiresAt] of relicExpirations) {
-    const stacks = relicStacks.get(name)?.label;
+    const stacks = relicStacks.get(name);
     const remaining = `${((expiresAt - timeMs) / 1000).toFixed(1)}s`;
     items.push({
       id: `relic:${name}`,

@@ -95,8 +95,8 @@
         "upToDate": true,
         "benchmarkApm": 115.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 45797, "phase": 45797 },
-          "80-60": { "cumulative": 44617, "phase": 43492 },
+          "100-80": { "cumulative": 45794, "phase": 45794 },
+          "80-60": { "cumulative": 44617, "phase": 43495 },
           "60-40": { "cumulative": 44459, "phase": 44139 },
           "40-20": { "cumulative": 42965, "phase": 38931 },
           "20-0": { "cumulative": 43287, "phase": 43287 }
@@ -105,8 +105,8 @@
           "patchId": "nov-10-balance-preview",
           "benchmarkDps": 41902,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 45341, "phase": 45341 },
-            "80-60": { "cumulative": 43054, "phase": 40926 },
+            "100-80": { "cumulative": 45338, "phase": 45338 },
+            "80-60": { "cumulative": 43054, "phase": 40928 },
             "60-40": { "cumulative": 43075, "phase": 43117 },
             "40-20": { "cumulative": 42087, "phase": 39422 },
             "20-0": { "cumulative": 41902, "phase": 41902 }

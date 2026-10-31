@@ -117,7 +117,10 @@ test('active state shows one countdown per active relic and ignores future, expi
         proc('Sigil of Test', 0, 10000, 'sigil_proc')
       ]
     },
-    adapter: { eliteSpecialization: () => 'Core', rotationPlanningStateAt: () => ({ atSeconds: 3 }) },
+    adapter: {
+      eliteSpecialization: () => 'Core',
+      rotationPreviewAt: (app) => ({ ...app.results, planningState: { atSeconds: 3 } })
+    },
     profession: {
       ui: { rotationStateSnapshot: () => [] }
     },
@@ -128,8 +131,8 @@ test('active state shows one countdown per active relic and ignores future, expi
   assert.deepEqual(
     snapshot.items.map(({ label, value }) => [label, value]),
     [
-      ['Relic of the Claw', '7.0s'],
-      ['Relic of the Director', '1.0s']
+      ['Relic of the Director', '1.0s'],
+      ['Relic of the Claw', '7.0s']
     ]
   );
   app.rotationInsertionIndex = null;
@@ -139,6 +142,53 @@ test('active state shows one countdown per active relic and ignores future, expi
   assert.deepEqual(rotationStateSnapshot(app).items, []);
   app.results = null;
   assert.deepEqual(rotationStateSnapshot(app).items, []);
+});
+
+// Consumption must supersede prior grants at the cursor, including simultaneous and unordered records.
+test('Bloodstone active state clears consumed Volatility during Fervor and starts a fresh pool afterward', () => {
+  for (const expiresAt of [undefined, 3000]) {
+    const volatility = (start, stacks, deadline) => ({
+      type: 'relic_proc',
+      skill: 'Bloodstone Volatility',
+      start,
+      expiresAt: deadline,
+      effectState: { stacks, maximumStacks: 4 }
+    });
+    const app = {
+      patch: withPatchPreview(mesmerProfession, null).resolvePatch(),
+      build: { rotation: ['a', 'b'] },
+      results: {
+        planningState: { atSeconds: 3 },
+        procSteps: [
+          volatility(11000, 1, 21000),
+          volatility(3000, 3, 13000),
+          volatility(3000, 0, expiresAt),
+          volatility(1000, 2, 11000),
+          { type: 'relic_proc', skill: 'Relic of Bloodstone', start: 3000, expiresAt: 11000 }
+        ]
+      },
+      profession: { ui: { rotationStateSnapshot: () => [] } },
+      adapter: {
+        eliteSpecialization: () => 'Core',
+        rotationPreviewAt: (app) => ({ ...app.results, planningState: { atSeconds: 2 } })
+      },
+      rotationInsertionIndex: 1
+    };
+    assert.equal(rotationStateSnapshot(app).items[0].value, '2/4 stacks');
+    app.rotationInsertionIndex = null;
+    for (const atSeconds of [3, 5, 10.999]) {
+      app.results.planningState.atSeconds = atSeconds;
+      assert.deepEqual(
+        rotationStateSnapshot(app).items.map(({ label }) => label),
+        ['Relic of Bloodstone']
+      );
+    }
+
+    app.results.planningState.atSeconds = 11;
+    assert.equal(rotationStateSnapshot(app).items[0].value, '1/4 stacks');
+    app.results.planningState.atSeconds = 21;
+    assert.deepEqual(rotationStateSnapshot(app).items, []);
+  }
 });
 
 test('Deadeye cantrip relic windows reach the shared active-state display and expire', () => {
@@ -182,7 +232,10 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
     profession: {
       ui: { rotationStateSnapshot: () => [] }
     },
-    adapter: { eliteSpecialization: () => 'Core', rotationPlanningStateAt: () => ({ atSeconds: 1.5 }) },
+    adapter: {
+      eliteSpecialization: () => 'Core',
+      rotationPreviewAt: (app) => ({ ...app.results, planningState: { atSeconds: 1.5 } })
+    },
     rotationInsertionIndex: 1
   };
   const item = rotationStateSnapshot(app).items[0];
@@ -226,7 +279,7 @@ test('Chronomancer active state shows only pending conversions from phantasms al
       rotationInsertionIndex: 1,
       adapter: {
         eliteSpecialization: () => 'Chronomancer',
-        rotationPlanningStateAt: () => ({ ...effectPlanningState(result, at), profession: {} })
+        rotationPreviewAt: () => ({ ...result, planningState: { ...effectPlanningState(result, at), profession: {} } })
       }
     }).items.filter((item) => item.id.startsWith('chronomancer-phantasm:'));
 
