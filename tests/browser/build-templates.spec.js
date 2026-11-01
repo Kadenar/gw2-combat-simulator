@@ -1,5 +1,23 @@
 import { expect, test } from '@playwright/test';
 
+// Phones place New inside Build actions; use the visible controls before opening the shared library.
+async function browseNewTemplates(scope) {
+  const actions = scope.getByRole('button', { name: 'Build actions', exact: true });
+
+  if (await actions.isVisible()) {
+    if ((await actions.getAttribute('aria-expanded')) !== 'true') await actions.click();
+  }
+
+  await scope.locator('.build-tab-new').click();
+  await scope.getByRole('button', { name: /Browse templates/ }).click();
+}
+
+// Closing the library returns to the toolbar control that remains reachable in the current layout.
+async function expectNewTemplateFocus(scope) {
+  const actions = scope.getByRole('button', { name: 'Build actions', exact: true });
+  await expect((await actions.isVisible()) ? actions : scope.locator('.build-tab-new')).toBeFocused();
+}
+
 // Optional catalog failures must not prevent users from saving and opening their personal library.
 for (const failure of ['missing', 'network']) {
   test(`My Builds remains usable when the template catalog is ${failure}`, async ({ page }) => {
@@ -148,7 +166,6 @@ test('standalone templates open only in a dialog at every viewport width', async
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   const container = page.locator('.build-templates');
   const dialog = page.locator('#build-templates-dialog');
-  const newButton = page.locator('.build-tab-new');
   for (const width of [390, 1600]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(dialog).toBeHidden();
@@ -158,23 +175,21 @@ test('standalone templates open only in a dialog at every viewport width', async
     const main = await page.locator('.profession-main').boundingBox();
     expect(main.x).toBe(layout.x);
     expect(main.width).toBe(layout.width);
-    await newButton.click();
-    await page.getByRole('button', { name: /Browse templates/ }).click();
+    await browseNewTemplates(page);
     await expect(dialog).toBeInViewport();
     await expect(dialog.getByRole('button', { name: 'Close build library' })).toBeFocused();
     await page.keyboard.press('Escape');
-    await expect(newButton).toBeFocused();
+    await expectNewTemplateFocus(page);
   }
 
-  await newButton.click();
-  await page.getByRole('button', { name: /Browse templates/ }).click();
+  await browseNewTemplates(page);
   await dialog.locator('.template-filter').first().locator('summary').click();
   await dialog.locator('[data-template-filter="power"]').click();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(dialog).toBeInViewport();
   await expect(dialog.locator('[data-template-role-value]')).toHaveText('Power');
   await dialog.getByRole('button', { name: 'Close build library' }).click();
-  await expect(newButton).toBeFocused();
+  await expectNewTemplateFocus(page);
 });
 
 // Cross-origin, auto-height hosts must keep the picker in the visible browser area as the host scrolls and resizes.
@@ -260,7 +275,6 @@ test('embedded templates browse in a bounded dialog and return to the editor aft
   const frame = page.frameLocator('iframe');
   await expect(frame.locator('#loading-overlay')).toHaveClass(/hidden/);
   const templates = frame.locator('.build-templates');
-  const browse = frame.getByRole('button', { name: /Browse templates/ });
   const dialog = frame.getByRole('dialog', { name: 'Build library' });
   const close = dialog.getByRole('button', { name: 'Close build library' });
 
@@ -284,8 +298,7 @@ test('embedded templates browse in a bounded dialog and return to the editor aft
     expect(editorBounds.y).toBeGreaterThanOrEqual(templateBounds.y + templateBounds.height);
     expect(editorBounds.x).toBe(templateBounds.x);
 
-    await frame.locator('.build-tab-new').click();
-    await browse.click();
+    await browseNewTemplates(frame);
     await expect(close).toBeFocused();
     expect(await dialog.evaluate((element) => element.matches(':modal'))).toBe(true);
     expect(
@@ -308,11 +321,10 @@ test('embedded templates browse in a bounded dialog and return to the editor aft
     await expect(close).toBeInViewport();
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
-    await expect(frame.locator('.build-tab-new')).toBeFocused();
+    await expectNewTemplateFocus(frame);
   }
 
-  await frame.locator('.build-tab-new').click();
-  await browse.click();
+  await browseNewTemplates(frame);
   await dialog.locator('.template-actions > summary').first().click();
   await dialog.getByRole('menuitem', { name: 'Load build only' }).first().click();
   await expect(dialog).toBeHidden();
@@ -320,13 +332,11 @@ test('embedded templates browse in a bounded dialog and return to the editor aft
   await expect(templates.getByRole('status')).toContainText('build only');
   await templates.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect(templates.getByRole('status')).toBeHidden();
-  await frame.locator('.build-tab-new').click();
-  await browse.click();
+  await browseNewTemplates(frame);
   await close.click();
   await expect(frame.locator('.build-tab-new')).toBeFocused();
   // The primary choice reached through New must preserve the existing build in its own tab.
-  await frame.locator('.build-tab-new').click();
-  await browse.click();
+  await browseNewTemplates(frame);
   await dialog.locator('.template-load-btn').first().click();
   await expect(dialog).toBeHidden();
   await expect(frame.locator('.build-tab')).toHaveCount(2);

@@ -118,6 +118,8 @@ test('event log preserves reading position and follows the end across updates', 
   });
   await page.locator('[data-role="event-log-details"] > summary').click();
   const log = page.locator('[data-role="event-log-rows"]');
+  // Opening details queues lazy rendering; establish scrollable rows before setting the reading position.
+  await expect(log.locator('.log-line')).toHaveCount(100);
   await log.evaluate((element) => {
     element.scrollTop = 200;
   });
@@ -137,7 +139,7 @@ test('event log preserves reading position and follows the end across updates', 
     element.scrollTop = 200;
   });
   await page.getByRole('searchbox', { name: 'Filter events' }).fill('CAST');
-  await page.waitForTimeout(250);
+  await expect(log.locator('mark')).toHaveCount(160);
   await expect.poll(() => log.evaluate((element) => element.scrollTop)).toBe(200);
   await page.evaluate(() => window.renderLog(2));
   await expect.poll(() => log.evaluate((element) => element.scrollTop)).toBe(0);

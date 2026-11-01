@@ -280,7 +280,23 @@ export function mountBuildTabs(app: ProfessionAppState): void {
 
       const dialog = document.querySelector<HTMLDialogElement>('#build-templates-dialog');
 
-      if (dialog) showDialog(dialog);
+      if (dialog) {
+        // Closing a modal hides its launching popovers; return to a visible control even after a resize.
+        const launcher = strip.querySelector<HTMLButtonElement>(
+          action === 'browse' ? '.build-tab-new' : '#build-switcher'
+        )!;
+        dialog.addEventListener(
+          'close',
+          () => {
+            const target = launcher.checkVisibility()
+              ? launcher
+              : strip.querySelector<HTMLButtonElement>('#build-actions-trigger')!;
+            target.focus({ preventScroll: true });
+          },
+          { once: true }
+        );
+        showDialog(dialog);
+      }
 
       return;
     }
