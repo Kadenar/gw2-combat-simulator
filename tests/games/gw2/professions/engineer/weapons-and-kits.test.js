@@ -325,7 +325,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
     ID.RADIANT_ARC_NON_HOLOSMITH,
     ID.REFRACTION_CUTTER_NON_HOLOSMITH
   ]) {
-    assert.equal(skill(id).specialization, '');
+    assert.equal(skill(id).specialization, undefined);
   }
 
   assert.equal(mechanistRuntime.catalog.skillsById.has(ID.GLEAM_SABER), false);

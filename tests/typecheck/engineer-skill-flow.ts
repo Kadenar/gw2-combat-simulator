@@ -1,8 +1,9 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
-import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { holosmithHooks } from '#gw2/professions/engineer/specializations/holosmith/hooks.js';
 import type {
@@ -23,7 +24,7 @@ type HolosmithCast = NonNullable<typeof holosmithHooks.onCastCommit>;
 
 // Real modules, selected catalogs, and hooks retain profession fields without widening to Skill or any.
 export type EngineerSkillFlowAssertions = [
-  Assert<Equal<NonNullable<typeof engineerCoreModule.data.generatedSkills>[number], EngineerSkill>>,
+  Assert<Equal<NonNullable<typeof engineerCoreModule.data.skills>[number], EngineerSkill>>,
   Assert<Equal<(typeof engineerCatalog.skills)[number], EngineerSkill>>,
   Assert<Equal<(typeof engineerProfession.catalog.skills)[number], EngineerSkill>>,
   Assert<Equal<(typeof first.catalog.skills)[number], EngineerSkill>>,
@@ -49,13 +50,19 @@ export function engineerHookSkillReads(runtime: EngineerRuntime, cast: Parameter
   void [cost, flag, indexed, listed, invalid];
 }
 
-createEngineerModuleData('Core', {
-  skillMechanics: {
-    1: {
-      // @ts-expect-error Known profession fields reject invalid authored values.
-      mechanicSlot: 'invalid'
-    }
+const invalidDefinitions: Record<string, SkillDefinition<EngineerSkill>> = {
+  1: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    // @ts-expect-error Known profession fields reject invalid authored values.
+    mechanicSlot: 'invalid'
   }
+};
+createNativeModuleData<EngineerSkill>({
+  id: 'Core',
+  traitLines: TRAIT_LINES,
+  skillMechanics: invalidDefinitions
 });
 
 // Heat stays local to Holosmith while its helpers still inherit Engineer kit metadata.

@@ -14,7 +14,7 @@ import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Small casts isolate input scheduling from profession damage or saved-rotation timing.
 const catalog = createCanonicalCatalog({
-  generated: [
+  skills: [
     { id: 2, name: 'Swap Weapons', castTimeMs: 0, inputCategory: 'weapon-swap', effects: [] },
     { id: 3, name: 'Next cast', castTimeMs: 40, effects: [] },
     { id: 4, name: 'Instant', castTimeMs: 0, effects: [] },

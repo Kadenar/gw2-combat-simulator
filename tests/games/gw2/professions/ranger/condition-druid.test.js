@@ -69,7 +69,7 @@ test('condition Druid weapon packets and cooldowns use configured profiles', () 
   const throwTorch = rangerCatalog.skillsById.get(ID.THROW_TORCH);
 
   assert.equal(throwTorch.ammo, 2);
-  assert.equal(throwTorch.ammoRecharge, 15);
+  assert.equal(throwTorch.cooldown, 15);
 
   const bonfire = rangerCatalog.skillsById.get(ID.BONFIRE);
 

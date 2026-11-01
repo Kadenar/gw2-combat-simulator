@@ -1,5 +1,5 @@
 /**
- * Owns Luminary stance and stance-chain skill fragments.
+ * Owns Luminary stance and stance-chain skill definitions.
  * Persistent stance windows and scheduled effects remain in `hooks.ts`.
  */
 import { AURA, BOON, COMBO_FIELD, COMBO_FINISHER, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -8,7 +8,7 @@ import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { AURA_GRANT, EFFULGENT, STANCE } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
@@ -20,14 +20,29 @@ import { canonicalTime } from '#kernel/core/clock.js';
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
 const PIERCING_STANCE_IMPACT_MS = 160;
 
-export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.RESOLUTE_STANCE]: {
+    name: 'Resolute Stance',
+    description:
+      'Stance. Enter a stance that heals when you remove conditions from yourself, then heal nearby allies and remove conditions from them.',
+    icon: 'https://render.guildwars2.com/file/C0267DCD064328C6C4CF33CF08714FB1DC1171BC/3680141.png',
+    type: 'Heal',
+    slot: 'Heal',
+    skillFamily: 'Stance',
+    cooldown: 30,
     castTimeMs: 680,
     effects: []
   },
   [ID.DARING_ADVANCE]: {
+    name: 'Daring Advance',
+    description:
+      'Stance. Leap to an area, tethering nearby enemies and empowering allies. Tethered enemies are revealed and take additional damage from your attacks and are stunned if they move beyond the range threshold.',
+    icon: 'https://render.guildwars2.com/file/2E24D2089501C663801BF7CC567E1CC0F5714AD7/3680140.png',
+    type: 'Elite',
+    slot: 'Elite',
+    skillFamily: 'Stance',
+    cooldown: 60,
     castTimeMs: 1000,
-
     effects: [
       {
         type: 'strike',
@@ -51,6 +66,14 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     sideEffects: [{ on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-daring' } }]
   },
   [ID.EFFULGENT_STANCE]: {
+    name: 'Effulgent Stance',
+    description:
+      'Stance. Grant barrier and light aura to nearby allies, then enter a stance that charges up a burst of light when striking or struck by enemies. The burst of light dazes enemies if fully charged.',
+    icon: 'https://render.guildwars2.com/file/59A7E145B5D6DC4CB9642F80007644791D302FA2/3680156.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Stance',
+    cooldown: 20,
     // The stance owns its aura and detonation tuning; scheduled work chooses when each payload is emitted.
     duration: 4,
     maximumStacks: 10,
@@ -68,6 +91,16 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   },
   [ID.PIERCING_STANCE]: {
+    name: 'Piercing Stance',
+    description: 'Stance. Enter a stance that causes you to deal more damage, then strike nearby enemies to daze them.',
+    icon: 'https://render.guildwars2.com/file/E5805F3477ED5618E348043475FFA442C7C791E3/3680154.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Stance',
+    cooldown: 20,
+    ammoCastLockout: 1,
+    ammo: 2,
+
     castTimeMs: 200,
     // Keep the stance's strike and daze on one impact.
     effects: impactEffects({ atMs: PIERCING_STANCE_IMPACT_MS, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -86,8 +119,17 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   },
   [ID.VALOROUS_STANCE]: {
+    name: 'Valorous Stance',
+    description:
+      'Stance. Enter a stance that causes you to heal allies when you grant them boons, then grant boons to nearby allies.',
+    icon: 'https://render.guildwars2.com/file/7D246678672DAF3F941930A50EBCDB54A91C7D0F/3680155.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Stance',
+    cooldown: 25,
+    patchAuthoringExcluded: true,
     // This non-DPS stance has simulated boons; hide it from loadout slots without blocking recorded casts.
-    simulatorExcluded: false,
+
     slotSelectable: false,
     castTimeMs: 200,
     // Activation grants the stance's defensive boons to nearby allies.

@@ -13,17 +13,12 @@ import { evokerModule } from '#gw2/professions/elementalist/specializations/evok
 import { tempestModule } from '#gw2/professions/elementalist/specializations/tempest/module.js';
 import { weaverModule } from '#gw2/professions/elementalist/specializations/weaver/module.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
-import { ENGINEER_CORE_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/index.js';
 import { ENGINEER_SKILL_IDS as ENGINEER_ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
-import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import { holosmithModule } from '#gw2/professions/engineer/specializations/holosmith/module.js';
-import { HOLOSMITH_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/holosmith/skills/index.js';
 import { mechanistModule } from '#gw2/professions/engineer/specializations/mechanist/module.js';
-import { MECHANIST_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/index.js';
 import { scrapperModule } from '#gw2/professions/engineer/specializations/scrapper/module.js';
-import { SCRAPPER_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/scrapper/skills/index.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { dragonhunterModule } from '#gw2/professions/guardian/specializations/dragonhunter/module.js';
@@ -59,7 +54,6 @@ import { specterModule as thiefSpecterModule } from '#gw2/professions/thief/spec
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
-import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 
 // Tests derive elite names from the same canonical catalog consumed by production.
 function eliteSpecializationNames(catalog) {
@@ -274,9 +268,9 @@ test('native module contributions assemble disjoint application and runtime cata
       assert.equal(typeof module.state.create, 'function', `${name}:${module.id}`);
       assert.equal(Object.hasOwn(module, 'catalog'), false, `${name}:${module.id}`);
       for (const [kind, entries] of [
-        ['skills', [...(module.data.generatedSkills || []), ...(module.data.extraSkills || [])]],
+        ['skills', module.data.skills || []],
         ['traits', module.data.traits || []],
-        ['specializations', module.data.specializations || []]
+        ['specializations', module.data.traitLines || []]
       ]) {
         for (const entry of entries) {
           assert.equal(contributed[kind].has(entry.id), false, `${name}:${kind}:${entry.id}`);
@@ -329,16 +323,15 @@ const eliteSkill = Object.freeze({
   id: 2,
   name: 'Elite Skill',
   castTimeMs: 0,
-  effects: [],
-  specialization: 'Elite'
+  effects: []
 });
 // Synthetic families use the same native authoring boundary as shipped professions.
 function testModule(id, options = {}) {
   return defineNativeModule({
     id,
     data: {
-      generatedSkills: id === 'Core' ? [coreSkill] : [eliteSkill],
-      specializations:
+      skills: id === 'Core' ? [coreSkill] : [eliteSkill],
+      traitLines:
         id === 'Core' ? [{ id: 1, name: 'Core Line', elite: false }] : [{ id: 2, name: 'Elite', elite: true }],
       ...options.data
     },
@@ -582,10 +575,10 @@ test('family composition rejects duplicate registries and catalog ids', () => {
       testFamily(
         testModule('Core'),
         testModule('Elite', {
-          data: { generatedSkills: [coreSkill] }
+          data: { skills: [coreSkill] }
         })
       ).resolveProfession({ specialization: 'Elite' }),
-    /Duplicate generated skill id 1/
+    /Duplicate skill id 1/
   );
 });
 
@@ -634,7 +627,7 @@ test('Necromancer modules contribute complete disjoint runtime slices', () => {
 
   for (const [, module] of slices) {
     assert.equal(typeof module.state?.create, 'function');
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    assert.ok((module.data?.skills?.length || 0) > 0);
     // Modules contain their runtime behavior in one hook table without a second scheduler or resolver registration.
     assert.ok(module.hooks);
     assert.ok(module.presentation);
@@ -771,7 +764,7 @@ test('Guardian modules contribute disjoint runtime slices', () => {
 
   for (const [, module] of slices) {
     assert.equal(typeof module.state?.create, 'function');
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    assert.ok((module.data?.skills?.length || 0) > 0);
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
@@ -891,7 +884,7 @@ test('Mesmer modules contribute disjoint runtime slices', () => {
 
   for (const [, module] of mesmerSlices) {
     assert.equal(typeof module.state?.create, 'function');
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    assert.ok((module.data?.skills?.length || 0) > 0);
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
       modifierRuleOwners.set(rule.id, module.id);
@@ -1001,7 +994,7 @@ test('Revenant modules contribute disjoint runtime slices', () => {
 
   for (const [, module] of revenantSlices) {
     assert.equal(typeof module.state?.create, 'function');
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    assert.ok((module.data?.skills?.length || 0) > 0);
     assert.ok(module.presentation);
     for (const rule of nativeModifierRules(module)) {
       assert.equal(modifierRuleOwners.has(rule.id), false, rule.id);
@@ -1117,7 +1110,7 @@ test('Engineer modules contribute disjoint runtime slices', () => {
 
   for (const [, module] of engineerSlices) {
     assert.equal(typeof module.state?.create, 'function');
-    assert.ok((module.data?.generatedSkills?.length || 0) + (module.data?.extraSkills?.length || 0) > 0);
+    assert.ok((module.data?.skills?.length || 0) > 0);
 
     assert.ok(module.presentation);
     for (const rule of nativeModifierRules(module)) {
@@ -1130,34 +1123,6 @@ test('Engineer modules contribute disjoint runtime slices', () => {
   assert.equal(modifierRuleOwners.get('engineer.lasers-edge'), 'Holosmith');
   assert.equal(modifierRuleOwners.get('engineer.force-signet'), 'Mechanist');
   assert.equal(modifierRuleOwners.get('engineer.willing-host'), 'Amalgam');
-});
-
-test('Engineer raw skill mechanics retain a disjoint no-loss union', () => {
-  const fragments = [
-    ENGINEER_CORE_SKILL_MECHANICS,
-    SCRAPPER_SKILL_MECHANICS,
-    HOLOSMITH_SKILL_MECHANICS,
-    MECHANIST_SKILL_MECHANICS,
-    AMALGAM_SKILL_MECHANICS
-  ];
-  const aggregate = composeSkillMechanics('Engineer', fragments);
-  const owners = new Map();
-
-  for (const [fragmentIndex, fragment] of fragments.entries()) {
-    for (const skillId of Object.keys(fragment)) {
-      assert.equal(
-        owners.has(skillId),
-        false,
-        `skill mechanics ${skillId} owned by fragments ` + `${owners.get(skillId)} and ${fragmentIndex}`
-      );
-      owners.set(skillId, fragmentIndex);
-    }
-  }
-
-  assert.deepEqual(
-    [...owners.keys()].sort((left, right) => Number(left) - Number(right)),
-    Object.keys(aggregate).sort((left, right) => Number(left) - Number(right))
-  );
 });
 
 test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () => {

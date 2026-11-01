@@ -56,7 +56,7 @@ test('Warrior replay preserves idle gaps with the selected trait and active offh
 
 // Minimal skills expose a recharge the recorded casts violate without depending on benchmark rotations.
 const catalog = createCanonicalCatalog({
-  generated: [
+  skills: [
     { id: 1, name: 'Cooldown Skill', castTimeMs: 120, cooldown: 1, effects: [] },
     { id: 2, name: 'Next Cast', castTimeMs: 120, effects: [] }
   ]

@@ -8,7 +8,7 @@ import { ACTOR, AURA, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -86,38 +86,53 @@ const LUTE_ACTIONS: NonNullable<MesmerSkill['sideEffects']> = [
 ];
 
 export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
-  Record<SkillId, Partial<MesmerSkill> & { readonly instrument?: MesmerInstrument }>
+  Record<SkillId, SkillDefinition<MesmerSkill> & { readonly instrument?: MesmerInstrument }>
 > = Object.freeze({
-  [ID.LIVELY_LUTE]: instrumentSkill({
-    instrument: {
-      slot: 1,
-      instrument: 'Lute',
-      damageAtMs: 440,
-      // All launched notes survive an interruption after the performance commits.
-      persistsAfterInterrupt: true,
-      // Player and afterimage performances share these three note packets.
-      ticks: [
-        { atMs: 0, coefficient: 1 },
-        { atMs: 200, coefficient: 1 },
-        { atMs: 400, coefficient: 1 }
-      ]
-    },
-    castTimeMs: 560,
-    // The performance launches before recovery ends; later cancellation preserves its notes and waves.
-    interruptCommitMs: 360,
-    effects: [],
-    effectVariants: instrumentEffects(),
-    sideEffects: LUTE_ACTIONS
-  }),
+  [ID.LIVELY_LUTE]: {
+    name: 'Lively Lute',
+    description:
+      "Instrument. Perform with your lute, sending out damaging sound waves toward an enemy and healing tones toward allies.\nThe lute will then consume all notes to continue playing in the background. The lute's duration is extended for each note consumed.",
+    icon: 'https://render.guildwars2.com/file/4CAA3750145A55B7E73D5EB9917590EC45657BE7/3680159.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    cooldown: 12,
+    ...instrumentSkill({
+      instrument: {
+        slot: 1,
+        instrument: 'Lute',
+        damageAtMs: 440,
+        // All launched notes survive an interruption after the performance commits.
+        persistsAfterInterrupt: true,
+        // Player and afterimage performances share these three note packets.
+        ticks: [
+          { atMs: 0, coefficient: 1 },
+          { atMs: 200, coefficient: 1 },
+          { atMs: 400, coefficient: 1 }
+        ]
+      },
+      castTimeMs: 560,
+      // The performance launches before recovery ends; later cancellation preserves its notes and waves.
+      interruptCommitMs: 360,
+      effects: [],
+      effectVariants: instrumentEffects(),
+      sideEffects: LUTE_ACTIONS
+    })
+  },
   [ID.TALE_OF_THE_HONORABLE_ROGUE]: {
+    name: 'Tale of the Honorable Rogue',
+    description:
+      'Tale. Quote the escapades of Dougal Keane, causing nearby allies to become extraordinarily nimble with a burst of speed.',
+    icon: 'https://render.guildwars2.com/file/37EF1C69AC3D935333FCD8FC637729CEBE2A460E/3680165.png',
+    type: 'Utility',
+    slot: 'Utility',
     tale: { name: 'Tale of the Honorable Rogue', instrument: 'Drum' },
     noteGain: 1,
     // The instant tale refunds endurance at commitment through the shared capped pool.
     resourceGain: 50,
     rechargeAnchor: 'castStart',
-    cooldown: 4,
+    cooldown: 25,
     ammo: 2,
-    ammoRecharge: 25,
+
     ammoCastLockout: 4,
     castTimeMs: 0,
     effects: [],
@@ -135,6 +150,13 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     ]
   },
   [ID.TALE_OF_THE_SECOND_SCION]: {
+    name: 'Tale of the Second Scion',
+    description:
+      'Tale. Deliver the story of Aurene and the dragon cycle, rejuvenating nearby allies and increasing their incoming healing.',
+    icon: 'https://render.guildwars2.com/file/F12BF59E070FB12D2EAAA209596C52C4D76C4E97/3680158.png',
+    type: 'Heal',
+    slot: 'Heal',
+    cooldown: 15,
     tale: { name: 'Tale of the Second Scion', minimumInstruments: 2 },
     noteGain: 1,
     // Commit the tale's rewards after its 520 ms base cast.
@@ -145,35 +167,50 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       { on: 'castCommit', do: { id: 'tale', type: 'mesmer.troubadour.resolve-tale', effects: [] } }
     ]
   },
-  [ID.FLUSTERING_FLUTE]: instrumentSkill({
-    cryOfPainAdditionalStacks: 2,
-    cryOfPainDurationMultiplier: 0.5,
-    instrument: {
-      slot: 2,
-      instrument: 'Flute',
-      coefficient: 1,
-      hits: 1,
-      damageAtMs: 360,
-      conditions: [{ type: 'condition', condition: CONDITION.CONFUSION, duration: 4, stacks: 3 }]
-    },
-    castTimeMs: 560,
-    effects: [
-      // Performance and afterimage impacts materialize the same authored control.
-      {
-        type: 'control',
-        source: 'Player',
-        controlKind: CONTROL.DAZE,
-        actorType: ACTOR.PLAYER,
-        atMs: 0,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
-    // Flute uses the specialization's Cry of Pain bonuses on its native confusion.
-    effectVariants: instrumentEffects(),
-    sideEffects: INSTRUMENT_ACTIONS
-  }),
+  [ID.FLUSTERING_FLUTE]: {
+    name: 'Flustering Flute',
+    description:
+      "Instrument. Play an enchanting tune with the flute, confusing enemies in front of you. Enemies in the center of the music will be dazed.\nThe flute will then consume all notes to continue playing in the background. The flute's duration is extended for each note consumed.",
+    icon: 'https://render.guildwars2.com/file/CFE30B5052A2AA67D9A8AE5FC1FBA0A56C64584C/3680160.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    cooldown: 20,
+    ...instrumentSkill({
+      cryOfPainAdditionalStacks: 2,
+      cryOfPainDurationMultiplier: 0.5,
+      instrument: {
+        slot: 2,
+        instrument: 'Flute',
+        coefficient: 1,
+        hits: 1,
+        damageAtMs: 360,
+        conditions: [{ type: 'condition', condition: CONDITION.CONFUSION, duration: 4, stacks: 3 }]
+      },
+      castTimeMs: 560,
+      effects: [
+        // Performance and afterimage impacts materialize the same authored control.
+        {
+          type: 'control',
+          source: 'Player',
+          controlKind: CONTROL.DAZE,
+          actorType: ACTOR.PLAYER,
+          atMs: 0,
+          timingAnchor: 'castEnd',
+          timingScale: 'fixed'
+        }
+      ],
+      // Flute uses the specialization's Cry of Pain bonuses on its native confusion.
+      effectVariants: instrumentEffects(),
+      sideEffects: INSTRUMENT_ACTIONS
+    })
+  },
   [ID.TALE_OF_THE_SOULKEEPER]: {
+    name: 'Tale of the Soulkeeper',
+    description: 'Tale. Rouse allies with the legend of Almorra Soulkeeper, granting offensive boons.',
+    icon: 'https://render.guildwars2.com/file/AC9DC59D1CEF42DFD47CED6CE429041C7FADBBE7/3680164.png',
+    type: 'Utility',
+    slot: 'Utility',
+    cooldown: 20,
     tale: { name: 'Tale of the Soulkeeper', instrument: 'Lute' },
     noteGain: 2,
     rechargeAnchor: 'castStart',
@@ -196,6 +233,13 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     ]
   },
   [ID.CRESCENDO]: {
+    name: 'Crescendo',
+    description:
+      "Strike up the band and unleash a wave of sonic magic. Instruments playing in the background contribute to the amplitude, increasing the strength of the wave.\nThis skill's recharge cannot be reset by other mesmer skills.",
+    icon: 'https://render.guildwars2.com/file/935C32505D1F4DB7D9739C2C4B4137D4346709A4/3680163.png',
+    type: 'Profession',
+    slot: 'Profession_5',
+    cooldown: 35,
     // Schedule now, but select active instruments at impact rather than acceptance.
     damageIncreasePerInstrument: 0.25,
     damageAtMs: 840,
@@ -212,30 +256,46 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       }
     ]
   },
-  [ID.HARMONIOUS_HARP]: instrumentSkill({
-    // The damageless pulse reaches nearby foes at the shortest valid performance, where hit traits proc.
-    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
-    // Harp packets remain valid independently when the channel is interrupted.
-    castTimeMs: 2000,
-    // Default to a 480ms channel stop while allowing manually shortened 360ms performances.
-    defaultInterruptMs: 480,
-    interruptMode: 'per-packet',
-    effects: [],
-    effectVariants: instrumentEffects(),
-    sideEffects: [
-      ...INSTRUMENT_ACTIONS,
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
-        do: {
-          id: 'distortion',
-          type: 'mesmer.troubadour.harp-distortion',
-          effects: [{ name: 'distortion', type: 'buff', kind: 'distortion', duration: 2, stacks: 1 }]
+  [ID.HARMONIOUS_HARP]: {
+    name: 'Harmonious Harp',
+    description:
+      "Instrument. Gain distortion and strum the harp, continuously healing nearby allies.\nThe harp will then consume all notes to continue playing in the background. The harp's duration is extended for each note consumed.",
+    icon: 'https://render.guildwars2.com/file/C1BCF465DE1DAB00E00B0F1494ABDB2D7F57BECA/3680162.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    cooldown: 25,
+    ...instrumentSkill({
+      // The damageless pulse reaches nearby foes at the shortest valid performance, where hit traits proc.
+      instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
+      // Harp packets remain valid independently when the channel is interrupted.
+      castTimeMs: 2000,
+      // Default to a 480ms channel stop while allowing manually shortened 360ms performances.
+      defaultInterruptMs: 480,
+      interruptMode: 'per-packet',
+      effects: [],
+      effectVariants: instrumentEffects(),
+      sideEffects: [
+        ...INSTRUMENT_ACTIONS,
+        {
+          on: 'castStart',
+          when: (_runtime, cast) => !cast.cancelled,
+          do: {
+            id: 'distortion',
+            type: 'mesmer.troubadour.harp-distortion',
+            effects: [{ name: 'distortion', type: 'buff', kind: 'distortion', duration: 2, stacks: 1 }]
+          }
         }
-      }
-    ]
-  }),
+      ]
+    })
+  },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
+    name: 'Tale of the August Queen',
+    description:
+      'Tale. Retell how Queen Jennah protected her city in their time of need, granting allies distortion and chaos aura.',
+    icon: 'https://render.guildwars2.com/file/3FE0BC0317E63419FBCCC374A0D0A358E3A225F7/3680157.png',
+    type: 'Elite',
+    slot: 'Elite',
+    cooldown: 75,
     baseDuration: 3,
     durationPerTier: 3,
     // Commit the tale's rewards after its 840 ms base cast.
@@ -270,6 +330,13 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     ]
   },
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
+    name: 'Tale of the Tortured Mastermind',
+    description:
+      'Tale. Recall the cruelty of Scarlet Briar as you revile your target with a battery of insults, damaging their ego.',
+    icon: 'https://render.guildwars2.com/file/64FFFDF0DB06E31493673D7313305536B7AAA53D/3680167.png',
+    type: 'Utility',
+    slot: 'Utility',
+    cooldown: 20,
     tale: { name: 'Tale of the Tortured Mastermind', instrument: 'Flute' },
     noteGain: 1,
     castTimeMs: 400,
@@ -304,55 +371,80 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       { on: 'castCommit', do: { id: 'tale', type: 'mesmer.troubadour.resolve-tale', effects: [] } }
     ]
   },
-  [ID.HARMONIOUS_HARP_ALTERNATE]: instrumentSkill({
-    // Both Harp variants pulse nearby foes at the shortest valid performance.
-    instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
-    // Both Harp variants preserve packets independently when interrupted.
-    castTimeMs: 2000,
-    // Match the default stop without restricting the alternate Harp's shorter valid performances.
-    defaultInterruptMs: 480,
-    interruptMode: 'per-packet',
-    effects: [],
-    effectVariants: instrumentEffects(),
-    sideEffects: [
-      ...INSTRUMENT_ACTIONS,
-      {
-        on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
-        do: {
-          id: 'distortion',
-          type: 'mesmer.troubadour.harp-distortion',
-          effects: [{ name: 'distortion', type: 'buff', kind: 'distortion', duration: 2, stacks: 1 }]
+  [ID.HARMONIOUS_HARP_ALTERNATE]: {
+    name: 'Harmonious Harp',
+    description:
+      "Instrument. Gain distortion and strum the harp, continuously healing nearby allies.\nThe harp will then consume all notes to continue playing in the background. The harp's duration is extended for each note consumed.",
+    icon: 'https://render.guildwars2.com/file/C1BCF465DE1DAB00E00B0F1494ABDB2D7F57BECA/3680162.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    cooldown: 25,
+    ...instrumentSkill({
+      // Both Harp variants pulse nearby foes at the shortest valid performance.
+      instrument: { slot: 4, instrument: 'Harp', coefficient: 0, hits: 0, damageAtMs: 360 },
+      // Both Harp variants preserve packets independently when interrupted.
+      castTimeMs: 2000,
+      // Match the default stop without restricting the alternate Harp's shorter valid performances.
+      defaultInterruptMs: 480,
+      interruptMode: 'per-packet',
+      effects: [],
+      effectVariants: instrumentEffects(),
+      sideEffects: [
+        ...INSTRUMENT_ACTIONS,
+        {
+          on: 'castStart',
+          when: (_runtime, cast) => !cast.cancelled,
+          do: {
+            id: 'distortion',
+            type: 'mesmer.troubadour.harp-distortion',
+            effects: [{ name: 'distortion', type: 'buff', kind: 'distortion', duration: 2, stacks: 1 }]
+          }
         }
-      }
-    ]
-  }),
-  [ID.DEAFENING_DRUM]: instrumentSkill({
-    instrument: {
-      slot: 3,
-      instrument: 'Drum',
-      coefficient: 2,
-      hits: 1,
-      damageAtMs: 520
-    },
-    castTimeMs: 680,
-    interruptCommitMs: 560,
-    effects: [
-      // Performance and afterimage impacts materialize the same authored control.
-      {
-        type: 'control',
-        source: 'Player',
-        controlKind: CONTROL.STUN,
-        actorType: ACTOR.PLAYER,
-        atMs: 0,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
-    effectVariants: instrumentEffects(),
-    sideEffects: INSTRUMENT_ACTIONS
-  }),
+      ]
+    })
+  },
+  [ID.DEAFENING_DRUM]: {
+    name: 'Deafening Drum',
+    description:
+      "Instrument. Slam the drum to release a percussive shock wave, disabling enemies. The strength of the disable increases the closer an enemy is.\nThe drum will then consume all notes to continue playing in the background. The drum's duration is extended for each note consumed.",
+    icon: 'https://render.guildwars2.com/file/E061ECE20A34DC281C0E3EB8FB90094549E87941/3680161.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    cooldown: 25,
+    ...instrumentSkill({
+      instrument: {
+        slot: 3,
+        instrument: 'Drum',
+        coefficient: 2,
+        hits: 1,
+        damageAtMs: 520
+      },
+      castTimeMs: 680,
+      interruptCommitMs: 560,
+      effects: [
+        // Performance and afterimage impacts materialize the same authored control.
+        {
+          type: 'control',
+          source: 'Player',
+          controlKind: CONTROL.STUN,
+          actorType: ACTOR.PLAYER,
+          atMs: 0,
+          timingAnchor: 'castEnd',
+          timingScale: 'fixed'
+        }
+      ],
+      effectVariants: instrumentEffects(),
+      sideEffects: INSTRUMENT_ACTIONS
+    })
+  },
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: {
+    name: 'Tale of the Valiant Marshal',
+    description:
+      'Tale. Orate the heroism of Trahearne, calling nearby allies to action. Break their stuns and brace them for battle.',
+    icon: 'https://render.guildwars2.com/file/C0BF1CA6F342F135C71E97D827ECCC776D0E7429/3680166.png',
+    type: 'Utility',
+    slot: 'Utility',
+    cooldown: 30,
     tale: { name: 'Tale of the Valiant Marshal', instrument: 'Harp' },
     noteGain: 1,
     rechargeAnchor: 'castStart',
@@ -373,26 +465,38 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       }
     ]
   },
-  [ID.LIVELY_LUTE_ALTERNATE]: instrumentSkill({
-    instrument: {
-      slot: 1,
-      instrument: 'Lute',
-      damageAtMs: 440,
-      // The alternate performance preserves the same launched note sequence.
-      persistsAfterInterrupt: true,
-      ticks: [
-        { atMs: 0, coefficient: 1 },
-        { atMs: 200, coefficient: 1 },
-        { atMs: 400, coefficient: 1 }
-      ]
-    },
-    castTimeMs: 560,
-    // Both Lute variants share the same performance commit point.
-    interruptCommitMs: 360,
-    effects: [],
-    effectVariants: instrumentEffects(),
-    sideEffects: LUTE_ACTIONS
-  })
+  [ID.LIVELY_LUTE_ALTERNATE]: {
+    name: 'Lively Lute',
+    description:
+      "Instrument. Perform with your lute, sending out damaging sound waves toward an enemy and healing tones toward allies.\nThe lute will then consume all notes to continue playing in the background. The lute's duration is extended for each note consumed.",
+    icon: 'https://render.guildwars2.com/file/4CAA3750145A55B7E73D5EB9917590EC45657BE7/3680159.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    cooldown: 12,
+    ammoCastLockout: 1,
+    ammo: 2,
+
+    ...instrumentSkill({
+      instrument: {
+        slot: 1,
+        instrument: 'Lute',
+        damageAtMs: 440,
+        // The alternate performance preserves the same launched note sequence.
+        persistsAfterInterrupt: true,
+        ticks: [
+          { atMs: 0, coefficient: 1 },
+          { atMs: 200, coefficient: 1 },
+          { atMs: 400, coefficient: 1 }
+        ]
+      },
+      castTimeMs: 560,
+      // Both Lute variants share the same performance commit point.
+      interruptCommitMs: 360,
+      effects: [],
+      effectVariants: instrumentEffects(),
+      sideEffects: LUTE_ACTIONS
+    })
+  }
 });
 
 // Derive runtime and balance-profile inputs from the skill records so instrument behavior has one authoring site.
@@ -407,7 +511,6 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstru
 export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([
   createDodgeSkill({
     description: 'Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.',
-    specialization: 'Troubadour',
     castTimeMs: 0,
     cost: { resource: 'endurance', amount: ENDURANCE.dodgeCost, spendOn: 'castCommit' },
     tasks: [

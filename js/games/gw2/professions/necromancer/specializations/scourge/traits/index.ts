@@ -39,7 +39,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Demonic Lore tuning and behavior at its existing execution boundaries. */
 const demonicLore = defineTrait({
-  name: 'Demonic Lore',
   id: TRAIT.DEMONIC_LORE,
   balance: {
     conditionDamageMultiplier: 1.33,
@@ -75,7 +74,6 @@ const demonicLore = defineTrait({
 
 /** Owns Sand Savant tuning and behavior at its existing execution boundaries. */
 const sandSavant = defineTrait({
-  name: 'Sand Savant',
   id: TRAIT.SAND_SAVANT,
   balance: {
     maximumStacks: 1,
@@ -110,7 +108,6 @@ const sandSavant = defineTrait({
 
 /** Owns Abrasive Grit tuning and behavior at its existing execution boundaries. */
 const abrasiveGrit = defineTrait({
-  name: 'Abrasive Grit',
   id: TRAIT.ABRASIVE_GRIT,
   balance: {
     effects: [
@@ -136,7 +133,6 @@ const abrasiveGrit = defineTrait({
 
 /** Owns Desert Empowerment tuning and behavior at its existing execution boundaries. */
 const desertEmpowerment = defineTrait({
-  name: 'Desert Empowerment',
   id: TRAIT.DESERT_EMPOWERMENT,
   balance: {
     effects: [
@@ -188,7 +184,6 @@ const desertEmpowerment = defineTrait({
 
 /** Owns Sadistic Searing tuning and behavior at its existing execution boundaries. */
 const sadisticSearing = defineTrait({
-  name: 'Sadistic Searing',
   id: TRAIT.SADISTIC_SEARING,
   balance: {
     effects: [
@@ -212,7 +207,6 @@ const sadisticSearing = defineTrait({
 
 /** Owns Fell Beacon tuning and behavior at its existing execution boundaries. */
 const fellBeacon = defineTrait({
-  name: 'Fell Beacon',
   id: TRAIT.FELL_BEACON,
   balance: {
     conditionDamageMultiplier: 1.1,
@@ -242,7 +236,6 @@ const fellBeacon = defineTrait({
 
 /** Owns Sand Sage tuning and behavior at its existing execution boundaries. */
 const sandSage = defineTrait({
-  name: 'Sand Sage',
   id: TRAIT.SAND_SAGE,
   balance: {
     attributeBonuses: { concentration: 225, expertise: 225 }
@@ -276,7 +269,6 @@ const sandSage = defineTrait({
 
 /** Owns Nourishing Ashes tuning and behavior at its existing execution boundaries. */
 const nourishingAshes = defineTrait({
-  name: 'Nourishing Ashes',
   id: TRAIT.NOURISHING_ASHES,
   balance: {
     lifeForceGain: 5,
@@ -292,7 +284,6 @@ const nourishingAshes = defineTrait({
 
 /** Owns Herald of Sorrow's ordered mechanic integration. */
 const heraldOfSorrow = defineTrait({
-  name: 'Herald of Sorrow',
   id: TRAIT.HERALD_OF_SORROW,
   // F5 resolves to the selected shroud, so saved rotations survive trait edits.
   hooks: { modifySkillId: traitSkillReplacement(TRAIT.HERALD_OF_SORROW, [[ID.DESERT_SHROUD, ID.SANDSTORM_SHROUD]]) }

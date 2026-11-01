@@ -37,8 +37,7 @@ import {
 import {
   completeThiefSteal,
   consumeThiefStolenSkill,
-  storeThiefStolenSkillChoices,
-  THIEF_STOLEN_SKILL_IDS
+  storeThiefStolenSkillChoices
 } from '#gw2/professions/thief/core/mechanics/steal.js';
 import {
   beginThiefStealthAttack,
@@ -67,6 +66,7 @@ import {
   sleightOfHandRechargeReduction
 } from '#gw2/professions/thief/core/traits/trickery/resource-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/data/stolen-skills.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Additive steal reductions retain their combined formula; ordinary multipliers use declared rules. */

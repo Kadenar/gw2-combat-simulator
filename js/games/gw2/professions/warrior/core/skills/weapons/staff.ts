@@ -1,10 +1,19 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Canonical Core warrior skill definitions grouped by their GW2 owner. */
 import { BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
-export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.BALANCED_STRIKE]: {
+    name: 'Balanced Strike',
+    description: 'Chain. A balanced staff strike.',
+    icon: 'https://render.guildwars2.com/file/5A46D95EFC17B064B5CA15E359EE79781E267C01/3256398.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 333,
     effects: [
       {
@@ -15,6 +24,15 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.REVERSE_STRIKE]: {
+    name: 'Reverse Strike',
+    description: 'Chain. A follow-up reverse-handed staff strike.',
+    icon: 'https://render.guildwars2.com/file/6695B5C7D53397BAD94C36030F2E40C005D7800B/3256399.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 333,
     effects: [
       {
@@ -25,6 +43,15 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.INSPIRING_WHIRL]: {
+    name: 'Inspiring Whirl',
+    description: 'Whirl your staff, damaging nearby enemies and inspiring allies.',
+    icon: 'https://render.guildwars2.com/file/34647709920DE5053F94039C72AFB8D61180245D/3256400.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 500,
     effects: [
       {
@@ -35,6 +62,14 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.VALIANT_LEAP]: {
+    name: 'Valiant Leap',
+    description:
+      'Leap to the targeted location, empowering allies and damaging enemies. Gain adrenaline if you affect another ally.',
+    icon: 'https://render.guildwars2.com/file/0CA82FBE1CD6160EB9C86A4CCA0F9EAD0F640AD5/3256401.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_2',
+    cooldown: 8,
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     castTimeMs: 500,
@@ -62,6 +97,14 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 5 } }]
   },
   [ID.LINE_BREAKER]: {
+    name: 'Line Breaker',
+    description:
+      'Charge to the target location. When you arrive, heal nearby allies and grant them boons while debilitating nearby enemies.',
+    icon: 'https://render.guildwars2.com/file/D2FDE2964747965873CAAC000DADBFCADA94EFD3/3256402.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_3',
+    cooldown: 12,
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     castTimeMs: 1167,
@@ -89,6 +132,13 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.SNAP_PULL]: {
+    name: 'Snap Pull',
+    description: 'Quickly snap your staff to pull enemies in and make them vulnerable.',
+    icon: 'https://render.guildwars2.com/file/995EF2A5749B34B46BFEBB587D2F25FBC331B0DD/3256403.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_4',
+    cooldown: 12,
     castTimeMs: 500,
     effects: [
       {
@@ -109,6 +159,13 @@ export const WARRIOR_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.DEFIANT_ROAR]: {
+    name: 'Defiant Roar',
+    description: 'Unleash a defiant roar, healing nearby allies and granting them resolution.',
+    icon: 'https://render.guildwars2.com/file/71F4BA42421A36093D077AC2014039F9FF3B56C4/3256405.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_5',
+    cooldown: 25,
     castTimeMs: 333,
     effects: [
       {

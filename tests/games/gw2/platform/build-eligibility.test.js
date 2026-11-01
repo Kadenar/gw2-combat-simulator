@@ -11,7 +11,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 test('shared eligibility precedes profession filters and cast state changes', () => {
   let stateChecks = 0;
   let filterChecks = 0;
-  const weapon = { id: 1, name: 'Elite weapon', type: 'Weapon', specialization: 'Elite', cooldown: 10, effects: [] };
+  const weapon = { id: 1, name: 'Shared weapon', type: 'Weapon', cooldown: 10, effects: [] };
   const excluded = {
     id: 2,
     name: 'Automatic effect',
@@ -20,14 +20,14 @@ test('shared eligibility precedes profession filters and cast state changes', ()
     cooldown: 10,
     effects: []
   };
-  const wrongSpecialization = { id: -3, name: 'Elite action', type: 'Action', specialization: 'Elite', effects: [] };
+  const wrongSpecialization = { id: -3, name: 'Elite action', type: 'Action', effects: [] };
   const profession = defineNativeProfession({
     id: 'eligibility-fixture',
     name: 'Eligibility fixture',
     modules: [
       defineNativeModule({
         id: 'Core',
-        data: { generatedSkills: [weapon, excluded, wrongSpecialization] },
+        data: { skills: [weapon, excluded] },
         state: {
           create: () => ({ resource: 10 }),
           project: ({ profession }) => ({ [STATE.RESOURCE]: profession.core.resource })
@@ -42,7 +42,8 @@ test('shared eligibility precedes profession filters and cast state changes', ()
           }
         },
         presentation: { paletteOverride: () => ({ available: true }) }
-      })
+      }),
+      defineNativeModule({ id: 'Elite', data: { skills: [wrongSpecialization] }, state: { create: () => ({}) } })
     ]
   });
   const adapter = defineProfessionApp({
@@ -58,7 +59,7 @@ test('shared eligibility precedes profession filters and cast state changes', ()
     }
   });
   const context = { specialization: 'Core' };
-  for (const skill of [excluded, wrongSpecialization]) {
+  for (const skill of [excluded, profession.catalog.skillsById.get(wrongSpecialization.id)]) {
     assert.equal(adapter.isSkillAvailable(skill, context), false);
     assert.equal(paletteAvailability({ profession, results: null }, context, skill).available, false);
   }

@@ -1,12 +1,20 @@
 /** Rifle packets use close-range cast-start offsets so projectile travel does not inflate their timing. */
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
-export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.FIERCE_SHOT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Fierce Shot',
+    description: 'Fire a shot at your target. Gain might if you strike a vulnerable target.',
+    icon: 'https://render.guildwars2.com/file/FBBFE42D0BD0745F56BF30483240E67F0994562C/103254.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     // Rifle projectile finishers stay declarative so each emitted shot uses the shared combo scheduler.
     comboFinishers: [
@@ -33,6 +41,16 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.VOLLEY]: {
+    name: 'Volley',
+    description: 'Fire a volley of shots at your foe.',
+    icon: 'https://render.guildwars2.com/file/97A0DA3D06ABFDE4CFEF0EE02EC4B46DF6F17271/103249.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_2',
+    cooldown: 10,
+    ammoCastLockout: 1,
+    ammo: 2,
+
     castTimeMs: 1760,
     interruptMode: 'per-packet',
     comboFinishers: [
@@ -59,6 +77,17 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.EXPLOSIVE_SHELL]: {
+    name: 'Explosive Shell',
+    description:
+      'Shoot an explosive round that explodes when it hits, striking nearby enemies and enemies in a cone behind the initial target.',
+    icon: 'https://render.guildwars2.com/file/B65AC760EC9D4FAC6D701694BB9B3A3FC9D134AC/2440723.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_3',
+    cooldown: 8,
+    ammoCastLockout: 1,
+    ammo: 2,
+
     castTimeMs: 560,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -83,6 +112,16 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.BRUTAL_SHOT]: {
+    name: 'Brutal Shot',
+    description: 'Evade backward while firing an immobilizing shot.',
+    icon: 'https://render.guildwars2.com/file/E07AB4BA685E11A6BEAFC9540308CD0DD1C23B6C/103248.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_4',
+    cooldown: 20,
+    ammoCastLockout: 1,
+    ammo: 2,
+
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     castTimeMs: 500,
@@ -114,6 +153,13 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.RIFLE_BUTT]: {
+    name: 'Rifle Butt',
+    description:
+      'Knock back your foe with your rifle butt. Recover ammunition for each of your other rifle skills and fully recharge your rifle burst skills. Successfully striking a foe reduces the recharge time of this skill.',
+    icon: 'https://render.guildwars2.com/file/77FCEC0F1833249C540D5B321E3BA4017872ABCB/102766.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_5',
     // Rifle Butt uses its successful-hit recharge and reloads the rest of the rifle kit on completion.
     cooldown: 12,
     castTimeMs: 480,

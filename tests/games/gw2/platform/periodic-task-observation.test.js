@@ -46,7 +46,7 @@ function fixture(background) {
     id: 'periodic-observation',
     name: 'Periodic observation',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 991001,
           name: 'Fixture',

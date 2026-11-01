@@ -11,6 +11,7 @@ import {
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { findNamedRotationSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -19,13 +20,12 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
-import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-scars.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS,
   REVENANT_SKILL_IDS as SKILL
 } from '#gw2/professions/revenant/data/ids.js';
-import { REVENANT_SUPPLEMENTAL_SKILLS } from '#gw2/professions/revenant/data/revenant-supplemental-skills.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
@@ -62,15 +62,6 @@ const simulate = createObservedProfessionSimulator(revenantProfession, baseConfi
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
 const authoringRevenantProfession = withActivePatchPreview(revenantProfession);
-
-// Supplemental identities must not shadow the mechanics consumed by the runtime.
-test('Revenant supplemental identities leave simulation mechanics to their owners', () => {
-  assert.ok(
-    REVENANT_SUPPLEMENTAL_SKILLS.every((skill) =>
-      ['effects', 'cooldown', 'recharge', 'simulatorExcluded', 'flags'].every((field) => !Object.hasOwn(skill, field))
-    )
-  );
-});
 
 test('modifier contribution candidates include every active Revenant trait', () => {
   const build = createRevenantBuildDefaults();
@@ -892,6 +883,35 @@ test('Abyssal Strike repeats without exposing a separate second-swing palette ti
       .map((skill) => skill.name),
     ['Abyssal Strike']
   );
+});
+
+// The shared Greatsword input wins over its excluded hit identity in both palette and name-only log lookup.
+test('Phantom’s Onslaught remains the shared Greatsword input for every Revenant specialization', () => {
+  for (const specializationName of ['Core', 'Herald', 'Renegade', 'Vindicator', 'Conduit']) {
+    const app = {
+      profession: revenantProfession,
+      activeCatalog: revenantCatalog,
+      build: { weapons: ['Greatsword', ''], alternateWeapons: ['', ''] },
+      adapter: {
+        eliteSpecialization: () => specializationName,
+        isSkillAvailable: (skill) => revenantAppAdapter.isSkillAvailable(skill, { specialization: specializationName })
+      }
+    };
+    assert.deepEqual(
+      weaponSkills(app)
+        .filter((skill) => skill.name === "Phantom's Onslaught")
+        .map((skill) => skill.id),
+      [62895]
+    );
+    assert.equal(
+      findNamedRotationSkill("Phantom's Onslaught", revenantCatalog, {
+        specializationName,
+        skillNameAliases: {},
+        skillIdAliases: {}
+      }).id,
+      62895
+    );
+  }
 });
 
 test('Searing Fissure enables Fire whirl combos only while its field is present', () => {

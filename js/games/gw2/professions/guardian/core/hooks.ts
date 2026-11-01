@@ -21,7 +21,6 @@ import {
   applyJusticeBurn,
   completeVirtueActivation,
   CORE_VIRTUES,
-  guardianVirtueForSlot,
   reactToJusticeHitWithOptions,
   refreshGuardianVirtues
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -72,19 +71,9 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
     buffPolicies: guardianBuffPolicies,
     observeEffects: guardianEffectStates,
     sideEffectHandlers: {
-      // Declared follow-ups retain their selected recharge-derived lifetime without a global completion fallback.
-      'guardian.arm-follow-up'(runtime, context) {
-        const skill = context.skill;
-        runtime.armFlip(skill.flipSkillId!, {
-          expiresAt: runtime.time + (skill.flipDuration ?? Math.max(1, skill.cooldown ?? 5)),
-          expiryPriority: -220
-        });
-      },
       // Elite virtue IDs are absent from other catalogs; select live IDs before using the shared reset action.
       'guardian.refresh-virtues'(runtime, context) {
-        const virtues = runtime.helpers.skills.filter(
-          (skill) => skill.categories?.includes('Virtue') && guardianVirtueForSlot(skill.slot)
-        );
+        const virtues = runtime.helpers.skills.filter((skill) => skill.virtue);
         applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: virtues.map((skill) => skill.id) });
         for (const skill of virtues) runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time);
         runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };

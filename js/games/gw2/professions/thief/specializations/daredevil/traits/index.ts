@@ -37,7 +37,6 @@ import { daredevilState } from '#gw2/professions/thief/specializations/daredevil
 
 /** Owns Brawler's Tenacity tuning and behavior at the existing execution boundaries. */
 const brawlersTenacity = defineTrait({
-  name: "Brawler's Tenacity",
   id: TRAIT.BRAWLERS_TENACITY,
   balance: {
     resourceGain: 15
@@ -47,7 +46,6 @@ const brawlersTenacity = defineTrait({
 
 /** Owns Bounding Dodger tuning and behavior at the existing execution boundaries. */
 const boundingDodger = defineTrait({
-  name: 'Bounding Dodger',
   id: TRAIT.BOUNDING_DODGER,
   balance: {
     damageIncrease: 0.15,
@@ -76,7 +74,6 @@ const boundingDodger = defineTrait({
 
 /** Owns Lotus Training tuning and behavior at the existing execution boundaries. */
 const lotusTraining = defineTrait({
-  name: 'Lotus Training',
   id: TRAIT.LOTUS_TRAINING,
   balance: {
     conditionDamageIncrease: 0.15,
@@ -119,7 +116,6 @@ const lotusTraining = defineTrait({
 
 /** Owns Unhindered Combatant tuning and behavior at the existing execution boundaries. */
 const unhinderedCombatant = defineTrait({
-  name: 'Unhindered Combatant',
   id: TRAIT.UNHINDERED_COMBATANT,
   balance: {
     effects: [{ type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 8 }]
@@ -128,7 +124,6 @@ const unhinderedCombatant = defineTrait({
 
 /** Owns Endurance Thief tuning and behavior at the existing execution boundaries. */
 const enduranceThief = defineTrait({
-  name: 'Endurance Thief',
   id: TRAIT.ENDURANCE_THIEF,
   balance: {
     resourceGain: 50
@@ -143,7 +138,6 @@ const enduranceThief = defineTrait({
 
 /** Owns this trait's modifier eligibility. */
 const havocSpecialist = defineTrait({
-  name: 'Havoc Specialist',
   id: TRAIT.HAVOC_SPECIALIST,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.15 },
@@ -165,7 +159,6 @@ const havocSpecialist = defineTrait({
 
 /** Owns Marauder's Resilience tuning and behavior at the existing execution boundaries. */
 const maraudersResilience = defineTrait({
-  name: "Marauder's Resilience",
   id: TRAIT.MARAUDERS_RESILIENCE,
   balance: { attributeConversion: 0.07 },
   attributes({ balanceContext }) {
@@ -186,7 +179,6 @@ const maraudersResilience = defineTrait({
 
 /** Owns Staff Master tuning and behavior at the existing execution boundaries. */
 const staffMaster = defineTrait({
-  name: 'Staff Master',
   id: TRAIT.STAFF_MASTER,
   balance: {
     attributeBonuses: { power: 120 },
@@ -219,7 +211,6 @@ const staffMaster = defineTrait({
 
 /** Owns Weakening Strikes tuning and behavior at the existing execution boundaries. */
 const weakeningStrikes = defineTrait({
-  name: 'Weakening Strikes',
   id: TRAIT.WEAKENING_STRIKES,
   balance: {
     damageMultiplier: 1.1,
@@ -246,7 +237,6 @@ const weakeningStrikes = defineTrait({
 /** Native trait owners, in stable authoring order. */
 // Intrinsic specialization policy is available without explicit minor selection.
 const physicalSupremacy = defineTrait({
-  name: 'Physical Supremacy',
   id: TRAIT.PHYSICAL_SUPREMACY,
   balance: { maximumStacks: 150 }
 });

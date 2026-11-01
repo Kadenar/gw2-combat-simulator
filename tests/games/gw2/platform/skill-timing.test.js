@@ -11,7 +11,7 @@ test('shared impacts preserve event order, local attribution and recipient owner
   const timing = Object.freeze({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' });
   const strike = Object.freeze({ type: 'strike', coefficient: 1, source: 'impact', sourceId: 2 });
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 1,
         name: 'Impact',
@@ -57,7 +57,7 @@ test('shared impacts preserve event order, local attribution and recipient owner
 test('shared impacts retain canonical catalog validation', () => {
   const load = (timing, effect = { type: 'condition', condition: 'Blindness', stacks: 1, duration: 1 }) =>
     createCanonicalCatalog({
-      generated: [{ id: 1, name: 'Invalid impact', effects: impactEffects(timing, [effect]) }]
+      skills: [{ id: 1, name: 'Invalid impact', effects: impactEffects(timing, [effect]) }]
     });
   for (const atMs of [NaN, Infinity, -1]) {
     assert.throws(() => load({ atMs, timingAnchor: 'castStart' }), /atMs.*finite/);

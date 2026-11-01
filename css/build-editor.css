@@ -45,6 +45,19 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
+}
+
+.build-switcher-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.build-switcher-title > svg {
+  flex-shrink: 0;
 }
 
 .build-switcher-name,
@@ -374,37 +387,89 @@
   flex-wrap: wrap;
 }
 
-/* Narrow headers keep the build and DPS together above the full-width action row. */
+/* Share the build's second line between its count and DPS, reserving a full touch target for actions. */
 @media (max-width: 600px) {
   .build-workspace-tabs {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) 44px;
+    grid-template-rows: 24px 20px;
+    gap: 0 8px;
+    padding: 8px 12px 10px;
   }
 
-  .build-switcher {
-    flex: 1 1 0;
+  .build-workspace-tabs > .build-switcher {
+    display: grid;
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+    grid-template-columns: subgrid;
+    grid-template-rows: subgrid;
+    gap: 0 8px;
     max-width: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
 
-  .header-dps {
+  .build-workspace-tabs .build-switcher-text {
+    display: contents;
+  }
+
+  .build-workspace-tabs .build-switcher-title {
+    grid-column: 1 / -1;
+    align-self: center;
+    justify-content: flex-start;
+  }
+
+  .build-workspace-tabs .build-switcher-name {
+    font-size: 14px;
+  }
+
+  .build-workspace-tabs .build-switcher-count {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 13px;
+  }
+
+  .build-workspace-tabs > .header-dps {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 4px;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .build-workspace-tabs .header-dps-value,
+  .build-workspace-tabs .header-dps-label {
+    font-size: 13px;
+    line-height: 20px;
+    letter-spacing: normal;
+  }
+
+  #build-actions-trigger {
+    grid-column: 3;
+    grid-row: 1 / 3;
+  }
+
+  .build-toolbar-actions:popover-open {
+    display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 3px;
-    min-width: 88px;
-    padding: 5px 8px;
-  }
-
-  .header-dps-value {
-    font-size: 18px;
-  }
-
-  .build-toolbar-actions {
-    flex: 1 1 100%;
-    margin-left: 0;
   }
 
   .build-toolbar-actions .btn {
-    flex: 1 1 0;
     min-height: 44px;
+  }
+
+  .build-pinned-tabs,
+  .build-tab-notice {
+    grid-column: 1 / -1;
   }
 }
 

@@ -1,5 +1,5 @@
 /**
- * Owns Photon Forge skill fragments, heat variants, and forge-only actions.
+ * Owns Photon Forge skill definitions, heat variants, and forge-only actions.
  * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
  */
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -7,21 +7,34 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { HolosmithSkillFragment } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
-/** Supplies Photon Forge fragments to Holosmith module composition. */
+/** Supplies Photon Forge definitions to Holosmith module composition. */
 export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.DEACTIVATE_PHOTON_FORGE]: {
+    name: 'Deactivate Photon Forge',
+    description: 'Cancel Photon Forge and begin cooling after a delay. Cooling effectiveness increases over time.',
+    icon: 'https://render.guildwars2.com/file/2B65387C32A4AE09D67AF9D438BA4B4C09A24EE4/1770389.png',
+    type: 'Profession',
+    slot: 'Profession_5',
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    inputCategory: 'bar-swap',
+    // Count the explicit bar-changing input in effort summaries.
     cooldown: 6,
     countsAsToolbeltSkill: false,
     mechanicSlot: 5,
-
     castTimeMs: 0,
     effects: [],
     // Commit voluntary exit without replacing an overheat-owned Lens grant.
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.exit-forge' } }]
   },
   [ID.LIGHT_STRIKE_STORM]: {
+    name: 'Light Strike—Storm',
+    description: 'Launch an arc of light at your foe.',
+    icon: 'https://render.guildwars2.com/file/F42AE073CD260A5A14BE304D2D60EBA7F2F8FF64/1770398.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     heatGain: 3,
     forgeSkill: true,
@@ -51,6 +64,14 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.BRIGHT_SLASH_STORM]: {
+    name: 'Bright Slash—Storm',
+    description: 'Launch another arc of light at your target.',
+    icon: 'https://render.guildwars2.com/file/427D5FB516D8E05016AA4AB8B228D40CA3226CE1/1770399.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     heatGain: 3,
     forgeSkill: true,
@@ -83,6 +104,14 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.FLASH_CUTTER_STORM]: {
+    name: 'Flash Cutter—Storm',
+    description: 'Fire two light blades in quick succession.',
+    icon: 'https://render.guildwars2.com/file/EF04A72D9336FE56EC730E460C114CAD2B04080E/1770400.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     heatGain: 3,
     forgeSkill: true,
@@ -113,21 +142,34 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.ENGAGE_PHOTON_FORGE]: {
+    name: 'Engage Photon Forge',
+    description:
+      'Activate your Photon Forge, gaining access to new skills. Generate heat while Photon Forge is active. Take damage if you overheat. Disables use of kits for a short duration.',
+    icon: 'https://render.guildwars2.com/file/1C35CD2D504EC3C5D25C43DFF808956751713E72/1770391.png',
+    type: 'Profession',
+    slot: 'Profession_5',
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     kitLockoutDuration: 6,
     // Custom: Enters Photon Forge and starts its heat lifecycle; see `holosmith/mechanics/photon-forge.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    inputCategory: 'bar-swap',
+    // Count the explicit bar-changing input in effort summaries.
     cooldown: 1,
     countsAsToolbeltSkill: false,
     mechanicSlot: 5,
-
     castTimeMs: 0,
     effects: [],
-
     // Commit the bar transition; shared heat cadence and Lens lifetime retain their mechanic owner.
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.enter-forge' } }]
   },
   [ID.LIGHT_STRIKE]: {
+    name: 'Light Strike',
+    description: 'Swing a holographic blade.',
+    icon: 'https://render.guildwars2.com/file/F42AE073CD260A5A14BE304D2D60EBA7F2F8FF64/1770398.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     heatGain: 2,
     forgeSkill: true,
@@ -151,6 +193,13 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.VENT_EXHAUST]: {
+    name: 'Vent Exhaust',
+    description:
+      'Damage nearby foes and apply conditions to them. Lose heat. This attack activates Heat Therapy if you have not overheated.',
+    icon: 'https://render.guildwars2.com/file/3C2B5C060DA920011A20ACDB96DB155D4BDE2A04/103434.png',
+    type: 'Action',
+    slot: 'Action',
+
     cooldown: 0,
     // Vent Exhaust owns both its combat packets and the heat it vents; Thermal Release Valve only invokes it.
     heatLoss: 15,
@@ -174,11 +223,26 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     ]
   },
   [ID.OVERHEAT]: {
+    name: 'Overheat',
+    description:
+      'Reaching the heat maximum results in a self-damaging explosion. Photon Forge is disabled until all heat is lost. Other tool belt skill cooldowns are increased.',
+    icon: 'https://render.guildwars2.com/file/5DC4E10CE03E4D78EFACEEDB6F5FCF4F206BA7E3/1770392.png',
+    type: 'Action',
+    slot: 'Action',
+
     cooldown: 0,
     castTimeMs: 0,
     effects: []
   },
   [ID.BRIGHT_SLASH]: {
+    name: 'Bright Slash',
+    description: 'Slash with a blade of light energy.',
+    icon: 'https://render.guildwars2.com/file/427D5FB516D8E05016AA4AB8B228D40CA3226CE1/1770399.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     heatGain: 2,
     forgeSkill: true,
@@ -202,11 +266,25 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.HOLOFORGE_OVERHEATED]: {
+    name: 'Holoforge Overheated',
+    description: 'Unable to reactivate until cooled.',
+    icon: 'https://render.guildwars2.com/file/5DC4E10CE03E4D78EFACEEDB6F5FCF4F206BA7E3/1770392.png',
+    type: 'Profession',
+    slot: 'Action',
+
     cooldown: 0,
     castTimeMs: 0,
     effects: []
   },
   [ID.FLASH_CUTTER]: {
+    name: 'Flash Cutter',
+    description: 'Cleave through all foes in front of you twice.',
+    icon: 'https://render.guildwars2.com/file/EF04A72D9336FE56EC730E460C114CAD2B04080E/1770400.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     heatGain: 2,
     forgeSkill: true,
@@ -230,6 +308,13 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.HOLO_LEAP]: {
+    name: 'Holo Leap',
+    description:
+      'Create a holographic launch pad and leap to your foe. The pad remains behind for a short duration, granting increased movement speed to allies who touch it.',
+    icon: 'https://render.guildwars2.com/file/0D3F3B9BC209457B9C09D1C30B35122EA7C4FDE1/1770401.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+
     cooldown: 2,
     heatGain: 7,
     forgeSkill: true,
@@ -257,18 +342,31 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.DEACTIVATE_PHOTON_FORGE_HOT]: {
+    name: 'Deactivate Photon Forge (hot)',
+    description: 'Cancel Photon Forge and begin cooling after a delay. Cooling effectiveness increases over time.',
+    icon: 'https://render.guildwars2.com/file/1636E109EC414F0933B2763D772A3E3F1216B6DA/1770390.png',
+    type: 'Profession',
+    slot: 'Profession_5',
+
     // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    inputCategory: 'bar-swap',
+    // Count the explicit bar-changing input in effort summaries.
     cooldown: 6,
     countsAsToolbeltSkill: false,
     mechanicSlot: 5,
-
     castTimeMs: 0,
     effects: [],
     // Commit voluntary exit without replacing an overheat-owned Lens grant.
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.exit-forge' } }]
   },
   [ID.CORONA_BURST]: {
+    name: 'Corona Burst',
+    description:
+      'Strike nearby foes and begin to store up energy, gaining boons and heat each pulse. After charging, the energy explodes, inflicting conditions on nearby foes.',
+    icon: 'https://render.guildwars2.com/file/F65FCF1C913159D3E72B73CB0203C102A27E10DB/1770402.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+
     cooldown: 6,
     heatGain: 10,
     forgeSkill: true,
@@ -351,6 +449,12 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.corona-heat' } }]
   },
   [ID.PHOTON_BLITZ]: {
+    name: 'Photon Blitz',
+    description: 'Fire multiple piercing blasts at your target.',
+    icon: 'https://render.guildwars2.com/file/BCB4AFB0D811083A5FDF03F0493B67EA1D676C1A/1770403.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+
     cooldown: 10,
     heatGain: 16,
     forgeSkill: true,
@@ -391,6 +495,13 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.blitz-heat' } }]
   },
   [ID.HOLOGRAPHIC_SHOCKWAVE]: {
+    name: 'Holographic Shockwave',
+    description:
+      'Create a deadly holographic shockwave that launches foes upward. This attack always deals a critical hit.',
+    icon: 'https://render.guildwars2.com/file/A0E80AE304C50F46DFCD9D077BAD9ED7714D966A/1770404.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+
     cooldown: 15,
     heatGain: 25,
     forgeSkill: true,

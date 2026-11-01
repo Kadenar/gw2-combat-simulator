@@ -25,7 +25,6 @@ import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/
 
 /** Owns Cloaked in Shadow tuning and behavior at the existing execution boundaries. */
 export const cloakedInShadow = defineTrait({
-  name: 'Cloaked in Shadow',
   id: TRAIT.CLOAKED_IN_SHADOW,
   balance: {
     effects: [
@@ -63,7 +62,6 @@ export const cloakedInShadow = defineTrait({
 
 /** Owns Hidden Thief tuning and behavior at the existing execution boundaries. */
 export const hiddenThief = defineTrait({
-  name: 'Hidden Thief',
   id: TRAIT.HIDDEN_THIEF,
   balance: {
     internalCooldown: 2,
@@ -77,7 +75,6 @@ export const hiddenThief = defineTrait({
 
 /** Owns Leeching Venoms tuning and behavior at the existing execution boundaries. */
 export const leechingVenoms = defineTrait({
-  name: 'Leeching Venoms',
   id: TRAIT.LEECHING_VENOMS,
   balance: {
     maximumStacks: 6,
@@ -113,7 +110,6 @@ export const leechingVenoms = defineTrait({
 
 /** Owns Shadow Siphoning tuning and behavior at the existing execution boundaries. */
 export const shadowSiphoning = defineTrait({
-  name: 'Shadow Siphoning',
   id: TRAIT.SHADOW_SIPHONING,
   balance: {
     internalCooldown: 1,
@@ -156,7 +152,6 @@ export const shadowSiphoning = defineTrait({
 
 /** Owns Shadow's Rejuvenation tuning and behavior at the existing execution boundaries. */
 export const shadowsRejuvenation = defineTrait({
-  name: "Shadow's Rejuvenation",
   id: TRAIT.SHADOWS_REJUVENATION,
   balance: { resourceGain: 1, entryResourceGain: 2 },
   triggers: [

@@ -1,13 +1,21 @@
-/** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+/** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.VICIOUS_SHOT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Vicious Shot',
+    description: 'Fire a tormenting bullet that bounces between nearby foes.',
+    icon: 'https://render.guildwars2.com/file/1DDAE693CAB780E7000BAED0973E0E485CCE9709/2479403.png',
+    type: 'Weapon',
+    weapon: 'Pistol',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     interruptMode: 'per-packet',
     comboFinishers: [
@@ -24,6 +32,14 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     ])
   },
   [ID.WEEPING_SHOTS]: {
+    name: 'Weeping Shots',
+    description:
+      'Pierce your enemies with a series of corrosive bullets, inflicting torment and vulnerability. Gain life force for the first target hit by each bullet.',
+    icon: 'https://render.guildwars2.com/file/A5E9C936EBF4F44D09CF08AAF52D0D7D220E2AD5/2479407.png',
+    type: 'Weapon',
+    weapon: 'Pistol',
+    slot: 'Weapon_2',
+    cooldown: 6,
     castTimeMs: 840,
     // Interruption preserves landed packets and cancels the remaining shots.
     interruptMode: 'per-packet',
@@ -71,6 +87,14 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
     ])
   },
   [ID.VILE_BLAST]: {
+    name: 'Vile Blast',
+    description:
+      'Fire a dart that shatters on impact, releasing noxious liquid that stuns, weakens, and poisons foes in the area. Gain life force for each target struck.',
+    icon: 'https://render.guildwars2.com/file/35F00F2A4694E8FE05B2B7E2765B78C207EE28AF/2479404.png',
+    type: 'Weapon',
+    weapon: 'Pistol',
+    slot: 'Weapon_3',
+    cooldown: 12,
     castTimeMs: 600,
     // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
     interruptCommitMs: 560,

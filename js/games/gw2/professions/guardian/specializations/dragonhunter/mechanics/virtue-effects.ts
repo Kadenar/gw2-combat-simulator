@@ -16,7 +16,6 @@ import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechani
 import {
   admitVirtueActivation,
   completeVirtueActivation,
-  guardianVirtueForSlot,
   justiceActivated,
   reactToJusticeHitWithOptions,
   refreshGuardianVirtues,
@@ -213,9 +212,7 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
     runtime.schedule(COURAGE, runtime.time, undefined, undefined, -200);
   },
   onCastStart(runtime, cast) {
-    if (!cast.skill.categories?.includes('Virtue')) return;
-
-    const virtue = guardianVirtueForSlot(cast.skill.slot);
+    const virtue = cast.skill.virtue;
 
     if (!virtue || !admitVirtueActivation(runtime, cast, virtue)) return;
 
@@ -230,7 +227,7 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
     }
   },
   onCastCommit(runtime, cast) {
-    const virtue = cast.skill.categories?.includes('Virtue') ? guardianVirtueForSlot(cast.skill.slot) : null;
+    const virtue = cast.skill.virtue;
 
     // Furious Focus waits for the spear's impact, so Justice's own point fires from that task instead.
     if (virtue) completeVirtueActivation(runtime, cast, virtue, { deferJustice: true });

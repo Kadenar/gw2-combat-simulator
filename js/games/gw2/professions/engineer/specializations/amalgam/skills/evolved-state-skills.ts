@@ -1,12 +1,12 @@
 /**
- * Owns Amalgam Evolve, locked-slot, and evolved-state skill fragments.
+ * Owns Amalgam Evolve, locked-slot, and evolved-state skill definitions.
  * Persistent strain and morph state remain under `mechanics/evolved-form.ts`.
  */
 import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
@@ -20,8 +20,13 @@ const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
 const FLUX_STATE_FIELD_TICK_OFFSETS_MS = Array.from({ length: 12 }, (_, index) => 1040 + index * 520);
 
 /** Supplies Evolve and its state-dependent action identities to specialization composition. */
-export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
+export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = Object.freeze({
   [ID.SYMBIOTIC_SHIELDING]: {
+    name: 'Symbiotic Shielding',
+    description: 'Gain barrier and magnetic aura.',
+    icon: 'https://render.guildwars2.com/file/2BB11D20C5590A2BA1039107273224F6BE0536E6/3680133.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     cooldown: 25,
     toolbeltParentId: ID.MITOTIC_STATE,
     mechanicSlot: 1,
@@ -30,10 +35,13 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
   },
   [ID.EVOLVE_BASE]: {
     name: 'Evolve (Base)',
+    description: 'Enter Evolved form. Double Helix replaces this action with the two-charge variant.',
+    icon: 'https://render.guildwars2.com/file/0513CCBF102BF696E9027F6363A9705B724CC630/3680129.png',
+    type: 'Profession',
+    slot: 'Profession_5',
     // The selected skill owns its form lifetime and base attribute scaling for combat, previews, and tooltips.
     duration: 8,
     attributeMultiplier: 1.1,
-    description: 'Enter Evolved form. Double Helix replaces this action with the two-charge variant.',
     countsAsToolbeltSkill: true,
     // Evolve begins recharging on activation, so its cast window contributes to the next use.
     rechargeAnchor: 'castStart',
@@ -50,9 +58,12 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
   },
   [ID.EVOLVE_DOUBLE_HELIX]: {
     name: 'Evolve (Double Helix)',
+    description: 'Enter Evolved form with an increased attribute bonus. Requires Double Helix.',
+    icon: 'https://render.guildwars2.com/file/0513CCBF102BF696E9027F6363A9705B724CC630/3680129.png',
+    type: 'Profession',
+    slot: 'Profession_5',
     // Double Helix owns the stronger attribute bonus; this variant owns its duration and ammunition.
     duration: 8,
-    description: 'Enter Evolved form with an increased attribute bonus. Requires Double Helix.',
     countsAsToolbeltSkill: true,
     // Keep the traited identity on the same activation-anchored recharge contract.
     rechargeAnchor: 'castStart',
@@ -60,7 +71,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     ammo: 2,
     // The traited action has a short between-cast recharge and a separate per-charge recovery.
     ammoCastLockout: 1,
-    ammoRecharge: 40,
+
     mechanicSlot: 5,
     // Custom: Consumes the selected strain and enters Evolved form; see `amalgam/mechanics/evolved-form.ts`.
 
@@ -72,16 +83,34 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-evolve' } }]
   },
   [ID.MITOTIC_STATE]: {
+    name: 'Mitotic State',
+    description:
+      'Stance. Your slime stimulates your cells to regenerate, healing you rapidly over time. The healing is increased while you have barrier.',
+    icon: 'https://render.guildwars2.com/file/69ACD1030C55270FE69099A95FEDA716EFE64F5C/3680126.png',
+    type: 'Heal',
+    slot: 'Heal',
+
     cooldown: 20,
     castTimeMs: 680,
     effects: []
   },
   [ID.LOCKED]: {
+    name: 'Locked',
+    description: 'Select a skill using the arrow above.',
+    icon: 'https://render.guildwars2.com/file/7ECD0608332279F720601EB4BF362FA41BA5990D/3680232.png',
+    type: 'Profession',
+    slot: 'Profession_3',
     cooldown: 0,
     castTimeMs: 0,
     effects: []
   },
   [ID.LIQUID_STATE]: {
+    name: 'Liquid State',
+    description: 'Stance. Quickly melt down into a puddle, evading all incoming attacks.',
+    icon: 'https://render.guildwars2.com/file/220576D1BDB3D8555755AAD1B8946B5C7E450BE8/3680137.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 20,
     castTimeMs: 1000,
     effects: [
@@ -110,6 +139,13 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.FLUX_STATE]: {
+    name: 'Flux State',
+    description:
+      'Stance. Your slime rapidly spins around you, creating a magnetic field. Pull in nearby enemies as a metallic storm swirls around you.',
+    icon: 'https://render.guildwars2.com/file/0A36EB0D061E9B63261260BE663EC6F4C04C1B1C/3680125.png',
+    type: 'Elite',
+    slot: 'Elite',
+
     cooldown: 50,
     castTimeMs: 640,
     // Commit before the animation ends so its remaining aftercast can be interrupted.
@@ -149,6 +185,13 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     ])
   },
   [ID.SOLID_STATE]: {
+    name: 'Solid State',
+    description:
+      'Stance. Leap into the air as you command your body to compact, stunning enemies upon landing. Gain stability and increase your outgoing stun durations for a duration.',
+    icon: 'https://render.guildwars2.com/file/FD0857ECCA025A02E2E7BB00DB0E65FFBA551661/3680139.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 25,
     castTimeMs: 520,
     effects: [
@@ -173,11 +216,23 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.LOCKED_ID_77107]: {
+    name: 'Locked',
+    description: 'Select a skill using the arrow above.',
+    icon: 'https://render.guildwars2.com/file/7ECD0608332279F720601EB4BF362FA41BA5990D/3680232.png',
+    type: 'Profession',
+    slot: 'Profession_4',
     cooldown: 0,
     castTimeMs: 0,
     effects: []
   },
   [ID.PLASMATIC_STATE]: {
+    name: 'Plasmatic State',
+    description:
+      'Stance. Superheat your body and lash out, damaging and burning enemies struck. Your outgoing strike and condition damage is increased for a duration.',
+    icon: 'https://render.guildwars2.com/file/2AA6D1CCEE723B7415B60DBDBAB55275EA562D29/3680138.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     // The cast skill owns the damage-bonus window that starts with its first strike.
     duration: 6,
     cooldown: 25,
@@ -204,6 +259,11 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Part
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.schedule-plasmatic' } }]
   },
   [ID.LOCKED_ID_77388]: {
+    name: 'Locked',
+    description: 'Select a skill using the arrow above.',
+    icon: 'https://render.guildwars2.com/file/7ECD0608332279F720601EB4BF362FA41BA5990D/3680232.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     cooldown: 0,
     castTimeMs: 0,
     effects: []

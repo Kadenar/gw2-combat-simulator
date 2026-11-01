@@ -1,6 +1,6 @@
 /**
  * Owns profession-wide Hammer variant selection and normalization.
- * Hammer skill fragments remain in `skills/weapons/hammer.ts`.
+ * Hammer skill definitions remain in `skills/weapons/hammer.ts`.
  */
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';

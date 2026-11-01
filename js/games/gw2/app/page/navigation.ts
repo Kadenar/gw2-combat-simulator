@@ -8,6 +8,7 @@
  */
 
 import { navigationRoute } from '#browser/page/embed.js';
+import { mountMobileMenu } from '#browser/shell/mobile-menu.js';
 import { resetRotationWorkspace } from '#browser/shell/rotation-workspace.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { clamp } from '#kernel/core/numeric.js';
@@ -58,6 +59,12 @@ function createNavigationLink(root: Document, view: SimulatorView, label: string
   link.className = 'simulator-view-tab';
   link.href = href;
   link.textContent = label;
+
+  if (view === 'gear-optimizer') {
+    link.innerHTML = '<span class="simulator-optimizer-prefix">Gear&nbsp;</span>Optimizer';
+    link.setAttribute('aria-label', label);
+  }
+
   link.dataset.simulatorView = view;
   return link;
 }
@@ -178,9 +185,13 @@ export function mountSimulatorNavigation(): void {
   navigation.innerHTML = `<div class="simulator-header-chrome">
     <div class="simulator-header-identity"><div class="simulator-workspace-control">
       <span class="simulator-control-label">Workspace</span>
-      <div class="simulator-workspace-options" role="group" aria-label="Workspace"></div>
+      <button type="button" class="mobile-workspace-trigger" aria-label="Choose workspace"></button>
+      <div id="simulator-workspace-menu" class="simulator-workspace-options" role="group" aria-label="Workspace"></div>
     </div></div>
-    <div class="simulator-header-global"></div>
+    <div class="simulator-header-global">
+      <button type="button" id="simulator-global-trigger" class="mobile-header-icon" aria-label="Navigation and help"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <div id="simulator-global-menu" role="group" aria-label="Navigation and help"></div>
+    </div>
   </div><div class="simulator-view-tabs" role="group" aria-label="Golem tools"></div>`;
   const identity = navigation.querySelector('.simulator-header-identity')!;
   const globals = navigation.querySelector('.simulator-header-global')!;
@@ -264,7 +275,9 @@ export function mountSimulatorNavigation(): void {
   });
   // Keep an open picker inside the viewport when the header reflows after a resize.
   document.defaultView?.addEventListener('resize', positionProfessionMenu);
-  professionControl.append(selector, professionMenu);
+  professionControl.append(selector);
+  // Keep the open portrait picker mounted when its trigger moves between responsive layouts.
+  navigation.append(professionMenu);
   identity.prepend(professionControl);
   const scrollPositions = new Map<SimulatorView, ScrollPosition>([[activeView, viewportScrollPosition(document)]]);
   // Restore twice (now + next frame) so layout that settles after the view swap
@@ -373,6 +386,28 @@ export function mountSimulatorNavigation(): void {
   if (community) globals.append(community);
 
   header.prepend(navigation);
+  const globalMenu = navigation.querySelector<HTMLElement>('#simulator-global-menu')!;
+  mountMobileMenu(
+    navigation.querySelector<HTMLButtonElement>('#simulator-global-trigger')!,
+    globalMenu,
+    undefined,
+    (mobile) => {
+      if (mobile) {
+        globalMenu.append(professionControl);
+
+        if (community) globalMenu.append(community);
+      } else {
+        identity.prepend(professionControl);
+
+        if (community) globals.append(community);
+      }
+    }
+  );
+  mountMobileMenu(
+    navigation.querySelector<HTMLButtonElement>('.mobile-workspace-trigger')!,
+    workspaces as HTMLElement,
+    '[aria-current]'
+  );
   mountAnalysisView(document);
 
   if (document.defaultView?.history.state?.analysisWorkspace === 'bosses') body.dataset.analysisWorkspace = 'bosses';

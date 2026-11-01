@@ -4,7 +4,6 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 
 /** Owns Energy Amplifier tuning and behavior at its established runtime and build boundaries. */
 export const energyAmplifier = defineTrait({
-  name: 'Energy Amplifier',
   id: TRAIT.ENERGY_AMPLIFIER,
   balance: {
     attributeBonuses: { power: 250, healingPower: 250 }

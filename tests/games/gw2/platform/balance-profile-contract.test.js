@@ -28,7 +28,7 @@ const profile = {
   effects: [first, second]
 };
 const skill = { id: 1, name: 'Skill', effects: [first, second] };
-const fixture = () => createCanonicalCatalog({ generated: [skill], balanceProfiles: [profile] });
+const fixture = () => createCanonicalCatalog({ skills: [skill], balanceProfiles: [profile] });
 
 // Skill modifiers use the authoritative selected catalog, even when another context layer has the same ID.
 test('required skill lookup preserves selected patch ownership', () => {
@@ -98,7 +98,7 @@ for (const [kind, section, apply, index] of [
   test(`${kind}: construction owns validation and reads share immutable effects`, () => {
     const construct = (effects) =>
       createCanonicalCatalog({
-        generated: kind === 'skill' ? [{ ...skill, effects }] : [],
+        skills: kind === 'skill' ? [{ ...skill, effects }] : [],
         balanceProfiles: kind === 'balance-profile' ? [{ ...profile, effects }] : []
       });
     assert.throws(() => construct([second, second]), /duplicate effect key/);
@@ -249,7 +249,7 @@ for (const [kind, section, apply, index] of [
         assert.throws(
           () =>
             createCanonicalCatalog({
-              generated: kind === 'skill' ? [{ ...skill, effects: [invalid] }] : [],
+              skills: kind === 'skill' ? [{ ...skill, effects: [invalid] }] : [],
               balanceProfiles: kind === 'balance-profile' ? [{ ...profile, effects: [invalid] }] : []
             }),
           error
@@ -349,7 +349,7 @@ test('full previews and selected runtimes preserve removals without leaking acro
         defineNativeModule({
           id: 'Elite',
           data: {
-            generatedSkills: [skill],
+            skills: [skill],
             traits: [
               { id: 1, name: profile.name },
               { id: 2, name: 'Unedited' }

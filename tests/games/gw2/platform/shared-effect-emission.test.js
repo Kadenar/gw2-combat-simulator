@@ -274,6 +274,41 @@ test('reaction profile applications are visible before the emitting listener res
   assert.deepEqual(trace, ['Poisoned', 'Weakness', 'caller']);
 });
 
+// Admission order establishes causality before queue priorities resolve simultaneous packets.
+test('application-ordered profiles submit each sibling before the next application', () => {
+  for (const includeCondition of [true, false]) {
+    const trace = [];
+    const cause = { ...attribution, type: 'action', at: 0, activationId: 'paired-cast', eventOrder: 17 };
+    const service = createEffectEmissionService({
+      expansionBudget: createEffectExpansionBudget(),
+      now: () => 0,
+      registerReaction: () => undefined,
+      announce: () => assert.fail('unexpected announcement'),
+      submit(event, delivery) {
+        assert.equal(delivery.cause.activationId, cause.activationId);
+        assert.equal(delivery.cause.eventOrder, cause.eventOrder);
+        trace.push(event.type);
+        return event;
+      }
+    });
+    service.emit({
+      kind: 'profile',
+      order: 'application',
+      cause,
+      profile: {
+        id: 42,
+        name: 'Pair',
+        effects: [
+          { type: 'strike', coefficient: 1, applications: 2 },
+          ...(includeCondition ? [{ type: 'condition', condition: 'Vulnerability', stacks: 1, duration: 2 }] : [])
+        ]
+      },
+      attribution
+    });
+    assert.deepEqual(trace, includeCondition ? ['damage', 'condition', 'damage'] : ['damage', 'damage']);
+  }
+});
+
 // A named trait payload retains cast identity and effect-specific ownership in the immutable submitted receipt.
 test('trait profile selection validates named effects and preserves cast attribution in receipts', () => {
   const submitted = [];

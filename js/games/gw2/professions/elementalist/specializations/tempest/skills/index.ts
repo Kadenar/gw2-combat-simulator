@@ -1,15 +1,15 @@
 /**
- * Owns Tempest overload and slot-skill catalog fragments only.
+ * Owns Tempest overload and slot-skill catalog definitions only.
  * Persistent overload behavior lives in `hooks.ts`; aura reactions live under `mechanics/`.
  */
 import { AURA, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { TEMPEST_OVERLOAD_EFFECTS } from '#gw2/professions/elementalist/specializations/tempest/skills/overload-effects.js';
 
 /**
- * Catalog fragments Tempest owns: the four overloads and the damaging shouts.
+ * Catalog definitions Tempest owns: the four overloads and the damaging shouts.
  *
  * Overloads are `overload: true` profession skills bound to one attunement, recharge from cast end,
  * and take their tick effects from TEMPEST_OVERLOAD_EFFECTS; the gating, aura, and trait behavior
@@ -18,15 +18,17 @@ import { TEMPEST_OVERLOAD_EFFECTS } from '#gw2/professions/elementalist/speciali
  * The engine dispatches castCommit only after the skill's commit cutoff, so overload rewards need no second check.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.OVERLOAD_FIRE]: {
     name: 'Overload Fire',
+    description:
+      'Overload. Unleash your flames, granting might to allies and burning enemies. Finishing the cast creates a tornado that continues to grant might and burn foes.\nUsing this skill causes the attunement to have a longer recharge.',
+    icon: 'https://render.guildwars2.com/file/3A04F5D420A86664A3044B950E145E022A49D8AA/1029985.png',
     type: 'Profession',
     slot: 'Profession_1',
-    specialization: 'Tempest',
     attunement: 'Fire',
     mechanicSlot: 1,
-    categories: ['Attunement'],
+
     cooldown: 20,
     rechargeAnchor: 'castEnd',
     overload: true,
@@ -57,12 +59,14 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   // pulses carry no simulated damage, condition, or boon packets.
   [ID.OVERLOAD_WATER]: {
     name: 'Overload Water',
+    description:
+      'Overload. Create a surge of accumulated water magic, healing and cleansing allies. When the cast ends, heal the area and apply regeneration.\nUsing this skill causes the attunement to have a longer recharge.',
+    icon: 'https://render.guildwars2.com/file/0E3DEF200ACD40FE281956CBA511E934F2B3F82A/1029986.png',
     type: 'Profession',
     slot: 'Profession_2',
-    specialization: 'Tempest',
     attunement: 'Water',
     mechanicSlot: 2,
-    categories: ['Attunement'],
+
     cooldown: 20,
     rechargeAnchor: 'castEnd',
     overload: true,
@@ -79,12 +83,14 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.OVERLOAD_AIR]: {
     name: 'Overload Air',
+    description:
+      'Overload. Use your air magic to summon a nimbus that repeatedly strikes nearby enemies. When this ability is complete, imbue your allies with electricity and create a lingering static region that strikes enemies at the same interval.\nUsing this skill causes the attunement to have a longer recharge.',
+    icon: 'https://render.guildwars2.com/file/592CC2A120322000BC7234B8522BBE7BAF2F4A57/1029987.png',
     type: 'Profession',
     slot: 'Profession_3',
-    specialization: 'Tempest',
     attunement: 'Air',
     mechanicSlot: 3,
-    categories: ['Attunement'],
+
     cooldown: 20,
     rechargeAnchor: 'castEnd',
     overload: true,
@@ -124,12 +130,14 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.OVERLOAD_EARTH]: {
     name: 'Overload Earth',
+    description:
+      'Overload. Ride your stored earth magic around, granting protection to other allies you move over and crippling enemies, then deliver a final immobilizing blast of power to the area, leaving behind a dust cyclone that delivers the same effects as the overload.\nUsing this skill causes the attunement to have a longer recharge.',
+    icon: 'https://render.guildwars2.com/file/975A1DE89BA70721BD0E0F6D601C259066F8D468/1029988.png',
     type: 'Profession',
     slot: 'Profession_4',
-    specialization: 'Tempest',
     attunement: 'Earth',
     mechanicSlot: 4,
-    categories: ['Attunement'],
+
     cooldown: 20,
     rechargeAnchor: 'castEnd',
     overload: true,
@@ -150,10 +158,11 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.WASH_THE_PAIN_AWAY]: {
     name: 'Wash the Pain Away!',
+    description: 'Shout. Mists billow from you, healing allies in range and cleansing conditions.',
+    icon: 'https://render.guildwars2.com/file/D9939BFEEF613CEE550B5DDA9DF97E58B7BC4F16/1029989.png',
     type: 'Heal',
     slot: 'Heal',
-    specialization: 'Tempest',
-    categories: ['Shout'],
+
     cooldown: 20,
     skillFamily: 'Shout',
     castTimeMs: 1040,
@@ -163,10 +172,11 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.FEEL_THE_BURN]: {
     name: 'Feel the Burn!',
+    description: 'Shout. Heat waves blast out from the player, causing damage and granting fire aura to allies.',
+    icon: 'https://render.guildwars2.com/file/2963BBB55948D8C0C96CCB96B5100D2999C7DF09/1029992.png',
     type: 'Utility',
     slot: 'Utility',
-    specialization: 'Tempest',
-    categories: ['Shout'],
+
     cooldown: 25,
     skillFamily: 'Shout',
     castTimeMs: 0,
@@ -199,10 +209,12 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.AFTERSHOCK]: {
     name: 'Aftershock!',
+    description:
+      'Shout. Call upon the earth to cripple and immobilize foes in the area around you. Allies in the initial blast gain a magnetic aura.',
+    icon: 'https://render.guildwars2.com/file/024E50B435ACA9BC350E3A0C5E07F1172D180808/1029991.png',
     type: 'Utility',
     slot: 'Utility',
-    specialization: 'Tempest',
-    categories: ['Shout'],
+
     cooldown: 30,
     skillFamily: 'Shout',
     castTimeMs: 0,

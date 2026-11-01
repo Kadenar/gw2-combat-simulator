@@ -29,7 +29,7 @@ const skills = [
   },
   { id: 991003, name: 'Might', castTimeMs: 0, effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 2 }] },
   { id: 991004, name: 'Step', castTimeMs: 0, shadowstepSkill: true, effects: [] },
-  { id: 991014, name: 'Deception', castTimeMs: 0, categories: ['Deception'], peithaImpactDelayMs: 1000, effects: [] },
+  { id: 991014, name: 'Deception', castTimeMs: 0, skillFamily: 'Deception', peithaImpactDelayMs: 1000, effects: [] },
   {
     id: 991005,
     name: 'Field',
@@ -81,7 +81,7 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 function native(hooks = {}, modifiers = {}) {
   const core = defineNativeModule({
     id: 'Core',
-    data: { generatedSkills: skills, weapons: ['Sword'] },
+    data: { skills: skills, weapons: ['Sword'] },
     state: {
       create: () => ({
         energy: createResourceClock(),
@@ -239,7 +239,7 @@ test('native field selection composes before cast-start mutations and registers 
   const core = defineNativeModule({
     id: 'Core',
     data: {
-      generatedSkills: [
+      skills: [
         {
           id: 991099,
           name: 'Field',
@@ -339,7 +339,7 @@ test('live recharge anchors compose once per cast and reject nonfinite results',
   const module = (id) =>
     defineNativeModule({
       id,
-      data: id === 'Core' ? { generatedSkills: skills, weapons: ['Sword'] } : {},
+      data: id === 'Core' ? { skills: skills, weapons: ['Sword'] } : {},
       state: { create: () => ({}) },
       hooks: {
         rechargeStart(runtime, cast, at) {
@@ -388,7 +388,7 @@ test('live public projections observe planning after death without exposing cont
   let projections = 0;
   const core = defineNativeModule({
     id: 'Core',
-    data: { generatedSkills: skills },
+    data: { skills: skills },
     state: {
       create: () => ({ uses: 0, hits: 0, privateGeneration: 1 }),
       project(input) {

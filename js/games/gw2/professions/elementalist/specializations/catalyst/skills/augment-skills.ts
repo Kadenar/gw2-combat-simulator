@@ -5,7 +5,7 @@ import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type {
@@ -15,13 +15,15 @@ import type {
 } from '#gw2/professions/elementalist/types.js';
 
 /** Augments retain their declarations, conditional effects, and weapon-recharge actions together. */
-export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.RELENTLESS_FIRE]: {
     name: 'Relentless Fire',
+    description:
+      'Augment. Your attacks and conditions deal increased damage, and your attacks are unblockable. If this is cast within range of your Fire Sphere, the duration is increased.',
+    icon: 'https://render.guildwars2.com/file/31372EE16EAB80BDB213EB99D1BF4C6C3B67B6AF/2491601.png',
     type: 'Utility',
     slot: 'Utility',
-    specialization: 'Catalyst',
-    categories: ['Augment'],
+
     cooldown: 20,
     skillFamily: 'Augment',
     castTimeMs: 240,
@@ -50,10 +52,12 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.SHATTERING_ICE]: {
     name: 'Shattering Ice',
+    description:
+      'Augment. Your successful attacks will trigger an additional strike on nearby enemies that applies chill. If this is cast within range of your Water Sphere, the duration is increased. This effect can occur once per interval.',
+    icon: 'https://render.guildwars2.com/file/A1C20E2CE05D80B5A9DDF47ED0780301FC2C7477/2491603.png',
     type: 'Utility',
     slot: 'Utility',
-    specialization: 'Catalyst',
-    categories: ['Augment'],
+
     cooldown: 20,
     skillFamily: 'Augment',
     // Select the authored window from live sphere state when the cast commits.
@@ -96,10 +100,12 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, Partial<Skill>>> =
   },
   [ID.ELEMENTAL_CELERITY]: {
     name: 'Elemental Celerity',
+    description:
+      'Augment. Reduce the recharge of weapon skills of your current attunement. If this is activated in range of your sphere, gain a boon based on its element.',
+    icon: 'https://render.guildwars2.com/file/39F9519CA1BA45F570BA157B7AD4449AF94BBF01/2491568.png',
     type: 'Elite',
     slot: 'Elite',
-    specialization: 'Catalyst',
-    categories: ['Augment'],
+
     cooldown: 90,
     skillFamily: 'Augment',
     castTimeMs: 240,

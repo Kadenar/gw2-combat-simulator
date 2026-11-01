@@ -1,5 +1,6 @@
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/warrior/data/trait-lines.js';
 import { berserkerAttributes } from '#gw2/professions/warrior/specializations/berserker/attributes.js';
 import { BERSERKER_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/berserker/catalog-fields.js';
 import { berserkerHooks } from '#gw2/professions/warrior/specializations/berserker/hooks.js';
@@ -13,11 +14,14 @@ import {
   projectBerserkerPlanningState
 } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import { warriorBerserkerTraits } from '#gw2/professions/warrior/specializations/berserker/traits/index.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export const berserkerModule = defineNativeModule({
   traitDefinitions: warriorBerserkerTraits,
   id: 'Berserker',
-  data: createWarriorModuleData('Berserker', {
+  data: createNativeModuleData<WarriorSkill>({
+    id: 'Berserker',
+    traitLines: TRAIT_LINES,
     skillFields: BERSERKER_SKILL_FIELDS,
     skillMechanics: BERSERKER_SKILL_MECHANICS
   }),

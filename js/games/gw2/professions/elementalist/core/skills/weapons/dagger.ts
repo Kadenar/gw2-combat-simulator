@@ -15,27 +15,30 @@ import {
   WEAPON
 } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 // Cast-scaled packet data is authored on the Quickness timeline and expands only for slower casts.
 const DRAKES_BREATH_TICK_OFFSETS_MS = [520, 760, 1000, 1240] as const;
 
 /**
- * Skill-id keyed fragments the Core module contributes to the dagger catalog.
+ * Skill-id keyed definitions the Core module contributes to the dagger catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // Three claws are thrown together, so one packet time carries three independent strikes.
   [ID.DRAGONS_CLAW]: {
     name: "Dragon's Claw",
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Fling fire in a claw-shaped spread at your foe.',
+    icon: 'https://render.guildwars2.com/file/1663AA3AC00FA2F31C4DD4040A759EAB0307B92A/103211.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 720,
@@ -58,11 +61,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // only the ticks that already landed when the channel is cut short.
   [ID.DRAKES_BREATH]: {
     name: "Drake's Breath",
+    description: 'Spray a cone of fire at foes while on the move.',
+    icon: 'https://render.guildwars2.com/file/C87956461091440D784C4038510316AAAD7B63E8/103096.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 5,
     skillFamily: 'Weapon skill',
     castTimeMs: 1360,
@@ -91,11 +96,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Flames can recognize and extend them along with the field itself.
   [ID.BURNING_SPEED]: {
     name: 'Burning Speed',
+    description: 'Slide forward and blast the area, leaving behind a line of fire that burns foes.',
+    icon: 'https://render.guildwars2.com/file/6D6650C13B0DA019E8EEA0C50E5307C567D7405E/103373.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 12,
     skillFamily: 'Weapon skill',
     castTimeMs: 800,
@@ -137,11 +144,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Single hit that also lays a five-second fire field for other skills to finish in.
   [ID.RING_OF_FIRE]: {
     name: 'Ring of Fire',
+    description: 'Damage nearby foes with a ring of fire, burning foes that pass through it.',
+    icon: 'https://render.guildwars2.com/file/CD08FDC23B56EBB19C90B909C65D9EE4D9FFF8C8/103183.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 15,
     skillFamily: 'Weapon skill',
     castTimeMs: 480,
@@ -167,11 +176,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.FIRE_GRAB]: {
     name: 'Fire Grab',
+    description: 'Damage foes in a cone in front of you. Deal more damage to burning foes.',
+    icon: 'https://render.guildwars2.com/file/ED2422E6051855A76214FA9F292525C1359F0B59/103296.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.DAGGER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 560,
@@ -194,12 +205,15 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // The blade strikes outbound and again on its return a second later, each pass applying Vulnerability.
   [ID.VAPOR_BLADE]: {
     name: 'Vapor Blade',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Cast a vapor blade that inflicts vulnerability and returns to you.',
+    icon: 'https://render.guildwars2.com/file/0C2C7C92336BFABD2B0A777358C608A0076B4063/102818.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
@@ -217,11 +231,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Four-tick channel, each tick declared as its own strike packet.
   [ID.CONE_OF_COLD]: {
     name: 'Cone of Cold',
+    description: 'Spray an icy blast in a cone that damages foes and heals allies.',
+    icon: 'https://render.guildwars2.com/file/069C46F135A34A5E3F15270E3B086A25FA790D92/102780.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 10,
     skillFamily: 'Weapon skill',
     castTimeMs: 1360,
@@ -275,11 +291,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Blast finisher that lands before its own ice field opens at cast end, so it can only finish an earlier field.
   [ID.FROZEN_BURST]: {
     name: 'Frozen Burst',
+    description: 'Detonate a burst of ice that chills nearby foes.',
+    icon: 'https://render.guildwars2.com/file/C13AA7EC94200C0E7E24C4E47164183991107EA4/103243.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 12,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
@@ -309,13 +327,15 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Instant aura grant that flips the slot to Transmute Frost; the declared effect grants the aura.
   [ID.FROST_AURA]: {
     name: AURA.FROST,
+    description:
+      'Protect yourself with frost armor that reduces incoming damage by 10%. While active, it chills foes that hit you. Each attacker can be affected by this only once per second.',
+    icon: 'https://render.guildwars2.com/file/0D5599084DE820990E9F6D5A6853900553B205BC/103077.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 10,
-    nextChainId: ID.TRANSMUTE_FROST,
     skillFamily: 'Weapon skill',
     castTimeMs: 0,
     effects: [{ type: 'aura', aura: AURA.FROST, duration: 10 }]
@@ -323,13 +343,14 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Consumes the Frost Aura and flips the slot back to Frost Aura.
   [ID.TRANSMUTE_FROST]: {
     name: 'Transmute Frost',
+    description: 'Cause your frost aura to violently explode, healing allies and damaging foes.',
+    icon: 'https://render.guildwars2.com/file/CDD3E52A062BDACC552BC133EA2EC547610CB3BA/2029301.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 10,
-    nextChainId: ID.FROST_AURA,
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -346,14 +367,16 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
     // Consume all live matching auras on commitment, regardless of which skill or trait granted them.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.transmute-aura' } }]
   },
-  // Heal/cleanse only: no offensive packets, so the fragment exists to occupy cast time and recharge.
+  // Heal/cleanse only: no offensive packets, so the definition exists to occupy cast time and recharge.
   [ID.CLEANSING_WAVE]: {
     name: 'Cleansing Wave',
+    description: 'Heal yourself and nearby allies, curing conditions.',
+    icon: 'https://render.guildwars2.com/file/180D2C7CDB69E301401509737CEC35F90D57E358/102819.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.DAGGER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 960,
@@ -362,12 +385,15 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Two-hit auto-attack landing inside a single cast.
   [ID.LIGHTNING_WHIP]: {
     name: 'Lightning Whip',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Lash your foe with lightning.',
+    icon: 'https://render.guildwars2.com/file/AD9670FD92547F6254DFA9CC6BF3B49845DF0C07/102901.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 640,
@@ -401,11 +427,14 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Delayed payload: the blast plus Weakness and Fury resolve roughly a second after the short cast ends.
   [ID.CONVERGENCE]: {
     name: 'Convergence',
+    description:
+      'Charge the air to shock foes around you after a short delay. Inflict weakness on enemies and gain fury for each foe struck.',
+    icon: 'https://render.guildwars2.com/file/A7F6522CC73138ECBF15A04D62634A2FFFBFD246/103374.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 8,
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
@@ -428,13 +457,15 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Air-attunement counterpart of the Frost Aura pair: grants the aura and flips to Transmute Lightning.
   [ID.SHOCKING_AURA]: {
     name: AURA.SHOCKING,
+    description:
+      'Envelop yourself with electrical energy that stuns nearby foes if they attack you. Each attacker can be affected by this only once every 2 seconds.',
+    icon: 'https://render.guildwars2.com/file/9D30A3547A777040C5FE730816A13932FDFDD77F/103104.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 10,
-    nextChainId: ID.TRANSMUTE_LIGHTNING,
     skillFamily: 'Weapon skill',
     castTimeMs: 0,
     effects: [{ type: 'aura', aura: AURA.SHOCKING, duration: 10 }]
@@ -442,13 +473,14 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // Consumes the Shocking Aura for a crit-capable strike plus a crowd-control application, then flips back.
   [ID.TRANSMUTE_LIGHTNING]: {
     name: 'Transmute Lightning',
+    description: 'Cause your shocking aura to violently explode, stunning enemies who are struck by it.',
+    icon: 'https://render.guildwars2.com/file/469DCE91CAE2697309EE0BE616B70FBF6D03CC67/2029298.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 10,
-    nextChainId: ID.SHOCKING_AURA,
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
     interruptCommitMs: 280,
@@ -464,13 +496,16 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.RIDE_THE_LIGHTNING]: {
     name: 'Ride the Lightning',
+    description:
+      "Ride the lightning to your foe, then strike all nearby foes with an electrical burst. If a foe is hit by the burst, the skill's recharge is halved.",
+    icon: 'https://render.guildwars2.com/file/23066340DF3C6E4F06A1B105479809E1647FF5D6/103332.png',
     // Recharge policy applies this intrinsic on-hit reduction; the simulated target is always hit.
     rechargeMultiplier: 0.5,
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 120,
@@ -490,11 +525,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.UPDRAFT]: {
     name: 'Updraft',
+    description: 'Gain swiftness from a gust of wind that launches nearby foes.',
+    icon: 'https://render.guildwars2.com/file/2E2837AB65D4283DD23673CB21450A9CC5D2F07F/103384.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.DAGGER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 880,
@@ -512,12 +549,15 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.IMPALE]: {
     name: 'Impale',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Spear your foes on a giant stone spike.',
+    icon: 'https://render.guildwars2.com/file/65490660DC4D12927816F9A224CB982227597A35/103106.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
@@ -530,11 +570,14 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // own Bleeding and Cripple application.
   [ID.RING_OF_EARTH]: {
     name: 'Ring of Earth',
+    description:
+      'Use the earth to launch yourself into the air and strike foes in a small radius. Deliver a larger ring of earthen spikes upon impact.',
+    icon: 'https://render.guildwars2.com/file/0AFCBDA61E7BE315E50FE567B23632C803BF02A3/103107.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 880,
@@ -553,11 +596,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.EARTHEN_RUSH]: {
     name: 'Earthen Rush',
+    description: 'Quickly dash along the ground, summoning spikes along the way and then delivering an area strike.',
+    icon: 'https://render.guildwars2.com/file/DA71280E1C50AB7F0901A2CD2597E3ACCC1D6665/534761.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 12,
     skillFamily: 'Weapon skill',
     castTimeMs: 640,
@@ -578,11 +623,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.EARTHQUAKE]: {
     name: 'Earthquake',
+    description: 'Trigger a quake at your location, knocking down foes and dealing massive damage.',
+    icon: 'https://render.guildwars2.com/file/01F24427AF4C18476A657647C39CB2F2374BDA57/102975.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 16,
     skillFamily: 'Weapon skill',
     castTimeMs: 680,
@@ -608,11 +655,13 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, P
   // the damage and conditions land with the eruption near cast end.
   [ID.CHURNING_EARTH]: {
     name: 'Churning Earth',
+    description: 'Leap at your foe and unleash a seismic wave that inflicts damages and bleeding.',
+    icon: 'https://render.guildwars2.com/file/4B3D497E0F070BEE66642AF6293A77B891CEA95C/102976.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.DAGGER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 960,

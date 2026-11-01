@@ -134,7 +134,7 @@ test('duration and flip patches reject obsolete names while real multipliers rem
     /unsupported patch field durationMultiplier/
   );
   assert.throws(
-    () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Retired', durationMultiplier: 3 }] }),
+    () => createCanonicalCatalog({ skills: [{ id: 1, name: 'Retired', durationMultiplier: 3 }] }),
     /unsupported field: durationMultiplier/
   );
   const factors = createCanonicalCatalog({
@@ -175,9 +175,9 @@ test('duration fields validate finite nonnegative seconds and preserve explicit 
 
   // Flip windows now belong to skills, so validate and patch them through the skill contract.
   const skill = { id: 1, name: 'Flip', flipDuration: 2 };
-  const catalog = createCanonicalCatalog({ generated: [skill] });
+  const catalog = createCanonicalCatalog({ skills: [skill] });
   for (const value of [-1, NaN, Infinity, '3', null]) {
-    assert.throws(() => createCanonicalCatalog({ generated: [{ ...skill, flipDuration: value }] }));
+    assert.throws(() => createCanonicalCatalog({ skills: [{ ...skill, flipDuration: value }] }));
     assert.throws(() => applySkillPatch(catalog, { skills: { 1: { fields: { flipDuration: value } } } }));
   }
 

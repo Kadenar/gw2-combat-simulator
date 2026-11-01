@@ -913,7 +913,7 @@ test('out-of-scope Guardian slot skills are absent and rejected in saved builds'
 
   // Valorous Stance has simulated boons, so only its loadout selection is hidden.
   const valorousStance = guardianCatalog.skillsById.get(77300);
-  assert.equal(valorousStance.simulatorExcluded, false);
+  assert.notEqual(valorousStance.simulatorExcluded, true);
   assert.equal(valorousStance.slotSelectable, false);
 
   assert.throws(

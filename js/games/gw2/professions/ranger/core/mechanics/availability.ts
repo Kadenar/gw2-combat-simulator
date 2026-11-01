@@ -59,10 +59,8 @@ export function rangerCoreCastAvailability(
     return { ready: true };
   }
 
-  // Hammer variants follow loadout or unleash state, so they never require a follow-up window.
-  const flipBlock = isRangerHammerVariant(skill.id)
-    ? null
-    : weaponFlipBlock(state.availableFlips, context.helpers.skillsById, skill, context.time);
+  // Only declared temporal follow-ups carry canonical flip links and require a window.
+  const flipBlock = weaponFlipBlock(state.availableFlips, context.helpers.skillsById, skill, context.time);
 
   if (flipBlock?.kind === 'closed')
     return denySkillCast(

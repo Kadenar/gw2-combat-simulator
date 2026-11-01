@@ -1,8 +1,9 @@
+import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Composes Core Ranger pet, slot, weapon, and simulator-action skill catalogs.
  * Persistent pet and weapon state remain in `core/mechanics/`.
  */
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_CORE_ACTION_SKILLS } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_CORE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/index.js';
 import { RANGER_CORE_SLOT_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/slot-skills.js';
@@ -26,24 +27,24 @@ import { RANGER_CORE_SWORD_SKILL_MECHANICS } from '#gw2/professions/ranger/core/
 import { RANGER_CORE_TORCH_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/weapons/torch.js';
 import { RANGER_CORE_WARHORN_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/weapons/warhorn.js';
 
-export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  ...RANGER_CORE_PET_SKILL_MECHANICS,
-  ...RANGER_CORE_SLOT_SKILL_MECHANICS,
-  ...RANGER_CORE_AXE_SKILL_MECHANICS,
-  ...RANGER_CORE_DAGGER_SKILL_MECHANICS,
-  ...RANGER_CORE_GREATSWORD_SKILL_MECHANICS,
-  ...RANGER_CORE_HAMMER_SKILL_MECHANICS,
-  ...RANGER_CORE_LONGBOW_SKILL_MECHANICS,
-  ...RANGER_CORE_MACE_SKILL_MECHANICS,
-  ...RANGER_CORE_SHORTBOW_SKILL_MECHANICS,
-  ...RANGER_CORE_SPEAR_SKILL_MECHANICS,
-  ...RANGER_CORE_STAFF_SKILL_MECHANICS,
-  ...RANGER_CORE_SWORD_SKILL_MECHANICS,
-  ...RANGER_CORE_TORCH_SKILL_MECHANICS,
-  ...RANGER_CORE_WARHORN_SKILL_MECHANICS
-});
+export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+  RANGER_CORE_PET_SKILL_MECHANICS,
+  RANGER_CORE_SLOT_SKILL_MECHANICS,
+  RANGER_CORE_AXE_SKILL_MECHANICS,
+  RANGER_CORE_DAGGER_SKILL_MECHANICS,
+  RANGER_CORE_GREATSWORD_SKILL_MECHANICS,
+  RANGER_CORE_HAMMER_SKILL_MECHANICS,
+  RANGER_CORE_LONGBOW_SKILL_MECHANICS,
+  RANGER_CORE_MACE_SKILL_MECHANICS,
+  RANGER_CORE_SHORTBOW_SKILL_MECHANICS,
+  RANGER_CORE_SPEAR_SKILL_MECHANICS,
+  RANGER_CORE_STAFF_SKILL_MECHANICS,
+  RANGER_CORE_SWORD_SKILL_MECHANICS,
+  RANGER_CORE_TORCH_SKILL_MECHANICS,
+  RANGER_CORE_WARHORN_SKILL_MECHANICS
+);
 
-/** Preserves the public supplemental-skill order while each family owns its identities. */
+/** Preserves the public declaration order while each family owns its identities. */
 export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   ...RANGER_CORE_TRAIT_SKILLS,
   ...RANGER_CORE_SPEAR_EXTRA_SKILLS,

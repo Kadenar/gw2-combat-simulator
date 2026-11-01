@@ -1,8 +1,9 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
-import { createRangerModuleData } from '#gw2/professions/ranger/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/ranger/data/trait-lines.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { galeshotHooks } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -17,7 +18,7 @@ type EliteCast = NonNullable<typeof galeshotHooks.onCastStart>;
 
 // Real modules, selected catalogs, and hooks retain profession fields without widening to Skill or any.
 export type RangerSkillFlowAssertions = [
-  Assert<Equal<NonNullable<typeof rangerCoreModule.data.generatedSkills>[number], RangerSkill>>,
+  Assert<Equal<NonNullable<typeof rangerCoreModule.data.skills>[number], RangerSkill>>,
   Assert<Equal<(typeof rangerCatalog.skills)[number], RangerSkill>>,
   Assert<Equal<(typeof rangerProfession.catalog.skills)[number], RangerSkill>>,
   Assert<Equal<(typeof first.catalog.skills)[number], RangerSkill>>,
@@ -40,11 +41,17 @@ export function rangerHookSkillReads(runtime: RangerRuntime, cast: Parameters<El
   void [cost, flag, indexed, listed, invalid];
 }
 
-createRangerModuleData('Core', {
-  skillMechanics: {
-    1: {
-      // @ts-expect-error Known profession fields reject invalid authored values.
-      arrowCost: 'invalid'
-    }
+const invalidDefinitions: Record<string, SkillDefinition<RangerSkill>> = {
+  1: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    // @ts-expect-error Known profession fields reject invalid authored values.
+    arrowCost: 'invalid'
   }
+};
+createNativeModuleData<RangerSkill>({
+  id: 'Core',
+  traitLines: TRAIT_LINES,
+  skillMechanics: invalidDefinitions
 });

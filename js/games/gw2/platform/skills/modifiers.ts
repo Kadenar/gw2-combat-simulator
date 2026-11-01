@@ -1,6 +1,5 @@
 import { createModifierHooks, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Intrinsic bonuses use shared strike buckets or critical-factor arithmetic, scoped automatically to their owner. */
 export type SkillDamageModifier = Pick<
@@ -46,20 +45,10 @@ export function normalizeSkillDamageModifiers(value: unknown, label: string): re
 
 /** Register skill declarations once with module rules so canonical compilation and balance authoring share them. */
 export function nativeSkillModifierRules(data: NativeModuleCatalogData): readonly Gw2ModifierRule[] {
-  const skills = new Map<string, Partial<Skill>>();
-  for (const skill of [...(data.generatedSkills ?? []), ...(data.extraSkills ?? [])]) {
-    skills.set(String(skill.id), skill);
-  }
-
-  for (const fragments of [data.skillMechanics, data.skillOverrides]) {
-    for (const [id, fragment] of Object.entries(fragments ?? {})) {
-      skills.set(id, { ...skills.get(id), ...fragment });
-    }
-  }
-
   const rules: Gw2ModifierRule[] = [];
-  for (const [key, skill] of skills) {
-    const id: SkillId = skill.id ?? key;
+  // Complete owner declarations expose intrinsic modifiers without metadata merge precedence.
+  for (const skill of data.skills ?? []) {
+    const id = skill.id;
     const scoped = (rule: SkillDamageModifier, effect: boolean): Gw2ModifierRule => ({
       ...rule,
       when: (context) =>

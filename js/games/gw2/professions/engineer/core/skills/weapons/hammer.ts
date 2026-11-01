@@ -1,12 +1,20 @@
-/** Canonical Core engineer skill fragments grouped by their GW2 owner. */
+/** Canonical Core engineer skill definitions grouped by their GW2 owner. */
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines Engineer hammer skill timing, damage, control, conditions, boons, and combo behavior. */
-export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.POSITIVE_STRIKE]: {
+    name: 'Positive Strike',
+    description: 'Chain. Smack your hammer into your foe while empowering yourself.',
+    icon: 'https://render.guildwars2.com/file/03AFAF0818322FBFBA7D0A03A313B7C1F9B224C2/1128586.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 480,
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -27,6 +35,14 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.NEGATIVE_BASH]: {
+    name: 'Negative Bash',
+    description: 'Chain. Slam your hammer into your foe to leave them vulnerable.',
+    icon: 'https://render.guildwars2.com/file/99F8097EDF3414100FDC21697C0A30BB31B6A605/1128585.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 640,
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -48,6 +64,14 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.EQUALIZING_BLOW]: {
+    name: 'Equalizing Blow',
+    description: 'Chain. Bring down your hammer on your foe.',
+    icon: 'https://render.guildwars2.com/file/7D9690A6720204571801256DC30BF6B4BFEDE524/1058589.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     castTimeMs: 440,
     // A kit swap after the final attack packet still commits Equalizing Blow's effects.
@@ -77,6 +101,12 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.ELECTRO_WHIRL]: {
+    name: 'Electro-whirl',
+    description: 'Spin around, reflecting missiles and hitting enemies.',
+    icon: 'https://render.guildwars2.com/file/B36C6EBE3577BAA5773857EDE33895C5C6663EEC/1058590.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_2',
     cooldown: 6,
     castTimeMs: 680,
     comboFinishers: [
@@ -99,6 +129,12 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.ROCKET_CHARGE]: {
+    name: 'Rocket Charge',
+    description: 'Dash forward with a rocket-charged hammer to damage enemies.',
+    icon: 'https://render.guildwars2.com/file/AE3AF2E525F00F645EEAA97143E322E519DA1569/1058592.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_3',
     cooldown: 12,
     castTimeMs: 1920,
     effects: [
@@ -117,6 +153,12 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.SHOCK_SHIELD]: {
+    name: 'Shock Shield',
+    description: 'Block attacks while striking foes in front of you, gaining barrier with each enemy you hit.',
+    icon: 'https://render.guildwars2.com/file/28DD470E607DA1BB687BD0956C6DEE665CBAFCCE/1058591.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_4',
     cooldown: 18,
     castTimeMs: 1200,
     effects: [
@@ -138,6 +180,12 @@ export const ENGINEER_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.THUNDERCLAP]: {
+    name: 'Thunderclap',
+    description: 'Ionize an area, bringing down the power of lightning to stun foes and damage them over its duration.',
+    icon: 'https://render.guildwars2.com/file/21C770525B9B9BEDB7BBFF24055E1138C333FC00/1058593.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_5',
     cooldown: 20,
     castTimeMs: 520,
     comboFields: [

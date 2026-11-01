@@ -36,7 +36,6 @@ import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/pro
 
 /** Owns Child of Earth's live tuning and trait behavior. */
 export const childOfEarth = defineTrait({
-  name: 'Child of Earth',
   id: TRAIT.CHILD_OF_EARTH,
   triggers: [
     // An eligible heal invokes Lesser Muddy Terrain's field delivery, including its separately scheduled pulses.
@@ -50,7 +49,6 @@ export const childOfEarth = defineTrait({
 
 /** Owns Poison Master's live tuning and trait behavior. */
 export const poisonMaster = defineTrait({
-  name: 'Poison Master',
   id: TRAIT.POISON_MASTER,
   balance: {
     conditionDamageMultiplier: 1.25,
@@ -93,7 +91,6 @@ export const poisonMaster = defineTrait({
 
 /** Owns Arachnophobia's live tuning and trait behavior. */
 export const arachnophobia = defineTrait({
-  name: 'Arachnophobia',
   id: TRAIT.ARACHNOPHOBIA,
   balance: {
     // Torment belongs to the triggering spider/devourer pet; pet damage is excluded from this preview.
@@ -129,7 +126,6 @@ export const arachnophobia = defineTrait({
 
 /** Owns Carnivore's live tuning and trait behavior. */
 export const carnivore = defineTrait({
-  name: 'Carnivore',
   id: TRAIT.CARNIVORE,
   balance: {
     internalCooldown: 0.25,
@@ -171,7 +167,6 @@ export const carnivore = defineTrait({
 
 /** Owns Natural Vigor's live tuning and trait behavior. */
 export const naturalVigor = defineTrait({
-  name: 'Natural Vigor',
   id: TRAIT.NATURAL_VIGOR,
   balance: {
     vigorRegenerationMultiplier: 0.25
@@ -180,7 +175,6 @@ export const naturalVigor = defineTrait({
 
 /** Owns Ambidexterity's live tuning and trait behavior. */
 export const ambidexterity = defineTrait({
-  name: 'Ambidexterity',
   id: TRAIT.AMBIDEXTERITY,
   balance: {
     conditionalAttributeBonuses: { conditionDamage: 240 },
@@ -218,7 +212,6 @@ export const ambidexterity = defineTrait({
 
 /** Owns Survival Instincts's live tuning and trait behavior. */
 export const survivalInstincts = defineTrait({
-  name: 'Survival Instincts',
   id: TRAIT.SURVIVAL_INSTINCTS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.15 },

@@ -5,27 +5,8 @@
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { skillCostAmount } from '#gw2/platform/skills/cost.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-
-/** Resolve fixed game rules or skill-owned tuning so admission and payment use the same amount. */
-function skillCostAmount(skill: Skill): number {
-  // Fixed costs share the same readiness and spending path without a patchable balance field.
-  if (skill.cost!.amount != null) return skill.cost!.amount;
-
-  // Read the authoritative authored field so patches affect admission and payment together.
-  const field = skill.cost!.skillAmount;
-
-  if (field != null) {
-    const amount = skill[field];
-
-    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount < 0)
-      throw new TypeError(`Skill ${skill.id} has an invalid cost amount field "${field}".`);
-
-    return amount;
-  }
-
-  return skill.resourceCost ?? 0;
-}
 
 /** Affordable now, a retry when regeneration will cover the cost, or a rejection when it never can. */
 export function skillCostAvailability<T extends object>(

@@ -16,7 +16,7 @@ const skill = (id, modifiers = [], effects = [strike()]) => ({ id, name: `Skill 
 const moduleFor = (skills, modifiers) =>
   defineNativeModule({
     id: 'Core',
-    data: { extraSkills: skills },
+    data: { skills: skills },
     state: { create: () => ({}) },
     modifiers
   });
@@ -99,7 +99,7 @@ test('catalog validation rejects malformed intrinsic modifiers and registration 
     { ...bonus('bad', 1), operation: 'add' },
     { ...bonus('bad', 1), target: 'criticalDamage', operation: 'damage-additive', amount: 0.1 }
   ]) {
-    assert.throws(() => createCanonicalCatalog({ generated: [skill(1, [declaration])] }), /modifier|Modifier/);
+    assert.throws(() => createCanonicalCatalog({ skills: [skill(1, [declaration])] }), /modifier|Modifier/);
     assert.throws(() => normalizeSkillEffects([strike([declaration])]), /modifier|Modifier/);
   }
 

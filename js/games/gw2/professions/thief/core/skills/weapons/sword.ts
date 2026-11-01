@@ -1,13 +1,26 @@
-/** Canonical Core thief skill fragments grouped by their GW2 owner. */
+/** Canonical Core thief skill definitions grouped by their GW2 owner. */
 import { ACTOR, BOON, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SLICE]: {
+    name: 'Slice',
+    description: 'Chain. Slice your foe.',
+    icon: 'https://render.guildwars2.com/file/0524570223F6D37E2A6634E19CEB315135E9560A/104066.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     initiativeCost: 0,
     castTimeMs: 360,
@@ -23,6 +36,19 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SLASH]: {
+    name: 'Slash',
+    description: 'Chain. Slash your foe again.',
+    icon: 'https://render.guildwars2.com/file/E093DCAAD0F35BB0A2C1369ABB40242A0E42DB70/104096.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     initiativeCost: 0,
     castTimeMs: 440,
@@ -38,6 +64,19 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.CRIPPLING_STRIKE]: {
+    name: 'Crippling Strike',
+    description: 'Cripple your foe with a final strike.',
+    icon: 'https://render.guildwars2.com/file/6598D9F0150FDF9F77A24CCC060C07C15B7B060D/103168.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     initiativeCost: 0,
     castTimeMs: 520,
@@ -66,6 +105,19 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.TACTICAL_STRIKE]: {
+    name: 'Tactical Strike',
+    description:
+      'Daze your foe by bashing them with your sword hilt. Daze them for a longer duration if you attack from behind or they are defiant. Applies vulnerability.',
+    icon: 'https://render.guildwars2.com/file/D97FB1177ACAC526CF1DE15E0B07F911EBBADD6E/104101.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Weapon',
+    slot: 'Weapon_1',
+    weapon: 'Sword',
+
     cooldown: 1,
     initiativeCost: 0,
     requiredMainHand: WEAPON.SWORD,
@@ -78,6 +130,18 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.INFILTRATORS_STRIKE]: {
+    name: "Infiltrator's Strike",
+    description: 'Shadowstep to a foe and strike them. Use Shadow Return to shadowstep back and cure one condition.',
+    icon: 'https://render.guildwars2.com/file/2A5C30A8FE579C0169BE3B6FEC05C7E4AFE7FB1D/104067.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_2',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
     flipDuration: 15,
     movementSkill: true,
     cooldown: 0,
@@ -110,6 +174,18 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.INFILTRATORS_RETURN } }]
   },
   [ID.INFILTRATORS_RETURN]: {
+    name: "Infiltrator's Return",
+    description: 'Return to your original location. Cure one condition.',
+    icon: 'https://render.guildwars2.com/file/4475472B04350267D4DEECECFD53085DA5580D9A/104108.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
+    type: 'Weapon',
+    slot: 'Weapon_2',
+    weapon: 'Sword',
     // The return shadowsteps back, so shadowstep and movement rewards (Peitha, Fluid Strikes) apply.
     movementSkill: true,
     shadowstepSkill: true,
@@ -121,6 +197,21 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.INFILTRATORS_RETURN } }]
   },
   [ID.FLANKING_STRIKE]: {
+    name: 'Flanking Strike',
+    description: 'Dual Wield. Evade and stab your foe.',
+    icon: 'https://render.guildwars2.com/file/CEE3C39A075B0363FE04370BDDB0BDDBF8AD0712/103112.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_3',
+    dualWieldAttack: true,
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
+    // This opener arms its declared dual-wield follow-up.
+    dualWieldOpener: true,
     cooldown: 0,
     initiativeCost: 4,
     requiredMainHand: WEAPON.SWORD,
@@ -140,6 +231,20 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.LARCENOUS_STRIKE, durationSec: 4 } }]
   },
   [ID.LARCENOUS_STRIKE]: {
+    name: 'Larcenous Strike',
+    description:
+      'Dual Wield. Stab your foe and steal boons from them. Deals increased damage if it hits a foe with no boons.',
+    icon: 'https://render.guildwars2.com/file/01E5F13EA2E13B0A01540BFF9837299FEF20CF2C/575653.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_3',
+    dualWieldAttack: true,
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
     cooldown: 0,
     initiativeCost: 1,
     requiredMainHand: WEAPON.SWORD,
@@ -173,6 +278,19 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.LARCENOUS_STRIKE } }]
   },
   [ID.STAB]: {
+    name: 'Stab',
+    description: 'Stab your foe.',
+    icon: 'https://render.guildwars2.com/file/6FF6A961A44C091A4E0347D52CCFC2711B0DDC57/104100.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_3',
+    dualWieldAttack: true,
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
     cooldown: 0,
     initiativeCost: 4,
     requiredMainHand: WEAPON.SWORD,
@@ -190,6 +308,19 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.FLAWLESS_EXECUTION]: {
+    dualWieldAttack: true,
+    name: 'Flawless Execution',
+    description: 'Shoot nearby enemies as you spin, slashing with your sword.',
+    icon: 'https://render.guildwars2.com/file/699690FE99AEF7BABBF4789800EC31CCC74C78AC/3790491.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_3',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
     cooldown: 0,
     initiativeCost: 4,
     requiredMainHand: WEAPON.SWORD,

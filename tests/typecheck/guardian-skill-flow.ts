@@ -1,7 +1,8 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
-import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/guardian/data/trait-lines.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebrand/hooks.js';
 import { luminaryHooks } from '#gw2/professions/guardian/specializations/luminary/hooks.js';
@@ -17,7 +18,7 @@ type LuminaryCastStart = NonNullable<typeof luminaryHooks.onCastStart>;
 
 // Real Guardian exports must retain their skill type through registration, selection, and hook parameters.
 export type GuardianSkillFlowAssertions = [
-  Assert<Equal<NonNullable<typeof guardianCoreModule.data.generatedSkills>[number], GuardianSkill>>,
+  Assert<Equal<NonNullable<typeof guardianCoreModule.data.skills>[number], GuardianSkill>>,
   Assert<Equal<(typeof guardianCatalog.skills)[number], GuardianSkill>>,
   Assert<Equal<(typeof guardianProfession.catalog.skills)[number], GuardianSkill>>,
   Assert<Equal<(typeof firebrand.catalog.skills)[number], GuardianSkill>>,
@@ -42,11 +43,17 @@ export function guardianHookSkillReads(
   void [forge, weapon, tome, listed, invalid];
 }
 
-createGuardianModuleData('Core', {
-  skillMechanics: {
-    1: {
-      // @ts-expect-error Guardian module data preserves the declared type of known profession fields.
-      radiantForgeSkill: 'active'
-    }
+const invalidDefinitions: Record<string, SkillDefinition<GuardianSkill>> = {
+  1: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    // @ts-expect-error Guardian module data preserves the declared type of known profession fields.
+    radiantForgeSkill: 'active'
   }
+};
+createNativeModuleData<GuardianSkill>({
+  id: 'Core',
+  traitLines: TRAIT_LINES,
+  skillMechanics: invalidDefinitions
 });

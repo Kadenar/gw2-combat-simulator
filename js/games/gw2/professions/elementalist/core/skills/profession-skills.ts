@@ -1,22 +1,25 @@
-/** Canonical Core elementalist skill fragments grouped by their GW2 owner. */
-import type { Skill } from '#gw2/platform/skills/types.js';
+/** Canonical Core elementalist skill definitions grouped by their GW2 owner. */
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
- * Catalog fragments for the four attunement profession skills.
+ * Catalog definitions for the four attunement profession skills.
  *
  * They are instant, castable alongside another skill, and carry no cooldown
  * here: swap behavior and attunement recharge belong to the attunement
  * mechanics rather than to this data.
  */
-export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.FIRE_ATTUNEMENT]: {
     name: 'Fire Attunement',
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
+    description: 'Attune to fire, gaining heavy damage and burning abilities.',
+    icon: 'https://render.guildwars2.com/file/1C91E9C799469ACC6EAF1ACD4B0AD8ACAB0C69A2/103035.png',
+    inputCategory: 'bar-swap',
+    // Explicit weapon or profession bar replacement.
     type: 'Profession',
     slot: 'Profession_1',
     mechanicSlot: 1,
-    categories: ['Attunement'],
+
     cooldown: 0,
     skillFamily: 'Attunement',
     castTimeMs: 0,
@@ -25,11 +28,14 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.WATER_ATTUNEMENT]: {
     name: 'Water Attunement',
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
+    description: 'Attune to water, gaining superior support and healing abilities.',
+    icon: 'https://render.guildwars2.com/file/737E1B9F7855B9F5D3DE1C990CD42118EF3D1C92/102820.png',
+    inputCategory: 'bar-swap',
+    // Explicit weapon or profession bar replacement.
     type: 'Profession',
     slot: 'Profession_2',
     mechanicSlot: 2,
-    categories: ['Attunement'],
+
     cooldown: 0,
     skillFamily: 'Attunement',
     castTimeMs: 0,
@@ -38,11 +44,14 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.AIR_ATTUNEMENT]: {
     name: 'Air Attunement',
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
+    description: 'Attune to air, gaining heavy damage and control abilities.',
+    icon: 'https://render.guildwars2.com/file/4857F59020DE3B0950B9C91F3D234A1C1932984A/103048.png',
+    inputCategory: 'bar-swap',
+    // Explicit weapon or profession bar replacement.
     type: 'Profession',
     slot: 'Profession_3',
     mechanicSlot: 3,
-    categories: ['Attunement'],
+
     cooldown: 0,
     skillFamily: 'Attunement',
     castTimeMs: 0,
@@ -51,11 +60,14 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.EARTH_ATTUNEMENT]: {
     name: 'Earth Attunement',
-    inputCategory: 'bar-swap', // Explicit weapon or profession bar replacement.
+    description: 'Attune to earth, gaining superior damage-over-time and defensive abilities.',
+    icon: 'https://render.guildwars2.com/file/4B8056D9BD080DC8E74AE6A57B2B383A2D4265C9/102870.png',
+    inputCategory: 'bar-swap',
+    // Explicit weapon or profession bar replacement.
     type: 'Profession',
     slot: 'Profession_4',
     mechanicSlot: 4,
-    categories: ['Attunement'],
+
     cooldown: 0,
     skillFamily: 'Attunement',
     castTimeMs: 0,

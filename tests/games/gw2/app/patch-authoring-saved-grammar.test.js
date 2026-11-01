@@ -47,7 +47,7 @@ for (const section of ['skills', 'balanceProfiles']) {
             : [])
         ]
       };
-      const catalog = createCanonicalCatalog({ [section === 'skills' ? 'generated' : section]: [source] });
+      const catalog = createCanonicalCatalog({ [section]: [source] });
       const apply = (patch) => {
         const result =
           section === 'skills' ? applySkillPatch(catalog, patch) : applyBalanceProfilePatch(catalog, patch);
@@ -182,7 +182,7 @@ for (const impact of [false, true]) {
   test(`${impact ? 'Impact' : 'Cast'} action rewards round-trip without editing native or sibling effects`, () => {
     const effect = { type: 'boon', name: 'Reward', boon: 'might', stacks: 1, duration: 5 };
     const catalog = createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 1,
           name: 'Fixture',

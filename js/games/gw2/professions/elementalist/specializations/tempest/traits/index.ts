@@ -46,13 +46,11 @@ import type {
 
 // Singularity is intrinsic to Tempest; overload readiness reads its selected dwell even without an explicit minor ID.
 const singularity = defineTrait({
-  name: 'Singularity',
   id: TRAIT.SINGULARITY,
   balance: { duration: 6, effects: [] }
 });
 
 const galeSong = defineTrait({
-  name: 'Gale Song',
   id: TRAIT.GALE_SONG,
   balance: {
     effects: [
@@ -76,7 +74,6 @@ const galeSong = defineTrait({
 });
 
 const latentStamina = defineTrait({
-  name: 'Latent Stamina',
   id: TRAIT.LATENT_STAMINA,
   balance: {
     internalCooldown: 10,
@@ -101,7 +98,6 @@ const latentStamina = defineTrait({
 });
 
 const tempestuousAria = defineTrait({
-  name: 'Tempestuous Aria',
   id: TRAIT.TEMPESTUOUS_ARIA,
   balance: {
     damageIncrease: 0.1,
@@ -139,7 +135,6 @@ const tempestuousAria = defineTrait({
 });
 
 const invigoratingTorrents = defineTrait({
-  name: 'Invigorating Torrents',
   id: TRAIT.INVIGORATING_TORRENTS,
   balance: {
     effects: [
@@ -156,7 +151,6 @@ const invigoratingTorrents = defineTrait({
 });
 
 const elementalBastion = defineTrait({
-  name: 'Elemental Bastion',
   id: TRAIT.ELEMENTAL_BASTION,
   balance: {
     effects: [{ type: 'boon', name: BOON.ALACRITY, boon: BOON.ALACRITY, stacks: 1, duration: 4 }]
@@ -170,7 +164,6 @@ const elementalBastion = defineTrait({
 });
 
 const unstableConduit = defineTrait({
-  name: 'Unstable Conduit',
   id: TRAIT.UNSTABLE_CONDUIT,
   balance: {
     // One entry per attunement: the completing overload looks its aura duration up by
@@ -212,7 +205,6 @@ const unstableConduit = defineTrait({
 });
 
 const gatheredFocus = defineTrait({
-  name: 'Gathered Focus',
   id: TRAIT.GATHERED_FOCUS,
   balance: {
     attributeBonuses: { concentration: 240 }
@@ -223,7 +215,6 @@ const gatheredFocus = defineTrait({
 });
 
 const hardyConduit = defineTrait({
-  name: 'Hardy Conduit',
   id: TRAIT.HARDY_CONDUIT,
   balance: {
     effects: [
@@ -257,7 +248,6 @@ const hardyConduit = defineTrait({
 });
 
 const harmoniousConduit = defineTrait({
-  name: 'Harmonious Conduit',
   id: TRAIT.HARMONIOUS_CONDUIT,
   balance: {
     effects: [
@@ -285,7 +275,6 @@ const harmoniousConduit = defineTrait({
 });
 
 const transcendentTempest = defineTrait({
-  name: 'Transcendent Tempest',
   id: TRAIT.TRANSCENDENT_TEMPEST,
   balance: {
     // Shortened singularity dwell, separate from the damage buff's seven-second lifetime.
@@ -331,7 +320,6 @@ const transcendentTempest = defineTrait({
 });
 
 const lucidSingularity = defineTrait({
-  name: 'Lucid Singularity',
   id: TRAIT.LUCID_SINGULARITY,
   balance: {
     // At most `maximumStacks` overload hits pulse alacrity; the last of them uses `Final Alacrity`.

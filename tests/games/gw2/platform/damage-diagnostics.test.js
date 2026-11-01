@@ -179,7 +179,7 @@ test('public diagnostics capture one execution and are suppressed in score outpu
   const capture = [];
   let owner;
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 990001,
         name: 'Hit',

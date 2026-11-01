@@ -1,10 +1,17 @@
-/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
+/** Canonical Core revenant skill definitions grouped by their GW2 owner. */
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
-export const REVENANT_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const REVENANT_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.ENVOY_OF_EXUBERANCE]: {
+    name: 'Envoy of Exuberance',
+    description:
+      'Send the energy of Glint toward the target area, releasing a burst of energy that heals allies and grants boons.',
+    icon: 'https://render.guildwars2.com/file/AD3900CE2DF8609598F81364D805220DDE47BA10/1058608.png',
+    type: 'Weapon',
+    weapon: 'Shield',
+    slot: 'Weapon_4',
     cooldown: 15,
     energyCost: 8,
     castTimeMs: 520,
@@ -26,6 +33,13 @@ export const REVENANT_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.CRYSTAL_HIBERNATION]: {
+    name: 'Crystal Hibernation',
+    description:
+      'Channel a shield from the Mists to protect you, blocking attacks and regenerating the health of nearby allies.',
+    icon: 'https://render.guildwars2.com/file/59C2A1CA66701D30FD15CBD9790E4131013B2B72/1058609.png',
+    type: 'Weapon',
+    weapon: 'Shield',
+    slot: 'Weapon_5',
     cooldown: 25,
     energyCost: 20,
     castTimeMs: 2000,

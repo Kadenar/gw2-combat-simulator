@@ -1,15 +1,21 @@
 /**
- * Owns Mechanist autonomous, triggered, and supplemental mech attack identities.
+ * Owns Mechanist autonomous and triggered mech attack identities.
  * User-issued mech commands and their cast-lane rules live in `mech-command-skills.ts`.
  */
 import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Measured basic animations and pre-aftercast impacts use explicit base/Quickness timings for replay and autonomous attacks. */
-export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
+export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = Object.freeze({
   [ID.AERIAL_SUPPORT]: {
+    name: 'Aerial Support',
+    description: '...',
+    icon: 'https://render.guildwars2.com/file/3C2B5C060DA920011A20ACDB96DB155D4BDE2A04/103434.png',
+    type: 'Action',
+    slot: 'Action',
+
     cooldown: 0,
     castTimeMs: 0,
     effects: [
@@ -23,6 +29,13 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.ROCKET_PUNCH_MECH]: {
+    name: 'Rocket Punch (Mech)',
+    description:
+      'Your mech launches an explosive fist that detonates on hit, dealing defiance damage to enemies with active defiance bars. This skill is only used when you activate Skill 3 on your weapon.',
+    icon: 'https://render.guildwars2.com/file/02DA2C9899B63DE522020824C67D05951F40CA4A/2503679.png',
+    type: 'Action',
+    slot: 'Action',
+
     cooldown: 5,
     castTimeMs: 500,
     quicknessCastTimeMs: 360,
@@ -50,6 +63,12 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.HEAVY_SMASH_MECH]: {
+    name: 'Heavy Smash (Mech)',
+    description: 'Perform a second, powerful strike.',
+    icon: new URL('@images/wiki/heavy-smash-mech.png', import.meta.url).href,
+    type: 'Profession',
+    slot: 'Action',
+
     cooldown: 0,
     castTimeMs: 1000,
     quicknessCastTimeMs: 680,
@@ -67,6 +86,12 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.JADE_ENERGY_SHOT]: {
+    name: 'Jade Energy Shot',
+    description: '...',
+    icon: 'https://render.guildwars2.com/file/73600241FA662501C5D617719A7B4792F30B2846/2503622.png',
+    type: 'Profession',
+    slot: 'Action',
+
     cooldown: 0,
     castTimeMs: 480,
     quicknessCastTimeMs: 320,
@@ -76,6 +101,12 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     ])
   },
   [ID.TWIN_STRIKE_MECH]: {
+    name: 'Twin Strike (Mech)',
+    description: 'Strikes foes in front of you.',
+    icon: new URL('@images/wiki/twin-strike-mech.png', import.meta.url).href,
+    type: 'Profession',
+    slot: 'Action',
+
     cooldown: 0,
     castTimeMs: 1520,
     quicknessCastTimeMs: 1040,
@@ -94,6 +125,12 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.HARD_STRIKE]: {
+    name: 'Hard Strike',
+    description: 'Strikes foes in front of you.',
+    icon: new URL('@images/wiki/hard-strike.png', import.meta.url).href,
+    type: 'Profession',
+    slot: 'Action',
+
     cooldown: 0,
     castTimeMs: 480,
     quicknessCastTimeMs: 320,
@@ -111,6 +148,12 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     ]
   },
   [ID.JADE_ENERGY_SHOT_ID_63348]: {
+    name: 'Jade Energy Shot',
+    description: '...',
+    icon: 'https://render.guildwars2.com/file/73600241FA662501C5D617719A7B4792F30B2846/2503622.png',
+    type: 'Profession',
+    slot: 'Action',
+
     cooldown: 0,
     castTimeMs: 1000,
     quicknessCastTimeMs: 680,
@@ -120,6 +163,12 @@ export const MECHANIST_MECH_ATTACK_SKILL_MECHANICS: Readonly<Record<string, Part
     ])
   },
   [ID.JADE_BUSTER_CANNON]: {
+    name: 'Jade Buster Cannon',
+    description:
+      'Fire the main cannon, obliterating targets in a line. The mech may swivel to track targets while firing the jade buster cannon, but it is unable to move.',
+    icon: 'https://render.guildwars2.com/file/6493C9915A90E449EFE30323233F960B68C1BDF9/1770418.png',
+    type: 'Elite',
+    slot: 'Elite',
     simulatorExcluded: true,
     cooldown: 1,
     toolbeltParentId: ID.OVERCLOCK_SIGNET,

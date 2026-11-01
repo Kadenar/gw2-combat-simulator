@@ -579,7 +579,7 @@ test('inline action payload validation and patch removal retain canonical owners
   const effect = { type: 'boon', boon: 'might', stacks: 1, duration: 2, name: 'Reward' };
   const make = (effects, extraActions = []) =>
     createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 1,
           name: 'Owner',
@@ -650,7 +650,7 @@ test('inline action payload validation and patch removal retain canonical owners
 test('Elementalist boon emission distinguishes trait rewards from skill-action rewards', () => {
   const boon = { type: 'boon', name: 'Reward', boon: 'Might', duration: 1, stacks: 1 };
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 1,
         name: 'Trigger',

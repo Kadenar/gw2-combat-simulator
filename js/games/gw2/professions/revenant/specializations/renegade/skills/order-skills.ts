@@ -3,7 +3,7 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
 /** Adds protection only for the selected enhancement, retaining the order's pulse cadence. */
@@ -36,8 +36,14 @@ const righteousRebelOrderVariants: NonNullable<Skill['effectVariants']> = [
 // Each impact applies strike damage and Burning at the same offset after cast completion.
 const BOMBARDMENT_IMPACT_MS = [640, 800, 920, 1000, 1040, 1160, 1240, 1400, 1480, 1720];
 
-export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.CITADEL_BOMBARDMENT]: {
+    name: 'Citadel Bombardment',
+    description:
+      'Citadel Order. Open a portal through the mists of time, unleashing a storm of artillery from the united legions.',
+    icon: 'https://render.guildwars2.com/file/A7C2C720C5ABE5AAB00EF0EA0318DA3B38FC981E/1770593.png',
+    type: 'Profession',
+    slot: 'Profession_3',
     cooldown: 15,
     energyCost: 35,
     // Quantize the pooled Hibernus/Seatek impact estimates to 40 ms after cast completion; exclude incomplete volleys.
@@ -63,6 +69,12 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ])
   },
   [ID.HEROIC_COMMAND]: {
+    name: 'Heroic Command',
+    description:
+      "Citadel Order. Refresh the duration of your Kalla's Fervor and grant nearby allies might for every stack.",
+    icon: 'https://render.guildwars2.com/file/A0C51CE345E94C7DA7300B2505920FC145730BBD/1770594.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     cooldown: 10,
     energyCost: 10,
     castTimeMs: 480,
@@ -93,6 +105,11 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.heroic-command' } }]
   },
   [ID.ORDERS_FROM_ABOVE]: {
+    name: 'Orders from Above',
+    description: 'Citadel Order. Orders from above arrive, renewing your abilities and those of your nearby allies.',
+    icon: 'https://render.guildwars2.com/file/C930ACAF03D97B6047DC0A0110CA1DCEE3BD715A/1770595.png',
+    type: 'Profession',
+    slot: 'Profession_4',
     cooldown: 20,
     energyCost: 20,
     castTimeMs: 0,

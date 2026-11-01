@@ -48,7 +48,7 @@ test('skill field declarations reject duplicate owners and orphaned patch leaves
 test('declared numeric bounds validate authored and patched catalogs', () => {
   const skillFields = defineFields({ fixtureFraction: numberField({ maximum: 1, patch: 'primary' }) });
   const load = (value) =>
-    createCanonicalCatalog({ skillFields, generated: [{ id: 1, name: 'Fixture', fixtureFraction: value }] });
+    createCanonicalCatalog({ skillFields, skills: [{ id: 1, name: 'Fixture', fixtureFraction: value }] });
   for (const value of [0, 0.5, 1]) assert.equal(load(value).skillsById.get(1).fixtureFraction, value);
   for (const value of [-0.1, 1.1, NaN, Infinity, '0.5'])
     assert.throws(() => load(value), /field=fixtureFraction expected=finite number in \[0, 1\]/);
@@ -102,7 +102,7 @@ test('profession-owned skill fields stay with their profession', () => {
   assert.equal(Object.hasOwn(SHARED_SKILL_FIELDS, 'detonationDelay'), false);
   assert.equal(Object.hasOwn(SHARED_SKILL_FIELDS, 'rechargeMultiplier'), false);
   assert.throws(
-    () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Undeclared', rechargeMultiplier: 0.5 }] }),
+    () => createCanonicalCatalog({ skills: [{ id: 1, name: 'Undeclared', rechargeMultiplier: 0.5 }] }),
     /unsupported field: rechargeMultiplier/
   );
   assert.throws(

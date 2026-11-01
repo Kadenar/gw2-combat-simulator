@@ -7,13 +7,14 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   {
     name: 'Lesser Call of the Wild',
+    description: 'Automatically triggered Lesser Call of the Wild effect.',
+    icon: 'https://render.guildwars2.com/file/2BBB18C54A01FF1D5FF9473EB1059AE491AA98FF/103310.png',
     id: ID.LESSER_CALL_OF_THE_WILD,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
     cooldown: 15,
-    icon: 'https://render.guildwars2.com/file/2BBB18C54A01FF1D5FF9473EB1059AE491AA98FF/103310.png',
     castTimeMs: 0,
     effects: [
       {
@@ -72,13 +73,14 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Lesser Muddy Terrain',
+    description: 'Automatically triggered Lesser Muddy Terrain effect.',
+    icon: 'https://render.guildwars2.com/file/B6BD062BE66079C0514191004BB1D1140112E2A1/103996.png',
     id: ID.LESSER_MUDDY_TERRAIN,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
     cooldown: 20,
-    icon: 'https://render.guildwars2.com/file/B6BD062BE66079C0514191004BB1D1140112E2A1/103996.png',
     castTimeMs: 0,
     effects: [
       {
@@ -116,13 +118,14 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Lesser "Sic \'Em!"',
+    description: 'Automatically triggered Lesser "Sic \'Em!" effect.',
+    icon: 'https://render.guildwars2.com/file/0D6B235E679346723414607E61DE052576097545/104025.png',
     id: ID.LESSER_SIC_EM,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,
     slotSelectable: false,
     cooldown: 10,
-    icon: 'https://render.guildwars2.com/file/0D6B235E679346723414607E61DE052576097545/104025.png',
     castTimeMs: 0,
     effects: [
       {

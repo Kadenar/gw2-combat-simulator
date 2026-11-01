@@ -1028,9 +1028,13 @@ export const activePatchPreview: PatchPreview = {
               from: 0,
               to: 2
             },
-            ammoRecharge: {
-              from: 0,
+            cooldown: {
+              from: 15,
               to: 15
+            },
+            ammoCastLockout: {
+              from: 0,
+              to: 0
             },
             castTimeMs: {
               from: 167,

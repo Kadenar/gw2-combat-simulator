@@ -29,7 +29,6 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns Angsiyan's Trust tuning and behavior at its established execution boundaries. */
 const angsiyansTrust = defineTrait({
-  name: "Angsiyan's Trust",
   id: TRAIT.ANGSIYANS_TRUST,
   balance: { resourceGain: 25, effects: [] },
   triggers: [onTriggerPoint(energyMeldCompleted, { run: grantAngsiyansTrustEnergy })]
@@ -37,7 +36,6 @@ const angsiyansTrust = defineTrait({
 
 /** Owns Empire Divided tuning and behavior at its established execution boundaries. */
 const empireDivided = defineTrait({
-  name: 'Empire Divided',
   id: TRAIT.EMPIRE_DIVIDED,
   balance: { attributeBonuses: { power: 240 }, threshold: 0.5 },
   attributes: (context) => {
@@ -59,7 +57,6 @@ const empireDivided = defineTrait({
 
 /** Owns Forerunner of Death tuning and behavior at its established execution boundaries. */
 const forerunnerOfDeath = defineTrait({
-  name: 'Forerunner of Death',
   id: TRAIT.FORERUNNER_OF_DEATH,
   balance: {
     damageIncrease: 0.25,
@@ -100,7 +97,6 @@ const forerunnerOfDeath = defineTrait({
 
 /** Owns Leviathan Strength tuning and behavior at its established execution boundaries. */
 const leviathanStrength = defineTrait({
-  name: 'Leviathan Strength',
   id: TRAIT.LEVIATHAN_STRENGTH,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
@@ -119,7 +115,6 @@ const leviathanStrength = defineTrait({
 
 /** Owns Reaver's Curse tuning and behavior at its established execution boundaries. */
 const reaversCurse = defineTrait({
-  name: "Reaver's Curse",
   id: TRAIT.REAVERS_CURSE,
   balance: {
     rechargeMultiplier: 0.5,
@@ -147,11 +142,10 @@ const reaversCurse = defineTrait({
 const ENERGY_MELD_IDS = new Set<SkillId>([ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058]);
 
 /** Owns Saint of zu Heltzer tuning and behavior at its established execution boundaries. */
-const saintOfZuHeltzer = defineTrait({ name: 'Saint of zu Heltzer', id: TRAIT.SAINT_OF_ZU_HELTZER });
+const saintOfZuHeltzer = defineTrait({ id: TRAIT.SAINT_OF_ZU_HELTZER });
 
 /** Owns Song of Arboreum tuning and behavior at its established execution boundaries. */
 const songOfArboreum = defineTrait({
-  name: 'Song of Arboreum',
   id: TRAIT.SONG_OF_ARBOREUM,
   balance: {
     resourceGain: 40,
@@ -188,7 +182,7 @@ const songOfArboreum = defineTrait({
 });
 
 /** Owns Vassals of the Empire tuning and behavior at its established execution boundaries. */
-const vassalsOfTheEmpire = defineTrait({ name: 'Vassals of the Empire', id: TRAIT.VASSALS_OF_THE_EMPIRE });
+const vassalsOfTheEmpire = defineTrait({ id: TRAIT.VASSALS_OF_THE_EMPIRE });
 
 export const traitDefinitions = [
   songOfArboreum,

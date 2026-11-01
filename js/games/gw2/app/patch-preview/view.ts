@@ -1,3 +1,5 @@
+/** Present game-data selection in place on desktop and as a compact dropdown on phones. */
+import { mountMobileMenu } from '#browser/shell/mobile-menu.js';
 import { bindPreviewAssumptionNotice, previewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import type { PatchComparison } from '#gw2/app/simulation/baseline/types.js';
@@ -84,6 +86,7 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
   control.append(caption);
 
   const options = document.createElement('div');
+  options.id = 'patch-preview-menu';
   options.className = 'patch-preview-options';
   for (const [patchId, label] of [
     ['current', 'Live'],
@@ -109,8 +112,14 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
   }
 
   control.append(options);
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'mobile-patch-trigger';
+  trigger.setAttribute('aria-label', 'Choose game data version');
+  control.prepend(trigger);
+  mountMobileMenu(trigger, options, '[aria-pressed="true"]');
   // Game-data controls share the global row while workspace tools occupy their own tab strip.
-  header.querySelector('.simulator-header-global')!.insertBefore(control, header.querySelector('.community-actions'));
+  header.querySelector('.simulator-header-global')!.prepend(control);
 }
 
 export function renderPatchComparison(container: HTMLElement, app: ProfessionAppState): void {

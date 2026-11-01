@@ -32,7 +32,6 @@ function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
 
 /** Owns Unstoppable Union's live tuning and trait behavior. */
 const unstoppableUnion = defineTrait({
-  name: 'Unstoppable Union',
   id: TRAIT.UNSTOPPABLE_UNION,
   balance: {
     effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 2.5, stacks: 1 }]
@@ -46,7 +45,6 @@ const unstoppableUnion = defineTrait({
 
 /** Owns Leader of the Pack's live tuning and trait behavior. */
 const leaderOfThePack = defineTrait({
-  name: 'Leader of the Pack',
   id: TRAIT.LEADER_OF_THE_PACK,
   balance: {
     durationMultiplier: 1.2,
@@ -56,7 +54,6 @@ const leaderOfThePack = defineTrait({
 
 /** Owns Live Fast's live tuning and trait behavior. */
 const liveFast = defineTrait({
-  name: 'Live Fast',
   id: TRAIT.LIVE_FAST,
   balance: {
     effects: [
@@ -73,7 +70,6 @@ const liveFast = defineTrait({
 
 /** Owns Twice as Vicious's live tuning and trait behavior. */
 const twiceAsVicious = defineTrait({
-  name: 'Twice as Vicious',
   id: TRAIT.TWICE_AS_VICIOUS,
   balance: {
     damageIncrease: 0.07,
@@ -143,7 +139,6 @@ const twiceAsVicious = defineTrait({
 
 /** Owns Predator's Cunning's live tuning and trait behavior. */
 const predatorsCunning = defineTrait({
-  name: "Predator's Cunning",
   id: TRAIT.PREDATORS_CUNNING,
   balance: {
     // Resolve and display the siphon separately, using base damage plus Power without weapon or armor scaling.
@@ -180,7 +175,6 @@ const predatorsCunning = defineTrait({
 
 /** Owns Oppressive Superiority's live tuning and trait behavior. */
 const oppressiveSuperiority = defineTrait({
-  name: 'Oppressive Superiority',
   id: TRAIT.OPPRESSIVE_SUPERIORITY,
   balance: {
     damageMultiplier: 1.1,
@@ -208,7 +202,6 @@ const oppressiveSuperiority = defineTrait({
 
 /** Owns Essence of Speed's live tuning and trait behavior. */
 const essenceOfSpeed = defineTrait({
-  name: 'Essence of Speed',
   id: TRAIT.ESSENCE_OF_SPEED,
   balance: {
     internalCooldown: 5,
@@ -218,7 +211,6 @@ const essenceOfSpeed = defineTrait({
 
 /** Owns Furious Strength's live tuning and trait behavior. */
 const furiousStrength = defineTrait({
-  name: 'Furious Strength',
   id: TRAIT.FURIOUS_STRENGTH,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.15 },

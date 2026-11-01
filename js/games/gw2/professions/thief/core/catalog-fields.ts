@@ -15,6 +15,8 @@ export const THIEF_CORE_SKILL_FIELDS = defineFields(
     initiativeCost: numberField({ label: 'initiative cost', patch: 'primary' }),
     // Uses the off-hand weapon's dual-wield opener.
     dualWieldOpener: dataField,
+    // Dual-attack eligibility is independent of whether an offhand is equipped.
+    dualWieldAttack: dataField,
     // Available only while kneeling.
     kneelSkill: dataField,
     // Does not reveal the player when used from stealth.

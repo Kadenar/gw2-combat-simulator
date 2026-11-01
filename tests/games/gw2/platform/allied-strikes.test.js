@@ -135,7 +135,7 @@ test('same-time opening damage cannot move a setup completion across the combat 
   const source = defineTestProfession({
     id: 'engagement-fixture',
     name: 'Engagement fixture',
-    catalog: createCanonicalCatalog({ generated: [{ id: 991501, name: 'Setup', castTimeMs: 500, effects: [] }] }),
+    catalog: createCanonicalCatalog({ skills: [{ id: 991501, name: 'Setup', castTimeMs: 500, effects: [] }] }),
     hooks: {
       onCastStart(runtime, cast) {
         runtime.effects.emit({

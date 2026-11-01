@@ -40,9 +40,8 @@ import { activeBuff, qualifiesForFlankingBonuses } from '#gw2/professions/ranger
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
-/** Owns Light on Your Feet's live tuning and trait behavior. */
+/** Owns Light on your Feet's live tuning and trait behavior. */
 export const lightOnYourFeet = defineTrait({
-  name: 'Light on Your Feet',
   id: TRAIT.LIGHT_ON_YOUR_FEET,
   balance: {
     damageMultiplier: 1.1,
@@ -134,7 +133,6 @@ export const lightOnYourFeet = defineTrait({
 
 /** Owns Tail Wind's live tuning and trait behavior. */
 export const tailWind = defineTrait({
-  name: 'Tail Wind',
   id: TRAIT.TAIL_WIND,
   balance: {
     internalCooldown: 9,
@@ -150,7 +148,6 @@ export const tailWind = defineTrait({
 
 /** Owns Quick Draw's live tuning and trait behavior. */
 export const quickDraw = defineTrait({
-  name: 'Quick Draw',
   id: TRAIT.QUICK_DRAW,
   balance: {
     internalCooldown: 9,
@@ -186,7 +183,6 @@ export const quickDraw = defineTrait({
 
 /** Owns Furious Grip's live tuning and trait behavior. */
 export const furiousGrip = defineTrait({
-  name: 'Furious Grip',
   id: TRAIT.FURIOUS_GRIP,
   balance: {
     internalCooldown: 9,
@@ -202,7 +198,6 @@ export const furiousGrip = defineTrait({
 
 /** Owns Sharpened Edges's live tuning and trait behavior. */
 export const sharpenedEdges = defineTrait({
-  name: 'Sharpened Edges',
   id: TRAIT.SHARPENED_EDGES,
   balance: {
     // One saved override tunes player and pet proc rolls without changing their critical-hit eligibility.
@@ -225,7 +220,6 @@ export const sharpenedEdges = defineTrait({
 
 /** Owns Trapper's Expertise's live tuning and trait behavior. */
 export const trappersExpertise = defineTrait({
-  name: "Trapper's Expertise",
   id: TRAIT.TRAPPERS_EXPERTISE,
   balance: {
     durationMultiplier: 1.6,
@@ -255,9 +249,7 @@ export const trappersExpertise = defineTrait({
         );
       },
       when: (context) =>
-        Boolean(
-          skillForEvent(context.profession?.catalog, context.event, context.skillId)?.categories?.includes('Trap')
-        )
+        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.skillFamily === 'Trap'
     }
   ],
   triggers: [
@@ -270,7 +262,6 @@ export const trappersExpertise = defineTrait({
 
 /** Owns Fang and Claw's live tuning and trait behavior. */
 export const fangAndClaw = defineTrait({
-  name: 'Fang and Claw',
   id: TRAIT.FANG_AND_CLAW,
   balance: {
     attributeBonuses: { precision: 420, ferocity: 450 }
@@ -279,7 +270,6 @@ export const fangAndClaw = defineTrait({
 
 /** Owns Strider's Strength's live tuning and trait behavior. */
 export const stridersStrength = defineTrait({
-  name: "Strider's Strength",
   id: TRAIT.STRIDERS_STRENGTH,
   balance: {
     conditionalAttributeBonuses: { power: 240 },
@@ -308,7 +298,6 @@ export const stridersStrength = defineTrait({
 
 /** Owns Vicious Quarry's live tuning and trait behavior. */
 export const viciousQuarry = defineTrait({
-  name: 'Vicious Quarry',
   id: TRAIT.VICIOUS_QUARRY,
   balance: {
     criticalChance: 0.15,
@@ -342,7 +331,6 @@ export const viciousQuarry = defineTrait({
 
 /** Owns Hunter's Tactics's live tuning and trait behavior. */
 export const huntersTactics = defineTrait({
-  name: "Hunter's Tactics",
   id: TRAIT.HUNTERS_TACTICS,
   balance: {
     damageMultiplier: 1.1,
@@ -370,7 +358,6 @@ export const huntersTactics = defineTrait({
 
 /** Owns Hidden Barbs's live tuning and trait behavior. */
 export const hiddenBarbs = defineTrait({
-  name: 'Hidden Barbs',
   id: TRAIT.HIDDEN_BARBS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { conditionDamageMultiplier: 1.2 },
@@ -518,7 +505,7 @@ function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2Reso
   const state = professionCoreState(context);
   const skill = skillForEvent(context.helpers, event);
 
-  if (skill?.categories?.includes('Trap') && event.activationId) {
+  if (skill?.skillFamily === 'Trap' && event.activationId) {
     const profile = requireBalanceProfileFromContext(context, TRAIT.TRAPPERS_EXPERTISE);
     const cripple = requireEffect(profile, 'condition', CONDITION.CRIPPLED);
 

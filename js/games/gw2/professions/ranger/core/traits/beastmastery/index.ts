@@ -41,7 +41,6 @@ import type {
 
 /** Owns Resounding Timbre's live tuning and trait behavior. */
 export const resoundingTimbre = defineTrait({
-  name: 'Resounding Timbre',
   id: TRAIT.RESOUNDING_TIMBRE,
   balance: {
     duration: 2
@@ -56,8 +55,7 @@ export const resoundingTimbre = defineTrait({
         applyRangerCommandTraits(runtime, input.skill, input.at)
     }),
     onTriggerPoint(castCompleted, {
-      when: (_runtime, input: TriggerPointInput<typeof castCompleted>) =>
-        Boolean(input.skill.categories?.includes('Command')),
+      when: (_runtime, input: TriggerPointInput<typeof castCompleted>) => input.skill.skillFamily === 'Command',
       run: (runtime, input: TriggerPointInput<typeof castCompleted>) =>
         applyRangerCommandTraits(runtime, input.skill, input.at)
     })
@@ -66,7 +64,6 @@ export const resoundingTimbre = defineTrait({
 
 /** Owns Go for the Throat's live tuning and trait behavior. */
 export const goForTheThroat = defineTrait({
-  name: 'Go for the Throat',
   id: TRAIT.GO_FOR_THE_THROAT,
   modifierRules: [
     {
@@ -115,7 +112,6 @@ export const goForTheThroat = defineTrait({
 
 /** Owns Honed Axes's live tuning and trait behavior. */
 export const honedAxes = defineTrait({
-  name: 'Honed Axes',
   id: TRAIT.HONED_AXES,
   balance: {
     conditionalAttributeBonuses: { ferocity: 240 },
@@ -151,7 +147,6 @@ export const honedAxes = defineTrait({
 
 /** Owns Pack Alpha's live tuning and trait behavior. */
 export const packAlpha = defineTrait({
-  name: 'Pack Alpha',
   id: TRAIT.PACK_ALPHA,
   balance: {
     attributeBonuses: { power: 150, conditionDamage: 150, precision: 150, toughness: 150, vitality: 150 },
@@ -178,7 +173,6 @@ export const packAlpha = defineTrait({
 
 /** Owns Pet's Prowess's live tuning and trait behavior. */
 export const petsProwess = defineTrait({
-  name: "Pet's Prowess",
   id: TRAIT.PETS_PROWESS,
   balance: {
     attributeBonuses: { ferocity: 300 }
@@ -200,7 +194,6 @@ export const petsProwess = defineTrait({
 
 /** Owns Wilting Strike's live tuning and trait behavior. */
 export const wiltingStrike = defineTrait({
-  name: 'Wilting Strike',
   id: TRAIT.WILTING_STRIKE,
   balance: {
     effects: [{ name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, duration: 4, stacks: 1 }]
@@ -215,7 +208,6 @@ export const wiltingStrike = defineTrait({
 
 /** Owns Go for the Eyes's live tuning and trait behavior. */
 export const goForTheEyes = defineTrait({
-  name: 'Go for the Eyes',
   id: TRAIT.GO_FOR_THE_EYES,
   balance: {
     internalCooldown: 12,
@@ -238,7 +230,6 @@ export const goForTheEyes = defineTrait({
 
 /** Owns Bestial Rage's live tuning and trait behavior. */
 export const bestialRage = defineTrait({
-  name: 'Bestial Rage',
   id: TRAIT.BESTIAL_RAGE,
   balance: {
     internalCooldown: 0.25,
@@ -251,7 +242,6 @@ export const bestialRage = defineTrait({
 
 /** Owns the ursine and porcine pet strike bonus. */
 export const beastlyWarden = defineTrait({
-  name: 'Beastly Warden',
   id: TRAIT.BEASTLY_WARDEN,
   // Eligible pets snapshot this strike multiplier with their independent combat attributes.
   balance: { damageMultiplier: 1.67 }
@@ -259,7 +249,6 @@ export const beastlyWarden = defineTrait({
 
 /** Owns Loud Whistle's live tuning and trait behavior. */
 export const loudWhistle = defineTrait({
-  name: 'Loud Whistle',
   id: TRAIT.LOUD_WHISTLE,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.15, playerDamageMultiplier: 1.1 },
@@ -438,7 +427,7 @@ function triggerMergedGoForTheThroat(context: RangerRuntime, event: Gw2ResolverE
       effect: { type: 'buff', name: 'lesser-sic-em' }
     });
     context.fireTrigger(mergedCommandApplied, {
-      skill: { id: ID.LESSER_SIC_EM, categories: ['Command'] },
+      skill: { id: ID.LESSER_SIC_EM, skillFamily: 'Command' },
       at: event.at
     });
   }
@@ -481,10 +470,10 @@ function triggerMergedWiltingStrike(context: RangerResolverContext, event: Gw2Re
 /** Extends player boons for a completed command only at the merged Soulbeast boundary. */
 function applyMergedResoundingTimbre(
   runtime: RangerRuntime | RangerResolverContext,
-  skill: Pick<RangerSkill, 'id' | 'categories'>,
+  skill: Pick<RangerSkill, 'id' | 'skillFamily'>,
   at: number
 ): void {
-  if (skill.categories?.includes('Command'))
+  if (skill.skillFamily === 'Command')
     runtime.effects.emit({
       kind: 'packet',
       event: buildRangerPacket(

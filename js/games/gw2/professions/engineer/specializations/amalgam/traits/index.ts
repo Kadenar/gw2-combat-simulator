@@ -29,7 +29,10 @@ import {
   type AmalgamMorph
 } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
-import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import {
+  AMALGAM_MORPH_KIND_BY_SKILL_ID,
+  resolveAmalgamSkillId
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type {
@@ -47,17 +50,14 @@ export function evolveAttributeFactor(context: EngineerModifierContext): number 
   return requireBalanceNumber(skill.attributeMultiplier, `${skill.name} attributeMultiplier`);
 }
 
-/** Restrict Symbiotic Synergy to player-owned Morph strikes. */
+/** Restrict Symbiotic Synergy to player-owned strikes from the registered protocol identities. */
 function morphStrike(context: EngineerModifierContext): boolean {
-  return Boolean(
-    isGw2PlayerModifierOwnedEvent(context.event) &&
-    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.categories?.includes('Morph')
-  );
+  const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+  return Boolean(isGw2PlayerModifierOwnedEvent(context.event) && skill && AMALGAM_MORPH_KIND_BY_SKILL_ID.has(skill.id));
 }
 
 /** Owns Carbolic Composition tuning and its existing Morph/Evolve contribution. */
 const carbolicComposition = defineTrait({
-  name: 'Carbolic Composition',
   id: TRAIT.CARBOLIC_COMPOSITION,
   balance: {
     conditionDurationBonus: 0.33,
@@ -79,7 +79,6 @@ const carbolicComposition = defineTrait({
 
 /** Owns Double Helix tuning and its existing Morph/Evolve contribution. */
 const doubleHelix = defineTrait({
-  name: 'Double Helix',
   id: TRAIT.DOUBLE_HELIX,
   // Trait-owned scaling keeps patch notes scoped to builds selecting the stronger Evolve bonus.
   balance: { coefficientMultiplier: 1.2 },
@@ -90,7 +89,6 @@ const doubleHelix = defineTrait({
 
 /** Owns Mercurial Tendencies tuning and its existing Morph/Evolve contribution. */
 const mercurialTendencies = defineTrait({
-  name: 'Mercurial Tendencies',
   id: TRAIT.MERCURIAL_TENDENCIES,
   balance: {
     internalCooldown: 0.24,
@@ -102,7 +100,6 @@ const mercurialTendencies = defineTrait({
 
 /** Owns Hybrid Vigor tuning and its existing Morph/Evolve contribution. */
 const hybridVigor = defineTrait({
-  name: 'Hybrid Vigor',
   id: TRAIT.HYBRID_VIGOR,
   balance: { attributeBonuses: { vitality: 240 } },
   attributes: traitAttributeEffects(TRAIT.HYBRID_VIGOR, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'none' }])
@@ -110,7 +107,6 @@ const hybridVigor = defineTrait({
 
 /** Owns Willing Host tuning and its existing Morph/Evolve contribution. */
 const willingHost = defineTrait({
-  name: 'Willing Host',
   id: TRAIT.WILLING_HOST,
   balance: {
     damageIncrease: 0.05,
@@ -137,7 +133,6 @@ const willingHost = defineTrait({
 
 /** Owns Symbiotic Synergy tuning and its existing Morph/Evolve contribution. */
 const symbioticSynergy = defineTrait({
-  name: 'Symbiotic Synergy',
   id: TRAIT.SYMBIOTIC_SYNERGY,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageIncrease: 0.33 },
@@ -155,7 +150,6 @@ const symbioticSynergy = defineTrait({
 
 /** Owns Silver Lining tuning and its existing Morph/Evolve contribution. */
 const silverLining = defineTrait({
-  name: 'Silver Lining',
   id: TRAIT.SILVER_LINING,
   // Morph grants its protocol strain; Evolve then skips the strains it would otherwise grant.
   triggers: [
@@ -168,7 +162,6 @@ const silverLining = defineTrait({
 
 /** Owns New Genes tuning and its existing Morph/Evolve contribution. */
 const newGenes = defineTrait({
-  name: 'New Genes',
   id: TRAIT.NEW_GENES,
   balance: {
     effects: [
@@ -209,7 +202,6 @@ const newGenes = defineTrait({
 
 /** Owns Hardened Chrome tuning and its existing Morph/Evolve contribution. */
 const hardenedChrome = defineTrait({
-  name: 'Hardened Chrome',
   id: TRAIT.HARDENED_CHROME,
   balance: {
     minimumStacks: 2.5,
@@ -310,7 +302,7 @@ function resetMorphRecharge(context: EngineerRuntime): void {
   for (const skillId of amalgamState.from(context).selectedMorphSkillIds) context.cooldownController.clear(skillId);
 }
 
-/** Carbolic accepts Amalgam skill hits and the Rapacious effect, while excluding summons. */
+/** Carbolic uses assembled Amalgam ownership for skill hits and accepts the Rapacious effect, excluding summons. */
 function isAmalgamSkillHit(context: Pick<MechanicQueryContext, 'helpers'>, event: EngineerResolverEvent): boolean {
   if (event.actorType === ACTOR.SUMMON) return false;
 
@@ -321,11 +313,7 @@ function isAmalgamSkillHit(context: Pick<MechanicQueryContext, 'helpers'>, event
   }
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
-  return Boolean(
-    skill?.specialization === 'Amalgam' ||
-    skill?.categories?.includes('Amalgam') ||
-    skill?.categories?.includes('Morph')
-  );
+  return skill?.specialization === 'Amalgam';
 }
 
 /** Eligible Amalgam and Rapacious hits apply trait-owned Poison before Rapacious checks its own proc. */

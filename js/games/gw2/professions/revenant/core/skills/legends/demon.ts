@@ -1,4 +1,4 @@
-/** Owns Legendary Demon Stance skill fragments and its Unyielding Impact follow-up. */
+/** Owns Legendary Demon Stance skill definitions and its Unyielding Impact follow-up. */
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import {
   conditionEffectTicks,
@@ -11,7 +11,7 @@ import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -20,8 +20,14 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
-export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.RESIST_THE_DARKNESS]: {
+    name: 'Resist the Darkness',
+    description: 'Legendary Demon. End Embrace the Darkness early.',
+    icon: 'https://render.guildwars2.com/file/330609F64410624EEE5B24FD7E46CC23F70B7D0E/961440.png',
+    type: 'Elite',
+    slot: 'Elite',
+
     cooldown: 0,
     energyCost: 0,
     legendId: 'LegendaryDemon',
@@ -32,6 +38,13 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }]
   },
   [ID.PAIN_ABSORPTION]: {
+    name: 'Pain Absorption',
+    description:
+      'Legendary Demon. Grant resistance to yourself and nearby allies. Absorb conditions from those allies, gaining resolution and additional resistance per condition.',
+    icon: 'https://render.guildwars2.com/file/F055F7F66C3C5B9D99D0DD7AF20745A6350EA9DB/961447.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     // Mesmer form changes activation cost independently of upkeep drain.
     mesmerEnergyCost: 10,
     mesmerRecharge: 5,
@@ -57,6 +70,12 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.BANISH_ENCHANTMENT]: {
+    name: 'Banish Enchantment',
+    description: 'Legendary Demon. Deal damage, apply chill, and remove boons from your foe.',
+    icon: 'https://render.guildwars2.com/file/D327055AA824ABDDAD70E2606E1C9AF018FF9902/961449.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     // Mesmer form changes activation cost independently of upkeep drain.
     mesmerEnergyCost: 5,
     mesmerRecharge: 5,
@@ -99,6 +118,12 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ])
   },
   [ID.CALL_TO_ANGUISH]: {
+    name: 'Call to Anguish',
+    description: 'Legendary Demon. Leap toward the targeted area and pull foes toward your landing point.',
+    icon: 'https://render.guildwars2.com/file/CA26B3FC712CCF9BD695BD1128B51A759AFA0522/961452.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     // Mesmer form changes activation cost independently of upkeep drain.
     mesmerEnergyCost: 10,
     cooldown: 3,
@@ -136,6 +161,13 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.UNYIELDING_IMPACT, durationSec: null } }]
   },
   [ID.EMPOWERING_MISERY]: {
+    name: 'Empowering Misery',
+    description:
+      'Legendary Demon. Heal yourself. Gain might and heal more for each condition currently applied to you.',
+    icon: 'https://render.guildwars2.com/file/0A970C1378D6FEA27195425C05B2E6726E447167/961456.png',
+    type: 'Heal',
+    slot: 'Heal',
+
     // Mesmer form changes activation cost independently of upkeep drain.
     mesmerEnergyCost: 1,
     cooldown: 30,
@@ -152,6 +184,13 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.EMBRACE_THE_DARKNESS]: {
+    name: 'Embrace the Darkness',
+    description:
+      'Legendary Demon. Summon the power of the legendary demon to transform into a powerful avatar. Pulse torment to nearby foes. Using skills that cost energy increases the torment applied on the next pulse.',
+    icon: 'https://render.guildwars2.com/file/13B6D13EF593CF54DBB204CF6425FDAFC0D723C7/961453.png',
+    type: 'Elite',
+    slot: 'Elite',
+
     // Mesmer form changes activation cost independently of upkeep drain.
     mesmerEnergyCost: 1,
     cooldown: 3,
@@ -197,7 +236,38 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
       { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.embrace-opening' } }
     ]
   },
+  [ID.INVOKE_TORMENT]: {
+    name: 'Invoke Torment',
+    description: 'Charge up and release a burst of torment energy on nearby foes.',
+    icon: 'https://render.guildwars2.com/file/414A9704F7C62C49DB2604DACDAFABDE7A400499/2261512.png',
+    type: 'Action',
+    slot: 'Action',
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        name: 'Invoke Torment',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.TORMENT,
+        stacks: 1,
+        duration: 10,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
   [ID.UNYIELDING_IMPACT]: {
+    name: 'Unyielding Impact',
+    description: 'Slam the ground, creating a powerful impact that inflicts conditions on foes in the area.',
+    icon: 'https://render.guildwars2.com/file/0BFE7E484552037E102533C3B1590599B00FA4EF/3645915.png',
+    type: 'Utility',
+    slot: 'Utility',
     // Mesmer form changes activation cost independently of upkeep drain.
     mesmerEnergyCost: 1,
     cooldown: 0,

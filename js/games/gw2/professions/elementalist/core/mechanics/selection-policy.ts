@@ -1,15 +1,12 @@
 import type { SlotSelectionPolicy } from '#gw2/platform/execution/availability.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
-import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Authored identities link attunement variants without conflating unrelated same-name skills. */
-export function elementalistLoadoutIdentity(id: SkillId): SkillId {
-  return typeof id === 'number' ? (ELEMENTALIST_LOADOUT_SKILL_IDS.get(id) ?? id) : id;
+export function elementalistLoadoutIdentity(id: SkillId, catalog: Pick<CanonicalCatalog, 'skillsById'>): SkillId {
+  return catalog.skillsById.get(id)?.loadoutSkillId ?? id;
 }
 
-/** An equipped slot selects its variants and explicitly authored next chain skill. */
+/** An equipped slot selects its attunement variants; shared selection follows declared flip parents. */
 export const elementalistSlotSelectionPolicy = {
-  identity: elementalistLoadoutIdentity,
-  allowsFollowUp: (skill, selected, catalog) =>
-    [...selected].some((id) => catalog.skillsById.get(id)?.nextChainId === skill.id)
+  identity: elementalistLoadoutIdentity
 } satisfies SlotSelectionPolicy;

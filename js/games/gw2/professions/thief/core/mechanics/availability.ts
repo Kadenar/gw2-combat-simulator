@@ -14,6 +14,7 @@ import {
   thiefSameInstantStealthBreak
 } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { isThiefStolenSkill } from '#gw2/professions/thief/data/stolen-skills.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** A closed follow-up reports the required opener before any later restriction. */
@@ -107,7 +108,7 @@ function stolenSkillAvailability(
 
   if (
     skill.slot === 'Profession_2' &&
-    (skill.categories || []).includes('stolen skill') &&
+    isThiefStolenSkill(skill.id) &&
     !storedStolenSkillChoices(core).includes(skill.id)
   )
     return denySkillCast(skill, 'thief.stolen-skill', 'steal this skill before using it.');

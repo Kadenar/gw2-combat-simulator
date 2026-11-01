@@ -8,10 +8,10 @@ import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolut
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { DEADEYE_STOLEN_SKILL_ID_SET } from '#gw2/professions/thief/data/stolen-skills.js';
 import { maliceGained, maliceSpent } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { deadeyeMarked } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
 import { refundMaliciousTacticalStrike } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';
-import { STOLEN_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import { deadeyeCastFacts, deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { maximumDeadeyeMalice } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -89,7 +89,7 @@ export function reactDeadeyeMalice(
 export function captureDeadeyeMalice(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const skill = cast.skill;
 
-  if (!skill.malicious && !STOLEN_SKILLS.has(skill.id)) return;
+  if (!skill.malicious && !DEADEYE_STOLEN_SKILL_ID_SET.has(skill.id)) return;
 
   const malice = runtime.resourceController.value('malice');
   deadeyeCastFacts.set(cast, {

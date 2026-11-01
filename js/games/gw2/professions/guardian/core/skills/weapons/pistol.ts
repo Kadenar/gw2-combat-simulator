@@ -13,7 +13,7 @@ import {
   requireSkillFromContext,
   skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type {
   GuardianResolverContext,
@@ -24,11 +24,19 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** Canonical Core guardian skill fragments grouped by their GW2 owner. */
+/** Canonical Core guardian skill definitions grouped by their GW2 owner. */
 
-export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.THROUGH_THE_HEART]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Through the Heart',
+    description: 'Fire a piercing shot that inflicts bleeding.',
+    icon: 'https://render.guildwars2.com/file/CDCD4A9B6BC15D930A2E3B956D74A86671E4F835/3256351.png',
+    type: 'Weapon',
+    weapon: 'Pistol',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     interruptCommitMs: 360,
     // Keep the projectile strike and Bleeding on one committed impact.
@@ -51,6 +59,12 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     )
   },
   [ID.PEACEKEEPER]: {
+    name: 'Peacekeeper',
+    description: 'Fire a beam of searing light that damages and burns all enemies in its path.',
+    icon: 'https://render.guildwars2.com/file/E0F376A8512ECB5938A6C7B10477F6C397FF0D00/3256352.png',
+    type: 'Weapon',
+    weapon: 'Pistol',
+    slot: 'Weapon_2',
     cooldown: 6,
     rechargeAnchor: 'castStart',
     // EVTC impact offsets keep Burning aligned with each strike.
@@ -73,6 +87,15 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.SYMBOL_OF_IGNITION]: {
+    name: 'Symbol of Ignition',
+    description:
+      'Symbol. Create a symbol that ignites when you strike an enemy inside it or shoot a projectile into it, damaging and burning enemies inside it. If the symbol is ignited by a projectile, it enchants that projectile to burn its target.',
+    icon: 'https://render.guildwars2.com/file/93750C95B5645112B9ED807DE3AF29A340037ED0/3256353.png',
+    type: 'Weapon',
+    weapon: 'Pistol',
+    slot: 'Weapon_3',
+
+    cooldown: 12,
     internalCooldown: 0.24,
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
@@ -138,9 +161,15 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.HAIL_OF_JUSTICE]: {
+    name: 'Hail of Justice',
+    description: 'Shoot a volley of rapid-fire piercing shots that inflict bleeding and cripple.',
+    icon: 'https://render.guildwars2.com/file/1A29DD0527137526CB1D355403DC009A57D767A6/3256354.png',
+    type: 'Weapon',
+    weapon: 'Pistol',
+    slot: 'Weapon_4',
     cooldown: 10,
     ammo: 2,
-    ammoRecharge: 10,
+
     ammoCastLockout: 1,
     castTimeMs: 1120,
     // Cancelling the channel keeps landed hits and their conditions, while dropping later packets.
@@ -178,6 +207,13 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.JURISDICTION]: {
+    name: 'Jurisdiction',
+    description:
+      'Charge up a ball of blue flame and launch it at your enemies. Enemies it hits are burned and stunned.',
+    icon: 'https://render.guildwars2.com/file/18E2D752067BEAC1E47A2928DFF2A1CE13B8DE3B/3256355.png',
+    type: 'Weapon',
+    weapon: 'Pistol',
+    slot: 'Weapon_5',
     cooldown: 20,
     castTimeMs: 800,
     interruptCommitMs: 640,

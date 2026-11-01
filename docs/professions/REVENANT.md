@@ -8,10 +8,12 @@ in a given runtime.
 
 ## Data
 
-- Generated identity metadata lives in `data/`; consult its header for snapshot provenance.
-- Refresh: `npm run update:profession-data -- --profession Revenant`.
-- Runtime simulation is network-free. Energy, upkeep, skill mechanics, modifiers, and other non-API behavior are checked
-  into owner-local `skills/`, `traits/`, and `mechanics/` modules.
+- Maintained skill and trait constants live in `data/ids.ts`.
+- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
+  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
+  required.
+- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
+  complete declarations contributed by each module.
 
 ## Implemented systems
 

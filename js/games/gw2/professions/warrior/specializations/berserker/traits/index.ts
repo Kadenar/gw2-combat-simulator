@@ -31,7 +31,6 @@ import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/type
 
 /** Owns this trait's tuning and selected contributions. */
 const burstOfAggression = defineTrait({
-  name: 'Burst of Aggression',
   id: TRAIT.BURST_OF_AGGRESSION,
   balance: {
     effects: [
@@ -50,7 +49,6 @@ const burstOfAggression = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const bloodyRoar = defineTrait({
-  name: 'Bloody Roar',
   id: TRAIT.BLOODY_ROAR,
   balance: {
     damageMultiplier: 1.1,
@@ -76,7 +74,6 @@ const bloodyRoar = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const lastBlaze = defineTrait({
-  name: 'Last Blaze',
   id: TRAIT.LAST_BLAZE,
   balance: {
     durationExtension: 1,
@@ -88,7 +85,7 @@ const lastBlaze = defineTrait({
       on: 'castCommit',
 
       emit: TRAIT.LAST_BLAZE,
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Rage')),
+      when: (_runtime, cast) => cast.skill.skillFamily === 'Rage',
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BURNING,
       attribution: {
         source: 'Trait',
@@ -103,7 +100,6 @@ const lastBlaze = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const smashBrawler = defineTrait({
-  name: 'Smash Brawler',
   id: TRAIT.SMASH_BRAWLER,
   balance: {
     criticalChance: 0.15,
@@ -124,7 +120,6 @@ const smashBrawler = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const heatTheSoul = defineTrait({
-  name: 'Heat the Soul',
   id: TRAIT.HEAT_THE_SOUL,
   balance: {
     effects: [
@@ -144,7 +139,6 @@ const heatTheSoul = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const kingOfFires = defineTrait({
-  name: 'King of Fires',
   id: TRAIT.KING_OF_FIRES,
   balance: {
     durationMultiplier: 0.33,
@@ -242,7 +236,6 @@ const kingOfFires = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const bloodReaction = defineTrait({
-  name: 'Blood Reaction',
   id: TRAIT.BLOOD_REACTION,
   balance: {
     attributeConversion: 0.12,
@@ -279,11 +272,10 @@ export const bloodReaction = defineTrait({
 });
 
 /** Primal Rage owns the reduced adrenaline capacity while the mode lifecycle controls entry and expiry. */
-const primalRage = defineTrait({ name: 'Primal Rage', id: TRAIT.PRIMAL_RAGE, balance: { maximumStacks: 10 } });
+const primalRage = defineTrait({ id: TRAIT.PRIMAL_RAGE, balance: { maximumStacks: 10 } });
 
 /** Fatal Frenzy owns the final attributes granted while Berserk is active. */
 const fatalFrenzy = defineTrait({
-  name: 'Fatal Frenzy',
   id: TRAIT.FATAL_FRENZY,
   balance: { attributeBonuses: { power: 300, conditionDamage: 150 } }
 });

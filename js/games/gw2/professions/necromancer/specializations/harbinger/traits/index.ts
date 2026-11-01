@@ -42,14 +42,12 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Dark Disciple owns intrinsic Blight growth, capacity, and shroud life-force drain. */
 const darkDisciple = defineTrait({
-  name: 'Dark Disciple',
   id: TRAIT.DARK_DISCIPLE,
   balance: { maximumStacks: 25, lifeForceDrain: 5, blightGain: 2, pulseInterval: 1, effects: [] }
 });
 
 /** Owns Cascading Corruption tuning and behavior at its existing execution boundaries. */
 const cascadingCorruption = defineTrait({
-  name: 'Cascading Corruption',
   id: TRAIT.CASCADING_CORRUPTION,
   balance: {
     damageIncrease: 0.1,
@@ -108,7 +106,6 @@ const cascadingCorruption = defineTrait({
 
 /** Owns Septic Corruption tuning and behavior at its existing execution boundaries. */
 const septicCorruption = defineTrait({
-  name: 'Septic Corruption',
   id: TRAIT.SEPTIC_CORRUPTION,
   balance: {
     conditionDamageIncreasePerStack: 0.0025,
@@ -145,7 +142,6 @@ const septicCorruption = defineTrait({
 
 /** Owns Doom Approaches tuning and behavior at its existing execution boundaries. */
 const doomApproaches = defineTrait({
-  name: 'Doom Approaches',
   id: TRAIT.DOOM_APPROACHES,
   balance: {
     blightGain: 4,
@@ -170,7 +166,6 @@ const doomApproaches = defineTrait({
 
 /** Owns Deathly Haste tuning and behavior at its existing execution boundaries. */
 const deathlyHaste = defineTrait({
-  name: 'Deathly Haste',
   id: TRAIT.DEATHLY_HASTE,
   balance: {
     effects: [
@@ -211,7 +206,6 @@ const deathlyHaste = defineTrait({
 
 /** Owns Corrupted Talent tuning and behavior at its existing execution boundaries. */
 const corruptedTalent = defineTrait({
-  name: 'Corrupted Talent',
   id: TRAIT.CORRUPTED_TALENT,
   balance: {
     lifeForceGain: 15
@@ -221,7 +215,6 @@ const corruptedTalent = defineTrait({
 
 /** Owns Implacable Foe tuning and behavior at its existing execution boundaries. */
 const implacableFoe = defineTrait({
-  name: 'Implacable Foe',
   id: TRAIT.IMPLACABLE_FOE,
   balance: {
     attributeConversion: 0.13,
@@ -264,7 +257,6 @@ const implacableFoe = defineTrait({
 
 /** Owns Bolstering Brew tuning and behavior at its existing execution boundaries. */
 const bolsteringBrew = defineTrait({
-  name: 'Bolstering Brew',
   id: TRAIT.BOLSTERING_BREW,
   balance: {
     effects: [
@@ -288,7 +280,6 @@ const bolsteringBrew = defineTrait({
 
 /** Owns Alchemic Vigor tuning and behavior at its existing execution boundaries. */
 const alchemicVigor = defineTrait({
-  name: 'Alchemic Vigor',
   id: TRAIT.ALCHEMIC_VIGOR,
   balance: {
     attributeBonuses: { vitality: 240 }
@@ -298,7 +289,6 @@ const alchemicVigor = defineTrait({
 
 /** Owns Twisted Medicine tuning and behavior at its existing execution boundaries. */
 const twistedMedicine = defineTrait({
-  name: 'Twisted Medicine',
   id: TRAIT.TWISTED_MEDICINE,
   balance: {
     attributeConversion: 0.13
@@ -317,7 +307,6 @@ const twistedMedicine = defineTrait({
 
 /** Owns Wicked Corruption tuning and behavior at its existing execution boundaries. */
 const wickedCorruption = defineTrait({
-  name: 'Wicked Corruption',
   id: TRAIT.WICKED_CORRUPTION,
   balance: {
     damageIncreasePerStack: 0.01,
@@ -346,7 +335,6 @@ const wickedCorruption = defineTrait({
 
 /** Owns Dark Gunslinger tuning and behavior at its existing execution boundaries. */
 const darkGunslinger = defineTrait({
-  name: 'Dark Gunslinger',
   id: TRAIT.DARK_GUNSLINGER,
   balance: {
     attributeConversion: 0.1,

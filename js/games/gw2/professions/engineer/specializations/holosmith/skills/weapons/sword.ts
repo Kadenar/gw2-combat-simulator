@@ -1,5 +1,5 @@
 /**
- * Owns Holosmith sword skill fragments and heat-aware sword variants.
+ * Owns Holosmith sword skill definitions and heat-aware sword variants.
  * Sword cast behavior shared with Core lives in `core/hooks.ts`.
  */
 import { boonKey } from '#gw2/platform/combat/boons.js';
@@ -42,9 +42,17 @@ const swordHeatFactors = { highStrikeFactor: 1.2, enhancedStrikeFactor: 1.3 };
 // Seconds from Refraction Cutter's heat event to its extra blades' impact.
 const REFRACTION_CUTTER_BLADE_DELAY = 0.36;
 
-/** Supplies Holosmith sword fragments to Holosmith module composition. */
+/** Supplies Holosmith sword definitions to Holosmith module composition. */
 export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.SUN_EDGE]: {
+    name: 'Sun Edge',
+    description: 'Strike your foe and inflict vulnerability. This attack deals more damage based on your heat level.',
+    icon: 'https://render.guildwars2.com/file/136E9A23E326BE1D67FAD6793A6253024204A6E5/1770405.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     ...swordHeatFactors,
     cooldown: 0,
     castTimeMs: 440,
@@ -67,6 +75,15 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ])
   },
   [ID.SUN_RIPPER]: {
+    name: 'Sun Ripper',
+    description:
+      'Strike your foe again and inflict vulnerability. This attack deals more damage based on your heat level.',
+    icon: 'https://render.guildwars2.com/file/004244480A0828CE033FB575C8FA3A566A016C58/1770406.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     ...swordHeatFactors,
     cooldown: 0,
     castTimeMs: 480,
@@ -91,6 +108,15 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ])
   },
   [ID.GLEAM_SABER]: {
+    name: 'Gleam Saber',
+    description:
+      'Unleash a burst of stored energy with your sword and recharge your other sword skills. This attack deals more damage based on your heat level.',
+    icon: 'https://render.guildwars2.com/file/DA9AC63DCF633A5D2806C37EB5C0E105C01DD7AC/1770407.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     ...swordHeatFactors,
     cooldown: 0,
     castTimeMs: 720,
@@ -111,6 +137,13 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.sword-recharge', amount: 1 } }]
   },
   [ID.REFRACTION_CUTTER_BLADE]: {
+    name: 'Refraction Cutter Blade',
+    description: 'Launch a blade of light that bleeds your target.',
+    icon: 'https://render.guildwars2.com/file/C571A742D055DCA81F6FD70D38C0409DDC9ABEE5/1770408.png',
+    type: 'Weapon',
+    slot: 'Action',
+
+    simulatorExcluded: true,
     cooldown: 0,
     castTimeMs: 0,
     effects: [
@@ -139,12 +172,18 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
     ]
   },
   [ID.REFRACTION_CUTTER]: {
+    name: 'Refraction Cutter',
+    description:
+      'Strike at foes in front of you and launch a blade of light at your target. Launch extra blades based on your heat level. Each blade inflicts conditions.',
+    icon: 'https://render.guildwars2.com/file/C571A742D055DCA81F6FD70D38C0409DDC9ABEE5/1770408.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_2',
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     baseExtraBlades: 0,
     highExtraBlades: 2,
     enhancedExtraBlades: 4,
     cooldown: 6,
-
     castTimeMs: 520,
     // Preserve committed swing/blade damage and keep the parent cast's lockout before the next input.
     interruptCommitMs: 360,
@@ -213,12 +252,18 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   },
   // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
   [ID.RADIANT_ARC]: {
+    name: 'Radiant Arc',
+    description:
+      'Leap to your target and create an arc of light that strikes nearby foes. Gain quickness based on your heat level.',
+    icon: 'https://render.guildwars2.com/file/A57A38790F3B7AE905B60AB2E172DC0C437125EA/1770409.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_3',
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     baseDuration: 2,
     highDuration: 4,
     enhancedDuration: 6,
     cooldown: 12,
-
     castTimeMs: 840,
     comboFinishers: [
       {

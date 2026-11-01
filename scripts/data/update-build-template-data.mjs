@@ -2,19 +2,19 @@ import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { UNDERWATER_ONLY_SKILL_IDS } from '../../js/games/gw2/platform/skills/underwater-skill-ids.ts';
-
 const API_URL = 'https://api.guildwars2.com/v2/professions?ids=all&v=latest&lang=en';
+// Keep removed Necromancer skills out of chat-code mappings when the API snapshot is refreshed.
+const REMOVED_NECROMANCER_SKILL_IDS = new Set([10543, 10600, 10602, 10606, 10608]);
 const OUTPUT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../../js/games/gw2/integrations/chat-code/palette-data.ts'
 );
 
-/** Select shared land buttons before excluding underwater-only palettes for every profession. */
-export function terrestrialPaletteEntries(profession) {
+/** Preserve palette ordering and the supported Conduit input while omitting retired Necromancer identities. */
+export function paletteEntries(profession) {
   return profession.skills_by_palette
     .map(([paletteId, skillId]) => [paletteId, profession.code === 9 && paletteId === 4564 ? 77141 : skillId])
-    .filter(([, skillId]) => !UNDERWATER_ONLY_SKILL_IDS.has(skillId))
+    .filter(([, skillId]) => !REMOVED_NECROMANCER_SKILL_IDS.has(skillId))
     .sort((left, right) => left[0] - right[0]);
 }
 
@@ -52,7 +52,7 @@ async function main() {
       `  ${profession.code}: {`,
       '    paletteEntries: Object.freeze<readonly (readonly [number, number])[]>(['
     );
-    for (const [paletteId, skillId] of terrestrialPaletteEntries(profession)) {
+    for (const [paletteId, skillId] of paletteEntries(profession)) {
       lines.push(`      [${paletteId}, ${skillId}],`);
     }
 

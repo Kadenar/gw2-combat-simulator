@@ -1,13 +1,21 @@
-/** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+/** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.WAIL_OF_DOOM]: {
+    name: 'Wail of Doom',
+    description:
+      'Screech a wail of doom in a cone pattern, inflicting fear on foes. (Does bonus defiance-bar damage to defiant foes.)',
+    icon: 'https://render.guildwars2.com/file/41C99E156B3F602C9069E2B838E8BD05D6262EBE/103277.png',
+    type: 'Weapon',
+    weapon: 'Warhorn',
+    slot: 'Weapon_4',
+    cooldown: 24,
     castTimeMs: 1000,
     effects: [
       {
@@ -19,11 +27,22 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.LOCUST_SWARM]: {
+    name: 'Locust Swarm',
+    description:
+      'Grant swiftness to allies and summon a swarm of locusts that siphons health to you and your allies from nearby foes.',
+    icon: 'https://render.guildwars2.com/file/1E2D4A00340B96CAE9A1E19F2B07B35A01741B14/103809.png',
+    type: 'Weapon',
+    weapon: 'Warhorn',
+    slot: 'Weapon_5',
+    cooldown: 24,
     castTimeMs: 440,
     // Each half-second siphon grants life force only when its impact lands.
     effects: [
       strikeTimeline(
-        Array.from({ length: 10 }, (_, index) => ({ atMs: quantizeGw2ActionDurationUp(index * 500), coefficient: 0 })),
+        Array.from({ length: 10 }, (_, index) => ({
+          atMs: quantizeGw2ActionDurationUp(index * 500),
+          coefficient: 0
+        })),
         {
           name: 'Locust Swarm — Life Siphon',
           flatStrikeBase: 117,

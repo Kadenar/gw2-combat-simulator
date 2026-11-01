@@ -1,11 +1,19 @@
-/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
+/** Canonical Core revenant skill definitions grouped by their GW2 owner. */
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
-export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.MISERY_SWIPE]: {
+    name: 'Misery Swipe',
+    description: 'Swing your mace at your foe.',
+    icon: 'https://render.guildwars2.com/file/0418D8F15F0DF2594023CFBCE61A0A1126BA92C5/961465.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 440,
@@ -32,6 +40,14 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
     )
   },
   [ID.ANGUISH_SWIPE]: {
+    name: 'Anguish Swipe',
+    description: 'Sweep your mace back for a second blow.',
+    icon: 'https://render.guildwars2.com/file/493214BAC8430E04E2327EDEFDD3EB323A5A3913/961460.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 360,
@@ -58,6 +74,14 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
     )
   },
   [ID.MANIFEST_TOXIN]: {
+    name: 'Manifest Toxin',
+    description: 'Deliver a crushing blow that sends toxic energy chaining to enemies behind each target.',
+    icon: 'https://render.guildwars2.com/file/92803ED295CE684CF8235941E6A6AC1610F0F00F/961459.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 560,
@@ -84,6 +108,13 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
     )
   },
   [ID.SEARING_FISSURE]: {
+    name: 'Searing Fissure',
+    description:
+      'Smash your mace into the ground, causing flames to erupt from the Mists. The first strike of this attack is more powerful.',
+    icon: 'https://render.guildwars2.com/file/3FAB9EB7587857745278027D29154ABC015710A6/961477.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_2',
     cooldown: 3,
     energyCost: 5,
     castTimeMs: 600,
@@ -128,9 +159,15 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.ECHOING_ERUPTION]: {
+    name: 'Echoing Eruption',
+    description: 'Leap at your foe and deliver a massive attack that cascades outward.',
+    icon: 'https://render.guildwars2.com/file/EBC404DE4ACFF17BDB0FF7BC9BF592641BA64046/961470.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_3',
+    ammoCastLockout: 8,
     cooldown: 8,
-    ammo: 0,
-    ammoRecharge: 0,
+
     energyCost: 5,
     castTimeMs: 960,
     comboFinishers: [

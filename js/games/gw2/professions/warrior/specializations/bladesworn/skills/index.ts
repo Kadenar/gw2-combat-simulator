@@ -1,3 +1,4 @@
+/** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -12,40 +13,49 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import { WARRIOR_SUPPLEMENTAL_SKILLS } from '#gw2/professions/warrior/data/warrior-supplemental-skills.js';
 import { slashEffects } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { activeCartridgeWindow, bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
-
 const CARTRIDGE_ACTIVATE = 'warrior.cartridges-activate';
 
 const furyBeforeCast = new WeakSet<RuntimeCast<WarriorSkill>>();
 
-/** Both action identities select the version owned by the equipped adept trait. */
-
-export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.UNSHEATHE_GUNSABER]: {
+    name: 'Unsheathe Gunsaber',
+    description: 'Unsheathe your gunsaber to gain new skills. Changes to your weapon recharge rate affect this skill.',
+    icon: 'https://render.guildwars2.com/file/2FD1530306F002EF08D729182822917BC477BEED/2491643.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     // Gunsaber transitions use a five-second base recharge before recharge modifiers.
     cooldown: 5,
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    inputCategory: 'bar-swap',
+    // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     effects: [],
     // Successful commitment owns this transition or reward.
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.gunsaber-enter' } }]
   },
   [ID.DRAGON_TRIGGER]: {
+    name: 'Dragon Trigger',
+    description:
+      'Prepare to use Dragon Slash. While channeling, you drain flow. Each interval increases the charge level of Dragon Slash.\nThis skill is canceled if you dodge or are interrupted.',
+    icon: 'https://render.guildwars2.com/file/A2B14ED1954FBE0B31E0C57DCB0107BBE0543764/2491645.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    cooldown: 8,
     // The mode's selected skill owns baseline charging and its admission cost.
     maximumCharges: 10,
     resourceCost: 5,
     entryResourceCost: 15,
     duration: 30,
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    inputCategory: 'bar-swap',
+    // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     canCastConcurrently: false,
     effects: [],
@@ -53,14 +63,28 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.dragon-trigger-enter' } }]
   },
   [ID.SHEATHE_GUNSABER]: {
+    name: 'Sheathe Gunsaber',
+    description:
+      'Put your gunsaber away and return to your normal weapon set. Changes to your weapon recharge rate affect this skill.',
+    icon: 'https://render.guildwars2.com/file/21C87D14E3A3C298C909A003614102F0FA48979A/2491644.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     cooldown: 5,
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    inputCategory: 'bar-swap',
+    // Count the explicit bar-changing input in effort summaries.
     castTimeMs: 0,
     effects: [],
     // Successful commitment owns this transition or reward.
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.gunsaber-exit' } }]
   },
   [ID.TACTICAL_RELOAD]: {
+    name: 'Tactical Reload',
+    description:
+      'Armament. Reload ammo on all of your bladesworn skills. Your next Dragon Trigger generates more charges per interval.',
+    icon: 'https://render.guildwars2.com/file/B106D2281F245403F23CD2C2E766D39A05400916/2491632.png',
+    type: 'Elite',
+    slot: 'Elite',
+    cooldown: 30,
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
     // Commitment grants the reload while the remaining animation retains its cast lockout.
@@ -71,6 +95,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.tactical-reload' } }]
   },
   [ID.DRAGONSPIKE_MINE]: {
+    name: 'Dragonspike Mine',
+    description:
+      'Armament. Evade backward while triggering an explosion that inflicts conditions on foes. This skill recharges Dragon Trigger.',
+    icon: 'https://render.guildwars2.com/file/7C079E38F9ABFFA4533E064965B8A1B3EE3FB743/2491654.png',
+    type: 'Utility',
+    slot: 'Utility',
+    cooldown: 20,
     movementSkill: true,
     castTimeMs: 640,
     // Interrupted replay keeps the mine effects once their observed activation has committed.
@@ -103,6 +134,15 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.DRAGON_TRIGGER] } }]
   },
   [ID.FLOW_STABILIZER]: {
+    name: 'Flow Stabilizer',
+    description: 'Armament. Increase flow rate and gain fury. If you already have fury, gain additional flow.',
+    icon: 'https://render.guildwars2.com/file/A0CBE13DC629FAD69645FBB9CFDEFC5AC82061E3/2491651.png',
+    type: 'Utility',
+    slot: 'Utility',
+    cooldown: 30,
+    ammoCastLockout: 1,
+    ammo: 2,
+
     castTimeMs: 0,
     // Flow Stabilizer opens its passive-flow window and grants its conditional flow on completion.
     effects: [
@@ -127,6 +167,16 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.COMBAT_STIMULANT]: {
+    name: 'Combat Stimulant',
+    description:
+      'Armament. Heal yourself and enter Stim State. When Stim State expires, you are healed again. Using this skill while in Stim State grants boons.',
+    icon: 'https://render.guildwars2.com/file/C341A614F4D4E59D4103AD30073A7F18DE54BF03/2491640.png',
+    type: 'Heal',
+    slot: 'Heal',
+    cooldown: 20,
+    ammoCastLockout: 1,
+    ammo: 2,
+
     castTimeMs: 500,
     effects: [
       {
@@ -150,8 +200,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.OVERCHARGED_CARTRIDGES]: {
+    name: 'Overcharged Cartridges',
+    description:
+      'Armament. Your explosion attacks deal more damage and inflict burning. Using this skill while you already have Overcharged Cartridges activated causes you to supercharge your cartridges, increasing its effectiveness and refreshing its duration.',
+    icon: 'https://render.guildwars2.com/file/EF1D6D09A1B403972F721F1A073154E2F01CD0A5/2491652.png',
+    type: 'Utility',
+    slot: 'Utility',
     ammo: 2,
-    ammoRecharge: 20,
+
     cooldown: 20,
     ammoCastLockout: 1,
     castTimeMs: 600,
@@ -193,6 +249,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
   },
   // Only explicitly named explosion packets trigger explosion modifiers and traits; ordinary gunsaber hits do not.
   [ID.SWIFT_CUT]: {
+    name: 'Swift Cut',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/swift-cut.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
     castTimeMs: 640,
@@ -214,6 +278,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.STEEL_DIVIDE]: {
+    name: 'Steel Divide',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/steel-divide.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
     castTimeMs: 600,
@@ -235,6 +307,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.EXPLOSIVE_THRUST]: {
+    name: 'Explosive Thrust',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/explosive-thrust.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
     castTimeMs: 440,
@@ -257,8 +337,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.BLOOMING_FIRE]: {
+    name: 'Blooming Fire',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/blooming-fire.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
     ammo: 2,
-    ammoRecharge: 10,
+
     cooldown: 10,
     ammoCastLockout: 2,
     gunsaberSkill: true,
@@ -288,8 +373,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.ARTILLERY_SLASH]: {
+    name: 'Artillery Slash',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/artillery-slash.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
     ammo: 2,
-    ammoRecharge: 15,
+
     cooldown: 15,
     ammoCastLockout: 2,
     gunsaberSkill: true,
@@ -310,8 +400,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     sideEffects: [{ on: 'castStart', do: { type: 'warrior.spend-magazine' } }]
   },
   [ID.CYCLONE_TRIGGER]: {
+    name: 'Cyclone Trigger',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/cyclone-trigger.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
     ammo: 2,
-    ammoRecharge: 20,
+
     cooldown: 20,
     ammoCastLockout: 1,
     gunsaberSkill: true,
@@ -337,9 +432,14 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.BREAK_STEP]: {
+    name: 'Break Step',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/break-step.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
     movementSkill: true,
     ammo: 2,
-    ammoRecharge: 20,
+
     cooldown: 20,
     ammoCastLockout: 1,
     gunsaberSkill: true,
@@ -366,6 +466,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.DRAGON_SLASH_FORCE]: {
+    name: 'Dragon Slash—Force',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/dragon-slash-force.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
+
+    cooldown: 1,
     // Force hits during its animation so expiring buffs are evaluated before recovery ends.
     dragonSlashImpactOffsetMs: 520,
     burst: true,
@@ -381,6 +488,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }]
   },
   [ID.DRAGON_SLASH_BOOST]: {
+    name: 'Dragon Slash—Boost',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/dragon-slash-boost.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
+
+    cooldown: 1,
     movementSkill: true,
     burst: true,
     gunsaberSkill: true,
@@ -395,6 +509,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }]
   },
   [ID.DRAGON_SLASH_REACH]: {
+    name: 'Dragon Slash—Reach',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/dragon-slash-reach.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
+
+    cooldown: 1,
     burst: true,
     gunsaberSkill: true,
     skillWeapon: 'Gunsaber',
@@ -408,8 +529,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }]
   },
   [ID.FLICKER_STEP]: {
+    name: 'Flicker Step',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/flicker-step.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
     ammo: 3,
-    ammoRecharge: 20,
+
     cooldown: 20,
     ammoCastLockout: 0.5,
     gunsaberSkill: true,
@@ -421,8 +547,13 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     effects: []
   },
   [ID.TRIGGERGUARD]: {
+    name: 'Triggerguard',
+    description: 'Bladesworn gunsaber profession mechanic.',
+    icon: new URL('@images/wiki/triggerguard.png', import.meta.url).href,
+    type: 'Bundle',
+    slot: 'Weapon_1',
     ammo: 2,
-    ammoRecharge: 30,
+
     cooldown: 30,
     ammoCastLockout: 1,
     gunsaberSkill: true,
@@ -442,24 +573,15 @@ export const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
 
 /** Creates the hidden skill identity selected when Sharp as the Wind replaces a normal Gunsaber action. */
 function sharpAsTheWindVariant(id: number, parentId: number, name: string, overrides: Partial<Skill>): Skill {
-  const parent = WARRIOR_SUPPLEMENTAL_SKILLS.find((skill) => skill.id === parentId);
+  const parent = BLADESWORN_SKILL_MECHANICS[parentId];
 
   return Object.freeze({
-    name,
-    id,
-    description: 'Sharp as the Wind condition variant.',
-    icon: parent?.icon || '',
-    type: parent?.type || 'Bundle',
-    // Trait replacements retain their occupied Gunsaber or Dragon Trigger control.
-    slot: parent?.slot,
-    specialization: 'Bladesworn',
-    cooldown: 0,
-    castTimeMs: 0,
-    effects: [],
-    ...BLADESWORN_SKILL_MECHANICS[parentId],
+    ...parent,
     ...overrides,
-    slotSelectable: false,
-    simulatorExcluded: false
+    id,
+    name,
+    description: 'Sharp as the Wind condition variant.',
+    slotSelectable: false
   });
 }
 
@@ -782,7 +904,9 @@ function tacticalReload(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>
   for (const id of runtime.cooldownController.ammoSkillIds()) {
     const skill = runtime.helpers.skillsById.get(id);
 
-    if (skill?.specialization === 'Bladesworn') runtime.cooldownController.restoreAmmo(skill, 1, runtime.time);
+    // Pistol is shared Core equipment, but its ammunition still belongs to Tactical Reload's weapon rule.
+    if (skill && (skill.specialization === 'Bladesworn' || skill.weapon === 'Pistol'))
+      runtime.cooldownController.restoreAmmo(skill, 1, runtime.time);
   }
 
   const state = bladeswornState.from(runtime);

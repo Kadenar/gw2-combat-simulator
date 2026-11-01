@@ -4,15 +4,7 @@ import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { stealCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { improvisationStolenUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-
-// Each base Steal offers the same three supported stolen skills for the user to choose from.
-export const THIEF_STOLEN_SKILL_IDS: readonly SkillId[] = Object.freeze([
-  ID.DETONATE_PLASMA,
-  ID.THROW_MAGNETIC_BOMB,
-  ID.SOUL_STONE_VENOM
-]);
 
 /** The stolen skills currently selectable: the whole pool, or the one skill locked by a forced grant or reuse. */
 export function storedStolenSkillChoices(

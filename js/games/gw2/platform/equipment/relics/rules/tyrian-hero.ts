@@ -12,7 +12,7 @@ export const tyrianHero = defineRelic({
 
     const skill = skillForEvent(ctx.helpers, event);
 
-    if (!skill?.categories?.some((category) => category === 'Shout' || category === 'Command')) return;
+    if (skill?.skillFamily !== 'Shout' && skill?.skillFamily !== 'Command') return;
 
     const name = 'Relic of the Tyrian Hero';
     ctx.effects.emit({

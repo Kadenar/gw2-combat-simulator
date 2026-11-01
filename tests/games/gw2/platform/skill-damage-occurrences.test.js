@@ -28,7 +28,7 @@ const occurrence = (skill) => ({
 // A raw profile can contain mutually exclusive packets and defaults that are invalid for the triggering context.
 test('trait contributions use runtime filtering, transforms, selection, and attribution for each triggering skill', () => {
   const catalog = createCanonicalCatalog({
-    generated: skills,
+    skills: skills,
     traits: [{ id: TRAIT, name: 'Contextual trait' }],
     balanceProfiles: [
       {
@@ -92,7 +92,7 @@ test('condition rows preserve distinct trait owners with identical damage facts'
     id: 'condition-owners',
     name: 'Condition owners',
     catalog: createCanonicalCatalog({
-      generated: skills,
+      skills: skills,
       traits,
       balanceProfiles: traits.map((trait) => ({
         ...trait,
@@ -134,7 +134,7 @@ test('condition rows preserve distinct trait owners with identical damage facts'
 // Invoked skills retain their actual transformed payload without automatically manufacturing standalone adapters.
 test('invoked trait skills are measured from their emitted damage', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       ...skills,
       { id: 991003, name: 'Invoked strike', effects: [{ type: 'strike', coefficient: 9, weaponStrength: 1000 }] }
     ],

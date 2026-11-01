@@ -428,7 +428,7 @@ test('own-field exclusion survives rebinding and still allows fields from earlie
 
 test('owned canonical descriptors produce shared combo events without a profession adapter', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 1,
         name: 'Canonical Fire Field',
@@ -607,7 +607,7 @@ test('an authoritative owned field overrides an older ambient field', () => {
 
 test('pure movement skills resolve skill-level finishers end to end', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 10,
         name: 'Movement Ice Field',

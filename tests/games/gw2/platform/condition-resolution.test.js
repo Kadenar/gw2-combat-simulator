@@ -709,7 +709,7 @@ test('an explicit empty target condition map does not restore default conditions
 
 test('profession condition-duration hooks remain under the GW2 cap', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930013,
         name: 'Fixture Burn',

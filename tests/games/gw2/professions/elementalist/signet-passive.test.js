@@ -2,11 +2,31 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { AURA } from '#gw2/platform/constants.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+
+// Each signet must select its own trait aura through skill identity.
+test('Written in Stone grants the aura belonging to the completed signet', () => {
+  for (const [skillId, aura] of [
+    [ID.SIGNET_OF_RESTORATION, AURA.FROST],
+    [ID.SIGNET_OF_FIRE, AURA.FIRE],
+    [ID.SIGNET_OF_EARTH, AURA.MAGNETIC]
+  ]) {
+    const result = runElementalist([{ type: 'cast', skillId }], {
+      selectedSkillIds: [skillId],
+      selectedTraitIds: [TRAIT.WRITTEN_IN_STONE]
+    });
+    assert.deepEqual(result.warnings, []);
+    const grant = result.events.find((event) => event.type === 'aura' && event.source === 'Written in Stone');
+    assert.ok(grant, `Missing aura for signet ${skillId}`);
+    assert.equal(grant.aura, aura);
+    assert.equal(grant.sourceId, skillId);
+  }
+});
 
 // Sample live precision across activation and recovery so the passive cannot drift from the shared cooldown owner.
 test('Signet of Fire precision follows recharge and resets unless Written in Stone preserves it', () => {

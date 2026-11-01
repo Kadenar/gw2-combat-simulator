@@ -2,7 +2,7 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { activeBuffStacks, skillForEvent, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { activeBuffStacks, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { advanceCyclicCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
@@ -18,7 +18,7 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { isExplosion, resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { isExplosion } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { airBlastImpacted, type AirBlastImpact } from '#gw2/professions/engineer/core/skills/kits/flamethrower.js';
 import { playerHealthFraction, targetHealthFraction } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -32,7 +32,6 @@ import {
 
 /** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({
-  name: 'Grenadier',
   id: TRAIT.GRENADIER,
   // Store the bonus as a fraction so preview controls and tooltips share the same percentage convention.
   balance: { damageIncrease: 0 },
@@ -44,12 +43,7 @@ export const grenadier = defineTrait({
       operation: 'multiply',
       // Live remains neutral; preview tuning increases only player-owned explosion strikes with Grenadier selected.
       factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.GRENADIER, 'damageIncrease'),
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) &&
-        isExplosion(
-          context.event,
-          skillForEvent(context.profession?.catalog, context.event, context.event?.sourceId ?? context.skillId)
-        )
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && isExplosion(context.event)
     }
   ],
   // Completed heals request the skill-owned barrage, which shares its recharge with direct casts. The barrage follows
@@ -67,7 +61,6 @@ export const grenadier = defineTrait({
 
 /** Arms the next player strike after a dodge; the triggered skill owns its damage and recharge. */
 export const explosiveEntrance = defineTrait({
-  name: 'Explosive Entrance',
   id: TRAIT.EXPLOSIVE_ENTRANCE,
   triggers: [
     {
@@ -82,7 +75,6 @@ export const explosiveEntrance = defineTrait({
 
 /** Owns Steel-Packed Powder tuning and behavior at its established runtime and build boundaries. */
 export const steelPackedPowder = defineTrait({
-  name: 'Steel-Packed Powder',
   id: TRAIT.STEEL_PACKED_POWDER,
   balance: {
     effects: [
@@ -94,7 +86,6 @@ export const steelPackedPowder = defineTrait({
 
 /** Owns Short Fuse tuning and behavior at its established runtime and build boundaries. */
 export const shortFuse = defineTrait({
-  name: 'Short Fuse',
   id: TRAIT.SHORT_FUSE,
   balance: {
     internalCooldown: 3,
@@ -105,7 +96,6 @@ export const shortFuse = defineTrait({
 
 /** Owns Explosive Temper tuning and behavior at its established runtime and build boundaries. */
 export const explosiveTemper = defineTrait({
-  name: 'Explosive Temper',
   id: TRAIT.EXPLOSIVE_TEMPER,
   balance: {
     maximumStacks: 10,
@@ -135,7 +125,6 @@ export const explosiveTemper = defineTrait({
 
 /** Owns Shrapnel tuning and behavior at its established runtime and build boundaries. */
 export const shrapnel = defineTrait({
-  name: 'Shrapnel',
   id: TRAIT.SHRAPNEL,
   balance: {
     procRate: {
@@ -155,7 +144,6 @@ export const shrapnel = defineTrait({
 
 /** Owns Aim-Assisted Rocket tuning and behavior at its established runtime and build boundaries. */
 export const aimAssistedRocket = defineTrait({
-  name: 'Aim-Assisted Rocket',
   id: TRAIT.AIM_ASSISTED_ROCKET,
   balance: {
     internalCooldown: 3,
@@ -166,12 +154,12 @@ export const aimAssistedRocket = defineTrait({
   triggers: [
     {
       on: 'damage.resolved',
-      when: (runtime, event) => Number(event.coefficient) > 0 && isAimAssistedProjectile(runtime, event),
+      when: (_runtime, event) => Number(event.coefficient) > 0 && isAimAssistedProjectile(event),
       cooldown: 'profile',
       run: fireAimAssistedRocket
     },
     onTriggerPoint(airBlastImpacted, {
-      when: (runtime, { cause }: AirBlastImpact) => isAimAssistedProjectile(runtime, cause),
+      when: (_runtime, { cause }: AirBlastImpact) => isAimAssistedProjectile(cause),
       cooldown: 'profile',
       run: (runtime, { cause }: AirBlastImpact) => fireAimAssistedRocket(runtime, cause)
     })
@@ -180,7 +168,6 @@ export const aimAssistedRocket = defineTrait({
 
 /** Owns Grand Entrance tuning and behavior at its established runtime and build boundaries. */
 export const grandEntrance = defineTrait({
-  name: 'Grand Entrance',
   id: TRAIT.GRAND_ENTRANCE,
   balance: {
     criticalChance: 0.1,
@@ -206,7 +193,6 @@ export const grandEntrance = defineTrait({
 
 /** Owns Blast Shield tuning and behavior at its established runtime and build boundaries. */
 export const blastShield = defineTrait({
-  name: 'Blast Shield',
   id: TRAIT.BLAST_SHIELD,
   balance: { attributeConversion: 0.1 },
   attributes: traitAttributeEffects(TRAIT.BLAST_SHIELD, [
@@ -223,7 +209,6 @@ export const blastShield = defineTrait({
 
 /** Owns Glass Cannon tuning and behavior at its established runtime and build boundaries. */
 export const glassCannon = defineTrait({
-  name: 'Glass Cannon',
   id: TRAIT.GLASS_CANNON,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageMultiplier: 1.07, threshold: 0.75 },
@@ -243,7 +228,6 @@ export const glassCannon = defineTrait({
 
 /** Owns Big Boomer tuning and behavior at its established runtime and build boundaries. */
 export const bigBoomer = defineTrait({
-  name: 'Big Boomer',
   id: TRAIT.BIG_BOOMER,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageMultiplier: 1.15 },
@@ -262,7 +246,6 @@ export const bigBoomer = defineTrait({
 
 /** Owns Shaped Charge tuning and behavior at its established runtime and build boundaries. */
 export const shapedCharge = defineTrait({
-  name: 'Shaped Charge',
   id: TRAIT.SHAPED_CHARGE,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { maximumStacks: 25, damageIncreasePerStack: 0.005 },
@@ -289,8 +272,7 @@ export const shapedCharge = defineTrait({
 /** Applies Steel-Packed Powder to a hit already classified as an explosion. */
 function applySteelPackedPowder(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   // Only positive strike packets create explosion proc opportunities.
-  const explosion =
-    Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
+  const explosion = Number(event.coefficient) > 0 && isExplosion(event);
 
   if (!explosion) return;
 
@@ -319,8 +301,7 @@ function applySteelPackedPowder(context: EngineerResolverContext, event: Enginee
 /** Grants Short Fuse fury from an explosion when its internal cooldown is ready. */
 function applyShortFuse(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   // Only positive strike packets create explosion proc opportunities.
-  const explosion =
-    Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
+  const explosion = Number(event.coefficient) > 0 && isExplosion(event);
 
   // Eligible explosions consume the interval even when the Fury packet is removed.
   if (!explosion || !context.procs.claim(TRAIT.SHORT_FUSE, 'shortFuse', event.at)) return;
@@ -356,8 +337,7 @@ function applyShortFuse(context: EngineerResolverContext, event: EngineerResolve
 /** Adds an Explosive Temper stack for each explosion hit. */
 function applyExplosiveTemper(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   // Only positive strike packets create explosion proc opportunities.
-  const explosion =
-    Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
+  const explosion = Number(event.coefficient) > 0 && isExplosion(event);
 
   if (!explosion) return;
 
@@ -419,8 +399,7 @@ function applyGrandEntrance(context: EngineerResolverContext, event: EngineerRes
 /** Rolls Shrapnel against the simulation seed in both modes for each eligible explosion. */
 function applyShrapnel(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   // Only positive strike packets create explosion proc opportunities.
-  const explosion =
-    Number(event.coefficient) > 0 && isExplosion(event, resolverSkill(context, event.skillId ?? event.sourceId));
+  const explosion = Number(event.coefficient) > 0 && isExplosion(event);
 
   // Generated rocket explosions also roll Shrapnel; effect ownership must not discard their opportunity.
   if (!explosion) return;
@@ -515,16 +494,8 @@ function fireExplosiveEntrance(context: EngineerRuntime, event: EngineerResolver
 }
 
 // Only player packets with authored projectile identity can trigger Aim-Assisted Rocket.
-function isAimAssistedProjectile(
-  context: Pick<EngineerResolverContext, 'helpers'>,
-  event: EngineerResolverEvent
-): boolean {
-  if (event.actorType !== ACTOR.PLAYER) return false;
-
-  if (event.projectile === true) return true;
-
-  const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
-  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'projectile'));
+function isAimAssistedProjectile(event: EngineerResolverEvent): boolean {
+  return event.actorType === ACTOR.PLAYER && event.projectile === true;
 }
 
 /** Every fifth accepted rocket becomes an Orbital Command Strike; the counter advances only on accepted procs. */

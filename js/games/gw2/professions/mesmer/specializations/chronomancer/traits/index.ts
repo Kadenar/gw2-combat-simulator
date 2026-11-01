@@ -29,7 +29,6 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Danger Time retains its active profile, selection, and original execution boundary. */
 const dangerTime = defineTrait<MesmerSkill>({
-  name: 'Danger Time',
   id: TRAIT.DANGER_TIME,
   balance: {
     criticalDamage: 0.05,
@@ -50,11 +49,10 @@ const dangerTime = defineTrait<MesmerSkill>({
 });
 
 /** Delayed Reactions retains its active profile, selection, and original execution boundary. */
-const delayedReactions = defineTrait<MesmerSkill>({ name: 'Delayed Reactions', id: TRAIT.DELAYED_REACTIONS });
+const delayedReactions = defineTrait<MesmerSkill>({ id: TRAIT.DELAYED_REACTIONS });
 
 /** Flow of Time retains its active profile, selection, and original execution boundary. */
 const flowOfTime = defineTrait<MesmerSkill>({
-  name: 'Flow of Time',
   id: TRAIT.FLOW_OF_TIME,
   balance: {
     criticalChance: 0.15
@@ -70,7 +68,6 @@ const flowOfTime = defineTrait<MesmerSkill>({
 
 /** Chronophantasma retains its active profile, selection, and original execution boundary. */
 const chronophantasma = defineTrait<MesmerSkill>({
-  name: 'Chronophantasma',
   id: TRAIT.CHRONOPHANTASMA,
   balance: {
     damageMultiplier: 1.05
@@ -92,7 +89,6 @@ const chronophantasma = defineTrait<MesmerSkill>({
 
 /** Time Catches Up retains its active profile, selection, and original execution boundary. */
 const timeCatchesUp = defineTrait<MesmerSkill>({
-  name: 'Time Catches Up',
   id: TRAIT.TIME_CATCHES_UP,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
@@ -115,7 +111,6 @@ const timeCatchesUp = defineTrait<MesmerSkill>({
 
 /** Illusionary Reversion retains its active profile, selection, and original execution boundary. */
 const illusionaryReversion = defineTrait<MesmerSkill>({
-  name: 'Illusionary Reversion',
   id: TRAIT.ILLUSIONARY_REVERSION,
   balance: {
     threshold: 3,
@@ -131,7 +126,6 @@ const illusionaryReversion = defineTrait<MesmerSkill>({
 
 /** Stretched Time retains its active profile, selection, and original execution boundary. */
 const stretchedTime = defineTrait<MesmerSkill>({
-  name: 'Stretched Time',
   id: TRAIT.STRETCHED_TIME,
   balance: {
     durationPerTier: 1,
@@ -156,7 +150,6 @@ const stretchedTime = defineTrait<MesmerSkill>({
 
 /** Seize the Moment retains its active profile, selection, and original execution boundary. */
 const seizeTheMoment = defineTrait<MesmerSkill>({
-  name: 'Seize the Moment',
   id: TRAIT.SEIZE_THE_MOMENT,
   balance: {
     durationPerTier: 1,
@@ -181,7 +174,6 @@ const seizeTheMoment = defineTrait<MesmerSkill>({
 
 /** Time Bomb retains its active profile, selection, and original execution boundary. */
 const timeBomb = defineTrait<MesmerSkill>({
-  name: 'Time Bomb',
   id: TRAIT.TIME_BOMB,
   balance: {
     damageMultiplier: 1.1,

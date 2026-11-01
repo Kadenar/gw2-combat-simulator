@@ -44,7 +44,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
  * removal on reshuffles and artifact use is outside the damage model and is intentionally not simulated.
  */
 const cardSwap = defineTrait({
-  name: 'Card Swap',
   id: TRAIT.CARD_SWAP,
   hooks: {
     availability: (runtime, skill) =>
@@ -56,7 +55,6 @@ const cardSwap = defineTrait({
 
 /** Owns Combat High tuning and behavior at the existing execution boundaries. */
 const combatHigh = defineTrait({
-  name: 'Combat High',
   id: TRAIT.COMBAT_HIGH,
   balance: {
     damageIncreasePerStack: 0.03,
@@ -103,7 +101,6 @@ const combatHigh = defineTrait({
 
 /** Owns Enterprising Aristocrat tuning and behavior at the existing execution boundaries. */
 const enterprisingAristocrat = defineTrait({
-  name: 'Enterprising Aristocrat',
   id: TRAIT.ENTERPRISING_ARISTOCRAT,
   balance: { resourceGain: 2 },
   triggers: [onTriggerPoint(artifactActivated, { run: applyEnterprisingAristocrat })]
@@ -111,7 +108,6 @@ const enterprisingAristocrat = defineTrait({
 
 /** Owns Exhilarating Ephemera tuning and behavior at the existing execution boundaries. */
 const exhilaratingEphemera = defineTrait({
-  name: 'Exhilarating Ephemera',
   id: TRAIT.EXHILARATING_EPHEMERA,
   balance: {
     damageIncrease: 0.1,
@@ -136,7 +132,6 @@ const exhilaratingEphemera = defineTrait({
 
 /** Owns Meticulous Custodian tuning and behavior at the existing execution boundaries. */
 const meticulousCustodian = defineTrait({
-  name: 'Meticulous Custodian',
   id: TRAIT.METICULOUS_CUSTODIAN,
   balance: {
     duration: 12,
@@ -224,7 +219,6 @@ const meticulousCustodian = defineTrait({
 
 /** Owns Possessive Hoarder tuning and behavior at the existing execution boundaries. */
 const possessiveHoarder = defineTrait({
-  name: 'Possessive Hoarder',
   id: TRAIT.POSSESSIVE_HOARDER,
   balance: {
     effects: [
@@ -238,7 +232,6 @@ const possessiveHoarder = defineTrait({
 
 /** Owns Prodigious Pincher tuning and behavior at the existing execution boundaries. */
 const prodigiousPincher = defineTrait({
-  name: 'Prodigious Pincher',
   id: TRAIT.PRODIGIOUS_PINCHER,
   balance: {
     threshold: 15
@@ -247,14 +240,12 @@ const prodigiousPincher = defineTrait({
 
 /** Owns Prolific Plunderer tuning and behavior at the existing execution boundaries. */
 const prolificPlunderer = defineTrait({
-  name: 'Prolific Plunderer',
   id: TRAIT.PROLIFIC_PLUNDERER,
   balance: { resourceGain: 1 }
 });
 
 /** Owns Repeat Ransacker tuning and behavior at the existing execution boundaries. */
 const repeatRansacker = defineTrait({
-  name: 'Repeat Ransacker',
   id: TRAIT.REPEAT_RANSACKER,
   balance: {
     rechargeReduction: 2
@@ -264,7 +255,6 @@ const repeatRansacker = defineTrait({
 
 /** Owns Scoundrel's Luck tuning and behavior at the existing execution boundaries. */
 const scoundrelsLuck = defineTrait({
-  name: "Scoundrel's Luck",
   id: TRAIT.SCOUNDRELS_LUCK,
   balance: {
     maximumStacks: 1,
@@ -281,7 +271,6 @@ const scoundrelsLuck = defineTrait({
 /** Native trait owners, in stable authoring order. */
 // Intrinsic specialization policy is available without explicit minor selection.
 const trinketCollector = defineTrait({
-  name: 'Trinket Collector',
   id: TRAIT.TRINKET_COLLECTOR,
   balance: { maximumStacks: 1 }
 });

@@ -72,16 +72,19 @@ test('target-health visibility follows selected damage traits without leaking da
       const choices = [0, 0, 0];
 
       // Derive the saved choice from the active layout, including patch moves.
-      const line = app.activeCatalog.specializations.find((line) => line.name === trait.specialization);
+      const line = app.activeCatalog.specializations.find((line) =>
+        [...line.minorTraits, ...line.majorTraits.flat()].some((entry) => entry.id === trait.id)
+      );
 
-      if (trait.slot === 'Major')
-        choices[trait.tier - 1] = line.majorTraits[trait.tier - 1].findIndex((entry) => entry.id === trait.id) + 1;
+      const tier = line.majorTraits.findIndex((choices) => choices.some((entry) => entry.id === trait.id));
+
+      if (tier >= 0) choices[tier] = line.majorTraits[tier].findIndex((entry) => entry.id === trait.id) + 1;
 
       app.build.specializations = [
         {
-          name: trait.specialization,
+          name: line.name,
           traits: choices.join('-'),
-          disabledMinorTraits: [0, 1, 2].filter((tier) => trait.slot !== 'Minor' || tier !== trait.tier - 1)
+          disabledMinorTraits: [0, 1, 2].filter((tier) => line.minorTraits[tier]?.id !== trait.id)
         }
       ];
       refreshAttributes(app);

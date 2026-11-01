@@ -1,14 +1,23 @@
-/** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+/** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.NECROTIC_SLASH]: {
+    name: 'Necrotic Slash',
+    description: 'Chain. Slash your foe twice.',
+    icon: 'https://render.guildwars2.com/file/05EE0A5CE7B645C83F3008FCD8C9AD2002C744D1/103095.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     // The slash lands before its aftercast; committed interruptions keep its strike packet.
     interruptCommitMs: 200,
@@ -23,6 +32,15 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.NECROTIC_STAB]: {
+    name: 'Necrotic Stab',
+    description: 'Chain. Strike your foe again.',
+    icon: 'https://render.guildwars2.com/file/05EE0A5CE7B645C83F3008FCD8C9AD2002C744D1/103095.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 400,
     effects: [
       {
@@ -44,6 +62,15 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.NECROTIC_BITE]: {
+    name: 'Necrotic Bite',
+    description: 'Strike your foe and gain life force.',
+    icon: 'https://render.guildwars2.com/file/0BED96F7290CECDDDA5DD1CB5B4FC07BAD5115F6/103852.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 640,
     effects: [
       {
@@ -64,6 +91,13 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.LIFE_SIPHON]: {
+    name: 'Life Siphon',
+    description: 'Bleed yourself, then siphon health from your foe. Damage increases if your foe is bleeding.',
+    icon: 'https://render.guildwars2.com/file/DC2F5B32DF6D77CF2B7C3B9AAF30381FE11A97FE/103037.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_2',
+    cooldown: 8,
     castTimeMs: 560,
     // First-hit templates never emit at cast acceptance; the landed reaction selects them.
     effectVariants: [
@@ -101,6 +135,13 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.DARK_PACT]: {
+    name: 'Dark Pact',
+    description: 'Bleed yourself. Immobilize your foe and remove their boons. Gain life force for each boon removed.',
+    icon: 'https://render.guildwars2.com/file/A99518F9D00A760DE474B803522824415141493B/103800.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_3',
+    cooldown: 12,
     castTimeMs: 680,
     // Share this impact's timing while preserving independent payloads and declaration order.
     // First-hit templates never emit at cast acceptance; the landed reaction selects them.
@@ -148,6 +189,13 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.DEATHLY_SWARM]: {
+    name: 'Deathly Swarm',
+    description: 'Unleash an insect swarm to blind and transfer conditions to your enemies.',
+    icon: 'https://render.guildwars2.com/file/37CB51AAB9B396156995DA692F019C266A919C33/103279.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_4',
+    cooldown: 16,
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.
     conditionsTransferred: 2,
     castTimeMs: 480,
@@ -176,6 +224,13 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.ENFEEBLING_BLOOD]: {
+    name: 'Enfeebling Blood',
+    description: 'Inflict weakness and bleeding on foes in the target area.',
+    icon: 'https://render.guildwars2.com/file/3566470D2DCB5A01CE4E1D2EF09503B07108B9BD/103010.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_5',
+    cooldown: 20,
     castTimeMs: 840,
     // The ground packet commits before its delayed impact; cancelling retains the full cast lockout.
     interruptCommitMs: 520,

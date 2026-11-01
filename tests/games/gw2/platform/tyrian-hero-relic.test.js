@@ -18,16 +18,16 @@ const profession = defineTestProfession({
   id: 'tyrian-hero-fixture',
   name: 'Tyrian Hero Fixture',
   catalog: createCanonicalCatalog({
-    generated: [
+    skills: [
       ...['Shout', 'Command', 'Cantrip'].map((category, index) => ({
         id: 941000 + index,
         name: category,
-        categories: [category],
+        skillFamily: category,
         type: 'Utility',
         castTimeMs: 500,
         effects: []
       })),
-      { id: 941003, name: 'Instant Shout', categories: ['Shout'], type: 'Utility', castTimeMs: 0, effects: [] },
+      { id: 941003, name: 'Instant Shout', skillFamily: 'Shout', type: 'Utility', castTimeMs: 0, effects: [] },
       {
         id: 941004,
         name: 'Strike',

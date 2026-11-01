@@ -19,7 +19,6 @@ import {
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
 import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mechanics/availability.js';
-import { ENGINEER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/engineer/data/engineer-supplemental-skills.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
@@ -60,10 +59,7 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
   // Removed mech controls must stay absent from both simulation and authoring catalogs.
   for (const id of [63050, 63089, 63210, 63300]) {
     assert.equal(engineerCatalog.skillsById.has(id), false);
-    assert.equal(
-      ENGINEER_SUPPLEMENTAL_SKILLS.some((skill) => skill.id === id),
-      false
-    );
+
     assert.equal(
       authoringEngineerProfession.patchAuthoring.modules.some((module) =>
         module.skills.some((skill) => skill.id === id)
@@ -77,6 +73,12 @@ test('Mechanist keeps its mech present and exposes only trait-selected commands'
       engineerCatalog.skills.some((candidate) => candidate.name === name),
       false
     );
+
+  // Overclock triggers an autonomous mech attack; neither skill replaces the other on the player's bar.
+  const signet = engineerCatalog.skillsById.get(ID.OVERCLOCK_SIGNET);
+  const cannon = engineerCatalog.skillsById.get(ID.JADE_BUSTER_CANNON);
+  assert.equal(signet.flipSkillId, null);
+  assert.equal(cannon.flipParentId, null);
 
   const result = simulate('Mechanist', ['Overclock Signet', { type: 'wait', durationMs: 6000 }], {
     selectedSkillIds: [...baseConfig.selectedSkillIds.slice(0, 4), 63095]
@@ -153,7 +155,7 @@ test('Overclock Signet runtime inputs stay outside balance authoring', () => {
   }
 });
 
-test('Engineer flip declarations expose and consume windows independently of API metadata', () => {
+test('Engineer flip declarations expose and consume windows from their explicit declarations', () => {
   runEngineer(
     [],
     {},

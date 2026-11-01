@@ -29,10 +29,12 @@ import { necromancerProfession } from '#gw2/professions/necromancer/profession.j
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 
-test('shared build eligibility allows elite weapons while restricting slot skills and actions', () => {
-  // Synthetic actions follow their skill type, so negative IDs need no separate rule.
+test('shared build eligibility follows module labels for weapons, slot skills, and actions', () => {
+  // Core weapons have no label; elite-owned variants use the same gate as other skills.
   const context = { specialization: 'Mirage' };
-  assert.equal(isBuildSkillAvailable({ type: 'Weapon', specialization: 'Virtuoso' }, context), true);
+  assert.equal(isBuildSkillAvailable({ type: 'Weapon' }, context), true);
+  assert.equal(isBuildSkillAvailable({ type: 'Weapon', specialization: 'Mirage' }, context), true);
+  assert.equal(isBuildSkillAvailable({ type: 'Weapon', specialization: 'Virtuoso' }, context), false);
   assert.equal(isBuildSkillAvailable({ type: 'Utility', specialization: 'Chronomancer' }, context), false);
   assert.equal(isBuildSkillAvailable({ type: 'Utility', specialization: 'Mirage' }, context), true);
   assert.equal(isBuildSkillAvailable({ id: -4, type: 'Action', specialization: 'Chronomancer' }, context), false);

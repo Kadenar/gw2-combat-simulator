@@ -17,7 +17,7 @@ const slotProfession = defineTestProfession({
   id: 'slot-relic-fixture',
   name: 'Slot Relic Fixture',
   catalog: createCanonicalCatalog({
-    generated: [
+    skills: [
       ...['Heal', 'Elite', 'Utility'].flatMap((type, index) => [
         { id: 940000 + index * 2, name: type, type, castTimeMs: 500, effects: [] },
         { id: 940001 + index * 2, name: 'Instant ' + type, type, castTimeMs: 0, effects: [] }
@@ -31,7 +31,7 @@ const slotProfession = defineTestProfession({
         effects: [{ type: 'strike', coefficient: 1 }]
       },
       { id: 940011, name: 'Control', type: 'Utility', castTimeMs: 0, effects: [{ type: 'control' }] },
-      { id: 940012, name: 'Cantrip', type: 'Utility', categories: ['Cantrip'], castTimeMs: 500, effects: [] }
+      { id: 940012, name: 'Cantrip', type: 'Utility', skillFamily: 'Cantrip', castTimeMs: 500, effects: [] }
     ]
   })
 });
@@ -108,7 +108,7 @@ test('Brawler precasts carry their remaining buff into combat without reactivati
     id: 'brawler-precast-fixture',
     name: 'Brawler Precast Fixture',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         ...['Protection', 'Resolution'].map((boon, index) => ({
           id: 930100 + index,
           name: `Grant ${boon}`,

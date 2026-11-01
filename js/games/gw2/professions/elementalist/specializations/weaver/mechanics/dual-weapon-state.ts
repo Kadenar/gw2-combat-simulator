@@ -1,6 +1,6 @@
 /**
  * Owns shared Weaver hand availability and hammer orb restrictions.
- * The cataloged weapon fragments live in
+ * The cataloged weapon definitions live in
  * `skills/weapons/hammer.ts`.
  */
 import { WEAPON } from '#gw2/platform/constants.js';

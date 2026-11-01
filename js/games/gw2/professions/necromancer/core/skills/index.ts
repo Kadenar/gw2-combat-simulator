@@ -1,11 +1,12 @@
+import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Core skill mechanics owned by the Core Necromancer module.
  *
- * The root catalog composes this inert fragment with the other active module
- * fragments. Weapon skills remain Core-owned because Weaponmaster Training
+ * The root catalog composes this inert definition with the other active module
+ * definitions. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/professions/necromancer/core/skills/actions.js';
 import { NECROMANCER_MINION_ATTACK_SKILLS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 import { NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/necromancer/core/skills/profession-skills.js';
@@ -38,21 +39,21 @@ export const NECROMANCER_LICH_SKILL_IDS: readonly SkillId[] = Object.freeze([
   ID.EXIT_LICH_FORM
 ]);
 
-export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  ...NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS,
-  ...NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS,
-  ...NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS
-});
+export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+  NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS,
+  NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS,
+  NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS
+);
 
 // Keep triggered axe identities in the catalog without exposing them as player inputs.
 export const NECROMANCER_CORE_EXTRA_SKILLS = Object.freeze([

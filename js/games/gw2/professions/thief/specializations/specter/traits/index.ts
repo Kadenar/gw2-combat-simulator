@@ -26,14 +26,12 @@ const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D502
 
 /** Owns Amplified Siphoning tuning and behavior at the existing execution boundaries. */
 const amplifiedSiphoning = defineTrait({
-  name: 'Amplified Siphoning',
   id: TRAIT.AMPLIFIED_SIPHONING,
   balance: { resourceGain: 10 }
 });
 
 /** Owns Dark Sentry tuning and behavior at the existing execution boundaries. */
 const darkSentry = defineTrait({
-  name: 'Dark Sentry',
   id: TRAIT.DARK_SENTRY,
   balance: {
     internalCooldown: 1,
@@ -71,7 +69,6 @@ const darkSentry = defineTrait({
 
 /** Owns Larcenous Torment tuning and behavior at the existing execution boundaries. */
 const larcenousTorment = defineTrait({
-  name: 'Larcenous Torment',
   id: TRAIT.LARCENOUS_TORMENT,
   balance: {
     resourceGain: 0.5,
@@ -92,7 +89,6 @@ const larcenousTorment = defineTrait({
 
 /** Owns Second Opinion tuning and behavior at the existing execution boundaries. */
 const secondOpinion = defineTrait({
-  name: 'Second Opinion',
   id: TRAIT.SECOND_OPINION,
   balance: {
     attributeBonuses: { conditionDamage: 90 },
@@ -129,7 +125,6 @@ const secondOpinion = defineTrait({
 
 /** Assume a tethered ally is present among nearby allies; share each committed shroud reward with the party. */
 const shadestep = defineTrait({
-  name: 'Shadestep',
   id: TRAIT.SHADESTEP,
   balance: {
     effects: [
@@ -180,7 +175,6 @@ const shadestep = defineTrait({
 
 /** Owns Strength of Shadows tuning and behavior at the existing execution boundaries. */
 const strengthOfShadows = defineTrait({
-  name: 'Strength of Shadows',
   id: TRAIT.STRENGTH_OF_SHADOWS,
   balance: {
     conditionDamageIncrease: 0.2,
@@ -216,7 +210,6 @@ const strengthOfShadows = defineTrait({
 /** Native trait owners, in stable authoring order. */
 // Intrinsic specialization policy is available without explicit minor selection.
 const specter = defineTrait({
-  name: 'Specter',
   id: TRAIT.SPECTER,
   balance: { maximumStacks: 100, resourceGain: 1, lifeForceDrain: 0.02 }
 });

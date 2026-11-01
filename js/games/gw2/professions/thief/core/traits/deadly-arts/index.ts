@@ -45,7 +45,6 @@ import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/
 
 /** Owns Dagger Training tuning and behavior at the existing execution boundaries. */
 export const daggerTraining = defineTrait({
-  name: 'Dagger Training',
   id: TRAIT.DAGGER_TRAINING,
   balance: { attributeBonuses: { power: 80 }, conditionalAttributeBonuses: { power: 160 } },
   attributes({ loadout, weaponSet, balanceContext }) {
@@ -70,7 +69,6 @@ export const daggerTraining = defineTrait({
 
 /** Owns Deadly Ambition tuning and behavior at the existing execution boundaries. */
 export const deadlyAmbition = defineTrait({
-  name: 'Deadly Ambition',
   id: TRAIT.DEADLY_AMBITION,
   balance: {
     attributeBonuses: { conditionDamage: 180 },
@@ -94,7 +92,6 @@ export const deadlyAmbition = defineTrait({
 
 /** Owns Even the Odds tuning and behavior at the existing execution boundaries. */
 export const evenTheOdds = defineTrait({
-  name: 'Even the Odds',
   id: TRAIT.EVEN_THE_ODDS,
   balance: {
     effects: [
@@ -116,7 +113,6 @@ export const evenTheOdds = defineTrait({
 
 /** Owns this trait's modifier eligibility. */
 export const executioner = defineTrait({
-  name: 'Executioner',
   id: TRAIT.EXECUTIONER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.2, threshold: 0.5 },
@@ -136,7 +132,6 @@ export const executioner = defineTrait({
 
 /** Owns this trait's modifier eligibility. */
 export const exposedWeakness = defineTrait({
-  name: 'Exposed Weakness',
   id: TRAIT.EXPOSED_WEAKNESS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damagePerCondition: 0.02, maximumConditions: CANONICAL_TARGET_CONDITIONS.length },
@@ -162,7 +157,6 @@ export const exposedWeakness = defineTrait({
 
 /** Owns Improvisation tuning and behavior at the existing execution boundaries. */
 export const improvisation = defineTrait({
-  name: 'Improvisation',
   id: TRAIT.IMPROVISATION,
   balance: {
     maximumStacks: 2,
@@ -182,7 +176,6 @@ export const improvisation = defineTrait({
 
 /** Owns Lotus Poison tuning and behavior at the existing execution boundaries. */
 export const lotusPoison = defineTrait({
-  name: 'Lotus Poison',
   id: TRAIT.LOTUS_POISON,
   balance: {
     internalCooldown: 10,
@@ -203,7 +196,6 @@ export const lotusPoison = defineTrait({
 
 /** Owns Mug tuning and behavior at the existing execution boundaries. */
 export const mug = defineTrait({
-  name: 'Mug',
   id: TRAIT.MUG,
   balance: {
     effects: [{ type: 'strike', name: 'Mug', canCrit: false, coefficient: 1.5, hits: 1 }]
@@ -213,7 +205,6 @@ export const mug = defineTrait({
 
 /** Owns Panic Strike tuning and behavior at the existing execution boundaries. */
 export const panicStrike = defineTrait({
-  name: 'Panic Strike',
   id: TRAIT.PANIC_STRIKE,
   balance: {
     threshold: 3,
@@ -238,7 +229,6 @@ export const panicStrike = defineTrait({
 
 /** Owns Potent Poison tuning and behavior at the existing execution boundaries. */
 export const potentPoison = defineTrait({
-  name: 'Potent Poison',
   id: TRAIT.POTENT_POISON,
   balance: {
     conditionDamageMultiplier: 1.33,
@@ -265,7 +255,6 @@ export const potentPoison = defineTrait({
 
 /** Owns Revealed Training tuning and behavior at the existing execution boundaries. */
 export const revealedTraining = defineTrait({
-  name: 'Revealed Training',
   id: TRAIT.REVEALED_TRAINING,
   balance: {
     attributeBonuses: { power: 80 },
@@ -326,7 +315,6 @@ export const revealedTraining = defineTrait({
 
 /** Owns Serpent's Touch tuning and behavior at the existing execution boundaries. */
 export const serpentsTouch = defineTrait({
-  name: "Serpent's Touch",
   id: TRAIT.SERPENTS_TOUCH,
   balance: {
     playerStacks: 3,
@@ -400,11 +388,8 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
 
   if (!skill || event.sourceId !== skill.id) return;
 
-  const isDualWieldAttack =
-    skill.categories?.includes('DualWield') ||
-    Boolean(skill.requiredMainHand && typeof skill.requiredOffHand === 'string');
-
-  if (!isDualWieldAttack) return;
+  // The skill owns eligibility, including empty-offhand variants and newer weapon pairs.
+  if (!skill.dualWieldAttack) return;
 
   const state = professionCoreState(context);
 

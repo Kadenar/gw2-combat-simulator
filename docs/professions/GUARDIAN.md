@@ -18,11 +18,12 @@ Firebrand's `initial-state.ts` supplies default profiles without importing trait
 
 ## Data
 
-- Generated identity metadata lives in `data/`; consult its header for snapshot provenance. The API omits Firebrand tome
-  pages, Luminary Radiant Forge weapons, and Dragonhunter virtue variants; `data/guardian-bundle-skills.ts` supplies
-  their identity and presentation supplements.
-- Refresh: `npm run update:profession-data -- --profession Guardian` (generated API metadata only; the bundle supplement
-  is preserved). Simulation-affecting fields live in owner-local `skills/` fragments.
+- Maintained skill and trait constants live in `data/ids.ts`.
+- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
+  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
+  required.
+- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
+  complete declarations contributed by each module.
 
 ## Implemented systems
 

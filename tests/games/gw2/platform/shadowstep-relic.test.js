@@ -104,7 +104,7 @@ for (const { profession, config, cases } of groups) {
 
   test(`${profession.id} Peitha cases cover every currently eligible catalog skill`, () => {
     const eligible = profession.catalog.skills
-      .filter((skill) => skill.shadowstepSkill || skill.categories?.includes('Deception'))
+      .filter((skill) => skill.shadowstepSkill || skill?.skillFamily === 'Deception')
       .map((skill) => skill.id);
     assert.deepEqual(new Set(cases.map(([skillId]) => skillId)), new Set(eligible));
   });

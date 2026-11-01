@@ -1,19 +1,23 @@
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { gadgeteerMineVariant } from '#gw2/professions/engineer/core/traits/tools/toolbelt.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
-// Cleansing Burst isn't linked to Healing Turret by the GW2 API's own flip-chain data, so the heal
-// slot needs a shared UI-only tile to keep showing whichever of the three is currently armed.
-const HEALING_TURRET_PALETTE_TILE = 'engineer-healing-turret';
+// The declared Healing Turret family shares one palette tile while turret mechanics choose its active face.
 
-/** Defines Core heal, utility, elite, turret, and palette-follow-up skill fragments. */
-export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+/** Defines Core heal, utility, elite, turret, and palette-follow-up skill definitions. */
+export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.HEALING_TURRET]: {
+    name: 'Healing Turret',
+    description:
+      'Turret. Deploy a turret that heals you briefly, then regenerates you and your allies. Turrets automatically overcharge when they are first dropped, and they can be overcharged manually as long as they stay active.',
+    icon: 'https://render.guildwars2.com/file/7D5297C096055DE43153D90F965763F8F2D5FF25/103413.png',
+    type: 'Heal',
+    slot: 'Heal',
+
     // Custom: Arms Detonate Healing Turret, fires the automatic Cleansing Burst pulse, and starts the
     // 10s overcharge window; see `core/mechanics/turrets.ts`.
 
-    paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 1,
     cooldown: 20,
     castTimeMs: 520,
@@ -35,6 +39,13 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.SUPPLY_CRATE]: {
+    name: 'Supply Crate',
+    description:
+      'Turret. Request a supply drop of turrets. Turrets automatically overcharge when they are first dropped, and they can be overcharged manually as long as they stay active.',
+    icon: 'https://render.guildwars2.com/file/1B0C0900BD7F04324E1695BCF97D5AF8AD0609B7/103419.png',
+    type: 'Elite',
+    slot: 'Elite',
+
     cooldown: 75,
     castTimeMs: 680,
     effects: [
@@ -53,10 +64,14 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.DETONATE_HEALING_TURRET]: {
+    name: 'Detonate Healing Turret',
+    description: 'Detonate your healing turret.',
+    icon: 'https://render.guildwars2.com/file/09EB220BF078A6F961E0B0D4F9969669F276DF50/103447.png',
+    type: 'Heal',
+    slot: 'Heal',
     // Availability requires the parent skill's exposed window.
 
     requiresArmedFlip: true,
-    paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 2,
     cooldown: 0,
     castTimeMs: 0,
@@ -85,10 +100,15 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.CLEANSING_BURST]: {
+    name: 'Cleansing Burst',
+    description: 'Overcharge your healing turret to cure conditions and grant a burst of healing.',
+    icon: 'https://render.guildwars2.com/file/D7F356D2A7C6B42FF295CDA6765B0B45F508541A/103463.png',
+    type: 'Heal',
+    slot: 'Heal',
+    patchAuthoringExcluded: true,
     // Availability requires the parent skill's exposed window.
 
     requiresArmedFlip: true,
-    paletteTileId: HEALING_TURRET_PALETTE_TILE,
     paletteTileOrder: 3,
     cooldown: 0,
     castTimeMs: 0,
@@ -118,6 +138,13 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.THROW_MINE]: {
+    name: 'Throw Mine',
+    description:
+      'Gadget. Throw out a remote-controlled land mine that damages, knocks back, and removes a boon from nearby foes.',
+    icon: 'https://render.guildwars2.com/file/0F0F28210568DB66F8539D684314FC55D8C1022C/103177.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Gadget',
     cooldown: 12,
     rechargeAnchor: 'castStart',
     castTimeMs: 360,
@@ -125,6 +152,11 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.DETONATE, durationSec: null } }]
   },
   [ID.DETONATE]: {
+    name: 'Detonate',
+    description: 'Detonate your mine to damage foes and remove a boon from them.',
+    icon: 'https://render.guildwars2.com/file/D97BF56EBB6D074BFEFC11E103D6D1F2360C6A17/102902.png',
+    type: 'Utility',
+    slot: 'Utility',
     // Availability requires the parent skill's exposed window.
 
     requiresArmedFlip: true,
@@ -157,11 +189,24 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DETONATE } }]
   },
   [ID.A_E_D]: {
+    name: 'A.E.D.',
+    description:
+      'Gadget. Activate your A.E.D., enabling the system to heal you after a brief period of time. If you take lethal damage while A.E.D. is active, it ends and heals you for a large amount and removes conditions.',
+    icon: 'https://render.guildwars2.com/file/37E6184468482B012ACE173098B0784456CA31C5/699525.png',
+    type: 'Heal',
+    slot: 'Heal',
+    skillFamily: 'Gadget',
     cooldown: 24,
     castTimeMs: 520,
     effects: []
   },
   [ID.DETONATE_SUPPLY_CRATE_TURRETS]: {
+    name: 'Detonate Supply Crate Turrets',
+    description: 'Detonate your supply crate turrets.',
+    icon: 'https://render.guildwars2.com/file/09EB220BF078A6F961E0B0D4F9969669F276DF50/103447.png',
+    type: 'Elite',
+    slot: 'Elite',
+    patchAuthoringExcluded: true,
     cooldown: 25,
     castTimeMs: 0,
     effects: [
@@ -175,6 +220,12 @@ export const ENGINEER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.OVERCHARGE_SUPPLY_CRATE]: {
+    name: 'Overcharge Supply Crate',
+    description: "Overcharge supply crate's turrets.",
+    icon: 'https://render.guildwars2.com/file/6164B9025A1EC560F490AB654BDCE252E83369F2/1012857.png',
+    type: 'Elite',
+    slot: 'Elite',
+    patchAuthoringExcluded: true,
     cooldown: 1,
     castTimeMs: 0,
     effects: []

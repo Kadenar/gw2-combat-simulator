@@ -1,6 +1,6 @@
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
@@ -20,6 +20,7 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { DEADEYE_STOLEN_SKILL_ID_SET, isThiefStolenSkill } from '#gw2/professions/thief/data/stolen-skills.js';
 import {
   deadeyeCastCompleted,
   maliceGained,
@@ -29,14 +30,12 @@ import {
   type DeadeyeMalice
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
-import { STOLEN_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import { activeBoonCount, stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import { stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Owns Be Quick or Be Killed tuning and behavior at the existing execution boundaries. */
 const beQuickOrBeKilled = defineTrait({
-  name: 'Be Quick or Be Killed',
   id: TRAIT.BE_QUICK_OR_BE_KILLED,
   balance: {
     attributeBonuses: { power: 200, precision: 200 },
@@ -70,7 +69,6 @@ const beQuickOrBeKilled = defineTrait({
 
 /** Owns Fire for Effect tuning and behavior at the existing execution boundaries. */
 const fireForEffect = defineTrait({
-  name: 'Fire for Effect',
   id: TRAIT.FIRE_FOR_EFFECT,
   balance: {
     effects: [
@@ -83,7 +81,6 @@ const fireForEffect = defineTrait({
 
 /** Owns this trait's modifier eligibility. */
 const ironSight = defineTrait({
-  name: 'Iron Sight',
   id: TRAIT.IRON_SIGHT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
@@ -101,7 +98,6 @@ const ironSight = defineTrait({
 
 /** Owns Maleficent Seven tuning and behavior at the existing execution boundaries. */
 const maleficentSeven = defineTrait({
-  name: 'Maleficent Seven',
   id: TRAIT.MALEFICENT_SEVEN,
   balance: {
     maximumStacks: 7,
@@ -120,7 +116,6 @@ const maleficentSeven = defineTrait({
 
 /** Owns Malicious Intent tuning and behavior at the existing execution boundaries. */
 const maliciousIntent = defineTrait({
-  name: 'Malicious Intent',
   id: TRAIT.MALICIOUS_INTENT,
   balance: {
     resourceGain: 2
@@ -130,7 +125,6 @@ const maliciousIntent = defineTrait({
 
 /** Owns this trait's modifier eligibility. */
 const oneInTheChamber = defineTrait({
-  name: 'One in the Chamber',
   id: TRAIT.ONE_IN_THE_CHAMBER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.25 },
@@ -143,16 +137,12 @@ const oneInTheChamber = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.ONE_IN_THE_CHAMBER, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        Boolean(
-          skillForEvent(context.profession?.catalog, context.event, context.skillId)?.categories?.includes(
-            'stolen skill'
-          )
-        )
+        isThiefStolenSkill(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id)
     }
   ],
   triggers: [
     onTriggerPoint(deadeyeCastCompleted, {
-      when: (_runtime, { cast }: DeadeyeCast) => Boolean(cast.skill.categories?.includes('Cantrip')),
+      when: (_runtime, { cast }: DeadeyeCast) => cast.skill.skillFamily === 'Cantrip',
       run: grantOneInTheChamber
     })
   ]
@@ -160,7 +150,6 @@ const oneInTheChamber = defineTrait({
 
 /** Owns Premeditation tuning and behavior at the existing execution boundaries. */
 const premeditation = defineTrait({
-  name: 'Premeditation',
   id: TRAIT.PREMEDITATION,
   balance: {
     damagePerBoon: 0.01,
@@ -189,7 +178,7 @@ const premeditation = defineTrait({
 
       factor: (context) =>
         1 +
-        Math.min(balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'maximumBoons'), activeBoonCount(context)) *
+        Math.min(balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'maximumBoons'), countActiveBoons(context)) *
           balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
@@ -198,7 +187,6 @@ const premeditation = defineTrait({
 
 /** Owns Silent Scope tuning and behavior at the existing execution boundaries. */
 const silentScope = defineTrait({
-  name: 'Silent Scope',
   id: TRAIT.SILENT_SCOPE,
   balance: {
     threshold: 3,
@@ -223,7 +211,6 @@ const silentScope = defineTrait({
 /** Native trait owners, in stable authoring order. */
 // Intrinsic specialization policy is available without explicit minor selection.
 const deadeyesGaze = defineTrait({
-  name: "Deadeye's Gaze",
   id: TRAIT.DEADEYES_GAZE,
   balance: { maximumStacks: 5, resourceGain: 1, playerStacks: 1 }
 });
@@ -272,7 +259,8 @@ function traitBoons(
 function grantFireForEffect(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
   const skill = cast.skill;
 
-  if (STOLEN_SKILLS.has(skill.id)) traitBoons(runtime, cast, 'Fire for Effect', TRAIT.FIRE_FOR_EFFECT, true);
+  if (DEADEYE_STOLEN_SKILL_ID_SET.has(skill.id))
+    traitBoons(runtime, cast, 'Fire for Effect', TRAIT.FIRE_FOR_EFFECT, true);
 }
 
 function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): void {

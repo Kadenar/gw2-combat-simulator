@@ -1727,13 +1727,6 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
   },
   {
     profession: 'necromancer',
-    skillId: 10600,
-    signal: 6002,
-    kind: 'minion-command',
-    rule: 'NecromancerHelper.MinionCommandCastFinder(NecroticTraversal)'
-  },
-  {
-    profession: 'necromancer',
     skillId: 73116,
     signal: '239BF9EA9B747B44ACC63B86DC49B0D0',
     kind: 'effect',

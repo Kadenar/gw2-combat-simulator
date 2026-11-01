@@ -6,8 +6,9 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefEndurance } from '#gw2/professions/thief/core/mechanics/resources.js';
-import { storeThiefStolenSkillChoices, THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/core/mechanics/steal.js';
+import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/data/stolen-skills.js';
 import { daredevilBuffPolicies } from '#gw2/professions/thief/specializations/daredevil/effect-state.js';
 import { queueDodgePackets } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
 import {

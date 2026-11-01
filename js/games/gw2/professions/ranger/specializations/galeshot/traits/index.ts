@@ -62,7 +62,6 @@ function activePetIsFeathered(context: RangerModifierContext): boolean {
 
 /** Owns Shrike's live tuning and trait behavior. */
 const shrike = defineTrait({
-  name: 'Shrike',
   id: TRAIT.SHRIKE,
   balance: {
     threshold: 12,
@@ -86,7 +85,6 @@ const shrike = defineTrait({
 
 /** Owns Wuthering Wind's live tuning and trait behavior. */
 const wutheringWind = defineTrait({
-  name: 'Wuthering Wind',
   id: TRAIT.WUTHERING_WIND,
   balance: {
     effects: [{ name: 'Strike', type: 'strike', coefficient: 2, hits: 1 }]
@@ -104,7 +102,6 @@ const wutheringWind = defineTrait({
 
 /** Owns Thrill of the Catch's live tuning and trait behavior. */
 const thrillOfTheCatch = defineTrait({
-  name: 'Thrill of the Catch',
   id: TRAIT.THRILL_OF_THE_CATCH,
   balance: {
     internalCooldown: 0.25,
@@ -120,7 +117,6 @@ const thrillOfTheCatch = defineTrait({
 
 /** Owns Flock Together's live tuning and trait behavior. */
 const flockTogether = defineTrait({
-  name: 'Flock Together',
   id: TRAIT.FLOCK_TOGETHER,
   balance: {
     damageMultiplier: 1.25,
@@ -147,7 +143,6 @@ const flockTogether = defineTrait({
 
 /** Owns Cloudburst's live tuning and trait behavior. */
 const cloudburst = defineTrait({
-  name: 'Cloudburst',
   id: TRAIT.CLOUDBURST,
   balance: {
     effects: [
@@ -168,7 +163,6 @@ const cloudburst = defineTrait({
 
 /** Owns Gale Force's live tuning and trait behavior. */
 const galeForce = defineTrait({
-  name: 'Gale Force',
   id: TRAIT.GALE_FORCE,
   balance: {
     damageIncrease: 0.25,
@@ -198,7 +192,6 @@ const galeForce = defineTrait({
 
 /** Owns Bird of Prey's live tuning and trait behavior. */
 const birdOfPrey = defineTrait({
-  name: 'Bird of Prey',
   id: TRAIT.BIRD_OF_PREY,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.05 },
@@ -219,7 +212,6 @@ const birdOfPrey = defineTrait({
 
 /** Owns Perilous Skies's live tuning and trait behavior. */
 const perilousSkies = defineTrait({
-  name: 'Perilous Skies',
   id: TRAIT.PERILOUS_SKIES,
   // Saved Cyclone Bow casts follow the selected replacement without rewriting the rotation on trait edits.
   hooks: { modifySkillId: traitSkillReplacement(TRAIT.PERILOUS_SKIES, [[ID.QUARRYS_PERIL, ID.PELT]]) }
@@ -228,7 +220,6 @@ const perilousSkies = defineTrait({
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 /** The unlocking minor owns baseline specialization policy even when omitted from explicit selections. */
 const intrinsicPolicy = defineTrait({
-  name: 'Teachings of the Tengu',
   id: TRAIT.TEACHINGS_OF_THE_TENGU,
   balance: { maximumStacks: 8, minimumStacks: 5, pulseInterval: 5 }
 });

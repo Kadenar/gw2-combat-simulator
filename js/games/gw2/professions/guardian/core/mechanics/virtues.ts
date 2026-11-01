@@ -58,13 +58,6 @@ export const justiceActivated = defineTriggerPoint<JusticeActivation>('guardian.
   GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS
 ]);
 
-const VIRTUES_BY_SLOT: readonly (GuardianVirtue | null)[] = Object.freeze([null, 'justice', 'resolve', 'courage']);
-
-/** Decodes the slot's trailing digit; each caller owns its skill eligibility checks. */
-export function guardianVirtueForSlot(slot: GuardianSkill['slot']): GuardianVirtue | null {
-  return VIRTUES_BY_SLOT[Number(String(slot || '').match(/(\d)$/)?.[1] || 0)] || null;
-}
-
 /** Describe this call's emission so specialization follow-ups need no cumulative observation state. */
 type JusticeBurnOutcome = 'active' | 'passive' | null;
 

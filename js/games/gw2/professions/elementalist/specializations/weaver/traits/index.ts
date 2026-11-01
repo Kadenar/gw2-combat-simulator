@@ -35,7 +35,6 @@ import { elementsOfRageAvailability } from '#gw2/professions/elementalist/specia
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 const elementalRefreshment = defineTrait({
-  name: 'Elemental Refreshment',
   id: TRAIT.ELEMENTAL_REFRESHMENT,
   balance: { attributeBonuses: { vitality: 180 } },
   attributes: traitAttributeEffects(TRAIT.ELEMENTAL_REFRESHMENT, [
@@ -45,7 +44,6 @@ const elementalRefreshment = defineTrait({
 });
 
 const elementalPolyphony = defineTrait({
-  name: 'Elemental Polyphony',
   id: TRAIT.ELEMENTAL_POLYPHONY,
   balance: {
     attributeBonuses: { power: 200, ferocity: 200, healingPower: 200, conditionDamage: 200 }
@@ -97,7 +95,6 @@ const elementalPolyphony = defineTrait({
 });
 
 const superiorElements = defineTrait({
-  name: 'Superior Elements',
   id: TRAIT.SUPERIOR_ELEMENTS,
   balance: {
     criticalChance: 0.2,
@@ -126,7 +123,6 @@ const superiorElements = defineTrait({
 });
 
 const elementalPursuit = defineTrait({
-  name: 'Elemental Pursuit',
   id: TRAIT.ELEMENTAL_PURSUIT,
   balance: {
     effects: [{ type: 'boon', name: BOON.SWIFTNESS, boon: BOON.SWIFTNESS, stacks: 1, duration: 3 }]
@@ -151,7 +147,6 @@ const elementalPursuit = defineTrait({
 });
 
 const weaversProwess = defineTrait({
-  name: "Weaver's Prowess",
   id: TRAIT.WEAVERS_PROWESS,
   balance: {
     effects: [{ type: 'boon', name: BOON.RESISTANCE, boon: BOON.RESISTANCE, stacks: 1, duration: 3 }]
@@ -164,7 +159,6 @@ const weaversProwess = defineTrait({
 });
 
 const swiftRevenge = defineTrait({
-  name: 'Swift Revenge',
   id: TRAIT.SWIFT_REVENGE,
   balance: {
     resourceGain: 25,
@@ -177,7 +171,6 @@ const swiftRevenge = defineTrait({
 });
 
 const bolsteredElements = defineTrait({
-  name: 'Bolstered Elements',
   id: TRAIT.BOLSTERED_ELEMENTS,
   balance: {
     effects: [{ type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
@@ -186,7 +179,6 @@ const bolsteredElements = defineTrait({
 });
 
 const elementsOfRage = defineTrait({
-  name: 'Elements of Rage',
   id: TRAIT.ELEMENTS_OF_RAGE,
   balance: {
     damageIncrease: 0.15,
@@ -222,7 +214,6 @@ const elementsOfRage = defineTrait({
 });
 
 const flowState = defineTrait({
-  name: 'Flow State',
   id: TRAIT.FLOW_STATE,
   balance: {
     rechargeReduction: 1, // flat seconds removed from attunement recharge

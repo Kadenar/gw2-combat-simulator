@@ -125,7 +125,7 @@ function family(traits, eliteTraits = [], hooks = fireStruck) {
     modules: [
       defineNativeModule({
         id: 'Core',
-        data: { generatedSkills: [strike, burst], traits: metadata(traits) },
+        data: { skills: [strike, burst], traits: metadata(traits) },
         state: { create: () => ({}) },
         hooks,
         traitDefinitions: traits

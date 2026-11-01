@@ -24,8 +24,8 @@ test('every Wiki image backup matches its recorded PNG and checksum', async () =
   }
 });
 
-// Guard both runtime and generator inputs: a future data refresh must not reintroduce Wiki hotlinks.
-test('runtime and generator image references are local and inventoried', async () => {
+// Authored references must use inventoried local assets; retained backups may outlive supported skills.
+test('authored image references are local and inventoried', async () => {
   const paths = new Set(manifest.images.map(({ localPath }) => localPath));
   const used = new Set();
   for (const directory of ['js', 'scripts/data', 'css', 'templates', 'data']) {
@@ -46,8 +46,6 @@ test('runtime and generator image references are local and inventoried', async (
       }
     }
   }
-
-  assert.deepEqual([...used].sort(), [...paths].sort(), 'Every backup must have a local consumer');
 });
 
 // The old URL template hid these dependencies from literal-URL scans; cover all current profession catalogs.
@@ -64,8 +62,8 @@ test('every specialization has a bundled trait-line background', async () => {
     'thief',
     'warrior'
   ]) {
-    const { SPECIALIZATIONS } = await import(`#gw2/professions/${profession}/data/${profession}-api-metadata.js`);
-    for (const { name } of SPECIALIZATIONS) {
+    const { TRAIT_LINES } = await import(`#gw2/professions/${profession}/data/trait-lines.js`);
+    for (const { name } of TRAIT_LINES) {
       names.add(name);
       assert.ok(SPECIALIZATION_BACKGROUNDS[name], `${profession}: ${name}`);
     }

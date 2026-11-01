@@ -58,14 +58,12 @@ export function prepareSelectedSkillLoadout(
   return ids;
 }
 
-/** Shares build eligibility across selectors, palette, and casts; Weaponmaster Training is always active. */
+/** Shares build eligibility across selectors, palette, and casts; Core-owned weapons remain available to every specialization. */
 export function isBuildSkillAvailable(
   skill: Skill,
   { specialization }: { readonly specialization?: string } = {}
 ): boolean {
   if (skill.simulatorExcluded) return false;
-
-  if (skill.type === 'Weapon') return true;
 
   return !skill.specialization || skill.specialization === specialization;
 }

@@ -1,4 +1,4 @@
-/** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+/** Canonical Core ranger skill definitions grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -7,7 +7,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
@@ -47,9 +47,18 @@ export const rangerShortbowConditionDurationModifier: Gw2ModifierRule = {
 
 // Full-cast medians and successful minimums from 20261006-010612, snapped to 40 ms.
 // Committed arrows retain their impacts and observed aftercast; offsets include this log's projectile travel.
-export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.CROSSFIRE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Crossfire',
+    description:
+      'Fire an arrow that inflicts bleeding on your target. Attacks are stronger from behind or from the side or against defiant foes.',
+    icon: 'https://render.guildwars2.com/file/07CCE7B9D1EBEFCDFB6D44374691EE2E0B0203F0/103314.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 360,
     // Infer commitment at 200 ms from pQEm-20260716-181334's connected arrows; retain the full 360 ms lockout.
     interruptCommitMs: 200,
@@ -80,6 +89,14 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     )
   },
   [ID.POISON_VOLLEY]: {
+    name: 'Poison Volley',
+    description:
+      'Fire a spread of five poison arrows. Poison lasts longer if you are flanking or behind the target or if you strike a defiant foe.',
+    icon: 'https://render.guildwars2.com/file/AF233703C9039AF8DABEC1B9D4D7CC16AE030105/103275.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_2',
+    cooldown: 8,
     castTimeMs: 560,
     interruptCommitMs: 280,
     retainsCastLockoutAfterInterrupt: true,
@@ -106,6 +123,13 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     )
   },
   [ID.QUICK_SHOT]: {
+    name: 'Quick Shot',
+    description: 'Fire a quick shot in an evasive retreat. Gain swiftness. This can be used while retreating.',
+    icon: 'https://render.guildwars2.com/file/DB56E7E39FCF5DA5D558C01703BA51C2D3944EEE/103998.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_3',
+    cooldown: 8,
     evades: true,
     castTimeMs: 840,
     interruptCommitMs: 840,
@@ -137,6 +161,14 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     )
   },
   [ID.CRIPPLING_SHOT]: {
+    name: 'Crippling Shot',
+    description:
+      "Fire an arrow that cripples your target. If you are flanking or behind your target or your target is defiant, immobilize them. Your pet's next three attacks inflict bleeding.",
+    icon: 'https://render.guildwars2.com/file/536408C20FCD02D4F407F7F49EFB02299C02F32E/103083.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_4',
+    cooldown: 12,
     // Unspent charges and their delivered conditions have independent lifetimes.
     charges: 3,
     duration: 12,
@@ -189,6 +221,14 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.CONCUSSION_SHOT]: {
+    name: 'Concussion Shot',
+    description:
+      'Daze your foe with an arrow. Stun them if you hit from behind or from the side or if your foe is defiant.',
+    icon: 'https://render.guildwars2.com/file/78DE331F09FDF21AC5AACF78625F970311530392/102985.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_5',
+    cooldown: 20,
     castTimeMs: 640,
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,

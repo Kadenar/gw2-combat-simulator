@@ -31,7 +31,7 @@ import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import type { RangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { TRAITS } from '#gw2/professions/ranger/data/traits-data.js';
+import { TRAIT_LINES } from '#gw2/professions/ranger/data/trait-lines.js';
 import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-ambushes.js';
 import {
   BIORHYTHM,
@@ -56,7 +56,6 @@ function rangerUnleashed(context: Gw2ModifierContext): boolean {
 
 /** Owns Natural Fortitude's live tuning and trait behavior. */
 const naturalFortitude = defineTrait({
-  name: 'Natural Fortitude',
   id: TRAIT.NATURAL_FORTITUDE,
   balance: {
     attributeBonuses: { vitality: 240 },
@@ -72,7 +71,10 @@ const naturalFortitude = defineTrait({
         canCrit: false,
         damageKind: 'life-steal',
         damageBreakdownName: 'Life Siphon - Natural Fortitude',
-        icon: String(TRAITS.find((trait) => trait.id === TRAIT.NATURAL_FORTITUDE)?.icon || '')
+        icon:
+          TRAIT_LINES.find((specialization) => specialization.name === 'Untamed')!.minorTraits.find(
+            (trait) => trait.id === TRAIT.NATURAL_FORTITUDE
+          )?.icon || ''
       }
     ]
   },
@@ -94,7 +96,6 @@ const naturalFortitude = defineTrait({
 
 /** Owns Let Loose's live tuning and trait behavior. */
 const letLoose = defineTrait({
-  name: 'Let Loose',
   id: TRAIT.LET_LOOSE,
   balance: {
     internalCooldown: 9,
@@ -135,7 +136,6 @@ const letLoose = defineTrait({
 
 /** Owns Blinding Outburst's live tuning and trait behavior. */
 const blindingOutburst = defineTrait({
-  name: 'Blinding Outburst',
   id: TRAIT.BLINDING_OUTBURST,
   balance: {
     damageIncrease: 0.25,
@@ -176,7 +176,6 @@ const blindingOutburst = defineTrait({
 
 /** Owns Ferocious Symbiosis's live tuning and trait behavior. */
 const ferociousSymbiosis = defineTrait({
-  name: 'Ferocious Symbiosis',
   id: TRAIT.FEROCIOUS_SYMBIOSIS,
   balance: {
     damageIncreasePerStack: 0.05,
@@ -219,7 +218,6 @@ const ferociousSymbiosis = defineTrait({
 
 /** Owns Debilitating Blows's live tuning and trait behavior. */
 const debilitatingBlows = defineTrait({
-  name: 'Debilitating Blows',
   id: TRAIT.DEBILITATING_BLOWS,
   balance: {
     internalCooldown: 1,
@@ -280,7 +278,6 @@ const debilitatingBlows = defineTrait({
 
 /** Owns Enhancing Impact's live tuning and trait behavior. */
 const enhancingImpact = defineTrait({
-  name: 'Enhancing Impact',
   id: TRAIT.ENHANCING_IMPACT,
   balance: {
     internalCooldown: 1,
@@ -344,7 +341,6 @@ const enhancingImpact = defineTrait({
  * new series of independently expiring stacks. Reaching the threshold arms the next unleash even after stacks decay.
  */
 const biorhythm = defineTrait({
-  name: 'Biorhythm',
   id: TRAIT.BIORHYTHM,
   balance: {
     stackThreshold: 5,
@@ -413,7 +409,6 @@ function emitBiorhythmEffect(
 
 /** Owns Vow of the Untamed's live tuning and trait behavior. */
 const vowOfTheUntamed = defineTrait({
-  name: 'Vow of the Untamed',
   id: TRAIT.VOW_OF_THE_UNTAMED,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.25 },
@@ -445,7 +440,6 @@ const BLINDING_OUTBURST_SKILL_IDS = new Set<number>([ID.VENOMOUS_OUTBURST, ...UN
 /** Register authored owners in a fixed order; runtime boundaries stay explicit. */
 /** The unlocking minor owns baseline specialization policy even when omitted from explicit selections. */
 const intrinsicPolicy = defineTrait({
-  name: 'Unleashed Power',
   id: TRAIT.UNLEASHED_POWER,
   balance: { duration: 4, internalCooldown: 9 }
 });

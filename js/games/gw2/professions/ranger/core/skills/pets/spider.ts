@@ -1,23 +1,33 @@
 /**
- * Owns Core Ranger pet skill fragments for the Spider family.
+ * Owns Core Ranger pet skill definitions for the Spider family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, COMBO_FIELD, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
 import { isActivePetStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { deliverChargedHit } from '#gw2/professions/ranger/core/skills/charge-grants.js';
+import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
-export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // Natural Poison Gas uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.SPIDER_POISON_GAS]: {
-    petSkill: true,
+  [ID.SPIDER_POISON_GAS]: definePetSkill({
+    name: 'Poison Gas',
+    description: 'Spit a ball of venom that covers an area with a poisonous cloud. ',
+    icon: new URL('@images/wiki/poison-gas.png', import.meta.url).href,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 15,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_POISON_GAS]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_POISON_GAS]!.quicknessCastTimeMs,
     // Once the cast releases its cloud, later pulses retain the originating companion.
@@ -43,10 +53,19 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
+  }),
   // Natural Entangling Web uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.SPIDER_ENTANGLING_WEB]: {
-    petSkill: true,
+  [ID.SPIDER_ENTANGLING_WEB]: definePetSkill({
+    name: 'Entangling Web',
+    description: 'Shoot a web, immobilizing your foe.',
+    icon: new URL('@images/wiki/entangling-web.png', import.meta.url).href,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_ENTANGLING_WEB]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIDER_ENTANGLING_WEB]!.quicknessCastTimeMs,
     effects: [
@@ -66,9 +85,16 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.DEADLY_VENOM]: {
-    petSkill: true,
+  }),
+  [ID.DEADLY_VENOM]: definePetSkill({
+    name: 'Deadly Venom',
+    description: 'Beast. Your next three attacks poison your foe.',
+    icon: 'https://render.guildwars2.com/file/D8AAF1C759E0E4F0A4C85A9462DF75055EB5BF92/104052.png',
+    petNames: ['Forest Spider'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -80,9 +106,16 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.PARALYZING_VENOM]: {
-    petSkill: true,
+  }),
+  [ID.PARALYZING_VENOM]: definePetSkill({
+    name: 'Paralyzing Venom',
+    description: 'Beast. Your next attack immoblizes your foe.',
+    icon: 'https://render.guildwars2.com/file/D8AAF1C759E0E4F0A4C85A9462DF75055EB5BF92/104052.png',
+    petNames: ['Jungle Spider', 'Black Widow Spider'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 25,
     quicknessCastTimeMs: 333,
     // The venom arms the pet's next landed attack for twenty seconds (wiki: Paralyzing_Venom).
     effects: [
@@ -117,9 +150,16 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         audience: { recipients: RECIPIENT.SELF }
       }
     ]
-  },
-  [ID.WEAKENING_VENOM]: {
-    petSkill: true,
+  }),
+  [ID.WEAKENING_VENOM]: definePetSkill({
+    name: 'Weakening Venom',
+    description: 'Beast. Your next two attacks weaken your foes and make them vulnerable.',
+    icon: 'https://render.guildwars2.com/file/D8AAF1C759E0E4F0A4C85A9462DF75055EB5BF92/104052.png',
+    petNames: ['Cave Spider'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -147,9 +187,18 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.SPIT]: {
-    petSkill: true,
+  }),
+  [ID.SPIT]: definePetSkill({
+    name: 'Spit',
+    description: 'Spit at your foe.',
+    icon: 'https://render.guildwars2.com/file/B7A1AB65571565525A5C35DBCBEF0326DF65C3FA/104050.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Forest Spider', 'Jungle Spider', 'Cave Spider', 'Black Widow Spider'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 0,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPIT]!.quicknessCastTimeMs,
     effects: [
       {
@@ -160,7 +209,7 @@ export const RANGER_CORE_SPIDER_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  }
+  })
 });
 
 /** Only the active caster can arm its follow-up; retired pets cannot grant it to their replacement. */

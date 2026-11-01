@@ -2,7 +2,7 @@
  * Spear weapon-skill mechanics owned by the Weaver module.
  *
  * Weaver occupies the slot-3 spear position with a dual attack selected by the
- * unordered pair of attunements held across its two hands; every fragment names
+ * unordered pair of attunements held across its two hands; every definition names
  * its pair in `attunement`, and Weaver availability only offers the skill when
  * both of those elements are currently attuned.
  *
@@ -13,7 +13,7 @@ import { ACTOR, AURA, BOON, COMBO_FINISHER, CONDITION, STATUS, WEAPON } from '#g
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
@@ -32,19 +32,21 @@ export const WEAVER_SPEAR_BUFFS: Readonly<Record<number, string>> = Object.freez
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
 // Ordinary effects apply immediately; each action owns its arming buff and deferred strike/condition payload.
-export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // Fire+Water. The only spear dual that grants an aura: its declared effect
   // grants the three-second Fire Aura on cast end.
   [ID.FROSTFIRE_WARD]: {
     name: 'Frostfire Ward',
+    description:
+      'Dual Attack. Gain fire and frost aura. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and remove conditions from you.',
+    icon: 'https://render.guildwars2.com/file/DD1B9616EB330DC50729663B497B31D40104290C/3379105.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SPEAR,
     attunement: 'Fire+Water',
-    categories: ['Weapon skill'],
+
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 0,
     effects: [{ type: 'aura', aura: AURA.FIRE, duration: 3 }],
     // Different live hand elements make the current primary immediately re-attunable on commitment.
@@ -79,14 +81,16 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   // three stacks of Might rather than any condition.
   [ID.GALVANIZE]: {
     name: 'Galvanize',
+    description:
+      'Dual Attack. Gain might and superspeed. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target.',
+    icon: 'https://render.guildwars2.com/file/14A70A6CE40336397DAA5C0F03940C08C7622376/3379106.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SPEAR,
     attunement: 'Fire+Air',
-    categories: ['Weapon skill'],
+
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 0,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 },
@@ -120,14 +124,16 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   // and three stacks of Bleeding.
   [ID.FIERY_IMPACT]: {
     name: 'Fiery Impact',
+    description:
+      'Dual Attack. Gain stability. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and inflict conditions.',
+    icon: 'https://render.guildwars2.com/file/69FB136A0D3615BBBE1B04DCBE09407D7E9297F3/3379107.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SPEAR,
     attunement: 'Fire+Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 0,
     effects: [],
     // Different live hand elements make the current primary immediately re-attunable on commitment.
@@ -177,14 +183,16 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.ELUTRIATE]: {
     name: 'Elutriate',
+    description:
+      'Dual Attack. Remove a damaging and a nondamaging condition from yourself. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and inflict conditions.',
+    icon: 'https://render.guildwars2.com/file/1EF742E5936B0D160F3869511D2EBEC6745EEA18/3379108.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SPEAR,
     attunement: 'Air+Water',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 0,
     effects: [],
     // Different live hand elements make the current primary immediately re-attunable on commitment.
@@ -229,14 +237,16 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   // and no boons.
   [ID.SOOTHING_BURST]: {
     name: 'Soothing Burst',
+    description:
+      'Dual Attack. Heal yourself. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and heal you.',
+    icon: 'https://render.guildwars2.com/file/110F9A310F3A6D0E999B36DAB4F5390F70727DEB/3379109.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SPEAR,
     attunement: 'Water+Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 0,
     effects: [],
     // Different live hand elements make the current primary immediately re-attunable on commitment.
@@ -275,14 +285,16 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
   },
   [ID.SHALE_STORM]: {
     name: 'Shale Storm',
+    description:
+      'Dual Attack. Create a brief storm of whirling rocks that destroy incoming projectiles. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and inflict conditions.',
+    icon: 'https://render.guildwars2.com/file/53AD3D92123744A13D0D2434661EFA3608213D06/3379110.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SPEAR,
     attunement: 'Air+Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 18,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 0,
     effects: [],
     // Different live hand elements make the current primary immediately re-attunable on commitment.

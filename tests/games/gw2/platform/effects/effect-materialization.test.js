@@ -64,7 +64,7 @@ test('canonical strike timelines reject invalid or ambiguous hits', () => {
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           skillWithTicks([
             { atMs: 100, coefficient: 0.2 },
             { atMs: 50, coefficient: 0.5 }
@@ -76,14 +76,14 @@ test('canonical strike timelines reject invalid or ambiguous hits', () => {
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [skillWithTicks([{ atMs: 0, coefficient: -0.2 }])]
+        skills: [skillWithTicks([{ atMs: 0, coefficient: -0.2 }])]
       }),
     /non-negative coefficient/
   );
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           {
             ...skillWithTicks([{ atMs: 0, coefficient: 0.2 }]),
             effects: [
@@ -104,7 +104,7 @@ test('canonical strike timelines reject invalid or ambiguous hits', () => {
 
 test('canonical strikes divide aggregate coefficients without changing total damage scaling', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930027,
         name: 'Canonical Strike Forms',
@@ -139,7 +139,7 @@ test('canonical strikes divide aggregate coefficients without changing total dam
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           {
             id: 930028,
             name: 'Untimed Aggregate',
@@ -152,7 +152,7 @@ test('canonical strikes divide aggregate coefficients without changing total dam
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           {
             id: 930029,
             name: 'Interval Aggregate',
@@ -217,14 +217,14 @@ test('canonical effects allow negative offsets only from cast end', () => {
     timingScale: 'fixed'
   };
   const catalog = createCanonicalCatalog({
-    generated: [{ id: 930025, name: 'Cast-End Offset Fixture', effects: [effect] }]
+    skills: [{ id: 930025, name: 'Cast-End Offset Fixture', effects: [effect] }]
   });
 
   assert.equal(catalog.skillsById.get(930025).effects[0].atMs, -40);
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           {
             id: 930025,
             name: 'Cast-Start Offset Fixture',
@@ -308,7 +308,7 @@ test('canonical condition timelines reject invalid or ambiguous applications', (
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           skillWithTicks([
             {
               atMs: 0,
@@ -324,7 +324,7 @@ test('canonical condition timelines reject invalid or ambiguous applications', (
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           {
             ...skillWithTicks([
               {

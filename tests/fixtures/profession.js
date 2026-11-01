@@ -4,7 +4,7 @@ import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Shared fixture only; its filename keeps Node from reporting this helper as an empty test.
 const catalog = createCanonicalCatalog({
-  generated: [
+  skills: [
     {
       id: 900001,
       name: 'Fixture Slash',

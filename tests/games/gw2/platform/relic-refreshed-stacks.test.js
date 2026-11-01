@@ -24,6 +24,26 @@ test('Thorns and Nourys respect exact grant and reporting boundaries', () => {
   }
 });
 
+test('Thief relic reads the selected resource price without a derived resource label', () => {
+  // A priced weapon earns the reward; a patch that makes it free removes that eligibility.
+  for (const initiativeCost of [0, 3]) {
+    const context = fixture('Thief');
+    const skill = {
+      type: 'Weapon',
+      cooldown: 0,
+      initiativeCost,
+      cost: { resource: 'initiative', skillAmount: 'initiativeCost' }
+    };
+    context.relic.rules.afterHit(
+      context,
+      context.relic.state,
+      { at: 0, actorType: 'player', skillName: 'Fixture' },
+      skill
+    );
+    assert.equal(context.relic.state.refreshedStacks.stacks, initiativeCost > 0 ? 1 : 0);
+  }
+});
+
 test('Thief relic refreshes all stacks at cap and rejects hits outside its weapon trigger', () => {
   const context = fixture('Thief');
   const skill = { type: 'Weapon', cooldown: 5 };

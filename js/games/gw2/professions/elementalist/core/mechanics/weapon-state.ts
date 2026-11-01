@@ -39,14 +39,14 @@ export function shareAttunementVariantRecharge(context: ElementalistRuntime, ski
     return;
   }
 
-  const identity = elementalistLoadoutIdentity(skill.id);
+  const identity = elementalistLoadoutIdentity(skill.id, context.helpers);
   const readyAt = context.cooldownController.readyAt(skill.id);
   const ammo = context.cooldownController.readAmmo(skill.id);
 
   if (readyAt == null && !ammo) return;
 
   for (const candidate of context.helpers.skills) {
-    if (candidate.type === skill.type && elementalistLoadoutIdentity(candidate.id) === identity) {
+    if (candidate.type === skill.type && elementalistLoadoutIdentity(candidate.id, context.helpers) === identity) {
       if (readyAt != null) context.cooldownController.copy(skill.id, candidate.id);
 
       if (ammo) context.cooldownController.linkAmmo(skill.id, candidate.id);

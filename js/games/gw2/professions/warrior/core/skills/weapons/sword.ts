@@ -1,13 +1,22 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Canonical Core warrior skill definitions grouped by their GW2 owner. */
 import { BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SEVER_ARTERY]: {
+    name: 'Sever Artery',
+    description: 'Chain. Bleed your foe with a slash.',
+    icon: 'https://render.guildwars2.com/file/3040B9E8344BF32EA5ADB3FB632C4F01BFD0927D/103003.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     dualWieldEffectOffsetsMs: { 200: 160 },
     castTimeMs: 360,
     dualWieldCastTimeMs: 280,
@@ -28,6 +37,15 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.GASH]: {
+    name: 'Gash',
+    description: 'Chain. Bleed your foe with a gash.',
+    icon: 'https://render.guildwars2.com/file/44563D2C3BDCEB1524D2DB0F23713347CDE93D32/103004.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     dualWieldEffectOffsetsMs: { 280: 240 },
     castTimeMs: 520,
     dualWieldCastTimeMs: 360,
@@ -48,6 +66,15 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.HAMSTRING]: {
+    name: 'Hamstring',
+    description: 'Cripple your foe with a precise slash.',
+    icon: 'https://render.guildwars2.com/file/E2DF06E072A837280306F7A7DA2FEA399ABAAEC7/104137.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 400,
     dualWieldCastTimeMs: 320,
     // Dual Wielding advances the slash's commit point when its offhand requirement is met.
@@ -74,6 +101,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.SAVAGE_LEAP]: {
+    name: 'Savage Leap',
+    description: 'Lunge at your foe and strike them with your sword.',
+    icon: 'https://render.guildwars2.com/file/F47AFFCAC1475EB0086C32AAB5AA1A6048F52A08/102778.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_2',
+    cooldown: 8,
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     castTimeMs: 1000,
@@ -112,6 +146,14 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     )
   },
   [ID.REND]: {
+    name: 'Rend',
+    description:
+      'Maim your target with an immobilizing strike, then deliver a devastating blow that inflicts heavy bleeding.',
+    icon: 'https://render.guildwars2.com/file/959E954064FEA5F0E8753D43D50BB67D0CBD3FA7/3790493.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_3',
+    cooldown: 12,
     dualWieldEffectOffsetsMs: { 440: 320 },
     castTimeMs: 960,
     dualWieldCastTimeMs: 720,
@@ -148,6 +190,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.IMPALE]: {
+    name: 'Impale',
+    description: 'Throw your sword at your foe to impale them.',
+    icon: 'https://render.guildwars2.com/file/4876CF1E0673120898A5EEFE9D2409741E182EAE/103060.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_4',
+    cooldown: 15,
     // Use the reviewed cast durations, with the shorter recovery selected by Dual Wielding.
     castTimeMs: 440,
     dualWieldCastTimeMs: 360,
@@ -180,6 +229,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.RIP, durationSec: 4 } }]
   },
   [ID.RIP]: {
+    name: 'Rip',
+    description: 'Rip your sword from your foe for extra damage.',
+    icon: 'https://render.guildwars2.com/file/173047947C1C46C658999645D878E6F9B12D754A/104138.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_4',
+    cooldown: 1,
     dualWieldEffectOffsetsMs: { 440: 320 },
     castTimeMs: 680,
     dualWieldCastTimeMs: 420,
@@ -202,6 +258,14 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     sideEffects: [{ on: 'castStart', do: { type: 'flipConsume', skillId: ID.RIP } }]
   },
   [ID.RIPOSTE]: {
+    name: 'Riposte',
+    description:
+      'Block the next attack. Riposte and bleed your foe if you block a melee attack. Gain adrenaline if you are not attacked.',
+    icon: 'https://render.guildwars2.com/file/51163210A4C4A224903D14057C0018C91580FBA8/103099.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_5',
+    cooldown: 15,
     castTimeMs: 2400,
     // Release the block early by default so its follow-up can be selected within the original channel window.
     defaultInterruptMs: 200,
@@ -216,6 +280,13 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Part
     ]
   },
   [ID.ADRENALINE_RUSH]: {
+    name: 'Adrenaline Rush',
+    description: 'Stop blocking and swing out with an attack.',
+    icon: 'https://render.guildwars2.com/file/F6D809292BC50B03A8E3A5F6C04201DE09A02C08/103221.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_5',
+    cooldown: 0,
     // Adrenaline Rush instantly grants its resource without striking the target.
     castTimeMs: 0,
     effects: [],

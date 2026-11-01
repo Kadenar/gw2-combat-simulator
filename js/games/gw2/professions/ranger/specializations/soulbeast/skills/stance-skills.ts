@@ -1,7 +1,7 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { leaderOfThePackStance } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
@@ -12,8 +12,16 @@ import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
  * Hooks register these actions; specialization mechanics retain window reactions.
  */
 
-export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.VULTURE_STANCE]: {
+    name: 'Vulture Stance',
+    description:
+      'Stance. While in this stance, striking a foe inflicts poison and grants you might.\nThis effect can occur once per interval.',
+    icon: 'https://render.guildwars2.com/file/77A65F535049BFB5F209186B1E9BA125E6BE32B2/1770571.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Stance',
+    cooldown: 30,
     duration: 6,
     internalCooldown: 0.25,
     castTimeMs: 0,
@@ -35,10 +43,26 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.BEAR_STANCE]: {
+    name: 'Bear Stance',
+    description:
+      'Stance. Heal yourself and your pet. Lose conditions while in this stance, healing for each condition lost.',
+    icon: 'https://render.guildwars2.com/file/07944CB363A391A26B21C16F76F52111B32D96CD/1770561.png',
+    type: 'Heal',
+    slot: 'Heal',
+    skillFamily: 'Stance',
+    cooldown: 25,
     castTimeMs: 500,
     effects: []
   },
   [ID.ONE_WOLF_PACK]: {
+    name: 'One Wolf Pack',
+    description:
+      'Stance. Your successful attacks will trigger a second strike while in this stance.\nThis effect can occur once per interval.',
+    icon: 'https://render.guildwars2.com/file/4E137B09B5CC545211977BFDCEC76119195AC7C9/1770558.png',
+    type: 'Elite',
+    slot: 'Elite',
+    skillFamily: 'Stance',
+    cooldown: 60,
     // Echo tuning remains independent from stance sharing and recipient cooldown state.
     duration: 6,
     internalCooldown: 1,

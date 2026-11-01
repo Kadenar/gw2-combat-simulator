@@ -25,7 +25,13 @@ export function active(context: Gw2ModifierContext): boolean {
 }
 
 export function isBerserkerSkill(skill: WarriorSkill): boolean {
-  return skill.primalBurst || skill.categories?.includes('Rage') || skill.specialization === 'Berserker';
+  // Shared torch skills still detonate King of Fires; equipment ownership does not define this trait trigger.
+  return (
+    skill.primalBurst ||
+    skill.skillFamily === 'Rage' ||
+    skill.specialization === 'Berserker' ||
+    skill.weapon === 'Torch'
+  );
 }
 
 export function armAura(runtime: WarriorRuntime, until: number): void {
@@ -121,7 +127,7 @@ export function smashBrawlerBerserkExtension(runtime: WarriorRuntime, cast: Runt
 
 /** Query Last Blaze's Rage extension without mutating the active mode. */
 export function lastBlazeBerserkExtension(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): number {
-  return cast.skill.categories?.includes('Rage') && cast.skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE)
+  return cast.skill.skillFamily === 'Rage' && cast.skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE)
     ? balanceNumberFromContext(runtime, TRAIT.LAST_BLAZE, 'durationExtension')
     : 0;
 }

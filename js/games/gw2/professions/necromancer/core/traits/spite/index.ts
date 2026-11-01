@@ -30,7 +30,6 @@ import type {
 
 /** Owns Reaper's Might tuning and behavior at its existing execution boundaries. */
 export const reapersMight = defineTrait({
-  name: "Reaper's Might",
   id: TRAIT.REAPERS_MIGHT,
   balance: {
     effects: [
@@ -56,7 +55,6 @@ export const reapersMight = defineTrait({
 
 /** Owns Siphoned Power tuning and behavior at its existing execution boundaries. */
 export const siphonedPower = defineTrait({
-  name: 'Siphoned Power',
   id: TRAIT.SIPHONED_POWER,
   balance: {
     threshold: 0.5,
@@ -84,7 +82,6 @@ export const siphonedPower = defineTrait({
 
 /** Owns Chill of Death tuning and behavior at its existing execution boundaries. */
 export const chillOfDeath = defineTrait({
-  name: 'Chill of Death',
   id: TRAIT.CHILL_OF_DEATH,
   balance: { threshold: 0.5 },
   triggers: [
@@ -103,7 +100,6 @@ export const chillOfDeath = defineTrait({
 
 /** Owns Awaken the Pain tuning and behavior at its existing execution boundaries. */
 export const awakenThePain = defineTrait({
-  name: 'Awaken the Pain',
   id: TRAIT.AWAKEN_THE_PAIN,
   balance: {
     attributePerStack: 10,
@@ -145,7 +141,6 @@ export const awakenThePain = defineTrait({
 
 /** Owns Spiteful Fortitude tuning and behavior at its existing execution boundaries. */
 export const spitefulFortitude = defineTrait({
-  name: 'Spiteful Fortitude',
   id: TRAIT.SPITEFUL_FORTITUDE,
   balance: { threshold: 0.5, attributeConversion: 0.1, lifeForceGain: 1 },
   attributes: traitAttributeEffects(TRAIT.SPITEFUL_FORTITUDE, [
@@ -173,7 +168,6 @@ export const spitefulFortitude = defineTrait({
 
 /** Owns Signets of Suffering tuning and behavior at its existing execution boundaries. */
 export const signetsOfSuffering = defineTrait({
-  name: 'Signets of Suffering',
   id: TRAIT.SIGNETS_OF_SUFFERING,
   balance: {
     effects: [
@@ -193,7 +187,7 @@ export const signetsOfSuffering = defineTrait({
       order: 1,
 
       on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Signet')),
+      when: (_runtime, cast) => cast.skill.skillFamily === 'Signet',
       emit: TRAIT.SIGNETS_OF_SUFFERING,
       effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
       attribution: (_runtime, cast) => ({
@@ -210,7 +204,6 @@ export const signetsOfSuffering = defineTrait({
 
 /** Owns Bitter Chill tuning and behavior at its existing execution boundaries. */
 export const bitterChill = defineTrait({
-  name: 'Bitter Chill',
   id: TRAIT.BITTER_CHILL,
   balance: {
     effects: [
@@ -227,7 +220,6 @@ export const bitterChill = defineTrait({
 
 /** Owns Malicious Swarm tuning and behavior at its existing execution boundaries. */
 export const maliciousSwarm = defineTrait({
-  name: 'Malicious Swarm',
   id: TRAIT.MALICIOUS_SWARM,
   triggers: [
     {
@@ -242,7 +234,6 @@ export const maliciousSwarm = defineTrait({
 
 /** Owns Spiteful Spirit tuning and behavior at its existing execution boundaries. */
 export const spitefulSpirit = defineTrait({
-  name: 'Spiteful Spirit',
   id: TRAIT.SPITEFUL_SPIRIT,
   balance: {
     effects: [
@@ -265,7 +256,6 @@ export const spitefulSpirit = defineTrait({
 
 /** Owns Dread tuning and behavior at its existing execution boundaries. */
 export const dread = defineTrait({
-  name: 'Dread',
   id: TRAIT.DREAD,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: {
@@ -294,7 +284,6 @@ export const dread = defineTrait({
 
 /** Owns Spiteful Talisman tuning and behavior at its existing execution boundaries. */
 export const spitefulTalisman = defineTrait({
-  name: 'Spiteful Talisman',
   id: TRAIT.SPITEFUL_TALISMAN,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05 },
@@ -311,7 +300,6 @@ export const spitefulTalisman = defineTrait({
 
 /** Owns Close to Death tuning and behavior at its existing execution boundaries. */
 export const closeToDeath = defineTrait({
-  name: 'Close to Death',
   id: TRAIT.CLOSE_TO_DEATH,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { threshold: 0.5, damageMultiplier: 1.2 },

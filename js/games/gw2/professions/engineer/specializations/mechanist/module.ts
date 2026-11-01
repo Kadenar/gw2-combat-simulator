@@ -1,5 +1,6 @@
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createEngineerModuleData } from '#gw2/professions/engineer/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
 import { mechanistAttributes } from '#gw2/professions/engineer/specializations/mechanist/attributes.js';
 import {
   ENGINEER_MECHANIST_PROFILE_FIELDS,
@@ -14,13 +15,16 @@ import {
   projectMechanistPlanningState
 } from '#gw2/professions/engineer/specializations/mechanist/state.js';
 import { mechanistTraits } from '#gw2/professions/engineer/specializations/mechanist/traits/index.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 // Compose the mech's independent live lane with accepted-hit reactions for
 // hit-triggered traits; the engineer's own cast lane remains owned by Core.
 export const mechanistModule = defineNativeModule({
   id: 'Mechanist',
   traitDefinitions: mechanistTraits,
-  data: createEngineerModuleData('Mechanist', {
+  data: createNativeModuleData<EngineerSkill>({
+    id: 'Mechanist',
+    traitLines: TRAIT_LINES,
     profileFields: ENGINEER_MECHANIST_PROFILE_FIELDS,
     skillFields: MECHANIST_SKILL_FIELDS,
     skillMechanics: MECHANIST_SKILL_MECHANICS

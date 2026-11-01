@@ -43,7 +43,6 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns All for One tuning and behavior at its established execution boundaries. */
 const allForOne = defineTrait({
-  name: 'All for One',
   id: TRAIT.ALL_FOR_ONE,
   balance: {
     icon: 'https://render.guildwars2.com/file/9398D8F8E764A23596E17EDAA35B99961D62F061/1769993.png',
@@ -65,7 +64,6 @@ const allForOne = defineTrait({
 
 /** Owns Ambush Commander tuning and behavior at its established execution boundaries. */
 const ambushCommander = defineTrait({
-  name: 'Ambush Commander',
   id: TRAIT.AMBUSH_COMMANDER,
   balance: {
     damageIncreasePerStack: 0.02,
@@ -96,7 +94,6 @@ const ambushCommander = defineTrait({
 
 /** Owns Ashen Demeanor tuning and behavior at its established execution boundaries. */
 const ashenDemeanorTrait = defineTrait({
-  name: 'Ashen Demeanor',
   id: TRAIT.ASHEN_DEMEANOR,
   balance: {
     cooldown: 10,
@@ -115,7 +112,6 @@ const ashenDemeanorTrait = defineTrait({
 
 /** Owns Blood Fury tuning and behavior at its established execution boundaries. */
 const bloodFury = defineTrait({
-  name: 'Blood Fury',
   id: TRAIT.BLOOD_FURY,
   balance: {
     conditionDurationBonus: 0.25,
@@ -142,7 +138,6 @@ const bloodFury = defineTrait({
 
 /** Owns the additional protection payload layered on the enhanced order. */
 const boldReversal = defineTrait({
-  name: 'Bold Reversal',
   id: TRAIT.BOLD_REVERSAL,
   balance: {
     effects: [
@@ -164,7 +159,6 @@ const boldReversal = defineTrait({
 
 /** Owns Brutal Momentum tuning and behavior at its established execution boundaries. */
 const brutalMomentum = defineTrait({
-  name: 'Brutal Momentum',
   id: TRAIT.BRUTAL_MOMENTUM,
   balance: {
     criticalChance: 0.1,
@@ -215,7 +209,6 @@ const brutalMomentum = defineTrait({
 
 /** Owns Endless Enmity tuning and behavior at its established execution boundaries. */
 const endlessEnmity = defineTrait({
-  name: 'Endless Enmity',
   id: TRAIT.ENDLESS_ENMITY,
   balance: {
     icon: 'https://render.guildwars2.com/file/A4D16BE749A19FE8A8B5783EE2BD1DF899156D47/1769999.png',
@@ -258,7 +251,6 @@ const endlessEnmity = defineTrait({
 
 /** Owns Heartpiercer tuning and behavior at its established execution boundaries. */
 const heartpiercer = defineTrait({
-  name: 'Heartpiercer',
   id: TRAIT.HEARTPIERCER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.15, conditionDamageMultiplier: 1.25 },
@@ -285,7 +277,6 @@ const heartpiercer = defineTrait({
 
 /** Owns Lasting Legacy tuning and behavior at its established execution boundaries. */
 const lastingLegacy = defineTrait({
-  name: 'Lasting Legacy',
   id: TRAIT.LASTING_LEGACY,
   balance: {
     damageIncreasePerStack: 0.05,
@@ -342,13 +333,11 @@ const lastingLegacy = defineTrait({
 
 /** Owns Righteous Rebel tuning and behavior at its established execution boundaries. */
 const righteousRebel = defineTrait({
-  name: 'Righteous Rebel',
   id: TRAIT.RIGHTEOUS_REBEL
 });
 
 /** Owns Vindication tuning and behavior at its established execution boundaries. */
 const vindication = defineTrait({
-  name: 'Vindication',
   id: TRAIT.VINDICATION,
   balance: {
     icon: 'https://render.guildwars2.com/file/3453B30240026E36661AACD3FA94FB0DBFC8246C/1769995.png',

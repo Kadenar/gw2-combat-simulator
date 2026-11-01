@@ -5,7 +5,7 @@ import { createRotationDriver } from '#gw2/platform/execution/rotation-driver.js
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
 const skill = { id: 999001, name: 'Retry probe', castTimeMs: 0, effects: [] };
-const catalog = createCanonicalCatalog({ generated: [skill] });
+const catalog = createCanonicalCatalog({ skills: [skill] });
 
 // Isolate GW2 retry scheduling from cast durations and the neutral event queue's finer clock.
 function retryFixture(time, retryAt) {

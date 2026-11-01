@@ -1,20 +1,25 @@
 import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { doomApproachesDarkBarrage } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
 
-/** Supplies Harbinger Shroud fragments to specialization composition. */
-export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+/** Supplies Harbinger Shroud definitions to specialization composition. */
+export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.TAINTED_BOLTS]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Tainted Bolts',
+    description: 'Fire quick bolts of dark energy that explode on impact, inflicting torment to enemies in the area.',
+    icon: 'https://render.guildwars2.com/file/03AB6A0BA611767DA8A30A0D0E68CE580760EA34/2479402.png',
+    cooldown: 0,
+    skillWeapon: 'Hammer',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     dhuumfireDuration: 1,
     type: 'Profession',
     slot: 'Weapon_1',
     shroud: 'harbinger',
     shroudSlot: 1,
-    specialization: 'Harbinger',
     castTimeMs: 600,
     // Committed bolts retain their strike and Torment packets even if the remaining cast is interrupted.
     interruptCommitMs: 520,
@@ -32,8 +37,12 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.EXIT_HARBINGER_SHROUD]: {
+    name: 'Exit Harbinger Shroud',
+    description: 'Leave Harbinger Shroud and return to your normal form.',
+    icon: 'https://render.guildwars2.com/file/99465D6C7322FCB7B06AC7729F2A91BB243A09E4/2479401.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     cooldown: 0,
-    specialization: 'Harbinger',
     shroudExit: 'harbinger',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap',
@@ -43,6 +52,11 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }]
   },
   [ID.DARK_BARRAGE]: {
+    name: 'Dark Barrage',
+    description: 'Fire six bolts of tormenting energy that fan out from you, piercing all enemies in their path.',
+    icon: 'https://render.guildwars2.com/file/3EBE1078EC053BA76F057D2F0758692F0C0D6CD3/2479393.png',
+    cooldown: 6,
+    skillWeapon: 'Hammer',
     // Trait-selected volley templates remain owned and independently patchable on Dark Barrage.
     doomApproachesPulseCount: 8,
     doomApproachesPulseInterval: 0.75 / 8,
@@ -50,7 +64,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     slot: 'Weapon_2',
     shroud: 'harbinger',
     shroudSlot: 2,
-    specialization: 'Harbinger',
     castTimeMs: 920,
     // Dark Barrage is a channel: interruption keeps each landed volley while 800 ms remains the full-damage cutoff.
     interruptMode: 'per-packet',
@@ -87,8 +100,13 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     effectVariants: doomApproachesDarkBarrage
   },
   [ID.HARBINGER_SHROUD]: {
+    name: 'Harbinger Shroud',
+    description:
+      'Enter Harbinger Shroud, granting powerful offensive skills but leaving you vulnerable to attack.\nAs you remain in Harbinger Shroud, you accumulate blight over time.\nBlight decreases your maximum health.',
+    icon: 'https://render.guildwars2.com/file/C9CA706909A104A509F594AADA150D680AA948BC/2479400.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     cooldown: 10,
-    specialization: 'Harbinger',
     shroudEntry: 'harbinger',
     shroudTuning: { kind: 'trait', id: TRAIT.DARK_DISCIPLE },
     minimumShroudLifeForcePercent: 0,
@@ -100,6 +118,12 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-shroud' } }]
   },
   [ID.DEVOURING_CUT]: {
+    name: 'Devouring Cut',
+    description:
+      'Channel twisted energy to launch yourself at your foe, damaging nearby enemies on impact.\n\n\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double the damage and torment struck foes.',
+    icon: 'https://render.guildwars2.com/file/F4A01998B419F5A3B2EA7010107ED64AAE119369/2479392.png',
+    cooldown: 8,
+    skillWeapon: 'Hammer',
     // Empowerment spends this skill's Blight independently of its removable payload.
     blightCost: 5,
     // Recharge starts during the final 80 ms of the cast, including casts shortened by interruption.
@@ -108,7 +132,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     slot: 'Weapon_3',
     shroud: 'harbinger',
     shroudSlot: 3,
-    specialization: 'Harbinger',
     castTimeMs: 480,
     interruptCommitMs: 280,
     effects: [
@@ -145,13 +168,18 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.VORACIOUS_ARC]: {
+    name: 'Voracious Arc',
+    description:
+      'Leap to your destination, evading through the air. Daze enemies near your impact point.\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double the damage and torment struck foes.',
+    icon: 'https://render.guildwars2.com/file/E338A042D7F5EDB705F5A5E033F330D3C25774C5/2479406.png',
+    cooldown: 10,
+    skillWeapon: 'Hammer',
     // Empowerment spends this skill's Blight independently of its removable payload.
     blightCost: 5,
     type: 'Profession',
     slot: 'Weapon_4',
     shroud: 'harbinger',
     shroudSlot: 4,
-    specialization: 'Harbinger',
     castTimeMs: 840,
     effects: [
       {
@@ -188,13 +216,18 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.VITAL_DRAW]: {
+    name: 'Vital Draw',
+    description:
+      'Twist the souls of nearby enemies, suspending them in the air while you siphon their life force. Gain life force for each target struck.',
+    icon: 'https://render.guildwars2.com/file/71A90FD69C7E5F319B1E26F1A72CC7D65E93A84A/2479405.png',
+    cooldown: 20,
+    skillWeapon: 'Hammer',
     // Each accepted siphon funds the live pool only when its own strike arrives.
 
     type: 'Profession',
     slot: 'Weapon_5',
     shroud: 'harbinger',
     shroudSlot: 5,
-    specialization: 'Harbinger',
     castTimeMs: 800,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [

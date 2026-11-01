@@ -24,14 +24,12 @@ import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/t
 
 /** Owns Permeating Wrath tuning and behavior at its existing mechanic boundaries. */
 export const permeatingWrath = defineTrait({
-  name: 'Permeating Wrath',
   id: GUARDIAN_TRAIT_IDS.PERMEATING_WRATH,
   balance: { threshold: 3 }
 });
 
 /** Owns Inspired Virtue tuning and behavior at its existing mechanic boundaries. */
 export const inspiredVirtue = defineTrait({
-  name: 'Inspired Virtue',
   id: GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
   balance: {
     damagePerBoon: 0.005,
@@ -78,7 +76,6 @@ export const inspiredVirtue = defineTrait({
 
 /** Owns Virtue of Resolution tuning and behavior at its existing mechanic boundaries. */
 export const virtueOfResolution = defineTrait({
-  name: 'Virtue of Resolution',
   id: GUARDIAN_TRAIT_IDS.VIRTUE_OF_RESOLUTION,
   balance: {
     durationMultiplier: 1.25,
@@ -102,7 +99,6 @@ export const virtueOfResolution = defineTrait({
 
 /** Owns Inspiring Virtue tuning and behavior at its existing mechanic boundaries. */
 export const inspiringVirtue = defineTrait({
-  name: 'Inspiring Virtue',
   id: GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE,
   balance: {
     damageIncrease: 0.1,
@@ -136,7 +132,6 @@ export const inspiringVirtue = defineTrait({
 
 /** Owns Indomitable Courage tuning and behavior at its existing mechanic boundaries. */
 export const indomitableCourage = defineTrait({
-  name: 'Indomitable Courage',
   id: GUARDIAN_TRAIT_IDS.INDOMITABLE_COURAGE,
   balance: {
     pulseInterval: 30,
@@ -153,7 +148,6 @@ export const indomitableCourage = defineTrait({
 
 /** Consecrations last longer; their repeated pulses continue through the added lifetime on their own interval. */
 export const masterOfConsecrations = defineTrait({
-  name: 'Master of Consecrations',
   id: GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS,
   balance: { durationMultiplier: 1.4 },
   // Field duration is multiplied by Core after its weapon-field selection; see guardian core hooks.
@@ -165,7 +159,6 @@ export const masterOfConsecrations = defineTrait({
 
 /** Owns Power of the Virtuous tuning and behavior at its existing mechanic boundaries. */
 export const powerOfTheVirtuous = defineTrait({
-  name: 'Power of the Virtuous',
   id: GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS,
   balance: {
     attributeConversion: 0.07,
@@ -183,8 +176,7 @@ export const powerOfTheVirtuous = defineTrait({
   ]),
   rechargeRules: [
     {
-      when: (_runtime, skill) =>
-        Boolean(skill.categories?.includes('Virtue')) && /^Profession_[1-3]$/.test(String(skill.slot || '')),
+      when: (_runtime, skill) => Boolean(skill.virtue),
       multiplier: { profile: GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, field: 'rechargeMultiplier' }
     }
   ]
@@ -192,7 +184,6 @@ export const powerOfTheVirtuous = defineTrait({
 
 /** Owns Unscathed Contender tuning and behavior at its existing mechanic boundaries. */
 export const unscathedContender = defineTrait({
-  name: 'Unscathed Contender',
   id: GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05, damageIncrease: 0.05 },
@@ -218,7 +209,6 @@ export const unscathedContender = defineTrait({
 
 /** Owns Glacial Heart tuning and behavior at its existing mechanic boundaries. */
 export const glacialHeart = defineTrait({
-  name: 'Glacial Heart',
   id: GUARDIAN_TRAIT_IDS.GLACIAL_HEART,
   // Hammer 2 resolves to the selected variant, so saved rotations survive trait edits.
   hooks: {
@@ -226,7 +216,7 @@ export const glacialHeart = defineTrait({
   }
 });
 
-export const battlePresence = defineTrait({ name: 'Battle Presence', id: GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE });
+export const battlePresence = defineTrait({ id: GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE });
 
 /** Committed activation boons sample live attributes and retain their selected component and party ownership. */
 function virtueBuff(

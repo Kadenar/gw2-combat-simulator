@@ -1,14 +1,20 @@
-/** Owns Legendary Alliance stance skill fragments. */
+/** Owns Legendary Alliance stance skill definitions. */
 import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
-export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SELFISH_SPIRIT]: {
+    name: 'Selfish Spirit',
+    description:
+      'Legendary Alliance. Channel your rage into the nearby area, healing and empowering yourself for each enemy struck.',
+    icon: 'https://render.guildwars2.com/file/5D42213C0E779954D393D190FF62D6F2EADBA03D/2491620.png',
+    type: 'Heal',
+    slot: 'Heal',
+    ammoCastLockout: 10,
     cooldown: 10,
     // Override the imported ammo fact: Selfish Spirit is one channel with a normal cooldown.
-    ammo: 0,
     energyCost: 10,
     legendId: 'LegendaryAlliance',
     castTimeMs: 1000,
@@ -36,6 +42,11 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.NOMADS_ADVANCE]: {
+    name: "Nomad's Advance",
+    description: 'Legendary Alliance. Lunge forward, damaging foes and gaining might for each target struck.',
+    icon: 'https://render.guildwars2.com/file/DA3EE9BC42DF5E1ED2B908462173AF47E0C203B7/2491616.png',
+    type: 'Utility',
+    slot: 'Utility',
     cooldown: 3,
     energyCost: 10,
     legendId: 'LegendaryAlliance',
@@ -58,6 +69,11 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.REAVERS_RAGE]: {
+    name: "Reaver's Rage",
+    description: 'Legendary Alliance. Break stun and attack nearby enemies, gaining stability for each target struck.',
+    icon: 'https://render.guildwars2.com/file/0904BEED310DD2D00FC8EF5F980F4F3248075325/2491618.png',
+    type: 'Utility',
+    slot: 'Utility',
     cooldown: 10,
     energyCost: 15,
     legendId: 'LegendaryAlliance',
@@ -90,6 +106,12 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SPEAR_OF_ARCHEMORUS]: {
+    name: 'Spear of Archemorus',
+    description:
+      'Legendary Alliance. Call upon the spirit of Archemorus to hurl his spear at your foe, dealing significant damage.',
+    icon: 'https://render.guildwars2.com/file/75E2F0423C74594E045AF6A10A55065E3CE61037/2491622.png',
+    type: 'Elite',
+    slot: 'Elite',
     cooldown: 12,
     energyCost: 20,
     legendId: 'LegendaryAlliance',
@@ -117,6 +139,12 @@ export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, Partia
     )
   },
   [ID.SCAVENGER_BURST]: {
+    name: 'Scavenger Burst',
+    description:
+      'Legendary Alliance. Unleash your rage at foes in the area, gaining boons and endurance for each foe struck.',
+    icon: 'https://render.guildwars2.com/file/635D6297B7471B050BC8774CB708C590DF06DEBC/2491619.png',
+    type: 'Utility',
+    slot: 'Utility',
     cooldown: 3,
     energyCost: 15,
     legendId: 'LegendaryAlliance',

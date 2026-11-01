@@ -1,3 +1,7 @@
+import type {
+  Gw2SpecializationData,
+  Gw2TraitData
+} from '#gw2/platform/profession-definition/specialization-data-types.js';
 import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types.js';
 
 export interface ProfessionTraitSelection {
@@ -9,16 +13,8 @@ export interface ProfessionTraitSelection {
   readonly patchTraits?: Readonly<Record<string, string>>;
 }
 
-export interface ProfessionTraitSpecialization<TTrait> {
-  readonly name: string;
-  readonly minorTraits: readonly TTrait[];
-  readonly majorTraits: readonly (readonly TTrait[])[];
-}
-
-interface ProfessionTraitData<TTrait> {
-  readonly traits: readonly TTrait[];
-
-  getActiveTraits(selections?: readonly ProfessionTraitSelection[] | null): TTrait[];
+interface ProfessionTraitData {
+  getActiveTraits(selections?: readonly ProfessionTraitSelection[] | null): Gw2TraitData[];
 }
 
 /**
@@ -35,26 +31,17 @@ function parseTraitChoices(value?: string | null): readonly number[] {
 }
 
 /**
- * Creates the common profession trait-data contract directly from generated
- * specialization metadata.
+ * Indexes the nested specialization layout for active trait selection.
  */
-export function createProfessionTraitData<TTrait>(
-  catalogSpecializations: readonly ProfessionTraitSpecialization<TTrait>[]
-): ProfessionTraitData<TTrait> {
+function createProfessionTraitData(catalogSpecializations: readonly Gw2SpecializationData[]): ProfessionTraitData {
   // Index the immutable layout once; catalog overlays reuse the same specialization array.
   const byName = new Map(catalogSpecializations.map((specialization) => [specialization.name, specialization]));
-  const traits = Object.freeze(
-    catalogSpecializations.flatMap((specialization) => [
-      ...specialization.minorTraits,
-      ...specialization.majorTraits.flat()
-    ])
-  );
 
   /**
    * Retrieves the active traits based on the selected specializations.
    */
-  function getActiveTraits(selections: readonly ProfessionTraitSelection[] | null = []): TTrait[] {
-    const active: TTrait[] = [];
+  function getActiveTraits(selections: readonly ProfessionTraitSelection[] | null = []): Gw2TraitData[] {
+    const active: Gw2TraitData[] = [];
 
     for (const selection of selections || []) {
       const specialization = selection.name ? byName.get(selection.name) : undefined;
@@ -82,7 +69,6 @@ export function createProfessionTraitData<TTrait>(
   }
 
   return Object.freeze({
-    traits,
     getActiveTraits
   });
 }
@@ -118,7 +104,7 @@ export function missingPatchTraits(
     .map(({ name }) => name!);
 }
 
-const selectedTraitIndexes = new WeakMap<object, ProfessionTraitData<CatalogEntity>>();
+const selectedTraitIndexes = new WeakMap<object, ProfessionTraitData>();
 
 /** Resolve saved positions against the selected patch, sharing an index across catalogs with the same layout. */
 export function selectedTraits(
@@ -128,9 +114,7 @@ export function selectedTraits(
   let index = selectedTraitIndexes.get(catalog.specializations);
 
   if (!index) {
-    index = createProfessionTraitData(
-      catalog.specializations as unknown as readonly ProfessionTraitSpecialization<CatalogEntity>[]
-    );
+    index = createProfessionTraitData(catalog.specializations);
     selectedTraitIndexes.set(catalog.specializations, index);
   }
 

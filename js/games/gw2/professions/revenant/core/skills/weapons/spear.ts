@@ -1,4 +1,4 @@
-/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
+/** Canonical Core revenant skill definitions grouped by their GW2 owner. */
 import {
   activeStackCount,
   addTimedStacks,
@@ -18,20 +18,27 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
-export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.ABYSSAL_STRIKE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Abyssal Strike',
+    description:
+      'Melee. Hurl your weapon at your foe. If you are in close range, swing your weapon at them instead. Striking a foe reduces the cooldown of Abyssal Raze once per skill use.',
+    icon: 'https://render.guildwars2.com/file/FFEE2544DCA106D90E704F6B4E4C3DE2BBA3C9ED/3379183.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     rechargeReduction: 1,
-    nextChainId: null,
     // The spear lifecycle reduces Abyssal Raze recharge after the qualifying hit.
     castTimeMs: 520,
     interruptCommitMs: 396,
@@ -68,6 +75,13 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     )
   },
   [ID.ABYSSAL_FORCE]: {
+    name: 'Abyssal Force',
+    description:
+      'Hurl your spear toward your foes, inflicting area damage and conditions on targets struck. Striking at least one foe causes Abyssal Raze to receive a large recharge reduction.',
+    icon: 'https://render.guildwars2.com/file/0A9AFFBB077A5DC031C9E4A712C4573E97FED0EC/3379184.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_2',
     cooldown: 6,
     energyCost: 4,
     rechargeReduction: 5,
@@ -103,6 +117,13 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.ABYSSAL_BLITZ]: {
+    name: 'Abyssal Blitz',
+    description:
+      'Dash in a direction and slightly recharge Abyssal Raze while leaving portals in your wake that detonate when foes walk over them.',
+    icon: 'https://render.guildwars2.com/file/E4E54213769DC10572D31BDD4573E0B6B9A56DA6/3379185.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_3',
     cooldown: 10,
     energyCost: 10,
     rechargeReduction: 3,
@@ -137,7 +158,47 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ])
   },
+  [ID.BLITZ_MINES]: {
+    name: 'Blitz Mines',
+    description: 'Drop mines behind you as you dodge.',
+    icon: 'https://render.guildwars2.com/file/E4E54213769DC10572D31BDD4573E0B6B9A56DA6/3379185.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 0.5,
+        hits: 1,
+        name: 'Blitz Mines',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.SLOW,
+        stacks: 1,
+        duration: 3,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.WEAKNESS,
+        stacks: 1,
+        duration: 3,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
   [ID.ABYSSAL_BLOT]: {
+    name: 'Abyssal Blot',
+    description:
+      "Unleash gravitational Mist forces on your targeted area that initially pulls foes toward the center. Abyssal Raze's cooldown is reduced for each target you attempt to pull.",
+    icon: 'https://render.guildwars2.com/file/08C3096215DC0FCE3FCD46FB10E3639178C15C4E/3379186.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_4',
     cooldown: 15,
     energyCost: 12,
     // The initial pull recharges Raze by 3 seconds per target, matching the in-game tooltip.
@@ -210,10 +271,17 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.ABYSSAL_RAZE]: {
-    cooldown: 1,
+    name: 'Abyssal Raze',
+    description:
+      'Attack foes in the target area, inflicting them with conditions. Gain stacks of Crushing Abyss for each target struck, up to the maximum.',
+    icon: 'https://render.guildwars2.com/file/632F757C2309C12BCFE99FCCE4BB761FA59AECEE/3379187.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_5',
+    cooldown: 15,
     ammoCastLockout: 1,
     ammo: 3,
-    ammoRecharge: 15,
+
     energyCost: 8,
     maximumStacks: 3,
     // Impact reads live Crushing Abyss stacks, emits scaled damage, then grants one stack.
@@ -439,7 +507,7 @@ function reactRevenantSpearRecharge(runtime: RevenantRuntime, event: Gw2Resolver
   const seconds = Number(source?.rechargeReduction || 0);
   const raze = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
 
-  if (!source || !seconds || !raze || !(Number(raze.ammoRecharge) > 0)) return;
+  if (!source || !seconds || !raze || !(Number(raze.cooldown) > 0)) return;
 
   // Spear reductions are authored in base seconds; the shared controller converts them to tracked recharge time.
   const reducedBy = runtime.cooldownController.reduceSkillRecharge(raze, seconds, runtime.time);

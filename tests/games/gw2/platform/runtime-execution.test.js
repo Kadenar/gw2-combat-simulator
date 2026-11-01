@@ -248,7 +248,7 @@ function fixture({ skill = {}, hooks = {} } = {}) {
       defineNativeModule({
         id: 'Core',
         data: {
-          generatedSkills: [
+          skills: [
             {
               id: skillId,
               name: 'Measured',

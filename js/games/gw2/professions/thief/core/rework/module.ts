@@ -1,5 +1,7 @@
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { THIEF_CORE_PROFILE_FIELDS, THIEF_CORE_SKILL_FIELDS } from '#gw2/professions/thief/core/catalog-fields.js';
+import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
 import { thiefCoreReworkHooks } from '#gw2/professions/thief/core/rework/hooks.js';
 import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
 import { thiefCoreReworkUi } from '#gw2/professions/thief/core/rework/presentation.js';
@@ -7,21 +9,17 @@ import { createThiefCoreReworkState } from '#gw2/professions/thief/core/rework/s
 import { acrobaticsReworkTraits } from '#gw2/professions/thief/core/rework/traits/acrobatics.js';
 import { twinFangsRework } from '#gw2/professions/thief/core/rework/traits/critical-strikes.js';
 import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
+import { THIEF_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/thief/core/skills/autoattack-chains.js';
 import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
+import { THIEF_CORE_SKILL_FLIPS } from '#gw2/professions/thief/core/skills/skill-flips.js';
 import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { projectThiefCorePlanningState } from '#gw2/professions/thief/core/state.js';
 import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
-import { SPECIALIZATIONS } from '#gw2/professions/thief/data/thief-api-metadata.js';
+import { TRAIT_LINES } from '#gw2/professions/thief/data/trait-lines.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
-// The rework replaces Core as a unit, so it declares the same Thief Core skill fields.
-const data = createThiefModuleData('Core', {
-  profileFields: THIEF_CORE_PROFILE_FIELDS,
-  skillFields: THIEF_CORE_SKILL_FIELDS,
-  skillMechanics: THIEF_CORE_SKILL_MECHANICS,
-  extraSkills: THIEF_CORE_EXTRA_SKILLS
-});
+// This trait rework replaces Core as a unit, retaining its skill chains, follow-up admission, and fields.
 const descriptions: Record<string, string> = {
   [REWORK.DEFT_INITIATION]:
     'Your first direct strike in combat grants might and inflicts vulnerability. Completing movement or a shadowstep refreshes it. Payloads and no internal cooldown are provisional.',
@@ -44,9 +42,7 @@ const descriptions: Record<string, string> = {
 };
 
 /** Replace the legal layout without interpreting existing Live positions as different preview choices. */
-const specializations = SPECIALIZATIONS.filter((line) =>
-  data.specializations!.some((entry) => entry.id === line.id)
-).map((line) => {
+const traitLines = TRAIT_LINES.filter((line) => !line.elite).map((line) => {
   const describe = (trait: (typeof line.minorTraits)[number]) => ({
     ...trait,
     description: descriptions[trait.id] ?? trait.description
@@ -58,33 +54,32 @@ const specializations = SPECIALIZATIONS.filter((line) =>
   if (line.name !== 'Acrobatics') return line;
 
   const metadata = new Map([...line.minorTraits, ...line.majorTraits.flat()].map((trait) => [trait.id, trait]));
-  const changed = (oldId: number, id: number | string, name: string, tier: number) => ({
+  const changed = (oldId: number, id: number | string, name: string) => ({
     ...metadata.get(oldId)!,
     id,
     name,
-    tier,
     description: descriptions[id]
   });
   return {
     ...line,
     minorTraits: line.minorTraits.map((trait) =>
       trait.id === TRAIT.EXPEDITIOUS_DODGER
-        ? changed(trait.id, REWORK.DEFT_INITIATION, 'Deft Initiation', 1)
+        ? changed(trait.id, REWORK.DEFT_INITIATION, 'Deft Initiation')
         : describe(trait)
     ),
     majorTraits: [
       [
-        changed(TRAIT.INSTANT_REFLEXES, REWORK.OPPORTUNE_OPENING, 'Opportune Opening', 1),
-        changed(TRAIT.PUMPING_UP, REWORK.ENDURANCE_TRAINING, 'Endurance Training', 1),
+        changed(TRAIT.INSTANT_REFLEXES, REWORK.OPPORTUNE_OPENING, 'Opportune Opening'),
+        changed(TRAIT.PUMPING_UP, REWORK.ENDURANCE_TRAINING, 'Endurance Training'),
         metadata.get(TRAIT.PAIN_RESPONSE)!
       ],
       [
-        changed(TRAIT.ASSASSINS_REWARD, TRAIT.ASSASSINS_REWARD, "Assassin's Reward", 2),
+        changed(TRAIT.ASSASSINS_REWARD, TRAIT.ASSASSINS_REWARD, "Assassin's Reward"),
         metadata.get(TRAIT.SWINDLERS_EQUILIBRIUM)!,
         describe(metadata.get(TRAIT.HARD_TO_CATCH)!)
       ],
       [
-        changed(TRAIT.ASSASSINS_REWARD, REWORK.SHARP_INITIATION, 'Sharp Initiation', 3),
+        changed(TRAIT.ASSASSINS_REWARD, REWORK.SHARP_INITIATION, 'Sharp Initiation'),
         metadata.get(TRAIT.UPPER_HAND)!,
         describe(metadata.get(TRAIT.DONT_STOP)!)
       ]
@@ -98,11 +93,18 @@ const replaced = new Set<number | string>([TRAIT.PUMPING_UP, TRAIT.HARD_TO_CATCH
 export const thiefCoreReworkModule = defineNativeModule({
   id: 'Core',
   attributes: thiefPassiveAttributes,
-  data: {
-    ...data,
-    specializations,
-    traits: specializations.flatMap((line) => [...line.minorTraits, ...line.majorTraits.flat()])
-  },
+  data: createNativeModuleData<ThiefSkill>({
+    id: 'Core',
+    traitLines,
+    weapons: thiefCoreModule.data.weapons,
+    weaponHands: thiefCoreModule.data.weaponHands,
+    autoattackChains: THIEF_CORE_AUTOATTACK_CHAINS,
+    skillFlips: THIEF_CORE_SKILL_FLIPS,
+    profileFields: THIEF_CORE_PROFILE_FIELDS,
+    skillFields: THIEF_CORE_SKILL_FIELDS,
+    skillMechanics: THIEF_CORE_SKILL_MECHANICS,
+    extraSkills: THIEF_CORE_EXTRA_SKILLS
+  }),
   traitDefinitions: [
     ...coreTraits.filter((trait) => !replaced.has(trait.id)),
     ...acrobaticsReworkTraits,

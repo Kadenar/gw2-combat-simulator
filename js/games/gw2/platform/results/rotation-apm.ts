@@ -87,7 +87,7 @@ export function rotationApm(
       continue;
 
     seen.add(step.activationId);
-    const autoattack = activationInputKind(catalog, skill) === 'autoattack';
+    const autoattack = activationInputKind(skill) === 'autoattack';
     const castEnd = Number(activation.endsAt);
 
     // Precasts may still occupy the player inside combat; only their activation is excluded from input counts.

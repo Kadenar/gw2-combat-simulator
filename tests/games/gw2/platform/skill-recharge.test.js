@@ -16,7 +16,7 @@ test('cooldowns and sequential ammo assume permanent Alacrity before checking th
     id: 'alacrity-recharge',
     name: 'Alacrity recharge',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         { id: 990001, name: 'Cooldown', castTimeMs: 0, cooldown: 10, effects: [] },
         {
           id: 990002,
@@ -24,7 +24,7 @@ test('cooldowns and sequential ammo assume permanent Alacrity before checking th
           castTimeMs: 0,
           effects: [{ type: 'boon', boon: 'Alacrity', duration: 4, stacks: 1 }]
         },
-        { id: 990003, name: 'Ammo', castTimeMs: 0, ammo: 2, ammoRecharge: 10, effects: [] }
+        { id: 990003, name: 'Ammo', castTimeMs: 0, ammo: 2, cooldown: 10, effects: [] }
       ]
     })
   });
@@ -52,14 +52,14 @@ test('Alacrity gained during a cast leaves reserved recharge unchanged', () => {
       id: 'reserved-recharge',
       name: 'Reserved Recharge',
       catalog: createCanonicalCatalog({
-        generated: [
+        skills: [
           {
             id: 990011,
             name: 'Reserved',
             castTimeMs: 2000,
             cooldown: 20,
             effects: [],
-            ...(ammo ? { ammo: 2, ammoRecharge: 20, ammoCastLockout: 5 } : {})
+            ...(ammo ? { ammo: 2, cooldown: 20, ammoCastLockout: 5 } : {})
           }
         ]
       })
@@ -119,13 +119,13 @@ test('ordinary and ammo cooldowns wait for their detection tick even one microse
       name: 'Tick cooldown',
       castTimeMs: 0,
       cooldown: 0.475,
-      ...(ammo ? { ammo: 2, ammoRecharge: 0.475, ammoCastLockout: 0 } : {}),
+      ...(ammo ? { ammo: 2, cooldown: 0.475, ammoCastLockout: 0 } : {}),
       effects: []
     };
     const profession = defineTestProfession({
       id: 'tick-cooldown',
       name: 'Tick cooldown',
-      catalog: createCanonicalCatalog({ generated: [skill] })
+      catalog: createCanonicalCatalog({ skills: [skill] })
     });
     const result = simulateGw2({
       profession,
@@ -147,18 +147,17 @@ test('ordinary and ammo cooldowns wait for their detection tick even one microse
   }
 });
 
-test('GW2 base recharge selects positive ammo recharge before cooldown fields', () => {
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 8, cooldown: 10 }), 8);
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 0, cooldown: 10 }), 10);
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: -8, cooldown: 10 }), 10);
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: Number.POSITIVE_INFINITY, cooldown: 12 }), 12);
-  assert.equal(gw2BaseRecharge({ ammo: 0, ammoRecharge: 8, cooldown: 10 }), 10);
+test('ordinary and ammo recovery read the same canonical cooldown', () => {
+  for (const ammo of [undefined, 2]) {
+    assert.equal(gw2BaseRecharge({ ammo, cooldown: 8 }), 8);
+    assert.equal(gw2BaseRecharge({ ammo, cooldown: 0 }), 0);
+  }
 });
 
 test('GW2 base recharge accepts finite cooldowns and defaults missing or invalid values to zero', () => {
   assert.equal(gw2BaseRecharge({ cooldown: 10 }), 10);
   assert.equal(gw2BaseRecharge({ cooldown: 0 }), 0);
-  assert.equal(gw2BaseRecharge({ ammo: 2, ammoRecharge: 0, cooldown: 0 }), 0);
+  assert.equal(gw2BaseRecharge({ ammo: 2, cooldown: 0 }), 0);
   assert.equal(gw2BaseRecharge({ cooldown: Number.NaN }), 0);
   assert.equal(gw2BaseRecharge({ cooldown: Number.POSITIVE_INFINITY }), 0);
   assert.equal(gw2BaseRecharge({}), 0);
@@ -198,16 +197,16 @@ test('Warrior ammo preserves serial charge recovery', () => {
 
 test('declarative ammo consumes and recharges shared charges', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930001,
         name: 'Fixture Ammo',
         type: 'Utility',
         castTimeMs: 0,
-        cooldown: 0.25,
+        cooldown: 5,
         ammoCastLockout: 0.25,
         ammo: 2,
-        ammoRecharge: 5,
+
         effects: [{ type: 'strike', coefficient: 1 }]
       }
     ]
@@ -239,10 +238,10 @@ test('end state projects ammo and cooldowns at the resolution boundary', () => {
     name: 'Tail Ammo',
     type: 'Utility',
     castTimeMs: 0,
-    cooldown: 30,
+    cooldown: 20,
     ammoCastLockout: 30,
     ammo: 2,
-    ammoRecharge: 20,
+
     effects: [0, 2000].map((atMs) => ({
       type: 'strike',
       coefficient: 0,
@@ -255,7 +254,7 @@ test('end state projects ammo and cooldowns at the resolution boundary', () => {
   const profession = defineTestProfession({
     id: 'tail-ammo-fixture',
     name: 'Tail Ammo Fixture',
-    catalog: createCanonicalCatalog({ generated: [skill] })
+    catalog: createCanonicalCatalog({ skills: [skill] })
   });
   let rotationDamage;
   for (const [observationPolicy, time, charges] of [
@@ -283,7 +282,7 @@ test('end state projects ammo and cooldowns at the resolution boundary', () => {
 // Deadlines retain exact wall time while the next activation waits for its detection tick.
 test("shared scheduler detects a skill's cooldown expiry on the next action tick", () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930002,
         name: 'Fixture Cooldown',
@@ -334,7 +333,7 @@ test('summon recharge requires shared player Alacrity and accounts for its expir
         id: 'summon-recharge',
         name: 'Summon recharge',
         hooks: { playerAlacrityRechargeRate: 1.5, rechargeCompanionId: () => 'fixture-summon' },
-        catalog: createCanonicalCatalog({ generated: [skill] })
+        catalog: createCanonicalCatalog({ skills: [skill] })
       });
       const result = simulateGw2({
         profession: {
@@ -396,12 +395,12 @@ test('declared player recharge rate reaches cooldown and ammo scheduling', () =>
       castTimeMs: 0,
       cooldown: 12,
       effects: [],
-      ...(ammo ? { ammo: 2, ammoRecharge: 12 } : {})
+      ...(ammo ? { ammo: 2, cooldown: 12 } : {})
     };
     const profession = defineTestProfession({
       id: 'declared-recharge',
       name: 'Declared recharge',
-      catalog: createCanonicalCatalog({ generated: [skill] }),
+      catalog: createCanonicalCatalog({ skills: [skill] }),
       hooks: { playerAlacrityRechargeRate: 1.5 }
     });
     const result = simulateGw2({ profession, rotation: [skill.id, ...(ammo ? [skill.id] : []), skill.id] });

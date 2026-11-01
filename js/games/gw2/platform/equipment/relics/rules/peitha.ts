@@ -19,7 +19,7 @@ export const peitha = defineRelic({
   emitActionEffects(ctx, state, event, skill) {
     if (!isGw2PlayerActorEvent(event)) return;
 
-    if (!skill?.shadowstepSkill && !skill?.categories?.includes('Deception')) return;
+    if (!skill?.shadowstepSkill && skill?.skillFamily !== 'Deception') return;
 
     if (!isInternalCooldownReady(event.at, state.readyAt)) return;
 

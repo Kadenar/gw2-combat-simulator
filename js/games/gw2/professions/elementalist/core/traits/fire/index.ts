@@ -61,7 +61,6 @@ import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/prof
 
 /** Fire definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const empoweringFlame = defineTrait({
-  name: 'Empowering Flame',
   id: TRAIT.EMPOWERING_FLAME,
   balance: { attributeBonuses: { power: 150 } },
   // Evaluate the current attunement without feeding its temporary Power into conversions.
@@ -81,7 +80,6 @@ export const empoweringFlame = defineTrait({
 });
 
 export const inferno = defineTrait({
-  name: 'Inferno',
   id: TRAIT.INFERNO,
   // Convert the intended Power rate through the canonical Burning scaling used by combat.
   balance: { coefficientMultiplier: 0.0825 / CONDITION_FORMULAS.Burning.scaling },
@@ -95,7 +93,6 @@ export const inferno = defineTrait({
 });
 
 export const burningPrecision = defineTrait({
-  name: 'Burning Precision',
   id: TRAIT.BURNING_PRECISION,
   balance: {
     procRate: {
@@ -123,7 +120,6 @@ export const burningPrecision = defineTrait({
 });
 
 export const conjurer = defineTrait({
-  name: 'Conjurer',
   id: TRAIT.CONJURER,
   balance: {
     effects: [{ type: 'aura', name: 'Conjurer', aura: AURA.FIRE, duration: 4 }]
@@ -132,7 +128,6 @@ export const conjurer = defineTrait({
 });
 
 export const sunspot = defineTrait({
-  name: 'Sunspot',
   id: TRAIT.SUNSPOT,
   balance: {
     effects: [
@@ -154,7 +149,6 @@ export const sunspot = defineTrait({
 });
 
 export const burningRage = defineTrait({
-  name: 'Burning Rage',
   id: TRAIT.BURNING_RAGE,
   balance: {
     // The replacement burning belongs to Sunspot's shared trigger.
@@ -167,13 +161,11 @@ export const burningRage = defineTrait({
 });
 
 export const smotheringAuras = defineTrait({
-  name: 'Smothering Auras',
   id: TRAIT.SMOTHERING_AURAS,
   balance: { durationMultiplier: 1.33 }
 });
 
 export const powerOverwhelming = defineTrait({
-  name: 'Power Overwhelming',
   id: TRAIT.POWER_OVERWHELMING,
   balance: {
     minimumStacks: 10,
@@ -203,7 +195,6 @@ export const powerOverwhelming = defineTrait({
 });
 
 export const pyromancersTraining = defineTrait({
-  name: "Pyromancer's Training",
   id: TRAIT.PYROMANCERS_TRAINING,
   balance: {
     damageMultiplier: 1.07,
@@ -230,7 +221,6 @@ export const pyromancersTraining = defineTrait({
 });
 
 export const pyromancersPuissance = defineTrait({
-  name: "Pyromancer's Puissance",
   id: TRAIT.PYROMANCERS_PUISSANCE,
   balance: {
     maximumStacks: 10,
@@ -263,7 +253,6 @@ export const pyromancersPuissance = defineTrait({
 
 /** Own field extensions, stack lifetime, and damage tuning while keeping ordered resolver calls explicit. */
 export const persistingFlames = defineTrait({
-  name: 'Persisting Flames',
   id: TRAIT.PERSISTING_FLAMES,
   balance: {
     damageIncreasePerStack: 0.02,

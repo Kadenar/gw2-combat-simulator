@@ -13,7 +13,7 @@ export function wikiTooltipAttributes(
 ): string {
   if (!name || name === 'None') return '';
 
-  return `data-wiki-name="${esc(name)}" data-wiki-description="${esc(gw2ApiText(description))}" data-wiki-page="${esc(wikiName)}" data-wiki-effects="${esc(JSON.stringify(facts))}" data-wiki-effect-tabs="${esc(JSON.stringify(factTabs))}"`;
+  return `data-wiki-name="${esc(name)}" data-wiki-description="${esc(String(description ?? ''))}" data-wiki-page="${esc(wikiName)}" data-wiki-effects="${esc(JSON.stringify(facts))}" data-wiki-effect-tabs="${esc(JSON.stringify(factTabs))}"`;
 }
 
 /** Renders a locally described model; the selected simulation definitions own every numeric fact. */
@@ -206,7 +206,7 @@ export function bindWikiTooltips(): void {
           stacks == null
             ? 'aria-hidden="true"'
             : `role="img" aria-label="${esc(`${stacks} stack${stacks === 1 ? '' : 's'} of ${name}`)}"`;
-        return `<div class="wiki-tooltip-fact">${prefix ? `<span class="wiki-tooltip-fact-icon"><img src="${esc(prefix.icon)}" alt="${esc(prefix.name)}"></span>` : ''}<span class="wiki-tooltip-fact-icon" ${iconLabel}>${icon ? `<img src="${esc(icon)}" alt="">` : '✦'}${badge}</span><span>${prefix ? `<span class="wiki-tooltip-fact-source">${esc(prefix.name)}</span>` : ''}${esc(name)}${detail ? (stackDetails ? `<span class="wiki-tooltip-upgrade-detail">${esc(gw2ApiText(detail))}</span>` : `: ${esc(gw2ApiText(detail))}`) : ''}${applications > 1 ? ` × ${applications} applications` : ''}</span></div>`;
+        return `<div class="wiki-tooltip-fact">${prefix ? `<span class="wiki-tooltip-fact-icon"><img src="${esc(prefix.icon)}" alt="${esc(prefix.name)}"></span>` : ''}<span class="wiki-tooltip-fact-icon" ${iconLabel}>${icon ? `<img src="${esc(icon)}" alt="">` : '✦'}${badge}</span><span>${prefix ? `<span class="wiki-tooltip-fact-source">${esc(prefix.name)}</span>` : ''}${esc(name)}${detail ? (stackDetails ? `<span class="wiki-tooltip-upgrade-detail">${esc(String(detail ?? ''))}</span>` : `: ${esc(String(detail ?? ''))}`) : ''}${applications > 1 ? ` × ${applications} applications` : ''}</span></div>`;
       })
       .join('');
 
@@ -411,11 +411,4 @@ export function bindWikiTooltips(): void {
   };
 
   new MutationObserver(refreshTooltip).observe(document.body, { childList: true, subtree: true });
-}
-
-/** Converts GW2 API line breaks and color tags into plain tooltip text. */
-function gw2ApiText(value: unknown): string {
-  return String(value ?? '')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/?c(?:=[^>]*)?>/gi, '');
 }

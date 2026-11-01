@@ -56,14 +56,12 @@ export const SYNCOPATE_DELAY_SECONDS = 3;
 
 /** Wandering Minstrel owns baseline note capacity and instrument playing durations. */
 const wanderingMinstrel = defineTrait<MesmerSkill>({
-  name: 'Wandering Minstrel',
   id: TRAIT.WANDERING_MINSTREL,
   balance: { maximumStacks: 3, baseDuration: 5, durationPerTier: 5 }
 });
 
 /** Harmonize owns its existing profile and ordered performance consequences. */
 export const harmonize = defineTrait<MesmerSkill>({
-  name: 'Harmonize',
   id: TRAIT.HARMONIZE,
   balance: {
     resourceGain: 1
@@ -74,7 +72,6 @@ export const harmonize = defineTrait<MesmerSkill>({
 
 /** Mayhem owns its existing profile and ordered performance consequences. */
 const mayhem = defineTrait<MesmerSkill>({
-  name: 'Mayhem',
   id: TRAIT.MAYHEM,
   balance: {
     rechargeReduction: 1.5,
@@ -109,7 +106,6 @@ const mayhem = defineTrait<MesmerSkill>({
 
 /** Raconteur owns its existing profile and ordered performance consequences. */
 const raconteur = defineTrait<MesmerSkill>({
-  name: 'Raconteur',
   id: TRAIT.RACONTEUR,
   balance: {
     effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1 }]
@@ -124,7 +120,6 @@ const raconteur = defineTrait<MesmerSkill>({
 
 /** Shredding owns its existing profile and ordered performance consequences. */
 const shredding = defineTrait<MesmerSkill>({
-  name: 'Shredding',
   id: TRAIT.SHREDDING,
   balance: {
     damageIncrease: 0.15,
@@ -152,7 +147,6 @@ const shredding = defineTrait<MesmerSkill>({
 
 /** Life of the Party owns its existing profile and ordered performance consequences. */
 const lifeOfTheParty = defineTrait<MesmerSkill>({
-  name: 'Life of the Party',
   id: TRAIT.LIFE_OF_THE_PARTY,
   balance: {
     effects: [
@@ -207,7 +201,6 @@ const lifeOfTheParty = defineTrait<MesmerSkill>({
 
 /** Fortissimo owns its existing profile and ordered performance consequences. */
 export const fortissimo = defineTrait<MesmerSkill>({
-  name: 'Fortissimo',
   id: TRAIT.FORTISSIMO,
   balance: {
     attributeConversion: 0.04,
@@ -240,7 +233,6 @@ export const fortissimo = defineTrait<MesmerSkill>({
 
 /** Call and Response owns its existing profile and ordered performance consequences. */
 const callAndResponse = defineTrait<MesmerSkill>({
-  name: 'Call and Response',
   id: TRAIT.CALL_AND_RESPONSE,
   balance: {
     threshold: 3
@@ -255,14 +247,12 @@ const callAndResponse = defineTrait<MesmerSkill>({
 
 /** Symphonic Resonance owns its existing profile and ordered performance consequences. */
 const symphonicResonance = defineTrait<MesmerSkill>({
-  name: 'Symphonic Resonance',
   id: TRAIT.SYMPHONIC_RESONANCE,
   balance: { enduranceRegenerationMultiplier: 1.25 }
 });
 
 /** Altered Chord owns its existing profile and ordered performance consequences. */
 const alteredChord = defineTrait<MesmerSkill>({
-  name: 'Altered Chord',
   id: TRAIT.ALTERED_CHORD,
   balance: {
     damageIncrease: 0.25,
@@ -294,7 +284,6 @@ const alteredChord = defineTrait<MesmerSkill>({
 
 /** Register the control reaction and queued heal wave without changing their separate eligibility. */
 export const syncopate = defineTrait<MesmerSkill>({
-  name: 'Syncopate',
   id: TRAIT.SYNCOPATE,
   balance: {
     effects: [

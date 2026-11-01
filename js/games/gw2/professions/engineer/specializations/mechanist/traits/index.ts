@@ -75,7 +75,6 @@ const mechFighter = defineTrait({
 
 /** Owns Mech Arms: High-Impact Drivers command selection and existing trait behavior. */
 const highImpactDrivers = defineTrait({
-  name: 'Mech Arms: High-Impact Drivers',
   id: TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS,
   balance: {
     internalCooldown: 1,
@@ -95,7 +94,6 @@ const highImpactDrivers = defineTrait({
 
 /** Owns Mech Arms: Single-Edge Cutters command selection and existing trait behavior. */
 const singleEdgeCutters = defineTrait({
-  name: 'Mech Arms: Single-Edge Cutters',
   id: TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS,
   balance: {
     internalCooldown: 1,
@@ -140,7 +138,6 @@ const jadeDynamo = defineTrait({
 
 /** Owns Mech Core: J-Drive command selection and existing trait behavior. */
 const jDrive = defineTrait({
-  name: 'Mech Core: J-Drive',
   id: TRAIT.MECH_CORE_J_DRIVE,
   balance: { rechargeMultiplier: 0.76, damageIncrease: 0.18, conditionDamageIncrease: 0.12, effects: [] },
   rechargeRules: [
@@ -163,7 +160,6 @@ export const barrierEnginePassive = definePeriodicTask<EngineerRuntime>({
 
 /** Barrier Engine supplies its command and a combat-only passive barrier independent of mech attacks. */
 const barrierEngine = defineTrait({
-  name: 'Mech Core: Barrier Engine',
   id: TRAIT.MECH_CORE_BARRIER_ENGINE,
   balance: {
     interval: 3,
@@ -185,7 +181,6 @@ const barrierEngine = defineTrait({
 
 /** Owns Mech Frame: Conductive Alloys command selection and existing trait behavior. */
 const conductiveAlloys = defineTrait({
-  name: 'Mech Frame: Conductive Alloys',
   id: TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS,
   // Each selected frame owns its improved inheritance rather than sharing another frame's tuning.
   balance: { inheritanceRatio: 1, secondaryAttributeCap: 1500 }
@@ -193,7 +188,6 @@ const conductiveAlloys = defineTrait({
 
 /** Accepted player and mech barriers grant alacrity with one shared cooldown per recipient. */
 const channelingConduits = defineTrait({
-  name: 'Mech Frame: Channeling Conduits',
   id: TRAIT.MECH_FRAME_CHANNELING_CONDUITS,
   balance: {
     inheritanceRatio: 1,
@@ -207,7 +201,6 @@ const channelingConduits = defineTrait({
 
 /** Owns Mech Frame: Variable Mass Distributor command selection and existing trait behavior. */
 const variableMassDistributor = defineTrait({
-  name: 'Mech Frame: Variable Mass Distributor',
   id: TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR,
   balance: { precisionCap: 2500 },
   modifierRules: [
@@ -227,7 +220,6 @@ const variableMassDistributor = defineTrait({
 export const mechanistTraits = [
   // Baseline inheritance is intrinsic to the trait that grants the mech, even without explicit minor selection.
   defineTrait({
-    name: 'Mechanical Genius',
     id: TRAIT.MECHANICAL_GENIUS,
     balance: { inheritanceRatio: 0.5, secondaryAttributeCap: 750, powerCap: 2250 }
   }),

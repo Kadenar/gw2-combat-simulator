@@ -53,7 +53,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Air definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const zephyrsSpeed = defineTrait({
-  name: "Zephyr's Speed",
   id: TRAIT.ZEPHYRS_SPEED,
   balance: { criticalChance: 0.05 },
   attributes: (context) => ({
@@ -64,7 +63,6 @@ export const zephyrsSpeed = defineTrait({
 });
 
 export const freshAir = defineTrait({
-  name: 'Fresh Air',
   id: TRAIT.FRESH_AIR,
   balance: {
     attributeBonuses: { ferocity: 250 },
@@ -109,7 +107,6 @@ export const freshAir = defineTrait({
 });
 
 export const zephyrsBoon = defineTrait({
-  name: "Zephyr's Boon",
   id: TRAIT.ZEPHYRS_BOON,
   balance: {
     effects: [
@@ -125,7 +122,6 @@ export const zephyrsBoon = defineTrait({
 });
 
 export const oneWithAir = defineTrait({
-  name: 'One with Air',
   id: TRAIT.ONE_WITH_AIR,
   balance: {
     effects: [{ type: 'buff', name: 'Superspeed', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 }]
@@ -145,7 +141,6 @@ export const oneWithAir = defineTrait({
 });
 
 export const ferociousWinds = defineTrait({
-  name: 'Ferocious Winds',
   id: TRAIT.FEROCIOUS_WINDS,
   balance: { attributeConversion: 0.07 },
   attributes: traitAttributeEffects(TRAIT.FEROCIOUS_WINDS, [
@@ -161,7 +156,6 @@ export const ferociousWinds = defineTrait({
 });
 
 export const electricDischarge = defineTrait({
-  name: 'Electric Discharge',
   id: TRAIT.ELECTRIC_DISCHARGE,
   balance: {
     criticalDamage: 2,
@@ -198,7 +192,6 @@ export const electricDischarge = defineTrait({
 });
 
 export const inscription = defineTrait({
-  name: 'Inscription',
   id: TRAIT.INSCRIPTION,
   balance: {
     effects: [
@@ -225,7 +218,6 @@ export const inscription = defineTrait({
 });
 
 export const ragingStorm = defineTrait({
-  name: 'Raging Storm',
   id: TRAIT.RAGING_STORM,
   balance: {
     internalCooldown: 8,
@@ -267,7 +259,6 @@ export const ragingStorm = defineTrait({
 });
 
 export const aeromancersTraining = defineTrait({
-  name: "Aeromancer's Training",
   id: TRAIT.AEROMANCERS_TRAINING,
   balance: {
     attributeBonuses: { ferocity: 150 },
@@ -307,7 +298,6 @@ export const aeromancersTraining = defineTrait({
 });
 
 export const lightningRod = defineTrait({
-  name: 'Lightning Rod',
   id: TRAIT.LIGHTNING_ROD,
   balance: {
     effects: [
@@ -323,7 +313,6 @@ export const lightningRod = defineTrait({
 });
 
 export const stormsoul = defineTrait({
-  name: 'Stormsoul',
   id: TRAIT.STORMSOUL,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.07 },
@@ -340,7 +329,6 @@ export const stormsoul = defineTrait({
 });
 
 export const boltToTheHeart = defineTrait({
-  name: 'Bolt to the Heart',
   id: TRAIT.BOLT_TO_THE_HEART,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.2, threshold: 0.5 },

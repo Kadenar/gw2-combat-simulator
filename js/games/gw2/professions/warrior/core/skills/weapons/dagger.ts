@@ -1,13 +1,22 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Canonical Core warrior skill definitions grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
-export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.PRECISE_CUT]: {
+    name: 'Precise Cut',
+    description: 'Chain. Strike your foe. This attack deals increased critical damage.',
+    icon: 'https://render.guildwars2.com/file/F6A025001C9107083B0671ECD05CB675B14C55CA/1770652.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 320,
     dualWieldCastTimeMs: 240,
     effects: [
@@ -22,6 +31,15 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.FOCUSED_SLASH]: {
+    name: 'Focused Slash',
+    description: 'Chain. Strike your foe. This attack has increased critical-hit damage.',
+    icon: 'https://render.guildwars2.com/file/0D0AA3D1DE236ECD23425EADC0BEA7F14D950BDA/1770653.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     dualWieldEffectOffsetsMs: { 280: 200 },
     castTimeMs: 360,
     dualWieldCastTimeMs: 240,
@@ -35,6 +53,15 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.KEEN_STRIKE]: {
+    name: 'Keen Strike',
+    description: 'Chain. Strike your foe and gain might. Gain additional might on critical hit.',
+    icon: 'https://render.guildwars2.com/file/CDD5AA0442ACA973E250B90BD004375006E15607/1770654.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     dualWieldEffectOffsetsMs: { 280: 200 },
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
@@ -87,6 +114,13 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.AURA_SLICER]: {
+    name: 'Aura Slicer',
+    description: 'Leap and strike your foe, inflicting slow.',
+    icon: 'https://render.guildwars2.com/file/233BB2173EF200F430971FC8E9FE4F94A524DF77/1770655.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_2',
+    cooldown: 6,
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     castTimeMs: 840,
@@ -99,7 +133,6 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
         fieldSelectionAnchor: 'castStart'
       }
     ],
-
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -115,6 +148,13 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.DISRUPTING_STAB]: {
+    name: 'Disrupting Stab',
+    description: 'Dazes your target. If your target is using a skill, the daze duration is extended.',
+    icon: 'https://render.guildwars2.com/file/BD4E59A7AD2031F0090FF30C0307A0A8FA942FF3/1770656.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_3',
+    cooldown: 12,
     dualWieldEffectOffsetsMs: { 160: 120 },
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
@@ -133,6 +173,13 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.WASTRELS_RUIN]: {
+    name: "Wastrel's Ruin",
+    description:
+      'Strike your target and remove boons. Damage and boon removal are increased against foes not using skills or those that are defiant.',
+    icon: 'https://render.guildwars2.com/file/04677008EC13120C6201CF40DACE1B73D721FDBF/1770657.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_4',
     cooldown: 12,
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
@@ -149,8 +196,14 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.HUSHBLADE]: {
+    name: 'Hushblade',
+    description: 'Strike out in a cone before you. Enemies struck are dazed.',
+    icon: 'https://render.guildwars2.com/file/1B6242524D58120166CD0103035268A0B8D03353/1770658.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_5',
     ammo: 2,
-    ammoRecharge: 12,
+
     cooldown: 12,
     ammoCastLockout: 1,
     castTimeMs: 520,

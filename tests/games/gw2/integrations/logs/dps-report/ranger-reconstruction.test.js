@@ -266,7 +266,6 @@ test('normalizes Galeshot swap, pet, and automatic report signals', () => {
       { id: -2, skills: [{ castTime: 1000, duration: 0, timeGained: 0 }] },
       { id: -28, skills: [{ castTime: 1100, duration: 0, timeGained: 0 }] },
       { id: 76905, skills: [{ castTime: 1200, duration: 0, timeGained: 0 }] },
-      { id: 12703, skills: [{ castTime: 1300, duration: 333, timeGained: 0 }] },
       { id: 45262, skills: [{ castTime: 1700, duration: 1000, timeGained: 0 }] }
     ],
     {
@@ -276,7 +275,6 @@ test('normalizes Galeshot swap, pet, and automatic report signals', () => {
       s77213: { name: 'Dismiss Cyclone Bow', isInstantCast: true },
       's-28': { name: 'Ranger Pet Spawned', isInstantCast: true },
       s76905: { name: 'Wuthering Wind', isInstantCast: true },
-      s12703: { name: 'Regenerate' },
       s45262: { name: 'Narcotic Spores' }
     },
     { damage: [{ id: 77319, connectedHits: 3 }] }
@@ -288,7 +286,7 @@ test('normalizes Galeshot swap, pet, and automatic report signals', () => {
   assert.equal(result.actions.filter((action) => action.name === 'Swap Pets').length, 1);
   assert.equal(
     // Narcotic Spores is the Iboga's own cast, so like the other automatic signals it never becomes a command.
-    result.actions.some((action) => [76905, 12703, 45262].includes(action.rawSkillId)),
+    result.actions.some((action) => [76905, 45262].includes(action.rawSkillId)),
     false
   );
   assert.equal(

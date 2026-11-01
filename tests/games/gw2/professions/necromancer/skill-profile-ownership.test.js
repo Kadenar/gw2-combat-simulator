@@ -31,7 +31,7 @@ for (const id of [
   test(`skill ${id} owns empowered removal and Blight settlement`, () => {
     const native = necromancerProfession.runtimeFor(config);
     const skill = native.catalog.skillsById.get(id);
-    const elixir = skill.categories.includes('Elixir');
+    const elixir = skill?.skillFamily === 'Elixir';
     const action = requireSkillAction(skill, 'empowered');
     const catalog = applySkillPatch(native.catalog, {
       skills: {

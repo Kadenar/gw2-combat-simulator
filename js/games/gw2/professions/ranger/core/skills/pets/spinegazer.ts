@@ -1,16 +1,26 @@
 /**
- * Owns Core Ranger pet skill fragments for the Spinegazer family.
+ * Owns Core Ranger pet skill definitions for the Spinegazer family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
+import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // Natural Evil Eye uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.SPINEGAZER_EVIL_EYE]: {
-    petSkill: true,
+  [ID.SPINEGAZER_EVIL_EYE]: definePetSkill({
+    name: 'Evil Eye',
+    description: 'Send distressing thoughts to your enemy to torment them.',
+    icon: new URL('@images/wiki/evil-eye.png', import.meta.url).href,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Spinegazer'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 0,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_EVIL_EYE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_EVIL_EYE]!.quicknessCastTimeMs,
     effects: [
@@ -30,10 +40,19 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         actorType: ACTOR.SUMMON
       }
     ]
-  },
+  }),
   // Natural Tormenting Visions uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.SPINEGAZER_TORMENTING_VISIONS]: {
-    petSkill: true,
+  [ID.SPINEGAZER_TORMENTING_VISIONS]: definePetSkill({
+    name: 'Tormenting Visions',
+    description: 'Send distressing thoughts to your enemy to torment them.',
+    icon: 'https://render.guildwars2.com/file/CE7504440B0506240A599CF3C4F2B99D67354278/3307110.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Spinegazer'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_TORMENTING_VISIONS]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_TORMENTING_VISIONS]!.quicknessCastTimeMs,
     effects: [
@@ -55,10 +74,19 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         actorType: ACTOR.SUMMON
       }
     ]
-  },
+  }),
   // Natural Staring Void uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.SPINEGAZER_STARING_VOID]: {
-    petSkill: true,
+  [ID.SPINEGAZER_STARING_VOID]: definePetSkill({
+    name: 'Staring Void',
+    description: 'Blast demonic energy in front of you, inflicting conditions on enemies it hits.',
+    icon: 'https://render.guildwars2.com/file/777947803A61702E26031830CC27634B5A1EA756/3307109.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Spinegazer'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 15,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_STARING_VOID]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.SPINEGAZER_STARING_VOID]!.quicknessCastTimeMs,
     effects: [
@@ -85,9 +113,16 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.PANOPTICON]: {
-    petSkill: true,
+  }),
+  [ID.PANOPTICON]: definePetSkill({
+    name: 'Panopticon',
+    description: 'Beast. Fire malignant magic at nearby enemies, corrupting boons on enemies it hits.',
+    icon: 'https://render.guildwars2.com/file/B17905FB0792790A7EC1C52D193DC89F0F603BC3/3307108.png',
+    petNames: ['Spinegazer'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     quicknessCastTimeMs: 667,
     effects: [
       {
@@ -98,5 +133,5 @@ export const RANGER_CORE_SPINEGAZER_PET_SKILL_MECHANICS: Readonly<Record<number,
         actorType: ACTOR.SUMMON
       }
     ]
-  }
+  })
 });

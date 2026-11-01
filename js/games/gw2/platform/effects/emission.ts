@@ -54,6 +54,8 @@ export interface ProfileEmission extends EffectDelivery, EmissionOptions {
   readonly settlement?: 'reaction';
   readonly profile: Skill | BalanceProfile;
   readonly effects?: readonly SkillEffect[];
+  /** Application order keeps repeated sibling effects paired, including simultaneous applications. */
+  readonly order?: 'effect' | 'application';
   readonly at?: number;
   readonly fullEnd?: number;
   readonly attribution: EffectEventBase | ((effect: SkillEffect) => EffectEventBase);
@@ -204,8 +206,8 @@ export function createEffectEmissionService(host: {
     host.expansionBudget.reserve(count, label);
     const at = request.at ?? host.now();
     const events: SimulationEvent[] | undefined = request.receipt ? [] : undefined;
-    for (const effect of effects) {
-      for (const { event } of materializeSkillEffectApplications({
+    const materialize = (effect: SkillEffect) =>
+      materializeSkillEffectApplications({
         skill: request.profile,
         effect,
         reactionGroup: effect.reactions === undefined ? undefined : host.registerReaction(request.profile, effect),
@@ -213,15 +215,30 @@ export function createEffectEmissionService(host: {
         fullEnd: request.fullEnd ?? at,
         baseEvent: typeof request.attribution === 'function' ? request.attribution(effect) : request.attribution,
         skillWeaponFallback: request.skillWeaponFallback
-      })) {
-        const packet = request.transform ? request.transform(event, effect) : event;
+      });
+    const submit = (event: SimulationEventBase, effect: SkillEffect) => {
+      const packet = request.transform ? request.transform(event, effect) : event;
 
-        if (packet) {
-          const submitted = host.submit(cloneData(packet), delivery);
+      if (packet) {
+        const submitted = host.submit(cloneData(packet), delivery);
 
-          if (events) events.push(immutableReceipt(submitted));
-        }
+        if (events) events.push(immutableReceipt(submitted));
       }
+    };
+
+    // Interleave before submission so sibling conditions precede the next simultaneous strike's reactions.
+    if (request.order === 'application') {
+      const batches = effects.map(materialize);
+      const maximum = Math.max(0, ...batches.map((batch) => batch.length));
+      for (let index = 0; index < maximum; index += 1)
+        for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
+          const application = batches[effectIndex][index];
+
+          if (application) submit(application.event, effects[effectIndex]);
+        }
+    } else {
+      // Ordinary profiles retain declaration-order settlement and attribution reads between effects.
+      for (const effect of effects) for (const { event } of materialize(effect)) submit(event, effect);
     }
 
     return events ? Object.freeze(events) : undefined;

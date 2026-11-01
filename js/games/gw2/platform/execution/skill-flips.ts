@@ -117,15 +117,10 @@ export function weaponFlipBlock(
 /** The parent half of the rule: a weapon skill is hidden while its own follow-up's window is ready. */
 export function weaponFollowUpOpen(
   flips: SkillFlipWindows | undefined,
-  skill: Pick<Skill, 'type' | 'flipSkillId' | 'nextChainId'>,
+  skill: Pick<Skill, 'type' | 'flipSkillId'>,
   at: number
 ): boolean {
-  return (
-    skill.type === 'Weapon' &&
-    skill.flipSkillId != null &&
-    skill.flipSkillId !== skill.nextChainId &&
-    skillFlipReady(flips?.[skill.flipSkillId], at)
-  );
+  return skill.type === 'Weapon' && skill.flipSkillId != null && skillFlipReady(flips?.[skill.flipSkillId], at);
 }
 
 /** One follow-up window; omitted bounds open it now and leave it open until consumed. */

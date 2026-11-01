@@ -178,7 +178,7 @@ test('actual-player skill modifiers do not follow modifier ownership', () => {
   const context = {
     time: 1,
     profession: {
-      catalog: { skillsById: new Map([[1, { id: 1, categories: ['Shout'] }]]) }
+      catalog: { skillsById: new Map([[1, { id: 1, skillFamily: 'Shout' }]]) }
     }
   };
 

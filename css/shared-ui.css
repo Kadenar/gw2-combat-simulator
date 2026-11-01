@@ -357,30 +357,6 @@ a.simulator-view-tab:focus-visible {
     color 0.15s ease;
 }
 
-@media (max-width: 600px) {
-  /* Wrap global controls independently so all three tool tabs stay together on phones. */
-  body[data-profession] #app > header {
-    padding: 12px;
-  }
-
-  .simulator-header-identity,
-  .simulator-header-global {
-    width: 100%;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .simulator-header-identity {
-    flex-wrap: wrap;
-  }
-
-  .simulator-view-tab {
-    min-height: 40px;
-    padding-inline: 10px;
-    font-size: 11px;
-  }
-}
-
 @media (pointer: coarse) {
   .simulator-navigation {
     --simulator-control-height: 52px;
@@ -890,6 +866,157 @@ body[data-profession] #app > header .community-actions {
   background: color-mix(in srgb, var(--accent) 16%, var(--bg-panel));
   color: var(--accent);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
+.mobile-header-trigger,
+#simulator-global-menu:not([popover]) {
+  display: none;
+}
+
+/* Phones use three compact rows: workspace controls, equal-width tools, then the active build. */
+@media (max-width: 600px) {
+  body[data-profession] #app > header {
+    gap: 0;
+    padding: 0;
+    border-radius: 18px;
+    background: var(--bg-panel-alt);
+  }
+
+  .simulator-header-chrome {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 60px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .simulator-header-identity,
+  .simulator-workspace-control {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .simulator-header-global {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .simulator-control-label,
+  .patch-preview-picker-label,
+  .simulator-optimizer-prefix {
+    display: none;
+  }
+
+  .mobile-header-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-bright);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .mobile-header-trigger:not(.mobile-header-icon)::after {
+    content: '';
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    margin: 0 3px 3px;
+    border-right: 1.5px solid var(--text-dim);
+    border-bottom: 1.5px solid var(--text-dim);
+    transform: rotate(45deg);
+  }
+
+  .mobile-header-trigger:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .mobile-workspace-trigger {
+    width: 100%;
+    font-weight: 600;
+  }
+
+  .mobile-patch-trigger {
+    max-width: 130px;
+    color: var(--accent);
+  }
+
+  .mobile-header-icon {
+    flex: 0 0 44px;
+    width: 44px;
+    justify-content: center;
+    color: var(--text-dim);
+  }
+
+  .simulator-view-tabs {
+    padding: 0 12px;
+    border-color: var(--border-light);
+  }
+
+  .simulator-view-tab {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 4px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Existing links and bound buttons become top-layer menus only at the mobile breakpoint. */
+  .mobile-header-menu[popover] {
+    position: fixed;
+    inset: auto;
+    width: max-content;
+    min-width: 160px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--menu-surface);
+    color: var(--text);
+    box-shadow: 0 8px 24px #0006;
+  }
+
+  .mobile-header-menu[popover]:not(:popover-open) {
+    display: none;
+  }
+
+  .mobile-header-menu:popover-open,
+  #simulator-global-menu .community-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .mobile-header-menu :is(.simulator-workspace-option, .patch-preview-option, .community-link) {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    max-width: none;
+    padding: 8px 12px;
+    text-align: left;
+  }
+
+  #simulator-global-menu .simulator-profession-control > button {
+    width: 100%;
+    min-height: 44px;
+    text-align: left;
+  }
 }
 
 /* Plain rows keep preview assumptions close to Traits without adding another card. */

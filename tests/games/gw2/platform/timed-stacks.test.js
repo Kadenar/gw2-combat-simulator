@@ -6,6 +6,7 @@ import {
   addTimedStacks,
   consumeNewestStacks,
   consumeOldestStacks,
+  grantTimedStackApplications,
   grantTimedStacks,
   purgeExpiredStacks
 } from '#gw2/platform/combat/resources/timed-stacks.js';
@@ -25,7 +26,7 @@ for (const [at, duration, expiry] of [
     assert.equal(consumeNewestStacks(grant.expiries, 1, expiry).consumed, 0);
     assert.equal(addTimedStacks(grant.expiries, 1, expiry, 1, 1).added, 1);
 
-    for (const retain of ['latest-expiry', 'newest-grant']) {
+    for (const retain of ['latest-expiry', 'newest-grant', 'replace-earliest']) {
       const options = { at, expiresAt: at + duration, count: 1, maximumStacks: 1, retain };
       assert.deepEqual(grantTimedStacks([], options), [expiry]);
       assert.deepEqual(grantTimedStacks([], { ...options, at: expiry }), []);
@@ -146,4 +147,57 @@ test('the two consume policies take opposite ends and leave opposite survivors',
 test('consumeNewestStacks purges first and cannot take more than is live', () => {
   assert.deepEqual(consumeNewestStacks([1, 30, 31], 5, 5), { expiries: [], consumed: 2 });
   assert.deepEqual(consumeNewestStacks([30, 31], 0, 5), { expiries: [30, 31], consumed: 0 });
+});
+
+// Replacement spends existing capacity before admission, so repeated short grants can evict one another.
+test('replace-earliest distinguishes replacement from retaining the longest deadlines', () => {
+  const survivors = Object.freeze([30, 10, 20]);
+  const options = { at: 0, expiresAt: 5, count: 2, maximumStacks: 3, retain: 'replace-earliest' };
+  assert.deepEqual(grantTimedStacks(survivors, options), [20, 30, 5]);
+  assert.deepEqual(grantTimedStacks(survivors, { ...options, expiresAt: 25 }), [25, 30, 25]);
+  assert.deepEqual(grantTimedStacks(survivors, { ...options, expiresAt: 0 }), [20, 30]);
+  assert.deepEqual(grantTimedStacks(survivors, { ...options, count: 0, maximumStacks: 2 }), [20, 30]);
+  assert.deepEqual(grantTimedStacks(survivors, { ...options, maximumStacks: 0 }), []);
+  assert.deepEqual(survivors, [30, 10, 20]);
+});
+
+// Started applications share the numeric policy while future grants and retained source identities remain intact.
+test('timestamped stack replacement excludes pending and expired applications from live capacity', () => {
+  const pending = Object.freeze({ at: 10, expiresAt: 11, source: 'future' });
+  const survivor = Object.freeze({ at: 0, expiresAt: 30, source: 'survivor' });
+  const entries = Object.freeze([
+    Object.freeze({ at: 0, expiresAt: 1, source: 'expired' }),
+    Object.freeze({ at: 0, expiresAt: 20, source: 'replaced' }),
+    pending,
+    survivor
+  ]);
+  const granted = grantTimedStackApplications(
+    entries,
+    { at: 1, expiresAt: 5, source: 'new' },
+    {
+      at: 1,
+      count: 2,
+      maximumStacks: 2,
+      retain: 'replace-earliest'
+    }
+  );
+  assert.deepEqual(granted, [survivor, { at: 1, expiresAt: 5, source: 'new' }, pending]);
+  assert.equal(granted[0], survivor);
+  assert.equal(granted[2], pending);
+
+  const separate = grantTimedStackApplications(
+    [],
+    { at: 0.56, expiresAt: 0.56 + 0.04 },
+    {
+      at: 0.56,
+      count: 2,
+      maximumStacks: 2,
+      retain: 'replace-earliest'
+    }
+  );
+  assert.deepEqual(separate, [
+    { at: 0.56, expiresAt: 0.6 },
+    { at: 0.56, expiresAt: 0.6 }
+  ]);
+  assert.notEqual(separate[0], separate[1], 'refreshing one application must not mutate its sibling');
 });

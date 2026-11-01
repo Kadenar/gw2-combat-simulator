@@ -26,7 +26,6 @@ import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/type
 
 /** Owns this trait's tuning and selected contributions. */
 const inspiringImplements = defineTrait({
-  name: 'Inspiring Implements',
   id: TRAIT.INSPIRING_IMPLEMENTS,
   balance: {
     attributeBonuses: { concentration: 180 },
@@ -57,7 +56,6 @@ const inspiringImplements = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const invigoratingTempo = defineTrait({
-  name: 'Invigorating Tempo',
   id: TRAIT.INVIGORATING_TEMPO,
   balance: {
     resourceGain: 1
@@ -71,7 +69,6 @@ const invigoratingTempo = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const enduringRefrain = defineTrait({
-  name: 'Enduring Refrain',
   id: TRAIT.ENDURING_REFRAIN,
   balance: {
     stackMultiplier: 2,
@@ -81,7 +78,6 @@ const enduringRefrain = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const feverishPulse = defineTrait({
-  name: 'Feverish Pulse',
   id: TRAIT.FEVERISH_PULSE,
   balance: {
     rechargeReduction: 2,
@@ -96,7 +92,7 @@ const feverishPulse = defineTrait({
 
       emit: TRAIT.FEVERISH_PULSE,
       on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Chant')),
+      when: (_runtime, cast) => cast.skill.skillFamily === 'Chant',
       effects: (effect) => effect.type === 'boon' && effect.boon === BOON.ALACRITY,
       attribution: (_runtime, cast) => ({
         source: 'Paragon',
@@ -111,7 +107,6 @@ const feverishPulse = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const callToAction = defineTrait({
-  name: 'Call to Action',
   id: TRAIT.CALL_TO_ACTION,
   balance: {
     resourceGain: 4
@@ -140,7 +135,6 @@ const callToAction = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const rallyTheValiant = defineTrait({
-  name: 'Rally the Valiant',
   id: TRAIT.RALLY_THE_VALIANT,
   // The intrinsic trait owns Motivation capacity, tier thresholds, and refrain cadence.
   balance: { resourceGain: 4, maximumStacks: 10, minimumStacks: 4, threshold: 7, pulseInterval: 3 },
@@ -153,7 +147,7 @@ const rallyTheValiant = defineTrait({
         // Trait dispatch admits selection; a non-chant burst rewards motivation only while a refrain is active.
         if (
           cast.skill.burst &&
-          !cast.skill.categories?.includes('Chant') &&
+          cast.skill.skillFamily !== 'Chant' &&
           paragonState.from(runtime).activeRefrainId != null
         )
           runtime.resourceController.grant(
@@ -167,7 +161,6 @@ const rallyTheValiant = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const reverberation = defineTrait({
-  name: 'Reverberation',
   id: TRAIT.REVERBERATION,
   balance: {
     maximumStacks: 2
@@ -176,7 +169,6 @@ const reverberation = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const strengtheningStanzas = defineTrait({
-  name: 'Strengthening Stanzas',
   id: TRAIT.STRENGTHENING_STANZAS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { strikeBonus: 0.15, conditionBonus: 0.1 },
@@ -198,7 +190,6 @@ const strengtheningStanzas = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const briskPacing = defineTrait({
-  name: 'Brisk Pacing',
   id: TRAIT.BRISK_PACING,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: {

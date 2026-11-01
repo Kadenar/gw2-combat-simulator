@@ -5,7 +5,6 @@ import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.
 
 /** Owns Focus Mastery's live tuning and trait behavior. */
 export const focusMastery = defineTrait({
-  name: 'Focus Mastery',
   id: TRAIT.FOCUS_MASTERY,
   balance: {
     rechargeMultiplier: 0.8
@@ -20,7 +19,6 @@ export const focusMastery = defineTrait({
 
 /** Owns Stalwart Defender's live tuning and trait behavior. */
 export const stalwartDefender = defineTrait({
-  name: 'Stalwart Defender',
   id: TRAIT.STALWART_DEFENDER,
   balance: { attributeBonuses: { toughness: 240 } },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {

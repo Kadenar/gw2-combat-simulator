@@ -226,7 +226,7 @@ test('long allied grants do not reuse their activation order ahead of later cast
     id: 'allied-order-fixture',
     name: 'Allied order fixture',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         { id: 991601, name: 'Grant', effects: [] },
         { id: 991602, name: 'Later attack', effects: [] }
       ]
@@ -288,7 +288,7 @@ test('skill previews exclude unrelated profession procs with the selected source
   const source = defineTestProfession({
     id: 'preview-owner-fixture',
     name: 'Preview owner fixture',
-    catalog: createCanonicalCatalog({ generated: [{ id: 991603, name: 'Preview skill', effects: [] }] }),
+    catalog: createCanonicalCatalog({ skills: [{ id: 991603, name: 'Preview skill', effects: [] }] }),
     hooks: {
       onCastCommit(runtime) {
         runtime.effects.emit({

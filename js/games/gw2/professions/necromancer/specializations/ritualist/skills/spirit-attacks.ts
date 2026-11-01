@@ -3,12 +3,13 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Anguish grants this shared duration-stacking effect; its recurring damage has its own skill owner. */
 export const painfulBondSkill: Skill = {
-  id: 'ritualist.painful-bond',
   name: 'Painful Bond',
+  description: 'Automatically triggered Painful Bond effect.',
+  icon: 'https://render.guildwars2.com/file/9CA8D4479BEE9A28C810CCB0E234BAC7712104A0/3680170.png',
+  id: 'ritualist.painful-bond',
   type: 'Proc',
   simulatorExcluded: true,
   pulseInterval: 1,
-  icon: 'https://render.guildwars2.com/file/9CA8D4479BEE9A28C810CCB0E234BAC7712104A0/3680170.png',
   effects: [
     {
       name: 'necromancer-painful-bond',
@@ -35,11 +36,14 @@ export const painfulBondSkill: Skill = {
 export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   painfulBondSkill,
   {
-    id: 'necromancer.ritualist.anguish.autoattack',
     name: 'Anguish Autoattack',
+    description: 'Automatically triggered Anguish Autoattack effect.',
+    icon: 'https://render.guildwars2.com/file/9CA8D4479BEE9A28C810CCB0E234BAC7712104A0/3680170.png',
+    id: 'necromancer.ritualist.anguish.autoattack',
     type: 'Proc',
     simulatorExcluded: true,
-    castTimeMs: 0, // Effective autoattack strength fitted across both supplied logs after normalizing live damage modifiers.
+    castTimeMs: 0,
+    // Effective autoattack strength fitted across both supplied logs after normalizing live damage modifiers.
     weaponStrength: 1510,
     // Scheduling starts at cast completion, about 80 ms after spawn; the opening finishes 1840 ms later.
     initialBusyMs: 1840,
@@ -56,8 +60,10 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
     ]
   },
   {
-    id: 'necromancer.ritualist.wanderlust.autoattack',
     name: 'Wanderlust Autoattack',
+    description: 'Automatically triggered Wanderlust Autoattack effect.',
+    icon: 'https://render.guildwars2.com/file/604BAC974ED4C76FE95E32BEE6BDB3DE594F9F6C/3680178.png',
+    id: 'necromancer.ritualist.wanderlust.autoattack',
     type: 'Proc',
     simulatorExcluded: true,
     castTimeMs: 0,
@@ -77,8 +83,10 @@ export const RITUALIST_SPIRIT_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
     ]
   },
   {
-    id: 'necromancer.ritualist.preservation.autoattack',
     name: 'Preservation Autoattack',
+    description: 'Automatically triggered Preservation Autoattack effect.',
+    icon: 'https://render.guildwars2.com/file/473E92AE33757816B7205C4759F1F3065346E600/3680173.png',
+    id: 'necromancer.ritualist.preservation.autoattack',
     type: 'Proc',
     simulatorExcluded: true,
     castTimeMs: 0,

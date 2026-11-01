@@ -35,7 +35,7 @@ import {
   finalizeProfessionBuildAttributes
 } from '#gw2/professions/shared/build-attributes.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
-import { createProfessionTraitData, selectedTraits } from '#gw2/professions/shared/trait-data.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { createCalculateAttributes } from '#tests/helpers/build-attributes.js';
 
 // Generic reworks keep selection, layout and tooltip contracts independent of a temporary profession preview.
@@ -45,9 +45,9 @@ function selectionFixture() {
   const second = { id: 302, name: 'Second' };
   const line = (traits) => ({ id: 30, name: 'Line', elite: false, minorTraits: [], majorTraits: [traits] });
   const data = (traits) => ({
-    generatedSkills: [skill],
+    skills: [skill],
     traits,
-    specializations: [line(traits)]
+    traitLines: [line(traits)]
   });
   const traitDefinitions = [{ ...first, balance: { maximumStacks: 2, duration: 1 } }];
   const replacement = new Proxy(
@@ -396,7 +396,7 @@ const skill = {
 function moduleWith(traits, options = {}) {
   return defineNativeModule({
     id: 'Core',
-    data: { generatedSkills: [skill], traits: traits.map(({ id, name }) => ({ id, name })) },
+    data: { skills: [skill], traits: traits.map(({ id, name }) => ({ id, name })) },
     state: { create: () => ({ count: 0, readyAt: 0 }) },
     ...options,
     traitDefinitions: traits
@@ -651,7 +651,8 @@ test('definition attributes use resolved minors, eligible conversions and patch 
       attributes: () => [{ attributeEffects: [{ kind: 'flat', to: 'Power', amount: 10, feedsConversions: 'all' }] }]
     })
   );
-  const { getActiveTraits } = createProfessionTraitData([{ name: 'Line', minorTraits: [metadata], majorTraits: [] }]);
+  const layout = { specializations: [{ name: 'Line', minorTraits: [metadata], majorTraits: [] }] };
+  const getActiveTraits = (selections) => selectedTraits(layout, selections);
   const calculate = createCalculateAttributes((common, context) => {
     const { activeTraits } = createBuildAttributeContext(context, family.catalog, getActiveTraits);
     return finalizeProfessionBuildAttributes(

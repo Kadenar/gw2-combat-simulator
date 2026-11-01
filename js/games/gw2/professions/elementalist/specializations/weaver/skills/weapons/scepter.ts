@@ -2,7 +2,7 @@
  * Scepter weapon-skill mechanics owned by the Weaver module.
  *
  * Weaver occupies the slot-3 scepter position with a dual attack selected by the
- * unordered pair of attunements held across its two hands; every fragment names
+ * unordered pair of attunements held across its two hands; every definition names
  * its pair in `attunement`, and Weaver availability only offers the skill when
  * both of those elements are currently attuned.
  *
@@ -11,7 +11,7 @@
  */
 import { BOON, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
 /**
@@ -19,18 +19,19 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // Fire+Water. Single hit applying one condition from each element.
   [ID.FIERY_FROST]: {
     name: 'Fiery Frost',
+    description: 'Dual Attack. Launch a fire-and-ice bolt while evading and removing movement-impairing conditions.',
+    icon: 'https://render.guildwars2.com/file/6DBA0EA2450E7930C4FDE4712ADD917D3B0414CF/1770347.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SCEPTER,
     attunement: 'Fire+Water',
-    categories: ['Weapon skill'],
+
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 880,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.1 },
@@ -42,14 +43,15 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   // ms) with no conditions attached - pure strike damage split five ways.
   [ID.PLASMA_BEAM]: {
     name: 'Plasma Beam',
+    description: 'Dual Attack. Fire a superheated jet of plasma at your foe.',
+    icon: 'https://render.guildwars2.com/file/F3801A70180946B60E5F14A174BEBA15E106B60A/1770345.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SCEPTER,
     attunement: 'Fire+Air',
-    categories: ['Weapon skill'],
+
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 920,
     effects: [
       {
@@ -113,14 +115,15 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   // Burning plus three-stack Vulnerability payload.
   [ID.FRACTURING_STRIKE]: {
     name: 'Fracturing Strike',
+    description: 'Dual Attack. Call a meteor from the sky that crashes to the ground, creating an eruption of magma.',
+    icon: 'https://render.guildwars2.com/file/D21E4445D1AEF49966EC58499A602C4F6A12ADA4/1770346.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SCEPTER,
     attunement: 'Fire+Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 12,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 920,
     effects: [
       ...impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -139,14 +142,16 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   // crowd-control application on the same 480 ms packet.
   [ID.GLACIAL_DRIFT]: {
     name: 'Glacial Drift',
+    description:
+      'Dual Attack. Whirl air and ice together, sending out a supercooled projectile that chills enemies it strikes.',
+    icon: 'https://render.guildwars2.com/file/5C042406C722ADE9F213EFBECBE8612CCB3DE7FC/1770348.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SCEPTER,
     attunement: 'Air+Water',
-    categories: ['Weapon skill'],
+
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 560,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2, canCrit: true },
@@ -161,14 +166,16 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   // but Cripple is applied once, on the first pulse only.
   [ID.STONE_TIDE]: {
     name: 'Stone Tide',
+    description:
+      'Dual Attack. Bleed your foe with ice and sharpened stones. The first pulse of this skill cripples enemies.',
+    icon: 'https://render.guildwars2.com/file/44DA33C8D9B5A021615870B8E1E6FE02447E2D0A/1770344.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SCEPTER,
     attunement: 'Water+Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 600,
     effects: [
       ...impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -218,14 +225,16 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   // carries the crowd-control application.
   [ID.EARTHEN_SYNERGY]: {
     name: 'Earthen Synergy',
+    description:
+      'Dual Attack. Smite your enemies with the earth and sky, dealing damage from below and then stunning from above.',
+    icon: 'https://render.guildwars2.com/file/DE0FEF37F771955D1A2D18BD0B7C7D6A3EA209B9/1770343.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.SCEPTER,
     attunement: 'Air+Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 15,
     skillFamily: 'Weapon skill',
-    specialization: 'Weaver',
     castTimeMs: 560,
     effects: [
       {

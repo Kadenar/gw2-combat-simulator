@@ -1,9 +1,10 @@
 /**
- * Owns Amalgam offensive and defensive protocol skill fragments across mechanic slots.
+ * Owns Amalgam offensive and defensive protocol skill definitions across mechanic slots.
  * Evolved-state actions and persistent morph behavior live in their named owners.
  */
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 
@@ -19,7 +20,7 @@ const DEMOLISH_SPIN_TICKS = Object.freeze([
 const DEMOLISH_SMASH_AT_MS = 1440;
 
 // Declare each protocol once; its three catalog entries differ only in mechanic slot.
-const shred: Partial<AmalgamSkill> = {
+const shred: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 760,
@@ -80,7 +81,7 @@ const shred: Partial<AmalgamSkill> = {
   ]
 };
 
-const thorns: Partial<AmalgamSkill> = {
+const thorns: Partial<SkillDefinition<AmalgamSkill>> = {
   // The intrinsic field-gated retaliation is scheduled once; Morph trait rewards remain shared.
   maximumStacks: 6,
   retaliationInterval: 1,
@@ -119,7 +120,7 @@ const thorns: Partial<AmalgamSkill> = {
   ]
 };
 
-const demolish: Partial<AmalgamSkill> = {
+const demolish: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   rechargeAnchor: 'castStart',
@@ -179,7 +180,7 @@ const demolish: Partial<AmalgamSkill> = {
   ]
 };
 
-const obliterate: Partial<AmalgamSkill> = {
+const obliterate: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 800,
@@ -222,7 +223,7 @@ const obliterate: Partial<AmalgamSkill> = {
   ]
 };
 
-const cleanse: Partial<AmalgamSkill> = {
+const cleanse: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 0,
@@ -255,7 +256,7 @@ const cleanse: Partial<AmalgamSkill> = {
   ]
 };
 
-const pierce: Partial<AmalgamSkill> = {
+const pierce: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 680,
@@ -295,7 +296,7 @@ const pierce: Partial<AmalgamSkill> = {
   ]
 };
 
-const protect: Partial<AmalgamSkill> = {
+const protect: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 1000,
@@ -326,7 +327,7 @@ const protect: Partial<AmalgamSkill> = {
  * Thorns and Obliterate still grant their strain through `amalgamStrainOwnerId`;
  * removing the duplicate payload prevents patches from targeting unused slot-local data.
  */
-function withoutStrainPayload(skill: Partial<AmalgamSkill>): Partial<AmalgamSkill> {
+function withoutStrainPayload(skill: Partial<SkillDefinition<AmalgamSkill>>): Partial<SkillDefinition<AmalgamSkill>> {
   return {
     ...skill,
     sideEffects: skill.sideEffects?.map((rule) =>
@@ -336,39 +337,216 @@ function withoutStrainPayload(skill: Partial<AmalgamSkill>): Partial<AmalgamSkil
 }
 
 // Each protocol lists its in-game F2, F3, and F4 identities in slot order.
-export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, Partial<AmalgamSkill>>> = Object.freeze({
+export const AMALGAM_PROTOCOL_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<AmalgamSkill>>> = Object.freeze({
   // Offensive: Shred (Predator Strain).
-  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: { ...shred, mechanicSlot: 2 },
-  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: { ...shred, mechanicSlot: 3 },
-  [ID.OFFENSIVE_PROTOCOL_SHRED]: { ...shred, mechanicSlot: 4 },
+  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103]: {
+    name: 'Offensive Protocol: Shred',
+    description:
+      'Launch cutting disks at your enemies, piercing enemies in their path. Enemies struck are crippled; if an enemy is struck by all three disks, they are immobilized instead.',
+    icon: 'https://render.guildwars2.com/file/09A6184ADE9313765B0620780A27B23F4DF31D1A/3680134.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    ...shred,
+    mechanicSlot: 2
+  },
+  [ID.OFFENSIVE_PROTOCOL_SHRED_ID_76866]: {
+    name: 'Offensive Protocol: Shred',
+    description:
+      'Launch cutting disks at your enemies, piercing enemies in their path. Enemies struck are crippled; if an enemy is struck by all three disks, they are immobilized instead.',
+    icon: 'https://render.guildwars2.com/file/09A6184ADE9313765B0620780A27B23F4DF31D1A/3680134.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    ...shred,
+    mechanicSlot: 3
+  },
+  [ID.OFFENSIVE_PROTOCOL_SHRED]: {
+    name: 'Offensive Protocol: Shred',
+    description:
+      'Launch cutting disks at your enemies, piercing enemies in their path. Enemies struck are crippled; if an enemy is struck by all three disks, they are immobilized instead.',
+    icon: 'https://render.guildwars2.com/file/09A6184ADE9313765B0620780A27B23F4DF31D1A/3680134.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    ...shred,
+    mechanicSlot: 4
+  },
 
   // Offensive: Demolish (Berserker Strain).
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: { ...demolish, mechanicSlot: 2 },
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: { ...demolish, mechanicSlot: 3 },
-  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: { ...demolish, mechanicSlot: 4 },
+  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76927]: {
+    name: 'Offensive Protocol: Demolish',
+    description: 'Spin around a hunk of metal, then finish with a forward smash.',
+    icon: 'https://render.guildwars2.com/file/337E150FB638D080A5A845A73D06B3E3ED7494C7/3680128.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    ...demolish,
+    mechanicSlot: 2
+  },
+  [ID.OFFENSIVE_PROTOCOL_DEMOLISH]: {
+    name: 'Offensive Protocol: Demolish',
+    description: 'Spin around a hunk of metal, then finish with a forward smash.',
+    icon: 'https://render.guildwars2.com/file/337E150FB638D080A5A845A73D06B3E3ED7494C7/3680128.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    ...demolish,
+    mechanicSlot: 3
+  },
+  [ID.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954]: {
+    name: 'Offensive Protocol: Demolish',
+    description: 'Spin around a hunk of metal, then finish with a forward smash.',
+    icon: 'https://render.guildwars2.com/file/337E150FB638D080A5A845A73D06B3E3ED7494C7/3680128.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    ...demolish,
+    mechanicSlot: 4
+  },
 
   // Offensive: Obliterate. The F4 entry owns shared Titanic Strain tuning.
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: { ...withoutStrainPayload(obliterate), mechanicSlot: 2 },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: { ...withoutStrainPayload(obliterate), mechanicSlot: 3 },
-  [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: { ...obliterate, titanicAttributePerStack: 5, mechanicSlot: 4 },
+  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76806]: {
+    name: 'Offensive Protocol: Obliterate',
+    description: 'Create a giant blade to maim your enemy. The attack destroys the barrier of enemies hit.',
+    icon: 'https://render.guildwars2.com/file/569A167830C12BFC730095C72F1D095A7323DC3D/3680130.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    ...withoutStrainPayload(obliterate),
+    mechanicSlot: 2
+  },
+  [ID.OFFENSIVE_PROTOCOL_OBLITERATE_ID_76901]: {
+    name: 'Offensive Protocol: Obliterate',
+    description: 'Create a giant blade to maim your enemy. The attack destroys the barrier of enemies hit.',
+    icon: 'https://render.guildwars2.com/file/569A167830C12BFC730095C72F1D095A7323DC3D/3680130.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    ...withoutStrainPayload(obliterate),
+    mechanicSlot: 3
+  },
+  [ID.OFFENSIVE_PROTOCOL_OBLITERATE]: {
+    name: 'Offensive Protocol: Obliterate',
+    description: 'Create a giant blade to maim your enemy. The attack destroys the barrier of enemies hit.',
+    icon: 'https://render.guildwars2.com/file/569A167830C12BFC730095C72F1D095A7323DC3D/3680130.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    ...obliterate,
+    titanicAttributePerStack: 5,
+    mechanicSlot: 4
+  },
 
   // Offensive: Pierce (Volatile Strain).
-  [ID.OFFENSIVE_PROTOCOL_PIERCE]: { ...pierce, mechanicSlot: 2 },
-  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005]: { ...pierce, mechanicSlot: 3 },
-  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015]: { ...pierce, mechanicSlot: 4 },
+  [ID.OFFENSIVE_PROTOCOL_PIERCE]: {
+    name: 'Offensive Protocol: Pierce',
+    description: 'Thrust forward with a spike, piercing the defense of your foe.',
+    icon: 'https://render.guildwars2.com/file/6C253CBFD36ABEB219013B62C4C73193C947ED60/3680131.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    ...pierce,
+    mechanicSlot: 2
+  },
+  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77005]: {
+    name: 'Offensive Protocol: Pierce',
+    description: 'Thrust forward with a spike, piercing the defense of your foe.',
+    icon: 'https://render.guildwars2.com/file/6C253CBFD36ABEB219013B62C4C73193C947ED60/3680131.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    ...pierce,
+    mechanicSlot: 3
+  },
+  [ID.OFFENSIVE_PROTOCOL_PIERCE_ID_77015]: {
+    name: 'Offensive Protocol: Pierce',
+    description: 'Thrust forward with a spike, piercing the defense of your foe.',
+    icon: 'https://render.guildwars2.com/file/6C253CBFD36ABEB219013B62C4C73193C947ED60/3680131.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    ...pierce,
+    mechanicSlot: 4
+  },
 
   // Defensive: Thorns. The F4 entry owns shared Rapacious Strain tuning.
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: { ...withoutStrainPayload(thorns), mechanicSlot: 2 },
-  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: { ...withoutStrainPayload(thorns), mechanicSlot: 3 },
-  [ID.DEFENSIVE_PROTOCOL_THORNS]: { ...thorns, rapaciousDuration: 8, rapaciousInternalCooldown: 0.52, mechanicSlot: 4 },
+  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163]: {
+    name: 'Defensive Protocol: Thorns',
+    description:
+      'Grow protective spikes, damaging nearby enemies. For a short duration, the spikes react when you are struck, damaging nearby enemies again.',
+    icon: 'https://render.guildwars2.com/file/5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    ...withoutStrainPayload(thorns),
+    mechanicSlot: 2
+  },
+  [ID.DEFENSIVE_PROTOCOL_THORNS_ID_77104]: {
+    name: 'Defensive Protocol: Thorns',
+    description:
+      'Grow protective spikes, damaging nearby enemies. For a short duration, the spikes react when you are struck, damaging nearby enemies again.',
+    icon: 'https://render.guildwars2.com/file/5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    ...withoutStrainPayload(thorns),
+    mechanicSlot: 3
+  },
+  [ID.DEFENSIVE_PROTOCOL_THORNS]: {
+    name: 'Defensive Protocol: Thorns',
+    description:
+      'Grow protective spikes, damaging nearby enemies. For a short duration, the spikes react when you are struck, damaging nearby enemies again.',
+    icon: 'https://render.guildwars2.com/file/5B565BA46C111902EE65AB4592590442A5A6E754/3680135.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    ...thorns,
+    rapaciousDuration: 8,
+    rapaciousInternalCooldown: 0.52,
+    mechanicSlot: 4
+  },
 
   // Defensive: Cleanse (Replicating Strain).
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798]: { ...cleanse, mechanicSlot: 2 },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285]: { ...cleanse, mechanicSlot: 3 },
-  [ID.DEFENSIVE_PROTOCOL_CLEANSE]: { ...cleanse, mechanicSlot: 4 },
+  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_76798]: {
+    name: 'Defensive Protocol: Cleanse',
+    description: 'Convert damaging conditions to barrier and nondamaging conditions to protection.',
+    icon: 'https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    ...cleanse,
+    mechanicSlot: 2
+  },
+  [ID.DEFENSIVE_PROTOCOL_CLEANSE_ID_77285]: {
+    name: 'Defensive Protocol: Cleanse',
+    description: 'Convert damaging conditions to barrier and nondamaging conditions to protection.',
+    icon: 'https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    ...cleanse,
+    mechanicSlot: 3
+  },
+  [ID.DEFENSIVE_PROTOCOL_CLEANSE]: {
+    name: 'Defensive Protocol: Cleanse',
+    description: 'Convert damaging conditions to barrier and nondamaging conditions to protection.',
+    icon: 'https://render.guildwars2.com/file/71A2EA9B60E691E61521C2B621E665146BF1D1DD/3680127.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    ...cleanse,
+    mechanicSlot: 4
+  },
 
   // Defensive: Protect (Resiliant Strain).
-  [ID.DEFENSIVE_PROTOCOL_PROTECT]: { ...protect, mechanicSlot: 2 },
-  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203]: { ...protect, mechanicSlot: 3 },
-  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358]: { ...protect, mechanicSlot: 4 }
+  [ID.DEFENSIVE_PROTOCOL_PROTECT]: {
+    name: 'Defensive Protocol: Protect',
+    description: 'Briefly block incoming attacks.',
+    icon: 'https://render.guildwars2.com/file/C043950F01DF7093BA14ACCCF67D1A16F245EAA8/3680132.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    ...protect,
+    mechanicSlot: 2
+  },
+  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77203]: {
+    name: 'Defensive Protocol: Protect',
+    description: 'Briefly block incoming attacks.',
+    icon: 'https://render.guildwars2.com/file/C043950F01DF7093BA14ACCCF67D1A16F245EAA8/3680132.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    ...protect,
+    mechanicSlot: 3
+  },
+  [ID.DEFENSIVE_PROTOCOL_PROTECT_ID_77358]: {
+    name: 'Defensive Protocol: Protect',
+    description: 'Briefly block incoming attacks.',
+    icon: 'https://render.guildwars2.com/file/C043950F01DF7093BA14ACCCF67D1A16F245EAA8/3680132.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    ...protect,
+    mechanicSlot: 4
+  }
 });

@@ -44,24 +44,24 @@ export function normalizedName(value: unknown): string {
     .toLowerCase();
 }
 
-function activeSpecializationScore(skill: Skill, profile: RotationProfessionProfile): number {
+/** Core actions are shared; specialization-owned actions must belong to the active specialization. */
+function isSkillAvailableForSpecialization(skill: Skill, profile: RotationProfessionProfile): boolean {
   const specialization = normalizedName(skill.specialization);
 
-  if (!specialization) return 1;
-
-  if (specialization === normalizedName(profile.specializationName)) return 2;
-
-  // Weaponmaster Training exposes elite-specialization weapons profession-wide.
-  return normalizedName(skill.type) === 'weapon' ? 1 : 0;
+  return !specialization || specialization === normalizedName(profile.specializationName);
 }
 
-function bestCandidate(candidates: readonly Skill[], profile: RotationProfessionProfile): Skill | null {
+/** Resolve name collisions among eligible actions, preferring the active specialization over core. */
+function bestNameMatch(candidates: readonly Skill[], profile: RotationProfessionProfile): Skill | null {
   return (
     [...candidates]
-      .filter((skill) => activeSpecializationScore(skill, profile) > 0)
+      .filter((skill) => isSkillAvailableForSpecialization(skill, profile))
       .sort(
         (left, right) =>
-          activeSpecializationScore(right, profile) - activeSpecializationScore(left, profile) ||
+          Number(Boolean(normalizedName(right.specialization))) -
+            Number(Boolean(normalizedName(left.specialization))) ||
+          // Name collisions prefer an executable input over an excluded hit/proc identity.
+          Number(Boolean(left.simulatorExcluded)) - Number(Boolean(right.simulatorExcluded)) ||
           Number(left.parentId != null) - Number(right.parentId != null)
       )[0] || null
   );
@@ -70,11 +70,8 @@ function bestCandidate(candidates: readonly Skill[], profile: RotationProfession
 function parentSkill(skill: Skill, catalog: RotationCatalog, profile: RotationProfessionProfile): Skill {
   if (skill.parentId == null) return skill;
 
-  const parent = bestCandidate(
-    catalog.skills.filter((candidate) => String(candidate.id) === String(skill.parentId)),
-    profile
-  );
-  return parent || skill;
+  const parent = catalog.skillsById.get(skill.parentId);
+  return parent && isSkillAvailableForSpecialization(parent, profile) ? parent : skill;
 }
 
 /** Resolves external skill identities through the canonical catalog index. */
@@ -96,14 +93,11 @@ export function findRotationSkill(
 
   const aliasedName = profile.skillNameAliases[normalizedName(rawName)] || rawName.trim();
   const aliasedSkillId = canonicalGw2SkillId(profile.skillIdAliases[rawSkillId] ?? rawSkillId);
-  const byId = bestCandidate(
-    catalog.skills.filter((skill) => typeof skill.id === 'number' && Number(skill.id) === aliasedSkillId),
-    profile
-  );
+  const byId = catalog.skillsById.get(aliasedSkillId);
 
-  if (byId) return parentSkill(byId, catalog, profile);
+  if (byId && isSkillAvailableForSpecialization(byId, profile)) return parentSkill(byId, catalog, profile);
 
-  const byName = bestCandidate(
+  const byName = bestNameMatch(
     catalog.skills.filter((skill) => normalizedName(skill.name) === normalizedName(aliasedName)),
     profile
   );

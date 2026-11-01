@@ -283,7 +283,7 @@ test('attribute grants and recharge factors validate their shape at the catalog 
   const make = (fields) =>
     createCanonicalCatalog({
       skillFields: ELEMENTALIST_CORE_SKILL_FIELDS,
-      generated: [{ id: 1, name: 'Skill tuning', ...fields }]
+      skills: [{ id: 1, name: 'Skill tuning', ...fields }]
     });
   for (const attributeBonuses of [null, [], 3, { typo: 1 }]) {
     assert.throws(() => make({ attributeBonuses }), /attributeBonuses/);
@@ -357,7 +357,7 @@ test('skill-owned mechanic tuning validates explicit zero and numeric bounds', (
       () =>
         createCanonicalCatalog({
           skillFields: ELEMENTALIST_FIELDS,
-          generated: [{ id: 1, name: 'Invalid tuning', [field]: '1' }]
+          skills: [{ id: 1, name: 'Invalid tuning', [field]: '1' }]
         }),
       /finite|nonnegative|number|numeric/
     );

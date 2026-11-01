@@ -27,7 +27,7 @@ import {
   skillNumber,
   skillNumberFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import {
@@ -56,19 +56,22 @@ const FRIGID_FLURRY_SHOT_OFFSETS_MS = [280, 440, 640, 800, 960];
 const AERIAL_AGILITY_FLIP_WINDOW_SECONDS = 5;
 
 /**
- * Skill-id keyed fragments the Core module contributes to the pistol catalog.
+ * Skill-id keyed definitions the Core module contributes to the pistol catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SCORCHING_SHOT]: {
     name: 'Scorching Shot',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Burn your foe with a blazing bullet.',
+    icon: 'https://render.guildwars2.com/file/DA6E9962EC9966CDBBC776F23347D16298AF4ADE/3256325.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
@@ -85,11 +88,14 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // Select extra Might from the live bullet before the final action loads or spends that bullet.
   [ID.RAGING_RICOCHET]: {
     name: 'Raging Ricochet',
+    description:
+      'Conjure a bullet that bounces to nearby enemies. Gain might for each target struck.\n\nIf you have a fire bullet, consume it to gain additional might. If not, create a fire bullet.',
+    icon: 'https://render.guildwars2.com/file/7ED653511F5A3F3E6D705FF706265D3370647644/3256329.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.PISTOL,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
@@ -120,11 +126,14 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // bullet additionally grants a Fire Aura through the pistol cast handler.
   [ID.SEARING_SALVO]: {
     name: 'Searing Salvo',
+    description:
+      'Fire a shot that explodes into fragments of fire when it hits the ground.\n\nIf you have a fire bullet, consume it to gain a fire aura. If not, create a fire bullet.',
+    icon: 'https://render.guildwars2.com/file/7546C0CAE32CD437249FC903BF1AC84122B0EAC4/3256335.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 12,
     skillFamily: 'Weapon skill',
     castTimeMs: 680,
@@ -178,12 +187,15 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.SOOTHING_SPLASH]: {
     name: 'Soothing Splash',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Shoot a bullet of water. Heal for each unique condition on the enemy.',
+    icon: 'https://render.guildwars2.com/file/D2092BE1DA1F2D1D93F67E07EE010BB113794C44/3256326.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
@@ -205,11 +217,14 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // that already landed.
   [ID.FRIGID_FLURRY]: {
     name: 'Frigid Flurry',
+    description:
+      'Fire a volley of icy bullets that inflict bleeding.\n\nIf you have an ice bullet, consume it to heal for each strike. If not, create an ice bullet.',
+    icon: 'https://render.guildwars2.com/file/11DB6D78E16F6ACDE1000BF4AEF69ED5A9410BA9/3256330.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.PISTOL,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 5,
     skillFamily: 'Weapon skill',
     castTimeMs: 1000,
@@ -249,13 +264,16 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // follows that field's expiry, independently of the remaining aftercast.
   [ID.FROZEN_FUSILLADE]: {
     name: 'Frozen Fusillade',
+    description:
+      'Fire a shot that freezes the ground underneath it, creating an area that speeds up allies while slowing enemy movement.\n\nIf you have an ice bullet, consume it to cause the frozen ground to shatter when it expires. If not, create an ice bullet.',
+    icon: 'https://render.guildwars2.com/file/12144A540D981D6AC7010A7A34C1B3EF0A02D7F5/3256336.png',
     // The enhanced detonation waits this long after release, independently of ordinary packets.
     detonationDelay: 4,
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 15,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
@@ -296,12 +314,15 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.ELECTRIC_EXPOSURE]: {
     name: 'Electric Exposure',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Electrify your enemy, making them vulnerable.',
+    icon: 'https://render.guildwars2.com/file/575D6048F7B2660A3BC0D3A93CECFD49EEB1C0D1/3256323.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
@@ -319,6 +340,9 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // profession state rather than adding packets here.
   [ID.DAZING_DISCHARGE]: {
     name: 'Dazing Discharge',
+    description:
+      'Fire a shot that dazes your foe and leaves them vulnerable. \n\nIf you have an air bullet, consume it to reduce the cooldown of your next pistol skill. If not, create an air bullet.',
+    icon: 'https://render.guildwars2.com/file/43FE5D1C5B3D70422F324071037AC844CE9C01F3/3256327.png',
     // A consumed Air bullet arms one next-pistol recharge reduction for this window.
     duration: 5,
     nextSkillRechargeMultiplier: 0.67,
@@ -326,7 +350,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Weapon_2',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 8,
     skillFamily: 'Weapon skill',
     castTimeMs: 440,
@@ -352,14 +376,17 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   // links can never stock one.
   [ID.AERIAL_AGILITY]: {
     name: 'Aerial Agility',
-    autoattack: false, // This manually activated flip chain reuses the scheduler's autoattack sequencing index.
+    description:
+      'Dash then fire a quick shot. If the shot hits, you can dash again for a short time.\n\nIf you have an air bullet, consume it to remove inhibiting conditions at the start of the dash. If not, create an air bullet.',
+    icon: 'https://render.guildwars2.com/file/ADD2E4D6D49F22AF2C033058A6FF02BD316BFBC9/3256331.png',
+    autoattack: false,
+    // This manually activated flip chain reuses the scheduler's autoattack sequencing index.
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 12,
-    nextChainId: ID.AERIAL_AGILITY_CHAIN,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
     effects: [
@@ -386,14 +413,16 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.AERIAL_AGILITY_CHAIN]: {
     name: 'Aerial Agility (chain)',
+    description:
+      'Dash then fire a quick shot. If the shot hits, you can dash again for a short time.\n\nIf you have an air bullet, consume it to remove inhibiting conditions at the start of the dash. If not, create an air bullet.',
+    icon: 'https://render.guildwars2.com/file/ADD2E4D6D49F22AF2C033058A6FF02BD316BFBC9/3256331.png',
     autoattack: false,
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
-    nextChainId: ID.AERIAL_AGILITY_DASH,
     skillFamily: 'Weapon skill',
     castTimeMs: 480,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -403,14 +432,15 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.AERIAL_AGILITY_DASH]: {
     name: 'Aerial Agility (dash)',
+    description: 'Dash again.',
+    icon: 'https://render.guildwars2.com/file/B10398A8E33A70A9101F294993673004017916C1/3256333.png',
     autoattack: false,
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
-    nextChainId: ID.AERIAL_AGILITY,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -430,12 +460,15 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.PIERCING_PEBBLE]: {
     name: 'Piercing Pebble',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Bleed your foe with sharp stone.',
+    icon: 'https://render.guildwars2.com/file/4F217D25EBBFC017B4621C966BD26A7C4C6CD81C/3256324.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
@@ -451,6 +484,9 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.SHATTERING_STONE]: {
     name: 'Shattering Stone',
+    description:
+      'Fire a shot that shatters into multiple shards.\n\nIf you have an earth bullet, consume it to enhance your next few attacks to inflict bleeding. If not, create an earth bullet.',
+    icon: 'https://render.guildwars2.com/file/387446B9ED09274D20200C2F066BF4311E6D0C93/3256328.png',
     // The self buff arms these charges; impacts consume them until the window expires.
     maximumStacks: 3,
     duration: 10,
@@ -458,7 +494,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
     slot: 'Weapon_2',
     weapon: WEAPON.PISTOL,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
@@ -485,11 +521,14 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.BOULDER_BLAST]: {
     name: 'Boulder Blast',
+    description:
+      'Launch a large boulder that bleeds and immobilizes your foe.\n\nIf you have an earth bullet, consume it to gain barrier when striking an enemy. If not, create an earth bullet.',
+    icon: 'https://render.guildwars2.com/file/C0122C48115C5E59D499E101764C94CA6047062F/3256334.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.PISTOL,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 12,
     skillFamily: 'Weapon skill',
     castTimeMs: 440,
@@ -521,10 +560,12 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.ELEMENTAL_EXPLOSION]: {
     name: 'Elemental Explosion',
+    description: 'Shoot all of the elemental bullets. Gain an aura based on your current attunement.',
+    icon: 'https://render.guildwars2.com/file/95DA48632542F0073A9022C4165E570EDBD72474/3256337.png',
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.PISTOL,
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,

@@ -4,7 +4,7 @@
  */
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-scars.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
 const actions: readonly Skill[] = [
@@ -12,11 +12,12 @@ const actions: readonly Skill[] = [
   createWeaponSwapSkill(),
   {
     name: 'Swap Legends',
+    // Count the explicit bar-changing input in effort summaries.
+    description: 'Invoke the other selected legend and reset energy.',
+    icon: 'https://render.guildwars2.com/file/67CDD35F6BC3072E0837715A5E0A90646529BAA2/1030005.png',
     id: ID.SWAP_LEGENDS,
     // Custom: Switches legends and resets energy through `core/hooks.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
-    description: 'Invoke the other selected legend and reset energy.',
-    icon: '',
+    inputCategory: 'bar-swap',
     type: 'Profession',
     slot: 'Profession_1',
     cooldown: 10,

@@ -27,14 +27,12 @@ import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necr
 
 /** Spawning Power owns baseline shroud drain and the shared spirit pulse interval. */
 const spawningPower = defineTrait({
-  name: 'Spawning Power',
   id: TRAIT.SPAWNING_POWER,
   balance: { lifeForceDrain: 3, pulseInterval: 4, effects: [] }
 });
 
-/** Owns Spirits' Strength tuning and behavior at its existing execution boundaries. */
+/** Owns Spirit's Strength tuning and behavior at its existing execution boundaries. */
 const spiritsStrength = defineTrait({
-  name: "Spirits' Strength",
   id: TRAIT.SPIRITS_STRENGTH,
   balance: { damageMultiplier: 1.5 },
   modifierRules: [
@@ -54,7 +52,6 @@ const spiritsStrength = defineTrait({
 
 /** Owns Explosive Growth tuning and behavior at its existing execution boundaries. */
 const explosiveGrowth = defineTrait({
-  name: 'Explosive Growth',
   id: TRAIT.EXPLOSIVE_GROWTH,
   balance: {
     effects: [{ name: 'Strike', type: 'strike', coefficient: 1.2, hits: 1, actorType: ACTOR.EFFECT }]
@@ -64,7 +61,6 @@ const explosiveGrowth = defineTrait({
 
 /** Owns Boon of Creation tuning and behavior at its existing execution boundaries. */
 const boonOfCreation = defineTrait({
-  name: 'Boon of Creation',
   id: TRAIT.BOON_OF_CREATION,
   balance: { attributeBonuses: { concentration: 180 }, lifeForceGain: 10, effects: [] },
   attributes: traitAttributeEffects(TRAIT.BOON_OF_CREATION, [
@@ -80,7 +76,6 @@ const boonOfCreation = defineTrait({
 
 /** Owns Empowering Spirits tuning and behavior at its existing execution boundaries. */
 const empoweringSpirits = defineTrait({
-  name: 'Empowering Spirits',
   id: TRAIT.EMPOWERING_SPIRITS,
   balance: {
     effects: [
@@ -132,7 +127,6 @@ const empoweringSpirits = defineTrait({
 
 /** Owns Lingering Spirits tuning and behavior at its existing execution boundaries. */
 const lingeringSpirits = defineTrait({
-  name: 'Lingering Spirits',
   id: TRAIT.LINGERING_SPIRITS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.05 },
@@ -150,7 +144,6 @@ const lingeringSpirits = defineTrait({
 
 /** Owns Soul Twisting's ordered mechanic integration. */
 const soulTwisting = defineTrait({
-  name: 'Soul Twisting',
   id: TRAIT.SOUL_TWISTING,
   triggers: [
     onTriggerPoint(ritualistShroudEntered, { run: armSoulTwisting }),
@@ -162,7 +155,7 @@ const soulTwisting = defineTrait({
 });
 
 /** Owns Wielder's Boon's ordered mechanic integration. */
-const wieldersBoon = defineTrait({ name: "Wielder's Boon", id: TRAIT.WIELDERS_BOON });
+const wieldersBoon = defineTrait({ id: TRAIT.WIELDERS_BOON });
 
 /** Registers each native trait owner once in its existing execution order. */
 export const necromancerRitualistTraits = [

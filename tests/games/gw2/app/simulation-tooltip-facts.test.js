@@ -4,7 +4,6 @@ import test from 'node:test';
 import {
   fromModifier,
   fromProfile,
-  profileTooltip,
   simulationEffectFacts,
   skillTooltip,
   tooltipFactorChange,
@@ -17,7 +16,7 @@ const context = {
   catalog: {
     balanceProfilesById: new Map([
       [1, { id: 1, value: 1.234567891, effects: [{ type: 'condition', condition: 'Burning', duration: 2 }] }],
-      ['other', { id: 'other', value: 3, effects: [{ type: 'condition', condition: 'Bleeding', duration: 4 }] }]
+      ['other', { id: 'other', value: 3 }]
     ]),
     skillsById: new Map([[1, { id: 1, effects: [{ type: 'condition', condition: 'Torment', duration: 5 }] }]])
   },
@@ -76,7 +75,7 @@ test('fact specifications resolve selected profiles, modifier scalars, and param
   assert.deepEqual(facts(selected), ['9.8765432', '9.876543219', '9.876543219×', '7s', '+25%', '+100%', '+2%']);
 });
 
-// Trait/profile facts precede effects; skill facts follow the selected skill's effects, including computed callbacks.
+// Trait facts precede effects; skill facts follow the selected skill's effects, including computed callbacks.
 test('tooltip helpers retain their own identity, callback arguments, qualifiers, and effect ordering', () => {
   for (const computed of [false, true]) {
     let calls = 0;
@@ -90,7 +89,6 @@ test('tooltip helpers retain their own identity, callback arguments, qualifiers,
           }
         : [['value', 'Value', String]];
     const trait = traitTooltip('Trait', input(1), 'trait effect')(context, { id: 1 });
-    const profile = profileTooltip('other', 'Profile', input('other'), 'profile effect')(context, { id: 1 });
     const skill = skillTooltip('Skill', input(1, true))(context, { id: 1 });
     assert.deepEqual(
       trait.facts.map(({ name }) => name),
@@ -99,17 +97,11 @@ test('tooltip helpers retain their own identity, callback arguments, qualifiers,
     assert.equal(trait.facts[0].detail, '1.234567891');
     assert.match(trait.facts[1].detail, /trait effect/);
     assert.deepEqual(
-      profile.facts.map(({ name }) => name),
-      ['Value', 'Bleeding']
-    );
-    assert.equal(profile.facts[0].detail, '3');
-    assert.match(profile.facts[1].detail, /profile effect/);
-    assert.deepEqual(
       skill.facts.map(({ name }) => name),
       ['Torment', 'Value']
     );
     assert.equal(skill.facts[1].detail, '1.234567891');
-    assert.equal(calls, computed ? 3 : 0);
+    assert.equal(calls, computed ? 2 : 0);
   }
 });
 

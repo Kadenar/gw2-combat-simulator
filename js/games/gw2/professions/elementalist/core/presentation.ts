@@ -46,7 +46,6 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import { ELEMENTALIST_LOADOUT_SKILL_IDS } from '#gw2/professions/elementalist/data/skill-identities.js';
 import { elementalistAttunementResourceAnchor } from '#gw2/professions/elementalist/family-presentation.js';
 import type {
   ElementalistPistolBullets,
@@ -560,14 +559,12 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
         if (!skill.attunement) return skill;
 
         // Variant identity comes from the authored loadout group, independent of localized names.
-        const loadoutId = ELEMENTALIST_LOADOUT_SKILL_IDS.get(Number(skill.id));
+        const loadoutId = skill.loadoutSkillId;
         return (
           (loadoutId == null
             ? undefined
             : activeCatalog.skills.find(
-                (candidate) =>
-                  candidate.attunement === primary &&
-                  ELEMENTALIST_LOADOUT_SKILL_IDS.get(Number(candidate.id)) === loadoutId
+                (candidate) => candidate.attunement === primary && candidate.loadoutSkillId === loadoutId
               )) ?? skill
         );
       });
@@ -590,7 +587,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
         };
       }
 
-      const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)] || AURA_TRANSMUTE_SKILLS[Number(skill.nextChainId)];
+      const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)] || AURA_TRANSMUTE_SKILLS[Number(skill.flipSkillId)];
 
       if (aura) {
         const active = Boolean(

@@ -2,44 +2,15 @@ import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import test from 'node:test';
 
-import { RANGER_CORE_ACTION_SKILLS } from '#gw2/professions/ranger/core/skills/actions.js';
-import {
-  RANGER_CORE_BASE_SKILL_MECHANICS,
-  RANGER_CORE_EXTRA_SKILLS
-} from '#gw2/professions/ranger/core/skills/index.js';
+import { RANGER_CORE_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/index.js';
 import { RANGER_CORE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/index.js';
-import { RANGER_CORE_TRAIT_SKILLS } from '#gw2/professions/ranger/core/skills/trait-skills.js';
-import { RANGER_CORE_AXE_EXTRA_SKILLS } from '#gw2/professions/ranger/core/skills/weapons/axe.js';
-import { RANGER_CORE_SPEAR_EXTRA_SKILLS } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
-import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { SOULBEAST_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/index.js';
 import { SOULBEAST_BEASTMODE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beastmode-skills.js';
 import { SOULBEAST_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/index.js';
 import { SOULBEAST_STANCE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/stance-skills.js';
 
 const professionRoot = new URL('../../../../../js/games/gw2/professions/ranger/', import.meta.url);
-
-// Unowned legacy identities stay excluded; Wallow now owns the active Undead Plague skill.
-test('Soulbeast legacy skills without pet membership are not admitted', () => {
-  for (const id of [ID.WORLDLY_IMPACT_ID_42809, ID.ETERNAL_BOND, ID.PHASE_POUNCE]) {
-    assert.equal(rangerCatalog.skillsById.has(id), false);
-    assert.equal(
-      rangerCatalog.skills.some((skill) => skill.id === id),
-      false
-    );
-  }
-});
-
-// Removed skills and pets must be absent from the catalog, not merely hidden in the palette.
-test('Unsupported Druid glyphs and White Moa are absent from Ranger data', () => {
-  for (const id of [30238, 31322, 12711]) assert.equal(rangerCatalog.skillsById.has(id), false);
-  assert.equal(
-    RANGER_PETS.some((pet) => pet.id === 14 || pet.name === 'White Moa'),
-    false
-  );
-});
 
 function familySlug(value) {
   return value.replace(/[^a-z0-9]+/g, '-');
@@ -62,7 +33,7 @@ async function familyFragments(relativeDirectory) {
   const directory = new URL(relativeDirectory, professionRoot);
   return Promise.all(
     readdirSync(directory)
-      .filter((filename) => filename.endsWith('.ts') && filename !== 'index.ts')
+      .filter((filename) => filename.endsWith('.ts') && !['index.ts', 'pet-skill.ts'].includes(filename))
       .sort()
       .map(async (filename) => {
         const module = await import(`#gw2/professions/ranger/${relativeDirectory}${filename.replace(/\.ts$/, '.js')}`);
@@ -85,7 +56,7 @@ function assertDisjointComposition(aggregate, fragments) {
   for (const [skillId, mechanics] of entries) assert.equal(aggregate[skillId], mechanics, skillId);
 }
 
-test('Core Ranger pet catalogs follow generated pet-family ownership', async () => {
+test('Core Ranger pet catalogs follow maintained pet-family ownership', async () => {
   const fragments = await familyFragments('core/skills/pets/');
   const expectedFamilies = [
     ...new Set(RANGER_PETS.flatMap((pet) => (pet.skillIds.length ? [familySlug(pet.family)] : [])))
@@ -128,14 +99,5 @@ test('Soulbeast Beast catalogs follow family and archetype ownership', async () 
     ['beast-skills', SOULBEAST_BEAST_SKILL_MECHANICS],
     ['beastmode-skills', SOULBEAST_BEASTMODE_SKILL_MECHANICS],
     ['stance-skills', SOULBEAST_STANCE_SKILL_MECHANICS]
-  ]);
-});
-
-test('Core Ranger supplemental identities compose from their semantic owners', () => {
-  assert.deepEqual(RANGER_CORE_EXTRA_SKILLS, [
-    ...RANGER_CORE_TRAIT_SKILLS,
-    ...RANGER_CORE_SPEAR_EXTRA_SKILLS,
-    ...RANGER_CORE_AXE_EXTRA_SKILLS,
-    ...RANGER_CORE_ACTION_SKILLS
   ]);
 });

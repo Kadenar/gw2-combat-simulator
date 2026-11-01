@@ -23,7 +23,7 @@ const empoweredSkill: DescribeSimulationTooltip = (balanceContext, entity) => {
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
 
   const action = requireSkillAction(selected, 'empowered');
-  const elixir = selected.categories?.includes('Elixir');
+  const elixir = selected.skillFamily === 'Elixir';
   const base = simulationEffectFacts(selected.effects);
   const empowered = simulationEffectFacts(action.effects);
   return {

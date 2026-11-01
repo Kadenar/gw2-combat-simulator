@@ -75,7 +75,6 @@ const boon = (name: string, boonName: string, stacks: number, duration: number):
 
 /** Owns Evocation tuning at its existing execution boundaries. */
 const evocation = defineTrait({
-  name: 'Evocation',
   id: TRAIT.EVOCATION,
   balance: {
     // Evocation unlocks both charge pools, weapon gains, and the shared attunement lockout.
@@ -99,7 +98,6 @@ const evocation = defineTrait({
 
 /** Owns Elemental Balance tuning at its existing execution boundaries. */
 const elementalBalance = defineTrait({
-  name: 'Elemental Balance',
   id: TRAIT.ELEMENTAL_BALANCE,
   balance: {
     threshold: 2,
@@ -116,7 +114,6 @@ const elementalBalance = defineTrait({
 
 /** Owns Elemental Dynamo tuning at its existing execution boundaries. */
 const elementalDynamo = defineTrait({
-  name: 'Elemental Dynamo',
   id: TRAIT.ELEMENTAL_DYNAMO,
   balance: {
     resourceGain: 1
@@ -130,7 +127,6 @@ const elementalDynamo = defineTrait({
 
 /** Owns Specialized Elements tuning at its existing execution boundaries. */
 const specializedElements = defineTrait({
-  name: 'Specialized Elements',
   id: TRAIT.SPECIALIZED_ELEMENTS,
   balance: {
     rechargeMultiplier: 0.9,
@@ -170,7 +166,6 @@ function applyGalvanicEnchantment(
 
 /** Owns Galvanic Enchantment tuning at its existing execution boundaries. */
 const galvanicEnchantment = defineTrait({
-  name: 'Galvanic Enchantment',
   id: TRAIT.GALVANIC_ENCHANTMENT,
   balance: {
     // Trait and familiar grants consume the same Electric Enchantment pool.
@@ -191,7 +186,6 @@ const galvanicEnchantment = defineTrait({
 
 /** Owns Enhanced Potency tuning at its existing execution boundaries. */
 const enhancedPotency = defineTrait({
-  name: 'Enhanced Potency',
   id: TRAIT.ENHANCED_POTENCY,
   balance: {
     criticalChance: 0.15,
@@ -240,7 +234,6 @@ const enhancedPotency = defineTrait({
 
 /** Owns Familiar's Prowess tuning at its existing execution boundaries. */
 const familiarsProwess = defineTrait({
-  name: "Familiar's Prowess",
   id: TRAIT.FAMILIARS_PROWESS,
   balance: {
     baseDuration: 5,
@@ -291,7 +284,6 @@ const familiarsProwess = defineTrait({
 
 /** Owns Altruistic Aspect tuning at its existing execution boundaries. */
 const altruisticAspect = defineTrait({
-  name: 'Altruistic Aspect',
   id: TRAIT.ALTRUISTIC_ASPECT,
   balance: {
     effects: [
@@ -311,7 +303,6 @@ const altruisticAspect = defineTrait({
 
 /** Focus owns its replacement bonuses; Prowess modifiers consume them during the applied window. */
 const familiarsFocus = defineTrait({
-  name: "Familiar's Focus",
   id: TRAIT.FAMILIARS_FOCUS,
   balance: {
     damageIncrease: 0.1,
@@ -321,7 +312,6 @@ const familiarsFocus = defineTrait({
 
 /** Owns Familiar's Blessing tuning at its existing execution boundaries. */
 const familiarsBlessing = defineTrait({
-  name: "Familiar's Blessing",
   id: TRAIT.FAMILIARS_BLESSING,
   balance: {
     effects: [boon(BOON.QUICKNESS, boonKey(BOON.QUICKNESS), 1, 1.75), boon(BOON.ALACRITY, boonKey(BOON.ALACRITY), 1, 4)]
@@ -336,7 +326,6 @@ const familiarsBlessing = defineTrait({
 
 /** Fiery Might multiplies strikes against burning targets when selected. */
 const fieryMight = defineTrait({
-  name: 'Fiery Might',
   id: TRAIT.FIERY_MIGHT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05 },

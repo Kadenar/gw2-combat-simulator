@@ -33,7 +33,6 @@ const DISABLE_CONTROL_KINDS: ReadonlySet<string> = new Set([
 
 /** Owns HGH tuning and behavior at its established runtime and build boundaries. */
 export const hgh = defineTrait({
-  name: 'HGH',
   id: TRAIT.HGH,
   balance: {
     durationMultiplier: 1.2,
@@ -68,7 +67,6 @@ export const hgh = defineTrait({
 
 /** Owns Compounding Chemicals tuning and behavior at its established runtime and build boundaries. */
 export const compoundingChemicals = defineTrait({
-  name: 'Compounding Chemicals',
   id: TRAIT.COMPOUNDING_CHEMICALS,
   balance: { attributeBonuses: { concentration: 240 } },
   attributes: traitAttributeEffects(TRAIT.COMPOUNDING_CHEMICALS, [
@@ -78,7 +76,6 @@ export const compoundingChemicals = defineTrait({
 
 /** Owns Boiling Point tuning: gaining Might at or above the threshold grants Fury on a short ICD. */
 export const boilingPoint = defineTrait({
-  name: 'Boiling Point',
   id: TRAIT.BOILING_POINT,
   balance: {
     threshold: 5,
@@ -103,7 +100,6 @@ export const boilingPoint = defineTrait({
 
 /** Healing toolbelt activations create one player-owned blast, including issuance of F1 mech commands. */
 export const blastZone = defineTrait({
-  name: 'Blast Zone',
   id: TRAIT.BLAST_ZONE,
   balance: {
     effects: [
@@ -136,7 +132,6 @@ export const blastZone = defineTrait({
 
 /** Owns Equal and Opposite Reaction tuning: player disables grant Quickness and Stability on a short ICD. */
 export const equalAndOppositeReaction = defineTrait({
-  name: 'Equal and Opposite Reaction',
   id: TRAIT.EQUAL_AND_OPPOSITE_REACTION,
   balance: {
     internalCooldown: 1,
@@ -162,7 +157,7 @@ export const equalAndOppositeReaction = defineTrait({
 /** Owns HGH's elixir cast effects and scheduled-event duration extension. */
 
 function isElixirSkill(skill: EngineerSkill | undefined): boolean {
-  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'elixir'));
+  return skill?.skillFamily === 'Elixir';
 }
 
 // HGH's final Acid Bomb pulse uses a fixed delivery offset from the completed cast.

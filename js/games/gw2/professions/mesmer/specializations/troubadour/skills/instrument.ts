@@ -1,8 +1,11 @@
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerInstrument } from '#gw2/professions/mesmer/types.js';
 
 /** Builds the canonical skill payload for one Troubadour instrument. */
-export function instrumentSkill(skill: Partial<MesmerSkill> & { instrument: MesmerInstrument }): Partial<MesmerSkill> {
+export function instrumentSkill(
+  skill: Partial<SkillDefinition<MesmerSkill>> & { instrument: MesmerInstrument }
+): Partial<SkillDefinition<MesmerSkill>> {
   const instrument = skill.instrument;
   return {
     ...skill,

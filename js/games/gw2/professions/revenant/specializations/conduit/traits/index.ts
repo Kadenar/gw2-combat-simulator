@@ -45,7 +45,6 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Owns Bolstered Bonds tuning and behavior at its established execution boundaries. */
 const bolsteredBonds = defineTrait({
-  name: 'Bolstered Bonds',
   id: TRAIT.BOLSTERED_BONDS,
   balance: {
     assassinAttributeBonuses: { power: 75, ferocity: 75 },
@@ -97,7 +96,6 @@ const BUILD_ATTRIBUTE_NAMES = Object.freeze({
 
 /** Owns Conductive Armaments tuning and behavior at its established execution boundaries. */
 const conductiveArmaments = defineTrait({
-  name: 'Conductive Armaments',
   id: TRAIT.CONDUCTIVE_ARMAMENTS,
   triggers: [
     onTriggerPoint(energyCostAccepted, {
@@ -109,7 +107,6 @@ const conductiveArmaments = defineTrait({
 
 /** Owns Enhanced Embodiment tuning and behavior at its established execution boundaries. */
 const enhancedEmbodiment = defineTrait({
-  name: 'Enhanced Embodiment',
   id: TRAIT.ENHANCED_EMBODIMENT,
   balance: {
     rechargeMultiplier: 0.6,
@@ -133,7 +130,6 @@ const enhancedEmbodiment = defineTrait({
 
 /** Owns Expanded Consciousness tuning and behavior at its established execution boundaries. */
 const expandedConsciousness = defineTrait({
-  name: 'Expanded Consciousness',
   id: TRAIT.EXPANDED_CONSCIOUSNESS,
   balance: { resourceGain: 15, effects: [] },
   triggers: [
@@ -146,7 +142,6 @@ const expandedConsciousness = defineTrait({
 
 /** Owns Found Purpose tuning and behavior at its established execution boundaries. */
 const foundPurpose = defineTrait({
-  name: 'Found Purpose',
   id: TRAIT.FOUND_PURPOSE,
   triggers: [
     onTriggerPoint(conduitLegendSettled, {
@@ -158,14 +153,12 @@ const foundPurpose = defineTrait({
 
 /** Owns Kinetic Insight tuning and behavior at its established execution boundaries. */
 const kineticInsight = defineTrait({
-  name: 'Kinetic Insight',
   id: TRAIT.KINETIC_INSIGHT,
   balance: { rechargeMultiplier: 0.8, resourceGain: 2, effects: [] }
 });
 
 /** Owns Lingering Determination tuning and behavior at its established execution boundaries. */
 const lingeringDetermination = defineTrait({
-  name: 'Lingering Determination',
   id: TRAIT.LINGERING_DETERMINATION,
   balance: { resourceGain: 2, effects: [] },
   triggers: [
@@ -178,7 +171,6 @@ const lingeringDetermination = defineTrait({
 
 /** Owns Mistfire tuning and behavior at its established execution boundaries. */
 const mistfire = defineTrait({
-  name: 'Mistfire',
   id: TRAIT.MISTFIRE,
   balance: {
     internalCooldown: 1,
@@ -237,7 +229,6 @@ const numinousDurations = traitAttributeBonuses(TRAIT.NUMINOUS_GIFT, (profile) =
 
 /** Owns Numinous Gift tuning and behavior at its established execution boundaries. */
 const numinousGiftTrait = defineTrait({
-  name: 'Numinous Gift',
   id: TRAIT.NUMINOUS_GIFT,
   balance: {
     damageIncrease: 0.05,
@@ -312,7 +303,6 @@ const numinousGiftTrait = defineTrait({
 
 /** Owns Shared Wisdom tuning and behavior at its established execution boundaries. */
 const sharedWisdom = defineTrait({
-  name: 'Shared Wisdom',
   id: TRAIT.SHARED_WISDOM,
   balance: {
     // Shared Wisdom's base and skill-specific boons all affect the same five-person party.
@@ -391,7 +381,6 @@ const sharedWisdom = defineTrait({
 
 /** Enigmatic Connection owns the intrinsic Affinity capacity of every Conduit build. */
 const enigmaticConnection = defineTrait({
-  name: 'Enigmatic Connection',
   id: TRAIT.ENIGMATIC_CONNECTION,
   balance: { maximumStacks: 5 }
 });

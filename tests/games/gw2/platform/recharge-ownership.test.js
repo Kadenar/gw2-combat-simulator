@@ -5,7 +5,7 @@ import { gw2RechargeIntervals } from '#gw2/platform/combat/recharge.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 
-const magazine = { id: 1, name: 'Magazine', ammo: 3, ammoRecharge: 5 };
+const magazine = { id: 1, name: 'Magazine', ammo: 3, cooldown: 5 };
 const ordinary = { id: 2, name: 'Ordinary', cooldown: 10 };
 const preserved = { id: 3, name: 'Preserved', cooldown: 20 };
 function fixture() {
@@ -14,7 +14,7 @@ function fixture() {
   const controller = createCooldownController({
     clock: state,
     skillFor: (id) => catalog.get(id),
-    rechargeDuration: (skill) => skill.ammoRecharge ?? skill.cooldown
+    rechargeDuration: (skill) => skill.cooldown
   });
   return { state, controller };
 }

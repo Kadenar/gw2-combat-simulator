@@ -1,17 +1,24 @@
 import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { soaringDevastationEffects } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
 
 /**
- * Owns Dragonhunter virtue and trap skill fragments.
+ * Owns Dragonhunter virtue and trap skill definitions.
  * Runtime virtue and trap behavior remains under `mechanics/` and `execution/virtues.ts`.
  */
 
-export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SPEAR_OF_JUSTICE]: {
+    name: 'Spear of Justice',
+    description:
+      'Virtue. Burn foes every few attacks.\nActivate: Hurl a spear of light that passes through foes. Enemies struck become tethered and receive conditions periodically.',
+    icon: 'https://render.guildwars2.com/file/05BF0016EC3AF1EE01F6C405C3BB01EE6CAAE095/1012863.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    virtue: 'justice',
     // The landed tether owns these deferred condition templates and its cadence.
     duration: 6,
     tetherInterval: 1,
@@ -68,6 +75,14 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effectVariants: [triggeredVirtueEffects]
   },
   [ID.PURIFICATION]: {
+    name: 'Purification',
+    description:
+      'Trap. Heal yourself and imbue your light into a trap. Enemies that trigger this trap are damaged and blinded as the light returns to you for a second heal.',
+    icon: 'https://render.guildwars2.com/file/07382144AF0B367539A7EF6AD61D7DCCA26759AC/1012868.png',
+    type: 'Heal',
+    slot: 'Heal',
+    skillFamily: 'Trap',
+    cooldown: 24,
     castTimeMs: 600,
     // Keep trap damage and blindness on the same delayed trigger.
     effects: impactEffects({ atMs: 1560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -85,6 +100,13 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ])
   },
   [ID.SHIELD_OF_COURAGE]: {
+    name: 'Shield of Courage',
+    description: 'Virtue. Grant aegis and block attacks in front of you.',
+    icon: 'https://render.guildwars2.com/file/09DE3F47930AFF2B2B3F4C20A401DCA9DC7344CC/1012865.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    virtue: 'courage',
+    cooldown: 45,
     // Passive Aegis is delivered only by the readiness-aware scheduler.
     passiveInterval: 40,
     castTimeMs: 0,
@@ -103,6 +125,12 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effectVariants: [triggeredVirtueEffects]
   },
   [ID.WINGS_OF_RESOLVE]: {
+    name: 'Wings of Resolve',
+    description: 'Virtue. Dart forward and heal allies near your destination.',
+    icon: 'https://render.guildwars2.com/file/A054A5300BF26FBAA601611BDA07B6001830FF92/1012864.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    virtue: 'resolve',
     cooldown: 25,
     castTimeMs: 0,
     effects: [],
@@ -110,6 +138,13 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     effectVariants: [soaringDevastationEffects]
   },
   [ID.DRAGONS_MAW]: {
+    name: "Dragon's Maw",
+    description: 'Trap. Lay a trap that pulls enemies and creates a barrier that holds them in.',
+    icon: 'https://render.guildwars2.com/file/71FF4F27E1404DAD3EB1A63A4214A9797F740810/1024103.png',
+    type: 'Elite',
+    slot: 'Elite',
+    skillFamily: 'Trap',
+    cooldown: 40,
     castTimeMs: 440,
     // Group the closing jaws' effects while Might retains its earlier trigger.
     effects: [
@@ -143,6 +178,13 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]
   },
   [ID.PROCESSION_OF_BLADES]: {
+    name: 'Procession of Blades',
+    description: 'Trap. Set a trap that whirls around and damages enemies when activated.',
+    icon: 'https://render.guildwars2.com/file/D891D0C60ED609CB5C65ECFED69D3FFF077FD3E4/1012878.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Trap',
+    cooldown: 16,
     castTimeMs: 440,
     effects: [
       {
@@ -158,6 +200,14 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]
   },
   [ID.FRAGMENTS_OF_FAITH]: {
+    name: 'Fragments of Faith',
+    description:
+      "Trap. Lay a trap that deals damage and unleashes multiple fragments into the area when triggered. Each fragment grants aegis to allies, as long as they don't already have aegis.",
+    icon: 'https://render.guildwars2.com/file/32106907940C3F0AB9E771C014BF59D4DE285241/1012877.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Trap',
+    cooldown: 25,
     castTimeMs: 200,
     effects: [
       {
@@ -168,6 +218,12 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill
     ]
   },
   [ID.HUNTERS_VERDICT]: {
+    name: "Hunter's Verdict",
+    description:
+      "Pull all enemies tethered by the Spear of Justice to you, breaking the link. This ability's recharge is separate from that of Spear of Justice.",
+    icon: 'https://render.guildwars2.com/file/02C8A032F60414D0FAB7D0AFD965B5BA0947D6F8/103703.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     cooldown: 40,
     castTimeMs: 0,
     effects: [

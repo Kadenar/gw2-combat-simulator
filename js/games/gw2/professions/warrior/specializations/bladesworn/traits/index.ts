@@ -38,7 +38,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */
 const unseenSword = defineTrait({
-  name: 'Unseen Sword',
   id: TRAIT.UNSEEN_SWORD,
   balance: {
     internalCooldown: 4,
@@ -59,7 +58,6 @@ const unseenSword = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const sharpAsTheWind = defineTrait({
-  name: 'Sharp as the Wind',
   id: TRAIT.SHARP_AS_THE_WIND,
   balance: {
     internalCooldown: 4,
@@ -79,7 +77,6 @@ const sharpAsTheWind = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const riversFlow = defineTrait({
-  name: "River's Flow",
   id: TRAIT.RIVERS_FLOW,
   balance: {
     internalCooldown: 4,
@@ -98,7 +95,6 @@ const riversFlow = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const dragonscaleDefense = defineTrait({
-  name: 'Dragonscale Defense',
   id: TRAIT.DRAGONSCALE_DEFENSE,
   balance: {
     effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
@@ -118,7 +114,6 @@ const dragonscaleDefense = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const fierceAsFire = defineTrait({
-  name: 'Fierce as Fire',
   id: TRAIT.FIERCE_AS_FIRE,
   balance: {
     // Damage, presentation, and tooltip consumers share this trait's balance values.
@@ -152,7 +147,6 @@ export const fierceAsFire = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const lushForest = defineTrait({
-  name: 'Lush Forest',
   id: TRAIT.LUSH_FOREST,
   balance: {
     rechargeReduction: 0.75
@@ -167,7 +161,6 @@ const lushForest = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const daringDragon = defineTrait({
-  name: 'Daring Dragon',
   id: TRAIT.DARING_DRAGON,
   balance: {
     // Daring Dragon owns its reduced capacity alongside its increased charge cost.
@@ -202,7 +195,6 @@ const daringDragon = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const gunsAndGlory = defineTrait({
-  name: 'Guns and Glory',
   id: TRAIT.GUNS_AND_GLORY,
   balance: {
     attributeBonuses: { ferocity: 250 },
@@ -233,14 +225,12 @@ const gunsAndGlory = defineTrait({
 
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
 const gunXSword = defineTrait({
-  name: 'Gun X Sword',
   id: TRAIT.GUN_X_SWORD,
   balance: { maximumStacks: 100, energyRegenerationPerSecond: 2, attributePerStack: 2 }
 });
 
 /** Add the selected stun to the authored Dragon Slash release. */
 const unyieldingDragon = defineTrait({
-  name: 'Unyielding Dragon',
   id: TRAIT.UNYIELDING_DRAGON,
   hooks: {
     modifyEffects(runtime, cast, effects) {

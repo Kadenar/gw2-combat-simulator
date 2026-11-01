@@ -29,7 +29,7 @@ function tempestStateSnapshot(context: ElementalistUiContext): RotationStateSnap
   return items;
 }
 
-/** Presentation fragment the Tempest module contributes to the elementalist UI contract. */
+/** Presentation definition the Tempest module contributes to the elementalist UI contract. */
 export const tempestUi: ElementalistUiSlice = Object.freeze({
   /** Hold the native outgoing-damage windows independently of the Attribute Preview. */
   previewControls(context) {

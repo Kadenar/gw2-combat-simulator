@@ -2,7 +2,7 @@ import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_LANDING_MS } from '#gw2/professions/revenant/data/vindicator-dodge.js';
@@ -36,9 +36,14 @@ export function scheduleLanding(runtime: RevenantRuntime, cast: RuntimeCast<Reve
   });
 }
 
-export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // Saint's Shield replaces dodge damage with a party alacrity application at the landing effect point.
   [ID.SAINTS_SHIELD]: {
+    name: "Saint's Shield",
+    description: 'Drop from above, granting barrier and healing to allies in the affected area.',
+    icon: 'https://render.guildwars2.com/file/42D514BF15A3F84ECECBACC7E05F95CAE03EBF6D/2491539.png',
+    type: 'Action',
+    slot: 'Action',
     cooldown: 0,
     energyCost: 0,
     castTimeMs: VINDICATOR_LANDING_MS,
@@ -56,6 +61,11 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.DEATH_DROP]: {
+    name: 'Death Drop',
+    description: 'Drop from above, delivering a massive strike on the focused area.',
+    icon: 'https://render.guildwars2.com/file/2864D963D3FC9156E6F52FA95DD34C2DE30306BE/2491537.png',
+    type: 'Action',
+    slot: 'Action',
     cooldown: 0,
     energyCost: 0,
     castTimeMs: VINDICATOR_LANDING_MS,
@@ -78,6 +88,11 @@ export const VINDICATOR_DODGE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ]
   },
   [ID.IMPERIAL_IMPACT]: {
+    name: 'Imperial Impact',
+    description: 'Drop from above, delivering a powerful attack to enemies while granting boons to allies.',
+    icon: 'https://render.guildwars2.com/file/955F334FAA12550A15127A6200CB7BDE4D41BD0A/2491538.png',
+    type: 'Action',
+    slot: 'Action',
     cooldown: 0,
     energyCost: 0,
     castTimeMs: VINDICATOR_LANDING_MS,

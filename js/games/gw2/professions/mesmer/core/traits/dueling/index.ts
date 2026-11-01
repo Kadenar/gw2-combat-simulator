@@ -58,7 +58,6 @@ function superiorityComplexFactor(context: Gw2ModifierContext): number {
 
 /** Fencer's Finesse shares active tuning with its ordered imperative reactions. */
 export const fencersFinesse = defineTrait<MesmerSkill>({
-  name: "Fencer's Finesse",
   id: TRAIT.FENCERS_FINESSE,
   balance: {
     attributePerStack: 15,
@@ -90,7 +89,6 @@ export const fencersFinesse = defineTrait<MesmerSkill>({
 
 /** Ineptitude shares active tuning with its ordered imperative reactions. */
 export const ineptitude = defineTrait<MesmerSkill>({
-  name: 'Ineptitude',
   id: TRAIT.INEPTITUDE,
   balance: {
     internalCooldown: 3,
@@ -112,7 +110,6 @@ export const ineptitude = defineTrait<MesmerSkill>({
 
 /** Master Fencer shares active tuning with its ordered imperative reactions. */
 export const masterFencer = defineTrait<MesmerSkill>({
-  name: 'Master Fencer',
   id: TRAIT.MASTER_FENCER,
   balance: {
     internalCooldown: 8,
@@ -146,7 +143,6 @@ export const masterFencer = defineTrait<MesmerSkill>({
 
 /** Sharper Images shares active tuning with its ordered imperative reactions. */
 export const sharperImages = defineTrait<MesmerSkill>({
-  name: 'Sharper Images',
   id: TRAIT.SHARPER_IMAGES,
   balance: {
     effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 5, stacks: 1 }]
@@ -161,7 +157,6 @@ export const sharperImages = defineTrait<MesmerSkill>({
 
 /** Phantasmal Fury shares active tuning with its ordered imperative reactions. */
 export const phantasmalFury = defineTrait<MesmerSkill>({
-  name: 'Phantasmal Fury',
   id: TRAIT.PHANTASMAL_FURY,
   balance: {
     criticalChance: 0.25
@@ -180,7 +175,6 @@ export const phantasmalFury = defineTrait<MesmerSkill>({
 
 /** Superiority Complex shares active tuning with its ordered imperative reactions. */
 export const superiorityComplex = defineTrait<MesmerSkill>({
-  name: 'Superiority Complex',
   id: TRAIT.SUPERIORITY_COMPLEX,
   balance: {
     highHealthFactor: 1.15,
@@ -201,7 +195,6 @@ export const superiorityComplex = defineTrait<MesmerSkill>({
 
 /** Blindness follows the native confusion shatter packets at their existing emission boundary. */
 export const blindingDissipation = defineTrait<MesmerSkill>({
-  name: 'Blinding Dissipation',
   id: TRAIT.BLINDING_DISSIPATION,
   balance: {
     effects: [{ name: CONDITION.BLINDNESS, type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 3 }]
@@ -216,7 +209,6 @@ export const blindingDissipation = defineTrait<MesmerSkill>({
 
 /** Mirage invokes this reward only after its dodge has granted cloak. */
 export const deceptiveEvasion = defineTrait<MesmerSkill>({
-  name: 'Deceptive Evasion',
   id: TRAIT.DECEPTIVE_EVASION,
   triggers: [
     onTriggerPoint(mesmerEvaded, {
@@ -228,7 +220,6 @@ export const deceptiveEvasion = defineTrait<MesmerSkill>({
 
 /** Only the player's resolved critical hits grant Vigor; illusion critical hits never claim the cooldown. */
 export const criticalInfusion = defineTrait<MesmerSkill>({
-  name: 'Critical Infusion',
   id: TRAIT.CRITICAL_INFUSION,
   balance: {
     internalCooldown: 10,

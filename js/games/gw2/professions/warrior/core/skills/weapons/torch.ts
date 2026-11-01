@@ -1,12 +1,21 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Canonical Core warrior skill definitions grouped by their GW2 owner. */
 import { COMBO_FIELD, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { conditionTimeline, impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
-export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.BLAZE_BREAKER]: {
-    cooldown: 12,
+    name: 'Blaze Breaker',
+    description: 'Smash your torch into the ground, creating a deadly shock wave that conditions foes.',
+    icon: 'https://render.guildwars2.com/file/2697E50F35B6DE6874F80BDBE31D3CEE8029349F/1058648.png',
+    type: 'Weapon',
+    weapon: 'Torch',
+    slot: 'Weapon_4',
+    ammoCastLockout: 12,
+    ammo: 2,
+
+    cooldown: 15,
     castTimeMs: 480,
     interruptMode: 'commit',
     // Preserve committed blast effects and hold the cast lane through the remaining animation.
@@ -42,6 +51,13 @@ export const WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Part
     )
   },
   [ID.FLAMES_OF_WAR]: {
+    name: 'Flames of War',
+    description:
+      'Cleanse conditions and become a mobile fire field that burns nearby foes. When the field expires, it explodes, damaging foes and burning them again.',
+    icon: 'https://render.guildwars2.com/file/F7A4B096DB511FBE534A636C6E62E19505A70910/1058649.png',
+    type: 'Weapon',
+    weapon: 'Torch',
+    slot: 'Weapon_5',
     cooldown: 20,
     castTimeMs: 520,
     comboFields: [

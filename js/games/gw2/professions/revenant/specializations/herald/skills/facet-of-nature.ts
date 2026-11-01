@@ -10,7 +10,7 @@ import {
   requireSkillFromContext,
   skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
@@ -25,8 +25,14 @@ const FACET_OF_NATURE_PALETTE_TILE = 'revenant-herald-facet-of-nature';
 const TRUE_NATURE_SHARED_COOLDOWN = 20;
 
 /** Nature variants share one facet, palette tile, and recharge while their authored effects remain legend-specific. */
-export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.FACET_OF_NATURE]: {
+    name: 'Facet of Nature',
+    description:
+      'Legendary Dragon. Facet. Place the Facet of Nature on yourself to grant nearby allies enhancements based on your channeled legend.',
+    icon: 'https://render.guildwars2.com/file/590F7657AB11171A35304E5DDA6FDA5B2EC70350/1058606.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     cooldown: 0,
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 1,
@@ -73,6 +79,11 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ]
   },
   [ID.TRUE_NATURE_ASSASSIN]: {
+    name: 'True Nature',
+    description: 'Legendary Dragon. Consume. Strip boons from nearby enemies.',
+    icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
@@ -98,6 +109,11 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ]
   },
   [ID.TRUE_NATURE_DWARF]: {
+    name: 'True Nature',
+    description: 'Legendary Dragon. Consume. Grant stability to nearby allies.',
+    icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
@@ -121,6 +137,11 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ]
   },
   [ID.TRUE_NATURE_DRAGON]: {
+    name: 'True Nature',
+    description: "Legendary Dragon. Consume. Increase the duration of allies' boons. Remove conditions from allies.",
+    icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
@@ -148,6 +169,11 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ]
   },
   [ID.TRUE_NATURE_CENTAUR]: {
+    name: 'True Nature',
+    description: 'Legendary Dragon. Consume. Cleanse conditions from nearby allies. Heal for each condition removed.',
+    icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,
@@ -163,6 +189,12 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skil
     ]
   },
   [ID.TRUE_NATURE_DEMON]: {
+    name: 'True Nature',
+    description:
+      'Legendary Dragon. Consume. Transfer conditions to nearby enemies. Gain might for each condition transferred.',
+    icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     paletteTileId: FACET_OF_NATURE_PALETTE_TILE,
     paletteTileOrder: 2,
     cooldown: TRUE_NATURE_SHARED_COOLDOWN,

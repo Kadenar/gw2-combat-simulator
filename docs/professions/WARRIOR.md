@@ -15,13 +15,12 @@ state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
 
 ## Data
 
-- Generated identity metadata lives in `data/`; consult its header for snapshot provenance. API-omitted Bladesworn
-  gunsaber and Dragon Slash skills are checked in as supplemental identities.
-- Refresh: `npm run update:warrior-data`. The updater drops invalid API skill `62857`, repairs Dragon Trigger's dangling
-  flip reference, and regenerates API metadata, Warrior IDs, and supplemental skills without overwriting the owner-local
-  mechanics catalogs.
-- The generator uses Wiki skill infoboxes to identify supplemental skills, then fetches their API metadata. It does not
-  generate activation timings; those remain authored in the owning Core and specialization skill modules.
+- Maintained skill and trait constants live in `data/ids.ts`.
+- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
+  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
+  required.
+- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
+  complete declarations contributed by each module.
 
 ## Trait ownership
 

@@ -11,8 +11,10 @@ const MINION_PROJECTILE_FINISHER = Object.freeze({
 /** Canonical actor skills preserve their own packets, stats, and recovery without player activations. */
 export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   {
-    id: 'necromancer.minion.blood-fiend.attack',
     name: 'blood-fiend attack',
+    description: 'Automatically triggered blood-fiend attack effect.',
+    icon: 'https://render.guildwars2.com/file/9BB42A45780BC6D0F5F8157BC26A64A3C31DAF02/103088.png',
+    id: 'necromancer.minion.blood-fiend.attack',
     type: 'Proc',
     simulatorExcluded: true,
     castTimeMs: 0,
@@ -43,8 +45,10 @@ export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze(
     ]
   },
   {
-    id: 'necromancer.minion.bone-fiend.attack',
     name: 'bone-fiend attack',
+    description: 'Automatically triggered bone-fiend attack effect.',
+    icon: 'https://render.guildwars2.com/file/941C6A21F67EAD342859D2783715A10D79D0C236/103802.png',
+    id: 'necromancer.minion.bone-fiend.attack',
     type: 'Proc',
     simulatorExcluded: true,
     castTimeMs: 0,
@@ -135,8 +139,10 @@ export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze(
     ]
   },
   {
-    id: 'necromancer.minion.bone-minion.attack',
     name: 'bone-minion attack',
+    description: 'Automatically triggered bone-minion attack effect.',
+    icon: 'https://render.guildwars2.com/file/9369C81D9A6B4E026BD4F39A1F11495F35C24F6D/103804.png',
+    id: 'necromancer.minion.bone-minion.attack',
     type: 'Proc',
     simulatorExcluded: true,
     castTimeMs: 0,
@@ -166,8 +172,10 @@ export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze(
     ]
   },
   {
-    id: 'necromancer.minion.shadow-fiend.attack',
     name: 'shadow-fiend attack',
+    description: 'Automatically triggered shadow-fiend attack effect.',
+    icon: 'https://render.guildwars2.com/file/79FD0497A0BD625E0AD19A3A93C60946CB6C46E1/103819.png',
+    id: 'necromancer.minion.shadow-fiend.attack',
     type: 'Proc',
     simulatorExcluded: true,
     castTimeMs: 0,
@@ -198,8 +206,10 @@ export const NECROMANCER_MINION_ATTACK_SKILLS: readonly Skill[] = Object.freeze(
     ]
   },
   {
-    id: 'necromancer.minion.flesh-golem.attack',
     name: 'flesh-golem attack',
+    description: 'Automatically triggered flesh-golem attack effect.',
+    icon: 'https://render.guildwars2.com/file/0C9376D8AC320CB10F43D6F9D37B5458316AC9DF/103840.png',
+    id: 'necromancer.minion.flesh-golem.attack',
     type: 'Proc',
     simulatorExcluded: true,
     castTimeMs: 0,

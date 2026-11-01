@@ -3,10 +3,14 @@ import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
+import { REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/profession-skills.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_LEGEND_SPECIALIZATIONS } from '#gw2/professions/revenant/data/legends.js';
-import { REVENANT_DECLARED_SKILLS } from '#gw2/professions/revenant/data/module-data.js';
 import { revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import { CONDUIT_ENTITY_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
+import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
+import { RENEGADE_WARBAND_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
+import { VINDICATOR_PROFESSION_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/profession-skills.js';
 import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
@@ -26,10 +30,6 @@ interface RevenantLegendLoadoutContext extends SlotLoadoutContext {
   };
 }
 
-function icon(name: string): string {
-  return REVENANT_DECLARED_SKILLS.find((skill) => skill.name === name && skill.icon)?.icon || '';
-}
-
 function compactLegendName(name: string): string {
   return name.replace(/^Legendary\s+/, '').replace(/\s+Stance$/, '');
 }
@@ -39,7 +39,7 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
     {
       id: LEGEND.ASSASSIN,
       name: 'Legendary Assassin Stance',
-      icon: icon('Legendary Assassin Stance'),
+      icon: REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS[SKILL.LEGENDARY_ASSASSIN_STANCE].icon,
       skillIds: [
         SKILL.ENCHANTED_DAGGERS,
         SKILL.IMPOSSIBLE_ODDS,
@@ -51,7 +51,7 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
     {
       id: LEGEND.DEMON,
       name: 'Legendary Demon Stance',
-      icon: icon('Legendary Demon Stance'),
+      icon: REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS[SKILL.LEGENDARY_DEMON_STANCE].icon,
       skillIds: [
         SKILL.EMPOWERING_MISERY,
         SKILL.PAIN_ABSORPTION,
@@ -63,7 +63,7 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
     {
       id: LEGEND.DWARF,
       name: 'Legendary Dwarf Stance',
-      icon: icon('Legendary Dwarf Stance'),
+      icon: REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS[SKILL.LEGENDARY_DWARF_STANCE].icon,
       skillIds: [
         SKILL.SOOTHING_STONE,
         SKILL.INSPIRING_REINFORCEMENT,
@@ -75,7 +75,7 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
     {
       id: LEGEND.CENTAUR,
       name: 'Legendary Centaur Stance',
-      icon: icon('Legendary Centaur Stance'),
+      icon: REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS[SKILL.LEGENDARY_CENTAUR_STANCE].icon,
       skillIds: [
         SKILL.PROJECT_TRANQUILITY,
         SKILL.NATURAL_HARMONY,
@@ -87,7 +87,7 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
     {
       id: LEGEND.DRAGON,
       name: 'Legendary Dragon Stance',
-      icon: icon('Legendary Dragon Stance'),
+      icon: HERALD_BASE_SKILL_MECHANICS[SKILL.LEGENDARY_DRAGON_STANCE].icon,
       specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.DRAGON],
       skillIds: [
         SKILL.FACET_OF_LIGHT,
@@ -100,7 +100,7 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
     {
       id: LEGEND.RENEGADE,
       name: 'Legendary Renegade Stance',
-      icon: icon('Legendary Renegade Stance'),
+      icon: RENEGADE_WARBAND_SKILL_MECHANICS[SKILL.LEGENDARY_RENEGADE_STANCE].icon,
       specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.RENEGADE],
       skillIds: [
         SKILL.BREAKRAZORS_BASTION,
@@ -113,7 +113,7 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
     {
       id: LEGEND.ALLIANCE,
       name: 'Legendary Alliance Stance',
-      icon: icon('Legendary Alliance Stance'),
+      icon: VINDICATOR_PROFESSION_SKILL_MECHANICS[SKILL.LEGENDARY_ALLIANCE_STANCE].icon,
       specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.ALLIANCE],
       skillIds: [
         SKILL.SELFISH_SPIRIT,
@@ -126,7 +126,7 @@ export const REVENANT_LEGENDS: readonly RevenantLegend[] = Object.freeze(
     {
       id: LEGEND.ENTITY,
       name: 'Legendary Entity Stance',
-      icon: icon('Legendary Entity Stance'),
+      icon: CONDUIT_ENTITY_SKILL_MECHANICS[SKILL.LEGENDARY_ENTITY_STANCE].icon,
       specialization: REVENANT_LEGEND_SPECIALIZATIONS[LEGEND.ENTITY],
       skillIds: [
         SKILL.SHIELDING_HANDS,

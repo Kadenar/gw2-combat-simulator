@@ -1,4 +1,4 @@
-/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
+/** Canonical Core revenant skill definitions grouped by their GW2 owner. */
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
@@ -7,14 +7,22 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.MIST_SWING]: {
+    name: 'Mist Swing',
+    description: 'Swing at enemies with your greatsword.',
+    icon: 'https://render.guildwars2.com/file/026F28C66841AB712101E7CF5F455AA763FDA59D/2491614.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 400,
@@ -32,6 +40,14 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.MIST_SLASH]: {
+    name: 'Mist Slash',
+    description: 'Swing your greatsword again, inflicting vulnerability.',
+    icon: 'https://render.guildwars2.com/file/B804E1B5A7DBE19128CFE837143DDD49EC76532E/2491613.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 600,
@@ -56,6 +72,14 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ])
   },
   [ID.ARCING_MISTS]: {
+    name: 'Arcing Mists',
+    description: 'Cleave your foes, inflicting vulnerability and chilling them.',
+    icon: 'https://render.guildwars2.com/file/97D0026DECBA06EB2C9E7042C30D613DBAA71E9E/2491606.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 680,
@@ -87,6 +111,12 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ])
   },
   [ID.MIST_UNLEASHED]: {
+    name: 'Mist Unleashed',
+    description: 'Hurl forces from the Mists in front of you, rendering foes vulnerable.',
+    icon: 'https://render.guildwars2.com/file/CB669AA4946F5402D592EF7EE4C7D66069FE0108/2491615.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_2',
     cooldown: 3,
     energyCost: 5,
     castTimeMs: 520,
@@ -112,6 +142,12 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.PHANTOMS_ONSLAUGHT]: {
+    name: "Phantom's Onslaught",
+    description: 'Rush toward your opponent, cleaving the area.',
+    icon: 'https://render.guildwars2.com/file/59BA7946071713ECA0490726710D29E26FEB62FA/2491617.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_3',
     cooldown: 8,
     rechargeAnchor: 'castStart',
     // Recharge begins when the dash completes, while the follow-up strike is still casting.
@@ -143,17 +179,43 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
       }
     ]
   },
+  // The log's hit identity is not a second player input; import resolves it to the Greatsword activation.
+  [ID.PHANTOMS_ONSLAUGHT_ID_62713]: {
+    name: "Phantom's Onslaught",
+    description: 'Rush towards your opponent, cleaving the area.',
+    icon: 'https://render.guildwars2.com/file/59BA7946071713ECA0490726710D29E26FEB62FA/2491617.png',
+    type: 'Proc',
+    weapon: 'Greatsword',
+    simulatorExcluded: true,
+    cooldown: 0,
+    energyCost: 0,
+    castTimeMs: 0,
+    effects: []
+  },
   [ID.IMPERIAL_GUARD]: {
+    name: 'Imperial Guard',
+    description:
+      'Block incoming attacks for a prolonged duration, and ready a counterattack that deals increased damage based on the attacks blocked.',
+    icon: 'https://render.guildwars2.com/file/4DC60B7DDD12C72BDAC25F18A064C2ABE54645ED/2491612.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_4',
     cooldown: 12,
     energyCost: 10,
     castTimeMs: 2000,
-
     defaultInterruptMs: 80,
     effects: [],
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [{ on: 'castStart', do: { type: 'revenant.imperial-guard' } }]
   },
   [ID.TRUE_STRIKE]: {
+    name: 'True Strike',
+    description:
+      'Strike your foes with empowered energy. Deals increased damage based on attacks blocked by Imperial Guard.',
+    icon: 'https://render.guildwars2.com/file/D5A565D79131641339353276C1FA6DEDDABEFA0D/2491624.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_4',
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 520,
@@ -170,6 +232,13 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.TRUE_STRIKE } }]
   },
   [ID.ETERNITYS_REQUIEM]: {
+    name: "Eternity's Requiem",
+    description:
+      'Whirl your greatsword, opening holes in the Mists that deal damage.\n\nDamage is reduced per target each time they are struck by this skill.',
+    icon: 'https://render.guildwars2.com/file/A2BDB3281AA72F05D80A3855032C1807D059167E/2491611.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_5',
     cooldown: 15,
     energyCost: 10,
     castTimeMs: 840,

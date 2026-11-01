@@ -36,7 +36,7 @@ import {
   type RevenantCastCompletion,
   type RevenantStrike
 } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
-import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-scars.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalInterval, canonicalTime, timeKey } from '#kernel/core/clock.js';
@@ -57,7 +57,6 @@ const assassinsPresencePassive = definePeriodicTask<RevenantRuntime>({
 
 /** Owns Assassin's Presence tuning and behavior at its established execution boundaries. */
 export const assassinsPresence = defineTrait({
-  name: "Assassin's Presence",
   id: TRAIT.ASSASSINS_PRESENCE,
   balance: {
     cooldown: 10,
@@ -78,7 +77,6 @@ export const assassinsPresence = defineTrait({
 
 /** Owns Battle Scarred tuning and behavior at its established execution boundaries. */
 export const battleScarred = defineTrait({
-  name: 'Battle Scarred',
   id: TRAIT.BATTLE_SCARRED,
   balance: {
     effects: [
@@ -97,7 +95,6 @@ export const battleScarred = defineTrait({
 
 /** Owns Brutality tuning and behavior at its established execution boundaries. */
 export const brutality = defineTrait({
-  name: 'Brutality',
   id: TRAIT.BRUTALITY,
   balance: {
     cooldown: 9,
@@ -117,7 +114,6 @@ export const brutality = defineTrait({
 
 /** Owns Dance of Death tuning and behavior at its established execution boundaries. */
 export const danceOfDeath = defineTrait({
-  name: 'Dance of Death',
   id: TRAIT.DANCE_OF_DEATH,
   // Each accepted Vulnerability stack grants this trait's independently patchable scar payload.
   balance: {
@@ -130,7 +126,6 @@ export const danceOfDeath = defineTrait({
 
 /** Owns Destructive Impulses tuning and behavior at its established execution boundaries. */
 export const destructiveImpulses = defineTrait({
-  name: 'Destructive Impulses',
   id: TRAIT.DESTRUCTIVE_IMPULSES,
   balance: {
     damageIncrease: 0.05,
@@ -165,7 +160,6 @@ export const destructiveImpulses = defineTrait({
 
 /** Owns Expose Defenses tuning and behavior at its established execution boundaries. */
 export const exposeDefensesTrait = defineTrait({
-  name: 'Expose Defenses',
   id: TRAIT.EXPOSE_DEFENSES,
   balance: {
     effects: [
@@ -184,7 +178,6 @@ export const exposeDefensesTrait = defineTrait({
 
 /** Owns Notoriety tuning and behavior at its established execution boundaries. */
 export const notoriety = defineTrait({
-  name: 'Notoriety',
   id: TRAIT.NOTORIETY,
   balance: {
     attributePerStack: 10,
@@ -209,7 +202,6 @@ export const notoriety = defineTrait({
 
 /** Owns Swift Termination tuning and behavior at its established execution boundaries. */
 export const swiftTermination = defineTrait({
-  name: 'Swift Termination',
   id: TRAIT.SWIFT_TERMINATION,
   // Trait balance owns both the bonus and its supported target-health threshold.
   balance: { damageMultiplier: 1.2, threshold: 0.5 },
@@ -229,7 +221,6 @@ export const swiftTermination = defineTrait({
 
 /** Owns Targeted Destruction tuning and behavior at its established execution boundaries. */
 export const targetedDestruction = defineTrait({
-  name: 'Targeted Destruction',
   id: TRAIT.TARGETED_DESTRUCTION,
   balance: { damageIncreasePerStack: 0.005 },
   modifierRules: [
@@ -249,7 +240,6 @@ export const targetedDestruction = defineTrait({
 
 /** Owns Thrill of Combat tuning and behavior at its established execution boundaries. */
 export const thrillOfCombatTrait = defineTrait({
-  name: 'Thrill of Combat',
   id: TRAIT.THRILL_OF_COMBAT,
   balance: {
     cooldown: 1,
@@ -269,7 +259,6 @@ export const thrillOfCombatTrait = defineTrait({
 
 /** Owns Unsuspecting Strikes tuning and behavior at its established execution boundaries. */
 export const unsuspectingStrikes = defineTrait({
-  name: 'Unsuspecting Strikes',
   id: TRAIT.UNSUSPECTING_STRIKES,
   // Trait balance owns both the bonus and its supported target-health threshold.
   balance: { damageMultiplier: 1.2, threshold: 0.8 },

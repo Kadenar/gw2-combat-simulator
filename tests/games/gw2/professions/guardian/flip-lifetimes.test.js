@@ -4,6 +4,7 @@ import test from 'node:test';
 import { guardianUiSkillIds } from '#gw2/professions/guardian/core/presentation.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
@@ -112,17 +113,59 @@ test('Binding Blade expiry hides Pull without removing the final tether damage p
   assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL], undefined);
 });
 
-// Removing the old fallback must retain ordinary staff-chain and Truth/Echo windows outside managed mantra ammo.
-test('staff chain and Truth follow-ups retain their declared commitment and consumption', () => {
-  for (const [rotation, config] of [
-    [[ID.BOLT_OF_WRATH, ID.SEARING_LIGHT, ID.SEEKING_JUDGMENT], { primaryWeapon: 'Staff' }],
-    [[ID.MANTRA_OF_TRUTH, ID.ECHO_OF_TRUTH], { specialization: 'Firebrand' }]
-  ]) {
-    const armed = runGuardian(rotation.slice(0, -1), config);
-    assert.deepEqual(armed.warnings, []);
-    assert.ok(observedRuntime(armed).profession.core.availableFlips[rotation.at(-1)]);
-    const consumed = runGuardian(rotation, config);
-    assert.deepEqual(consumed.warnings, []);
-    assert.equal(observedRuntime(consumed).profession.core.availableFlips[rotation.at(-1)], undefined);
-  }
+// Every family retains its prepared pool until spent, then retires and rearms through the same controller.
+for (const { rootId, normalId, finalId } of MANTRAS) {
+  test(`${guardianCatalog.skillsById.get(rootId).name} shares preparation, final-charge retirement, and rearm`, () => {
+    const config = { specialization: 'Firebrand', selectedSkillIds: [rootId] };
+    assert.equal(guardianCatalog.skillsById.get(normalId).flipParentId, rootId);
+    assert.equal(guardianCatalog.skillsById.get(finalId).flipParentId, normalId);
+
+    const prepared = runGuardian([wait(25000)], config);
+    assert.deepEqual(prepared.warnings, []);
+    assert.ok(observedRuntime(prepared).profession.core.availableFlips[normalId]);
+    assert.equal(prepared.planningState.ammoBySkillId[normalId].charges, 3);
+    for (const other of MANTRAS.filter((entry) => entry.rootId !== rootId)) {
+      assert.equal(observedRuntime(prepared).profession.core.availableFlips[other.normalId], undefined);
+    }
+
+    const normal = runGuardian([normalId], config);
+    assert.deepEqual(normal.warnings, []);
+    assert.ok(observedRuntime(normal).profession.core.availableFlips[normalId]);
+    assert.equal(normal.planningState.ammoBySkillId[normalId].charges, 2);
+
+    const final = runGuardian([normalId, normalId], config);
+    assert.deepEqual(final.warnings, []);
+    assert.equal(observedRuntime(final).profession.core.availableFlips[normalId], undefined);
+    assert.ok(observedRuntime(final).profession.core.availableFlips[finalId]);
+
+    const depleted = runGuardian([normalId, normalId, finalId], config);
+    assert.deepEqual(depleted.warnings, []);
+    assert.equal(observedRuntime(depleted).profession.core.availableFlips[normalId], undefined);
+    assert.equal(observedRuntime(depleted).profession.core.availableFlips[finalId], undefined);
+    assert.equal(depleted.planningState.ammoBySkillId[normalId], undefined);
+    assert.ok(depleted.planningState.cooldowns[rootId].remaining > 0);
+
+    const rearmed = runGuardian([normalId, normalId, finalId, normalId], config);
+    assert.deepEqual(rearmed.warnings, []);
+    assert.equal(rearmed.steps.at(-1).start, depleted.planningState.cooldowns[rootId].readyAt);
+    assert.ok(observedRuntime(rearmed).profession.core.availableFlips[normalId]);
+    assert.equal(rearmed.planningState.ammoBySkillId[normalId].charges, 2);
+  });
+}
+
+// Truth's final charge must reach the same trait trigger as the other mantra families.
+test('Voice of Truth refunds Weighty Terms pages only when the final charge is spent', () => {
+  const config = {
+    specialization: 'Firebrand',
+    selectedSkillIds: [ID.MANTRA_OF_TRUTH],
+    selectedTraitIds: [TRAIT.WEIGHTY_TERMS],
+    initialTomePages: 0
+  };
+  const normal = runGuardian([ID.ECHO_OF_TRUTH, ID.ECHO_OF_TRUTH], config);
+  const final = runGuardian([ID.ECHO_OF_TRUTH, ID.ECHO_OF_TRUTH, ID.VOICE_OF_TRUTH], config);
+  assert.deepEqual(normal.warnings, []);
+  assert.deepEqual(final.warnings, []);
+  assert.equal(normal.planningState.profession[STATE.TOME_PAGES].value, 0);
+  assert.equal(final.planningState.profession[STATE.TOME_PAGES].value, 2);
+  assert.ok(final.planningState.cooldowns[ID.MANTRA_OF_TRUTH].remaining > 0);
 });

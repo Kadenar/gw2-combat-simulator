@@ -9,7 +9,7 @@ import { BOON, COMBO_FINISHER, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/p
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
@@ -20,19 +20,22 @@ const HURRICANE_OF_PAIN_TICKS = [200, 360, 600, 840, 1080, 1320, 1560, 1800, 204
 const HAMMER_ORB_PACKET_OFFSETS_MS = Array.from({ length: 15 }, (_, index) => (index + 1) * 1000);
 
 /**
- * Skill-id keyed fragments the Core module contributes to the hammer catalog.
+ * Skill-id keyed definitions the Core module contributes to the hammer catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SINGEING_STRIKE]: {
     name: 'Singeing Strike',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Singe your foes by unleashing a burst of flame from your hammer.',
+    icon: 'https://render.guildwars2.com/file/00BEB69094655BD530E92C5805D22E954EA82934/2491574.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 440,
@@ -43,11 +46,13 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.SURGING_FLAMES]: {
     name: 'Surging Flames',
+    description: 'Sweep your hammer forward to send flames rushing at your enemies.',
+    icon: 'https://render.guildwars2.com/file/D81EC0403633577CF616284B16E8607F9DCFAF01/2491577.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 8,
     skillFamily: 'Weapon skill',
     castTimeMs: 880,
@@ -61,11 +66,14 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // as state-gated (it is unavailable while its own orb is still active).
   [ID.FLAME_WHEEL]: {
     name: 'Flame Wheel',
+    description:
+      'Summon a projectile of fire that circles around you, damaging foes. While this projectile is active, it grants you increased outgoing damage. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
+    icon: 'https://render.guildwars2.com/file/0EEEDE3EC37F7A6E1BC9BE20B69E3B2C09F5072F/2491582.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 18,
     skillFamily: 'Weapon skill',
     castTimeMs: 0,
@@ -99,11 +107,13 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Three simultaneous strike/Burning pairs at a single packet time.
   [ID.TRIPLE_SEAR]: {
     name: 'Triple Sear',
+    description: 'Sear a path to burn your enemies.',
+    icon: 'https://render.guildwars2.com/file/16CA6B0D615A0B439EA3F85DFCAF1C2BC63D6FD9/2491586.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 560,
@@ -125,11 +135,14 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Blast finisher that also self-buffs, so its Fury and Might land on the same packet time as the strike.
   [ID.MOLTEN_END]: {
     name: 'Molten End',
+    description:
+      'Slam your hammer into the ground, damaging nearby enemies. If this strikes a burning enemy, gain offensive boons.',
+    icon: 'https://render.guildwars2.com/file/B4EB30B7559BAEB905DC2E45979A9F46EF9F6167/2491590.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.HAMMER,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 25,
     skillFamily: 'Weapon skill',
     castTimeMs: 760,
@@ -150,16 +163,19 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   // First link of the Water auto-attack chain: Stream Strike -> Water Rush -> Chilling Crack -> back to
-  // Stream Strike, wired through `nextChainId`.
+  // Stream Strike, declared in autoattack-chains.ts.
   [ID.STREAM_STRIKE]: {
+    // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Stream Strike',
+    description: 'Chain. Strike your foe with a watery blow.',
+    icon: 'https://render.guildwars2.com/file/D8231F47FCFDD867032FFC79F5C21C0B750A99C0/2491570.png',
+    autoattack: true,
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
-    nextChainId: ID.WATER_RUSH,
     skillFamily: 'Weapon skill',
     castTimeMs: 480,
     effects: [
@@ -177,14 +193,17 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.WATER_RUSH]: {
+    // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Water Rush',
+    description: 'Chain. Slam your foe with a rush of water.',
+    icon: 'https://render.guildwars2.com/file/664C1C80D2C31756C4F2CA333A317E71CAC6C37B/2491571.png',
+    autoattack: true,
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
-    nextChainId: ID.CHILLING_CRACK,
     skillFamily: 'Weapon skill',
     castTimeMs: 640,
     effects: [
@@ -203,14 +222,17 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   // Chain finisher: the heavy hit that also applies the chain's only Chilled stack before looping back.
   [ID.CHILLING_CRACK]: {
+    // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Chilling Crack',
+    description: 'Crack the ground to chill your foes.',
+    icon: 'https://render.guildwars2.com/file/4DC67D26F6130171F50398B50009AA321D9E1830/2491572.png',
+    autoattack: true,
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
-    nextChainId: ID.STREAM_STRIKE,
     skillFamily: 'Weapon skill',
     castTimeMs: 440,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -222,11 +244,13 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // hits that landed before the cancel.
   [ID.RAIN_OF_BLOWS]: {
     name: 'Rain of Blows',
+    description: 'Strike your foes repeatedly. Enemies hit by all strikes become chilled.',
+    icon: 'https://render.guildwars2.com/file/D99067FBF027EE43B2DC727E54C0B4716CFB59A1/2491578.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 920,
@@ -274,11 +298,14 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Water orb creator; same token-packet shape as Flame Wheel, applying Vulnerability instead of Burning.
   [ID.ICY_COIL]: {
     name: 'Icy Coil',
+    description:
+      'Summon a projectile of ice that circles around you, damaging foes. While this projectile is active, you take reduced damage from conditions. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
+    icon: 'https://render.guildwars2.com/file/4CEE16E97EF99A6C4DEF356CE8650DB73B062A04/2491583.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 18,
     skillFamily: 'Weapon skill',
     castTimeMs: 0,
@@ -312,11 +339,14 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Leap finisher; the single impact is its whole payload.
   [ID.CRASHING_FONT]: {
     name: 'Crashing Font',
+    description:
+      'Leap at your target and strike nearby foes while healing yourself. Healing is increased if a foe is struck.',
+    icon: 'https://render.guildwars2.com/file/696F0A9FE6A47427615949AE383D5AC3EA45F1F3/2491587.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 960,
@@ -343,11 +373,14 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Whirl finisher: one strike that spawns whirl bolts when it crosses an active combo field.
   [ID.CLEANSING_TYPHOON]: {
     name: 'Cleansing Typhoon',
+    description:
+      'Cleanse conditions from yourself, then strike nearby foes. Cleanse an additional condition for each target struck.',
+    icon: 'https://render.guildwars2.com/file/14B9C705D8A901E0425663521CCE6B78DF1D410F/2491591.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.HAMMER,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 480,
@@ -373,12 +406,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.WIND_SLAM]: {
     name: 'Wind Slam',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Slam your foe with a gust of wind.',
+    icon: 'https://render.guildwars2.com/file/F6B968A25DCB611A00580215DF0E276B04CEFFE7/2491569.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 680,
@@ -400,11 +436,13 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Vulnerability stack; `per-packet` interruption truncates both timelines at the same point.
   [ID.HURRICANE_OF_PAIN]: {
     name: 'Hurricane of Pain',
+    description: 'Manifest a powerful cyclone at the target location, periodically damaging enemies.',
+    icon: 'https://render.guildwars2.com/file/E8D673F59599BCF155D4FE4503476C666B935075/2491575.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 10,
     skillFamily: 'Weapon skill',
     castTimeMs: 2080,
@@ -428,11 +466,14 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Air orb creator; same token-packet shape as Flame Wheel, applying Weakness.
   [ID.CRESCENT_WIND]: {
     name: 'Crescent Wind',
+    description:
+      'Summon a projectile of air that circles around you, damaging foes. While this projectile is active, your chance to critically strike is increased. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
+    icon: 'https://render.guildwars2.com/file/A1154443E7FB75409FC77711E50D186D449670CF/2491579.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 18,
     skillFamily: 'Weapon skill',
     castTimeMs: 0,
@@ -466,11 +507,13 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Small strike that mainly exists for its self-Superspeed and crowd-control application.
   [ID.WIND_STORM]: {
     name: 'Wind Storm',
+    description: 'Release a burst of air to knock down your enemies and gain superspeed.',
+    icon: 'https://render.guildwars2.com/file/386F6D7F9E7ECBCBD1C7ED80CCDCCD9BE99690EC/2491584.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 440,
@@ -483,11 +526,13 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Two-stage skill: a small hit at cast end, then the delayed blast finisher and crowd control together.
   [ID.SHOCK_BLAST]: {
     name: 'Shock Blast',
+    description: 'Fire a blast of lightning that explodes when it reaches its destination, stunning nearby foes.',
+    icon: 'https://render.guildwars2.com/file/BA43003E3BB4F469C25F407FAC9A04AC1D589E46/2491588.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.HAMMER,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 25,
     skillFamily: 'Weapon skill',
     castTimeMs: 280,
@@ -523,12 +568,15 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.STONESTRIKE]: {
     name: 'Stonestrike',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Arc your hammer, creating a ring of jagged rock to damage your enemies.',
+    icon: 'https://render.guildwars2.com/file/934D05DE73D0ECFF931C394B7CFA67686B0F639D/2491573.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 560,
@@ -549,11 +597,13 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Five-hit channel with a Bleeding stack per hit; `per-packet` interruption keeps only the landed prefix.
   [ID.WHIRLING_STONES]: {
     name: 'Whirling Stones',
+    description: 'Encase your hammer with earthen spikes to deliver a powerful blow.',
+    icon: 'https://render.guildwars2.com/file/AC997D78FFB009EF66423A2D0591FB6E604357E8/2491576.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 8,
     skillFamily: 'Weapon skill',
     castTimeMs: 1440,
@@ -584,11 +634,14 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Earth orb creator; same token-packet shape as Flame Wheel, applying Bleeding.
   [ID.ROCKY_LOOP]: {
     name: 'Rocky Loop',
+    description:
+      'Summon a projectile of earth that circles around you, damaging foes. While this projectile is active, you take reduced damage from strikes. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
+    icon: 'https://render.guildwars2.com/file/CF074C005D9E2B231B9260140C05201EDAFCB66D/2491581.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 18,
     skillFamily: 'Weapon skill',
     castTimeMs: 0,
@@ -622,11 +675,14 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Defensive channel with no packets; only its long cast time and recharge affect the rotation.
   [ID.IMMUTABLE_STONE]: {
     name: 'Immutable Stone',
+    description:
+      'Block the next incoming attack. If you block an attack, gain barrier and an aura based on your current attunement.',
+    icon: 'https://render.guildwars2.com/file/F560A6D6F1E70426210029040B5B735A3E3D5195/2491585.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 1520,
@@ -634,11 +690,13 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   },
   [ID.GROUND_POUND]: {
     name: 'Ground Pound',
+    description: 'Smash your hammer into the ground to bleed and immobilize your enemies.',
+    icon: 'https://render.guildwars2.com/file/4DFDAF76F9FAADE9E47F93A497B7E62953EC2E47/2491589.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.HAMMER,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 760,
@@ -662,10 +720,12 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
   // Each active orb owns its condition total and projectile finisher; resolution splits condition stacks.
   [ID.GRAND_FINALE]: {
     name: 'Grand Finale',
+    description: 'Redirect any active circular projectiles toward your target.',
+    icon: 'https://render.guildwars2.com/file/41D40EDB66D0CC0A73F405630803D2D600CABCCE/2491580.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.HAMMER,
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 680,
@@ -700,7 +760,11 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, P
     ),
     // Retire old orbit contacts before packet selection; consume the captured orbs only on commitment.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'elementalist.cancel-hammer-orbits' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelled,
+        do: { type: 'elementalist.cancel-hammer-orbits' }
+      },
       { on: 'castCommit', do: { type: 'elementalist.consume-hammer-orbs' } }
     ]
   }

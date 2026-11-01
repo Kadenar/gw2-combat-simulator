@@ -1,28 +1,24 @@
 import { ACTOR, BOON, CONDITION, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 
-/** Stolen skills a Deadeye steal can grant, shared by the hooks and the skill palette. */
-export const DEADEYE_STOLEN_SKILL_IDS: readonly SkillId[] = Object.freeze([
-  ID.STEAL_TIME,
-  ID.STEAL_WARMTH,
-  ID.STEAL_RESISTANCE,
-  ID.STEAL_PRECISION,
-  ID.STEAL_HEALTH,
-  ID.STEAL_STRENGTH,
-  ID.STEAL_DURABILITY,
-  ID.STEAL_DEFENSES,
-  ID.STEAL_MOBILITY
-]);
-
-/** Membership is shared by accepted-cast snapshots and stolen-skill traits. */
-export const STOLEN_SKILLS = new Set<SkillId>(DEADEYE_STOLEN_SKILL_IDS);
-
 /** Stolen skills commit stealth before consuming their stored use, then deliver their authored effects. */
-export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.STEAL_WARMTH]: {
+    name: 'Steal Warmth',
+    description:
+      'Grant vigor to allies around you and chill your marked target. Gain stealth if malice is at or above the threshold.',
+    icon: 'https://render.guildwars2.com/file/FC5822562E0D060DA74529354F231BF503A4FC7B/1770620.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Profession',
+    slot: 'Profession_2',
+
     cooldown: 0.5,
     initiativeCost: 0,
     // The selected stealth grant commits before consuming the stored use.
@@ -53,6 +49,18 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     ]
   },
   [ID.STEAL_RESISTANCE]: {
+    name: 'Steal Resistance',
+    description:
+      'Grant resistance to allies around you and inflict torment on your marked target. Gain stealth if malice is at or above the threshold.',
+    icon: 'https://render.guildwars2.com/file/FD5FD424729C41D53AE20E61107009175B29C851/1770616.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Profession',
+    slot: 'Profession_2',
+
     cooldown: 0.5,
     initiativeCost: 0,
     // The selected stealth grant commits before consuming the stored use.
@@ -83,6 +91,18 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     ]
   },
   [ID.STEAL_PRECISION]: {
+    name: 'Steal Precision',
+    description:
+      'Grant fury to allies around you and blind your marked target. Gain stealth if malice is at or above the threshold.',
+    icon: 'https://render.guildwars2.com/file/1DFF7D36F880D358AB020FC03CFCCF33C409C7C5/1770615.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Profession',
+    slot: 'Profession_2',
+
     cooldown: 0.5,
     initiativeCost: 0,
     // The selected stealth grant commits before consuming the stored use.
@@ -119,6 +139,18 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     ]
   },
   [ID.STEAL_HEALTH]: {
+    name: 'Steal Health',
+    description:
+      'Heal allies around you and inflict bleeding on your marked target. Gain stealth if malice is at or above the threshold.',
+    icon: 'https://render.guildwars2.com/file/D6A0B179460001074F5606A3B450D07D03523BC1/1770619.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Profession',
+    slot: 'Profession_2',
+
     cooldown: 0.5,
     initiativeCost: 0,
     // The selected stealth grant commits before consuming the stored use.
@@ -142,6 +174,18 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     ]
   },
   [ID.STEAL_STRENGTH]: {
+    name: 'Steal Strength',
+    description:
+      'Grant might to allies around you and weaken your marked target. Gain stealth if malice is at or above the threshold.',
+    icon: 'https://render.guildwars2.com/file/CDF49C91397270A36A20BB4B4CDAEE99A2F6E957/1770617.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Profession',
+    slot: 'Profession_2',
+
     cooldown: 0.5,
     initiativeCost: 0,
     // The selected stealth grant commits before consuming the stored use.
@@ -172,6 +216,18 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     ]
   },
   [ID.STEAL_TIME]: {
+    name: 'Steal Time',
+    description:
+      'Grant quickness to allies around you and slow your marked target. Gain stealth if malice is at or above the threshold.',
+    icon: 'https://render.guildwars2.com/file/0779426B11E048DA03E834C74828CCD070222A49/1770618.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Profession',
+    slot: 'Profession_2',
+
     cooldown: 0.5,
     initiativeCost: 0,
     // The selected stealth grant commits before consuming the stored use.
@@ -209,6 +265,18 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     ]
   },
   [ID.STEAL_DURABILITY]: {
+    name: 'Steal Durability',
+    description:
+      'Grant protection to allies around you and inflict vulnerability on your marked target. Gain stealth if malice is at or above the threshold.',
+    icon: 'https://render.guildwars2.com/file/EE36E907052CF7E41C20280FABB4AD57EEBF4F70/1770613.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Profession',
+    slot: 'Profession_2',
+
     cooldown: 0.5,
     initiativeCost: 0,
     // The selected stealth grant commits before consuming the stored use.
@@ -239,6 +307,18 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     ]
   },
   [ID.STEAL_DEFENSES]: {
+    name: 'Steal Defenses',
+    description:
+      'Grant aegis to allies around you and poison your marked target. Gain stealth if malice is at or above the threshold.',
+    icon: 'https://render.guildwars2.com/file/6FAE300063E1F79B92A2664CA67307036C4AB9E6/1770612.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Profession',
+    slot: 'Profession_2',
+
     cooldown: 0.5,
     initiativeCost: 0,
     // The selected stealth grant commits before consuming the stored use.
@@ -269,6 +349,18 @@ export const DEADEYE_STOLEN_SKILLS: Readonly<Record<number, Partial<Skill>>> = O
     ]
   },
   [ID.STEAL_MOBILITY]: {
+    name: 'Steal Mobility',
+    description:
+      'Grant superspeed to allies around you and immobilize your marked target. Gain stealth if malice is at or above the threshold.',
+    icon: 'https://render.guildwars2.com/file/09229668D0C0051A5364F9C8314C42995A087774/1770614.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Profession',
+    slot: 'Profession_2',
+
     cooldown: 0.5,
     initiativeCost: 0,
     // The selected stealth grant commits before consuming the stored use.

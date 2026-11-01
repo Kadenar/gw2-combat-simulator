@@ -13,7 +13,7 @@ function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
 }
 
 /** Keeps each hitbox cap beside its skill while sharing the packet-indexing rules. */
-export function withSmallHitboxCap(skill: Partial<Skill>, smallHitboxCap: number): Partial<Skill> {
+export function withSmallHitboxCap<T extends Partial<Skill>>(skill: T, smallHitboxCap: number) {
   const effects = skill.effects || [];
   const chronologicalStrikeIndices = new Map<string, number>();
 

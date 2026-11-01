@@ -18,7 +18,7 @@ import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 const catalog = createCanonicalCatalog({
   // The fixture profession owns one patchable cost field, as a real profession module would declare it.
   skillFields: { initiativeCost: numberField({ patch: 'primary' }) },
-  generated: [
+  skills: [
     { id: 991001, name: 'Trigger', castTimeMs: 0, effects: [] },
     {
       id: 991002,
@@ -75,7 +75,7 @@ const catalog = createCanonicalCatalog({
       ],
       effects: []
     },
-    { id: 991007, name: 'Ammo', castTimeMs: 0, ammo: 2, ammoRecharge: 10, cooldown: 10, effects: [] },
+    { id: 991007, name: 'Ammo', castTimeMs: 0, ammo: 2, cooldown: 10, effects: [] },
     {
       id: 991008,
       name: 'Variant',
@@ -521,7 +521,7 @@ test('patched variants retain executable predicates and snapshot eligibility bef
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           { id: 1, name: 'Invalid', castTimeMs: 0, effects: [{ type: 'boon', boon: 'might', duration: 1, when: true }] }
         ]
       }),
@@ -532,7 +532,7 @@ test('patched variants retain executable predicates and snapshot eligibility bef
 // Intrinsic transforms consume the patched skill payload once at acceptance, without a duplicate balance profile.
 test('effect variants can transform their own selected effects and retain removals', () => {
   const own = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 991008,
         name: 'Own variant',
@@ -567,7 +567,7 @@ test('effect variants can transform their own selected effects and retain remova
   }
 
   assert.throws(
-    () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Invalid', effectVariants: [{ when: () => true }] }] }),
+    () => createCanonicalCatalog({ skills: [{ id: 1, name: 'Invalid', effectVariants: [{ when: () => true }] }] }),
     /effect variant/
   );
 });
@@ -595,7 +595,7 @@ test('declared recharge progress scales the accepted anchor and validates its ra
 
   for (const rechargeProgress of [-1, 1.1, Infinity, NaN, '0.5'])
     assert.throws(
-      () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Invalid', rechargeProgress }] }),
+      () => createCanonicalCatalog({ skills: [{ id: 1, name: 'Invalid', rechargeProgress }] }),
       /rechargeProgress/
     );
 });
@@ -613,13 +613,13 @@ test('negative recharge offsets advance eligibility and clamp to cast start', ()
   }
 
   assert.equal(
-    createCanonicalCatalog({ generated: [{ id: 1, name: 'Early', rechargeOffsetMs: -80 }] }).skillsById.get(1)
+    createCanonicalCatalog({ skills: [{ id: 1, name: 'Early', rechargeOffsetMs: -80 }] }).skillsById.get(1)
       .rechargeOffsetMs,
     -80
   );
   for (const rechargeOffsetMs of [Infinity, -Infinity, NaN, 'early'])
     assert.throws(
-      () => createCanonicalCatalog({ generated: [{ id: 1, name: 'Invalid', rechargeOffsetMs }] }),
+      () => createCanonicalCatalog({ skills: [{ id: 1, name: 'Invalid', rechargeOffsetMs }] }),
       /rechargeOffsetMs/
     );
 });
@@ -848,7 +848,7 @@ test('authored and procedural status caps apply after scaling and remain patchab
   for (const maximumDuration of [-1, NaN, '10'])
     assert.throws(() =>
       createCanonicalCatalog({
-        generated: [{ id: 1, name: 'Invalid cap', effects: [{ ...effects[0], maximumDuration }] }]
+        skills: [{ id: 1, name: 'Invalid cap', effects: [{ ...effects[0], maximumDuration }] }]
       })
     );
 });

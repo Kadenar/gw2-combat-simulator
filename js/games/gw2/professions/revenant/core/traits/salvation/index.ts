@@ -13,7 +13,6 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/prof
 
 /** Owns Life Attunement tuning and behavior at its established execution boundaries. */
 export const lifeAttunement = defineTrait({
-  name: 'Life Attunement',
   id: TRAIT.LIFE_ATTUNEMENT,
   balance: { attributeConversion: 0.07, attributeBonuses: { healingPower: 120 } },
   attributes: traitAttributeEffects(TRAIT.LIFE_ATTUNEMENT, [
@@ -31,7 +30,6 @@ export const lifeAttunement = defineTrait({
 
 /** Owns Serene Rejuvenation tuning and behavior at its established execution boundaries. */
 export const sereneRejuvenation = defineTrait({
-  name: 'Serene Rejuvenation',
   id: TRAIT.SERENE_REJUVENATION,
   balance: {
     effects: [

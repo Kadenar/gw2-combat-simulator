@@ -33,15 +33,16 @@ function previewApp(name, traitNames = [], specialization = null) {
   for (const name of traitNames) {
     const trait = adapter.profession.catalog.traits.find((trait) => trait.name === name);
     assert.ok(trait, name);
-    const choices = selections.get(trait.specialization) || [0, 0, 0];
+    // Membership and saved positions come from the nested specialization layout.
+    const line = adapter.profession.catalog.specializations.find((line) =>
+      [...line.minorTraits, ...line.majorTraits.flat()].some((entry) => entry.id === trait.id)
+    );
+    const choices = selections.get(line.name) || [0, 0, 0];
+    const tier = line.majorTraits.findIndex((choices) => choices.some((entry) => entry.id === trait.id));
 
-    // Saved choices follow the canonical specialization layout.
-    const line = adapter.profession.catalog.specializations.find((line) => line.name === trait.specialization);
+    if (tier >= 0) choices[tier] = line.majorTraits[tier].findIndex((entry) => entry.id === trait.id) + 1;
 
-    if (trait.slot === 'Major')
-      choices[trait.tier - 1] = line.majorTraits[trait.tier - 1].findIndex((entry) => entry.id === trait.id) + 1;
-
-    selections.set(trait.specialization, choices);
+    selections.set(line.name, choices);
   }
 
   const app = {

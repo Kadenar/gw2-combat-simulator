@@ -1,12 +1,22 @@
-/** Canonical Core thief skill fragments grouped by their GW2 owner. */
+/** Canonical Core thief skill definitions grouped by their GW2 owner. */
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.LESSER_CALTROPS]: {
+    name: 'Lesser Caltrops',
+    description: 'Scatter caltrops that cripple and bleed foes.',
+    icon: 'https://render.guildwars2.com/file/A85F59D91114D0702C3AB54A0AA81EC1CAE66CF5/103073.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Proc',
+    slot: 'Action',
     cooldown: 0,
     initiativeCost: 0,
     castTimeMs: 0,
@@ -37,6 +47,17 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ])
   },
   [ID.LESSER_HASTE]: {
+    name: 'Lesser Haste',
+    description: 'Gain quickness, fury, and swiftness.',
+    icon: 'https://render.guildwars2.com/file/1C7719C3046D06161D071C0A6B33D3C8179E3F67/103459.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Proc',
+    slot: 'Action',
+
     cooldown: 60,
     initiativeCost: 0,
     castTimeMs: 0,
@@ -65,6 +86,17 @@ export const THIEF_MISC_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>
     ]
   },
   [ID.BURST_OF_SHADOWS]: {
+    name: 'Burst of Shadows',
+    description: "Invoke an explosion of shadows at your marked target's location that blinds nearby foes.",
+    icon: 'https://render.guildwars2.com/file/007CF2CAA795DC259DD538C0CB7D9C36FE3AE423/1770636.png',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    type: 'Action',
+    slot: 'Action',
+    patchAuthoringExcluded: true,
     cooldown: 1,
     initiativeCost: 0,
     castTimeMs: 0,

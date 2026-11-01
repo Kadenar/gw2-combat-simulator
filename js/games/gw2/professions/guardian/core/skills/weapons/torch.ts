@@ -8,22 +8,29 @@ import { weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** Canonical Core guardian skill fragments grouped by their GW2 owner. */
+/** Canonical Core guardian skill definitions grouped by their GW2 owner. */
 
-export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.ZEALOTS_FLAME]: {
+    name: "Zealot's Flame",
+    description:
+      'Set yourself alight, periodically burning up to three nearby foes. The final pulse applies additional burning.',
+    icon: 'https://render.guildwars2.com/file/3CB42772DD937ACF48EF5FE4615EF33F49035450/103231.png',
+    type: 'Weapon',
+    weapon: 'Torch',
+    slot: 'Weapon_4',
     // Zealot's Fire stays available while the flame burns; Radiant Fire lengthens it.
     flipDuration: 3,
     // Fire sets this lockout; another actual skill clears it at commitment.
     lockouts: [{ group: 'guardian-zealots-flame-after-fire', durationMs: 400 }],
     cooldown: 15,
     ammo: 1,
-    ammoRecharge: 15,
+
     ammoCastLockout: 0,
     castTimeMs: 0,
     effects: [
@@ -43,6 +50,12 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-zealots-fire' } }]
   },
   [ID.ZEALOTS_FIRE]: {
+    name: "Zealot's Fire",
+    description: "Throw your Zealot's Flame to damage the targeted foe.",
+    icon: 'https://render.guildwars2.com/file/537D1557E29B42B95D07A1DB01493C7B63C4E402/103637.png',
+    type: 'Weapon',
+    weapon: 'Torch',
+    slot: 'Weapon_4',
     cooldown: 0,
     castTimeMs: 680,
     interruptCommitMs: 480,
@@ -71,6 +84,14 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.CLEANSING_FLAME]: {
+    name: 'Cleansing Flame',
+    description:
+      'Remove conditions from yourself then breathe magical flames that damage foes and cure conditions on allies. Inflicts burning on the final attack.',
+    icon: 'https://render.guildwars2.com/file/FC0E030F7E67C4C62F0A6717B9F1B80012A6F1C7/103127.png',
+    type: 'Weapon',
+    weapon: 'Torch',
+    slot: 'Weapon_5',
+    cooldown: 15,
     // Store the measured effective action duration directly.
     castTimeMs: 2600,
     interruptMode: 'per-packet',

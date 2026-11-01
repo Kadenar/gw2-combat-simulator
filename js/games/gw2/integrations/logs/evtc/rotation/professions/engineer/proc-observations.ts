@@ -50,7 +50,6 @@ function isExplosionSkill(skill: Skill): boolean {
     EVENT_FLAGGED_EXPLOSION_NAMES.has(normalized(skill.name)) ||
     normalized(skill.damageKind) === 'explosion' ||
     skill.explosion === true ||
-    skill.categories?.some((category) => normalized(category) === 'explosion') ||
     skill.effects?.some((effect) => normalized(effect.damageKind) === 'explosion' || effect.explosion === true)
   );
 }

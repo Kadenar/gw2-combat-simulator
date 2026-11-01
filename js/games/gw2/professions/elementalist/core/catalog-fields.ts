@@ -13,7 +13,7 @@ export const ELEMENTALIST_CORE_SKILL_FIELDS = defineFields(
     nextSkillDamageMultiplier: numberField({ patch: 'primary' }),
     // Each etching root owns the completed-action threshold that unlocks its full release.
     etchingCompletionThreshold: numberField({ patch: 'primary' }),
-    // Glyph recharge starts after the summon expires; it is distinct from the API activation cooldown.
+    // Glyph recharge starts after the summon expires; it is distinct from the activation cooldown.
     rechargeAfterExpiry: numberField({ unit: 'seconds', patch: 'primary' }),
     // Target acquisition begins when a live elemental can start autonomous combat.
     summonStartupDelay: numberField({ unit: 'seconds', patch: 'advanced' }),

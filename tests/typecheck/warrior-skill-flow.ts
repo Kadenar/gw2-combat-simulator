@@ -1,14 +1,15 @@
 import {
   assembleNativeRuntimeCatalog,
+  createNativeModuleData,
   getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/catalog.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
-import { createWarriorModuleData } from '#gw2/professions/warrior/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/warrior/data/trait-lines.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
@@ -23,7 +24,7 @@ const resolved = warriorProfession.resolveProfession({ specialization: 'Bladeswo
 // Supplying Warrior module data also types inline callbacks without parameter annotations or assertions.
 defineNativeModule({
   id: 'Core',
-  data: createWarriorModuleData('Core', { skillMechanics: {} }),
+  data: createNativeModuleData<WarriorSkill>({ id: 'Core', traitLines: TRAIT_LINES, skillMechanics: {} }),
   state: { create: () => ({}) },
   hooks: {
     onCastStart(context, cast) {
@@ -40,7 +41,7 @@ defineNativeModule({
 
 // Each composition boundary must preserve the concrete skill type, not merely accept a cast back to it.
 export type WarriorSkillFlowAssertions = [
-  Assert<Equal<NonNullable<typeof warriorCoreModule.data.generatedSkills>[number], WarriorSkill>>,
+  Assert<Equal<NonNullable<typeof warriorCoreModule.data.skills>[number], WarriorSkill>>,
   Assert<Equal<(typeof warriorCatalog.skills)[number], WarriorSkill>>,
   Assert<Equal<(typeof warriorProfession.catalog.skills)[number], WarriorSkill>>,
   Assert<Equal<(typeof runtimeCatalog.skills)[number], WarriorSkill>>,
@@ -79,11 +80,17 @@ export type WarriorHookSkillAssertion = Assert<
   Equal<Parameters<NonNullable<typeof composed.onCastStart>>[1]['skill'], WarriorSkill>
 >;
 
-createWarriorModuleData('Core', {
-  skillMechanics: {
-    1: {
-      // @ts-expect-error Warrior authoring must reject the wrong type for a known field.
-      adrenalineCost: 'thirty'
-    }
+const invalidDefinitions: Record<string, SkillDefinition<WarriorSkill>> = {
+  1: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    // @ts-expect-error Warrior authoring must reject the wrong type for a known field.
+    adrenalineCost: 'thirty'
   }
+};
+createNativeModuleData<WarriorSkill>({
+  id: 'Core',
+  traitLines: TRAIT_LINES,
+  skillMechanics: invalidDefinitions
 });

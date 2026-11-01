@@ -18,21 +18,29 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs, scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { CastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /**
- * Owns Radiant Forge weapon fragments.
+ * Owns Radiant Forge weapon definitions.
  * Persistent forge resources and weapon behavior remain under `mechanics/`.
  */
 
-export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // Slot 1: autoattack.
   [ID.GLARING_BURST]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Glaring Burst',
+    description: 'Create a burst whose effect changes with the equipped radiant weapon.',
+    icon: 'https://render.guildwars2.com/file/7E68406FAAC4FFF878CDD307B257C9D6AECE2935/3680152.png',
+    radiantForgeSkill: true,
+    type: 'Bundle',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     // The replacement strike lands at 480 ms and remains committed when the
     // action lane is released at the observed 520 ms cancel point.
@@ -84,6 +92,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
 
   // Slot 2: hammer and its follow-up.
   [ID.DAZZLING_HAMMER]: {
+    name: 'Dazzling Hammer',
+    description: 'Smash the ground with a radiant hammer, dazing nearby foes.',
+    icon: 'https://render.guildwars2.com/file/4ECA0C916F5D54C3C12AC135AB5A1E2D4BC792E5/3680142.png',
+    radiantForgeSkill: true,
+    radiantWeapon: 'hammer',
+    type: 'Bundle',
+    slot: 'Weapon_2',
+    cooldown: 7,
     castTimeMs: 480,
     interruptCommitMs: 400,
     // Keep the hammer's boons, strike, and daze together in declaration order.
@@ -169,6 +185,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.SHINING_SPIN]: {
+    name: 'Shining Spin',
+    description: 'Strike nearby foes, dealing increased damage to disabled enemies.',
+    icon: 'https://render.guildwars2.com/file/2E5878CE9AFA2634D7F6DBAB10389D20C1BFF75E/3680143.png',
+    radiantForgeSkill: true,
+    radiantWeapon: 'hammer',
+    type: 'Bundle',
+    slot: 'Weapon_2',
+    cooldown: 0,
     castTimeMs: 480,
     // The 400 ms strike remains committed when the remaining aftercast is cancelled at 440 ms.
     interruptCommitMs: 440,
@@ -187,6 +211,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
 
   // Slot 3: staff and its follow-up.
   [ID.LUMINOUS_STAFF]: {
+    name: 'Luminous Staff',
+    description: 'Slam a radiant staff into the ground and create a symbol.',
+    icon: 'https://render.guildwars2.com/file/06BD9362B2F9FAE403181D0F9BE96A12664C22CA/3680148.png',
+    radiantForgeSkill: true,
+    radiantWeapon: 'staff',
+    type: 'Bundle',
+    slot: 'Weapon_3',
+    cooldown: 15,
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
     castTimeMs: 560,
@@ -257,6 +289,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.RESTORATIVE_GLOW]: {
+    name: 'Restorative Glow',
+    description: 'Heal and remove conditions from nearby allies.',
+    icon: 'https://render.guildwars2.com/file/9B72587791FE50B415B94BE92AA9050F43F6A848/3680149.png',
+    radiantForgeSkill: true,
+    radiantWeapon: 'staff',
+    type: 'Bundle',
+    slot: 'Weapon_3',
+    cooldown: 0,
     castTimeMs: 560,
     effects: [],
     // Only the committed follow-up consumes its own flip.
@@ -265,6 +305,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
 
   // Slot 4: blade and its follow-up.
   [ID.GLEAMING_BLADE]: {
+    name: 'Gleaming Blade',
+    description: 'Leap to the target and slash, inflicting cripple and vulnerability.',
+    icon: 'https://render.guildwars2.com/file/79B0DCC5E4A0A8BBE04AC0024D01A0F36D0B0C79/3680151.png',
+    radiantForgeSkill: true,
+    radiantWeapon: 'blade',
+    type: 'Bundle',
+    slot: 'Weapon_4',
+    cooldown: 15,
     castTimeMs: 840,
     interruptCommitMs: 760,
     retainsCastLockoutAfterInterrupt: true,
@@ -312,6 +360,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.LUCENT_THRUST]: {
+    name: 'Lucent Thrust',
+    description: 'Stab your foe and launch a blinding ray that bounces between foes.',
+    icon: 'https://render.guildwars2.com/file/1967D3BD670E976B0B554AAE3C0E070E0BF672D8/3680150.png',
+    radiantForgeSkill: true,
+    radiantWeapon: 'blade',
+    type: 'Bundle',
+    slot: 'Weapon_4',
+    cooldown: 0,
     castTimeMs: 440,
     // The melee hit blinds; the separate projectile adds damage without a disable.
     effects: [
@@ -345,6 +401,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
 
   // Slot 5: bulwark and its follow-up.
   [ID.RADIANT_BULWARK]: {
+    name: 'Radiant Bulwark',
+    description: 'Block attacks and grant aegis to nearby allies.',
+    icon: 'https://render.guildwars2.com/file/06735858B4DE086359A7DB1D4B2B650F97D7DD03/3680144.png',
+    radiantForgeSkill: true,
+    radiantWeapon: 'bulwark',
+    type: 'Bundle',
+    slot: 'Weapon_5',
+    cooldown: 25,
     castTimeMs: 1360,
     // Stopping the blocking channel preserves its activation boons and radiant weapon equip rewards.
     interruptMode: 'per-packet',
@@ -367,6 +431,14 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.BRILLIANT_SLAM]: {
+    name: 'Brilliant Slam',
+    description: 'Slam foes with your shield, dazing them.',
+    icon: 'https://render.guildwars2.com/file/BAD4D149039913DCF7FA724D4BFE9C9EB17E68D5/3680145.png',
+    radiantForgeSkill: true,
+    radiantWeapon: 'bulwark',
+    type: 'Bundle',
+    slot: 'Weapon_5',
+    cooldown: 0,
     castTimeMs: 480,
     effects: [
       {
@@ -382,6 +454,13 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
 
   // Profession controls: enter and exit the forge.
   [ID.ENTER_RADIANT_FORGE]: {
+    name: 'Enter Radiant Forge',
+    description:
+      'Enter Radiant Forge. The recharge time of this skill is reduced for each unused radiant weapon in shroud.',
+    icon: 'https://render.guildwars2.com/file/C64AE4AF57E83451F763B80C125410773909730A/3680147.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    cooldown: 10,
     // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/hooks.ts`.
     inputCategory: 'bar-swap',
     // The form controller consumes these values; ordinary cast packets must not duplicate its lifetime.
@@ -393,6 +472,12 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Par
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.enter-forge' } }]
   },
   [ID.EXIT_RADIANT_FORGE]: {
+    name: 'Exit Radiant Forge',
+    description: 'Leave Radiant Forge.',
+    icon: 'https://render.guildwars2.com/file/72EAE7EF5A1F5CBBD815618094F40A3D01A2FB11/3680146.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    cooldown: 0,
     // Custom: Enters or exits Radiant Forge and updates forge resources; see `luminary/hooks.ts`.
     inputCategory: 'bar-swap',
     castTimeMs: 0,

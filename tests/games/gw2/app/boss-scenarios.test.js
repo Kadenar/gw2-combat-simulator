@@ -439,7 +439,7 @@ test('Twin Largos barrier intermissions hold rotation commands and resume after 
     id: 'largos-intermission',
     name: 'Largos intermission',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 990301,
           name: 'Continue rotation',

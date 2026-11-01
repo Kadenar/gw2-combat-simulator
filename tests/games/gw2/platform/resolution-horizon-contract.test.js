@@ -25,7 +25,7 @@ function fixtureConfig(overrides = {}) {
 
 function contractProfession() {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 990001,
         name: 'Delayed Packet',

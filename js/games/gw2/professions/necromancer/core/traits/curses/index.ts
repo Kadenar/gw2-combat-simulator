@@ -41,7 +41,6 @@ import type {
 
 /** Owns Barbed Precision tuning and behavior at its existing execution boundaries. */
 export const barbedPrecision = defineTrait({
-  name: 'Barbed Precision',
   id: TRAIT.BARBED_PRECISION,
   balance: {
     conditionDurationMultiplier: 1.2,
@@ -81,7 +80,6 @@ export const barbedPrecision = defineTrait({
 
 /** Owns Chilling Darkness tuning and behavior at its existing execution boundaries. */
 export const chillingDarkness = defineTrait({
-  name: 'Chilling Darkness',
   id: TRAIT.CHILLING_DARKNESS,
   balance: {
     cooldown: 3,
@@ -108,7 +106,6 @@ export const chillingDarkness = defineTrait({
 
 /** Owns Insidious Disruption tuning and behavior at its existing execution boundaries. */
 export const insidiousDisruption = defineTrait({
-  name: 'Insidious Disruption',
   id: TRAIT.INSIDIOUS_DISRUPTION,
   balance: {
     effects: [
@@ -138,7 +135,6 @@ export const insidiousDisruption = defineTrait({
 
 /** Owns Furious Demise tuning and behavior at its existing execution boundaries. */
 export const furiousDemise = defineTrait({
-  name: 'Furious Demise',
   id: TRAIT.FURIOUS_DEMISE,
   balance: {
     attributeBonuses: { precision: 180 },
@@ -167,7 +163,6 @@ export const furiousDemise = defineTrait({
 
 /** Owns Target the Weak tuning and behavior at its existing execution boundaries. */
 export const targetTheWeak = defineTrait({
-  name: 'Target the Weak',
   id: TRAIT.TARGET_THE_WEAK,
   balance: {
     criticalChancePerCondition: 0.02,
@@ -205,7 +200,6 @@ export const targetTheWeak = defineTrait({
 
 /** Owns Lingering Curse tuning and behavior at its existing execution boundaries. */
 export const lingeringCurse = defineTrait({
-  name: 'Lingering Curse',
   id: TRAIT.LINGERING_CURSE,
   balance: {
     attributeBonuses: { conditionDamage: 200 },
@@ -234,7 +228,6 @@ export const lingeringCurse = defineTrait({
 
 /** Owns Weakening Shroud tuning and behavior at its existing execution boundaries. */
 export const weakeningShroud = defineTrait({
-  name: 'Weakening Shroud',
   id: TRAIT.WEAKENING_SHROUD,
   balance: {
     effects: [
@@ -253,7 +246,6 @@ export const weakeningShroud = defineTrait({
 
 /** Owns Master of Corruption tuning and behavior at its existing execution boundaries. */
 export const masterOfCorruption = defineTrait({
-  name: 'Master of Corruption',
   id: TRAIT.MASTER_OF_CORRUPTION,
   balance: {
     rechargeMultiplier: 0.67,
@@ -304,7 +296,7 @@ export const masterOfCorruption = defineTrait({
     {
       order: 0,
 
-      when: (_runtime, skill) => Boolean(skill.categories?.includes('Corruption')),
+      when: (_runtime, skill) => skill.skillFamily === 'Corruption',
       multiplier: { profile: TRAIT.MASTER_OF_CORRUPTION, field: 'rechargeMultiplier' }
     }
   ]
@@ -312,7 +304,6 @@ export const masterOfCorruption = defineTrait({
 
 /** Owns Plague Sending tuning and behavior at its existing execution boundaries. */
 export const plagueSending = defineTrait({
-  name: 'Plague Sending',
   id: TRAIT.PLAGUE_SENDING,
   balance: { maximumConditions: 2 },
   triggers: [
@@ -329,7 +320,6 @@ export const plagueSending = defineTrait({
 
 /** Terror adds damage to the skill's Fear application without creating another condition or control reaction. */
 export const terror = defineTrait({
-  name: 'Terror',
   id: TRAIT.TERROR,
   // The owning trait supplies tuning to its runtime consumers.
   balance: { conditionBaseDamage: 444, conditionDamageScaling: 0.4 },

@@ -135,7 +135,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
     );
     assert.deepEqual(
       sortedIds(runtime.catalog.specializations),
-      sortedIds([...(core.data.specializations || []), ...(specialization?.data.specializations || [])]),
+      sortedIds([...(core.data.traitLines || []), ...(specialization?.data.traitLines || [])]),
       `${family.id}/${name} specializations`
     );
     assert.deepEqual(

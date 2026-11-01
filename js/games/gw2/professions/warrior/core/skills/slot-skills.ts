@@ -1,4 +1,4 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Canonical Core warrior skill definitions grouped by their GW2 owner. */
 import { ownerAttributeEffects, passiveSkillAttributes } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
@@ -8,7 +8,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
@@ -16,8 +16,15 @@ import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/pro
 
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
-export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SIGNET_OF_STAMINA]: {
+    name: 'Signet of Stamina',
+    description:
+      'Signet Passive: Faster endurance regeneration.\nSignet Active: Cure all conditions and gain endurance. Gain additional endurance for each condition cured.',
+    icon: 'https://render.guildwars2.com/file/3763DF075356FE2A22A56915EB0B982B32F3FBA3/104128.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Signet',
     // Readiness gates the passive amount owned by this signet.
     enduranceRegenerationBonus: 0.5,
     cooldown: 20,
@@ -38,6 +45,16 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.THROW_BOLAS]: {
+    name: 'Throw Bolas',
+    description: 'Physical. Throw bolas to immobilize your foe.',
+    icon: 'https://render.guildwars2.com/file/0DC030D5DBE6B5C9ED157DBB1CF86ED6F6D6753E/103015.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Physical',
+    cooldown: 16,
+    ammoCastLockout: 1,
+    ammo: 2,
+
     // Bolas immobilizes on impact and always finishes a projectile combo in an eligible field.
     castTimeMs: 520,
     comboFinishers: [
@@ -62,6 +79,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SIGNET_OF_RAGE]: {
+    name: 'Signet of Rage',
+    description: 'Signet Passive: Grants adrenaline while in combat.\nSignet Active: Gain fury, might, and swiftness.',
+    icon: 'https://render.guildwars2.com/file/7A530D5434F9E9E80ED14DBE48EEE90427E33A2B/104113.png',
+    type: 'Elite',
+    slot: 'Elite',
+    skillFamily: 'Signet',
+    cooldown: 40,
     // The selected active reward enables adrenaline and weapon-burst recovery on successful activation.
     resourceGain: 0,
     castTimeMs: 200,
@@ -95,6 +119,14 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.STOMP]: {
+    name: 'Stomp',
+    description:
+      'Physical. Gain stability and launch nearby foes into the air with a powerful stomp. Gain stability for each enemy struck.',
+    icon: 'https://render.guildwars2.com/file/D7040004B112A4075A1038917CEF5FFA0BC100A2/102788.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Physical',
+    cooldown: 20,
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     castTimeMs: 500,
@@ -117,6 +149,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.HEALING_SIGNET]: {
+    name: 'Healing Signet',
+    description: 'Signet Passive: Regenerate health.\nSignet Active: Heal yourself, and grant yourself resistance.',
+    icon: 'https://render.guildwars2.com/file/BFED9DC9065E01B726E6CF629A5642164B382BA6/102866.png',
+    type: 'Heal',
+    slot: 'Heal',
+    skillFamily: 'Signet',
+    cooldown: 20,
     castTimeMs: 1080,
     dualWieldCastTimeMs: 840,
     effects: [
@@ -129,12 +168,23 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.MENDING]: {
+    name: 'Mending',
+    description: 'Physical. Remove conditions and heal yourself.',
+    icon: 'https://render.guildwars2.com/file/04EB1106C95B7579EA29FA2F08BAFDA649C60715/103295.png',
+    type: 'Heal',
+    slot: 'Heal',
     cooldown: 12,
-    categories: ['Physical'],
+    skillFamily: 'Physical',
     castTimeMs: 920,
     effects: []
   },
   [ID.TO_THE_LIMIT]: {
+    name: '"To the Limit!"',
+    description: 'Shout. Heal yourself and regain all adrenaline. Nearby allies gain endurance.',
+    icon: 'https://render.guildwars2.com/file/999EEC803BE421BD0835D8DC1EFE70C3A0EA0903/104117.png',
+    type: 'Heal',
+    slot: 'Heal',
+    skillFamily: 'Shout',
     cooldown: 24,
     castTimeMs: 680,
     effects: [],
@@ -155,6 +205,12 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SIGNET_OF_MIGHT]: {
+    name: 'Signet of Might',
+    description: 'Signet Passive: Improves power.\nSignet Active: Attacks are unblockable and you gain might.',
+    icon: 'https://render.guildwars2.com/file/450973A6DE4D0BEE580256F5759F632B7EBC7ADD/103798.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Signet',
     attributeBonuses: { power: 180 },
     cooldown: 20,
     // The instant activation grants might without occupying the cast timeline.
@@ -169,6 +225,14 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.BANNER_OF_STRENGTH]: {
+    name: 'Banner of Strength',
+    description:
+      'Banner. Place a banner that damages and dazes foes on initial placement, then pulses boons to you and nearby allies afterward.',
+    icon: 'https://render.guildwars2.com/file/311047BE40F8F80E72CFDB2843DF09E55E06A4AA/104118.png',
+    type: 'Utility',
+    slot: 'Utility',
+
+    cooldown: 30,
     castTimeMs: 500,
     effects: [
       {
@@ -190,6 +254,14 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.BANNER_OF_DISCIPLINE]: {
+    name: 'Banner of Discipline',
+    description:
+      'Banner. Place a banner that damages and applies conditions to foes on initial placement, then pulses additional boons to you and nearby allies afterward.',
+    icon: 'https://render.guildwars2.com/file/B0BA02176B4E10539B0202CA64286DA97C4FE44E/103087.png',
+    type: 'Utility',
+    slot: 'Utility',
+
+    cooldown: 30,
     castTimeMs: 500,
     effects: [
       {
@@ -219,6 +291,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.SIGNET_OF_FURY]: {
+    name: 'Signet of Fury',
+    description:
+      'Signet Passive: Improves precision.\nSignet Active: Gain adrenaline and improve your precision and ferocity.',
+    icon: 'https://render.guildwars2.com/file/2F34F119A12F4608685DF0B76106F7B6EABCCBF8/104119.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Signet',
     attributeBonuses: { precision: 180 },
     activeAttributeBonuses: { precision: 360, ferocity: 360 },
     cooldown: 16,
@@ -238,6 +317,14 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.grant-combat-resource', amount: 30 } }]
   },
   [ID.BATTLE_STANDARD]: {
+    name: 'Battle Standard',
+    description:
+      'Banner. Place a battle standard that revives fallen allies and finishes downed foes. Once placed, the banner periodically grants boons to allies.',
+    icon: 'https://render.guildwars2.com/file/EFA30928146834B9F1F4C2C3E8DE9A446553DF5C/103707.png',
+    type: 'Elite',
+    slot: 'Elite',
+
+    cooldown: 90,
     castTimeMs: 1333,
     effects: [
       {
@@ -269,6 +356,14 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.RAMPAGE]: {
+    name: 'Rampage',
+    description:
+      'Physical. Take the form of a massive juggernaut, reducing the damage you take and the duration of incoming movement-impeding conditions.',
+    icon: 'https://render.guildwars2.com/file/D59294B049BF3412990AA9BAAF50809A0AA3EF0F/103571.png',
+    type: 'Elite',
+    slot: 'Elite',
+    skillFamily: 'Physical',
+    cooldown: 90,
     castTimeMs: 667,
     effects: [
       {
@@ -286,6 +381,16 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.KICK]: {
+    name: 'Kick',
+    description: 'Physical. Push your foe back with a kick.',
+    icon: 'https://render.guildwars2.com/file/E578C9070BCA270818F56304CBE2800CD4691350/103001.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Physical',
+    cooldown: 20,
+    ammoCastLockout: 3,
+    ammo: 3,
+
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     // Once Kick commits, an interruption preserves its effects and full cast lockout.
@@ -305,6 +410,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.BULLS_CHARGE]: {
+    name: "Bull's Charge",
+    description: 'Physical. Charge and knock down your foe.',
+    icon: 'https://render.guildwars2.com/file/EE6EF3D05F08D37DF97BA5C657CE191D4C904904/104140.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Physical',
+    cooldown: 24,
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     // Bull's Charge keeps its fixed 640 ms cast and has no measured Dual Wielding variant.
@@ -331,6 +443,13 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.DEFIANT_STANCE]: {
+    name: 'Defiant Stance',
+    description: 'Stance. Heal yourself. Absorb all incoming strikes for a period of time.',
+    icon: 'https://render.guildwars2.com/file/29C39009CD5230764480DC2404E740A49898AFA0/699533.png',
+    type: 'Heal',
+    slot: 'Heal',
+    skillFamily: 'Stance',
+    cooldown: 30,
     castTimeMs: 640,
     effects: []
   }
@@ -356,7 +475,7 @@ export const signetOfRageLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSki
       // Reset catalog weapon bursts only: Full Counter and Dragon Trigger retain their recharges.
       grantWarriorResource(runtime, Number(context.skill.resourceGain));
       for (const skill of runtime.helpers.skills) {
-        if (skill.burst && !skill.dragonSlash && skill.id !== ID.FULL_COUNTER && !skill.categories?.includes('Chant'))
+        if (skill.burst && !skill.dragonSlash && skill.id !== ID.FULL_COUNTER && skill.skillFamily !== 'Chant')
           runtime.cooldownController.clear(skill.id);
       }
     }
@@ -370,8 +489,23 @@ export const signetOfRageLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSki
 
 // One passive descriptor feeds build and live queries.
 const signetPassives = [
-  { name: 'Signet of Might', id: ID.SIGNET_OF_MIGHT, attribute: 'power', label: 'Power' },
-  { name: 'Signet of Fury', id: ID.SIGNET_OF_FURY, attribute: 'precision', label: 'Precision' }
+  {
+    name: 'Signet of Might',
+    description: 'Signet Passive: Improves power.\nSignet Active: Attacks are unblockable and you gain might.',
+    icon: 'https://render.guildwars2.com/file/450973A6DE4D0BEE580256F5759F632B7EBC7ADD/103798.png',
+    id: ID.SIGNET_OF_MIGHT,
+    attribute: 'power',
+    label: 'Power'
+  },
+  {
+    name: 'Signet of Fury',
+    description:
+      'Signet Passive: Improves precision.\nSignet Active: Gain adrenaline and improve your precision and ferocity.',
+    icon: 'https://render.guildwars2.com/file/2F34F119A12F4608685DF0B76106F7B6EABCCBF8/104119.png',
+    id: ID.SIGNET_OF_FURY,
+    attribute: 'precision',
+    label: 'Precision'
+  }
 ] as const;
 
 /** Signet bonuses never feed conversions and apply only while ready. */

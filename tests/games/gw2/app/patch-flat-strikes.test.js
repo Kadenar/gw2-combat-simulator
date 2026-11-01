@@ -45,7 +45,7 @@ for (const section of ['skills', 'balanceProfiles']) {
             { type: 'strike', name: 'Normal', coefficient: 1 }
           ]
         };
-        const catalog = createCanonicalCatalog({ [section === 'skills' ? 'generated' : section]: [source] });
+        const catalog = createCanonicalCatalog({ [section]: [source] });
         const reference = referenceFor(
           catalog[section][0],
           section === 'skills' ? catalog.skillFields : catalog.profileFields
@@ -85,7 +85,7 @@ for (const section of ['skills', 'balanceProfiles']) {
         ? skillPatchableNumericFields(source, createCanonicalCatalog().skillFields)
         : balanceProfilePatchableNumericFields(source, createCanonicalCatalog().profileFields);
     const catalog = createCanonicalCatalog({
-      [section === 'skills' ? 'generated' : section]: [
+      [section]: [
         {
           id: source.id,
           name: source.name,

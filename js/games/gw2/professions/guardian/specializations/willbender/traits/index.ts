@@ -35,7 +35,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Intrinsic virtue grants share an inclusive stack lifetime and the outgoing additive damage bucket. */
 export const lethalTempo = defineTrait({
-  name: 'Lethal Tempo',
   id: TRAIT.LETHAL_TEMPO,
   balance: {
     damageIncreasePerStack: 0.02,
@@ -108,7 +107,6 @@ export const lethalTempo = defineTrait({
 
 /** Selects longer Justice and shorter Tempo windows while the shared stack rules retain live tuning. */
 const tyrantsMomentum = defineTrait({
-  name: "Tyrant's Momentum",
   id: TRAIT.TYRANTS_MOMENTUM,
   balance: {
     damageIncreasePerStack: 0.05,
@@ -122,7 +120,6 @@ const tyrantsMomentum = defineTrait({
 
 /** Tracks reserved weapon work so earned reductions survive to commitment without moving their origin. */
 const restorativeVirtues = defineTrait({
-  name: 'Restorative Virtues',
   id: TRAIT.RESTORATIVE_VIRTUES,
   balance: {
     // Each virtue trigger advances active weapon recharge by 280ms before recharge-speed conversion.
@@ -165,7 +162,6 @@ const restorativeVirtues = defineTrait({
 
 /** Virtue activation grants Fury and accepted hit cycles grant party Might. */
 const holyReckoning = defineTrait({
-  name: 'Holy Reckoning',
   id: TRAIT.HOLY_RECKONING,
   balance: {
     effects: [
@@ -206,7 +202,6 @@ const holyReckoning = defineTrait({
 
 /** Resolve grants distinct Alacrity packets whose authored recipients can be widened by Battle Presence. */
 const phoenixProtocol = defineTrait({
-  name: 'Phoenix Protocol',
   id: TRAIT.PHOENIX_PROTOCOL,
   balance: {
     effects: [
@@ -246,7 +241,6 @@ const phoenixProtocol = defineTrait({
 
 /** Only tagged flame strikes receive the multiplier; the panel bonus remains eligible for conversions. */
 const powerForPower = defineTrait({
-  name: 'Power for Power',
   id: TRAIT.POWER_FOR_POWER,
   balance: {
     damageMultiplier: 3,
@@ -269,7 +263,6 @@ const powerForPower = defineTrait({
 
 /** Supplies the panel Vitality bonus before eligible conversions. */
 const conceitedCurate = defineTrait({
-  name: 'Conceited Curate',
   id: TRAIT.CONCEITED_CURATE,
   balance: { attributeBonuses: { vitality: 180 } },
   attributes: traitAttributeEffects(TRAIT.CONCEITED_CURATE, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'all' }])
@@ -277,7 +270,6 @@ const conceitedCurate = defineTrait({
 
 /** Accepted flame strikes emit the surviving Burning packet independently of virtue counters. */
 const searingPact = defineTrait({
-  name: 'Searing Pact',
   id: TRAIT.SEARING_PACT,
   balance: {
     attributeBonuses: { conditionDamage: 120 },
@@ -310,7 +302,6 @@ const searingPact = defineTrait({
 
 /** Training owns the common trigger threshold; each virtue retains its independent live counter. */
 export const willbenderTraining = defineTrait({
-  name: 'Willbender Training',
   id: TRAIT.WILLBENDER_TRAINING,
   balance: { threshold: 5 }
 });

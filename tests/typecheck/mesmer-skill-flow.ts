@@ -1,8 +1,9 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
 import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
-import { createMesmerModuleData } from '#gw2/professions/mesmer/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/mesmer/data/trait-lines.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
@@ -23,7 +24,7 @@ type TraitTask = NonNullable<NonNullable<typeof syncopate.lifetime>['tasks']>[st
 
 // Real modules, selected catalogs, and hooks retain profession fields without widening to Skill or any.
 export type MesmerSkillFlowAssertions = [
-  Assert<Equal<NonNullable<typeof mesmerCoreModule.data.generatedSkills>[number], MesmerSkill>>,
+  Assert<Equal<NonNullable<typeof mesmerCoreModule.data.skills>[number], MesmerSkill>>,
   Assert<Equal<(typeof mesmerCatalog.skills)[number], MesmerSkill>>,
   Assert<Equal<(typeof mesmerProfession.catalog.skills)[number], MesmerSkill>>,
   Assert<Equal<(typeof first.catalog.skills)[number], MesmerSkill>>,
@@ -49,11 +50,17 @@ export function mesmerHookSkillReads(runtime: MesmerRuntime, cast: Parameters<El
   void [cost, bonus, indexed, listed, invalid];
 }
 
-createMesmerModuleData('Core', {
-  skillMechanics: {
-    1: {
-      // @ts-expect-error Known profession fields reject invalid authored values.
-      parentCooldownIncrease: 'invalid'
-    }
+const invalidDefinitions: Record<string, SkillDefinition<MesmerSkill>> = {
+  1: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    // @ts-expect-error Known profession fields reject invalid authored values.
+    parentCooldownIncrease: 'invalid'
   }
+};
+createNativeModuleData<MesmerSkill>({
+  id: 'Core',
+  traitLines: TRAIT_LINES,
+  skillMechanics: invalidDefinitions
 });

@@ -16,8 +16,8 @@ for (const [relic, name, hook, skill, extra] of [
     {},
     { kind: 'protection', duration: 4, resolvedAudience: { includesSelf: true } }
   ],
-  ['Deadeye', 'Relic of the Deadeye', 'completed', { categories: ['Cantrip'] }],
-  ['Dragonhunter', 'Relic of the Dragonhunter', 'afterHit', { categories: ['Trap'] }],
+  ['Deadeye', 'Relic of the Deadeye', 'completed', { skillFamily: 'Cantrip' }],
+  ['Dragonhunter', 'Relic of the Dragonhunter', 'afterHit', { skillFamily: 'Trap' }],
   ['Fireworks', 'Relic of Fireworks', 'afterHit', { type: 'Weapon', cooldown: 20 }],
   ['Director', 'Relic of the Director', 'activate'],
   ['Mount Balrior', 'Relic of Mount Balrior', 'activate'],

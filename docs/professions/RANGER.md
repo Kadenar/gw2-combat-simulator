@@ -13,12 +13,14 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 
 ## Data
 
-- Generated identity metadata lives in `data/`; consult its header for snapshot provenance. Pet identity lives in
-  `data/ranger-pet-data.ts` and API-omitted actions in `data/ranger-supplemental-skills.ts`.
-- Refresh: `npm run update:ranger-data`, which refreshes API metadata and regenerates Ranger IDs and pet data without
-  overwriting owner-local mechanics.
-- Authoritative checked-in combat fields live in owner-local `skills/` fragments, and the application catalog is
-  assembled from those module contributions.
+- Maintained skill and trait constants live in `data/ids.ts`.
+- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
+  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
+  required.
+- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
+  complete declarations contributed by each module.
+- Pet identities and membership remain in `data/ranger-pet-data.ts`. Every pet skill uses `definePetSkill` for shared
+  execution and actor recharge rules.
 
 ## Implemented systems
 
@@ -40,7 +42,7 @@ and attribute snapshots from scheduling.
 
 Build and live queries share `rangerProfession.attributeContributions`, combining selected traits, module-owned skill
 passives, and Soulbeast archetype attributes from equipment seeds. Pet queries use the appropriate captured or live
-attributes. Skirmishing owns Trapper's Expertise and Light on Your Feet's base-duration rules; the intrinsic shortbow
+attributes. Skirmishing owns Trapper's Expertise and Light on your Feet's base-duration rules; the intrinsic shortbow
 extension lives in `core/skills/weapons/shortbow.ts`. Both shortbow extensions add to the base before duration scaling.
 
 Commanded pet recharge captures the accepting companion's incarnation and retains it through shared cooldown projection.

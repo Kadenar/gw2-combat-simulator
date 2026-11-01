@@ -1,14 +1,20 @@
-/** Owns Legendary Dwarf Stance skill fragments and their alternate identities. */
+/** Owns Legendary Dwarf Stance skill definitions and their alternate identities. */
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.VENGEFUL_HAMMERS]: {
+    name: 'Vengeful Hammers',
+    description: 'Legendary Dwarf. Invoke hammers to circle around you, damaging foes.',
+    icon: 'https://render.guildwars2.com/file/04E220E8A8B4BD682B6A7D780D98B80FEDF5B410/961436.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 0,
     energyCost: 5,
     upkeepCost: 6,
@@ -33,6 +39,13 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.FORCED_ENGAGEMENT]: {
+    name: 'Forced Engagement',
+    description:
+      'Legendary Dwarf. Launch a chain at your target. When the chain connects with a foe, it slows and taunts them. You take less damage from taunted foes.',
+    icon: 'https://render.guildwars2.com/file/B244F19EA9F09D96D175BC0C2BC402A23D0EEFA5/961439.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 15,
     energyCost: 10,
     legendId: 'LegendaryDwarf',
@@ -60,6 +73,12 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.RELEASE_HAMMERS]: {
+    name: 'Release Hammers',
+    description: 'Legendary Dwarf. Release the hammers to end Vengeful Hammers.',
+    icon: 'https://render.guildwars2.com/file/727BD7D6B693C1DB70D62A09E8B06C746CCD48BF/961441.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 0,
     energyCost: 0,
     legendId: 'LegendaryDwarf',
@@ -70,6 +89,12 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }]
   },
   [ID.SOOTHING_STONE]: {
+    name: 'Soothing Stone',
+    description: 'Legendary Dwarf. Remove conditions and heal yourself. Gain resolution.',
+    icon: 'https://render.guildwars2.com/file/6B0331B3BBEB4603BA7780911C950401E498B294/961448.png',
+    type: 'Heal',
+    slot: 'Heal',
+
     cooldown: 30,
     energyCost: 5,
     legendId: 'LegendaryDwarf',
@@ -84,6 +109,13 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.RITE_OF_THE_GREAT_DWARF]: {
+    name: 'Rite of the Great Dwarf',
+    description:
+      'Legendary Dwarf. Channel the power of the Rite of the Great Dwarf to turn yourself and nearby allies to stone to reduce incoming damage.',
+    icon: 'https://render.guildwars2.com/file/D8AEB219F1A057F3F4E47E5E54A12BBABFC8474F/961437.png',
+    type: 'Elite',
+    slot: 'Elite',
+
     cooldown: 0,
     energyCost: 40,
     legendId: 'LegendaryDwarf',
@@ -91,6 +123,13 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     effects: []
   },
   [ID.INSPIRING_REINFORCEMENT]: {
+    name: 'Inspiring Reinforcement',
+    description:
+      "Legendary Dwarf. Create a stone road that damages and weakens foes as it's created. Once it's created it will pulse, granting stability to allies.",
+    icon: 'https://render.guildwars2.com/file/6405B93907AE1B1EEBB752AE52BE4280246ED3C4/961457.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 10,
     energyCost: 30,
     legendId: 'LegendaryDwarf',

@@ -29,7 +29,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const attackersInsight = defineTrait({
-  name: "Attacker's Insight",
   id: TRAIT.ATTACKERS_INSIGHT,
   balance: {
     maximumStacks: 5,
@@ -59,7 +58,6 @@ export const attackersInsight = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const magebaneTether = defineTrait({
-  name: 'Magebane Tether',
   id: TRAIT.MAGEBANE_TETHER,
   modifierRules: [
     {
@@ -86,7 +84,6 @@ const magebaneTether = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const noEscape = defineTrait({
-  name: 'No Escape',
   id: TRAIT.NO_ESCAPE,
   balance: {
     effects: [
@@ -115,7 +112,6 @@ const noEscape = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const pureStrike = defineTrait({
-  name: 'Pure Strike',
   id: TRAIT.PURE_STRIKE,
   balance: {
     // Targets have no boons, so the supported bonus is a single critical-damage multiplier.
@@ -135,7 +131,6 @@ const pureStrike = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 const sunAndMoonStyle = defineTrait({
-  name: 'Sun and Moon Style',
   id: TRAIT.SUN_AND_MOON_STYLE,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
@@ -154,7 +149,6 @@ const sunAndMoonStyle = defineTrait({
 
 /** Native specialization prerequisite; intrinsic resource state remains shared with the mode owner. */
 const spellbreakersConviction = defineTrait({
-  name: "Spellbreaker's Conviction",
   id: TRAIT.SPELLBREAKERS_CONVICTION,
   balance: { maximumStacks: 20 }
 });

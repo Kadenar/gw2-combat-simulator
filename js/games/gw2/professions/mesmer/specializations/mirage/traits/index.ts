@@ -36,7 +36,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Nomad's Endurance owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 const nomadsEndurance = defineTrait<MesmerSkill>({
-  name: "Nomad's Endurance",
   id: TRAIT.NOMADS_ENDURANCE,
   balance: {
     damageIncrease: 0.1,
@@ -69,7 +68,6 @@ const nomadsEndurance = defineTrait<MesmerSkill>({
 
 /** Renewing Oasis owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 const renewingOasis = defineTrait<MesmerSkill>({
-  name: 'Renewing Oasis',
   id: TRAIT.RENEWING_OASIS,
   balance: {
     effects: [{ name: boonKey(BOON.REGENERATION), type: 'boon', boon: BOON.REGENERATION, duration: 4, stacks: 1 }]
@@ -83,7 +81,6 @@ const renewingOasis = defineTrait<MesmerSkill>({
 
 /** Riddle of Sand owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 const riddleOfSand = defineTrait<MesmerSkill>({
-  name: 'Riddle of Sand',
   id: TRAIT.RIDDLE_OF_SAND,
   balance: {
     effects: [{ name: CONDITION.CONFUSION, type: 'condition', condition: CONDITION.CONFUSION, duration: 4, stacks: 2 }]
@@ -104,7 +101,6 @@ const riddleOfSand = defineTrait<MesmerSkill>({
 
 /** Desert Distortion owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 const desertDistortion = defineTrait<MesmerSkill>({
-  name: 'Desert Distortion',
   id: TRAIT.DESERT_DISTORTION,
   balance: {
     resourceGain: 1
@@ -119,7 +115,6 @@ const desertDistortion = defineTrait<MesmerSkill>({
 
 /** Mirage Mantle owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 const mirageMantle = defineTrait<MesmerSkill>({
-  name: 'Mirage Mantle',
   id: TRAIT.MIRAGE_MANTLE,
   balance: {
     effects: [{ name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, duration: 4, stacks: 1 }]
@@ -133,7 +128,6 @@ const mirageMantle = defineTrait<MesmerSkill>({
 
 /** Phantom Pain owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 const phantomPain = defineTrait<MesmerSkill>({
-  name: 'Phantom Pain',
   id: TRAIT.PHANTOM_PAIN,
   balance: {
     damageIncreasePerStack: 0.0625,
@@ -176,7 +170,6 @@ const phantomPain = defineTrait<MesmerSkill>({
 
 /** Dune Cloak owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 const duneCloak = defineTrait<MesmerSkill>({
-  name: 'Dune Cloak',
   id: TRAIT.DUNE_CLOAK,
   balance: {
     threshold: 3,
@@ -196,7 +189,6 @@ const duneCloak = defineTrait<MesmerSkill>({
 
 /** Clone ambush execution stays mechanical; its selection, lifetime, and gain reactions belong here. */
 const infiniteHorizon = defineTrait<MesmerSkill>({
-  name: 'Infinite Horizon',
   id: TRAIT.INFINITE_HORIZON,
   triggers: [
     onTriggerPoint(mirageResourcesGained, {
@@ -214,7 +206,6 @@ const infiniteHorizon = defineTrait<MesmerSkill>({
 
 /** Self-Deception owns tuning consumed at the ordered cloak, ambush, or shatter boundary. */
 const selfDeception = defineTrait<MesmerSkill>({
-  name: 'Self-Deception',
   id: TRAIT.SELF_DECEPTION,
   balance: {
     resourceGain: 1
@@ -230,7 +221,6 @@ const selfDeception = defineTrait<MesmerSkill>({
 // The intrinsic trait owns its specialization's shared resource/window tuning.
 export const mirageTraits = [
   defineTrait<MesmerSkill>({
-    name: 'Mirage Cloak',
     id: TRAIT.MIRAGE_CLOAK,
     balance: { duration: 0.75, durationPerTier: 1.5 }
   }),
@@ -455,7 +445,7 @@ function selfDeceptionCommitted(
 ): void {
   const skill = cast.skill;
 
-  if (skill.categories?.includes('Deception') && currentResource > 0) {
+  if (skill.skillFamily === 'Deception' && currentResource > 0) {
     createMesmerIllusionRewards(state).queueResources(
       at,
       balanceNumberFromContext(state, TRAIT.SELF_DECEPTION, 'resourceGain'),

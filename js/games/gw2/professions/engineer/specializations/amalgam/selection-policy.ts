@@ -51,7 +51,6 @@ function legalMorph(skill: Skill | undefined, slot = Number(skill?.mechanicSlot)
     skill &&
     AMALGAM_MORPH_KIND_BY_SKILL_ID.has(skill.id) &&
     skill.specialization === 'Amalgam' &&
-    skill.categories?.includes('Morph') &&
     MORPH_SLOTS.includes(slot as 2 | 3 | 4) &&
     Number(skill.mechanicSlot) === slot
   );

@@ -11,22 +11,9 @@ export interface RechargeProgress {
   readonly companionId?: string;
 }
 
-type Gw2RechargeSkill = Pick<Skill, 'ammo' | 'ammoRecharge' | 'cooldown'>;
-
-function finiteRecharge(value: number | null | undefined): number | null {
-  if (value == null) return null;
-
-  const recharge = value;
-  return Number.isFinite(recharge) ? recharge : null;
-}
-
-/** Selects the authored count recharge or ordinary cooldown before modifiers and progress are applied. */
-export function gw2BaseRecharge(skill: Gw2RechargeSkill): number {
-  const ammoRecharge = finiteRecharge(skill.ammoRecharge);
-
-  if (Number(skill.ammo) > 0 && ammoRecharge != null && ammoRecharge > 0) return ammoRecharge;
-
-  return finiteRecharge(skill.cooldown) ?? 0;
+/** Base recovery before recharge modifiers, shared by ordinary activations and individual ammo charges. */
+export function gw2BaseRecharge(skill: Pick<Skill, 'cooldown'>): number {
+  return Number.isFinite(skill.cooldown) ? skill.cooldown! : 0;
 }
 
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;

@@ -7,7 +7,7 @@ import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 // Matching labels must never merge independent cooldowns or ammunition in public observations.
 function fixture() {
   const catalog = createCanonicalCatalog({
-    generated: [990101, 990102].map((id) => ({ id, name: 'Shared Name', effects: [] }))
+    skills: [990101, 990102].map((id) => ({ id, name: 'Shared Name', effects: [] }))
   });
   const ammo = new Map([
     [990101, { charges: 0, maximum: 1, recharges: [{ startedAt: 0, work: 5 }], nextRechargeAt: 4, lockoutReadyAt: 2 }],

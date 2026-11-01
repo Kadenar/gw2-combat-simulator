@@ -1,5 +1,5 @@
 /**
- * Owns Evoker familiar basic and empowered skill fragments.
+ * Owns Evoker familiar basic and empowered skill definitions.
  * Owns their patchable timing, replacement cancellation, tier selection, and basic-to-empowered conversion.
  */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -9,7 +9,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import {
   BASIC_FAMILIARS,
@@ -29,29 +29,30 @@ import type {
 } from '#gw2/professions/elementalist/types.js';
 
 /**
- * Simulator-owned skill definitions merged over the API catalog for Evoker.
+ * Complete Evoker familiar definitions with explicit activation behavior.
  *
- * The eight familiar skills form four basic/empowered pairs linked by
- * `nextChainId`. Definitions declare their start and commit behavior; gating uses
+ * The eight familiar skills form four basic/empowered pairs declared in
+ * `skill-flips.ts`. Definitions declare their start and commit behavior; gating uses
  * charge/empowered state in `mechanics/availability.ts`, not the `cooldown: 0`
  * declared here.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.IGNITE]: {
     name: 'Ignite',
+    description:
+      'Command your fire familiar to strike and burn your target. Repeated commands increase the burning tier.',
+    icon: 'https://render.guildwars2.com/file/3C20D2FF75DA624828651AD5CEB463AC90A01207/3680117.png',
     tierResetDuration: 15,
     empoweredUnlockDelay: 0.96,
     // A basic cast within this start-to-start window cancels the preceding empowered activation.
     duration: 2.4,
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Evoker',
     attunement: 'Fire',
     mechanicSlot: 5,
-    categories: ['Familiar'],
+
     cooldown: 0,
-    nextChainId: ID.CONFLAGRATION,
     skillFamily: 'Familiar',
     castTimeMs: 0,
     effects: impactEffects({ atMs: 880, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -81,14 +82,15 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   },
   [ID.CONFLAGRATION]: {
     name: 'Conflagration',
+    description:
+      'Familiar. Summon the fox to attack your target, inflicting burning and then spreading burning on that foe to nearby enemies.',
+    icon: 'https://render.guildwars2.com/file/D20BEA0141B9C458045D0C77C8CF5C16151B3C5F/3680115.png',
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Evoker',
     attunement: 'Fire',
     mechanicSlot: 5,
-    categories: ['Familiar'],
+
     cooldown: 0,
-    nextChainId: ID.IGNITE,
     skillFamily: 'Familiar',
     castTimeMs: 360,
     // A released Conflagration survives cutting the command animation short.
@@ -113,17 +115,17 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   },
   [ID.SPLASH]: {
     name: 'Splash',
+    description: 'Command your water familiar to grant regeneration to nearby allies.',
+    icon: 'https://render.guildwars2.com/file/2C4C57C5B721422A66D3CEAB4ACE753E4FE69355/3680119.png',
     empoweredUnlockDelay: 0.84,
     // A basic cast within this start-to-start window cancels the preceding empowered activation.
     duration: 2.4,
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Evoker',
     attunement: 'Water',
     mechanicSlot: 5,
-    categories: ['Familiar'],
+
     cooldown: 0,
-    nextChainId: ID.BUOYANT_DELUGE,
     skillFamily: 'Familiar',
     castTimeMs: 0,
     effects: [
@@ -147,14 +149,15 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   },
   [ID.BUOYANT_DELUGE]: {
     name: 'Buoyant Deluge',
+    description:
+      'Familiar. Summon the otter to throw a massive ball of water at the target location. When the ball lands, it heals allies in the area and removes conditions from them while stunning enemies.',
+    icon: 'https://render.guildwars2.com/file/80B7BBD01BFF65A4E29307D59079EF9875119924/3680116.png',
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Evoker',
     attunement: 'Water',
     mechanicSlot: 5,
-    categories: ['Familiar'],
+
     cooldown: 0,
-    nextChainId: ID.SPLASH,
     skillFamily: 'Familiar',
     castTimeMs: 360,
     comboFields: [
@@ -183,17 +186,17 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   },
   [ID.ZAP]: {
     name: 'Zap',
+    description: 'Command your air familiar to strike your target with lightning.',
+    icon: 'https://render.guildwars2.com/file/234FFB056E376AEE0D6D150A3C23C669BEC0359A/3680120.png',
     empoweredUnlockDelay: 0.68,
     // A basic cast within this start-to-start window cancels the preceding empowered activation.
     duration: 2.3,
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Evoker',
     attunement: 'Air',
     mechanicSlot: 5,
-    categories: ['Familiar'],
+
     cooldown: 0,
-    nextChainId: ID.LIGHTNING_BLITZ,
     skillFamily: 'Familiar',
     castTimeMs: 0,
     effects: [
@@ -225,14 +228,15 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   },
   [ID.LIGHTNING_BLITZ]: {
     name: 'Lightning Blitz',
+    description:
+      'Familiar. Summon the hare to shadowstep to and attack enemies around your target for critical damage. For each unique enemy struck, your next strike creates an arc of chain lightning.',
+    icon: 'https://render.guildwars2.com/file/CF99A0354E3667FDE3702CAEA4C3B6AFB2D6ACFD/3680113.png',
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Evoker',
     attunement: 'Air',
     mechanicSlot: 5,
-    categories: ['Familiar'],
+
     cooldown: 0,
-    nextChainId: ID.ZAP,
     skillFamily: 'Familiar',
     castTimeMs: 360,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -268,18 +272,18 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   },
   [ID.CALCIFY]: {
     name: 'Calcify',
+    description: 'Command your earth familiar to damage and daze your target.',
+    icon: 'https://render.guildwars2.com/file/C938A2442A5508F415AB72F70AA9A85AFA57FCDD/3680114.png',
     internalCooldown: 0.25,
     empoweredUnlockDelay: 0.28,
     // A basic cast within this start-to-start window cancels the preceding empowered activation.
     duration: 2.2,
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Evoker',
     attunement: 'Earth',
     mechanicSlot: 5,
-    categories: ['Familiar'],
+
     cooldown: 0,
-    nextChainId: ID.SEISMIC_IMPACT,
     skillFamily: 'Familiar',
     castTimeMs: 0,
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -311,14 +315,15 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   },
   [ID.SEISMIC_IMPACT]: {
     name: 'Seismic Impact',
+    description:
+      "Familiar. Summon the toad at your location. The toad leaps up and slams the ground, knocking down enemies and creating a rocky barrier that enemies can't cross. Allies in the area gain protection.",
+    icon: 'https://render.guildwars2.com/file/026020B3C3EF9AC03DF8C352E91299562573FCCA/3680118.png',
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Evoker',
     attunement: 'Earth',
     mechanicSlot: 5,
-    categories: ['Familiar'],
+
     cooldown: 0,
-    nextChainId: ID.CALCIFY,
     skillFamily: 'Familiar',
     castTimeMs: 360,
     effects: impactEffects({ atMs: 2120, timingAnchor: 'castStart', timingScale: 'cast' }, [

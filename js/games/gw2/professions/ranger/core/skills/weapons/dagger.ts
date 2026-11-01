@@ -6,7 +6,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { emitRangerAction } from '#gw2/professions/ranger/core/events.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
 import {
@@ -20,7 +20,7 @@ import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
-/** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+/** Canonical Core ranger skill definitions grouped by their GW2 owner. */
 
 /** Restricts Stalker's Strike's bonus to its three documented movement-impairing conditions. */
 function stalkersStrikeTargetImpaired(hasCondition: (condition: string) => boolean): boolean {
@@ -28,8 +28,17 @@ function stalkersStrikeTargetImpaired(hasCondition: (condition: string) => boole
 }
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
-export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.GROUNDWORK_GOUGE]: {
+    name: 'Groundwork Gouge',
+    description: "Swipe past your foe's defenses, exposing their vulnerability.",
+    icon: 'https://render.guildwars2.com/file/043E152903A33B09DAD74AA85F559062FC72EA0B/1770553.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 280,
     // Committing the opening strike preserves its effects and advances the dagger chain when interrupted.
     interruptCommitMs: 200,
@@ -48,6 +57,15 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     ]
   },
   [ID.LEADING_SWIPE]: {
+    name: 'Leading Swipe',
+    description: 'Rake your dagger across your foe, leaving them bleeding.',
+    icon: 'https://render.guildwars2.com/file/EDDA7CC00BAEB5EEE53A0D2937CDB10094A29692/1770554.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 320,
     effects: [
       {
@@ -64,6 +82,15 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     ]
   },
   [ID.SERPENT_STAB]: {
+    name: 'Serpent Stab',
+    description: 'Slash across your foe, poisoning them.',
+    icon: 'https://render.guildwars2.com/file/080360524A4926B770065F99DDB57AB7FDFDC4AC/1770555.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 280,
     interruptCommitMs: 200,
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -81,6 +108,15 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     ])
   },
   [ID.DEADLY_DELIVERY]: {
+    name: 'Deadly Delivery',
+    description: 'Strike deeply into your foe, inflicting multiple conditions.',
+    icon: 'https://render.guildwars2.com/file/080360524A4926B770065F99DDB57AB7FDFDC4AC/1770555.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 440,
     interruptCommitMs: 280,
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -110,6 +146,13 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     ])
   },
   [ID.DOUBLE_ARC]: {
+    name: 'Double Arc',
+    description:
+      "Rip your blade through your foe twice, inflicting heavy bleeding. Your pet's next two strikes inflict poison.",
+    icon: 'https://render.guildwars2.com/file/337557BD3779CD416D6DD32E6E74BB7D949708E4/1770556.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_2',
     // Unspent charges and their delivered conditions have independent lifetimes.
     charges: 2,
     duration: 10,
@@ -142,9 +185,14 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
         }
       }
     ]
-    // Double Arc arms the pet's next two attacks; the weapon hit does not poison directly.
   },
   [ID.INSTINCTIVE_ENGAGE]: {
+    name: 'Instinctive Engage',
+    description: 'Leap forward and slash at your foe. Gain quickness if you successfully strike.',
+    icon: 'https://render.guildwars2.com/file/411FB9186E16AAF67508EA94FAD8115855051430/1770557.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_3',
     cooldown: 12,
     castTimeMs: 840,
     effects: [
@@ -180,6 +228,14 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     ]
   },
   [ID.STALKERS_STRIKE]: {
+    name: "Stalker's Strike",
+    description:
+      'Stab and poison your foe while evading attacks. This attack deals increased damage and poison against movement-impaired foes.',
+    icon: 'https://render.guildwars2.com/file/997E9851717291082CC3314E68F3D703FD710B08/103166.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_4',
+    cooldown: 10,
     impairedDamageMultiplier: 2,
     // Double this strike against the supported impairments, evaluated at impact.
     modifiers: [
@@ -236,6 +292,16 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Partial
     ])
   },
   [ID.CRIPPLING_TALON]: {
+    name: 'Crippling Talon',
+    description: 'Throw a dagger to bleed and cripple your foe.',
+    icon: 'https://render.guildwars2.com/file/9B167B580711A77D5E95EF5E6E5B04A907DA3E35/103165.png',
+    type: 'Weapon',
+    weapon: 'Dagger',
+    slot: 'Weapon_5',
+    cooldown: 15,
+    ammoCastLockout: 1,
+    ammo: 2,
+
     castTimeMs: 360,
     // Once the projectile launches, cancelling the remaining animation preserves its impact effects.
     interruptCommitMs: 320,

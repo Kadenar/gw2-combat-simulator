@@ -3,12 +3,13 @@ import test from 'node:test';
 
 import {
   assembleNativeApplicationCatalog,
+  assembleNativeRuntimeCatalog,
   createNativeModuleData,
   getNativeCatalogAssembly
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { createProfessionModuleDataFactory } from '#gw2/professions/shared/catalog-data.js';
+import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 
 const replaceHandler = Object.freeze({
   mode: 'replace',
@@ -18,6 +19,8 @@ const skill = (id, name, extra = {}) =>
   Object.freeze({
     id,
     name,
+    description: `${name} fixture.`,
+    icon: 'fixture.png',
     castTimeMs: 0,
     effects: [],
     ...extra
@@ -26,9 +29,9 @@ const coreModule = () =>
   defineNativeModule({
     id: 'Core',
     data: {
-      generatedSkills: [skill(1, 'Core Skill')],
+      skills: [skill(1, 'Core Skill')],
       traits: [{ id: 10, name: 'Core Trait', specialization: 'Core Line' }],
-      specializations: [{ id: 20, name: 'Core Line', elite: false }],
+      traitLines: [{ id: 20, name: 'Core Line', elite: false }],
       weapons: ['Sword'],
       weaponHands: { Sword: 'mh' }
     },
@@ -39,133 +42,109 @@ const eliteModule = () =>
   defineNativeModule({
     id: 'Elite',
     data: {
-      generatedSkills: [
-        skill(2, 'Elite Skill', {
-          specialization: 'Elite'
-        }),
+      skills: [
+        skill(2, 'Elite Skill'),
         skill(3, 'Elite Mechanic Weapon', {
-          type: 'Weapon',
-          specialization: 'Elite'
+          type: 'Weapon'
         })
       ],
       traits: [{ id: 11, name: 'Elite Trait', specialization: 'Elite' }],
-      specializations: [{ id: 21, name: 'Elite', elite: true }]
+      traitLines: [{ id: 21, name: 'Elite', elite: true }]
     },
     state: { create: () => ({ eliteValue: 2 }) },
     hooks: {}
   });
 
-test('native module data admits only mechanics-backed metadata and explicit extra skills', () => {
+test('native module data rejects missing owner presentation', () => {
+  // Missing authoring data fails at composition instead of being supplied by another catalog.
+  for (const field of ['name', 'description', 'icon']) {
+    const declaration = { name: 'Fixture', description: 'Fixture action.', icon: 'fixture.png' };
+    delete declaration[field];
+    assert.throws(
+      () => createNativeModuleData({ id: 'Core', skillMechanics: { 1: declaration } }),
+      new RegExp(`Core skill 1 requires an authored ${field}`)
+    );
+  }
+});
+
+test('native module data materializes only complete owner declarations', () => {
+  const declaration = Object.freeze({
+    name: 'Authored',
+    description: 'Fixture.',
+    icon: 'fixture.png',
+    cooldown: 0,
+    effects: []
+  });
   const data = createNativeModuleData({
     id: 'Core',
-    generatedSkills: [skill(1, 'Authored'), skill(2, 'Metadata only')],
-    sharedExtraSkills: [skill(3, 'Authored supplemental'), skill(4, 'Metadata-only supplemental')],
-    skillMechanics: {
-      1: { effects: [] },
-      3: { effects: [] }
-    },
-    extraSkills: [skill(5, 'Explicit extra')]
+    skillMechanics: { 1: declaration },
+    extraSkills: [skill(5, 'Explicit action')]
   });
-
   assert.deepEqual(
-    data.generatedSkills.map(({ id }) => id),
-    [1]
+    data.skills.map(({ id }) => id),
+    [1, 5]
   );
-  assert.deepEqual(
-    data.extraSkills.map(({ id }) => id),
-    [3, 5]
-  );
+  assert.deepEqual(data.skills[0], { ...declaration, id: 1 });
+  assert.equal(Object.hasOwn(declaration, 'id'), false);
 });
 
-// Exercise binding with real defaults so omitted options cannot silently erase Core-owned declarations.
-test('profession catalog binding scopes Core defaults and replaces explicit module options without leaking them', () => {
-  const core = Object.freeze({
-    weapons: Object.freeze(['Sword']),
-    weaponHands: Object.freeze({ Sword: 'mh' }),
-    autoattackChains: Object.freeze({
-      additional: Object.freeze([Object.freeze([1, 2])]),
-      excludeSkillIds: Object.freeze([3])
-    })
-  });
-  const family = Object.freeze({ core });
-  const createData = createProfessionModuleDataFactory(family);
-  const options = Object.freeze({ skillMechanics: Object.freeze({}) });
-  const defaults = createData('Core', options);
-  const omitted = createData('Core', { ...options, autoattackChains: undefined });
-  assert.deepEqual(omitted, defaults);
-  assert.deepEqual(defaults.weapons, ['Sword']);
-  assert.deepEqual(defaults.weaponHands, { Sword: 'mh' });
-  assert.deepEqual(defaults.autoattackChains, core.autoattackChains);
-
-  const overrides = Object.freeze({
-    ...options,
-    autoattackChains: Object.freeze({ additional: Object.freeze([Object.freeze([4, 5])]) })
-  });
+// Ownership cannot be redirected by a label, even on a shared weapon or synthetic action.
+test('assembly rejects authored specialization labels on every contribution path', () => {
   for (const id of ['Core', 'Elite']) {
-    const data = createData(id, overrides);
-    assert.deepEqual(data.autoattackChains, overrides.autoattackChains);
+    for (const type of ['Weapon', 'Action']) {
+      const data = createNativeModuleData({
+        id,
+        extraSkills: [skill(7, 'Mislabeled', { type, specialization: 'Elite' })]
+      });
+      const module = defineNativeModule({ id, data, state: { create: () => ({}) } });
+      assert.throws(
+        () => assembleNativeApplicationCatalog(id === 'Core' ? [module] : [coreModule(), module]),
+        /must not author specialization/
+      );
+    }
   }
-
-  const cleared = createData('Core', { ...options, autoattackChains: {} });
-  assert.deepEqual(cleared.autoattackChains, {});
-  assert.deepEqual(createData('Core', options), defaults);
-  const elite = createData('Elite', options);
-  for (const field of ['weapons', 'weaponHands', 'autoattackChains']) {
-    assert.equal(Object.hasOwn(elite, field), false);
-  }
-
-  assert.equal(Object.isFrozen(defaults), true);
-  assert.deepEqual(options, { skillMechanics: {} });
 });
 
-// Interleaved source metadata verifies admission, ownership, and ordering through the existing assembler.
-test('profession catalog binding preserves authored admission, specialization selection, and source order', () => {
-  const createData = createProfessionModuleDataFactory({
-    generatedSkills: [skill(2, 'Elite skill'), skill(9, 'Unsupported'), skill(1, 'Core skill')],
-    sharedExtraSkills: [
-      skill(4, 'Elite supplemental'),
-      skill(8, 'Unsupported supplemental'),
-      skill(3, 'Core supplemental')
-    ],
-    traits: [
-      { id: 10, name: 'Core trait', specialization: 'Core Line' },
-      { id: 11, name: 'Elite trait', specialization: 'Elite' },
-      { id: 12, name: 'Other trait', specialization: 'Other' }
-    ],
-    specializations: [
-      { id: 20, name: 'Core Line', elite: false },
-      { id: 21, name: 'Elite', elite: true },
-      { id: 22, name: 'Other', elite: true }
-    ],
-    specializationOnlySkills: { Elite: [2] }
-  });
+// Empty text is intentional for internal Actions; selectable skills still require a useful description.
+test('native module descriptions allow explicit empty text only for Actions', () => {
+  const declaration = { name: 'Internal', description: '', icon: 'fixture.png', type: 'Action', effects: [] };
+  assert.doesNotThrow(() => createNativeModuleData({ id: 'Core', skillMechanics: { 1: declaration } }));
+  assert.throws(
+    () => createNativeModuleData({ id: 'Core', skillMechanics: { 1: { ...declaration, type: 'Weapon' } } }),
+    /requires an authored description/
+  );
+});
+
+// Authored declarations retain availability and trait ownership through assembly.
+test('profession catalog binding preserves authored admission and trait-line selection', () => {
+  const traitLines = [
+    { id: 20, name: 'Core Line', elite: false, minorTraits: [{ id: 10, name: 'Core trait' }], majorTraits: [] },
+    { id: 21, name: 'Elite', elite: true, minorTraits: [], majorTraits: [[{ id: 11, name: 'Elite trait' }]] },
+    { id: 22, name: 'Other', elite: true, minorTraits: [{ id: 12, name: 'Other trait' }], majorTraits: [] }
+  ];
+  const createData = (id, options) => createNativeModuleData({ id, traitLines, ...options });
   const core = createData('Core', {
-    skillMechanics: { 1: {}, 3: {} },
-    skillOverrides: { 1: { cooldown: 5 }, 2: { cooldown: 10 } },
+    skillMechanics: { 1: skill(1, 'Core skill', { cooldown: 5 }), 3: skill(3, 'Core action') },
     extraSkills: [skill(5, 'Explicit extra')]
   });
-  const elite = createData('Elite', { skillMechanics: { 2: {}, 4: {} } });
+  const elite = createData('Elite', { skillMechanics: { 2: skill(2, 'Elite skill'), 4: skill(4, 'Elite action') } });
   assert.deepEqual(
-    core.generatedSkills.map(({ id }) => id),
-    [1]
+    core.skills.map(({ id }) => id),
+    [1, 3, 5]
   );
-  assert.deepEqual(
-    core.extraSkills.map(({ id }) => id),
-    [3, 5]
-  );
-  assert.deepEqual(core.skillOverrides, { 1: { cooldown: 5 } });
+  assert.equal(core.skills[0].cooldown, 5);
   assert.equal(Object.hasOwn(core, 'balanceProfiles'), false);
   assert.equal(Object.hasOwn(elite, 'balanceProfiles'), false);
   assert.deepEqual(
-    elite.extraSkills.map(({ id }) => id),
-    [4]
+    elite.skills.map(({ id }) => id),
+    [2, 4]
   );
   assert.deepEqual(
     core.traits.map(({ id }) => id),
     [10]
   );
   assert.deepEqual(
-    core.specializations.map(({ id }) => id),
+    core.traitLines.map(({ id }) => id),
     [20]
   );
   assert.deepEqual(
@@ -173,24 +152,9 @@ test('profession catalog binding preserves authored admission, specialization se
     [11]
   );
   assert.deepEqual(
-    elite.specializations.map(({ id }) => id),
+    elite.traitLines.map(({ id }) => id),
     [21]
   );
-  assert.deepEqual(elite.specializationOnlySkillIds, [2]);
-  assert.deepEqual([...core.generatedSkillOrder], [[1, 2]]);
-  assert.deepEqual([...elite.generatedSkillOrder], [[2, 0]]);
-  assert.deepEqual([...core.sharedExtraSkillOrder], [[3, 2]]);
-  assert.deepEqual([...elite.sharedExtraSkillOrder], [[4, 0]]);
-  assert.equal(core.specializationOnlySkillIds, undefined);
-  assert.deepEqual(
-    createData('Elite', { skillMechanics: {}, specializationOnlySkillIds: [4] }).specializationOnlySkillIds,
-    [4]
-  );
-  assert.equal(
-    createData('Elite', { skillMechanics: {}, specializationOnlySkillIds: [] }).specializationOnlySkillIds,
-    undefined
-  );
-
   const modules = [core, elite].map((data, index) =>
     defineNativeModule({
       id: index === 0 ? 'Core' : 'Elite',
@@ -213,7 +177,7 @@ test('profession catalog binding preserves authored admission, specialization se
   );
   assert.deepEqual(
     assembly.catalog.skills.map(({ id }) => id),
-    [2, 1, 3, 4, 5]
+    [1, 3, 5, 2, 4]
   );
   assert.equal(
     new Map(
@@ -239,10 +203,12 @@ test('module-first assembly derives application and active runtime catalogs', ()
 
   assert.equal(family.catalog, catalog);
   assert.deepEqual(catalog.skills.map(({ id }) => id).sort(), [1, 2, 3]);
-  assert.equal(skillOwners.get(3), 'Core');
+  assert.equal(skillOwners.get(3), 'Elite');
+  assert.equal(catalog.skillsById.get(3).specialization, 'Elite');
+  assert.equal(Object.hasOwn(catalog.skillsById.get(1), 'specialization'), false);
   assert.deepEqual(
     family.resolveProfession({ specialization: 'Core' }).catalog.skills.map(({ id }) => id),
-    [1, 3]
+    [1]
   );
   assert.deepEqual(
     family
@@ -257,6 +223,25 @@ test('module-first assembly derives application and active runtime catalogs', ()
   );
 });
 
+// Selected catalogs must keep the validated sequence even if a caller later edits its input declarations.
+test('runtime chain fragments detach authored arrays and preserve canonical IDs', () => {
+  const chain = [1, 2];
+  const module = defineNativeModule({
+    id: 'Core',
+    data: {
+      skills: [skill(1, 'First'), skill(2, 'Second')],
+      autoattackChains: [chain]
+    },
+    state: { create: () => ({}) }
+  });
+  const assembly = getNativeCatalogAssembly([module]);
+  chain.reverse();
+  const fragment = assembly.fragments.get('Core');
+  assert.deepEqual(fragment.autoattackChains, [[1, 2]]);
+  assert.equal(Object.isFrozen(fragment.autoattackChains[0]), true);
+  assert.deepEqual(assembleNativeRuntimeCatalog([fragment]).autoattackChains, [[1, 2]]);
+});
+
 test('module-first assembly rejects duplicate and incomplete contributions', () => {
   const core = coreModule();
 
@@ -266,11 +251,11 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
         core,
         defineNativeModule({
           id: 'Duplicate',
-          data: { generatedSkills: [skill(1, 'Duplicate')] },
+          data: { skills: [skill(1, 'Duplicate')] },
           state: { create: () => ({}) }
         })
       ]),
-    /Duplicate generated skill id 1/
+    /Duplicate skill id 1/
   );
   assert.throws(
     () =>
@@ -388,9 +373,8 @@ test('selected runtime assembly binds profession side-effect handlers', () => {
     defineNativeModule({
       id: 'Elite',
       data: {
-        generatedSkills: [
+        skills: [
           skill(2, 'Elite action', {
-            specialization: 'Elite',
             sideEffects: [{ on: 'castCommit', do: { type: 'fixture.action' } }],
             effects: [
               {
@@ -423,4 +407,103 @@ test('selected runtime assembly binds profession side-effect handlers', () => {
     modules: [coreModule(), elite({ sideEffectHandlers: { 'fixture.action': handler } })]
   });
   assert.throws(() => missingImpact.runtimeFor({ specialization: 'Elite' }), /fixture.impact/);
+});
+
+// Native assembly must normalize combo ownership and vocabulary before general catalog validation.
+test('native assembly normalizes explicit combo descriptors and rejects invalid ownership', () => {
+  const assemble = (ownerId) =>
+    assembleNativeApplicationCatalog([
+      defineNativeModule({
+        id: 'Core',
+        data: createNativeModuleData({
+          id: 'Core',
+          skillMechanics: {
+            1: {
+              name: 'Combo fixture',
+              description: 'Declares a field and a finisher.',
+              icon: 'fixture.png',
+              comboFields: [{ ownerId, fieldType: 'fire', duration: 4 }],
+              effects: [{ type: 'strike', coefficient: 1, comboFinishers: [{ ownerId, finisherType: 'blast' }] }]
+            }
+          }
+        }),
+        state: { create: () => ({}) }
+      })
+    ]);
+  const skill = assemble('Core').skillsById.get(1);
+  assert.equal(skill.comboFields[0].fieldType, 'Fire');
+  const finisher = skill.effects[0].comboFinishers[0];
+  assert.equal(finisher.finisherType, 'Blast');
+  assert.equal(finisher.ownerId, 'Core');
+  assert.equal(finisher.chance, 1);
+  assert.equal(finisher.attemptGroup, 'effect:1');
+  assert.throws(() => assemble(''), /Skill 1.*ownerId must be a non-empty string/);
+});
+
+// Family composition must fail before duplicate keys can disappear into a module's catalog input.
+test('skill definition composition rejects repeated identities across families', () => {
+  const first = { name: 'First', description: 'First skill.', icon: 'fixture.png' };
+  const second = { name: 'Second', description: 'Second skill.', icon: 'fixture.png' };
+  assert.deepEqual(Object.keys(composeSkillDefinitions({ 1: first }, { 2: second })), ['1', '2']);
+  assert.throws(() => composeSkillDefinitions({ 1: first }, { 1: second }), /Duplicate skill definition ID 1/);
+});
+
+// Both authored paths reject links owned by assembly, including explicit null placeholders.
+test('native assembly rejects authored derived chain and flip fields', () => {
+  for (const field of ['chainRoot', 'chainStep', 'nextChainId', 'flipSkillId', 'flipParentId']) {
+    assert.throws(
+      () =>
+        assembleNativeApplicationCatalog([
+          defineNativeModule({
+            id: 'Core',
+            data: { skills: [skill(1, 'Fixture', { [field]: null })] },
+            state: { create: () => ({}) }
+          })
+        ]),
+      new RegExp('must not author ' + field)
+    );
+  }
+});
+
+// Presentation is stored as plain text so tooltip rendering does not need source-format cleanup.
+test('catalog assembly rejects API and wiki markup in skill and trait presentation', () => {
+  for (const text of ['<c=reminder>Text</c>', 'Line<br>break', '{{gray|Text}}']) {
+    for (const field of ['name', 'description', 'icon']) {
+      for (const entity of ['skills', 'traits']) {
+        assert.throws(
+          () =>
+            assembleNativeApplicationCatalog([
+              defineNativeModule({
+                id: 'Core',
+                data: { [entity]: [skill(1, 'Fixture', { [field]: text })] },
+                state: { create: () => ({}) }
+              })
+            ]),
+          /must use plain text/
+        );
+      }
+    }
+  }
+});
+
+// Trait records supply ordinary profile labels, while explicit proc names remain intentional overrides.
+test('trait profiles inherit canonical names and preserve explicit proc labels', () => {
+  const catalog = assembleNativeApplicationCatalog([
+    defineNativeModule({
+      id: 'Core',
+      data: {
+        traits: [
+          { id: 301, name: 'Canonical trait' },
+          { id: 302, name: 'Long trait name' }
+        ]
+      },
+      traitDefinitions: [
+        { id: 301, balance: {} },
+        { id: 302, name: 'Short proc', balance: {} }
+      ],
+      state: { create: () => ({}) }
+    })
+  ]);
+  assert.equal(catalog.balanceProfilesById.get(301).name, 'Canonical trait');
+  assert.equal(catalog.balanceProfilesById.get(302).name, 'Short proc');
 });

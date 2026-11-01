@@ -380,19 +380,6 @@ export default [
     }
   },
 
-  // Elementalist catalog generation merges every module's declarative skill fragments before any module reads its
-  // share, so its module-data may read the core and specialization skills/index.js declarations and nothing else.
-  {
-    files: ['js/games/gw2/professions/elementalist/data/module-data.ts'],
-    rules: {
-      'no-restricted-imports': restrictedImports({
-        regex:
-          '(^|/)(app|integrations)(/|$)|(^|/)core/(?!skills/index\\.js$)|(^|/)specializations/(?![^/]+/skills/index\\.js$)|(^|/)presentation\\.js$',
-        message: 'Profession data may read module skill declarations but no behavior, presentation, or application.'
-      })
-    }
-  },
-
   // Build-context bindings compose the active preview; native profession content keeps the stricter rule above.
   {
     files: ['js/games/gw2/professions/*/build/context.ts'],

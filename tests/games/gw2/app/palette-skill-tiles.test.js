@@ -69,7 +69,7 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
     id: 'palette-recharge',
     name: 'Palette Recharge',
     catalog: createCanonicalCatalog({
-      generated: [{ id: 990020, name: 'Recharge', type: 'Utility', castTimeMs: 0, cooldown: 20, effects: [] }]
+      skills: [{ id: 990020, name: 'Recharge', type: 'Utility', castTimeMs: 0, cooldown: 20, effects: [] }]
     })
   });
   const skill = profession.catalog.skillsById.get(990020);
@@ -326,21 +326,10 @@ test('Dragon Slash editor access is separate from its default verdict and requir
 
 for (const [label, skills, states] of [
   [
-    'flip pair',
+    'flip pair with imported next-chain evidence',
     [
-      { id: 1, name: 'Root', flipSkillId: 2 },
-      { id: 2, name: 'Flip' }
-    ],
-    [
-      [{}, [1]],
-      [{ 2: armSkillFlip({}, 0, 0) }, [2]]
-    ]
-  ],
-  [
-    'reciprocal pair',
-    [
-      { id: 1, name: 'Root', nextChainId: 2 },
-      { id: 2, name: 'Flip', nextChainId: 1 }
+      { id: 1, name: 'Root', flipSkillId: 2, nextChainId: 2 },
+      { id: 2, name: 'Flip', flipParentId: 1 }
     ],
     [
       [{}, [1]],
@@ -378,7 +367,6 @@ test('autoattack links, replacements, and excluded flips never expand a root-onl
   for (const [label, parent, child] of [
     ['autoattack chain', { chainRoot: 1 }, { chainRoot: 1 }],
     ['weapon bar chain', { weaponBarChainRootId: 1 }, { weaponBarChainRootId: 1 }],
-    ['one-way next skill', { nextChainId: 2 }, {}],
     ['ambush', {}, { ambush: true }],
     ['stealth attack', {}, { stealthAttack: true, slot: 'Weapon_1' }],
     ['unleashed ambush', {}, { unleashedAmbushSkill: true }],
@@ -755,4 +743,25 @@ test('Herald legend-dependent True Nature variants use one shared Facet tile', a
 
   assert.deepEqual(project({}), ['Facet of Nature']);
   assert.deepEqual(project({ 51667: armSkillFlip({}, 0, 0) }), ['True Nature']);
+});
+
+// Reciprocal API references are evidence only; the catalog requires a declaration before grouping a flip tile.
+test('undeclared reciprocal links never become palette flips', () => {
+  const catalog = createCanonicalCatalog({
+    skills: [
+      { id: 990201, name: 'Parent', nextChainId: 990202, flipSkillId: 990202 },
+      { id: 990202, name: 'Child', nextChainId: 990201 }
+    ]
+  });
+  const app = projectionApp(
+    { catalog },
+    {
+      useProfessionUi: false,
+      professionState: { [STATE.AVAILABLE_FLIPS]: { 990202: armSkillFlip({}, 0, 0) } }
+    }
+  );
+  assert.deepEqual(
+    displayedSkillTiles(app, catalog.skills).map((skill) => skill.id),
+    [990201, 990202]
+  );
 });

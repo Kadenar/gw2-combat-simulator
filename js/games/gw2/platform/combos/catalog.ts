@@ -129,7 +129,7 @@ function normalizeEffect(effect: SkillEffect, effectIndex: number): SkillEffect 
 }
 
 /** Normalizes explicit GW2 combo descriptors at native catalog assembly time. */
-export function normalizeGw2ComboCatalogSkill<TSkill extends Skill>(skill: Partial<TSkill>): Partial<TSkill> {
+export function normalizeGw2ComboCatalogSkill<TSkill extends Skill>(skill: TSkill): TSkill {
   // Catalog failures identify the authoring record before any simulation can start.
   try {
     const comboFields = skill.comboFields != null ? normalizeFieldDescriptors(skill.comboFields) : undefined;

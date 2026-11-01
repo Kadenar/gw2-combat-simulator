@@ -131,7 +131,7 @@ test('combat-start and cooldown-reset markers declare environment ownership', ()
 
 // Flat reductions consume work once, carrying excess to the next charge and capping at a full pool.
 test('ammo recharge reductions advance the queue without multiplying progress', () => {
-  const skill = { id: 980000, ammo: 3, ammoRecharge: 12 };
+  const skill = { id: 980000, ammo: 3, cooldown: 12 };
   const state = { time: 0 };
   const controller = createCooldownController({ clock: state, rechargeDuration: () => 12 });
   controller.spendAmmo(skill, 0);
@@ -157,7 +157,7 @@ test('ammo recharge reductions advance the queue without multiplying progress', 
 
 test('skill recharge reduction routes ordinary and ammo skills through one capped contract', () => {
   const ordinary = { id: 980010 };
-  const ammo = { id: 980011, ammo: 2, ammoRecharge: 12 };
+  const ammo = { id: 980011, ammo: 2, cooldown: 12 };
   const state = {
     time: 0
   };
@@ -176,7 +176,7 @@ test('skill recharge reduction routes ordinary and ammo skills through one cappe
 
 test('skill recharge reduction accepts game-specific base-to-wall-time conversion', () => {
   const ordinary = { id: 980012, cooldown: 10 };
-  const ammo = { id: 980013, ammo: 2, ammoRecharge: 10 };
+  const ammo = { id: 980013, ammo: 2, cooldown: 10 };
   const state = { time: 0 };
   const controller = createCooldownController({
     clock: state,
@@ -195,7 +195,7 @@ test('skill recharge reduction accepts game-specific base-to-wall-time conversio
 
 function temporalCatalog() {
   return createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 980001,
         name: 'Long Cast',
@@ -357,7 +357,7 @@ test('a concurrent instant waits until its finite cooldown expires', () => {
 test('skill-group lockouts block only skills in the same group', () => {
   const lockouts = [{ group: 'fixture.shatter', durationMs: 50 }];
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 980010,
         name: 'Shatter One',
@@ -426,7 +426,7 @@ test('independent casts use a separate serial cast lane', () => {
     id: 'independent-casts',
     name: 'Independent Casts',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 910001,
           name: 'Player Cast One',

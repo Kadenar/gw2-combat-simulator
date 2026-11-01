@@ -5,9 +5,9 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { GUARDIAN_SKILL_IDS as G, GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
-import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { firebrandModule } from '#gw2/professions/guardian/specializations/firebrand/module.js';
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { createRangerBuildDefaults } from '#gw2/professions/ranger/build/build.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
@@ -138,7 +138,7 @@ test('Weighty Terms follows canonical mantra IDs and ignores names or final-char
             id,
             name: 'Renamed mantra',
             description: id === mantra.finalId ? '' : 'Final Charge.',
-            categories: ['Mantra']
+            skillFamily: 'Mantra'
           };
           const cast = {
             skill,

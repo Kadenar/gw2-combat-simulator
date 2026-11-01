@@ -19,7 +19,6 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
 
 /** Owns Dwarven Battle Training tuning and behavior at its established execution boundaries. */
 export const dwarvenBattleTraining = defineTrait({
-  name: 'Dwarven Battle Training',
   id: TRAIT.DWARVEN_BATTLE_TRAINING,
   balance: {
     damageMultiplier: 1.1,
@@ -65,7 +64,6 @@ export const dwarvenBattleTraining = defineTrait({
 
 /** Owns Enduring Recovery tuning and behavior at its established execution boundaries. */
 export const enduringRecovery = defineTrait({
-  name: 'Enduring Recovery',
   id: TRAIT.ENDURING_RECOVERY,
   balance: {
     enduranceRegenerationMultiplier: 1.25,
@@ -75,7 +73,6 @@ export const enduringRecovery = defineTrait({
 
 /** Owns Versed in Stone tuning and behavior at its established execution boundaries. */
 export const versedInStone = defineTrait({
-  name: 'Versed in Stone',
   id: TRAIT.VERSED_IN_STONE,
   balance: { attributeConversion: 0.13 },
   attributes: traitAttributeEffects(TRAIT.VERSED_IN_STONE, [
@@ -92,7 +89,6 @@ export const versedInStone = defineTrait({
 
 /** Owns Vicious Reprisal tuning and behavior at its established execution boundaries. */
 export const viciousReprisalTrait = defineTrait({
-  name: 'Vicious Reprisal',
   id: TRAIT.VICIOUS_REPRISAL,
   balance: {
     damageIncrease: 0.1,

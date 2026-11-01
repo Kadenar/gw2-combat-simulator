@@ -18,7 +18,6 @@ import {
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import {
   grantAshes,
   resolveAshesGrantData
@@ -37,6 +36,7 @@ import {
   type FirebrandStrike,
   type TomeOpening
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
@@ -57,7 +57,6 @@ const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
 /** Purity of Word introduces the shared page pool; the resource controller retains its accounting. */
 export const purityOfWord = defineTrait({
-  name: 'Purity of Word',
   id: TRAIT.PURITY_OF_WORD,
   balance: {
     maximumStacks: 5,
@@ -69,7 +68,6 @@ export const purityOfWord = defineTrait({
 
 /** Counts accepted pages and grants earned refunds even after the tome session ends. */
 export const swiftScholar = defineTrait({
-  name: 'Swift Scholar',
   id: TRAIT.SWIFT_SCHOLAR,
   balance: {
     minimumStacks: 3,
@@ -145,7 +143,6 @@ export const swiftScholar = defineTrait({
 
 /** Each completed page grants the boon associated with its tome. */
 const legendaryLore = defineTrait({
-  name: 'Legendary Lore',
   id: TRAIT.LEGENDARY_LORE,
   balance: {
     effects: [
@@ -193,7 +190,6 @@ const legendaryLore = defineTrait({
 
 /** Quickness enables the same attribute contribution in preview and live queries. */
 const imbuedHaste = defineTrait({
-  name: 'Imbued Haste',
   id: TRAIT.IMBUED_HASTE,
   balance: {
     attributeBonuses: { conditionDamage: 250, healingPower: 250, vitality: 250 }
@@ -207,7 +203,6 @@ const imbuedHaste = defineTrait({
 
 /** Accepted heals reserve the interval before delivering surviving party Quickness. */
 export const liberatorsVow = defineTrait({
-  name: "Liberator's Vow",
   id: TRAIT.LIBERATORS_VOW,
   balance: {
     internalCooldown: 7,
@@ -255,7 +250,6 @@ export const liberatorsVow = defineTrait({
 
 /** Final-charge rewards precede charge retirement; the compiled completion stage reports the selected reward. */
 const weightyTerms = defineTrait({
-  name: 'Weighty Terms',
   id: TRAIT.WEIGHTY_TERMS,
   balance: {
     resourceGain: 2,
@@ -291,7 +285,6 @@ const weightyTerms = defineTrait({
 
 /** Delivered Aegis or Stability grants party Quickness on the existing shared interval. */
 const stalwartSpeed = defineTrait({
-  name: 'Stalwart Speed',
   id: TRAIT.STALWART_SPEED,
   balance: {
     internalCooldown: 7,
@@ -308,7 +301,6 @@ const stalwartSpeed = defineTrait({
 
 /** Player controls grant boons while Courage retains its passive through dormancy. */
 const stoicDemeanor = defineTrait({
-  name: 'Stoic Demeanor',
   id: TRAIT.STOIC_DEMEANOR,
   balance: {
     effects: [
@@ -326,7 +318,6 @@ const stoicDemeanor = defineTrait({
 
 /** Accepted axe damage grants the surviving Bleeding packet after Ashes consumption. */
 const unrelentingCriticism = defineTrait({
-  name: 'Unrelenting Criticism',
   id: TRAIT.UNRELENTING_CRITICISM,
   balance: {
     effects: [
@@ -350,7 +341,6 @@ const unrelentingCriticism = defineTrait({
 
 /** Delivered Quickness grants authored allied or self Ashes charges and retains passive Justice. */
 export const quickfire = defineTrait({
-  name: 'Quickfire',
   id: TRAIT.QUICKFIRE,
   balance: {
     internalCooldown: 7,
@@ -375,14 +365,12 @@ export const quickfire = defineTrait({
 
 /** Increases the shared page capacity and upgrades the untraited initial default. */
 const archivistOfWhispers = defineTrait({
-  name: 'Archivist of Whispers',
   id: TRAIT.ARCHIVIST_OF_WHISPERS,
   balance: { maximumStacks: 8 }
 });
 
 /** Shortens the resource controller cadence without creating a second recovery clock. */
 const loremaster = defineTrait({
-  name: 'Loremaster',
   id: TRAIT.LOREMASTER,
   balance: {
     pulseInterval: 5

@@ -87,7 +87,6 @@ export interface ElementalistSkill
   readonly attunement?: string;
   readonly chainRoot?: SkillId;
   readonly overload?: boolean;
-  readonly skillFamily?: string;
 }
 
 /** One actual gameplay context, shared by Core and the active elite. */

@@ -1,4 +1,4 @@
-/** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+/** Canonical Core ranger skill definitions grouped by their GW2 owner. */
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -9,7 +9,7 @@ import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -20,8 +20,17 @@ const RESET_SKILLS: readonly SkillId[] = [ID.FLOURISH, ID.OAKEN_CUDGEL, ID.THIST
 
 // Measured from 20261015-192637.zevtc with Quickness, rounded to the 40 ms action grid.
 // Cast durations include normal recovery; impact offsets keep on-hit rewards ahead of that recovery.
-export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.GERMINATE]: {
+    name: 'Germinate',
+    description: 'Chain. Strike with your mace.',
+    icon: 'https://render.guildwars2.com/file/A0B8C463DCB432B6FC5BDC3031A3F8B10C9B14B9/3256381.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 440,
     interruptCommitMs: 360,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -29,6 +38,15 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.BURGEON]: {
+    name: 'Burgeon',
+    description: 'Chain. Slam your target.',
+    icon: 'https://render.guildwars2.com/file/632E78226233B20B4A16C2E42EC0280D470D2F09/3256382.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     interruptCommitMs: 440,
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -36,6 +54,16 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.CULTIVATE]: {
+    name: 'Cultivate',
+    description:
+      "Swing an uppercut at your target, crippling them and granting vigor to nearby allies. Gain Nature's Strength if you hit an enemy. \nThis skill cannot activate Force of Nature.",
+    icon: 'https://render.guildwars2.com/file/FCA9D855E86CAF0B069CB3FEC6F220125F164803/3256383.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 920,
     interruptCommitMs: 520,
     // Once the uppercut connects, cancelling its recovery does not release the player cast lane early.
@@ -53,6 +81,14 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.FLOURISH]: {
+    name: 'Flourish',
+    description:
+      "Strike the earth, damaging nearby enemies and healing nearby allies. The ground flourishes in response, repeating stronger effects after a delay. Gain Nature's Strength if the initial strike hits an enemy.",
+    icon: 'https://render.guildwars2.com/file/A3CAFE3F4F60F5BA30DBF3511AEF2EB03D75673E/3256384.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_2',
+    cooldown: 6,
     castTimeMs: 800,
     interruptCommitMs: 480,
     // Once the ground is struck, its delayed bloom continues after the player leaves the cast.
@@ -77,6 +113,14 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.OAKEN_CUDGEL]: {
+    name: 'Oaken Cudgel',
+    description:
+      "Imbue your mace with verdant energy and then leap to your target. Stun enemies, grant nearby allies protection, and heal your pet. Gain Nature's Strength if you hit an enemy.",
+    icon: 'https://render.guildwars2.com/file/AF04C49117A8634CDDAA1AB3B35B25111B394FEC/3256385.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_3',
+    cooldown: 12,
     // The leap remains 960 ms in this Quickness log; its animation is not accelerated.
     castTimeMs: 960,
     interruptCommitMs: 800,
@@ -94,6 +138,14 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.THISTLEGUARD]: {
+    name: 'Thistleguard',
+    description:
+      "Envelop yourself in thorns, striking nearby enemies and gaining stability for a brief duration. Gain additional bonuses and Nature's Strength if you strike an enemy.",
+    icon: 'https://render.guildwars2.com/file/D246F868FF56A5DA990D4C0593BC6FD4082456DD/3256386.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_4',
+    cooldown: 12,
     castTimeMs: 280,
     interruptCommitMs: 240,
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -102,6 +154,14 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<S
     ])
   },
   [ID.WILD_STRIKES]: {
+    name: 'Wild Strikes',
+    description:
+      "Repeatedly slam the ground, damaging nearby enemies. The final slam does increased damage, dazes enemies, and grants Nature's Strength.",
+    icon: 'https://render.guildwars2.com/file/4063516E170663BE3C0B07A744F2A4A142E90FC3/3256387.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_5',
+    cooldown: 20,
     castTimeMs: 1240,
     // Only the final surviving slam grants Nature's Strength; earlier slams survive a cancelled channel.
     interruptMode: 'per-packet',

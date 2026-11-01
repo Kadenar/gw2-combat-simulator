@@ -47,8 +47,8 @@ shared UI. Neutral `#ui/` primitives belong in `ui/`. View tests can reuse `help
 browser nodes.
 
 A shared engine contract stays under `games/gw2/platform/` even when a profession simulation helper supplies the
-scenario. API snapshot transforms and metadata generation belong in `scripts/profession-api-snapshot.test.mjs`; build
-migration and cross-profession contracts remain under `games/gw2/professions/`.
+scenario. External build-template palette maintenance is separate from maintained skill definitions; build migration and
+cross-profession contracts remain under `games/gw2/professions/`.
 
 ## Choosing validation
 

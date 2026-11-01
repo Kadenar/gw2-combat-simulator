@@ -1,10 +1,11 @@
 /**
- * Owns Core Ranger pet skill fragments for the Jacaranda family.
+ * Owns Core Ranger pet skill definitions for the Jacaranda family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 // The pet's own projectile lands first. The vine then pulses four more times; each pulse snaps to the action grid
@@ -16,9 +17,18 @@ const CALL_LIGHTNING_PULSE_TIMES_MS = [1760, 2760, 3760, 4760, 5760];
 // Calibrated so both condition Druid presets reproduce the 158 damage every logged vine hit deals in their logs.
 const EMBRACE_VINE_COEFFICIENT = 0.0845;
 
-export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.JACARANDA_PHOTOSYNTHESIZE]: {
-    petSkill: true,
+export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+  [ID.JACARANDA_PHOTOSYNTHESIZE]: definePetSkill({
+    name: 'Photosynthesize',
+    description: 'Restore health, gain regeneration, and remove conditions.',
+    icon: 'https://render.guildwars2.com/file/976A0CC4EA0F36C8A4A705FDE22F03D65CD050D1/1770577.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Jacaranda'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     castTimeMs: 750,
     quicknessCastTimeMs: 500,
     // Regeneration belongs to the casting companion, while healing and cleansing remain outside combat scope.
@@ -33,9 +43,16 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         audience: { recipients: RECIPIENT.SELF }
       }
     ]
-  },
-  [ID.JACARANDAS_EMBRACE]: {
-    petSkill: true,
+  }),
+  [ID.JACARANDAS_EMBRACE]: definePetSkill({
+    name: "Jacaranda's Embrace",
+    description: 'Beast. Fire a missile that roots foes for a period of time.',
+    icon: 'https://render.guildwars2.com/file/62C42A056E3B30C8770D5BA3E4301C06069BE21E/1770562.png',
+    petNames: ['Jacaranda'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     // The pet's unquickened animation lasts 1.48 s; treating that measurement as Quickness inflated its lane occupancy.
     castTimeMs: 1480,
     quicknessCastTimeMs: 1480,
@@ -76,9 +93,18 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         actorType: ACTOR.PLAYER
       }
     ])
-  },
-  [ID.JACARANDA_ROOT_SLAP]: {
-    petSkill: true,
+  }),
+  [ID.JACARANDA_ROOT_SLAP]: definePetSkill({
+    name: 'Root Slap',
+    description: 'Strike your target with roots.',
+    icon: new URL('@images/wiki/root-slap.png', import.meta.url).href,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Jacaranda'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 0,
     quicknessCastTimeMs: 800,
     effects: [
       {
@@ -91,9 +117,18 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.JACARANDA_CALL_LIGHTNING]: {
-    petSkill: true,
+  }),
+  [ID.JACARANDA_CALL_LIGHTNING]: definePetSkill({
+    name: 'Call Lightning',
+    description: 'Call lightning to a small area.',
+    icon: 'https://render.guildwars2.com/file/731C0827CBB7E4015F3C45B4C49C58B42416BFA8/1770576.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Jacaranda'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 12,
     quicknessCastTimeMs: 500,
     // The autonomous storm survives attack interruption, but its remaining pulses still end on pet swap.
     interruptCommitMs: 0,
@@ -120,5 +155,5 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
         actorType: ACTOR.SUMMON
       }
     ])
-  }
+  })
 });

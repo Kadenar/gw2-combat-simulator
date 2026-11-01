@@ -176,7 +176,7 @@ test('combo declarations reject missing, blank, and non-string ownership before 
       const metadata = { [field]: [descriptor] };
       const skill = { id: 1, name: 'Ownership fixture', ...metadata };
       assert.throws(() => normalizeGw2ComboCatalogSkill(skill), /Skill 1.*ownerId must be a non-empty string/);
-      assert.throws(() => createCanonicalCatalog({ generated: [skill] }), /Skill 1.*ownerId/);
+      assert.throws(() => createCanonicalCatalog({ skills: [skill] }), /Skill 1.*ownerId/);
       assert.throws(
         () => normalizeGw2ComboCatalogSkill({ id: 1, effects: [{ type: 'strike', coefficient: 1, ...metadata }] }),
         /ownerId/

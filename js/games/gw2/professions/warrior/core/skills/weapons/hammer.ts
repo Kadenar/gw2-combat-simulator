@@ -1,13 +1,22 @@
-/** Canonical Core warrior skill fragments grouped by their GW2 owner. */
+/** Canonical Core warrior skill definitions grouped by their GW2 owner. */
 import { COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.HAMMER_SWING]: {
+    name: 'Hammer Swing',
+    description: 'Chain. Bash your foe.',
+    icon: 'https://render.guildwars2.com/file/C3BAD7D3D29FB64654985F0AB8FEA7713BE375E9/103178.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 480,
     effects: [
       {
@@ -19,6 +28,15 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.HAMMER_BASH]: {
+    name: 'Hammer Bash',
+    description: 'Chain. Bash your foe again.',
+    icon: 'https://render.guildwars2.com/file/2D1D0B576D78A4B16A390BB035D1D9B34BB2D2C7/103179.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 640,
     effects: [
       {
@@ -30,6 +48,15 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.HAMMER_SMASH]: {
+    name: 'Hammer Smash',
+    description: 'Smash the ground and damage nearby foes.',
+    icon: 'https://render.guildwars2.com/file/54427BAB97B2DED3682BF1FAD37605AA66FA4009/103180.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 440,
     interruptCommitMs: 320,
     effects: [
@@ -42,6 +69,13 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.FIERCE_BLOW]: {
+    name: 'Fierce Blow',
+    description:
+      'Weaken your foe with a fierce blow, dealing increased damage when striking a controlled or defiant foe.\nControls include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.',
+    icon: 'https://render.guildwars2.com/file/02B0015D214FCAA0241650DFC46D933CEEEE6018/104115.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_2',
     cooldown: 6,
     castTimeMs: 880,
     interruptCommitMs: 600,
@@ -60,6 +94,12 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.HAMMER_SHOCK]: {
+    name: 'Hammer Shock',
+    description: 'Smash the ground and send out a crippling wave.',
+    icon: 'https://render.guildwars2.com/file/D378332B719ED07509EABBCDA3D96C5ABFC116D6/103256.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_3',
     cooldown: 8,
     castTimeMs: 600,
     // Share impact timing while preserving independent payloads and declaration order.
@@ -77,6 +117,12 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.STAGGERING_BLOW]: {
+    name: 'Staggering Blow',
+    description: 'Push back nearby foes with a staggering blow.',
+    icon: 'https://render.guildwars2.com/file/1E4BD7F1F66B0F2406252467804878E3365F292D/103085.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_4',
     cooldown: 18,
     castTimeMs: 480,
     // Share impact timing while preserving independent payloads and declaration order.
@@ -98,6 +144,13 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.BACKBREAKER]: {
+    name: 'Backbreaker',
+    description:
+      'Knock down your foe. Weakened foes stay knocked down longer. Recharges Fierce Blow if you control a foe with this ability.\nRecharges Fierce Blow if striking a target with a defiance bar.',
+    icon: 'https://render.guildwars2.com/file/3FB1611D020DAE0C082558D346BBF91148E2E223/103086.png',
+    type: 'Weapon',
+    weapon: 'Hammer',
+    slot: 'Weapon_5',
     cooldown: 25,
     // Backbreaker refreshes Fierce Blow when its cast completes.
     castTimeMs: 880,

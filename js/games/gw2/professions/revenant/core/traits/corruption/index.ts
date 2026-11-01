@@ -27,7 +27,6 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
 
 /** Owns Abyssal Chill tuning and behavior at its established execution boundaries. */
 export const abyssalChill = defineTrait({
-  name: 'Abyssal Chill',
   id: TRAIT.ABYSSAL_CHILL,
   balance: {
     effects: [
@@ -46,7 +45,6 @@ export const abyssalChill = defineTrait({
 
 /** Owns Acolyte of Torment tuning and behavior at its established execution boundaries. */
 export const acolyteOfTorment = defineTrait({
-  name: 'Acolyte of Torment',
   id: TRAIT.ACOLYTE_OF_TORMENT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { conditionDamageMultiplier: 1.1 },
@@ -64,7 +62,6 @@ export const acolyteOfTorment = defineTrait({
 
 /** Owns Diabolic Inferno tuning and behavior at its established execution boundaries. */
 export const diabolicInferno = defineTrait({
-  name: 'Diabolic Inferno',
   id: TRAIT.DIABOLIC_INFERNO,
   balance: {
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -94,7 +91,6 @@ export const diabolicInferno = defineTrait({
 
 /** Owns invocation strike and condition tuning. */
 export const invokingTorment = defineTrait({
-  name: 'Invoking Torment',
   id: TRAIT.INVOKING_TORMENT,
   balance: {
     id: TRAIT.INVOKING_TORMENT,
@@ -122,7 +118,6 @@ export const invokingTorment = defineTrait({
 
 /** Owns Pact of Pain tuning and behavior at its established execution boundaries. */
 export const pactOfPain = defineTrait({
-  name: 'Pact of Pain',
   id: TRAIT.PACT_OF_PAIN,
   balance: { conditionDurationBonus: 0.15 },
   attributes: traitAttributeBonuses(TRAIT.PACT_OF_PAIN, (profile) => ({
@@ -132,7 +127,6 @@ export const pactOfPain = defineTrait({
 
 /** Owns Seething Malice tuning and behavior at its established execution boundaries. */
 export const seethingMalice = defineTrait({
-  name: 'Seething Malice',
   id: TRAIT.SEETHING_MALICE,
   balance: { attributeBonuses: { conditionDamage: 120 } },
   attributes: traitAttributeEffects(TRAIT.SEETHING_MALICE, [
@@ -142,7 +136,6 @@ export const seethingMalice = defineTrait({
 
 /** Owns Yearning Empowerment tuning and behavior at its established execution boundaries. */
 export const yearningEmpowerment = defineTrait({
-  name: 'Yearning Empowerment',
   id: TRAIT.YEARNING_EMPOWERMENT,
   balance: { conditionDurationBonus: 0.1 },
   attributes: traitAttributeBonuses(TRAIT.YEARNING_EMPOWERMENT, (profile) => ({

@@ -64,7 +64,7 @@ test('numeric rotation aliases produce the same canonical actions while unknown 
 test('every canonical alias target has exactly one behavioral owner', () => {
   // Module mechanics expose duplicate ownership that an assembled ID map would otherwise hide.
   for (const canonicalId of new Set(ALIASES.map(([, canonical]) => canonical))) {
-    const owners = MODULES.filter((module) => Object.hasOwn(module.data.skillMechanics || {}, canonicalId));
+    const owners = MODULES.filter((module) => module.data.skills?.some((skill) => skill.id === canonicalId));
 
     assert.equal(owners.length, 1, `${canonicalId} owners: ${owners.map((module) => module.id).join(', ') || 'none'}`);
   }

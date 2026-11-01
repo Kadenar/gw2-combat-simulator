@@ -11,7 +11,7 @@ export const deadeye = defineRelic({
 
     const skill = ctx.helpers ? skillForEvent(ctx.helpers, event) : undefined;
 
-    if (!skill?.categories?.includes('Cantrip')) return;
+    if (skill?.skillFamily !== 'Cantrip') return;
 
     recordTimedBuffProc(ctx, event, {
       relicId: RELIC_IDS.DEADEYE,

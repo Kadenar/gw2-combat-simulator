@@ -40,6 +40,15 @@ test('Warrior leaps retain fire fields that expire during travel', () => {
   }
 });
 
+// Shared torch ownership must not prevent its completed skill from consuming an earned aura.
+test('torch skills detonate King of Fires after a leap earns a fire aura', () => {
+  const result = simulate(['Flames of War', 'Savage Leap', 'Blaze Breaker'], {
+    selectedTraitIds: [TRAIT.KING_OF_FIRES]
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.procSteps.some((proc) => proc.skill === 'King of Fires' && proc.sourceSkill === 'Blaze Breaker'));
+});
+
 test('Combustive Shot captures its adrenaline tier and scales the field lifetime', () => {
   for (const tier of [1, 2, 3]) {
     const result = simulate(['Combustive Shot'], {

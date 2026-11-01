@@ -1,4 +1,4 @@
-/** Owns Legendary Assassin Stance skill fragments and their alternate identities. */
+/** Owns Legendary Assassin Stance skill definitions and their alternate identities. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -10,15 +10,22 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
-export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.ENCHANTED_DAGGERS]: {
+    name: 'Enchanted Daggers',
+    description:
+      'Legendary Assassin. Summon enchanted daggers that will attack as you attack, siphoning life from targets hit.',
+    icon: 'https://render.guildwars2.com/file/A01907F923B160E6261174BEF5975D070D4D6511/1012989.png',
+    type: 'Heal',
+    slot: 'Heal',
+
     cooldown: 30,
     energyCost: 5,
     legendId: 'LegendaryAssassin',
@@ -53,6 +60,12 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.enchanted-daggers' } }]
   },
   [ID.RELINQUISH_POWER]: {
+    name: 'Relinquish Power',
+    description: 'Legendary Assassin. End the Impossible Odds skill.',
+    icon: 'https://render.guildwars2.com/file/211A1045B4A90B8005652E35BF5BD6270CB239CC/1030007.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 0,
     energyCost: 0,
     legendId: 'LegendaryAssassin',
@@ -63,6 +76,13 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-upkeep' } }]
   },
   [ID.IMPOSSIBLE_ODDS]: {
+    name: 'Impossible Odds',
+    description:
+      "Legendary Assassin. Empower yourself with Shiro's incredible speed and destructive prowess, gaining great movement speed and striking foes an additional time when you hit them. This effect can occur once per interval.",
+    icon: 'https://render.guildwars2.com/file/D5479F5A43B3A1550EC0F457AA4ED79F93EF9A22/1013014.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 0,
     energyCost: 5,
     upkeepCost: 6,
@@ -92,6 +112,12 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.PHASE_TRAVERSAL]: {
+    name: 'Phase Traversal',
+    description: "Legendary Assassin. Step through the Mists to your target. Your next few attacks can't be blocked.",
+    icon: 'https://render.guildwars2.com/file/6C9F184D04E3590AC3F4061327BF0A68904D7DED/1013016.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 5,
     energyCost: 30,
     legendId: 'LegendaryAssassin',
@@ -113,6 +139,13 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.JADE_WINDS]: {
+    name: 'Jade Winds',
+    description:
+      'Legendary Assassin. Call upon the Jade Wind to turn nearby enemies into jade, stunning them for a short duration.',
+    icon: 'https://render.guildwars2.com/file/93F6019F04E9F802E658963C79772D979731CE9B/1012987.png',
+    type: 'Elite',
+    slot: 'Elite',
+
     cooldown: 10,
     energyCost: 35,
     legendId: 'LegendaryAssassin',
@@ -135,6 +168,13 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.RIPOSTING_SHADOWS]: {
+    name: 'Riposting Shadows',
+    description:
+      'Legendary Assassin. Dodge backward through the Mists. Remove movement-impairing conditions, and gain fury.',
+    icon: 'https://render.guildwars2.com/file/75DF55FCC5120EF6B643C1B1730E050EA17F5827/1013019.png',
+    type: 'Utility',
+    slot: 'Utility',
+
     cooldown: 0,
     energyCost: 30,
     legendId: 'LegendaryAssassin',

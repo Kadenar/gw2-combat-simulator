@@ -42,7 +42,6 @@ const VIRTUES: readonly number[] = [ID.RADIANT_JUSTICE, ID.RADIANT_RESOLVE, ID.R
 
 /** Completed stance casts emit the surviving party boon and hostile Blind components. */
 const shimmeringStances = defineTrait({
-  name: 'Shimmering Stances',
   id: TRAIT.SHIMMERING_STANCES,
   balance: {
     effects: [
@@ -66,7 +65,7 @@ const shimmeringStances = defineTrait({
     {
       emit: TRAIT.SHIMMERING_STANCES,
       on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Stance')),
+      when: (_runtime, cast) => cast.skill.skillFamily === 'Stance',
       attribution: (_runtime, cast) => ({
         source: 'guardian',
         skillId: TRAIT.SHIMMERING_STANCES,
@@ -79,7 +78,6 @@ const shimmeringStances = defineTrait({
 
 /** Consumes only a live aura with a surviving strike, preserving detonation priority and already-scheduled work. */
 const sovereignOfLight = defineTrait({
-  name: 'Sovereign of Light',
   id: TRAIT.SOVEREIGN_OF_LIGHT,
   balance: {
     // Forge entry grants this trait's aura; detonation selects only its independent strike.
@@ -122,7 +120,6 @@ const sovereignOfLight = defineTrait({
 
 /** Accepted equips install the weapon-tagged window; only its latest live hammer grants damage. */
 const radiantArmaments = defineTrait({
-  name: 'Radiant Armaments',
   id: TRAIT.RADIANT_ARMAMENTS,
   balance: {
     damageIncrease: 0.07,
@@ -154,7 +151,6 @@ const radiantArmaments = defineTrait({
 
 /** Successful equips extend the capped damage window without revoking already-applied buffs. */
 const empoweredArmaments = defineTrait({
-  name: 'Empowered Armaments',
   id: TRAIT.EMPOWERED_ARMAMENTS,
   balance: {
     damageIncrease: 0.1,
@@ -177,7 +173,6 @@ const empoweredArmaments = defineTrait({
 
 /** Successful equips grant the authored party boon package at the equip timestamp. */
 const resplendentWeaponry = defineTrait({
-  name: 'Resplendent Weaponry',
   id: TRAIT.RESPLENDENT_WEAPONRY,
   balance: {
     effects: [
@@ -191,7 +186,6 @@ const resplendentWeaponry = defineTrait({
 
 /** Completed equips reduce real virtue recharge and refresh the shared readiness projection. */
 const illuminatingInspiration = defineTrait({
-  name: 'Illuminating Inspiration',
   id: TRAIT.ILLUMINATING_INSPIRATION,
   balance: { rechargeReduction: 4 },
   triggers: [onTriggerPoint(radiantWeaponEquipped, { run: reduceVirtueRecharge })]
@@ -199,7 +193,6 @@ const illuminatingInspiration = defineTrait({
 
 /** Supplies eligible Vitality before build conversions. */
 const lightsGift = defineTrait({
-  name: "Light's Gift",
   id: TRAIT.LIGHTS_GIFT,
   balance: { attributeBonuses: { vitality: 180 } },
   attributes: traitAttributeEffects(TRAIT.LIGHTS_GIFT, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'all' }])
@@ -207,7 +200,6 @@ const lightsGift = defineTrait({
 
 /** Virtue reset targets and reporting share this behavior-only trait owner. */
 const masterAtArms = defineTrait({
-  name: 'Master-at-Arms',
   id: TRAIT.MASTER_AT_ARMS,
   triggers: [
     onTriggerPoint(radiantVirtueArmed, { run: rechargeRadiantWeapons }),
@@ -418,12 +410,10 @@ function detonate(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
 function detonator(skill: GuardianSkill): boolean {
   return (
     skill.id !== ID.GLARING_BURST &&
-    Boolean(
-      skill.id === ID.RADIANT_JUSTICE ||
+    (skill.id === ID.RADIANT_JUSTICE ||
       skill.id === ID.RADIANT_RESOLVE ||
       skill.id === ID.RADIANT_COURAGE ||
       skill.radiantForgeSkill ||
-      (skill.specialization === 'Luminary' && skill.categories?.includes('Stance'))
-    )
+      (skill.specialization === 'Luminary' && skill.skillFamily === 'Stance'))
   );
 }

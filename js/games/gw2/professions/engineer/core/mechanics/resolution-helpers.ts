@@ -5,7 +5,7 @@ import {
   buildResolverStrike
 } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 interface QueueDamageOptions {
@@ -173,9 +173,7 @@ export function activeBoonStacks(context: EngineerResolverContext, kind: string,
   return context.combat.activeBoonStacks((kind || '').toLowerCase(), at, maximum);
 }
 
-// Damage modifiers and on-hit traits share the same explosion tags and skill-category classification.
-export function isExplosion(event: Partial<SimulationEventBase> | null | undefined, skill: Skill | undefined): boolean {
-  if (event?.explosion || event?.damageKind === 'explosion') return true;
-
-  return Boolean(skill?.categories?.some((category) => category.toLowerCase() === 'explosion'));
+/** Damage modifiers and on-hit traits read the accepted packet's explicit explosion classification. */
+export function isExplosion(event: Partial<SimulationEventBase> | null | undefined): boolean {
+  return Boolean(event?.explosion || event?.damageKind === 'explosion');
 }

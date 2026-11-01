@@ -1,5 +1,7 @@
+/** Keep build selection and actions reachable in desktop toolbars and compact mobile menus. */
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import { mountHeaderDps } from '#browser/shell/header-dps.js';
+import { mountMobileMenu } from '#browser/shell/mobile-menu.js';
 import { addBuildTab, closeBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { clamp } from '#kernel/core/numeric.js';
@@ -158,7 +160,7 @@ function openBuildRenameDialog(app: ProfessionAppState, id: string): void {
 
 /**
  * Keeps one editor mounted with a switcher for all builds and persistent shortcuts for pinned builds.
- * File actions stay as explicit buttons beside it instead of collapsing into an overflow menu.
+ * File actions remain beside it on desktop and collapse into an overflow menu on phones.
  */
 export function mountBuildTabs(app: ProfessionAppState): void {
   if (!app.workspace || document.getElementById('build-workspace-tabs')) return;
@@ -175,10 +177,9 @@ export function mountBuildTabs(app: ProfessionAppState): void {
   strip.innerHTML = `
     <button type="button" id="build-switcher" class="build-switcher" popovertarget="build-switcher-menu">
       <span class="build-switcher-text">
-        <span class="build-switcher-name"></span>
+        <span class="build-switcher-title"><span class="build-switcher-name"></span>${CHEVRON_ICON}</span>
         <span class="build-switcher-count"></span>
       </span>
-      ${CHEVRON_ICON}
     </button>
     <div id="build-switcher-menu" class="build-toolbar-menu build-switcher-menu" popover="auto" role="group" aria-label="Open builds">
       <div class="build-menu-heading">Open builds</div>
@@ -194,7 +195,8 @@ export function mountBuildTabs(app: ProfessionAppState): void {
         <hr>
       </div>
     </div>
-    <div class="build-toolbar-actions">
+    <button type="button" id="build-actions-trigger" class="mobile-header-icon" aria-label="Build actions"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="12" cy="19" r="1.75"/></svg></button>
+    <div id="build-actions-menu" class="build-toolbar-actions" role="group" aria-label="Build actions">
       <button type="button" class="btn btn-io build-tab-new" popovertarget="build-new-menu">+ New ${CHEVRON_ICON}</button>
     </div>
     <div id="build-new-menu" class="build-toolbar-menu" popover="auto" role="group" aria-label="New build options">
@@ -299,6 +301,10 @@ export function mountBuildTabs(app: ProfessionAppState): void {
 
     renderBuildTabs(app);
   });
+  mountMobileMenu(
+    strip.querySelector<HTMLButtonElement>('#build-actions-trigger')!,
+    strip.querySelector<HTMLElement>('#build-actions-menu')!
+  );
   renderBuildTabs(app);
 }
 

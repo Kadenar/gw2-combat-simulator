@@ -12,7 +12,7 @@ const profession = defineTestProfession({
   id: 'result-boundaries',
   name: 'Result boundaries',
   catalog: createCanonicalCatalog({
-    generated: ['Opening', 'Later'].map((name, index) => ({
+    skills: ['Opening', 'Later'].map((name, index) => ({
       id: 990001 + index,
       name,
       type: 'Utility',

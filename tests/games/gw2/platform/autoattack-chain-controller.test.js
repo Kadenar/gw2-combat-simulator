@@ -21,20 +21,22 @@ function chainProfession(autoattackChains) {
   const core = defineNativeModule({
     id: 'Core',
     data: {
-      generatedSkills: [
+      autoattackChains: [
+        [1, 2, 3],
+        [4, 5, 6]
+      ],
+      skills: [
         skill(1, 'Root A', {
           type: 'Weapon',
           weapon: 'Sword',
           slot: 'Weapon_1',
-          nextChainId: 2,
           castTimeMs: 1000,
           interruptCommitMs: 500
         }),
         skill(2, 'Second A', {
           type: 'Weapon',
           weapon: 'Sword',
-          slot: 'Weapon_1',
-          nextChainId: 3
+          slot: 'Weapon_1'
         }),
         skill(3, 'Third A', {
           type: 'Weapon',
@@ -44,14 +46,12 @@ function chainProfession(autoattackChains) {
         skill(4, 'Root B', {
           type: 'Weapon',
           weapon: 'Mace',
-          slot: 'Weapon_1',
-          nextChainId: 5
+          slot: 'Weapon_1'
         }),
         skill(5, 'Second B', {
           type: 'Weapon',
           weapon: 'Mace',
-          slot: 'Weapon_1',
-          nextChainId: 6
+          slot: 'Weapon_1'
         }),
         skill(6, 'Third B', {
           type: 'Weapon',

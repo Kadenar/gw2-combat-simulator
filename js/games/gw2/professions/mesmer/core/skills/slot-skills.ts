@@ -1,271 +1,404 @@
-/** Canonical Core mesmer skill fragments grouped by their GW2 owner. */
+/** Canonical Core mesmer skill definitions grouped by their GW2 owner. */
 import { ACTOR, BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 // Reviewed activation durations keep completion effects and resource changes on their intended action ticks.
-export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<MesmerSkill>>> = Object.freeze({
-  // Flip actions share their parent's catalog so ordinary mechanics assembly owns both faces.
-  [ID.POWER_RETURN]: {
-    rechargeAnchor: 'castStart',
-    cooldown: 20,
-    ammoCastLockout: 1,
-    ammo: 2,
-    armedAtStart: true,
-    castTimeMs: 0,
-    effects: [],
-    // Start prepared and return to the parent when exhausted; Heal identity still triggers traits at fixed full health.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }]
-  },
-  [ID.POWER_SPIKE]: {
-    rechargeAnchor: 'castStart',
-    cooldown: 10,
-    ammo: 2,
-    armedAtStart: true,
-    castTimeMs: 0,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1.33,
-        hits: 1,
-        name: 'Damage',
-        actorType: ACTOR.PLAYER
+export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<MesmerSkill>>> = Object.freeze(
+  {
+    // Flip actions share their parent's catalog so ordinary mechanics assembly owns both faces.
+    [ID.POWER_RETURN]: {
+      name: 'Power Return',
+      description: 'Mantra. Instantly heal yourself. Reverts to Mantra of Recovery once both charges are spent.',
+      icon: 'https://render.guildwars2.com/file/A999116605543595AEF225D26026127828AED66B/103745.png',
+      type: 'Heal',
+      slot: 'Heal',
+      rechargeAnchor: 'castStart',
+      cooldown: 20,
+      ammoCastLockout: 1,
+      ammo: 2,
+      armedAtStart: true,
+      castTimeMs: 0,
+      effects: [],
+      // Start prepared and return to the parent when exhausted; Heal identity still triggers traits at fixed full health.
+      sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }]
+    },
+    [ID.POWER_SPIKE]: {
+      name: 'Power Spike',
+      description: 'Mantra. Damage your target. Reverts to Mantra of Pain once both charges are spent.',
+      icon: 'https://render.guildwars2.com/file/3519C5C770CCEAF92926D9495999E1F8A23D5AF3/103743.png',
+      type: 'Utility',
+      slot: 'Utility',
+      rechargeAnchor: 'castStart',
+      cooldown: 10,
+      ammo: 2,
+      armedAtStart: true,
+      castTimeMs: 0,
+      effects: [
+        {
+          type: 'strike',
+          coefficient: 1.33,
+          hits: 1,
+          name: 'Damage',
+          actorType: ACTOR.PLAYER
+        },
+        // Apply the live debuff with the instant strike so reconstructed Mantra casts update target state.
+        {
+          type: 'condition',
+          condition: CONDITION.VULNERABILITY,
+          duration: 8,
+          stacks: 5
+        }
+      ],
+      sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }]
+    },
+    [ID.ETHER_FEAST]: {
+      name: 'Ether Feast',
+      description:
+        'Heal yourself and remove conditions. Gain additional health and remove additional conditions for each active clone.',
+      icon: 'https://render.guildwars2.com/file/3A946C46446E0761924AB07CFC19FD5F9107FFD3/103725.png',
+      type: 'Heal',
+      slot: 'Heal',
+      cooldown: 20,
+      castTimeMs: 666.666666667,
+      effects: []
+    },
+    [ID.MIRROR]: {
+      name: 'Mirror',
+      description: 'Manipulation. Reflect projectiles, and heal yourself.',
+      icon: 'https://render.guildwars2.com/file/CED3F1AE9294F9C5045DA8017F25170CE87C0AE2/103726.png',
+      type: 'Heal',
+      slot: 'Heal',
+
+      cooldown: 12,
+      castTimeMs: 833.333333333,
+      effects: []
+    },
+    [ID.MIRROR_IMAGES]: {
+      name: 'Mirror Images',
+      description: 'Clone. Summon two clones to attack your foe.',
+      icon: 'https://render.guildwars2.com/file/AC1FF1F0953751DEF53E5C4A079A80F84239D05C/103736.png',
+      type: 'Utility',
+      slot: 'Utility',
+
+      cooldown: 25,
+      rechargeAnchor: 'castStart',
+      resource: {
+        mode: 'add',
+        count: 2
       },
-      // Apply the live debuff with the instant strike so reconstructed Mantra casts update target state.
-      {
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        duration: 8,
-        stacks: 5
-      }
-    ],
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.exhaust-mantra' } }]
-  },
-  [ID.ETHER_FEAST]: {
-    castTimeMs: 666.666666667,
-    effects: []
-  },
-  [ID.MIRROR]: {
-    castTimeMs: 833.333333333,
-    effects: []
-  },
-  [ID.MIRROR_IMAGES]: {
-    rechargeAnchor: 'castStart',
-    resource: {
-      mode: 'add',
-      count: 2
+      castTimeMs: 0,
+      effects: []
     },
-    castTimeMs: 0,
-    effects: []
-  },
-  [ID.MANTRA_OF_PAIN]: {
-    // Charges belong to the prepared flip; preparation must not create its own ammo pool.
-    ammo: 0,
-    ammoRecharge: 0,
-    castTimeMs: 1600,
-    effects: [],
-    // Preparation replaces spent charges and any previous recharge state.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }]
-  },
-  [ID.MANTRA_OF_RECOVERY]: {
-    // Charges belong to the prepared flip; preparation must not create its own ammo pool.
-    ammo: 0,
-    ammoRecharge: 0,
-    castTimeMs: 1600,
-    effects: [],
-    // Completing preparation restores the healing mantra's own two-charge flip.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }]
-  },
-  [ID.SIGNET_OF_DOMINATION]: {
-    attributeBonuses: { conditionDamage: 180 },
-    castTimeMs: 480,
-    // Signet activation applies its control when the cast completes.
-    effects: [
-      {
-        type: 'control',
-        source: 'Player',
-        actorType: ACTOR.PLAYER,
-        atMs: 0,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
-  },
-  [ID.SIGNET_OF_MIDNIGHT]: {
-    attributeBonuses: { expertise: 180 },
-    rechargeAnchor: 'castStart',
-    castTimeMs: 0,
-    // Activating the signet applies one five-second blind.
-    effects: [
-      {
-        type: 'condition',
-        condition: CONDITION.BLINDNESS,
-        stacks: 1,
-        duration: 5,
-        source: 'Player',
-        actorType: ACTOR.PLAYER
-      }
-    ]
-  },
-  [ID.MASS_INVISIBILITY]: {
-    castTimeMs: 1080,
-    effects: []
-  },
-  [ID.SIGNET_OF_ILLUSIONS]: {
-    pulseInterval: 10,
-    resourceGain: 1,
-    // Restart the passive clone interval only after the active cast completes.
-    tasks: [
-      {
-        type: 'mesmer.core.restart-signet-illusions-passive',
-        timingAnchor: 'castEnd'
-      }
-    ],
-    castTimeMs: 1120,
-    effects: [],
-    // Committed activation refreshes the selected catalog's eligible shatters and instruments.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }]
-  },
-  [ID.PHANTASMAL_DISENCHANTER]: {
-    // The summon owns its attack and conversion timeline independently of the player cast.
-    phantasmTiming: {
-      damageAtMs: 1240,
-      // The dedicated lifecycle converts Disenchanter about 1.92s after cast completion.
-      spawnAtMs: 1920
+    [ID.MANTRA_OF_PAIN]: {
+      name: 'Mantra of Pain',
+      description:
+        'Mantra. Meditate, charging a spell that will damage your target. Grant might to nearby allies when this spell is fully charged.',
+      icon: 'https://render.guildwars2.com/file/440570B77C68F009A4EB6C0C0FFD3BE00FC11E96/103742.png',
+      type: 'Utility',
+      slot: 'Utility',
+
+      cooldown: 1,
+      ammoCastLockout: 1,
+      // Charges belong to the prepared flip; preparation must not create its own ammo pool.
+
+      castTimeMs: 1600,
+      effects: [],
+      // Preparation replaces spent charges and any previous recharge state.
+      sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }]
     },
-    phantasm: true,
-    resource: {
-      mode: 'phantasm',
-      count: 1
+    [ID.MANTRA_OF_RECOVERY]: {
+      name: 'Mantra of Recovery',
+      description:
+        'Mantra. Meditate, charging a spell that will instantly heal you when activated. Heal yourself and nearby allies when this spell fully charges.',
+      icon: 'https://render.guildwars2.com/file/73CCCC9F09D026A016C5D760EA952B59C8AAF8F0/103744.png',
+      type: 'Heal',
+      slot: 'Heal',
+
+      cooldown: 10,
+      ammoCastLockout: 10,
+      // Charges belong to the prepared flip; preparation must not create its own ammo pool.
+
+      castTimeMs: 1600,
+      effects: [],
+      // Completing preparation restores the healing mantra's own two-charge flip.
+      sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.prepare-mantra' } }]
     },
-    castTimeMs: 760,
-    effects: [
-      {
-        type: 'strike',
-        coefficient: 1,
-        hits: 1,
-        name: 'Target without boons',
-        actorType: ACTOR.SUMMON,
-        summonKind: 'phantasm',
-        weapon: 'phantasm medium'
-      }
-    ],
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
-  },
-  [ID.FEEDBACK]: {
-    rechargeAnchor: 'castStart',
-    castTimeMs: 0,
-    // Feedback's dome provides an ethereal combo field for its six-second lifetime.
-    comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 6, startAnchor: 'castStart' }],
-    effects: []
-  },
-  [ID.TIME_WARP]: {
-    castTimeMs: 640,
-    comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 5, startAnchor: 'castEnd' }],
-    // Apply an immediate pulse when the field forms, then pulse once per second through its fifth second.
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.QUICKNESS,
-        duration: 1,
-        applications: 6,
-        intervalMs: 1000
-      },
-      {
-        type: 'buff',
-        kind: STATUS.SUPERSPEED,
-        duration: 1.5,
-        applications: 6,
-        intervalMs: 1000
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.SLOW,
-        stacks: 1,
-        duration: 1,
-        applications: 6,
-        intervalMs: 1000
-      }
-    ])
-  },
-  [ID.PHANTASMAL_DEFENDER]: {
-    // The summon owns its attack and conversion timeline independently of the player cast.
-    phantasmTiming: {
-      damageAtMs: 3800,
-      spawnAtMs: 4510
-    },
-    phantasm: true,
-    resource: {
-      mode: 'phantasm',
-      count: 1
-    },
-    castTimeMs: 760,
-    effects: [
-      // Record the taunt's control trigger and three-second target condition at cast completion.
-      ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    [ID.SIGNET_OF_DOMINATION]: {
+      name: 'Signet of Domination',
+      description: 'Signet Passive: Improved condition damage.\nSignet Active: Stun your foe.',
+      icon: 'https://render.guildwars2.com/file/CE55909D170BF3E2C9F9A22C559CDF43D1726CEC/103612.png',
+      type: 'Utility',
+      slot: 'Utility',
+      skillFamily: 'Signet',
+      cooldown: 25,
+      attributeBonuses: { conditionDamage: 180 },
+      castTimeMs: 480,
+      // Signet activation applies its control when the cast completes.
+      effects: [
         {
           type: 'control',
-          controlKind: CONTROL.TAUNT,
+          source: 'Player',
+          actorType: ACTOR.PLAYER,
+          atMs: 0,
+          timingAnchor: 'castEnd',
+          timingScale: 'fixed'
+        }
+      ]
+    },
+    [ID.SIGNET_OF_MIDNIGHT]: {
+      name: 'Signet of Midnight',
+      description: 'Signet Passive: Improves expertise.\nSignet Active: Blind nearby foes and stealth yourself.',
+      icon: 'https://render.guildwars2.com/file/6F03529059F71F0CCEC9046F1932619ECB245EC4/57900.png',
+      type: 'Utility',
+      slot: 'Utility',
+      skillFamily: 'Signet',
+      cooldown: 20,
+      attributeBonuses: { expertise: 180 },
+      rechargeAnchor: 'castStart',
+      castTimeMs: 0,
+      // Activating the signet applies one five-second blind.
+      effects: [
+        {
+          type: 'condition',
+          condition: CONDITION.BLINDNESS,
+          stacks: 1,
+          duration: 5,
           source: 'Player',
           actorType: ACTOR.PLAYER
+        }
+      ]
+    },
+    [ID.MASS_INVISIBILITY]: {
+      name: 'Mass Invisibility',
+      description: 'Manipulation. You and all your allies gain stealth for a short time.',
+      icon: 'https://render.guildwars2.com/file/E1EB3BC23A10BA9150EF992B03A813F4A26217A8/103755.png',
+      type: 'Elite',
+      slot: 'Elite',
+
+      cooldown: 35,
+      castTimeMs: 1080,
+      effects: []
+    },
+    [ID.SIGNET_OF_ILLUSIONS]: {
+      name: 'Signet of Illusions',
+      description: 'Signet Passive: Creates a clone every few seconds.\nSignet Active: Recharges shatter skills.',
+      icon: 'https://render.guildwars2.com/file/24B9A56E45B7AB5AA96FF3E85505DF60EA6EBD11/103756.png',
+      type: 'Utility',
+      slot: 'Utility',
+      skillFamily: 'Signet',
+      cooldown: 60,
+      pulseInterval: 10,
+      resourceGain: 1,
+      // Restart the passive clone interval only after the active cast completes.
+      tasks: [
+        {
+          type: 'mesmer.core.restart-signet-illusions-passive',
+          timingAnchor: 'castEnd'
+        }
+      ],
+      castTimeMs: 1120,
+      effects: [],
+      // Committed activation refreshes the selected catalog's eligible shatters and instruments.
+      sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }]
+    },
+    [ID.PHANTASMAL_DISENCHANTER]: {
+      name: 'Phantasmal Disenchanter',
+      description:
+        'Phantasm. Summon an illusion that removes boons from targets it hits. This attack deals increased damage against foes without boons.',
+      icon: 'https://render.guildwars2.com/file/9B227C21B3AFF40C222C9031EBE00995F9B43423/103764.png',
+      type: 'Utility',
+      slot: 'Utility',
+
+      cooldown: 20,
+      // The summon owns its attack and conversion timeline independently of the player cast.
+      phantasmTiming: {
+        damageAtMs: 1240,
+        // The dedicated lifecycle converts Disenchanter about 1.92s after cast completion.
+        spawnAtMs: 1920
+      },
+      phantasm: true,
+      resource: {
+        mode: 'phantasm',
+        count: 1
+      },
+      castTimeMs: 760,
+      effects: [
+        {
+          type: 'strike',
+          coefficient: 1,
+          hits: 1,
+          name: 'Target without boons',
+          actorType: ACTOR.SUMMON,
+          summonKind: 'phantasm',
+          weapon: 'phantasm medium'
+        }
+      ],
+      sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
+    },
+    [ID.FEEDBACK]: {
+      name: 'Feedback',
+      description: 'Glamour. Create a dome around your foes that reflects projectiles.',
+      icon: 'https://render.guildwars2.com/file/A5720B5C9ED8CB02A3272944C50DF8426E22C5A0/103773.png',
+      type: 'Utility',
+      slot: 'Utility',
+
+      cooldown: 32,
+      rechargeAnchor: 'castStart',
+      castTimeMs: 0,
+      // Feedback's dome provides an ethereal combo field for its six-second lifetime.
+      comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 6, startAnchor: 'castStart' }],
+      effects: []
+    },
+    [ID.TIME_WARP]: {
+      name: 'Time Warp',
+      description:
+        'Glamour. Create an area that warps time, granting you and your allies quickness while slowing enemies.',
+      icon: 'https://render.guildwars2.com/file/6A4DBEEAEDBDE616BA514F5BEB7666ED7066A3AA/103620.png',
+      type: 'Elite',
+      slot: 'Elite',
+
+      cooldown: 120,
+      castTimeMs: 640,
+      comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 5, startAnchor: 'castEnd' }],
+      // Apply an immediate pulse when the field forms, then pulse once per second through its fifth second.
+      // Share timing defaults while preserving each packet, effect order, and local schedule.
+      effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'boon',
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+          boon: BOON.QUICKNESS,
+          duration: 1,
+          applications: 6,
+          intervalMs: 1000
+        },
+        {
+          type: 'buff',
+          kind: STATUS.SUPERSPEED,
+          duration: 1.5,
+          applications: 6,
+          intervalMs: 1000
         },
         {
           type: 'condition',
-          condition: CONDITION.TAUNT,
+          condition: CONDITION.SLOW,
           stacks: 1,
-          duration: 3,
-          actorType: ACTOR.PLAYER
+          duration: 1,
+          applications: 6,
+          intervalMs: 1000
         }
-      ]),
-      {
-        type: 'strike',
-        coefficient: 0.4,
-        hits: 1,
-        name: 'Damage',
-        actorType: ACTOR.SUMMON,
-        summonKind: 'phantasm',
-        weapon: 'phantasm defender'
-      }
-    ],
-    sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
-  },
-  [ID.SIGNET_OF_THE_ETHER]: {
-    // The live skill re-locks itself 300ms after completion despite resetting phantasms immediately.
-    tasks: [
-      {
-        type: 'mesmer.core.relock-signet-ether',
-        atMs: 300,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ],
-    castTimeMs: 920,
-    effects: [],
-    // Reset phantasms at commitment; the delayed self-relock remains independent.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }]
-  },
-  [ID.SIGNET_OF_HUMILITY]: {
-    castTimeMs: 880,
-    // Signet activation applies its control when the cast completes.
-    effects: [
-      {
-        type: 'control',
-        source: 'Player',
-        actorType: ACTOR.PLAYER,
-        atMs: 0,
-        timingAnchor: 'castEnd',
-        timingScale: 'fixed'
-      }
-    ]
-  },
-  [ID.MIMIC]: {
-    duration: 10,
-    castTimeMs: 640,
-    effects: [],
-    // Arm a fresh utility-reset window at semantic completion.
-    sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-mimic' } }]
+      ])
+    },
+    [ID.PHANTASMAL_DEFENDER]: {
+      name: 'Phantasmal Defender',
+      description:
+        'Phantasm. Summon an illusion that taunts your target and all nearby targets while blocking. When it finishes blocking, the illusion explodes, dealing increased damage for each attack it blocked.',
+      icon: 'https://render.guildwars2.com/file/3439B9C801F6F72F0701A1BA759B249FF428D5C2/103791.png',
+      type: 'Utility',
+      slot: 'Utility',
+
+      cooldown: 40,
+      // The summon owns its attack and conversion timeline independently of the player cast.
+      phantasmTiming: {
+        damageAtMs: 3800,
+        spawnAtMs: 4510
+      },
+      phantasm: true,
+      resource: {
+        mode: 'phantasm',
+        count: 1
+      },
+      castTimeMs: 760,
+      effects: [
+        // Record the taunt's control trigger and three-second target condition at cast completion.
+        ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+          {
+            type: 'control',
+            controlKind: CONTROL.TAUNT,
+            source: 'Player',
+            actorType: ACTOR.PLAYER
+          },
+          {
+            type: 'condition',
+            condition: CONDITION.TAUNT,
+            stacks: 1,
+            duration: 3,
+            actorType: ACTOR.PLAYER
+          }
+        ]),
+        {
+          type: 'strike',
+          coefficient: 0.4,
+          hits: 1,
+          name: 'Damage',
+          actorType: ACTOR.SUMMON,
+          summonKind: 'phantasm',
+          weapon: 'phantasm defender'
+        }
+      ],
+      sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
+    },
+    [ID.SIGNET_OF_THE_ETHER]: {
+      name: 'Signet of the Ether',
+      description:
+        'Signet Passive: Heal yourself whenever you summon an illusion.\nSignet Active: Heal yourself and reduce the recharge of phantasm skills.',
+      icon: 'https://render.guildwars2.com/file/EE5271572B2B10FBCE95097ECD54775832E8B9EF/699528.png',
+      type: 'Heal',
+      slot: 'Heal',
+      skillFamily: 'Signet',
+      cooldown: 30,
+      // The live skill re-locks itself 300ms after completion despite resetting phantasms immediately.
+      tasks: [
+        {
+          type: 'mesmer.core.relock-signet-ether',
+          atMs: 300,
+          timingAnchor: 'castEnd',
+          timingScale: 'fixed'
+        }
+      ],
+      castTimeMs: 920,
+      effects: [],
+      // Reset phantasms at commitment; the delayed self-relock remains independent.
+      sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }]
+    },
+    [ID.SIGNET_OF_HUMILITY]: {
+      name: 'Signet of Humility',
+      description:
+        'Signet Passive: Reduces duration of incoming stuns, dazes, fears, and taunts.\nSignet Active: Transform your foe into a moa bird.\n(Defiant foes will have their defiant bar reduced instead.)',
+      icon: 'https://render.guildwars2.com/file/A8B2B2403BF7A920040EB6E0E534920DA8D27B32/1012893.png',
+      type: 'Elite',
+      slot: 'Elite',
+      skillFamily: 'Signet',
+      cooldown: 45,
+      castTimeMs: 880,
+      // Signet activation applies its control when the cast completes.
+      effects: [
+        {
+          type: 'control',
+          source: 'Player',
+          actorType: ACTOR.PLAYER,
+          atMs: 0,
+          timingAnchor: 'castEnd',
+          timingScale: 'fixed'
+        }
+      ]
+    },
+    [ID.MIMIC]: {
+      name: 'Mimic',
+      description:
+        "Manipulation. The next utility skill you use has significantly reduced recharge, and Mimic's recharge is increased by the original recharge of the affected skill.\nMimic's recharge cannot be reset by other mesmer skills.",
+      icon: 'https://render.guildwars2.com/file/6C744B3948470EF0E6422DEACDC6BFBD42B609D4/103604.png',
+      type: 'Utility',
+      slot: 'Utility',
+
+      cooldown: 20,
+      duration: 10,
+      castTimeMs: 640,
+      effects: [],
+      // Arm a fresh utility-reset window at semantic completion.
+      sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-mimic' } }]
+    }
   }
-});
+);

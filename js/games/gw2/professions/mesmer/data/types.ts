@@ -1,4 +1,4 @@
-/** Declarative Mesmer skill records shared by generated data and runtime consumers. */
+/** Declarative Mesmer skill records shared by owner declarations and runtime consumers. */
 import type { SimulationActorType } from '#gw2/platform/constants.js';
 import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { EffectMetadata } from '#gw2/platform/events/events.js';

@@ -1,15 +1,23 @@
-/** Canonical Core guardian skill fragments grouped by their GW2 owner. */
+/** Canonical Core guardian skill definitions grouped by their GW2 owner. */
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.JUSTICE]: {
+    name: 'Virtue of Justice',
+    description:
+      'Virtue: Burn foes every few attacks.\nActivate: You and your allies inflict burning on the next attack.',
+    icon: 'https://render.guildwars2.com/file/0E4C27902671FBCB33713E3677604B0880EF0D60/103034.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+    virtue: 'justice',
+    cooldown: 20,
     castTimeMs: 0,
     // Justice owns the shared burn recipes; activation only arms the next eligible hit.
     threshold: 5,
@@ -46,10 +54,24 @@ export const GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     ]
   },
   [ID.COURAGE]: {
+    name: 'Virtue of Courage',
+    description: 'Virtue: Gain aegis periodically.\nActivate: Grant aegis to yourself and nearby allies.',
+    icon: 'https://render.guildwars2.com/file/1B55CBCB3E1165FD5D0C7BC3CBEEB65C5BD9D07C/103258.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    virtue: 'courage',
+    cooldown: 45,
     castTimeMs: 0,
     effects: []
   },
   [ID.RESOLVE]: {
+    name: 'Virtue of Resolve',
+    description: 'Virtue: Regenerates health.\nActivate: Heal yourself and nearby allies.',
+    icon: 'https://render.guildwars2.com/file/F12B07B5466A51AB2BFD2C0CB8F3994D3F9E610C/103652.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+    virtue: 'resolve',
+    cooldown: 30,
     castTimeMs: 0,
     effects: []
   }

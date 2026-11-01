@@ -22,7 +22,6 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 
 /** Water definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const soothingIce = defineTrait({
-  name: 'Soothing Ice',
   id: TRAIT.SOOTHING_ICE,
   balance: {
     internalCooldown: 15,
@@ -35,7 +34,6 @@ export const soothingIce = defineTrait({
 });
 
 export const aquamancersTraining = defineTrait({
-  name: "Aquamancer's Training",
   id: TRAIT.AQUAMANCERS_TRAINING,
   balance: {
     rechargeMultiplier: 0.8
@@ -50,14 +48,12 @@ export const aquamancersTraining = defineTrait({
 });
 
 export const soothingPower = defineTrait({
-  name: 'Soothing Power',
   id: TRAIT.SOOTHING_POWER,
   balance: { attributeBonuses: { vitality: 300 } },
   attributes: traitAttributeEffects(TRAIT.SOOTHING_POWER, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'none' }])
 });
 
 export const flowLikeWater = defineTrait({
-  name: 'Flow like Water',
   id: TRAIT.FLOW_LIKE_WATER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
@@ -74,7 +70,6 @@ export const flowLikeWater = defineTrait({
 });
 
 export const piercingShards = defineTrait({
-  name: 'Piercing Shards',
   id: TRAIT.PIERCING_SHARDS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { waterFactor: 1.14, otherFactor: 1.07 },

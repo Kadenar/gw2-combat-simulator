@@ -1,4 +1,4 @@
-/** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+/** Canonical Core ranger skill definitions grouped by their GW2 owner. */
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -7,7 +7,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
@@ -15,7 +15,7 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Both Maul variants share their strike, timing, recharge, and vulnerability; their bonus recipients differ.
-const maul: Partial<Skill> = {
+const maul: Partial<SkillDefinition> = {
   // Each Maul variant independently owns the next-attack grant window.
   duration: 10,
   cooldown: 4,
@@ -55,8 +55,17 @@ const maul: Partial<Skill> = {
   ]
 };
 
-export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SLASH_ID_12474]: {
+    name: 'Slash',
+    description: 'Chain. Slash your foe.',
+    icon: 'https://render.guildwars2.com/file/47E2C8FA10D594E892C65D7B3370C603987D95A9/103984.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 400,
     effects: [
       {
@@ -67,6 +76,15 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.SLICE]: {
+    name: 'Slice',
+    description: 'Chain. Slice your foe.',
+    icon: 'https://render.guildwars2.com/file/6F01147F253C13B96A336232B5C808BA1C02EB4A/103990.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     effects: [
       {
@@ -77,6 +95,15 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.ENDURING_SWING]: {
+    name: 'Enduring Swing',
+    description: 'Slash at your foe. This attack restores endurance if it hits.',
+    icon: 'https://render.guildwars2.com/file/6528ADEC67E00D9DB7FA70F7200F5EC3D83AB99C/103991.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     resourceGain: 15,
     castTimeMs: 800,
     effects: [
@@ -98,9 +125,31 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
       }
     ]
   },
-  [ID.MAUL_SOULBEAST]: maul,
-  [ID.MAUL_BASE]: maul,
+  [ID.MAUL_SOULBEAST]: {
+    name: 'Maul',
+    description: 'Attack your foe with the force of a bear. Your pet gains an attack of opportunity.',
+    icon: 'https://render.guildwars2.com/file/630D39D16942680EC6EA66DE6D13317B6B9F3C30/103877.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_2',
+    ...maul
+  },
+  [ID.MAUL_BASE]: {
+    name: 'Maul',
+    description: 'Attack your foe with the force of a bear. Your pet gains an attack of opportunity.',
+    icon: 'https://render.guildwars2.com/file/630D39D16942680EC6EA66DE6D13317B6B9F3C30/103877.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_2',
+    ...maul
+  },
   [ID.SWOOP]: {
+    name: 'Swoop',
+    description: 'Run and leap at your foe, hitting them and nearby foes.',
+    icon: 'https://render.guildwars2.com/file/329E3C6524785BB37A3040AC4F362BEC23F8D625/103311.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_3',
     cooldown: 10,
     evades: true,
     castTimeMs: 500,
@@ -114,12 +163,26 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.COUNTERATTACK]: {
+    name: 'Counterattack',
+    description: 'Block incoming attacks. If an attack is blocked, Counterattack Kick can be used.',
+    icon: 'https://render.guildwars2.com/file/16D60B57A2F495EE963811A305079790AC090E1B/104000.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_4',
+    cooldown: 12,
     castTimeMs: 2000,
     effects: [],
     // Expose the follow-up on commitment; its declaration owns the window.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.COUNTERATTACK_KICK, durationSec: 5 } }]
   },
   [ID.COUNTERATTACK_KICK]: {
+    name: 'Counterattack Kick',
+    description: 'Kick your foe, knocking them backward.',
+    icon: 'https://render.guildwars2.com/file/AD43D7CDEBF83C23B799E94A649794181F6208DA/103124.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_4',
+    cooldown: 0,
     evades: true,
     castTimeMs: 333,
     // The PvE kick lands once and its knockback can trigger control reactions.
@@ -135,9 +198,15 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Par
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.COUNTERATTACK_KICK } }]
   },
   [ID.HILT_BASH]: {
+    name: 'Hilt Bash',
+    description:
+      'Daze your foe with a hilt bash. Stun them if you hit from behind or they are defiant, and refresh your Maul skill.',
+    icon: 'https://render.guildwars2.com/file/C5A7760DF1E93EFDCC5761C005CF34526801129B/103985.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_5',
     cooldown: 20,
     castTimeMs: 640,
-
     effects: [
       {
         type: 'strike',

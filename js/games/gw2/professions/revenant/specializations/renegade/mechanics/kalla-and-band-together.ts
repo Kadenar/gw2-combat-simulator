@@ -1,3 +1,4 @@
+import { grantTimedStackApplications } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -46,15 +47,14 @@ export function grantKallasFervor(
   if (!effect) return;
 
   const maximum = Math.max(1, balanceProfileNumber(profile, 'maximumStacks'));
-  state.kallasFervor = state.kallasFervor.filter((application) => application.expiresAt > runtime.time);
   const duration = Math.max(0, effectNumber(profile, effect, 'duration'));
   const stacks = Math.max(0, Math.floor(effectNumber(profile, effect, 'stacks')));
-  for (let index = 0; index < stacks; index++) {
-    if (activeKallasFervorStacks(state, runtime.time, maximum) >= maximum)
-      state.kallasFervor.sort((left, right) => left.expiresAt - right.expiresAt).shift();
-
-    state.kallasFervor.push({ at: runtime.time, expiresAt: runtime.time + duration });
-  }
+  // Shared replacement preserves application starts for queries and Heroic Command's selective refresh.
+  state.kallasFervor = grantTimedStackApplications(
+    state.kallasFervor,
+    { at: runtime.time, expiresAt: runtime.time + duration },
+    { at: runtime.time, count: stacks, maximumStacks: maximum, retain: 'replace-earliest' }
+  );
 
   runtime.effects.emit({
     kind: 'packet',

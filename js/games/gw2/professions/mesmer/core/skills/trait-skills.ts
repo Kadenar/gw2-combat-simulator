@@ -6,6 +6,8 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 export const MESMER_CORE_TRAIT_SKILLS: readonly MesmerSkill[] = Object.freeze([
   {
     name: 'Lesser Chaos Storm',
+    description: 'Automatically triggered Lesser Chaos Storm effect.',
+    icon: 'https://render.guildwars2.com/file/B741282BD5EE93C9FC43AE417878953D50BB3974/103156.png',
     id: ID.LESSER_CHAOS_STORM,
     type: 'Proc',
     slot: 'Action',

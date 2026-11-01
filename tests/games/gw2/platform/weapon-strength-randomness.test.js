@@ -172,7 +172,7 @@ test('materialized transform strikes retain their profile across equipment chang
 
 function fixtureProfession() {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 990001,
         name: 'Dagger Flurry',
@@ -342,7 +342,7 @@ test('weapon-strength draws do not advance critical or trait streams', () => {
 
 test('explicit fixed strength remains exempt from stochastic sampling', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 990002,
         name: 'Fixed Strike',

@@ -236,7 +236,7 @@ function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEve
 
   if (event.actorType !== ACTOR.SUMMON) return event;
 
-  // Native command fragments identify their skill; stamp ownership here before modifiers and reactions consume it.
+  // Native command definitions identify their skill; stamp ownership here before modifiers and reactions consume it.
   const skill = skillForEvent(context.helpers, event);
   const engineerMech =
     (event.metadata as Record<string, unknown> | undefined)?.engineerMech === true ||

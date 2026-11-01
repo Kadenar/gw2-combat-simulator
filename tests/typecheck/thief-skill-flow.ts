@@ -1,9 +1,10 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { thiefCoreModule } from '#gw2/professions/thief/core/module.js';
-import { createThiefModuleData } from '#gw2/professions/thief/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/thief/data/trait-lines.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
 import { specterHooks } from '#gw2/professions/thief/specializations/specter/hooks.js';
@@ -20,7 +21,7 @@ type SpecterCastStart = NonNullable<typeof specterHooks.onCastStart>;
 
 // Thief's real module, selected catalogs, and hook signatures must preserve its skill fields end to end.
 export type ThiefSkillFlowAssertions = [
-  Assert<Equal<NonNullable<typeof thiefCoreModule.data.generatedSkills>[number], ThiefSkill>>,
+  Assert<Equal<NonNullable<typeof thiefCoreModule.data.skills>[number], ThiefSkill>>,
   Assert<Equal<(typeof thiefCatalog.skills)[number], ThiefSkill>>,
   Assert<Equal<(typeof thiefProfession.catalog.skills)[number], ThiefSkill>>,
   Assert<Equal<(typeof antiquary.catalog.skills)[number], ThiefSkill>>,
@@ -43,11 +44,17 @@ export function thiefHookSkillReads(runtime: ThiefRuntime, cast: Parameters<Anti
   void [cost, artifact, shroud, listed, invalid];
 }
 
-createThiefModuleData('Core', {
-  skillMechanics: {
-    1: {
-      // @ts-expect-error Known Thief fields reject the wrong authored value type.
-      initiativeCost: 'six'
-    }
+const invalidDefinitions: Record<string, SkillDefinition<ThiefSkill>> = {
+  1: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    // @ts-expect-error Known Thief fields reject the wrong authored value type.
+    initiativeCost: 'six'
   }
+};
+createNativeModuleData<ThiefSkill>({
+  id: 'Core',
+  traitLines: TRAIT_LINES,
+  skillMechanics: invalidDefinitions
 });

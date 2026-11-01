@@ -2,82 +2,68 @@ import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 import type { AnyNativeModule, NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
 import { traitBalanceProfiles } from '#gw2/platform/profession-definition/traits.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
-import { createCanonicalCatalog, type AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
+import { createCanonicalCatalog, type AutoattackChains } from '#gw2/platform/skills/catalog.js';
 import { combineFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
-import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillFlipDefinition, SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js';
+import type { CanonicalCatalog, CatalogEntity, Skill, SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { toEntries } from '#kernel/core/collections.js';
 
 /** Selects a module from shared input using the same catalog fields as its output. */
-export interface NativeModuleDataSelection<TSkill extends Skill = Skill> extends NativeModuleCatalogData<TSkill> {
+export interface NativeModuleDataSelection<TSkill extends Skill = Skill> extends Omit<
+  NativeModuleCatalogData<TSkill>,
+  'skills' | 'traits'
+> {
   readonly id: string;
-  readonly sharedExtraSkills?: readonly TSkill[];
+  readonly skillMechanics?: Readonly<Record<string, SkillDefinition<TSkill>>>;
+  readonly extraSkills?: readonly TSkill[];
 }
 
-// Resolves which module owns an entity by matching its .specialization field
-// against the elite spec names. Falls back to "Core" when there's no match,
-// so base-game skills and traits always land in the Core module.
-function canonicalModuleName(value: object, specializations: readonly CatalogEntity[]): string {
-  const specialization = ((value as { readonly specialization?: string }).specialization || '').toLowerCase();
-  return specializations.find((entry) => entry.elite && entry.name.toLowerCase() === specialization)?.name || 'Core';
-}
-
-/**
- * Selects generated identity metadata for one semantic owner while retaining
- * the module's locally authored mechanics and extra skills.
- */
+/** Materialize complete keyed skill declarations; family selection only filters non-skill records. */
 export function createNativeModuleData<TSkill extends Skill = Skill>(
   selection: NativeModuleDataSelection<TSkill>
 ): NativeModuleCatalogData<TSkill> {
   const {
     id,
-    generatedSkills = [],
-    sharedExtraSkills = [],
     skillMechanics = {},
-    skillOverrides = {},
     extraSkills = [],
     skillFields,
     profileFields,
-    traits = [],
-    specializations = [],
+    traitLines = [],
     weapons = [],
     weaponHands = {},
     autoattackChains,
-    specializationOnlySkillIds = []
+    skillFlips
   } = selection;
-  // Treat authored mechanics as the support allowlist so raw API metadata cannot
-  // enter the simulator merely because a new skill is absent from an exclusion list.
-  // The declaration owns admission because API specialization labels can be stale.
-  const authoredSkillIds = new Set(Object.keys(skillMechanics));
-  const isAuthored = (skill: Skill): boolean => authoredSkillIds.has(String(skill.id));
-  const generated = generatedSkills.filter(isAuthored);
-  const sharedExtra = sharedExtraSkills.filter(isAuthored);
-  const generatedIds = new Set(generated.map((skill) => String(skill.id)));
-  // Restrict skillOverrides to skills this module actually owns — prevents one
-  // module from patching another module's generated skills.
-  const localOverrides = Object.fromEntries(
-    Object.entries(skillOverrides).filter(([skillId]) => generatedIds.has(skillId))
-  );
+  // The key supplies identity; no external metadata can add or replace authored fields.
+  const skills = [
+    ...Object.entries(skillMechanics).map(([id, skill]) => ({ ...skill, id: Number(id) }) as TSkill),
+    ...extraSkills
+  ];
+  // Missing presentation is an authoring error; module assembly never consults a second skill catalog.
+  for (const skill of skills) {
+    for (const field of ['name', 'description', 'icon'] as const) {
+      if (
+        typeof skill[field] !== 'string' ||
+        (!skill[field].trim() && !(field === 'description' && skill.type === 'Action'))
+      ) {
+        throw new TypeError(`${id} skill ${skill.id} requires an authored ${field}.`);
+      }
+    }
+  }
+
+  // Trait-line layout supplies both trait membership and module ownership.
+  const ownedTraitLines = traitLines.filter((line) => (line.elite ? line.name === id : id === 'Core'));
+
   return Object.freeze({
-    generatedSkills: Object.freeze(generated),
-    generatedSkillOrder: new Map(generated.map((skill) => [skill.id, generatedSkills.indexOf(skill)])),
-    skillMechanics: Object.freeze({ ...skillMechanics }),
-    skillOverrides: Object.freeze(localOverrides),
-    extraSkills: Object.freeze([...sharedExtra, ...extraSkills]),
+    skills: Object.freeze(skills),
     ...(skillFields == null ? {} : { skillFields }),
     ...(profileFields == null ? {} : { profileFields }),
-    sharedExtraSkillOrder: new Map(sharedExtra.map((skill) => [skill.id, sharedExtraSkills.indexOf(skill)])),
-    traits: Object.freeze(traits.filter((trait) => canonicalModuleName(trait, specializations) === id)),
-    specializations: Object.freeze(
-      specializations.filter((specialization) => (specialization.elite ? specialization.name === id : id === 'Core'))
-    ),
+    traits: Object.freeze(ownedTraitLines.flatMap((line) => [...line.minorTraits, ...line.majorTraits.flat()])),
+    traitLines: Object.freeze(ownedTraitLines),
     ...(weapons.length ? { weapons: Object.freeze([...weapons]) } : {}),
     ...(weaponHands instanceof Map || Object.keys(weaponHands).length ? { weaponHands } : {}),
     ...(autoattackChains == null ? {} : { autoattackChains }),
-    ...(specializationOnlySkillIds.length
-      ? {
-          specializationOnlySkillIds: Object.freeze([...specializationOnlySkillIds])
-        }
-      : {})
+    ...(skillFlips == null ? {} : { skillFlips })
   });
 }
 
@@ -116,28 +102,6 @@ function mergeEntityArrays<T extends CatalogEntity, TSkill extends Skill>(
   return { values, owners };
 }
 
-// After merging entity arrays from multiple modules, the insertion order is
-// per-module rather than per-position in the original shared array. This restores
-// the original position ordering so that catalog.skills has a stable, predictable
-// sequence regardless of module declaration order.
-function restoreSharedSourceOrder<TSkill extends Skill>(
-  values: CatalogEntity[],
-  modules: readonly AnyNativeModule<string, TSkill>[],
-  select: (module: AnyNativeModule<string, TSkill>) => ReadonlyMap<SkillId, number> | undefined
-): void {
-  const positions = new Map<SkillId, number>();
-  for (const module of modules) {
-    for (const [id, position] of select(module) || []) {
-      positions.set(id, position);
-    }
-  }
-
-  values.sort(
-    (left, right) =>
-      (positions.get(left.id) ?? Number.POSITIVE_INFINITY) - (positions.get(right.id) ?? Number.POSITIVE_INFINITY)
-  );
-}
-
 function composeNativeCatalog<TSkill extends Skill>(
   modules: readonly AnyNativeModule<string, TSkill>[]
 ): AssembledNativeCatalog<TSkill> {
@@ -151,15 +115,12 @@ function composeNativeCatalog<TSkill extends Skill>(
     throw new TypeError('Native profession module IDs must be unique.');
   }
 
-  const generated = mergeEntityArrays(modules, (module) => module.data.generatedSkills || [], 'generated skill id');
-  const extras = mergeEntityArrays(modules, (module) => module.data.extraSkills || [], 'extra skill id');
+  const skills = mergeEntityArrays(modules, (module) => module.data.skills || [], 'skill id');
   const balanceProfiles = mergeEntityArrays(
     modules,
-    (module) => traitBalanceProfiles(module.traitDefinitions ?? []),
+    (module) => traitBalanceProfiles(module.traitDefinitions ?? [], module.data.traits ?? []),
     'balance profile id'
   );
-  restoreSharedSourceOrder(generated.values, modules, (module) => module.data.generatedSkillOrder);
-  restoreSharedSourceOrder(extras.values, modules, (module) => module.data.sharedExtraSkillOrder);
   const traits = mergeEntityArrays(modules, (module) => module.data.traits || [], 'trait id');
   // A profession field has one declaring module; the combined table validates every module's skills.
   const skillFields: FieldSpecs = combineFields(
@@ -169,56 +130,14 @@ function composeNativeCatalog<TSkill extends Skill>(
   const profileFields = combineFields(
     modules.map((module) => ({ owner: module.id, fields: module.data.profileFields }))
   );
-  const specializations = mergeEntityArrays(
-    modules,
-    (module) => module.data.specializations || [],
-    'specialization id'
-  );
-  const mechanics: Record<string, Partial<TSkill>> = {};
-  const mechanicsOwners = new Map<string, string>();
-  const overrides: Record<string, Partial<TSkill>> = {};
-  const overrideOwners = new Map<string, string>();
-  const exclusiveOwners = new Map<string, string>();
+  const specializations = mergeEntityArrays(modules, (module) => module.data.traitLines || [], 'specialization id');
   const weapons = new Set<string>();
   const weaponHands = new Map<string, string>();
   const weaponHandOwners = new Map<string, string>();
-  const additionalChains: Array<{ owner: string; chain: readonly SkillId[] }> = [];
-  const excludedChains: SkillId[] = [];
+  const declaredFlips: Array<{ owner: string; flip: SkillFlipDefinition }> = [];
+  const declaredChains: Array<{ owner: string; chain: readonly SkillId[] }> = [];
 
   for (const module of modules) {
-    for (const [skillId, mechanic] of Object.entries(module.data.skillMechanics || {})) {
-      const prior = mechanicsOwners.get(skillId);
-
-      if (prior) {
-        throw new TypeError(`Duplicate skill mechanics ${skillId} in ${prior} and ${module.id}.`);
-      }
-
-      mechanicsOwners.set(skillId, module.id);
-      mechanics[skillId] = mechanic;
-    }
-
-    for (const [skillId, override] of Object.entries(module.data.skillOverrides || {})) {
-      const prior = overrideOwners.get(skillId);
-
-      if (prior) {
-        throw new TypeError(`Duplicate skill override ${skillId} in ${prior} and ${module.id}.`);
-      }
-
-      overrideOwners.set(skillId, module.id);
-      overrides[skillId] = override;
-    }
-
-    for (const skillId of module.data.specializationOnlySkillIds || []) {
-      const key = String(skillId);
-      const prior = exclusiveOwners.get(key);
-
-      if (prior) {
-        throw new TypeError(`Duplicate specialization-only skill ${key} in ${prior} and ${module.id}.`);
-      }
-
-      exclusiveOwners.set(key, module.id);
-    }
-
     for (const weapon of module.data.weapons || []) weapons.add(weapon);
     for (const [weapon, hand] of toEntries(module.data.weaponHands)) {
       const prior = weaponHandOwners.get(weapon);
@@ -231,81 +150,49 @@ function composeNativeCatalog<TSkill extends Skill>(
       weaponHands.set(weapon, hand);
     }
 
-    for (const chain of module.data.autoattackChains?.additional || []) {
-      additionalChains.push({ owner: module.id, chain });
-    }
+    for (const flip of module.data.skillFlips || []) declaredFlips.push({ owner: module.id, flip });
 
-    for (const skillId of module.data.autoattackChains?.excludeSkillIds || []) {
-      excludedChains.push(skillId);
+    for (const chain of module.data.autoattackChains || []) {
+      declaredChains.push({ owner: module.id, chain });
     }
   }
 
   const catalog = createCanonicalCatalog({
-    generated: generated.values,
-    mechanics,
-    overrides,
-    extraSkills: extras.values,
+    // The contributor is the sole owner; Core has no specialization restriction.
+    skills: skills.values.map((skill) => {
+      for (const field of ['specialization', 'chainRoot', 'chainStep', 'nextChainId', 'flipSkillId', 'flipParentId']) {
+        if (Object.hasOwn(skill, field))
+          throw new TypeError(`Skill ${skill.id} must not author ${field}; it is derived during assembly.`);
+      }
+
+      const owner = skills.owners.get(skill.id)!;
+
+      // Native declarations normalize their explicit GW2 combos before general catalog validation.
+      return normalizeGw2ComboCatalogSkill(owner === 'Core' ? skill : { ...skill, specialization: owner });
+    }),
     balanceProfiles: balanceProfiles.values,
     traits: traits.values,
     specializations: specializations.values,
     weapons: [...weapons],
     weaponHands,
-    autoattackChains: {
-      additional: additionalChains.map((entry) => entry.chain),
-      excludeSkillIds: excludedChains
-    },
-    skillNormalizer: normalizeGw2ComboCatalogSkill,
+    autoattackChains: declaredChains.map((entry) => entry.chain),
+    skillFlips: declaredFlips.map((entry) => entry.flip),
     skillFields,
     profileFields
   });
 
-  const eliteNames = new Map(
-    catalog.specializations
-      .filter((specialization) => specialization.elite)
-      .map((specialization) => [specialization.name.toLowerCase(), specialization.name])
-  );
-  const declaredOwners = new Map<SkillId, string>([...generated.owners, ...extras.owners]);
-  const skillOwners = new Map<SkillId, string>();
-  // Skill ownership resolution priority:
-  //   1. specializationOnly explicit pin
-  //   2. Weapon-type skills always go to Core (shared by all specs)
-  //   3. Elite spec name on the skill
-  //   4. Module that contributed the skill (generated or extra)
-  //   5. Module that declared the skill's mechanics
-  //   6. Core as final fallback
-  for (const skill of catalog.skills) {
-    const explicit = exclusiveOwners.get(String(skill.id));
-    const specialization = eliteNames.get((skill.specialization || '').toLowerCase());
-    const mechanicOwner = mechanicsOwners.get(String(skill.id));
-    const owner =
-      explicit ||
-      (skill.type === 'Weapon' ? 'Core' : null) ||
-      specialization ||
-      declaredOwners.get(skill.id) ||
-      mechanicOwner ||
-      'Core';
+  const skillOwners = skills.owners;
 
-    if (!moduleIds.has(owner)) {
-      throw new TypeError(`Skill ${String(skill.id)} resolves to unknown runtime module ${owner}.`);
-    }
-
-    skillOwners.set(skill.id, owner);
-  }
-
-  for (const [skillId, owner] of exclusiveOwners) {
-    if (!catalog.skillsById.has(Number(skillId))) {
-      throw new TypeError(`${owner} declares unknown specialization-only skill ${skillId}.`);
-    }
-  }
-
-  const chainContributions = new Map<string, AutoattackChainOptions>();
+  const chainContributions = new Map<string, AutoattackChains>();
   for (const module of modules) {
-    chainContributions.set(module.id, { additional: [], excludeSkillIds: [] });
+    chainContributions.set(module.id, []);
   }
 
   // Each autoattack chain must be entirely within one runtime module — a chain
   // that spans Core and a spec module would be impossible to schedule correctly.
-  for (const { owner: declarationOwner, chain } of additionalChains) {
+  for (const [index, { owner: declarationOwner }] of declaredChains.entries()) {
+    // Runtime fragments retain the validated immutable copy, never the author's mutable input array.
+    const chain = catalog.autoattackChains[index];
     const owners = new Set(chain.map((skillId) => skillOwners.get(skillId)));
 
     if (owners.size !== 1 || owners.has(undefined)) {
@@ -314,22 +201,20 @@ function composeNativeCatalog<TSkill extends Skill>(
 
     const owner = [...owners][0] as string;
     const current = chainContributions.get(owner)!;
-    chainContributions.set(owner, {
-      ...current,
-      additional: [...(current.additional || []), chain]
-    });
+    chainContributions.set(owner, [...current, chain]);
   }
 
-  for (const skillId of excludedChains) {
-    const owner = skillOwners.get(skillId);
+  // A flip family must remain complete when Core and one specialization are selected.
+  const flipContributions = new Map<string, SkillFlips>();
+  for (const [index, { owner: declarationOwner }] of declaredFlips.entries()) {
+    const flip = catalog.skillFlips[index];
+    const owner = skillOwners.get(Number(flip.parentId))!;
 
-    if (!owner) throw new TypeError(`Unknown excluded autoattack skill ${String(skillId)}.`);
+    if (owner !== skillOwners.get(Number(flip.followUpId))) {
+      throw new TypeError(`${declarationOwner} skill flip crosses runtime module ownership.`);
+    }
 
-    const current = chainContributions.get(owner)!;
-    chainContributions.set(owner, {
-      ...current,
-      excludeSkillIds: [...(current.excludeSkillIds || []), skillId]
-    });
+    flipContributions.set(owner, [...(flipContributions.get(owner) || []), flip]);
   }
 
   const fragments = new Map<string, Readonly<ProfessionModuleCatalogFragment<TSkill>>>();
@@ -353,7 +238,8 @@ function composeNativeCatalog<TSkill extends Skill>(
         ),
         weapons: Object.freeze([...weapons].filter((weapon) => module.data.weapons?.includes(weapon))),
         weaponHands: hands,
-        autoattackChains: Object.freeze(chains)
+        autoattackChains: Object.freeze(chains),
+        skillFlips: Object.freeze(flipContributions.get(module.id) || [])
       } satisfies ProfessionModuleCatalogFragment<TSkill>)
     );
   }
@@ -395,13 +281,13 @@ export function assembleNativeApplicationCatalog<TSkill extends Skill>(
   return getNativeCatalogAssembly(modules).catalog;
 }
 
-/** Builds the active catalog from validated ownership fragments, retaining shared elite-authored weapon skills. */
+/** Builds the active catalog from validated ownership fragments, retaining Core-owned shared weapon skills. */
 export function assembleNativeRuntimeCatalog<TSkill extends Skill>(
   fragments: readonly Readonly<ProfessionModuleCatalogFragment<TSkill>>[]
 ): Readonly<CanonicalCatalog<TSkill>> {
   // Entity and weapon-hand ownership was validated once during full application assembly.
   const catalog = createCanonicalCatalog({
-    generated: fragments.flatMap((fragment) => fragment.skills || []),
+    skills: fragments.flatMap((fragment) => fragment.skills || []),
     // Fragments share one profession-wide table; any fragment supplies it.
     skillFields: fragments.find((fragment) => fragment.skillFields)?.skillFields,
     profileFields: fragments.find((fragment) => fragment.profileFields)?.profileFields,
@@ -410,10 +296,8 @@ export function assembleNativeRuntimeCatalog<TSkill extends Skill>(
     specializations: fragments.flatMap((fragment) => fragment.specializations || []),
     weapons: [...new Set(fragments.flatMap((fragment) => fragment.weapons || []))],
     weaponHands: new Map(fragments.flatMap((fragment) => [...toEntries(fragment.weaponHands)])),
-    autoattackChains: {
-      additional: fragments.flatMap((fragment) => fragment.autoattackChains?.additional || []),
-      excludeSkillIds: [...new Set(fragments.flatMap((fragment) => fragment.autoattackChains?.excludeSkillIds || []))]
-    }
+    autoattackChains: fragments.flatMap((fragment) => fragment.autoattackChains || []),
+    skillFlips: fragments.flatMap((fragment) => fragment.skillFlips || [])
   });
   return catalog;
 }

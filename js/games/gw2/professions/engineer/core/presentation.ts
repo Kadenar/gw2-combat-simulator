@@ -104,7 +104,10 @@ function usesToolsTraitline(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, 
 
   // Programmatic UI contexts may omit build specialization metadata, so infer
   // the Tools line from the canonical trait selection.
-  return catalog.traits.some((trait) => trait.specialization === 'Tools' && hasTrait(context, trait.id));
+  const tools = catalog.specializations.find((specialization) => specialization.name === 'Tools');
+  return [...(tools?.minorTraits ?? []), ...(tools?.majorTraits.flat() ?? [])].some((trait) =>
+    hasTrait(context, trait.id)
+  );
 }
 
 // toolbelt skill is the non-Detonate variant — each parent has both a toolbelt skill and a detonate flip

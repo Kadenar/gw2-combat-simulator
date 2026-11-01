@@ -1,16 +1,26 @@
 /**
- * Owns Core Ranger pet skill fragments for the Aether Hunter family.
+ * Owns Core Ranger pet skill definitions for the Aether Hunter family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
+import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.AETHER_HUNTER_BITE]: {
-    petSkill: true,
+export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+  [ID.AETHER_HUNTER_BITE]: definePetSkill({
+    name: 'Bite',
+    description: 'Bite at your foe and inflict bleeding.',
+    icon: new URL('@images/wiki/bite-aether-hunter.png', import.meta.url).href,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Aether Hunter'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 0,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_BITE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_BITE]!.quicknessCastTimeMs,
     // The measured Quickness contact pairs its strike and bleed; the pet timing profile restores the slower contact.
@@ -25,9 +35,18 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
         actorType: ACTOR.SUMMON
       }
     ])
-  },
-  [ID.AETHER_HUNTER_LUNGE]: {
-    petSkill: true,
+  }),
+  [ID.AETHER_HUNTER_LUNGE]: definePetSkill({
+    name: 'Lunge',
+    description: 'Lunge forward, crippling opponents in the path.',
+    icon: 'https://render.guildwars2.com/file/B65ECEBB72F4F10C4144510777E899E477DEE5B2/3124960.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Aether Hunter'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 8,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LUNGE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LUNGE]!.quicknessCastTimeMs,
     // Lunge's early contact and motion remain unchanged by Quickness in the paired logs.
@@ -42,9 +61,18 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
         actorType: ACTOR.SUMMON
       }
     ])
-  },
-  [ID.AETHER_HUNTER_LEY_LINE_VORTEX]: {
-    petSkill: true,
+  }),
+  [ID.AETHER_HUNTER_LEY_LINE_VORTEX]: definePetSkill({
+    name: 'Ley-Line Vortex',
+    description: 'Spin around, striking and tormenting nearby enemies.',
+    icon: 'https://render.guildwars2.com/file/030E7AB1CB18A4B348FD17B54B2B68FDABDB1DBC/3124961.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Aether Hunter'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LEY_LINE_VORTEX]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.AETHER_HUNTER_LEY_LINE_VORTEX]!.quicknessCastTimeMs,
     // Quickness compresses the paired pulses but leaves the full channel recovery; retirement cancels pending pulses.
@@ -67,9 +95,16 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
         actorType: ACTOR.SUMMON
       }
     ])
-  },
-  [ID.DIMENSION_BREACH]: {
-    petSkill: true,
+  }),
+  [ID.DIMENSION_BREACH]: definePetSkill({
+    name: 'Dimension Breach',
+    description: "Beast.  Dive between dimensions, resurfacing at your foe's location and knocking them into the air.",
+    icon: 'https://render.guildwars2.com/file/090FC4C97ADB55985F67F1FE225803784B3E6FAE/3124959.png',
+    petNames: ['Aether Hunter'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DIMENSION_BREACH]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.DIMENSION_BREACH]!.quicknessCastTimeMs,
     // Breach's launch accompanies its resurfacing strike before the pet can resume basic attacks.
@@ -84,5 +119,5 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
       },
       { type: 'control', controlKind: CONTROL.LAUNCH, source: 'ranger-pet', actorType: ACTOR.SUMMON }
     ])
-  }
+  })
 });

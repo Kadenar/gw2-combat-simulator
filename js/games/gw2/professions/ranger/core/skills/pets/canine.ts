@@ -1,16 +1,26 @@
 /**
- * Owns Core Ranger pet skill fragments for the Canine family.
+ * Owns Core Ranger pet skill definitions for the Canine family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
+import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // Natural Bite uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.CANINE_BITE]: {
-    petSkill: true,
+  [ID.CANINE_BITE]: definePetSkill({
+    name: 'Bite',
+    description: 'Bite your foe.',
+    icon: new URL('@images/wiki/bite-canine.png', import.meta.url).href,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 0,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BITE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BITE]!.quicknessCastTimeMs,
     effects: [
@@ -21,10 +31,19 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
+  }),
   // Natural Crippling Leap uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.CANINE_CRIPPLING_LEAP]: {
-    petSkill: true,
+  [ID.CANINE_CRIPPLING_LEAP]: definePetSkill({
+    name: 'Crippling Leap',
+    description: 'Leap at your foe and cripple them.',
+    icon: 'https://render.guildwars2.com/file/09990305A163E3BC2DF2E9D1D2BA93F2ECE8BA3E/103610.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 10,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_CRIPPLING_LEAP]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_CRIPPLING_LEAP]!.quicknessCastTimeMs,
     effects: [
@@ -50,10 +69,19 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
+  }),
   // Natural Brutal Charge uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.CANINE_BRUTAL_CHARGE]: {
-    petSkill: true,
+  [ID.CANINE_BRUTAL_CHARGE]: definePetSkill({
+    name: 'Brutal Charge',
+    description: 'Leap at your foe and knock them down.',
+    icon: 'https://render.guildwars2.com/file/06614FF537DBD771DE67B341BA0CA565B24F0A67/103239.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Krytan Drakehound', 'Alpine Wolf', 'Fern Hound', 'Hyena', 'Wolf'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 18,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BRUTAL_CHARGE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.CANINE_BRUTAL_CHARGE]!.quicknessCastTimeMs,
     effects: [
@@ -71,9 +99,16 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.INTIMIDATING_HOWL]: {
-    petSkill: true,
+  }),
+  [ID.INTIMIDATING_HOWL]: definePetSkill({
+    name: 'Intimidating Howl',
+    description: 'Beast. Howl at foes to immobilize them.',
+    icon: 'https://render.guildwars2.com/file/45E153B2939D037C4E6FDE1FEF42CF6456280D3E/104046.png',
+    petNames: ['Krytan Drakehound'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     quicknessCastTimeMs: 1000,
     effects: [
       {
@@ -94,9 +129,16 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.CHILLING_HOWL]: {
-    petSkill: true,
+  }),
+  [ID.CHILLING_HOWL]: definePetSkill({
+    name: 'Chilling Howl',
+    description: 'Beast. Howl at foes to chill them.',
+    icon: 'https://render.guildwars2.com/file/5D97691719F5D52AAA610CCECB13B0F2056A0E08/103607.png',
+    petNames: ['Alpine Wolf'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     quicknessCastTimeMs: 1000,
     effects: [
       {
@@ -115,9 +157,16 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.REGENERATE_FERN_HOUND]: {
-    petSkill: true,
+  }),
+  [ID.REGENERATE_FERN_HOUND]: definePetSkill({
+    name: 'Regenerate',
+    description: 'Beast. Howl to heal and grant regeneration to nearby allies.',
+    icon: 'https://render.guildwars2.com/file/3CD0D15B0C0E9CB7BD6709E773DFB2FCFEC25823/103609.png',
+    petNames: ['Fern Hound'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     quicknessCastTimeMs: 333,
     effects: [
       {
@@ -130,14 +179,28 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.HOWL_OF_THE_PACK]: {
-    petSkill: true,
+  }),
+  [ID.HOWL_OF_THE_PACK]: definePetSkill({
+    name: 'Howl of the Pack',
+    description: 'Beast. Howl to summon hyena allies to fight with you.',
+    icon: 'https://render.guildwars2.com/file/B824F20C4F5F7B739A0634DD79EE0EA2A82D7FC3/103237.png',
+    petNames: ['Hyena'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 30,
     quicknessCastTimeMs: 1000,
     effects: []
-  },
-  [ID.TERRIFYING_HOWL]: {
-    petSkill: true,
+  }),
+  [ID.TERRIFYING_HOWL]: definePetSkill({
+    name: 'Terrifying Howl',
+    description: 'Beast. Howl at foes to send them running in fear.',
+    icon: 'https://render.guildwars2.com/file/C016B80FBD257CDD09EACFE7EBC611DF0A7040D6/103520.png',
+    petNames: ['Wolf'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 30,
     quicknessCastTimeMs: 1000,
     effects: [
       {
@@ -148,5 +211,5 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Par
         actorType: ACTOR.SUMMON
       }
     ]
-  }
+  })
 });

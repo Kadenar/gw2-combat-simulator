@@ -260,7 +260,7 @@ test('Arcane Echo preserves spent ammunition and adds its original count recharg
   const ammo = context.cooldownController.readAmmo(weapon.id);
   assert.equal(ammo.charges, 1);
   assert.deepEqual(ammo.recharges, [{ startedAt: 2, work: 7 }]);
-  assert.equal(context.cooldownController.readyAt(echo.id), 15 + weapon.ammoRecharge);
+  assert.equal(context.cooldownController.readyAt(echo.id), 15 + weapon.cooldown);
 });
 
 // Native hit-based recharge reduction must not shrink Echo's surcharge, and the repeat waits for reduced recharge.

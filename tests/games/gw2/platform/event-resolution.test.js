@@ -217,7 +217,7 @@ test('slot-skill strikes select nonweapon strength generically', () => {
 test('resolver profession state changes are chronological and preserve counters', () => {
   let hitCount = 0;
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 980001,
         name: 'Chronology Fixture',
@@ -446,7 +446,7 @@ test('test profession runs end to end without importing Mesmer', () => {
 
 test('resolver modifiers receive stable trait, event, and runtime context', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930002,
         name: 'Context Strike',

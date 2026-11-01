@@ -29,7 +29,6 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Successful F2 actions grant party Protection from the captured spend, excluding afterimage replays. */
 export const illusionaryDefense = defineTrait<MesmerSkill>({
-  name: 'Illusionary Defense',
   id: TRAIT.ILLUSIONARY_DEFENSE,
   balance: {
     durationPerTier: 2,
@@ -82,7 +81,6 @@ function grantIllusionaryDefense(
 
 /** Each committed shatter or instrument grants personal Stability and its slot's party boon once, regardless of hits. */
 export const bountifulDisillusionment = defineTrait<MesmerSkill>({
-  name: 'Bountiful Disillusionment',
   id: TRAIT.BOUNTIFUL_DISILLUSIONMENT,
   balance: {
     effects: [
@@ -149,7 +147,6 @@ export const bountifulDisillusionment = defineTrait<MesmerSkill>({
 
 /** Own Chaotic Persistence tuning alongside its runtime behavior. */
 export const chaoticPersistence = defineTrait<MesmerSkill>({
-  name: 'Chaotic Persistence',
   id: TRAIT.CHAOTIC_PERSISTENCE,
   balance: {
     attributeBonuses: { expertise: 100, concentration: 250 }
@@ -169,7 +166,6 @@ export const chaoticPersistence = defineTrait<MesmerSkill>({
 
 /** Each self Chaos Aura gain grants party Regeneration; other auras and summon-owned gains do not trigger it. */
 export const chaoticTransference = defineTrait<MesmerSkill>({
-  name: 'Chaotic Transference',
   id: TRAIT.CHAOTIC_TRANSFERENCE,
   balance: {
     effects: [
@@ -198,7 +194,6 @@ export const chaoticTransference = defineTrait<MesmerSkill>({
 
 /** Own Illusionary Membrane tuning alongside its runtime behavior. */
 export const illusionaryMembrane = defineTrait<MesmerSkill>({
-  name: 'Illusionary Membrane',
   id: TRAIT.ILLUSIONARY_MEMBRANE,
   balance: {
     conditionDamageIncrease: 0.07,
@@ -246,7 +241,6 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
 
 /** Own Chaotic Interruption tuning alongside its runtime behavior. */
 export const chaoticInterruption = defineTrait<MesmerSkill>({
-  name: 'Chaotic Interruption',
   id: TRAIT.CHAOTIC_INTERRUPTION,
   balance: {
     recharge: 5,
@@ -262,7 +256,6 @@ export const chaoticInterruption = defineTrait<MesmerSkill>({
 
 /** A completed heal invokes the storm; the skill owns its payload and Alacrity-adjusted recharge. */
 export const methodOfMadness = defineTrait<MesmerSkill>({
-  name: 'Method of Madness',
   id: TRAIT.METHOD_OF_MADNESS,
   triggers: [
     onTriggerPoint(mesmerHealCompleted, {

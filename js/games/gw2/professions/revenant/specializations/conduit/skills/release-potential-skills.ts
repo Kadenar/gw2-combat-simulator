@@ -5,7 +5,7 @@ import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import {
@@ -49,8 +49,14 @@ function releaseEffects(
   });
 }
 
-export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.RELEASE_POTENTIAL_MONK]: {
+    name: 'Release Potential: Monk',
+    description:
+      "If Ventari's Tablet has not been summoned, summon it at your location; otherwise, gain tranquility. Grant boons to allies around the tablet. Gain energy depending on the number of allies affected by this skill (excluding yourself). For each point of affinity, boon duration is increased.",
+    icon: 'https://render.guildwars2.com/file/2A674993E0E107A16E17FB5AC4AA757362EC434C/3713171.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     cooldown: 10,
     energyCost: 0,
     // The shared scheduler materializes these packets; conditional legend components declare their own gates.
@@ -74,6 +80,12 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     effectVariants: [{ when: () => true, transform: releaseEffects }]
   },
   [ID.RELEASE_POTENTIAL_MESMER]: {
+    name: 'Release Potential: Mesmer',
+    description:
+      'Create an eruption of despair around you, inflicting torment on enemies and dazing them. For each enemy struck, inflict torment on yourself. Each point of affinity you have increases the torment duration on enemies and reduces the torment duration on yourself.',
+    icon: 'https://render.guildwars2.com/file/43CFBABF78D21302519219E3549CDDBA6A7B98BB/3746485.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     cooldown: 10,
     energyCost: 0,
     // Strike and daze use ordinary scheduling; Conduit evaluates the conditions' affinity at impact.
@@ -116,6 +128,12 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   },
   [ID.RELEASE_POTENTIAL_DERVISH]: {
+    name: 'Release Potential: Dervish',
+    description:
+      'Release your affinity in a strike that grows stronger with affinity and gains effects from your legends.',
+    icon: 'https://render.guildwars2.com/file/127861C8CAA5C05A05D191480D54D40C022EF205/3713170.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     // This release unlocks all legend rewards at its own Affinity threshold.
     allLegendAffinityThreshold: 3,
     // Strike damage reads current affinity at impact, independently of the selected legend components.
@@ -178,6 +196,12 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     effectVariants: [{ when: () => true, transform: releaseEffects }]
   },
   [ID.RELEASE_POTENTIAL_ASSASSIN]: {
+    name: 'Release Potential: Assassin',
+    description:
+      'Spin around and send out three increasingly larger shockwaves that damage and inflict conditions on enemies around you. Enemies that are struck by all three waves are additionally immobilized. Damage and immobilize duration increase with each point of affinity you have.',
+    icon: 'https://render.guildwars2.com/file/11A390F793A2EBE57DA6DD6FFD03290CCE6F0305/3713169.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     // Strike affinity remains live while the condition durations retain their separate cast snapshot.
     modifiers: [
       {
@@ -234,6 +258,12 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     effectVariants: [{ when: () => true, transform: releaseEffects }]
   },
   [ID.RELEASE_POTENTIAL_WARRIOR]: {
+    name: 'Release Potential: Warrior',
+    description:
+      'Leap to targeted area, damaging enemies at the target location. Gain barrier if at least one enemy was struck. Each point of affinity increases damage dealt and the barrier granted by this skill.',
+    icon: 'https://render.guildwars2.com/file/35BD2F7D624203D7A0B3E5C2EE6A650ABF301323/3713172.png',
+    type: 'Profession',
+    slot: 'Profession_2',
     // Warrior's release has a stronger intrinsic strike bonus per current affinity stack.
     modifiers: [
       {

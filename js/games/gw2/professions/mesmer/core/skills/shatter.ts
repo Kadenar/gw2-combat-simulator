@@ -1,5 +1,6 @@
 import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect, StrikeTick } from '#gw2/platform/effects/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
@@ -13,7 +14,7 @@ export function shatterSkill(
     readonly rechargeReductionPerSource?: number;
   },
   type: CustomSideEffectAction['type'] = 'mesmer.shatter'
-): Partial<MesmerSkill> {
+): Partial<SkillDefinition<MesmerSkill>> {
   const { coefficients, ticks, effects, durationPerTier, rechargeReductionPerSource, ...mechanic } = definition;
   return {
     shatter: {

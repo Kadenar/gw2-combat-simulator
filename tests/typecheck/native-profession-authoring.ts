@@ -11,6 +11,31 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+
+// Keyed declarations cannot smuggle assembly-owned fields through either literals or object spreads.
+const authoredSkill = { name: 'Fixture', description: 'Fixture skill.', icon: 'fixture.png' } satisfies SkillDefinition;
+function authoredDefinition(definition: SkillDefinition): SkillDefinition {
+  return definition;
+}
+
+// @ts-expect-error The map key supplies identity.
+authoredDefinition({ ...authoredSkill, id: 1 });
+// @ts-expect-error The contributing module supplies specialization.
+authoredDefinition({ ...authoredSkill, specialization: 'Elite' });
+// @ts-expect-error Explicit chain declarations supply the root.
+authoredDefinition({ ...authoredSkill, chainRoot: 1 });
+// @ts-expect-error Explicit chain declarations supply the step.
+authoredDefinition({ ...authoredSkill, chainStep: 1 });
+// @ts-expect-error Explicit chain declarations supply the next member.
+authoredDefinition({ ...authoredSkill, nextChainId: 2 });
+// @ts-expect-error Explicit flip declarations supply the follow-up.
+authoredDefinition({ ...authoredSkill, flipSkillId: 2 });
+// @ts-expect-error Explicit flip declarations supply the parent.
+authoredDefinition({ ...authoredSkill, flipParentId: 1 });
+const runtimeIdentity = { ...authoredSkill, id: 1 };
+// @ts-expect-error A runtime record is not a keyed definition even when passed by reference.
+authoredDefinition(runtimeIdentity);
 
 type Assert<T extends true> = T;
 type Equal<TLeft, TRight> = (<T>() => T extends TLeft ? 1 : 2) extends <T>() => T extends TRight ? 1 : 2 ? true : false;

@@ -26,7 +26,6 @@ import type {
 
 /** Owns Necromantic Corruption tuning and behavior at its existing execution boundaries. */
 export const necromanticCorruption = defineTrait({
-  name: 'Necromantic Corruption',
   id: TRAIT.NECROMANTIC_CORRUPTION,
   balance: { damageMultiplier: 1.25 },
   modifierRules: [
@@ -43,7 +42,6 @@ export const necromanticCorruption = defineTrait({
 
 /** Owns Flesh of the Master tuning and behavior at its existing execution boundaries. */
 export const fleshOfTheMaster = defineTrait({
-  name: 'Flesh of the Master',
   id: TRAIT.FLESH_OF_THE_MASTER,
   balance: {
     resourceGain: 2,
@@ -53,7 +51,6 @@ export const fleshOfTheMaster = defineTrait({
 
 /** Owns Deadly Strength tuning and behavior at its existing execution boundaries. */
 export const deadlyStrength = defineTrait({
-  name: 'Deadly Strength',
   id: TRAIT.DEADLY_STRENGTH,
   balance: { attributePerStack: 10 },
   // Carapace contributes temporary flat attributes while ordinary conversion pools remain unchanged.
@@ -72,7 +69,6 @@ export const deadlyStrength = defineTrait({
 
 /** Owns Corrupter's Fervor tuning and behavior at its existing execution boundaries. */
 export const corruptersFervor = defineTrait({
-  name: "Corrupter's Fervor",
   id: TRAIT.CORRUPTERS_FERVOR,
   balance: { resourceGain: 1, duration: 10 },
   triggers: [
@@ -85,7 +81,6 @@ export const corruptersFervor = defineTrait({
 
 /** Owns Dark Defense tuning and behavior at its existing execution boundaries. */
 export const darkDefense = defineTrait({
-  name: 'Dark Defense',
   id: TRAIT.DARK_DEFENSE,
   balance: {
     resourceGain: 10,
@@ -98,7 +93,6 @@ export const darkDefense = defineTrait({
 
 /** Owns Shrouded Removal tuning and behavior at its existing execution boundaries. */
 export const shroudedRemoval = defineTrait({
-  name: 'Shrouded Removal',
   id: TRAIT.SHROUDED_REMOVAL,
   balance: { maximumConditions: 1, resourceGain: 3, duration: 10 },
   triggers: [onTriggerPoint(shroudEntering, { run: prepareShroudedRemoval })]
@@ -106,7 +100,6 @@ export const shroudedRemoval = defineTrait({
 
 /** Grants Carapace-based life force on ordinary shroud entry and Scourge's committed shroud activation. */
 export const soulComprehension = defineTrait({
-  name: 'Soul Comprehension',
   id: TRAIT.SOUL_COMPREHENSION,
   balance: { lifeForcePerStack: 0.5, maximumStacks: 30 },
   triggers: [
@@ -117,7 +110,6 @@ export const soulComprehension = defineTrait({
 
 /** Both shroud forms and Scourge activations grant Carapace before Soul Comprehension samples the live stacks. */
 export const armoredShroud = defineTrait({
-  name: 'Armored Shroud',
   id: TRAIT.ARMORED_SHROUD,
   balance: { resourceGain: 5, duration: 10 },
   triggers: [
@@ -128,7 +120,6 @@ export const armoredShroud = defineTrait({
 
 /** Owns Putrid Defense tuning and behavior at its existing execution boundaries. */
 export const putridDefense = defineTrait({
-  name: 'Putrid Defense',
   id: TRAIT.PUTRID_DEFENSE,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { conditionDamageMultiplier: 1.15, resourceGain: 1, duration: 10 },

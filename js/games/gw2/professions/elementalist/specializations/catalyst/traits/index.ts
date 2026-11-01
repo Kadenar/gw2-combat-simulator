@@ -45,7 +45,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Empowering Auras tuning and its existing execution behavior. */
 const empoweringAuras = defineTrait({
-  name: 'Empowering Auras',
   id: TRAIT.EMPOWERING_AURAS,
   balance: {
     maximumStacks: 5,
@@ -86,7 +85,6 @@ const empoweringAuras = defineTrait({
 });
 /** Owns Elemental Epitome tuning and its existing execution behavior. */
 const elementalEpitome = defineTrait({
-  name: 'Elemental Epitome',
   id: TRAIT.ELEMENTAL_EPITOME,
   balance: {
     internalCooldown: 10,
@@ -112,7 +110,6 @@ const elementalEpitome = defineTrait({
 });
 /** Owns Elemental Synergy tuning and its existing execution behavior. */
 const elementalSynergy = defineTrait({
-  name: 'Elemental Synergy',
   id: TRAIT.ELEMENTAL_SYNERGY,
   balance: {
     internalCooldown: 10,
@@ -123,7 +120,7 @@ const elementalSynergy = defineTrait({
   triggers: [{ on: 'combo.resolved', run: applySynergyCombo }]
 });
 /** Shares the existing Elemental Empowerment profile's scaling fields without duplicating patch targets. */
-const empoweredEmpowerment = defineTrait({ name: 'Empowered Empowerment', id: TRAIT.EMPOWERED_EMPOWERMENT });
+const empoweredEmpowerment = defineTrait({ id: TRAIT.EMPOWERED_EMPOWERMENT });
 
 /** Validate each renewal before granting; baseline stacks remain ambient and start immediately at combat entry. */
 export const baseEmpowermentPassive = definePeriodicTask<ElementalistRuntime>({
@@ -146,7 +143,6 @@ function nextBaseEmpowermentAt(runtime: ElementalistRuntime): number {
 
 /** Owns Elemental Empowerment tuning and its existing execution behavior. */
 const elementalEmpowerment = defineTrait({
-  name: 'Elemental Empowerment',
   id: TRAIT.ELEMENTAL_EMPOWERMENT,
   balance: {
     maximumStacks: 10,
@@ -179,7 +175,6 @@ const elementalEmpowerment = defineTrait({
 
 /** Owns Vicious Empowerment tuning and its existing execution behavior. */
 export const viciousEmpowerment = defineTrait({
-  name: 'Vicious Empowerment',
   id: TRAIT.VICIOUS_EMPOWERMENT,
   balance: {
     internalCooldown: 0.25,
@@ -202,13 +197,11 @@ export const viciousEmpowerment = defineTrait({
 });
 /** Unlocks spheres and owns their shared energy capacity, cost, and accepted-hit generation. */
 const depthOfElements = defineTrait({
-  name: 'Depth of Elements',
   id: TRAIT.DEPTH_OF_ELEMENTS,
   balance: { maximumStacks: 30, resourceCost: 10, resourceGain: 1 }
 });
 /** Owns Energized Elements tuning and its existing execution behavior. */
 const energizedElements = defineTrait({
-  name: 'Energized Elements',
   id: TRAIT.ENERGIZED_ELEMENTS,
   balance: {
     resourceGain: 2,
@@ -224,7 +217,6 @@ const energizedElements = defineTrait({
 });
 /** Owns Spectacular Sphere tuning and its existing execution behavior. */
 const spectacularSphere = defineTrait({
-  name: 'Spectacular Sphere',
   id: TRAIT.SPECTACULAR_SPHERE,
   balance: {
     effects: [
@@ -244,7 +236,6 @@ const spectacularSphere = defineTrait({
 });
 /** Owns Sphere Specialist tuning and its existing execution behavior. */
 const sphereSpecialist = defineTrait({
-  name: 'Sphere Specialist',
   id: TRAIT.SPHERE_SPECIALIST,
   balance: {
     durationMultiplier: 1.5

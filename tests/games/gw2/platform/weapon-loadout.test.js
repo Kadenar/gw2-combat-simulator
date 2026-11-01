@@ -23,7 +23,7 @@ test('profession weapon eligibility is shared with headless simulation', () => {
       defineNativeModule({
         id: 'Core',
         data: {
-          generatedSkills: [
+          skills: [
             {
               id: 1,
               name: 'Sword Strike',
@@ -96,7 +96,7 @@ test('active primary weapon prefers the selected set and falls back to set 1', (
 
 test('GW2 declarative policy enforces active weapons and skill weapon strength', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930011,
         name: 'Fixture Greatsword',

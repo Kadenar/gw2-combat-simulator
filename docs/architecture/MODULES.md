@@ -77,9 +77,12 @@ them in execution order. Each elite's `traits/index.ts` owns all its definitions
 own profiles, rules, compiled triggers, value hooks, admitted lifetime handlers and build effects. Small helpers stay
 beside the definitions when their callers can load them without a dependency cycle. Substantial behavior and helpers
 that need a separate dependency boundary live in supporting files within the same trait-line folder. Calling a helper
-externally does not by itself justify another file. Generated `data.traits` continues to own selection metadata.
+externally does not by itself justify another file. Nested `data/trait-lines.ts` records own trait selection layout.
+Trait behavior declarations inherit profile names from these records; an explicit `name` is reserved for an intentional
+proc label. Their `TRAIT_LINES` export supplies native-module `traitLines`; assembly exposes those lines through the
+catalog's `specializations` collection for build selection.
 
-Author trait fields in this order, omitting unused fields: `name`, `id`, `balance`, `attributes`, `grantedAttributes`,
+Author trait fields in this order, omitting unused fields: `id`, `balance`, `attributes`, `grantedAttributes`,
 `modifierRules`, `rechargeRules`, `triggers`, `hooks`, `lifetime`. Keep balance scalars before `effects` so identity and
 tuning are visible before behavior. Preserve rule-array order, registration order, and spread override precedence; field
 layout does not define execution order.
@@ -364,7 +367,7 @@ module is active for an elite build. `defineNativeProfession()` composes them in
   resource-rules.ts        optional: Warrior family resource and burst selection
   app/                     app-definition.ts and tooltips.ts
   build/                   build.ts, attributes.ts, weapon-matching.ts where needed
-  data/                    generated metadata, ids.ts, module-data.ts, traits-data.ts, pure helpers shared with integrations
+  data/                    maintained specialization layouts, ids.ts, pure helpers shared with integrations
   core/
     module.ts              manifest only
     state.ts               <Profession>CoreState next to its factory
@@ -403,7 +406,9 @@ Each `core/` or `specializations/<name>/` folder is one module. Its `module.ts` 
 export const berserkerModule = defineNativeModule({
   traitDefinitions: warriorBerserkerTraits,
   id: 'Berserker',
-  data: createWarriorModuleData('Berserker', {
+  data: createNativeModuleData<WarriorSkill>({
+    id: 'Berserker',
+    traitLines: TRAIT_LINES,
     skillMechanics: BERSERKER_SKILL_MECHANICS
   }),
   state: { create: berserkerState.create, project: projectBerserkerPlanningState },
@@ -434,28 +439,63 @@ Ownership rules for the sections:
   `bindGuardianCoreUi`) when the UI needs the completed catalog. Presentation reads simulation state and must not
   reproduce combat rules. Palette availability is the current exception.
 
+### Autoattack chain declarations
+
+Every module declares its supported chains as ordered skill-ID arrays in `skills/autoattack-chains.ts` and passes them
+directly through `data.autoattackChains`. This is the same contract for ordinary weapons, transformed bars, conjured
+weapons, and specialization variants. Only these declarations determine autoattack membership and order.
+
+Catalog assembly validates membership and ownership, then supplies `chainRoot`, `chainStep`, `nextChainId`, and
+`autoattack: true` for each member. Chain order is authored only in the ordered arrays; skill definitions do not repeat
+it. Runtime flips come only from separate explicit declarations. Standalone autoattacks declare `autoattack: true` in
+their skill definitions. Input accounting reads this canonical classification directly.
+
+Aerial Agility is a manual sequence sharing the chain controller; its three skills explicitly declare
+`autoattack: false`, so they continue to count as player inputs. Runtime interruption policies and transition hooks
+remain in their existing profession owners.
+
+### Skill flip declarations
+
+Modules declare supported follow-ups in `skills/skill-flips.ts` and pass them through `data.skillFlips`:
+
+```ts
+[{ parentId: ID.BINDING_BLADE, followUpId: ID.PULL }];
+```
+
+Firebrand declares its mantra families directly in its own `skills/skill-flips.ts`; preparation, charge handling, and
+flip assembly consume those same identities without maintaining another copy. Shared catalog assembly exclusively
+derives `flipSkillId` and `flipParentId` from this list. No declaration means no runtime flip; display labels do not
+infer runtime relationships.
+
+A parent has one default follow-up. Additional commands, such as Healing Turret's Cleansing Burst, declare
+`defaultFollowUp: false` to retain their parent association without replacing its default face. Catalog assembly rejects
+missing identities, conflicting defaults or parents, cycles, links within an autoattack chain, and relationships that
+cross independently selectable runtime modules. Selected catalogs retain the validated declarations for their owners.
+Trait, ambush, and loadout variants retain their own explicit variant metadata instead of pretending to be flips.
+
+These declarations identify relationships only. Activation, availability, charges, consumption, and expiry stay in the
+owning profession mechanics. Palette grouping and slot selection consume canonical links, without reciprocal-chain or
+name-based inference. Skill definitions and module constructors do not repair or duplicate flip identities.
+
 ### Profession file roles
 
-| File or folder                             | Owns                                                                                                             |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `data/<profession>-api-metadata.ts`        | Generated identity and presentation metadata from the GW2 API. Never coefficients or conditions.                 |
-| `data/<profession>-supplemental-skills.ts` | Identity and presentation for skills missing from the API snapshot                                               |
-| `data/ids.ts`                              | Skill and trait ID constants; Engineer, Ranger, Revenant, and Warrior generate theirs from `scripts/data/`       |
-| `data/traits-data.ts`                      | The only export of the flattened runtime `TRAITS`                                                                |
-| `data/module-data.ts`                      | Generated metadata selection, catalog transforms, and module data options                                        |
-| `skills/index.ts`, `skills/<group>.ts`     | Authoritative skill declarations and intrinsic runtime helpers, grouped by weapon, slot family, or skill concept |
-| `skills/actions.ts`                        | Profession-owned synthetic actions (Core modules)                                                                |
-| `state-ids.ts`                             | Stable namespaced public planning identities, exported through `professions/state-ids.ts`                        |
-| `state.ts`                                 | Module state, its factory, and its public projection                                                             |
-| `hooks.ts`                                 | Registration and explicit sequencing of skill, trait, and mechanic callbacks                                     |
-| `modifiers.ts`                             | The module's modifier rules plus imperative `modify*` attribute and damage callbacks                             |
-| `mechanics/<concept>.ts`                   | Systems whose state or lifecycle spans casts, skills, traits, or events (`life-force.ts`, `pets.ts`, …)          |
-| `mechanics/resources.ts`                   | Profession resource policies, where a profession needs them                                                      |
-| `events.ts`                                | Custom scheduled event definitions shared by several Core mechanics                                              |
-| `traits/`                                  | Trait definitions and supporting behavior (see below)                                                            |
-| `presentation.ts`                          | Profession presentation hooks                                                                                    |
-| `app/tooltips.ts`                          | Simulation tooltip descriptions and facts for traits and special skills                                          |
-| `execution/`                               | Mesmer Core only: shatter, flip, phantasm, and effect commitment and packet emission                             |
+| File or folder                         | Owns                                                                                                             |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `data/ids.ts`                          | Maintained stable skill and trait ID constants                                                                   |
+| `data/trait-lines.ts`                  | Maintained specialization and trait presentation                                                                 |
+| `skills/index.ts`, `skills/<group>.ts` | Authoritative skill declarations and intrinsic runtime helpers, grouped by weapon, slot family, or skill concept |
+| `skills/actions.ts`                    | Profession-owned synthetic actions (Core modules)                                                                |
+| `state-ids.ts`                         | Stable namespaced public planning identities, exported through `professions/state-ids.ts`                        |
+| `state.ts`                             | Module state, its factory, and its public projection                                                             |
+| `hooks.ts`                             | Registration and explicit sequencing of skill, trait, and mechanic callbacks                                     |
+| `modifiers.ts`                         | The module's modifier rules plus imperative `modify*` attribute and damage callbacks                             |
+| `mechanics/<concept>.ts`               | Systems whose state or lifecycle spans casts, skills, traits, or events (`life-force.ts`, `pets.ts`, …)          |
+| `mechanics/resources.ts`               | Profession resource policies, where a profession needs them                                                      |
+| `events.ts`                            | Custom scheduled event definitions shared by several Core mechanics                                              |
+| `traits/`                              | Trait definitions and supporting behavior (see below)                                                            |
+| `presentation.ts`                      | Profession presentation hooks                                                                                    |
+| `app/tooltips.ts`                      | Simulation tooltip descriptions and facts for traits and special skills                                          |
+| `execution/`                           | Mesmer Core only: shatter, flip, phantasm, and effect commitment and packet emission                             |
 
 Traits:
 
@@ -617,8 +657,8 @@ behavior in ordinary patch-aware code. The local authoring application lives in 
 ### A new elite specialization
 
 Create `professions/<profession>/specializations/<specialization>/` with only the files it needs, declare its module
-with `defineNativeModule()`, and add it to `catalog.ts` after Core. Also update generated data where required, build
-specialization metadata, tests, and the profession document under `docs/professions/`.
+with `defineNativeModule()`, and add it to `catalog.ts` after Core. Also update maintained specialization data where
+required, build specialization metadata, tests, and the profession document under `docs/professions/`.
 
 ### A new profession
 

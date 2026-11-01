@@ -1,4 +1,4 @@
-/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
+/** Canonical Core revenant skill definitions grouped by their GW2 owner. */
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { StrikeEffect } from '#gw2/platform/effects/types.js';
@@ -8,15 +8,23 @@ import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 // Log-measured impact/aftercast timings are separate from Aura's fixed one-second fuse pulses.
-export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SERENE_SLASH]: {
+    name: 'Serene Slash',
+    description: 'Condense Mists energy into a solid form to strike enemies in front of you.',
+    icon: 'https://render.guildwars2.com/file/F5619506C690982B140AE67DEA7901039FB3615E/3240360.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 560,
@@ -35,6 +43,14 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.ACERBIC_CUT]: {
+    name: 'Acerbic Cut',
+    description: 'Slash at enemies again with Mists energy. Grant boons to allies after striking an enemy.',
+    icon: 'https://render.guildwars2.com/file/F8A82D3762E99032368064CB2C334C08175F18BD/3240361.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 640,
@@ -60,6 +76,14 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.MOTIVATING_WHIRL]: {
+    name: 'Motivating Whirl',
+    description: 'Whirl around, damaging enemies and granting barrier to allies if an enemy is struck.',
+    icon: 'https://render.guildwars2.com/file/80E5E7E4473D321EC639B9360DCD1266AEAA68A4/3240362.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 440,
@@ -78,6 +102,13 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.BLOSSOMING_AURA]: {
+    name: 'Blossoming Aura',
+    description:
+      'Envelop target friend or foe with energy from the Mists. The energy explodes outward after a short delay or when manually detonated, granting barrier to nearby allies. The amount of barrier granted increases over time. If targeting an enemy, the aura also deals damage over time, and it does additional damage when the aura explodes based on how long the aura lasts.',
+    icon: 'https://render.guildwars2.com/file/0B604428F84A0A3DB0402FD6CBFB6AA859F33856/3240363.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_2',
     rechargeAnchor: 'castStart',
     duration: 4,
     pulseInterval: 1,
@@ -121,6 +152,12 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.DETONATE_BLOSSOMING_AURA]: {
+    name: 'Detonate Blossoming Aura',
+    description: 'Detonate your Blossoming Aura manually.',
+    icon: 'https://render.guildwars2.com/file/1CC4BF4C44C2ACB691014E5AB22CF72709A3C91B/3256388.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_2',
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 0,
@@ -132,6 +169,13 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.OTHERWORLDLY_BOND]: {
+    name: 'Otherworldly Bond',
+    description:
+      'Form a tether through the Mists to a target ally or enemy. The strength of the tether increases over time. You can only be tethered to one target at a time, and the link is severed if you are too far away from your target or when you swap weapons.',
+    icon: 'https://render.guildwars2.com/file/93C430490FB3141864AF2C0F992380EECB6B06A4/3240366.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_3',
     flipDuration: 7,
     cooldown: 8,
     energyCost: 5,
@@ -163,6 +207,12 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.start-bond' } }]
   },
   [ID.DEACTIVATE_OTHERWORLDLY_BOND]: {
+    name: 'Deactivate Otherworldly Bond',
+    description: 'Disable the tether.',
+    icon: 'https://render.guildwars2.com/file/E5347DAC6F7B633ABFFA9D1F78BE13FD5F4AE048/3240367.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_3',
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 0,
@@ -171,6 +221,12 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, P
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.release-bond' } }]
   },
   [ID.OTHERWORLDLY_ATTRACTION_ENEMY]: {
+    name: 'Otherworldly Attraction (enemy)',
+    description: 'Release the tether, pulling the tethered enemy toward you and applying vulnerability to them.',
+    icon: 'https://render.guildwars2.com/file/0E4308FA6D473FC7B140365FDC67A25AC57B3CDC/3240365.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+    weapon: 'Scepter',
     cooldown: 0,
     energyCost: 10,
     castTimeMs: 360,

@@ -1,12 +1,21 @@
-/** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+/** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.BLOOD_CURSE]: {
+    name: 'Blood Curse',
+    description: 'Chain. Bleed your foe.',
+    icon: 'https://render.guildwars2.com/file/94DEDA71DAE6C060D1FEF97E5BA7A99BBB574F18/103094.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 440,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -15,6 +24,15 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ])
   },
   [ID.RENDING_CURSE]: {
+    name: 'Rending Curse',
+    description: 'Chain. Bleed your foe.',
+    icon: 'https://render.guildwars2.com/file/78E39426079A026BC3459512BB589538A511BAB4/1228811.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -23,6 +41,15 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ])
   },
   [ID.PUTRID_CURSE]: {
+    name: 'Putrid Curse',
+    description: 'Chain. Poison and bleed your foe.',
+    icon: 'https://render.guildwars2.com/file/2311C409301F719C471155DDBB49270533940440/1228812.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
     interruptCommitMs: 480,
@@ -38,6 +65,13 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     )
   },
   [ID.GRASPING_DEAD]: {
+    name: 'Grasping Dead',
+    description: 'Summon skeletal hands to cripple foes in the target area.',
+    icon: 'https://render.guildwars2.com/file/CB2DB4DD6E995BB6ED4B463608753F2BBF590BF1/103521.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_2',
+    cooldown: 10,
     castTimeMs: 880,
     // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
     interruptCommitMs: 640,
@@ -53,7 +87,14 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     )
   },
   [ID.FEAST_OF_CORRUPTION]: {
-    flipSkillId: null,
+    name: 'Feast of Corruption',
+    description:
+      'Strike your target, gain life force, and corrupt boons on your foe. For each condition on your target up to the condition threshold, gain additional life force and inflict torment.',
+    icon: 'https://render.guildwars2.com/file/1A5ABCCAB674DDF7E4080EB30B372A6425BE0232/103801.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_3',
+    cooldown: 10,
     castTimeMs: 600,
     effects: [
       {
@@ -84,10 +125,16 @@ export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number
     ]
   },
   [ID.DEVOURING_DARKNESS]: {
+    name: 'Devouring Darkness',
+    description:
+      'Corrupt boons from enemies around your target. Inflict torment and gain life force for each condition on your initial target up to the threshold. Gain extra life force for each extra foe struck.',
+    icon: 'https://render.guildwars2.com/file/C6C5B119FBF201FFB46767DDEBE3B11D16FEA96A/2029306.png',
+    type: 'Weapon',
+    weapon: 'Scepter',
+    slot: 'Weapon_3',
+    cooldown: 10,
     // The replacement handler scales this per-condition payload using the live target state.
     maximumConditions: 5,
-
-    flipParentId: null,
     castTimeMs: 600,
     effects: [
       {

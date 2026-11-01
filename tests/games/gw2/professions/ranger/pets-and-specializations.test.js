@@ -1327,7 +1327,8 @@ test('Selected unleashed Hammer skills remain castable after Overbearing Smash',
   for (const skillId of [ID.UNLEASHED_WILD_SWING, ID.UNLEASHED_SAVAGE_SHOCK_WAVE, ID.UNLEASHED_THUMP]) {
     const skill = rangerCatalog.skillsById.get(skillId);
 
-    assert.equal(skill.paletteFlip, false);
+    // Loadout variants have no temporal flip prerequisite.
+    assert.equal(skill.flipParentId, null);
     const markup = paletteElement.innerHTML.match(
       new RegExp(`<div class="([^"]*)" data-skill="${skill.name}"\\s+data-skill-id="${skill.id}"[^>]*>`)
     );

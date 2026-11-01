@@ -75,7 +75,7 @@ export function weaponSetSwapAvailability(
 /** Profession policies identify alternate slot faces without moving mechanic-specific availability gates. */
 export interface SlotSelectionPolicy {
   readonly omittedLoadout?: 'allow' | 'deny';
-  readonly identity?: (id: SkillId) => SkillId;
+  readonly identity?: (id: SkillId, catalog: CanonicalCatalog) => SkillId;
   readonly allowsFollowUp?: (skill: Skill, selected: ReadonlySet<SkillId>, catalog: CanonicalCatalog) => boolean;
 }
 
@@ -103,7 +103,9 @@ export function selectedSlotSkillAvailability(
   }
 
   const identity = policy.identity;
-  const equipped = identity ? [...selected].some((id) => identity(id) === identity(root.id)) : selected.has(root.id);
+  const equipped = identity
+    ? [...selected].some((id) => identity(id, context.catalog) === identity(root.id, context.catalog))
+    : selected.has(root.id);
   return equipped || policy.allowsFollowUp?.(skill, selected, context.catalog)
     ? null
     : denySkillCast(skill, 'gw2.slot-not-equipped', 'the skill is not equipped.');

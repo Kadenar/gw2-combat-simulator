@@ -8,7 +8,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import {
   ELEMENTALIST_TRAIT_IDS as CATALYST_TRAIT,
   ELEMENTALIST_SKILL_IDS as ID
@@ -47,7 +47,7 @@ function jadeSphereEffects(boon: string, duration: number): readonly SkillEffect
   ]);
 }
 
-/** Per-attunement sphere pulse effects consumed by the Catalyst skill fragments. */
+/** Per-attunement sphere pulse effects consumed by the Catalyst skill definitions. */
 const CATALYST_JADE_SPHERE_EFFECTS: Readonly<Record<number, readonly SkillEffect[]>> = Object.freeze({
   [ID.DEPLOY_JADE_SPHERE_FIRE]: jadeSphereEffects(BOON.MIGHT, 10),
   [ID.DEPLOY_JADE_SPHERE_WATER]: jadeSphereEffects(BOON.RESOLUTION, 1),
@@ -56,17 +56,18 @@ const CATALYST_JADE_SPHERE_EFFECTS: Readonly<Record<number, readonly SkillEffect
 });
 
 /** Jade Sphere declarations and execution share one owner for attunement, energy spending, and field windows. */
-export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.DEPLOY_JADE_SPHERE_FIRE]: {
     name: 'Deploy Jade Sphere (Fire)',
-    // Each attunement supplies its own sphere art instead of sharing the API base-name result.
+    description:
+      'Summon your jade sphere, creating a combo field and granting boons to allies in its radius based on its element.',
+    // Each attunement supplies its own sphere art.
     icon: 'https://render.guildwars2.com/file/22CA7C0F420C7F61CEBFA323DF3AADC5EF237475/2491598.png',
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Catalyst',
     attunement: 'Fire',
     mechanicSlot: 5,
-    categories: ['Jade Sphere'],
+
     cooldown: 15,
     skillFamily: 'Jade Sphere',
     castTimeMs: 0,
@@ -84,13 +85,14 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
   },
   [ID.DEPLOY_JADE_SPHERE_WATER]: {
     name: 'Deploy Jade Sphere (Water)',
+    description:
+      'Summon your jade sphere, creating a combo field and granting boons to allies in its radius based on its element.',
     icon: 'https://render.guildwars2.com/file/6016319AAF18417F0401800EF36C0F18E207FFD5/2491600.png',
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Catalyst',
     attunement: 'Water',
     mechanicSlot: 5,
-    categories: ['Jade Sphere'],
+
     cooldown: 15,
     skillFamily: 'Jade Sphere',
     castTimeMs: 0,
@@ -108,13 +110,14 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
   },
   [ID.DEPLOY_JADE_SPHERE_AIR]: {
     name: 'Deploy Jade Sphere (Air)',
+    description:
+      'Summon your jade sphere, creating a combo field and granting boons to allies in its radius based on its element.',
     icon: 'https://render.guildwars2.com/file/07D9C76FEB07BB04B9D07A05D87C09A0A0AE0319/2491594.png',
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Catalyst',
     attunement: 'Air',
     mechanicSlot: 5,
-    categories: ['Jade Sphere'],
+
     cooldown: 15,
     skillFamily: 'Jade Sphere',
     castTimeMs: 0,
@@ -132,13 +135,14 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, Partial<Skill>
   },
   [ID.DEPLOY_JADE_SPHERE_EARTH]: {
     name: 'Deploy Jade Sphere (Earth)',
+    description:
+      'Summon your jade sphere, creating a combo field and granting boons to allies in its radius based on its element.',
     icon: 'https://render.guildwars2.com/file/97BEF22148DDA3159B4CF6DB18ECFEDE7107710B/2491596.png',
     type: 'Profession',
     slot: 'Profession_5',
-    specialization: 'Catalyst',
     attunement: 'Earth',
     mechanicSlot: 5,
-    categories: ['Jade Sphere'],
+
     cooldown: 15,
     skillFamily: 'Jade Sphere',
     castTimeMs: 0,

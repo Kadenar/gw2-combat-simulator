@@ -16,9 +16,9 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { MANTRAS } from '#gw2/professions/guardian/data/mantra-definitions.js';
 import { resolveAshes, type ResolvedAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
 /** Resolved Ashes payloads reuse the shared effect formatter so Burning rows match the grant rows' icons and stacks. */

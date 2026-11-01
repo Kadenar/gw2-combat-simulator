@@ -40,7 +40,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Dhuumfire tuning and behavior at its existing execution boundaries. */
 export const dhuumfire = defineTrait({
-  name: 'Dhuumfire',
   id: TRAIT.DHUUMFIRE,
   balance: {
     effects: [
@@ -66,7 +65,6 @@ export const dhuumfire = defineTrait({
 
 /** Owns Unyielding Blast tuning and behavior at its existing execution boundaries. */
 export const unyieldingBlast = defineTrait({
-  name: 'Unyielding Blast',
   id: TRAIT.UNYIELDING_BLAST,
   balance: {
     effects: [
@@ -92,7 +90,6 @@ export const unyieldingBlast = defineTrait({
 
 /** Owns Vital Persistence tuning and behavior at its existing execution boundaries. */
 export const vitalPersistence = defineTrait({
-  name: 'Vital Persistence',
   id: TRAIT.VITAL_PERSISTENCE,
   balance: { attributeBonuses: { vitality: 180 } },
   attributes: traitAttributeEffects(TRAIT.VITAL_PERSISTENCE, [
@@ -103,7 +100,6 @@ export const vitalPersistence = defineTrait({
 
 /** Owns Sinister Shroud tuning and behavior at its existing execution boundaries. */
 export const sinisterShroud = defineTrait({
-  name: 'Sinister Shroud',
   id: TRAIT.SINISTER_SHROUD,
   balance: { rechargeMultiplier: 0.85 },
   rechargeRules: [
@@ -124,7 +120,6 @@ export const sinisterShroud = defineTrait({
 
 /** Owns Death Perception tuning and behavior at its existing execution boundaries. */
 export const deathPerception = defineTrait({
-  name: 'Death Perception',
   id: TRAIT.DEATH_PERCEPTION,
   balance: {
     criticalDamage: 1.1,
@@ -147,7 +142,6 @@ export const deathPerception = defineTrait({
 
 /** Owns Soul Barbs tuning and behavior at its existing execution boundaries. */
 export const soulBarbs = defineTrait({
-  name: 'Soul Barbs',
   id: TRAIT.SOUL_BARBS,
   balance: {
     damageIncrease: 0.1,
@@ -222,7 +216,6 @@ export const eternalLifePassive = definePeriodicTask<NecromancerRuntime>({
 
 /** Owns Eternal Life tuning and behavior at its existing execution boundaries. */
 export const eternalLife = defineTrait({
-  name: 'Eternal Life',
   id: TRAIT.ETERNAL_LIFE,
   balance: {
     lifeForceGain: 3,
@@ -251,7 +244,6 @@ export const eternalLife = defineTrait({
 
 /** Owns Fear of Death tuning and behavior at its existing execution boundaries. */
 export const fearOfDeath = defineTrait({
-  name: 'Fear of Death',
   id: TRAIT.FEAR_OF_DEATH,
   balance: { lifeForceGain: 15, internalCooldown: 4 },
   triggers: [
@@ -264,7 +256,6 @@ export const fearOfDeath = defineTrait({
 
 /** Owns Speed of Shadows tuning and behavior at its existing execution boundaries. */
 export const speedOfShadows = defineTrait({
-  name: 'Speed of Shadows',
   id: TRAIT.SPEED_OF_SHADOWS,
   balance: {
     effects: [
@@ -288,14 +279,13 @@ export const speedOfShadows = defineTrait({
 
 /** Owns Soul Marks tuning and behavior at its existing execution boundaries. */
 export const soulMarks = defineTrait({
-  name: 'Soul Marks',
   id: TRAIT.SOUL_MARKS,
   balance: { lifeForceGain: 3 },
   // Only the first accepted mark hit contributes to the combined life-force grant.
   triggers: [
     onTriggerPoint(necromancerStrikeLifeForce, {
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) =>
-        Number(input.event.hitIndex ?? 1) === 1 && input.skill.categories?.includes('Mark') === true,
+        Number(input.event.hitIndex ?? 1) === 1 && input.skill.skillFamily === 'Mark',
       run(runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) {
         input.percent += balanceNumberFromContext(runtime, TRAIT.SOUL_MARKS, 'lifeForceGain');
       }
@@ -305,14 +295,12 @@ export const soulMarks = defineTrait({
 
 /** Owns Soul Battery tuning and behavior at its existing execution boundaries. */
 export const soulBattery = defineTrait({
-  name: 'Soul Battery',
   id: TRAIT.SOUL_BATTERY,
   balance: { lifeForceCapacityMultiplier: 1.2 }
 });
 
 /** Owns Gluttony tuning and behavior at its existing execution boundaries. */
 export const gluttony = defineTrait({
-  name: 'Gluttony',
   id: TRAIT.GLUTTONY,
   balance: { lifeForceGainMultiplier: 1.1 }
 });

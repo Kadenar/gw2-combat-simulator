@@ -38,14 +38,12 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Psychic Blades owns the specialization's baseline blade capacity. */
 const psychicBlades = defineTrait<MesmerSkill>({
-  name: 'Psychic Blades',
   id: TRAIT.PSYCHIC_BLADES,
   balance: { maximumStacks: 5 }
 });
 
 /** Deadly Blades shares patched tuning with its existing packet and resource boundaries. */
 const deadlyBlades = defineTrait<MesmerSkill>({
-  name: 'Deadly Blades',
   id: TRAIT.DEADLY_BLADES,
   balance: {
     damageIncrease: 0.05,
@@ -91,7 +89,6 @@ const deadlyBlades = defineTrait<MesmerSkill>({
 
 /** Jagged Mind shares patched tuning with its existing packet and resource boundaries. */
 const jaggedMind = defineTrait<MesmerSkill>({
-  name: 'Jagged Mind',
   id: TRAIT.JAGGED_MIND,
   balance: {
     effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 4, stacks: 1 }]
@@ -114,7 +111,6 @@ const jaggedMind = defineTrait<MesmerSkill>({
 
 /** Bloodsong shares patched tuning with its existing packet and resource boundaries. */
 export const bloodsong = defineTrait<MesmerSkill>({
-  name: 'Bloodsong',
   id: TRAIT.BLOODSONG,
   balance: {
     conditionDamageMultiplier: 1.25,
@@ -160,7 +156,6 @@ export const bloodsong = defineTrait<MesmerSkill>({
 
 /** The proc owns its baseline attack; the shared phantasm lifecycle supplies the conversion boundary. */
 const phantasmalBlades = defineTrait<MesmerSkill>({
-  name: 'Phantasmal Blades',
   id: TRAIT.PHANTASMAL_BLADES,
   balance: { weaponStrength: 2553.5, effects: [{ name: 'Strike', type: 'strike', coefficient: 0.7, hits: 1 }] },
   // Capture the surviving bonus payload per summon batch without changing intrinsic blade conversion.
@@ -184,7 +179,6 @@ const phantasmalBlades = defineTrait<MesmerSkill>({
 
 /** Keep the rounded build conversion separate from live Fury and direct-simulation attribute adjustments. */
 const quietIntensity = defineTrait<MesmerSkill>({
-  name: 'Quiet Intensity',
   id: TRAIT.QUIET_INTENSITY,
   balance: { phantasmCriticalChance: 0.15, criticalChance: 0.15, vitalityConversion: 0.1 },
   attributes: (context) => {
@@ -211,7 +205,6 @@ const quietIntensity = defineTrait<MesmerSkill>({
 
 /** Targets are always nearby in this simulation; only player strikes receive this multiplier. */
 const mentalFocus = defineTrait<MesmerSkill>({
-  name: 'Mental Focus',
   id: TRAIT.MENTAL_FOCUS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05 },
@@ -230,7 +223,6 @@ const mentalFocus = defineTrait<MesmerSkill>({
 
 /** Sharpening Sorrow shares patched tuning with its existing packet and resource boundaries. */
 const sharpeningSorrow = defineTrait<MesmerSkill>({
-  name: 'Sharpening Sorrow',
   id: TRAIT.SHARPENING_SORROW,
   balance: {
     attributeBonuses: { expertise: 150 }
@@ -269,7 +261,6 @@ export const infiniteForgePassive = definePeriodicTask<MesmerRuntime>({
 
 /** Infinite Forge shares patched tuning with its existing packet and resource boundaries. */
 const infiniteForge = defineTrait<MesmerSkill>({
-  name: 'Infinite Forge',
   id: TRAIT.INFINITE_FORGE,
   balance: {
     damageMultiplier: 1.07,

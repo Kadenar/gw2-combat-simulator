@@ -1,15 +1,11 @@
-import type { AutoattackChainPosition, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-
 /**
- * Shared autoattack-chain helpers. Professions can either derive rooted
- * weapon-slot-1 chains from canonical catalog metadata or provide explicit
- * sequences, then index each skill's position within its chain using the same
- * lookup shape.
+ * Shared indexing for explicitly declared chains; membership and order come from the owner declarations.
  */
+import type { AutoattackChainPosition, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Classifies ordinary attacks without treating manually activated slot-one replacements as autos. */
-export function isAutoattackSkill(catalog: CanonicalCatalog, skill: Skill): boolean {
-  return skill.autoattack ?? catalog.autoattackChainPositions.has(Number(skill.id));
+export function isAutoattackSkill(skill: Skill): boolean {
+  return skill.autoattack === true;
 }
 
 interface AutoattackChainState {
@@ -26,33 +22,6 @@ interface ResolvedAutoattackChainStep {
  */
 function freezeChain(chain: readonly SkillId[]): readonly number[] {
   return Object.freeze(chain.map(Number));
-}
-
-/**
- * Discovers rooted weapon-slot-1 autoattack chains from canonical skill
- * metadata.
- */
-export function deriveAutoattackChains(skills: readonly Skill[]): readonly (readonly number[])[] {
-  const byId = new Map(skills.map((skill) => [skill.id, skill]));
-  const chainedIds = new Set(skills.map((skill) => skill.nextChainId).filter((id) => id != null));
-  const chains: (readonly number[])[] = [];
-  for (const root of skills) {
-    if (root.type !== 'Weapon' || root.slot !== 'Weapon_1' || root.nextChainId == null || chainedIds.has(root.id))
-      continue;
-
-    const chain: SkillId[] = [];
-    const visited = new Set<SkillId>();
-    let skill: Skill | null | undefined = root;
-    while (skill && !visited.has(skill.id)) {
-      visited.add(skill.id);
-      chain.push(skill.id);
-      skill = skill.nextChainId == null ? null : byId.get(skill.nextChainId);
-    }
-
-    if (chain.length > 1) chains.push(freezeChain(chain));
-  }
-
-  return Object.freeze(chains);
 }
 
 /**
@@ -110,6 +79,6 @@ export function resolveAutoattackChainStep(
 }
 
 /** Execution and reporting distinguish automatic attacks from manual activations using the same canonical classification. */
-export function activationInputKind(catalog: CanonicalCatalog, skill: Skill) {
-  return isAutoattackSkill(catalog, skill) ? 'autoattack' : 'manual';
+export function activationInputKind(skill: Skill) {
+  return isAutoattackSkill(skill) ? 'autoattack' : 'manual';
 }

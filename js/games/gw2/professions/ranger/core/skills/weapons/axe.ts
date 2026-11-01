@@ -1,9 +1,9 @@
-/** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+/** Canonical Core ranger skill definitions grouped by their GW2 owner. */
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -12,9 +12,17 @@ const WHIRLING_DEFENSE_TICK_OFFSETS_MS = [200, 360, 600, 840, 1040, 1280, 1520, 
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
-export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.RICOCHET]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Ricochet',
+    description: 'Bounce your axe between multiple foes, gaining might for each enemy struck.',
+    icon: 'https://render.guildwars2.com/file/C3C004026BC93EEF532665099638063E541995A4/103288.png',
+    type: 'Weapon',
+    weapon: 'Axe',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     interruptCommitMs: 320,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -39,6 +47,13 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ])
   },
   [ID.SPLITBLADE]: {
+    name: 'Splitblade',
+    description: 'Throw a spread pattern of five whirling axes that bleeds foes.',
+    icon: 'https://render.guildwars2.com/file/9D661C490109C13717F95520EF6ED7BB16BE99E3/103986.png',
+    type: 'Weapon',
+    weapon: 'Axe',
+    slot: 'Weapon_2',
+    cooldown: 6,
     // Match the observed median Quickness animation, rounded to the 40 ms action tick.
     castTimeMs: 560,
     interruptCommitMs: 480,
@@ -66,6 +81,13 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ])
   },
   [ID.WINTERS_BITE]: {
+    name: "Winter's Bite",
+    description: "Throw an axe to chill the area around your foe. Your pet's next attack inflicts weakness.",
+    icon: 'https://render.guildwars2.com/file/1D6462C04F2B4EB601C8EAF8B80C23046E544AEB/103992.png',
+    type: 'Weapon',
+    weapon: 'Axe',
+    slot: 'Weapon_3',
+    cooldown: 10,
     castTimeMs: 520,
     interruptCommitMs: 360,
     effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -102,6 +124,13 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ]
   },
   [ID.PATH_OF_SCARS]: {
+    name: 'Path of Scars',
+    description: 'Throw your axe so that it returns to you, striking foes each way.',
+    icon: 'https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png',
+    type: 'Weapon',
+    weapon: 'Axe',
+    slot: 'Weapon_4',
+    cooldown: 15,
     castTimeMs: 440,
     interruptCommitMs: 360,
     // Both range variants share the same weapon-slot recharge after completion.
@@ -132,6 +161,13 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
     ])
   },
   [ID.WHIRLING_DEFENSE]: {
+    name: 'Whirling Defense',
+    description: 'Spin your axes around you to attack nearby foes.',
+    icon: 'https://render.guildwars2.com/file/3D24774AAFBEFF40016ED8B451A245D95A2D08E3/103147.png',
+    type: 'Weapon',
+    weapon: 'Axe',
+    slot: 'Weapon_5',
+    cooldown: 25,
     castTimeMs: 2720,
     interruptMode: 'per-packet',
     effects: [
@@ -165,13 +201,13 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Sk
   }
 });
 
-/** Owns the max-range Path of Scars identity beside the canonical Axe fragment. */
+/** Owns the max-range Path of Scars identity beside the canonical Axe definition. */
 export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
     name: 'Path of Scars (Max Range)',
-    id: ID.PATH_OF_SCARS_MAX_RANGE,
     description: 'Throw your axe from maximum range so its returning strike lands later.',
     icon: 'https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png',
+    id: ID.PATH_OF_SCARS_MAX_RANGE,
     variantBadge: 'MAX',
     type: 'Weapon',
     weapon: WEAPON.AXE,

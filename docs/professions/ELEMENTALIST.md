@@ -21,8 +21,7 @@ Unless noted otherwise, paths below are relative to `js/games/gw2/professions/el
   `modifiers`, `traitDefinitions`, and `presentation` sections are the Core ownership boundary.
 - `specializations/<name>/module.ts` registers each elite specialization through the same ownership sections. Elite
   state and behavior stay inside the active specialization slice rather than leaking into Core.
-- `data/module-data.ts` joins owner-authored skill mechanics to generated GW2 API identity metadata, applies
-  Elementalist-specific catalog transformations, and returns only the catalog entries owned by the requesting module.
+- Each native module contributes complete skill definitions and its trait lines through `createNativeModuleData`.
 - `family-state.ts` projects the nested runtime state into the stable public end-state record exposed by simulation
   results.
 - `build/build.ts` owns build defaults, schema migration, validation, and conversion to the application build shape.
@@ -71,12 +70,12 @@ from their own inputs.
 
 ## Data
 
-- Generated identity metadata lives in `data/`; consult its header for snapshot provenance.
-- Refresh it with `npm run update:elementalist-data`.
-- Generated API metadata supplies identities, icons, descriptions, traits, and specialization records. It is not the
-  source of coefficients, damaging conditions, timings, or state-machine behavior; those live in the owning `core/` or
-  `specializations/<name>/` modules.
-- Runtime simulation is network-free.
+- Maintained skill and trait constants live in `data/ids.ts`.
+- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
+  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
+  required.
+- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
+  complete declarations contributed by each module.
 
 ## Presets and tests
 

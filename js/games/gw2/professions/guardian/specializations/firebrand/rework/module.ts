@@ -1,7 +1,7 @@
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { SPECIALIZATIONS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { createGuardianModuleData } from '#gw2/professions/guardian/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/guardian/data/trait-lines.js';
 import { FIREBRAND_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/catalog-fields.js';
 import { firebrandHooks } from '#gw2/professions/guardian/specializations/firebrand/hooks.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
@@ -9,13 +9,15 @@ import { bindFirebrandUi } from '#gw2/professions/guardian/specializations/fireb
 import { FIREBRAND_REWORK_PROFILE_FIELDS } from '#gw2/professions/guardian/specializations/firebrand/rework/catalog-fields.js';
 import { firebrandReworkTraits } from '#gw2/professions/guardian/specializations/firebrand/rework/traits.js';
 import { FIREBRAND_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/firebrand/skills/index.js';
+import { GUARDIAN_FIREBRAND_SKILL_FLIPS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import {
   firebrandState,
   projectFirebrandPlanningState
 } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-const live = SPECIALIZATIONS.find((specialization) => specialization.name === 'Firebrand')!;
+const live = TRAIT_LINES.find((traitLine) => traitLine.name === 'Firebrand')!;
 const metadata = new Map([...live.minorTraits, ...live.majorTraits.flat()].map((trait) => [trait.id, trait]));
 
 /** Preserve published identities while replacing obsolete descriptions and assigning the new legal trait choices. */
@@ -37,36 +39,35 @@ const description = {
   [REWORK.DELIVERANCE]: 'Retain Tome of Resolve passive while dormant. Passive healing is outside simulation scope.'
 };
 
-function trait(id: number | string, name: string, tier: number) {
+function trait(id: number | string, name: string) {
   return {
     ...metadata.get(typeof id === 'number' ? id : TRAIT.LIBERATORS_VOW)!,
     id,
     name,
-    tier,
     description: description[id as keyof typeof description]
   };
 }
 
-const specialization = {
+const traitLine = {
   ...live,
   minorTraits: live.minorTraits.map((entry) =>
     entry.id === TRAIT.IMBUED_HASTE ? { ...entry, description: description[TRAIT.IMBUED_HASTE] } : entry
   ),
   majorTraits: [
     [
-      trait(TRAIT.UNRELENTING_CRITICISM, 'Unrelenting Criticism', 1),
-      trait(REWORK.REVELATION, 'Revelation', 1),
-      trait(REWORK.BASTION, 'Bastion', 1)
+      trait(TRAIT.UNRELENTING_CRITICISM, 'Unrelenting Criticism'),
+      trait(REWORK.REVELATION, 'Revelation'),
+      trait(REWORK.BASTION, 'Bastion')
     ],
     [
-      trait(REWORK.FERVID_CONVICTION, 'Fervid Conviction', 2),
-      trait(TRAIT.STALWART_SPEED, 'Stalwart Speed', 2),
+      trait(REWORK.FERVID_CONVICTION, 'Fervid Conviction'),
+      trait(TRAIT.STALWART_SPEED, 'Stalwart Speed'),
       metadata.get(TRAIT.LEGENDARY_LORE)!
     ],
     [
-      trait(REWORK.RIGHTEOUS_FLAMES, 'Righteous Flames', 3),
-      trait(TRAIT.STOIC_DEMEANOR, 'Stoic Demeanor', 3),
-      trait(REWORK.DELIVERANCE, 'Deliverance', 3)
+      trait(REWORK.RIGHTEOUS_FLAMES, 'Righteous Flames'),
+      trait(TRAIT.STOIC_DEMEANOR, 'Stoic Demeanor'),
+      trait(REWORK.DELIVERANCE, 'Deliverance')
     ]
   ]
 };
@@ -74,16 +75,15 @@ const specialization = {
 /** Reworks replace executable declarations as a unit; ordinary preview edits still own every tunable number. */
 export const firebrandReworkModule = defineNativeModule({
   id: 'Firebrand',
-  data: {
-    // The rework replaces the module as a unit, so it declares the same Firebrand skill fields.
-    ...createGuardianModuleData('Firebrand', {
-      profileFields: FIREBRAND_REWORK_PROFILE_FIELDS,
-      skillMechanics: FIREBRAND_SKILL_MECHANICS,
-      skillFields: FIREBRAND_SKILL_FIELDS
-    }),
-    traits: [...specialization.minorTraits, ...specialization.majorTraits.flat()],
-    specializations: [specialization],
-    // Only the reworked ruleset selects Righteous Flames; live Quickfire shares its numeric identity.
+  // The rework replaces the module as a unit, so it declares the same Firebrand skill fields.
+  data: createNativeModuleData<GuardianSkill>({
+    id: 'Firebrand',
+    traitLines: [traitLine],
+    skillFlips: GUARDIAN_FIREBRAND_SKILL_FLIPS,
+    profileFields: FIREBRAND_REWORK_PROFILE_FIELDS,
+    skillMechanics: FIREBRAND_SKILL_MECHANICS,
+    skillFields: FIREBRAND_SKILL_FIELDS,
+    // The rework owns this complete replacement alongside its ordinary keyed skills.
     extraSkills: [
       {
         ...ashesBurningSkill,
@@ -91,7 +91,7 @@ export const firebrandReworkModule = defineNativeModule({
         burningOverrideTrait: REWORK.RIGHTEOUS_FLAMES
       }
     ]
-  },
+  }),
   state: {
     create: (config, { balanceContext }) =>
       firebrandState.create({ config, balanceProfile: (id) => balanceContext.catalog.balanceProfilesById.get(id) }),

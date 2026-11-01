@@ -27,7 +27,6 @@ export const SHARED_SKILL_FIELDS: FieldSpecs = defineFields(
     slot: dataField,
     slotSelectable: dataField,
     specialization: dataField,
-    categories: dataField,
     tags: dataField,
     skillFamily: dataField,
     attunement: dataField,
@@ -103,8 +102,7 @@ export const SHARED_SKILL_FIELDS: FieldSpecs = defineFields(
     rechargeIgnoresAlacrity: dataField,
     usableWhileRecharging: dataField,
     ammo: numberField({ patch: 'primary' }),
-    ammoRecharge: numberField({ unit: 'seconds', patch: 'primary' }),
-    ammoCastLockout: numberField({ unit: 'seconds', runtimeOnly: true }),
+    ammoCastLockout: numberField({ unit: 'seconds', patch: 'primary' }),
 
     // Resources and costs.
     resource: dataField,

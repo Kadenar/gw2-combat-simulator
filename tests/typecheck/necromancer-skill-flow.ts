@@ -1,8 +1,9 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/catalog.js';
 import { necromancerCoreHooks } from '#gw2/professions/necromancer/core/hooks.js';
 import { necromancerCoreModule } from '#gw2/professions/necromancer/core/module.js';
-import { createNecromancerModuleData } from '#gw2/professions/necromancer/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/necromancer/data/trait-lines.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { harbingerHooks } from '#gw2/professions/necromancer/specializations/harbinger/hooks.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
@@ -17,7 +18,7 @@ type EliteCast = NonNullable<typeof harbingerHooks.onCastStart>;
 
 // Real modules, selected catalogs, and hooks retain profession fields without widening to Skill or any.
 export type NecromancerSkillFlowAssertions = [
-  Assert<Equal<NonNullable<typeof necromancerCoreModule.data.generatedSkills>[number], NecromancerSkill>>,
+  Assert<Equal<NonNullable<typeof necromancerCoreModule.data.skills>[number], NecromancerSkill>>,
   Assert<Equal<(typeof necromancerCatalog.skills)[number], NecromancerSkill>>,
   Assert<Equal<(typeof necromancerProfession.catalog.skills)[number], NecromancerSkill>>,
   Assert<Equal<(typeof first.catalog.skills)[number], NecromancerSkill>>,
@@ -40,11 +41,17 @@ export function necromancerHookSkillReads(runtime: NecromancerRuntime, cast: Par
   void [cost, flag, indexed, listed, invalid];
 }
 
-createNecromancerModuleData('Core', {
-  skillMechanics: {
-    1: {
-      // @ts-expect-error Known profession fields reject invalid authored values.
-      lifeForceCost: 'invalid'
-    }
+const invalidDefinitions: Record<string, SkillDefinition<NecromancerSkill>> = {
+  1: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    // @ts-expect-error Known profession fields reject invalid authored values.
+    lifeForceCost: 'invalid'
   }
+};
+createNativeModuleData<NecromancerSkill>({
+  id: 'Core',
+  traitLines: TRAIT_LINES,
+  skillMechanics: invalidDefinitions
 });

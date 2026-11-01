@@ -195,7 +195,7 @@ test('computed combat boundaries admit opening procs but exclude the preceding m
     id: 'combat-boundary-fixture',
     name: 'Combat Boundary Fixture',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 1,
           name: 'Strike',
@@ -233,7 +233,7 @@ test('missed attacks leave consecutive swaps out of combat', () => {
     id: 'missed-swap-fixture',
     name: 'Missed Swap Fixture',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         { id: 1, name: 'Strike', type: 'Utility', castTimeMs: 1000, effects: [{ type: 'strike', coefficient: 1 }] },
         {
           id: 2,

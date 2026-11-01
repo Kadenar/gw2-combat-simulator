@@ -1,5 +1,6 @@
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import {
   CONDUIT_SKILL_FIELDS,
   REVENANT_CONDUIT_PROFILE_FIELDS
@@ -10,12 +11,15 @@ import { conduitEntityModifierRules } from '#gw2/professions/revenant/specializa
 import { CONDUIT_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/index.js';
 import { conduitState, projectConduitPlanningState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { traitDefinitions } from '#gw2/professions/revenant/specializations/conduit/traits/index.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const conduitModule = defineNativeModule({
   traitDefinitions,
   id: 'Conduit',
-  data: createRevenantModuleData('Conduit', {
+  data: createNativeModuleData<RevenantSkill>({
+    id: 'Conduit',
+    traitLines: TRAIT_LINES,
     profileFields: REVENANT_CONDUIT_PROFILE_FIELDS,
     skillFields: CONDUIT_SKILL_FIELDS,
     skillMechanics: CONDUIT_BASE_SKILL_MECHANICS

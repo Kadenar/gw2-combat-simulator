@@ -18,7 +18,7 @@ import {
   WEAPON
 } from '#gw2/platform/constants.js';
 import { impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -51,19 +51,21 @@ const METEOR_SHOWER_STRIKE_TICKS = [
 ] as const;
 
 /**
- * Skill-id keyed fragments the catalog layers over the raw staff skill records so the
- * simulator knows each skill's cast timeline, emitted packets, and combo participation.
+ * Complete staff declarations own presentation, cast timelines, emitted packets, and combo participation.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.FIREBALL]: {
     name: 'Fireball',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Cast a fireball that explodes on impact and hits multiple foes.',
+    icon: 'https://render.guildwars2.com/file/E57B9C0358A6B1CE4631E336D22614E9E544DD4B/102965.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.STAFF,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 960,
@@ -75,11 +77,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Four field-tick packets one second apart inside the 4s fire field, each burning.
   [ID.LAVA_FONT]: {
     name: 'Lava Font',
+    description: 'Make lava erupt from the target area.',
+    icon: 'https://render.guildwars2.com/file/CFA80DB42022C240001D249CED6235CEF70C9042/103135.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.STAFF,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 280,
@@ -115,11 +119,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.FLAME_BURST]: {
     name: 'Flame Burst',
+    description: 'Burn foes at the target location.',
+    icon: 'https://render.guildwars2.com/file/610424237E18EA90F0D824454104355309FF5DDA/102959.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.STAFF,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 10,
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
@@ -144,11 +150,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   // second apart across the 6s fire field.
   [ID.BURNING_RETREAT]: {
     name: 'Burning Retreat',
+    description: 'Quickly roll backward, leaving behind a line of fire that burns.',
+    icon: 'https://render.guildwars2.com/file/45A8C3A3F534C7E8E371D41C693AC87A019D2E65/103204.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.STAFF,
     attunement: 'Fire',
-    categories: ['Weapon skill'],
+
     cooldown: 18,
     skillFamily: 'Weapon skill',
     castTimeMs: 1000,
@@ -193,11 +201,15 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   [ID.METEOR_SHOWER]: withSmallHitboxCap(
     {
       name: 'Meteor Shower',
+      description:
+        'Call down a meteor shower onto the target area.\nDamage is reduced per target each time they are struck by this ability.',
+      icon: 'https://render.guildwars2.com/file/660B4E695A6026F9D70CA6B0D7565774805C6B0E/103255.png',
+
       type: 'Weapon',
       slot: 'Weapon_5',
       weapon: WEAPON.STAFF,
       attunement: 'Fire',
-      categories: ['Weapon skill'],
+
       cooldown: 30,
       skillFamily: 'Weapon skill',
       castTimeMs: 2640,
@@ -212,12 +224,15 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   ),
   [ID.WATER_BLAST]: {
     name: 'Water Blast',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Spray a jet of water at your foe that splashes to heal nearby allies.',
+    icon: 'https://render.guildwars2.com/file/FE0B500420CE04976E45D370B0EC6EC874B1E5FE/103184.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.STAFF,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 840,
@@ -238,11 +253,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Delayed drop: the blast finisher and its five Vulnerability stacks land at 1760ms.
   [ID.ICE_SPIKE]: {
     name: 'Ice Spike',
+    description: 'Drop a giant ice spike on foes to make them vulnerable.',
+    icon: 'https://render.guildwars2.com/file/755303C9C50299D8E3F7166B6C23EA18D20B3644/103067.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.STAFF,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 520,
@@ -264,11 +281,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Contributes only a water combo field; no strike or condition packets are modelled.
   [ID.GEYSER]: {
     name: 'Geyser',
+    description: 'Create a geyser to heal nearby allies.',
+    icon: 'https://render.guildwars2.com/file/4CCE5E636B2FCD33495780FB1BCD02A3666DEEBC/103290.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.STAFF,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 560,
@@ -285,11 +304,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Ice field for combo purposes; only the initial Chilled application is emitted.
   [ID.FROZEN_GROUNDS]: {
     name: 'Frozen Grounds',
+    description: 'Coat the target area in ice, chilling foes that enter it. Grant frost aura to allies in the area.',
+    icon: 'https://render.guildwars2.com/file/5EE193655A445A5E9ED31EE7121E01C0B113907E/103217.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.STAFF,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 30,
     skillFamily: 'Weapon skill',
     castTimeMs: 280,
@@ -319,11 +340,14 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.HEALING_RAIN]: {
     name: 'Healing Rain',
+    description:
+      'Call down a healing rain on the target area, granting regeneration to allies and curing conditions once every three seconds. Allies are healed for each condition removed.',
+    icon: 'https://render.guildwars2.com/file/B91D94720FB5979FED339EC7B1E55071076B5E0F/103262.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.STAFF,
     attunement: 'Water',
-    categories: ['Weapon skill'],
+
     cooldown: 35,
     skillFamily: 'Weapon skill',
     castTimeMs: 840,
@@ -351,12 +375,15 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.CHAIN_LIGHTNING]: {
     name: 'Chain Lightning',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Hit multiple foes with arcs of chain lightning.',
+    icon: 'https://render.guildwars2.com/file/01D310FE65DBA378CBAFD13B2BFEDE59939C5153/102964.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.STAFF,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 840,
@@ -376,11 +403,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.LIGHTNING_SURGE]: {
     name: 'Lightning Surge',
+    description: 'Charge a lightning surge that damages and blinds foes near your target when it discharges.',
+    icon: 'https://render.guildwars2.com/file/74BF0A9D002750671D0428CC28BFAC35372AE422/102797.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.STAFF,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 10,
     skillFamily: 'Weapon skill',
     castTimeMs: 1000,
@@ -397,11 +426,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.GUST]: {
     name: 'Gust',
+    description: 'Push foes backward with a burst of air.',
+    icon: 'https://render.guildwars2.com/file/F457134ECFA949C4A47525B30E07A1534542E172/103276.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.STAFF,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 25,
     skillFamily: 'Weapon skill',
     castTimeMs: 480,
@@ -418,11 +449,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.WINDBORNE_SPEED]: {
     name: 'Windborne Speed',
+    description: 'You and nearby allies gain swiftness, while curing crippled, immobilized, and chilled.',
+    icon: 'https://render.guildwars2.com/file/541CA5AAA1E95B93346D4FF80C7C6CCCC9909A2E/103381.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.STAFF,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 20,
     skillFamily: 'Weapon skill',
     castTimeMs: 480,
@@ -440,11 +473,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.STATIC_FIELD]: {
     name: 'Static Field',
+    description: 'Create an electrical field that stuns foes crossing it.',
+    icon: 'https://render.guildwars2.com/file/C72B5BC2A1DC6243AF95C331BDC7CFE0D3F26F73/103182.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.STAFF,
     attunement: 'Air',
-    categories: ['Weapon skill'],
+
     cooldown: 30,
     skillFamily: 'Weapon skill',
     castTimeMs: 680,
@@ -465,12 +500,15 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.STONING]: {
     name: 'Stoning',
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    description: 'Hurl a rock and weaken your foe.',
+    icon: 'https://render.guildwars2.com/file/49245DDFC55F4BBCAF0AA580B20A030F677221EF/103186.png',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 880,
@@ -492,11 +530,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Long fuse: the blast finisher, six Bleeding stacks, and Cripple all land at 4000ms.
   [ID.ERUPTION]: {
     name: 'Eruption',
+    description: 'Shake the ground until it erupts and damages foes.',
+    icon: 'https://render.guildwars2.com/file/2F1CF7CA4E58215911CF5797F7939FEF51D9CB45/102977.png',
     type: 'Weapon',
     slot: 'Weapon_2',
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 840,
@@ -520,26 +560,28 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   // is only available while that aura is active and consumes it for a blast finisher.
   [ID.MAGNETIC_AURA]: {
     name: AURA.MAGNETIC,
+    description: 'Reflect projectiles with magnetic energy.',
+    icon: 'https://render.guildwars2.com/file/048054BEC158D010706002C22AF47952ECC5A33C/103108.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 30,
-    nextChainId: ID.TRANSMUTE_EARTH,
     skillFamily: 'Weapon skill',
     castTimeMs: 0,
     effects: [{ type: 'aura', aura: AURA.MAGNETIC, duration: 4 }]
   },
   [ID.TRANSMUTE_EARTH]: {
     name: 'Transmute Earth',
+    description: 'Cause the surrounding magnetic aura to violently explode.',
+    icon: 'https://render.guildwars2.com/file/6707FCC7A3DF19453F57046821BF682EF3CDFE06/2029299.png',
     type: 'Weapon',
     slot: 'Weapon_3',
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 10,
-    nextChainId: ID.MAGNETIC_AURA,
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
     effects: [
@@ -566,11 +608,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   },
   [ID.UNSTEADY_GROUND]: {
     name: 'Unsteady Ground',
+    description: 'Create unsteady ground that foes cannot cross.',
+    icon: 'https://render.guildwars2.com/file/97F7094E7F32BD1A4C547AD74167744BE44CBC3E/103303.png',
     type: 'Weapon',
     slot: 'Weapon_4',
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 30,
     skillFamily: 'Weapon skill',
     castTimeMs: 720,
@@ -588,11 +632,13 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Pa
   // Projectile finisher carrying a 20s Bleeding stack plus a short Immobilize.
   [ID.SHOCK_WAVE]: {
     name: 'Shock Wave',
+    description: 'Create a shock wave that bleeds and immobilizes your target.',
+    icon: 'https://render.guildwars2.com/file/69CFF22DD8599E35164720AC02A5F2044C33C7DD/103136.png',
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.STAFF,
     attunement: 'Earth',
-    categories: ['Weapon skill'],
+
     cooldown: 25,
     skillFamily: 'Weapon skill',
     castTimeMs: 680,

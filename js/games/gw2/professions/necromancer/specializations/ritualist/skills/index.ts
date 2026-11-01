@@ -1,8 +1,8 @@
 /**
  * Ritualist skill mechanics owned by the Ritualist Necromancer module.
  *
- * The root catalog composes this inert fragment with the other active module
- * fragments. Weapon skills remain Core-owned because Weaponmaster Training
+ * The root catalog composes this inert definition with the other active module
+ * definitions. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -10,14 +10,21 @@ import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
-export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.INNERVATE_PRESERVATION]: {
+    name: 'Innervate Preservation',
+    description: 'Channel your Spirit of Preservation and gain life force.',
+    icon: 'https://render.guildwars2.com/file/0BF19E58712ACF097D0532FB56DBFDB580E3C5BF/3680174.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+
+    cooldown: 25,
     usableInShroud: true,
     castTimeMs: 0,
     // Commit grants life force, then the Innervate handler applies the party payload.
@@ -53,12 +60,17 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.ESSENCE_BLAST]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Essence Blast',
+    description:
+      'Shroud. Fire a blast of energy that is more powerful for each active spirit. Active spirits will prioritize attacking the last enemy targeted by this skill if they are in range.',
+    icon: 'https://render.guildwars2.com/file/BC01E1289EC75D7939952FF29B199E55B6C45F0F/3680172.png',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     type: 'Profession',
     slot: 'Weapon_1',
     shroud: 'ritualist',
     shroudSlot: 1,
-    specialization: 'Ritualist',
     castTimeMs: 600,
     interruptCommitMs: 560,
     effects: [
@@ -92,13 +104,17 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.ANGUISH]: {
+    name: 'Anguish',
+    description:
+      'Shroud. Spirit. Mark an enemy to take more damage from your summoned creatures, then summon a spirit of anguish. Anguish fires a barrage of projectiles that deal increased damage against crowd-controlled enemies and for each condition on those enemies.',
+    icon: 'https://render.guildwars2.com/file/9CA8D4479BEE9A28C810CCB0E234BAC7712104A0/3680170.png',
+    cooldown: 7,
     // Autonomous payloads and actor tuning belong to the selected actor skill.
     summonAttackId: 'necromancer.ritualist.anguish.autoattack',
     type: 'Profession',
     slot: 'Weapon_2',
     shroud: 'ritualist',
     shroudSlot: 2,
-    specialization: 'Ritualist',
     castTimeMs: 560,
     interruptMode: 'commit',
     interruptCommitMs: 400,
@@ -143,9 +159,15 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.INNERVATE_WANDERLUST]: {
+    name: 'Innervate Wanderlust',
+    description: 'Channel your Spirit of Wanderlust to fear nearby enemies.',
+    icon: 'https://render.guildwars2.com/file/CDFE1DF19F0D660091BB935E181745BA0DB6CB47/3680179.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+
+    cooldown: 15,
     usableInShroud: true,
     castTimeMs: 0,
-
     effects: [
       {
         type: 'condition',
@@ -162,6 +184,13 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.NIGHTMARE_WEAPON]: {
+    name: 'Nightmare Weapon',
+    description:
+      'Weapon spell. Your strikes steal life from enemies and inflict vulnerability. Grant fewer stacks of this to nearby allies.',
+    icon: 'https://render.guildwars2.com/file/B3CF370B0E35DA07C023A4BFAA791809C6A67437/3680180.png',
+    type: 'Utility',
+    slot: 'Utility',
+    cooldown: 20,
     // Each recipient spends charges against this skill's own interval and triggered payload.
     internalCooldown: 0,
     castTimeMs: 240,
@@ -209,13 +238,17 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.WANDERLUST]: {
+    name: 'Wanderlust',
+    description:
+      'Shroud. Spirit. Create a powerful blast that damages enemies in the area, then summon a Spirit of Wanderlust at that location. Wanderlust knocks down enemies and creates a lingering area that deals damage and inflicts conditions.',
+    icon: 'https://render.guildwars2.com/file/604BAC974ED4C76FE95E32BEE6BDB3DE594F9F6C/3680178.png',
+    cooldown: 12,
     // Autonomous payloads and actor tuning belong to the selected actor skill.
     summonAttackId: 'necromancer.ritualist.wanderlust.autoattack',
     type: 'Profession',
     slot: 'Weapon_3',
     shroud: 'ritualist',
     shroudSlot: 3,
-    specialization: 'Ritualist',
     castTimeMs: 760,
     effects: [],
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
@@ -277,8 +310,12 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.EXIT_RITUALISTS_SHROUD]: {
+    name: "Exit Ritualist's Shroud",
+    description: "Leave Ritualist's Shroud and return to your normal form.",
+    icon: 'https://render.guildwars2.com/file/01D45B1291F0F369900D94BCD19913074153A54F/3680175.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     cooldown: 0,
-    specialization: 'Ritualist',
     shroudExit: 'ritualist',
     // Custom: Enters/exits the selected shroud and updates life-force drain/state; see `core/mechanics/forms.ts` and `core/mechanics/resources.ts`.
     inputCategory: 'bar-swap',
@@ -288,13 +325,17 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }]
   },
   [ID.PRESERVATION]: {
+    name: 'Preservation',
+    description:
+      'Shroud. Spirit. Grant boons to nearby allies, then summon a spirit of preservation. Preservation will unleash a burst of energy, healing and removing conditions from nearby allies.',
+    icon: 'https://render.guildwars2.com/file/473E92AE33757816B7205C4759F1F3065346E600/3680173.png',
+    cooldown: 20,
     // Autonomous payloads and actor tuning belong to the selected actor skill.
     summonAttackId: 'necromancer.ritualist.preservation.autoattack',
     type: 'Profession',
     slot: 'Weapon_4',
     shroud: 'ritualist',
     shroudSlot: 4,
-    specialization: 'Ritualist',
     castTimeMs: 480,
     // Summoning grants these boons before the spirit's autonomous attack loop starts.
     effects: [
@@ -318,6 +359,13 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.summon-preservation', id: 'opening', effects: [] } }]
   },
   [ID.SPLINTER_WEAPON]: {
+    name: 'Splinter Weapon',
+    description:
+      'Weapon spell. Your strikes will trigger an additional strike on nearby enemies. Allies receive fewer stacks of this.',
+    icon: 'https://render.guildwars2.com/file/04294CE6BE3BBB314032BD430A631BC614D1E279/3680182.png',
+    type: 'Utility',
+    slot: 'Utility',
+    cooldown: 20,
     // Each recipient spends charges against this skill's own interval and triggered payload.
     internalCooldown: 0.32,
     castTimeMs: 240,
@@ -345,9 +393,15 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.INNERVATE_ANGUISH]: {
+    name: 'Innervate Anguish',
+    description: 'Channel your Spirit of Anguish to damage nearby enemies.',
+    icon: 'https://render.guildwars2.com/file/557413F742FCA13D9A5C08C814F21CA6BCE2626F/3680171.png',
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 10,
     usableInShroud: true,
     castTimeMs: 0,
-
     effects: [
       { type: 'strike', coefficient: 1.3, hits: 1 },
       {
@@ -373,13 +427,17 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.SUMMON_SPIRITS]: {
+    name: 'Summon Spirits',
+    description:
+      "Shroud. You and any active spirits shadowstep to the target area. Any spirits that aren't currently using their initial skill will immediately use an additional skill.",
+    icon: 'https://render.guildwars2.com/file/CF9C5D79940CB74DAA650476DAE9DC012202B86C/3680177.png',
+    cooldown: 20,
     // Commanded spirit attacks use this skill-owned strength independently of autonomous attacks.
     weaponStrength: 1056,
     type: 'Profession',
     slot: 'Weapon_5',
     shroud: 'ritualist',
     shroudSlot: 5,
-    specialization: 'Ritualist',
     castTimeMs: 0,
     effects: [],
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
@@ -416,8 +474,12 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.RITUALISTS_SHROUD]: {
+    name: "Ritualist's Shroud",
+    description: 'Assume the form of a ritualist and gain new skills, turning your life force into health.',
+    icon: 'https://render.guildwars2.com/file/1B55FB1EE2799643B06A68E3C419D6166A9554AA/3680176.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     cooldown: 10,
-    specialization: 'Ritualist',
     shroudEntry: 'ritualist',
     shroudTuning: { kind: 'trait', id: TRAIT.SPAWNING_POWER },
     minimumShroudLifeForcePercent: 10,
@@ -429,6 +491,13 @@ export const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.enter-shroud' } }]
   },
   [ID.RESILIENT_WEAPON]: {
+    name: 'Resilient Weapon',
+    description:
+      'Weapon spell. Take reduced damage from strikes and periodically heal. Effectiveness increased while below 50% health. Grant this to nearby allies for a reduced duration.',
+    icon: 'https://render.guildwars2.com/file/53691A78554BFDCB132CA93F3D3639CC3E4EB2D6/3680169.png',
+    type: 'Heal',
+    slot: 'Heal',
+    cooldown: 25,
     castTimeMs: 680,
     effects: [
       {

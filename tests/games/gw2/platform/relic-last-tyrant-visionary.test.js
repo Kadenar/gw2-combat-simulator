@@ -27,7 +27,7 @@ import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 // A procedural proc may attribute its packet to a different skill while retaining its actual payload owner.
 test('condition action payload ownership is independent of its attributed source', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 1,
         name: 'Owner',

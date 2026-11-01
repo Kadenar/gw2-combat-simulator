@@ -4,7 +4,7 @@ import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-scars.js';
 
 /** One active Battle Scar becomes a life siphon on a landed player strike. */
 export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {

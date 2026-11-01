@@ -16,7 +16,6 @@ export const SHARED_PROFILE_FIELDS: FieldSpecs = defineFields({
   description: dataField,
   icon: dataField,
   variantBadge: dataField,
-  categories: dataField,
   skillFamily: dataField,
   balanceDataContext: dataField,
   removedEffectKeys: dataField,

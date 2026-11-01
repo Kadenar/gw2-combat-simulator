@@ -162,6 +162,8 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
 
     if (!String(skill.name || '')) throw new Error(`Skill ${skill.id} has no name.`);
 
+    validatePlainPresentation(skill);
+
     validateSkillDeclarations(catalog, skill);
     for (const reference of [skill.parentId, skill.flipParentId]) {
       if (reference != null && !catalog.skillsById.has(reference)) {
@@ -187,6 +189,8 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
   // Track catalog identities separately so duplicate trait definitions fail fast.
   const seenTraitIds = new Set();
   for (const trait of catalog?.traits || []) {
+    validatePlainPresentation(trait);
+
     if (trait.id === undefined || trait.id === null || seenTraitIds.has(trait.id)) {
       throw new Error(`Duplicate or missing trait id: ${trait.id}`);
     }
@@ -212,30 +216,35 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
   }
 }
 
+/** Authored presentation is plain text; source markup must not leak into native tooltips. */
+function validatePlainPresentation(record: { readonly id: unknown; readonly [field: string]: unknown }): void {
+  for (const field of ['name', 'description', 'icon']) {
+    const value = record[field];
+
+    if (typeof value === 'string' && /<\/?c(?:=|>)|<br\b|\{\{/i.test(value))
+      throw new TypeError(`Record ${record.id} ${field} must use plain text without API or wiki markup.`);
+  }
+}
+
 /**
- * Validate and normalize one merged skill before immutable catalog indexing. Only fields declared by the platform or
+ * Validate and normalize one declared skill before immutable catalog indexing. Only fields declared by the platform or
  * the owning profession are accepted, so a retired or misspelled field fails instead of being silently ignored.
  */
-export function normalizeSkill<TSkill extends Skill>(
-  id: SkillId,
-  mergedSource: Partial<TSkill>,
-  skillNormalizer?: (skill: Partial<TSkill>) => Partial<TSkill>,
-  fields: FieldSpecs = SHARED_SKILL_FIELDS
-): TSkill {
-  for (const field of Object.keys(mergedSource)) {
+export function normalizeSkill<TSkill extends Skill>(source: TSkill, fields: FieldSpecs = SHARED_SKILL_FIELDS): TSkill {
+  const id = source.id;
+  for (const field of Object.keys(source)) {
     if (!Object.hasOwn(fields, field)) throw new TypeError(`Skill ${id} has unsupported field: ${field}.`);
   }
 
-  const merged = skillNormalizer ? skillNormalizer(mergedSource) : mergedSource;
-  validateDurationFields(merged, `skill=${id}`);
+  validateDurationFields(source, `skill=${id}`);
 
   // Input observations accept only canonical control identifiers.
-  if (merged.inputControl != null && !INPUT_CONTROL_IDS.includes(merged.inputControl))
+  if (source.inputControl != null && !INPUT_CONTROL_IDS.includes(source.inputControl))
     throw new TypeError(`Skill ${id} has invalid inputControl.`);
 
   // Measured packet schedules must contain finite non-negative offsets before any cast selects them.
-  if (merged.dualWieldEffectOffsetsMs != null) {
-    const offsets = merged.dualWieldEffectOffsetsMs;
+  if (source.dualWieldEffectOffsetsMs != null) {
+    const offsets = source.dualWieldEffectOffsetsMs;
 
     if (
       typeof offsets !== 'object' ||
@@ -250,8 +259,8 @@ export function normalizeSkill<TSkill extends Skill>(
   }
 
   // Direct catalog consumers must enforce ownership even without a profession-specific normalizer.
-  validateComboOwnership(merged, `Skill ${id} (${merged.name})`);
-  const quicknessCastTimeMs = merged.quicknessCastTimeMs == null ? null : Number(merged.quicknessCastTimeMs);
+  validateComboOwnership(source, `Skill ${id} (${source.name})`);
+  const quicknessCastTimeMs = source.quicknessCastTimeMs == null ? null : Number(source.quicknessCastTimeMs);
 
   if (quicknessCastTimeMs != null && (!(quicknessCastTimeMs >= 0) || !Number.isFinite(quicknessCastTimeMs))) {
     throw new TypeError(`Skill ${id} has an invalid quicknessCastTimeMs.`);
@@ -259,14 +268,14 @@ export function normalizeSkill<TSkill extends Skill>(
 
   // Only summon metadata supplies quicknessCastTimeMs and needs a derived base duration.
   const castTimeMs = Number(
-    merged.castTimeMs ?? (quicknessCastTimeMs == null ? 0 : quicknessCastTimeMs * QUICKNESS_ACTION_RATE)
+    source.castTimeMs ?? (quicknessCastTimeMs == null ? 0 : quicknessCastTimeMs * QUICKNESS_ACTION_RATE)
   );
 
   if (!(castTimeMs >= 0) || !Number.isFinite(castTimeMs)) {
     throw new TypeError(`Skill ${id} requires a non-negative finite castTimeMs.`);
   }
 
-  const interruptCommitMs = merged.interruptCommitMs == null ? null : Number(merged.interruptCommitMs);
+  const interruptCommitMs = source.interruptCommitMs == null ? null : Number(source.interruptCommitMs);
 
   if (interruptCommitMs != null && (!(interruptCommitMs >= 0) || !Number.isFinite(interruptCommitMs))) {
     throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
@@ -274,7 +283,7 @@ export function normalizeSkill<TSkill extends Skill>(
 
   // Conditional cutoffs obey the same fixed, non-negative timing contract as the default.
   const dualWieldInterruptCommitMs =
-    merged.dualWieldInterruptCommitMs == null ? null : Number(merged.dualWieldInterruptCommitMs);
+    source.dualWieldInterruptCommitMs == null ? null : Number(source.dualWieldInterruptCommitMs);
 
   if (
     dualWieldInterruptCommitMs != null &&
@@ -284,55 +293,55 @@ export function normalizeSkill<TSkill extends Skill>(
   }
 
   // Commit is the safe default; only explicitly classified channels retain packets individually.
-  const interruptMode = merged.interruptMode == null ? 'commit' : String(merged.interruptMode);
+  const interruptMode = source.interruptMode == null ? 'commit' : String(source.interruptMode);
 
   if (interruptMode !== 'commit' && interruptMode !== 'per-packet') {
     throw new TypeError(`Skill ${id} has invalid interruptMode "${interruptMode}".`);
   }
 
-  const effects = normalizeSkillEffects(merged.effects || [], `skill=${id}`);
+  const effects = normalizeSkillEffects(source.effects || [], `skill=${id}`);
   const modifiers =
-    merged.modifiers == null ? undefined : normalizeSkillDamageModifiers(merged.modifiers, `Skill ${id}`);
+    source.modifiers == null ? undefined : normalizeSkillDamageModifiers(source.modifiers, `Skill ${id}`);
 
   // Cost declarations select one payment owner and reject fields outside the canonical shape.
   if (
-    merged.cost != null &&
-    (typeof merged.cost !== 'object' ||
-      Array.isArray(merged.cost) ||
-      Object.keys(merged.cost).some((key) => !['resource', 'amount', 'skillAmount', 'spendOn'].includes(key)) ||
-      (merged.cost.spendOn != null && !['castStart', 'castCommit'].includes(merged.cost.spendOn)))
+    source.cost != null &&
+    (typeof source.cost !== 'object' ||
+      Array.isArray(source.cost) ||
+      Object.keys(source.cost).some((key) => !['resource', 'amount', 'skillAmount', 'spendOn'].includes(key)) ||
+      (source.cost.spendOn != null && !['castStart', 'castCommit'].includes(source.cost.spendOn)))
   )
     throw new TypeError(`Skill ${id} has an invalid cost declaration.`);
 
   // Fixed rule costs must be finite and nonnegative, with no competing balance selector.
   if (
-    merged.cost?.amount != null &&
-    (typeof merged.cost.amount !== 'number' ||
-      !Number.isFinite(merged.cost.amount) ||
-      merged.cost.amount < 0 ||
-      merged.cost.skillAmount != null)
+    source.cost?.amount != null &&
+    (typeof source.cost.amount !== 'number' ||
+      !Number.isFinite(source.cost.amount) ||
+      source.cost.amount < 0 ||
+      source.cost.skillAmount != null)
   )
     throw new TypeError(`Skill ${id} has an invalid fixed cost amount.`);
 
   // A skill-field selector must name one finite nonnegative amount owned by the skill.
-  if (merged.cost?.skillAmount != null) {
-    const field = merged.cost.skillAmount;
+  if (source.cost?.skillAmount != null) {
+    const field = source.cost.skillAmount;
 
     if (
       typeof field !== 'string' ||
       fields[field]?.kind !== 'number' ||
-      !Object.hasOwn(merged, field) ||
-      typeof merged[field] !== 'number' ||
-      !Number.isFinite(merged[field]) ||
-      merged[field] < 0
+      !Object.hasOwn(source, field) ||
+      typeof source[field] !== 'number' ||
+      !Number.isFinite(source[field]) ||
+      source[field] < 0
     )
       throw new TypeError(`Skill ${id} has an invalid cost amount field "${field}".`);
   }
 
   // Reject obsolete or misspelled task anchors before scheduling can silently choose the full cast end.
-  if (!Array.isArray(merged.tasks ?? [])) throw new TypeError(`Skill ${id} tasks must be an array.`);
+  if (!Array.isArray(source.tasks ?? [])) throw new TypeError(`Skill ${id} tasks must be an array.`);
 
-  for (const task of merged.tasks ?? [])
+  for (const task of source.tasks ?? [])
     if (
       !task ||
       typeof task.type !== 'string' ||
@@ -341,9 +350,9 @@ export function normalizeSkill<TSkill extends Skill>(
       throw new TypeError(`Skill ${id} has an invalid task.`);
 
   // Declarative activation phases and variant selectors must be executable before they enter a live catalog.
-  if (!Array.isArray(merged.sideEffects ?? [])) throw new TypeError(`Skill ${id} side effects must be an array.`);
+  if (!Array.isArray(source.sideEffects ?? [])) throw new TypeError(`Skill ${id} side effects must be an array.`);
 
-  for (const sideEffect of merged.sideEffects ?? []) {
+  for (const sideEffect of source.sideEffects ?? []) {
     if (
       !sideEffect ||
       !['castStart', 'castCommit'].includes(sideEffect.on) ||
@@ -355,9 +364,9 @@ export function normalizeSkill<TSkill extends Skill>(
       throw new TypeError(`Skill ${id} has an invalid side effect.`);
   }
 
-  if (!Array.isArray(merged.effectVariants ?? [])) throw new TypeError(`Skill ${id} effect variants must be an array.`);
+  if (!Array.isArray(source.effectVariants ?? [])) throw new TypeError(`Skill ${id} effect variants must be an array.`);
 
-  for (const variant of merged.effectVariants ?? []) {
+  for (const variant of source.effectVariants ?? []) {
     if (
       !variant ||
       typeof variant.when !== 'function' ||
@@ -378,29 +387,29 @@ export function normalizeSkill<TSkill extends Skill>(
     throw new TypeError(`Skill ${id} retains future packets but has no interruptCommitMs.`);
   }
 
-  if (merged.retainsCastLockoutAfterInterrupt != null && typeof merged.retainsCastLockoutAfterInterrupt !== 'boolean') {
+  if (source.retainsCastLockoutAfterInterrupt != null && typeof source.retainsCastLockoutAfterInterrupt !== 'boolean') {
     throw new TypeError(`Skill ${id} has an invalid retainsCastLockoutAfterInterrupt.`);
   }
 
   // Actor-owned recharge must explicitly opt out of player cast completion.
-  if (merged.rechargeOwner != null && merged.rechargeOwner !== 'actor')
+  if (source.rechargeOwner != null && source.rechargeOwner !== 'actor')
     throw new TypeError(`Skill ${id} has invalid rechargeOwner.`);
 
-  if (merged.rechargeAnchor != null && !RECHARGE_ANCHORS.has(merged.rechargeAnchor)) {
-    throw new TypeError(`Skill ${id} has invalid rechargeAnchor ` + `"${merged.rechargeAnchor}".`);
+  if (source.rechargeAnchor != null && !RECHARGE_ANCHORS.has(source.rechargeAnchor)) {
+    throw new TypeError(`Skill ${id} has invalid rechargeAnchor ` + `"${source.rechargeAnchor}".`);
   }
 
   // A cast-scaled recharge boundary must stay inside the selected interval.
   if (
-    merged.rechargeProgress != null &&
-    (typeof merged.rechargeProgress !== 'number' ||
-      !Number.isFinite(merged.rechargeProgress) ||
-      merged.rechargeProgress < 0 ||
-      merged.rechargeProgress > 1)
+    source.rechargeProgress != null &&
+    (typeof source.rechargeProgress !== 'number' ||
+      !Number.isFinite(source.rechargeProgress) ||
+      source.rechargeProgress < 0 ||
+      source.rechargeProgress > 1)
   )
     throw new TypeError(`Skill ${id} requires rechargeProgress between zero and one.`);
 
-  const rechargeOffsetMs = Number(merged.rechargeOffsetMs ?? 0);
+  const rechargeOffsetMs = Number(source.rechargeOffsetMs ?? 0);
 
   // Negative offsets start recharge before the selected anchor; cast execution clamps the result to cast start.
   if (!Number.isFinite(rechargeOffsetMs)) {
@@ -408,23 +417,23 @@ export function normalizeSkill<TSkill extends Skill>(
   }
 
   const baseSkill = {
-    ...merged,
+    ...source,
     castTimeMs,
     ...(rechargeOffsetMs ? { rechargeOffsetMs } : {}),
     ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
     interruptMode,
     ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
     ...(dualWieldInterruptCommitMs == null ? {} : { dualWieldInterruptCommitMs }),
-    lockouts: normalizeLockouts(merged.lockouts, id)
+    lockouts: normalizeLockouts(source.lockouts, id)
   };
   const normalized: Partial<TSkill> = {
     ...baseSkill,
     effects,
     ...(modifiers ? { modifiers } : {}),
-    ...(merged.sideEffects
+    ...(source.sideEffects
       ? {
           sideEffects: snapshotActionDeclaration(
-            [...merged.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+            [...source.sideEffects].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
             normalizeSkillEffects
           )
         }

@@ -41,7 +41,7 @@ const skill = (id, name, fields = {}) => ({ id, name, castTimeMs: 0, effects: []
 // Select only the current profession's field vocabulary, matching real catalog assembly.
 const catalogFor = (...tables) => {
   const skillFields = combineFields(tables.map((fields, index) => ({ owner: `fixture-${index}`, fields })));
-  return (...skills) => createCanonicalCatalog({ extraSkills: skills, skillFields });
+  return (...skills) => createCanonicalCatalog({ skills: skills, skillFields });
 };
 
 const engineerCatalog = catalogFor(ENGINEER_CORE_SKILL_FIELDS, HOLOSMITH_SKILL_FIELDS);
@@ -98,9 +98,7 @@ test('Engineer Forge and protocol controls retain their local skill lists and lo
   // Protocol eligibility uses authored identities, so vary two legal options while retaining isolated catalogs.
   const ids = [ENGINEER_ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, ENGINEER_ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163];
   const catalogs = ids.map((id) =>
-    engineerCatalog(
-      skill(id, 'Protocol', { forgeSkill: true, specialization: 'Amalgam', categories: ['Morph'], mechanicSlot: 2 })
-    )
+    engineerCatalog(skill(id, 'Protocol', { forgeSkill: true, specialization: 'Amalgam', mechanicSlot: 2 }))
   );
   assertIsolated(
     bindHolosmithUi,
@@ -200,7 +198,7 @@ test('Elementalist family and Core factories receive their own assembled catalog
       modules: [
         defineNativeModule({
           id: 'Core',
-          data: { extraSkills: skills(icon) },
+          data: { skills: skills(icon) },
           state: { create: () => ({}) },
           presentation: bindElementalistCoreUi
         })

@@ -6,7 +6,6 @@ import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/pro
 
 /** Focus recharge reduction applies through the shared cooldown controller, including Alacrity. */
 export const wardensFeedback = defineTrait<MesmerSkill>({
-  name: "Warden's Feedback",
   id: TRAIT.WARDENS_FEEDBACK,
   balance: { rechargeMultiplier: 0.8 },
   rechargeRules: [
@@ -19,7 +18,6 @@ export const wardensFeedback = defineTrait<MesmerSkill>({
 
 /** Committed combat heals use the shared resource owner to create a clone, stock a blade, or grant a note. */
 export const egoRestoration = defineTrait<MesmerSkill>({
-  name: 'Ego Restoration',
   id: TRAIT.EGO_RESTORATION,
   triggers: [
     {

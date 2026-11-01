@@ -510,6 +510,13 @@ test("Dragon's Roar consumes its magazine and Gunstinger reloads it", () => {
   assert.equal(fired.planningState.ammoBySkillId[ID.DRAGONS_ROAR].charges, 0);
 });
 
+// Tactical Reload includes shared pistol ammunition even though the weapon is owned by Core.
+test('Tactical Reload restores a spent pistol round', () => {
+  const result = simulate('Bladesworn', [ID.DRAGONS_ROAR, ID.TACTICAL_RELOAD]);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.planningState.ammoBySkillId[ID.DRAGONS_ROAR].charges, 1);
+});
+
 test('Gunsaber attacks resolve bundle strength and distinguish secondary explosions', () => {
   // Mixed attacks need separate tags so explosion modifiers cannot affect their ordinary strikes.
   for (const skillId of [ID.EXPLOSIVE_THRUST, ID.BLOOMING_FIRE]) {

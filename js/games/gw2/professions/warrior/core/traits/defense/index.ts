@@ -16,7 +16,6 @@ import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const mercilessHammer = defineTrait({
-  name: 'Merciless Hammer',
   id: TRAIT.MERCILESS_HAMMER,
   balance: {
     damageMultiplier: 1.25,
@@ -47,7 +46,6 @@ export const mercilessHammer = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const stalwartStrength = defineTrait({
-  name: 'Stalwart Strength',
   id: TRAIT.STALWART_STRENGTH,
   balance: {
     damageMultiplier: 1.1,
@@ -79,7 +77,6 @@ export const stalwartStrength = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const cullTheWeak = defineTrait({
-  name: 'Cull the Weak',
   id: TRAIT.CULL_THE_WEAK,
   balance: {
     damageMultiplier: 1.1,
@@ -105,7 +102,6 @@ export const cullTheWeak = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const thickSkin = defineTrait({
-  name: 'Thick Skin',
   id: TRAIT.THICK_SKIN,
   balance: {
     effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 3 }]

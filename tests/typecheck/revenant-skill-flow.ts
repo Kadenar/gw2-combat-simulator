@@ -1,9 +1,10 @@
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantCoreHooks } from '#gw2/professions/revenant/core/hooks.js';
 import { revenantCoreModule } from '#gw2/professions/revenant/core/module.js';
-import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { conduitHooks } from '#gw2/professions/revenant/specializations/conduit/hooks.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -18,7 +19,7 @@ type EliteCast = NonNullable<typeof conduitHooks.onCastStart>;
 
 // Real modules, selected catalogs, and hooks retain profession fields without widening to Skill or any.
 export type RevenantSkillFlowAssertions = [
-  Assert<Equal<NonNullable<typeof revenantCoreModule.data.generatedSkills>[number], RevenantSkill>>,
+  Assert<Equal<NonNullable<typeof revenantCoreModule.data.skills>[number], RevenantSkill>>,
   Assert<Equal<(typeof revenantCatalog.skills)[number], RevenantSkill>>,
   Assert<Equal<(typeof revenantProfession.catalog.skills)[number], RevenantSkill>>,
   Assert<Equal<(typeof first.catalog.skills)[number], RevenantSkill>>,
@@ -41,11 +42,17 @@ export function revenantHookSkillReads(runtime: RevenantRuntime, cast: Parameter
   void [cost, flag, indexed, listed, invalid];
 }
 
-createRevenantModuleData('Core', {
-  skillMechanics: {
-    1: {
-      // @ts-expect-error Known profession fields reject invalid authored values.
-      energyCost: 'invalid'
-    }
+const invalidDefinitions: Record<string, SkillDefinition<RevenantSkill>> = {
+  1: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    // @ts-expect-error Known profession fields reject invalid authored values.
+    energyCost: 'invalid'
   }
+};
+createNativeModuleData<RevenantSkill>({
+  id: 'Core',
+  traitLines: TRAIT_LINES,
+  skillMechanics: invalidDefinitions
 });

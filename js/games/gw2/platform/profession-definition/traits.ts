@@ -100,7 +100,8 @@ const LIFETIME_STAGES = [
 
 /** Author identity and tuning before behavior so every profession's traits share one readable layout. */
 export interface TraitDefinition<TSkill extends Skill = Skill> {
-  readonly name: string;
+  /** Only intentional proc labels override the name from the module's trait records. */
+  readonly name?: string;
   readonly id: SkillId;
   /** Omit for behavior-only traits; id overrides preserve existing non-trait profile identities. */
   readonly balance?: Readonly<Record<string, unknown>> & {
@@ -123,22 +124,27 @@ export interface TraitDefinition<TSkill extends Skill = Skill> {
 
 /** Catalog assembly and trigger validation derive the same trait-owned tuning without module profile inputs. */
 export function traitBalanceProfiles<TSkill extends Skill>(
-  traits: readonly TraitDefinition<TSkill>[]
+  traits: readonly TraitDefinition<TSkill>[],
+  metadata: readonly { readonly id: SkillId; readonly name: string }[]
 ): readonly BalanceProfile[] {
-  return traits.flatMap((trait) => [
-    ...(trait.balance
-      ? [
-          {
-            id: trait.balance.id ?? trait.id,
-            name: trait.name,
-            categories: ['Trait'],
-            skillFamily: 'Trait',
-            effects: [],
-            ...trait.balance
-          }
-        ]
-      : [])
-  ]);
+  const names = new Map(metadata.map((record) => [record.id, record.name]));
+  return traits.flatMap((trait) => {
+    if (!trait.balance) return [];
+
+    const name = trait.name ?? names.get(trait.id);
+
+    if (!name) throw new TypeError(`Trait ${trait.id} has no owned trait metadata for its profile label.`);
+
+    return [
+      {
+        id: trait.balance.id ?? trait.id,
+        name,
+        skillFamily: 'Trait',
+        effects: [],
+        ...trait.balance
+      }
+    ];
+  });
 }
 
 type FlatAttributeEffect = Extract<Gw2AttributeEffect, { kind: 'flat' }>;
@@ -258,10 +264,9 @@ export function defineTrait<TSkill extends Skill>(
     !['string', 'number'].includes(typeof candidate.id) ||
     !String(candidate.id).trim() ||
     (typeof candidate.id === 'number' && !Number.isFinite(candidate.id)) ||
-    typeof candidate.name !== 'string' ||
-    !candidate.name.trim()
+    (candidate.name !== undefined && (typeof candidate.name !== 'string' || !candidate.name.trim()))
   )
-    throw new TypeError('Trait definition requires an id and name.');
+    throw new TypeError('Trait definition requires an id and an optional non-empty name.');
 
   for (const key of Object.keys(definition))
     if (

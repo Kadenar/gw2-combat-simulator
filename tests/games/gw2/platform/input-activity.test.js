@@ -282,11 +282,12 @@ test('profile schema rejects unsupported versions and physical keys', () => {
 });
 
 const catalog = createCanonicalCatalog({
-  generated: [
+  skillFlips: [{ parentId: 990003, followUpId: 990004 }],
+  skills: [
     { id: 990001, name: 'Manual', slot: 'Weapon_2', castTimeMs: 100 },
     { id: 990002, name: 'Auto', slot: 'Weapon_1', autoattack: true, castTimeMs: 100 },
     { id: 990003, name: 'Utility', type: 'Utility', castTimeMs: 0 },
-    { id: 990004, name: 'Flip', flipParentId: 990003, castTimeMs: 0 },
+    { id: 990004, name: 'Flip', castTimeMs: 0 },
     { id: 990005, name: 'Bar change', slot: 'Profession_1', castTimeMs: 0 }
   ]
 });

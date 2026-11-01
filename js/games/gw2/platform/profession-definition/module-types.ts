@@ -14,37 +14,30 @@ import type {
   RuntimeProfession
 } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/specialization-data-types.js';
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import type { ProfessionConfig, ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { AutoattackChainOptions } from '#gw2/platform/skills/catalog.js';
+import type { AutoattackChains } from '#gw2/platform/skills/catalog.js';
 import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
-import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js';
+import type { CanonicalCatalog, CatalogEntity, Skill } from '#gw2/platform/skills/types.js';
 
 export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
-  readonly generatedSkills?: readonly TSkill[];
-  readonly skillMechanics?: Readonly<Record<string, Partial<TSkill>>>;
-  readonly skillOverrides?: Readonly<Record<string, Partial<TSkill>>>;
-  readonly extraSkills?: readonly TSkill[];
+  /** Complete skills materialized from their owner declarations. */
+  readonly skills?: readonly TSkill[];
   /** Skill fields read only by this module's profession code; assembly gives each field one owning module. */
   readonly skillFields?: FieldSpecs;
   /** Profession-owned profile vocabulary contributed by this module. */
   readonly profileFields?: FieldSpecs;
   readonly traits?: readonly CatalogEntity[];
-  readonly specializations?: readonly CatalogEntity[];
+  /** Core and elite trait lines own the selectable layout and nested trait presentation. */
+  readonly traitLines?: readonly Gw2SpecializationData[];
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
-  readonly autoattackChains?: AutoattackChainOptions;
-  /**
-   * Skills that look like ordinary weapon or Core skills in API metadata but
-   * must only exist when this specialization is active.
-   */
-  readonly specializationOnlySkillIds?: readonly SkillId[];
-  /** Stable positions from the profession-wide generated metadata input. */
-  readonly generatedSkillOrder?: ReadonlyMap<SkillId, number>;
-  /** Stable positions from the profession-wide shared-extra input. */
-  readonly sharedExtraSkillOrder?: ReadonlyMap<SkillId, number>;
+  readonly autoattackChains?: AutoattackChains;
+  readonly skillFlips?: SkillFlips;
 }
 
 interface NativeStateDefinition<TState extends object, TProjectOptions extends object, TProjectedState extends object> {
@@ -175,7 +168,7 @@ export type NativeProfessionContract<
   TModules extends readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]],
   TPresentation extends object = object,
   TBuild extends Gw2Build = Gw2Build,
-  TSkill extends Skill = NonNullable<TModules[number]['data']['generatedSkills']>[number]
+  TSkill extends Skill = NonNullable<TModules[number]['data']['skills']>[number]
 > = ProfessionFamilyContract<
   NativeProfessionRuntimeState<TModules>,
   Gw2ProfessionContract<NativeProfessionRuntimeState<TModules>, TSkill>,

@@ -16,7 +16,6 @@ export const VINDICATOR_DODGE_INPUT: Skill = Object.freeze({
   icon: DODGE_ICON,
   type: 'Action',
   slot: 'Action',
-  specialization: 'Vindicator',
   patchAuthoringExcluded: true,
   // Log replay still needs the input occupancy; costs and landing effects belong only to the resolved shared action.
   castTimeMs: VINDICATOR_DODGE_MS

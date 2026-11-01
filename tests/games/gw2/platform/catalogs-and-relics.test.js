@@ -67,7 +67,7 @@ test('canonical catalog validation rejects duplicate ids', () => {
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           { id: 1, name: 'One', effects: [] },
           { id: 1, name: 'Two', effects: [] }
         ]
@@ -76,7 +76,7 @@ test('canonical catalog validation rejects duplicate ids', () => {
   );
   assert.equal(mesmerCatalog.skillsById.size, mesmerCatalog.skills.length);
   const namedVariants = createCanonicalCatalog({
-    generated: [
+    skills: [
       { id: 1, name: 'Variant', effects: [] },
       { id: 2, name: 'Variant', effects: [] }
     ]
@@ -109,7 +109,7 @@ test('canonical catalogs carry validated traits and specializations', () => {
 
 test('canonical catalogs validate and freeze skill-group lockouts', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930030,
         name: 'Lockout Fixture',
@@ -142,7 +142,7 @@ test('canonical catalogs validate and freeze skill-group lockouts', () => {
     assert.throws(
       () =>
         createCanonicalCatalog({
-          generated: [
+          skills: [
             {
               id: 930031,
               name: 'Invalid Lockout Fixture',
@@ -158,7 +158,7 @@ test('canonical catalogs validate and freeze skill-group lockouts', () => {
 
 test('summon-owned cooldowns use received Alacrity until it expires', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930041,
         name: 'Summon Skill',
@@ -210,7 +210,7 @@ test('the shared effect contract rejects undeclared simulation fields', () => {
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           {
             id: 930033,
             name: 'Drifting Effect',
@@ -232,7 +232,7 @@ test('the shared effect contract rejects recipient fields nested in metadata', (
   assert.throws(
     () =>
       createCanonicalCatalog({
-        generated: [
+        skills: [
           {
             id: 930043,
             name: 'Nested Recipients',
@@ -260,7 +260,7 @@ test('target-health coefficient modifiers are shared and resolve per hit', () =>
     }
   ]);
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930034,
         name: 'Opening Strike',
@@ -323,7 +323,7 @@ test('target-health coefficient modifiers are shared and resolve per hit', () =>
 
 test('shared relic behavior resolves triggering skills by stable id', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930004,
         name: 'Duplicate Name',
@@ -723,7 +723,7 @@ test('Relic of Mistburn uses a strict one-second internal cooldown', () => {
 
 test('Relic of Bloodstone records three Volatility stacks before the fourth blast grants Fervor', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930100,
         name: 'Bloodstone Fixture Strike',

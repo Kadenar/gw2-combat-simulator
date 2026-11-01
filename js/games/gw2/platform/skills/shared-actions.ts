@@ -6,6 +6,13 @@ export const DODGE_ICON = new URL('@images/wiki/dodge.png', import.meta.url).hre
 
 export const WEAPON_SWAP_ICON = new URL('@images/wiki/weapon-swap-button.png', import.meta.url).href;
 
+/** Explicit artwork for synthetic effects without their own game icon; skills opt in at their declaration. */
+export const SKILL_PLACEHOLDER_ICON =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="8" fill="#292933"/><text x="32" y="42" text-anchor="middle" fill="#d8d8e0" font-size="32">?</text></svg>'
+  );
+
 /** Synthetic identities stay shared across catalogs and saved rotations. */
 export const SHARED_SKILL_IDS = Object.freeze({ SWAP_WEAPONS: -3, DODGE: -5 });
 
@@ -42,7 +49,6 @@ export function createDodgeSkill(
       | 'retainsCastLockoutAfterInterrupt'
       | 'rechargeAnchor'
       | 'specialization'
-      | 'categories'
       | 'skillFamily'
       | 'tasks'
     >

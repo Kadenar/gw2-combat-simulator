@@ -38,7 +38,6 @@ import {
 
 /** Lock On reacts to resolved player disables; Controlled Analysis owns its payload and recharge. */
 export const lockOn = defineTrait({
-  name: 'Lock On',
   id: TRAIT.LOCK_ON,
   triggers: [
     {
@@ -52,7 +51,6 @@ export const lockOn = defineTrait({
 
 /** Owns Streamlined Kits tuning and behavior at its established runtime and build boundaries. */
 export const streamlinedKits = defineTrait({
-  name: 'Streamlined Kits',
   id: TRAIT.STREAMLINED_KITS,
   balance: {
     internalCooldown: 20,
@@ -72,7 +70,6 @@ export const streamlinedKits = defineTrait({
 
 /** Owns Optimized Activation tuning and behavior at its established runtime and build boundaries. */
 export const optimizedActivation = defineTrait({
-  name: 'Optimized Activation',
   id: TRAIT.OPTIMIZED_ACTIVATION,
   balance: {
     effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 4 }]
@@ -88,7 +85,6 @@ export const optimizedActivation = defineTrait({
 
 /** Owns Static Discharge tuning and behavior at its established runtime and build boundaries. */
 export const staticDischarge = defineTrait({
-  name: 'Static Discharge',
   id: TRAIT.STATIC_DISCHARGE,
   // The skill owns damage; the toolbelt action is retained only as its causal trigger.
   triggers: [
@@ -104,7 +100,6 @@ export const staticDischarge = defineTrait({
 
 /** Owns Kinetic Battery tuning and behavior at its established runtime and build boundaries. */
 export const kineticBattery = defineTrait({
-  name: 'Kinetic Battery',
   id: TRAIT.KINETIC_BATTERY,
   balance: {
     damageIncrease: 0.15,
@@ -133,7 +128,6 @@ export const kineticBattery = defineTrait({
 
 /** Owns Adrenal Implant tuning and behavior at its established runtime and build boundaries. */
 export const adrenalImplant = defineTrait({
-  name: 'Adrenal Implant',
   id: TRAIT.ADRENAL_IMPLANT,
   balance: { rechargeReduction: 1, enduranceRegenerationBonus: 0.25 },
   triggers: [onTriggerPoint(dodgeAccepted, { run: reduceToolbeltRecharge })]
@@ -141,7 +135,6 @@ export const adrenalImplant = defineTrait({
 
 /** Owns Power Wrench tuning and behavior at its established runtime and build boundaries. */
 export const powerWrench = defineTrait({
-  name: 'Power Wrench',
   id: TRAIT.POWER_WRENCH,
   balance: { rechargeReduction: 3 },
   triggers: [onTriggerPoint(dodgeAccepted, { run: reduceEliteRecharge })]
@@ -149,14 +142,13 @@ export const powerWrench = defineTrait({
 
 /** Owns Gadgeteer tuning and behavior at its established runtime and build boundaries. */
 export const gadgeteer = defineTrait({
-  name: 'Gadgeteer',
   id: TRAIT.GADGETEER,
   balance: { rechargeMultiplier: 0.8 },
   rechargeRules: [
     {
       when: (runtime, skill) =>
         !(isEngineerToolbeltSkill(skill) && hasTrait(runtime, TRAIT.MECHANIZED_DEPLOYMENT)) &&
-        Boolean(skill.categories?.some((category) => category.toLowerCase() === 'gadget')),
+        skill.skillFamily === 'Gadget',
       multiplier: { profile: TRAIT.GADGETEER, field: 'rechargeMultiplier' }
     }
   ]
@@ -164,7 +156,6 @@ export const gadgeteer = defineTrait({
 
 /** Owns Mechanized Deployment tuning and behavior at its established runtime and build boundaries. */
 export const mechanizedDeployment = defineTrait({
-  name: 'Mechanized Deployment',
   id: TRAIT.MECHANIZED_DEPLOYMENT,
   balance: { rechargeMultiplier: 0.85 },
   rechargeRules: [
@@ -177,7 +168,6 @@ export const mechanizedDeployment = defineTrait({
 
 /** Owns Excessive Energy tuning and behavior at its established runtime and build boundaries. */
 export const excessiveEnergy = defineTrait({
-  name: 'Excessive Energy',
   id: TRAIT.EXCESSIVE_ENERGY,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageIncrease: 0.1 },
@@ -196,7 +186,6 @@ export const excessiveEnergy = defineTrait({
 
 /** Owns Takedown Round tuning and behavior at its established runtime and build boundaries. */
 export const takedownRound = defineTrait({
-  name: 'Takedown Round',
   id: TRAIT.TAKEDOWN_ROUND,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageIncrease: 0.1 },

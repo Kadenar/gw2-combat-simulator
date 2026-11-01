@@ -56,8 +56,8 @@ test('Lingering Thoughts spends available ammo before waiting for serial recharg
       ...native,
       catalog: withSkill(native.catalog, ID.LINGERING_THOUGHTS, {
         ammo: 2,
-        ammoRecharge: 5,
-        cooldown: 0,
+
+        cooldown: 5,
         ammoCastLockout: 0,
         castTimeMs: 400,
         rechargeAnchor: 'castStart',

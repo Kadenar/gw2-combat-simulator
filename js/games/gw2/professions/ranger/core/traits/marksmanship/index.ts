@@ -57,7 +57,6 @@ function targetVulnerable(context: Gw2ModifierContext): boolean {
 
 /** Owns Wolfsong's live tuning and trait behavior. */
 export const wolfsong = defineTrait({
-  name: 'Wolfsong',
   id: TRAIT.WOLFSONG,
   balance: {
     damageMultiplier: 1.1,
@@ -90,7 +89,6 @@ export const wolfsong = defineTrait({
 
 /** Owns Clarion Bond's live tuning and trait behavior. */
 export const clarionBond = defineTrait({
-  name: 'Clarion Bond',
   id: TRAIT.CLARION_BOND,
   triggers: [
     onTriggerPoint(petSwapped, {
@@ -102,7 +100,6 @@ export const clarionBond = defineTrait({
 
 /** Owns Opening Strike's live tuning and trait behavior. */
 export const openingStrike = defineTrait({
-  name: 'Opening Strike',
   id: TRAIT.OPENING_STRIKE,
   balance: {
     effects: [
@@ -124,7 +121,6 @@ export const openingStrike = defineTrait({
 
 /** Owns Alpha Focus's live tuning and trait behavior. */
 export const alphaFocus = defineTrait({
-  name: 'Alpha Focus',
   id: TRAIT.ALPHA_FOCUS,
   balance: {
     effects: [{ name: CONDITION.CRIPPLED, type: 'condition', condition: CONDITION.CRIPPLED, duration: 2, stacks: 1 }]
@@ -138,7 +134,6 @@ export const alphaFocus = defineTrait({
 
 /** Owns Hunter's Gaze's live tuning and trait behavior. */
 export const huntersGaze = defineTrait({
-  name: "Hunter's Gaze",
   id: TRAIT.HUNTERS_GAZE,
   balance: {
     lowerThreshold: 0.25,
@@ -157,7 +152,6 @@ export const huntersGaze = defineTrait({
 
 /** Owns Lead the Wind's live tuning and trait behavior. */
 export const leadTheWind = defineTrait({
-  name: 'Lead the Wind',
   id: TRAIT.LEAD_THE_WIND,
   balance: {
     rechargeMultiplier: 0.8,
@@ -207,7 +201,6 @@ export const leadTheWind = defineTrait({
 
 /** Owns Precise Strike's live tuning and trait behavior. */
 export const preciseStrike = defineTrait({
-  name: 'Precise Strike',
   id: TRAIT.PRECISE_STRIKE,
   balance: {
     criticalChance: 1
@@ -226,7 +219,6 @@ export const preciseStrike = defineTrait({
 
 /** Owns Farsighted's live tuning and trait behavior. */
 export const farsighted = defineTrait({
-  name: 'Farsighted',
   id: TRAIT.FARSIGHTED,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
@@ -246,7 +238,6 @@ export const farsighted = defineTrait({
 
 /** Owns Remorseless's live tuning and trait behavior. */
 export const remorseless = defineTrait({
-  name: 'Remorseless',
   id: TRAIT.REMORSELESS,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.25 },
@@ -269,7 +260,6 @@ export const remorseless = defineTrait({
 
 /** Owns Predator's Onslaught's live tuning and trait behavior. */
 export const predatorsOnslaught = defineTrait({
-  name: "Predator's Onslaught",
   id: TRAIT.PREDATORS_ONSLAUGHT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },

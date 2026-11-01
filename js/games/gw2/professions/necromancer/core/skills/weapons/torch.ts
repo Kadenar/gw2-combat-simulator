@@ -1,10 +1,10 @@
-/** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+/** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -14,8 +14,16 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
-export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.HARROWING_WAVE]: {
+    name: 'Harrowing Wave',
+    description:
+      'Unleash a wave of corrupted fire, burning and tormenting enemies. Gain life force for each enemy struck.',
+    icon: 'https://render.guildwars2.com/file/A2ADDF0F080938253AE452B043A71161EE045410/1770540.png',
+    type: 'Weapon',
+    weapon: 'Torch',
+    slot: 'Weapon_4',
+    cooldown: 16,
     castTimeMs: 440,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -38,6 +46,14 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.OPPRESSIVE_COLLAPSE]: {
+    name: 'Oppressive Collapse',
+    description:
+      'Corrupt the ground under your target; if they remain within the area, they will be knocked down. Grant might to allies near your target based on how many conditions they have.',
+    icon: 'https://render.guildwars2.com/file/BE78672ACBDE107931DAAE08B6F001E010FF3F2B/1770541.png',
+    type: 'Weapon',
+    weapon: 'Torch',
+    slot: 'Weapon_5',
+    cooldown: 20,
     castTimeMs: 600,
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [

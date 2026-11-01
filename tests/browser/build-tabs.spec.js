@@ -79,6 +79,10 @@ test('header profession selector returns to Golem and the landing page owns the 
 });
 
 async function newBuild(page) {
+  const overflow = page.getByRole('button', { name: 'Build actions', exact: true });
+
+  if (await overflow.isVisible()) await overflow.click();
+
   await page.locator('.build-tab-new').click();
   await page.getByRole('button', { name: 'New blank build', exact: true }).click();
 }
@@ -369,7 +373,9 @@ test('many open builds keep the strip and its menu inside narrow screens', async
   expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth);
   expect(geometry.pageWidth).toBeLessThanOrEqual(geometry.viewport + 1);
   await expect(page.locator('#build-switcher')).toBeInViewport({ ratio: 1 });
+  await page.getByRole('button', { name: 'Build actions', exact: true }).click();
   await expect(page.locator('.build-tab-new')).toBeInViewport({ ratio: 1 });
+  await page.keyboard.press('Escape');
   // The list scrolls inside its menu and opens on the build being edited.
   const menu = await openSwitcher(page);
   await expect(menu).toBeInViewport({ ratio: 1 });
@@ -538,19 +544,21 @@ test('section navigation fits workspace controls and tools on mobile and desktop
   }
 
   await page.setViewportSize({ width: 320, height: 844 });
+  await navigation.getByRole('button', { name: 'Choose workspace' }).click();
   const benchmarks = navigation.getByRole('link', { name: 'Benchmarks', exact: true });
   await navigation.getByRole('link', { name: 'Bosses', exact: true }).focus();
   await page.keyboard.press('Tab');
   await expect(benchmarks).toBeFocused();
   await expect(benchmarks).toBeInViewport({ ratio: 1 });
   await page.keyboard.press('Enter');
-  await expect(benchmarks).toHaveAttribute('aria-current', 'page');
+  await expect(navigation.getByRole('button', { name: 'Choose workspace' })).toHaveText('Benchmarks');
   await expect(page.locator('#benchmarks-view')).toBeVisible();
   await expect(page.locator('#header-dps')).toBeHidden();
+  await navigation.getByRole('button', { name: 'Choose workspace' }).click();
   const workspace = navigation.getByRole('link', { name: 'Golem', exact: true });
   await workspace.focus();
   await page.keyboard.press('Enter');
-  await expect(workspace).toHaveAttribute('aria-current', 'page');
+  await expect(navigation.getByRole('button', { name: 'Choose workspace' })).toHaveText('Golem');
   await expect(page.locator('#build-workspace-tabs')).toBeVisible();
   await expect(page.locator('#header-dps')).toBeVisible();
 });
@@ -576,9 +584,19 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     await page.setViewportSize({ width, height: 844 });
     await checkHeaderScrolling(page);
     const mobile = width <= 600;
-    // File actions stay explicit buttons at every width instead of collapsing into an overflow menu.
+    // Phones expose file actions through the compact overflow menu.
+    const overflow = page.getByRole('button', { name: 'Build actions', exact: true });
+
+    if (mobile) await overflow.click();
+
     for (const id of ['btn-export-build', 'btn-import-build'])
       await expect(page.locator(`.build-toolbar-actions > #${id}`)).toBeInViewport({ ratio: 1 });
+
+    if (mobile) {
+      await page.keyboard.press('Escape');
+      await expect(overflow).toBeFocused();
+    }
+
     // Six open builds never give the strip a horizontal scrollbar.
     expect(
       await page.locator('#build-workspace-tabs').evaluate((element) => element.scrollWidth <= element.clientWidth)
@@ -590,6 +608,9 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     await page.keyboard.press('Escape');
     await expect(menu).toBeHidden();
     await expect(trigger).toBeFocused();
+
+    if (mobile) await overflow.click();
+
     await page.locator('.build-tab-new').focus();
     await page.keyboard.press('Enter');
     await expect(page.getByRole('button', { name: 'New blank build' })).toBeFocused();
@@ -599,21 +620,27 @@ test('toolbar adapts to narrow embeds and native menus dismiss with keyboard and
     // The outside click can scroll an unpinned header away; inspect its layout back at the page top.
     await page.evaluate(() => window.scrollTo(0, 0));
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width + 1);
-    const newButton = await page.locator('.build-tab-new').boundingBox();
-    const actions = await page.locator('#btn-export-build').boundingBox();
     const switcher = await trigger.boundingBox();
-    // DPS stays beside the active build even when its name truncates on a phone.
+    // Phones put DPS beside the count; desktop keeps its separate result box beside the build.
     const dps = page.locator('#build-workspace-tabs > #header-dps');
     await expect(dps).toBeInViewport({ ratio: 1 });
     const result = await dps.boundingBox();
-    expect(result.x - (switcher.x + switcher.width)).toBeCloseTo(8, 0);
-    expect(Math.abs(result.y + result.height / 2 - (switcher.y + switcher.height / 2))).toBeLessThan(2);
     expect(await dps.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
-    expect(Math.abs(newButton.y - actions.y)).toBeLessThan(2);
 
-    // Wide strips center the actions on the switcher's row; narrow strips stack them beneath it.
-    if (mobile) expect(newButton.y).toBeGreaterThanOrEqual(switcher.y + switcher.height);
-    else expect(Math.abs(newButton.y + newButton.height / 2 - (switcher.y + switcher.height / 2))).toBeLessThan(2);
+    if (mobile) {
+      const count = await page.locator('#build-switcher .build-switcher-count').boundingBox();
+      expect(result.x - (count.x + count.width)).toBeCloseTo(8, 0);
+      expect(Math.abs(result.y + result.height / 2 - (count.y + count.height / 2))).toBeLessThan(2);
+      await expect(overflow).toBeInViewport({ ratio: 1 });
+      await expect(page.locator('#build-actions-menu')).toBeHidden();
+    } else {
+      const newButton = await page.locator('.build-tab-new').boundingBox();
+      const actions = await page.locator('#btn-export-build').boundingBox();
+      expect(result.x - (switcher.x + switcher.width)).toBeCloseTo(8, 0);
+      expect(Math.abs(result.y + result.height / 2 - (switcher.y + switcher.height / 2))).toBeLessThan(2);
+      expect(Math.abs(newButton.y - actions.y)).toBeLessThan(2);
+      expect(Math.abs(newButton.y + newButton.height / 2 - (switcher.y + switcher.height / 2))).toBeLessThan(2);
+    }
   }
 
   // Global controls sit above the full-width tool strip, with build context aligned beneath it.
@@ -674,13 +701,16 @@ test('build and rotation exports allow custom file names', async ({ page }) => {
 test('narrow strip exports, imports, resets, and closes builds', async ({ page }) => {
   await openWorkspace(page, { width: 390, height: 844 });
   const original = await page.evaluate(() => structuredClone(window.professionApp.build));
+  const overflow = page.getByRole('button', { name: 'Build actions', exact: true });
   const download = page.waitForEvent('download');
+  await overflow.click();
   await page.locator('#btn-export-build').click();
   const exportDialog = page.getByRole('dialog', { name: 'Export file', exact: true });
   await expect(exportDialog).toBeInViewport({ ratio: 1 });
   await exportDialog.getByRole('textbox', { name: 'File name', exact: true }).fill('My mobile build');
   await exportDialog.getByRole('button', { name: 'Export', exact: true }).click();
   expect((await download).suggestedFilename()).toBe('My mobile build.json');
+  await overflow.click();
   await page.locator('#btn-import-build').click();
   const importDialog = page.locator('.build-file-import-dialog');
   await expect(importDialog).toBeVisible();
@@ -726,6 +756,7 @@ test('narrow strip exports, imports, resets, and closes builds', async ({ page }
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(2300);
   expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual(original.rotation);
   expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(0);
+  await overflow.click();
   await page.locator('#btn-import-build').click();
   await page.locator('#import-file-input').setInputFiles(importedFile);
   await expect(apply).toBeEnabled();
@@ -740,6 +771,7 @@ test('narrow strip exports, imports, resets, and closes builds', async ({ page }
   // Preview and Cancel leave shared settings alone; only Apply accepts the exported values.
   await importDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
   expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(0);
+  await overflow.click();
   await page.locator('#btn-import-build').click();
   await page.locator('#import-file-input').setInputFiles(importedFile);
   await expect(apply).toBeEnabled();

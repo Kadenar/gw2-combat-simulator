@@ -6,7 +6,7 @@ import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js'
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
 import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
-import { guardianVirtueForSlot } from '#gw2/professions/guardian/core/mechanics/virtues.js';
+import { powerOfTheVirtuous } from '#gw2/professions/guardian/core/traits/virtues/index.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -65,20 +65,20 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
   }
 });
 
-// Slot decoding preserves trailing-digit compatibility and leaves skill eligibility to callers.
-test('Guardian virtue slots decode consistently and reject unmapped slots', () => {
-  for (const [slot, virtue] of [
-    ['Profession_1', 'justice'],
-    ['Profession_2', 'resolve'],
-    ['Profession_3', 'courage'],
-    ['custom_12', 'resolve'],
-    ['Profession_0', null],
-    ['Profession_4', null],
-    ['Profession_1_extra', null],
-    ['', null],
-    [undefined, null]
+// Recharge rewards use explicit virtue ownership so profession-slot follow-ups cannot inherit them.
+test('Guardian virtue recharge excludes follow-up and proc identities sharing profession slots', () => {
+  const eligible = powerOfTheVirtuous.rechargeRules[0].when;
+  for (const [name, expected] of [
+    ['Virtue of Justice', true],
+    ['Virtue of Resolve', true],
+    ['Virtue of Courage', true],
+    ["Hunter's Verdict", false],
+    ['Stow Tome', false],
+    ['Willbender Flames', false]
   ]) {
-    assert.equal(guardianVirtueForSlot(slot), virtue);
+    const skill = guardianCatalog.skills.find((candidate) => candidate.name === name);
+    assert.ok(skill, name);
+    assert.equal(eligible({}, skill), expected, name);
   }
 });
 

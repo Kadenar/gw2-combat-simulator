@@ -29,7 +29,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Enhance the ranged autoattacks, applying Burning separately for each Dual Shot arrow that hits. */
 export const crackShot = defineTrait({
-  name: 'Crack Shot',
   id: TRAIT.CRACK_SHOT,
   balance: {
     damageMultiplier: 1.1,
@@ -57,7 +56,6 @@ export const crackShot = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const burstMastery = defineTrait({
-  name: 'Burst Mastery',
   id: TRAIT.BURST_MASTERY,
   balance: {
     damageMultiplier: 1.15,
@@ -89,7 +87,6 @@ export const burstMastery = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const axeMastery = defineTrait({
-  name: 'Axe Mastery',
   id: TRAIT.AXE_MASTERY,
   balance: {
     attributeBonuses: { ferocity: 120 },
@@ -133,7 +130,6 @@ export const axeMastery = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const versatileRage = defineTrait({
-  name: 'Versatile Rage',
   id: TRAIT.VERSATILE_RAGE,
   balance: { resourceGain: 5 },
   triggers: [onTriggerPoint(weaponSwapped, { run: (runtime) => versatileRageSwap(runtime) })]
@@ -141,7 +137,6 @@ export const versatileRage = defineTrait({
 
 /** Reduce burst recharge, including Dragon Trigger, which owns the recharge for Dragon Slash. */
 export const versatilePower = defineTrait({
-  name: 'Versatile Power',
   id: TRAIT.VERSATILE_POWER,
   balance: { rechargeMultiplier: 0.85 },
   rechargeRules: [
@@ -155,7 +150,6 @@ export const versatilePower = defineTrait({
 
 /** Owns Heightened Focus's execute-range Quickness and Burst recharge; its healing stacks are out of scope. */
 export const heightenedFocus = defineTrait({
-  name: 'Heightened Focus',
   id: TRAIT.HEIGHTENED_FOCUS,
   balance: {
     threshold: 0.5,
@@ -170,7 +164,6 @@ export const heightenedFocus = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const warriorsSprint = defineTrait({
-  name: "Warrior's Sprint",
   id: TRAIT.WARRIORS_SPRINT,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageIncrease: 0.1 },

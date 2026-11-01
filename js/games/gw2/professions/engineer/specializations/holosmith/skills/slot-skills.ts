@@ -1,19 +1,15 @@
 /**
- * Owns Holosmith slot, toolbelt, and palette-follow-up skill fragments.
+ * Owns Holosmith slot, toolbelt, and palette-follow-up skill definitions.
  * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
  */
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
@@ -36,9 +32,15 @@ import type {
 // Seconds from Launch Wall's heat event to its walls' shared impact.
 const LAUNCH_WALL_IMPACT_DELAY = 0.48;
 
-/** Supplies Holosmith slot-skill fragments to Holosmith module composition. */
+/** Supplies Holosmith slot-skill definitions to Holosmith module composition. */
 export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
   [ID.COOLANT_BLAST]: {
+    name: 'Coolant Blast',
+    description:
+      'Exceed. Heal yourself and chill nearby foes. If you are above the heat threshold when this skill is activated, gain Frost Aura and continue healing for a duration.',
+    icon: 'https://render.guildwars2.com/file/FC409CF9B0063964C23A62311EF52B71A6F064D9/1770388.png',
+    type: 'Heal',
+    slot: 'Heal',
     cooldown: 20,
     castTimeMs: 520,
     effects: [
@@ -52,6 +54,12 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.LAUNCH_WALL]: {
+    name: 'Launch Wall',
+    description:
+      'Exceed. Launch your photon wall forward, causing the wall to explode when it strikes a foe, inflicting conditions on nearby enemies. When fired above the heat threshold, launch additional walls.',
+    icon: 'https://render.guildwars2.com/file/0B07BD5AD1FA7107A97DB35A22A17E73FB989824/1770413.png',
+    type: 'Utility',
+    slot: 'Utility',
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     highStrikeFactor: 1,
     basePacketCount: 1,
@@ -63,7 +71,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
 
     castTimeMs: 520,
     effects: [],
-
     // A committed follow-up consumes its window and restores the parent.
     sideEffects: [
       {
@@ -92,6 +99,12 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.PRIME_LIGHT_BEAM]: {
+    name: 'Prime Light Beam',
+    description:
+      'Exceed. Charge up and fire an explosive beam of light in front of you. When activated above the heat threshold, this attack leaves behind a burning holographic field.',
+    icon: 'https://render.guildwars2.com/file/80052B4C12919318036326D6D2A579C76867DF1B/1770387.png',
+    type: 'Elite',
+    slot: 'Elite',
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     highStrikeFactor: 1,
     packetCount: 10,
@@ -99,7 +112,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     enhancedStrikeFactor: 1.2,
     enhancedConditionBaseDurationFactor: 1.5,
     cooldown: 60,
-
     castTimeMs: 1160,
     effects: [
       {
@@ -149,6 +161,12 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.LASER_DISK]: {
+    name: 'Laser Disk',
+    description:
+      'Exceed. Create rotating laser blades to damage nearby foes. This skill has increased duration when activated while above the heat threshold.',
+    icon: 'https://render.guildwars2.com/file/A01806176C59A9D0E80A5A7F5BAC2B7C96E51DC6/1770411.png',
+    type: 'Utility',
+    slot: 'Utility',
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     highStrikeFactor: 1,
     basePacketCount: 12,
@@ -156,7 +174,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     packetInterval: 0.52,
     enhancedStrikeFactor: 1.35,
     cooldown: 30,
-
     castTimeMs: 960,
     interruptCommitMs: 920,
     effects: [],
@@ -186,6 +203,12 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.PHOTON_WALL]: {
+    name: 'Photon Wall',
+    description:
+      'Exceed. A defensive barrier appears in front of you that blocks you and your allies from incoming attacks. Reactivate Exceed to fire the barrier at foes as an attack. This skill grants projectile reflection if you are above the heat threshold.',
+    icon: 'https://render.guildwars2.com/file/17FCB62A75625CDE2DC279FB9209D65974C8F435/1770412.png',
+    type: 'Utility',
+    slot: 'Utility',
     cooldown: 25,
     castTimeMs: 400,
     effects: [],
@@ -193,12 +216,17 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.LAUNCH_WALL, durationSec: null } }]
   },
   [ID.BLADE_BURST]: {
+    name: 'Blade Burst',
+    description: 'Fire holographic blades at foes within range. Damage increased while over the heat threshold.',
+    icon: 'https://render.guildwars2.com/file/1C472B68AAFFA6E50C29524CC7EF5B6AB5532803/1770393.png',
+    type: 'Profession',
+    slot: 'Action',
+
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     highStrikeFactor: 1.25,
     enhancedStrikeFactor: 1.35,
     cooldown: 20,
     toolbeltParentId: ID.LASER_DISK,
-
     castTimeMs: 0,
     effects: [
       {
@@ -219,6 +247,13 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     ]
   },
   [ID.CAUTERIZE]: {
+    name: 'Cauterize',
+    description:
+      'Use a laser to burn off conditions and set yourself on fire for each condition removed. Removes additional conditions if above the heat threshold.',
+    icon: 'https://render.guildwars2.com/file/923048741863452B14360357FDD603A9DA04F7B9/1770394.png',
+    type: 'Profession',
+    slot: 'Profession_1',
+
     cooldown: 30,
     toolbeltParentId: ID.COOLANT_BLAST,
     mechanicSlot: 1,
@@ -226,12 +261,18 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
     effects: []
   },
   [ID.PARTICLE_ACCELERATOR]: {
+    name: 'Particle Accelerator',
+    description:
+      'Fire a crippling bolt of light at your target. Allies the bolt passes through are granted swiftness. Projectile velocity and damage increased while above the heat threshold.',
+    icon: 'https://render.guildwars2.com/file/1C03EBDDD56EC42F4E42DB5BA9E2CB0AFAA1AFE6/1770396.png',
+    type: 'Profession',
+    slot: 'Action',
+
     // Intrinsic tuning follows this selected skill through patches and deferred work.
     highStrikeFactor: 1.1,
     enhancedStrikeFactor: 1.35,
     cooldown: 8,
     toolbeltParentId: ID.PHOTON_WALL,
-
     castTimeMs: 0,
     effects: [
       {
@@ -267,194 +308,117 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   }
 });
 
-/**
- * Materializes Prime Light Beam's ten one-second field pulses above 50 heat,
- * with ECSU enhancement above 100 heat taken from the activation snapshot.
- */
+/** Heat selection stays local; the shared emitter expands paired applications with their captured delivery fields. */
+function emitHeatApplications(
+  context: EngineerResolverContext,
+  event: HolosmithResolverEvent,
+  skill: Skill,
+  effects: readonly SkillEffect[],
+  applications: number,
+  intervalMs: number,
+  atMs: number,
+  conditionBaseDurationFactor?: number
+): void {
+  // A removed or zero-count component must not become the materializer's default single application.
+  if (applications === 0) return;
+
+  const strikeFactor = holosmithSkillStrikeFactor(context, skill.id, holosmithHeatSnapshotFromEvent(event));
+  context.effects.emit({
+    kind: 'profile',
+    profile: skill,
+    effects: effects.map((effect): SkillEffect => ({
+      ...effect,
+      applications,
+      intervalMs,
+      atMs,
+      timingScale: 'fixed'
+    })),
+    order: 'application',
+    at: event.at,
+    fullEnd: event.at,
+    cause: event,
+    attribution: {
+      source: 'engineer',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: ACTOR.PLAYER,
+      skillId: event.skillId,
+      skillName: event.skillName
+    },
+    transform: (packet) => ({
+      ...packet,
+      ...(packet.type === 'damage' ? { holosmithStrikeFactor: strikeFactor } : {}),
+      ...(packet.type === 'condition' && conditionBaseDurationFactor !== undefined
+        ? { holosmithConditionBaseDurationFactor: conditionBaseDurationFactor }
+        : {})
+    })
+  });
+}
+
+/** The field uses the activation's heat tier even when heat changes before later pulses land. */
 function handlePrimeLightBeamField(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  // Derive all packet tuning from the captured activation tier before expanding the delayed field.
-  const snapshot = holosmithHeatSnapshotFromEvent(event);
-  const tier = holosmithHeatTier(snapshot, context);
+  const tier = holosmithHeatTier(holosmithHeatSnapshotFromEvent(event), context);
 
   if (tier === 'base') return;
 
-  const enhancedCapacityTier = tier === 'enhanced';
   const skill = requireSkillFromContext(context, ID.PRIME_LIGHT_BEAM);
-  const packets = Math.max(0, Math.trunc(skillNumber(skill, 'packetCount')));
-  const interval = Math.max(0, skillNumber(skill, 'packetInterval'));
-  const strikeFactor = holosmithSkillStrikeFactor(context, ID.PRIME_LIGHT_BEAM, snapshot);
   const strike = requireEffect(skill, 'strike', 'Prime Light Beam Heat Tier');
   const condition = requireEffect(skill, 'condition', CONDITION.BURNING);
-  const conditionBaseDurationFactor = enhancedCapacityTier
-    ? skillNumber(skill, 'enhancedConditionBaseDurationFactor')
-    : 1;
-  // Each field pulse emits a paired explosion and burning application at the same timestamp.
-  for (let pulse = 0; pulse < packets; pulse += 1) {
-    const at = event.at + pulse * interval;
-
-    if (strike) {
-      context.effects.emit({
-        kind: 'packet',
-        event: buildResolverStrike({
-          at,
-          name: 'Field Damage',
-          skillName: event.skillName,
-          coefficient: effectNumber(skill, strike, 'coefficient'),
-
-          hitIndex: pulse + 1,
-          totalHits: packets,
-          source: 'engineer',
-          sourceId: event.skillId ?? event.sourceId,
-          actorType: ACTOR.PLAYER,
-          skillId: event.skillId,
-          skillWeapon: 'Unequipped',
-          damageKind: 'explosion',
-          holosmithStrikeFactor: strikeFactor
-        })
-      });
-    }
-
-    if (condition) {
-      context.effects.emit({
-        kind: 'packet',
-        event: buildResolverCondition({
-          at,
-          name: `${event.skillName} — Burning`,
-          skillName: event.skillName,
-          condition: String(condition.condition),
-          stacks: Number(condition.stacks),
-          duration: Number(condition.duration),
-          applicationIndex: pulse + 1,
-          totalApplications: packets,
-          source: 'engineer',
-          sourceId: event.skillId ?? event.sourceId,
-          actorType: ACTOR.PLAYER,
-          skillId: event.skillId,
-          holosmithConditionBaseDurationFactor: conditionBaseDurationFactor
-        })
-      });
-    }
-  }
-}
-
-/** Materializes Laser Disk's 12 base or 18 high-heat strike-and-bleed pulses at 0.52-second intervals. */
-function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  // Resolve the heat-dependent cadence once so every delayed packet preserves the activation tier.
-  const snapshot = holosmithHeatSnapshotFromEvent(event);
-  const tier = holosmithHeatTier(snapshot, context);
-  const skill = requireSkillFromContext(context, ID.LASER_DISK);
-  const pulses = Math.max(0, Math.trunc(skillNumber(skill, tier === 'base' ? 'basePacketCount' : 'highPacketCount')));
-  const interval = Math.max(0, skillNumber(skill, 'packetInterval'));
-  const strikeFactor = holosmithSkillStrikeFactor(context, ID.LASER_DISK, snapshot);
-  const strike = requireEffect(skill, 'strike', 'Laser Disk Heat Tier', requireSkillAction(skill, 'heat-payload'));
-  const condition = requireEffect(skill, 'condition', CONDITION.BLEEDING, requireSkillAction(skill, 'heat-payload'));
-  // Expand the disk into paired strike and bleed packets on successive cadence boundaries.
-  for (let pulse = 0; pulse < pulses; pulse += 1) {
-    const at = event.at + (pulse + 1) * interval;
-
-    if (strike) {
-      context.effects.emit({
-        kind: 'packet',
-        event: buildResolverStrike({
-          at,
-          name: 'Laser Disk',
-          skillName: event.skillName,
-          coefficient: effectNumber(skill, strike, 'coefficient'),
-
-          hitIndex: pulse + 1,
-          totalHits: pulses,
-          source: 'engineer',
-          sourceId: event.skillId ?? event.sourceId,
-          actorType: ACTOR.PLAYER,
-          skillId: event.skillId,
-          skillWeapon: 'Utility',
-          holosmithStrikeFactor: strikeFactor
-        })
-      });
-    }
-
-    if (condition) {
-      context.effects.emit({
-        kind: 'packet',
-        event: buildResolverCondition({
-          at,
-          name: `${event.skillName} - Bleeding`,
-          skillName: event.skillName,
-          condition: String(condition.condition),
-          stacks: Number(condition.stacks),
-          duration: Number(condition.duration),
-          applicationIndex: pulse + 1,
-          totalApplications: pulses,
-          source: 'engineer',
-          sourceId: event.skillId ?? event.sourceId,
-          actorType: ACTOR.PLAYER,
-          skillId: event.skillId
-        })
-      });
-    }
-  }
-}
-
-/** Materializes one base or three high-heat Launch Walls at one shared delayed impact timestamp. */
-function handleLaunchWall(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  // Resolve wall count, delay, and strike scaling from the captured activation tier.
-  const snapshot = holosmithHeatSnapshotFromEvent(event);
-  const tier = holosmithHeatTier(snapshot, context);
-  const skill = requireSkillFromContext(context, ID.LAUNCH_WALL);
-  const walls = Math.max(0, Math.trunc(skillNumber(skill, tier === 'base' ? 'basePacketCount' : 'highPacketCount')));
-  const at = event.at + LAUNCH_WALL_IMPACT_DELAY;
-  const strikeFactor = holosmithSkillStrikeFactor(context, ID.LAUNCH_WALL, snapshot);
-  const strike = requireEffect(skill, 'strike', 'Launch Wall Heat Tier', requireSkillAction(skill, 'heat-payload'));
-  const condition = requireEffect(
+  emitHeatApplications(
+    context,
+    event,
     skill,
-    'condition',
-    CONDITION.VULNERABILITY,
-    requireSkillAction(skill, 'heat-payload')
+    [
+      ...(strike ? [{ ...strike, name: 'Field Damage', weapon: 'Unequipped', damageKind: 'explosion' }] : []),
+      ...(condition ? [{ ...condition, name: `${event.skillName} — Burning` }] : [])
+    ],
+    Math.max(0, Math.trunc(skillNumber(skill, 'packetCount'))),
+    Math.max(0, skillNumber(skill, 'packetInterval')) * 1000,
+    0,
+    tier === 'enhanced' ? skillNumber(skill, 'enhancedConditionBaseDurationFactor') : 1
   );
-  // Every wall lands together and owns one explosion plus one vulnerability application.
-  for (let wall = 0; wall < walls; wall += 1) {
-    if (strike) {
-      context.effects.emit({
-        kind: 'packet',
-        event: buildResolverStrike({
-          at,
-          name: 'Launch Wall',
-          skillName: event.skillName,
-          coefficient: effectNumber(skill, strike, 'coefficient'),
+}
 
-          hitIndex: wall + 1,
-          totalHits: walls,
-          source: 'engineer',
-          sourceId: event.skillId ?? event.sourceId,
-          actorType: ACTOR.PLAYER,
-          skillId: event.skillId,
-          skillWeapon: 'Utility',
-          damageKind: 'explosion',
-          holosmithStrikeFactor: strikeFactor
-        })
-      });
-    }
+/** The disk selects its lifetime once, then emits each strike before its sibling Bleeding application. */
+function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
+  const tier = holosmithHeatTier(holosmithHeatSnapshotFromEvent(event), context);
+  const skill = requireSkillFromContext(context, ID.LASER_DISK);
+  const payload = requireSkillAction(skill, 'heat-payload');
+  const strike = requireEffect(skill, 'strike', 'Laser Disk Heat Tier', payload);
+  const condition = requireEffect(skill, 'condition', CONDITION.BLEEDING, payload);
+  const intervalMs = Math.max(0, skillNumber(skill, 'packetInterval')) * 1000;
+  emitHeatApplications(
+    context,
+    event,
+    skill,
+    [
+      ...(strike ? [{ ...strike, name: 'Laser Disk', weapon: 'Utility' }] : []),
+      ...(condition ? [{ ...condition, name: `${event.skillName} - Bleeding` }] : [])
+    ],
+    Math.max(0, Math.trunc(skillNumber(skill, tier === 'base' ? 'basePacketCount' : 'highPacketCount'))),
+    intervalMs,
+    intervalMs
+  );
+}
 
-    if (condition) {
-      context.effects.emit({
-        kind: 'packet',
-        event: buildResolverCondition({
-          at,
-          name: `${event.skillName} - Vulnerability`,
-          skillName: event.skillName,
-          condition: String(condition.condition),
-          stacks: Number(condition.stacks),
-          duration: Number(condition.duration),
-          applicationIndex: wall + 1,
-          totalApplications: walls,
-          source: 'engineer',
-          sourceId: event.skillId ?? event.sourceId,
-          actorType: ACTOR.PLAYER,
-          skillId: event.skillId
-        })
-      });
-    }
-  }
+/** Simultaneous walls retain full damage per application and interleave Vulnerability between strikes. */
+function handleLaunchWall(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
+  const tier = holosmithHeatTier(holosmithHeatSnapshotFromEvent(event), context);
+  const skill = requireSkillFromContext(context, ID.LAUNCH_WALL);
+  const payload = requireSkillAction(skill, 'heat-payload');
+  const strike = requireEffect(skill, 'strike', 'Launch Wall Heat Tier', payload);
+  const condition = requireEffect(skill, 'condition', CONDITION.VULNERABILITY, payload);
+  emitHeatApplications(
+    context,
+    event,
+    skill,
+    [
+      ...(strike ? [{ ...strike, name: 'Launch Wall', weapon: 'Utility', damageKind: 'explosion' }] : []),
+      ...(condition ? [{ ...condition, name: `${event.skillName} - Vulnerability` }] : [])
+    ],
+    Math.max(0, Math.trunc(skillNumber(skill, tier === 'base' ? 'basePacketCount' : 'highPacketCount'))),
+    0,
+    LAUNCH_WALL_IMPACT_DELAY * 1000
+  );
 }
 
 /** Slot skills own their captured expansions and direct strikes retain live heat selection. */

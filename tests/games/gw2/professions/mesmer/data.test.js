@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { createRotationItem } from '#gw2/app/rotation/editing/actions.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { SKILLS as GUARDIAN_API_SKILLS } from '#gw2/professions/guardian/data/guardian-api-metadata.js';
+import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import {
   createMesmerBuildDefaults,
@@ -17,8 +17,6 @@ import {
 } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { SKILLS } from '#gw2/professions/mesmer/data/mesmer-api-metadata.js';
-import { MESMER_SUPPLEMENTAL_SKILLS } from '#gw2/professions/mesmer/data/mesmer-supplemental-skills.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import {
@@ -41,7 +39,6 @@ import {
   MESMER_VIRTUOSO_SKILL_MECHANICS
 } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 
 const MECHANIC_SKILLS = Object.freeze({
   Core: Object.freeze([ID.MIND_WRACK, ID.CRY_OF_FRUSTRATION, ID.DIVERSION, ID.DISTORTION]),
@@ -69,13 +66,15 @@ const SHATTERS = Object.freeze({
   ...MESMER_VIRTUOSO_SHATTERS
 });
 
-const MESMER_SKILL_MECHANICS = composeSkillMechanics('Mesmer', [
-  MESMER_CORE_SKILL_MECHANICS,
-  MESMER_CHRONOMANCER_SKILL_MECHANICS,
-  MESMER_MIRAGE_SKILL_MECHANICS,
-  MESMER_VIRTUOSO_SKILL_MECHANICS,
-  MESMER_TROUBADOUR_SKILL_MECHANICS
-]);
+const MESMER_SKILL_MECHANICS = composeSkillDefinitions(
+  ...[
+    MESMER_CORE_SKILL_MECHANICS,
+    MESMER_CHRONOMANCER_SKILL_MECHANICS,
+    MESMER_MIRAGE_SKILL_MECHANICS,
+    MESMER_VIRTUOSO_SKILL_MECHANICS,
+    MESMER_TROUBADOUR_SKILL_MECHANICS
+  ]
+);
 
 const PSEUDO_SKILLS = Object.freeze([
   ...MESMER_CORE_EXTRA_SKILLS,
@@ -126,31 +125,11 @@ test('Mesmer follow-up facts show canonical windows and a percentage of parent b
   );
 });
 
-test('Mesmer and Guardian API catalogs share common fields and explicit ammo lockouts', () => {
-  const expectedKeys = Object.keys(GUARDIAN_API_SKILLS[0])
-    .filter((key) => key !== 'ammoCastLockout')
-    .sort();
-
-  for (const skill of [...SKILLS, ...GUARDIAN_API_SKILLS]) {
-    assert.deepEqual(
-      Object.keys(skill)
-        .filter((key) => key !== 'ammoCastLockout')
-        .sort(),
-      expectedKeys,
-      skill.name
-    );
-    assert.equal(Object.hasOwn(skill, 'ammoCastLockout'), skill.ammo > 0, skill.name);
-  }
-});
-
 test('Mesmer mechanics are the sole simulation source and use stable skill ids', () => {
   assert.equal(
     Object.keys(MESMER_SKILL_MECHANICS).every((id) => Number.isInteger(Number(id))),
     true
   );
-  for (const skill of SKILLS) {
-    assert.ok(MESMER_SKILL_MECHANICS[skill.id], `${skill.name} is missing authoritative simulation mechanics`);
-  }
 
   assert.equal(MESMER_SKILL_MECHANICS['Winds of Chaos'], undefined);
   // Bladecall variants share strike definitions; interruption persistence belongs to each specialization's cast.
@@ -161,32 +140,15 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
     Object.values(MESMER_SKILL_MECHANICS).some((mechanics) => mechanics.blade === false),
     false
   );
-  // Generated metadata owns identity and ordinary recharge; fragments retain only deliberate runtime overrides.
-  assert.ok(
-    Object.values(MESMER_SKILL_MECHANICS).every(
-      (mechanics) => !Object.hasOwn(mechanics, 'type') && !Object.hasOwn(mechanics, 'weapon')
-    )
-  );
-  assert.deepEqual(
-    Object.entries(MESMER_SKILL_MECHANICS)
-      .filter(([, mechanics]) => Object.hasOwn(mechanics, 'specialization'))
-      .map(([id]) => Number(id))
-      .sort((left, right) => left - right),
-    [ID.FLYING_CUTTER, ID.UNSTABLE_BLADESTORM].sort((left, right) => left - right)
-  );
-  // Only API-backed identities inherit ordinary recharge; supplemental identities author it in mechanics.
-  const apiSkillIds = new Set(SKILLS.map((skill) => skill.id));
-  assert.deepEqual(
-    Object.entries(MESMER_SKILL_MECHANICS)
-      .filter(([id, mechanics]) => apiSkillIds.has(Number(id)) && Object.hasOwn(mechanics, 'cooldown'))
-      .map(([id]) => Number(id))
-      .sort((left, right) => left - right),
-    [ID.LINGERING_THOUGHTS, ID.JAUNT, ID.LINGERING_THOUGHTS_NON_MIRAGE, ID.TALE_OF_THE_HONORABLE_ROGUE].sort(
-      (left, right) => left - right
-    )
-  );
-  assert.equal(MESMER_SKILL_MECHANICS[ID.FLYING_CUTTER].specialization, '');
-  assert.equal(MESMER_SKILL_MECHANICS[ID.UNSTABLE_BLADESTORM].specialization, '');
+  // Each keyed entry supplies its own identity and presentation.
+  for (const skill of Object.values(MESMER_SKILL_MECHANICS)) {
+    assert.equal(typeof skill.name, 'string');
+    assert.equal(typeof skill.description, 'string');
+    assert.ok(skill.icon);
+  }
+
+  assert.equal(mesmerCatalog.skillsById.get(ID.FLYING_CUTTER).specialization, undefined);
+  assert.equal(mesmerCatalog.skillsById.get(ID.UNSTABLE_BLADESTORM).specialization, undefined);
   assert.equal(SHATTERS[ID.MIND_WRACK].resolver, 'mesmer.core.clone-shatter');
   assert.equal(SHATTERS[ID.BLADESONG_HARMONY].resolver, 'mesmer.virtuoso.bladesong');
   assert.equal(SHATTERS[ID.BLADESONG_HARMONY].minimumResource, 1);
@@ -233,9 +195,7 @@ test('Chronomancer owns its Continuum Shift palette projection', () => {
 });
 
 test('every cataloged phantasm has an attack timing before clone conversion', () => {
-  const phantasms = SKILLS.map((skill) => mesmerCatalog.skillsById.get(skill.id)).filter(
-    (skill) => skill.resource?.mode === 'phantasm'
-  );
+  const phantasms = mesmerCatalog.skills.filter((skill) => skill.resource?.mode === 'phantasm');
 
   assert.deepEqual(
     phantasms.map((skill) => skill.name),
@@ -306,34 +266,27 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
     chain.forEach((skillId, index) => {
       const nextChainId = chain[index + 1] ?? null;
 
-      assert.equal(SKILLS.find((skill) => skill.id === skillId).nextChainId, nextChainId);
+      assert.equal(mesmerCatalog.skillsById.get(skillId).nextChainId, nextChainId);
       assert.equal(mesmerCatalog.skillsById.get(skillId).nextChainId, nextChainId);
     });
   }
 });
 
-// Supplemental weapon and mantra flips must retain their canonical parent through catalog assembly.
+// Explicit declarations retain supported weapon and mantra parent identities after assembly.
 test('weapon and mantra sequence flips are cataloged', () => {
-  for (const skill of MESMER_SUPPLEMENTAL_SKILLS.filter((candidate) => candidate.flipParentId)) {
-    assert.equal(mesmerCatalog.skillsById.get(skill.id).flipParentId, skill.flipParentId);
+  for (const [parentId, followUpId] of [
+    [ID.ILLUSIONARY_COUNTER, ID.COUNTERSPELL],
+    [ID.MANTRA_OF_PAIN, ID.POWER_SPIKE],
+    [ID.MANTRA_OF_RECOVERY, ID.POWER_RETURN],
+    [ID.SINGULARITY_SHOT, ID.DIMENSIONAL_APERTURE],
+    [ID.INSPIRING_IMAGERY, ID.ABSTRACTION],
+    [ID.TEMPORAL_CURTAIN, ID.INTO_THE_VOID],
+    [ID.ILLUSIONARY_RIPOSTE, ID.COUNTER_BLADE],
+    [ID.ILLUSIONARY_LEAP, ID.SWAP]
+  ]) {
+    assert.equal(mesmerCatalog.skillsById.get(parentId).flipSkillId, followUpId);
+    assert.equal(mesmerCatalog.skillsById.get(followUpId).flipParentId, parentId);
   }
-
-  assert.deepEqual(
-    MESMER_SUPPLEMENTAL_SKILLS.filter((skill) => skill.flipParentId).map((skill) => [
-      skill.name,
-      mesmerCatalog.skillsById.get(skill.flipParentId).name
-    ]),
-    [
-      ['Counterspell', 'Illusionary Counter'],
-      ['Power Spike', 'Mantra of Pain'],
-      ['Power Return', 'Mantra of Recovery'],
-      ['Dimensional Aperture', 'Singularity Shot'],
-      ['Abstraction', 'Inspiring Imagery'],
-      ['Into the Void', 'Temporal Curtain'],
-      ['Counter Blade', 'Illusionary Riposte'],
-      ['Swap', 'Illusionary Leap']
-    ]
-  );
 });
 
 test('every terrestrial Mirage main-hand weapon has a selectable ambush skill', () => {
@@ -350,15 +303,12 @@ test('every terrestrial Mirage main-hand weapon has a selectable ambush skill', 
       ['Sword', 'Mirage Thrust']
     ]
   );
-  assert.ok(
-    AMBUSH_SKILLS.every(
-      (skill) => skill.ambush && skill.specialization === 'Mirage' && skill.slot === 'Weapon_1' && skill.icon
-    )
-  );
+  assert.ok(AMBUSH_SKILLS.every((skill) => skill.ambush && skill.slot === 'Weapon_1' && skill.icon));
   // Catalog loading must retain the actor variants on the same skill that selects the ambush handler.
   for (const skill of AMBUSH_SKILLS) {
     const loaded = mesmerCatalog.skillsById.get(skill.id);
     assert.equal(loaded.ambush, true);
+    assert.equal(loaded.specialization, 'Mirage');
     assert.deepEqual(loaded.player, skill.player);
     assert.deepEqual(loaded.clone, skill.clone);
   }
@@ -372,16 +322,9 @@ test('Mirage dodge spends endurance without ammo or cooldown', () => {
   assert.deepEqual(dodge.cost, { resource: 'endurance', amount: 50, spendOn: 'castCommit' });
 });
 
-test('Mesmer supplemental identities and dynamic handler profiles are explicit', () => {
-  assert.ok(MESMER_SUPPLEMENTAL_SKILLS.every((skill) => skill.id > 0));
+test('Mesmer triggered skill identities and dynamic handler profiles are explicit', () => {
   assert.ok(PSEUDO_SKILLS.every((skill) => skill.id < 0));
-  const identityFields = ['name', 'description', 'icon', 'type', 'slot', 'weapon', 'specialization', 'flipParentId'];
 
-  assert.ok(
-    MESMER_SUPPLEMENTAL_SKILLS.map((skill) => MESMER_SKILL_MECHANICS[skill.id]).every((mechanics) =>
-      identityFields.every((field) => !Object.hasOwn(mechanics, field))
-    )
-  );
   const shared = mesmerCatalog.skillsById.get(10218);
 
   assert.equal(shared.handlerId, undefined);

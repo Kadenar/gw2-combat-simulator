@@ -1,13 +1,20 @@
-/** Canonical Core engineer skill fragments grouped by their GW2 owner. */
+/** Canonical Core engineer skill definitions grouped by their GW2 owner. */
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines Engineer rifle packet timing, projectile, movement, damage, and control behavior. */
-export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.RIFLE_BURST]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Rifle Burst',
+    description: 'Deliver a quick burst of fire that pierces targets, followed by an explosive grenade.',
+    icon: 'https://render.guildwars2.com/file/30F4477E57FFF65C3302F5380D5FCB654CA2E95F/102815.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     // Rifle Burst occupies an 840 ms channel; interruption retains landed packets and cancels future packets.
     castTimeMs: 840,
@@ -45,6 +52,12 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.RIFLE_BURST_GRENADE]: {
+    name: 'Rifle Burst Grenade',
+    description: 'Fire an explosive grenade from your rifle.',
+    icon: 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_1',
     simulatorExcluded: true,
     cooldown: 0,
     castTimeMs: 0,
@@ -61,6 +74,13 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.BLUNDERBUSS]: {
+    name: 'Blunderbuss',
+    description:
+      'Fire several shards of shrapnel that inflict more damage the closer you are to foes. You and nearby allies gain might.',
+    icon: 'https://render.guildwars2.com/file/FC0C5A43332CBCEEFB32EF5331F89650FC0AF310/103111.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_2',
     cooldown: 6,
     castTimeMs: 400,
     // Share one impact timing while preserving independent payloads and declaration order.
@@ -89,6 +109,12 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.NET_SHOT]: {
+    name: 'Net Shot',
+    description: 'Immobilize foes with a net shot.',
+    icon: 'https://render.guildwars2.com/file/A47830A4152F5F5DEC5D22975DE0449A57F2D570/102982.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_3',
     cooldown: 9,
     castTimeMs: 600,
     // Commit Net Shot at 560 ms so later interruptions keep the activation.
@@ -120,6 +146,13 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
     ])
   },
   [ID.OVERCHARGED_SHOT]: {
+    name: 'Overcharged Shot',
+    description:
+      'Fire a blast so strong that it launches your foe as the recoil frees you from any movement-impairing conditions.',
+    icon: 'https://render.guildwars2.com/file/5B1B070F59C3FDB22794910FBD1C4C7DBF3BD47E/102790.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_4',
     cooldown: 14,
     castTimeMs: 400,
     effects: [
@@ -140,6 +173,12 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Par
     ]
   },
   [ID.JUMP_SHOT]: {
+    name: 'Jump Shot',
+    description: 'Blast the ground, damaging nearby foes and leaping to your target.',
+    icon: 'https://render.guildwars2.com/file/6B29C1E841653F64FCB769236177CFC836C8B933/102798.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_5',
     cooldown: 18,
     castTimeMs: 1000,
     // Once the leap commits, retain its cast lockout and landing payload through interruption.

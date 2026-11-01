@@ -1,8 +1,9 @@
+import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Composes owner-local Core Revenant skill catalogs without owning runtime behavior.
  * Balance profiles and execution live in sibling owner modules.
  */
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_CORE_EXTRA_SKILLS } from '#gw2/professions/revenant/core/skills/actions.js';
 import { REVENANT_LEGEND_CALL_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
 import { REVENANT_ASSASSIN_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legends/assassin.js';
@@ -10,7 +11,6 @@ import { REVENANT_CENTAUR_SKILL_MECHANICS } from '#gw2/professions/revenant/core
 import { REVENANT_DEMON_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legends/demon.js';
 import { REVENANT_DWARF_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legends/dwarf.js';
 import { REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/profession-skills.js';
-import { REVENANT_SUPPLEMENTAL_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
 import { REVENANT_WEAPONS_AXE_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/axe.js';
 import { REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import { REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/hammer.js';
@@ -22,25 +22,24 @@ import { REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS } from '#gw2/professions/revenan
 import { REVENANT_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/staff.js';
 import { REVENANT_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/sword.js';
 
-/** Preserves the original catalog precedence while each skill family owns its fragments. */
-export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  ...REVENANT_LEGEND_CALL_SKILL_MECHANICS,
-  ...REVENANT_SUPPLEMENTAL_SKILL_MECHANICS,
-  ...REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS,
-  ...REVENANT_DWARF_SKILL_MECHANICS,
-  ...REVENANT_CENTAUR_SKILL_MECHANICS,
-  ...REVENANT_ASSASSIN_SKILL_MECHANICS,
-  ...REVENANT_DEMON_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_AXE_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_MACE_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_SHIELD_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_STAFF_SKILL_MECHANICS,
-  ...REVENANT_WEAPONS_SWORD_SKILL_MECHANICS
-});
+/** Preserves authored declaration order while each skill family owns its definitions. */
+export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+  REVENANT_LEGEND_CALL_SKILL_MECHANICS,
+  REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS,
+  REVENANT_DWARF_SKILL_MECHANICS,
+  REVENANT_CENTAUR_SKILL_MECHANICS,
+  REVENANT_ASSASSIN_SKILL_MECHANICS,
+  REVENANT_DEMON_SKILL_MECHANICS,
+  REVENANT_WEAPONS_AXE_SKILL_MECHANICS,
+  REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS,
+  REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS,
+  REVENANT_WEAPONS_MACE_SKILL_MECHANICS,
+  REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS,
+  REVENANT_WEAPONS_SHIELD_SKILL_MECHANICS,
+  REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS,
+  REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS,
+  REVENANT_WEAPONS_STAFF_SKILL_MECHANICS,
+  REVENANT_WEAPONS_SWORD_SKILL_MECHANICS
+);
 
 export { REVENANT_CORE_EXTRA_SKILLS };

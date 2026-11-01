@@ -1,8 +1,8 @@
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { Gw2WeaponMatcherContext } from '#gw2/platform/equipment/weapons/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
-import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/data/module-data.js';
 
 /** Excludes shared weapon skills when the active specialization replaces them. */
 export function mesmerWeaponSkillMatchesSet(
@@ -15,6 +15,11 @@ export function mesmerWeaponSkillMatchesSet(
   if (specialization === 'Mirage' && NON_MIRAGE_AXE_SKILL_IDS.has(skill.id)) return false;
 
   if (specialization === 'Virtuoso' && skill.id === ID.BLADECALL_NON_VIRTUOSO) return false;
+
+  // Both sword identities are Core-owned; Troubadour replaces the ordinary leap on its equipped bar.
+  if (specialization === 'Troubadour' && skill.id === ID.ILLUSIONARY_LEAP) return false;
+
+  if (specialization !== 'Troubadour' && skill.id === ID.BLADE_LEAP) return false;
 
   return defaultWeaponSkillMatchesSet(skill, weapons, context);
 }

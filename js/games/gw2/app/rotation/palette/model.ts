@@ -210,8 +210,7 @@ function isAutoattackFlipLink(parent: Skill, child: Skill): boolean {
     (parent.chainRoot != null && child.chainRoot != null && Number(parent.chainRoot) === Number(child.chainRoot)) ||
     (parent.weaponBarChainRootId != null &&
       child.weaponBarChainRootId != null &&
-      Number(parent.weaponBarChainRootId) === Number(child.weaponBarChainRootId)) ||
-    (parent.nextChainId === child.id && child.nextChainId !== parent.id)
+      Number(parent.weaponBarChainRootId) === Number(child.weaponBarChainRootId))
   );
 }
 
@@ -253,29 +252,6 @@ function paletteFlipFamilies(
     const parent = skillById.get(Number(child.flipParentId));
 
     if (parent) register(parent, child);
-  }
-
-  for (const parent of catalogSkills) {
-    if (parent.paletteFlip === false || parent.flipSkillId == null || parent.flipSkillId === parent.nextChainId)
-      continue;
-
-    const child = skillById.get(Number(parent.flipSkillId));
-
-    if (child) register(parent, child);
-  }
-
-  // Some API records expose flips only as a reciprocal next-skill pair. Stable
-  // catalog order identifies the root while chain metadata keeps autoattacks out.
-  for (const skill of catalogSkills) {
-    if (skill.nextChainId == null) continue;
-
-    const linked = skillById.get(Number(skill.nextChainId));
-
-    if (!linked || linked.nextChainId !== skill.id) continue;
-
-    if ((catalogOrder.get(Number(skill.id)) || 0) > (catalogOrder.get(Number(linked.id)) || 0)) continue;
-
-    register(skill, linked);
   }
 
   // Flip metadata can branch (one root with several state-dependent children).
@@ -439,7 +415,7 @@ function paletteTileCandidateOrder(skill: Skill, fallback: number): number {
 /**
  * Projects every combat-bar family to one live palette identity. Catalog
  * autoattack roots and flip links work automatically; `paletteTileId` covers
- * UI-only families whose API records do not declare their shared tile.
+ * UI-only families group related skill declarations on one shared tile.
  */
 export function displayedSkillTiles(
   app: ProfessionAppState,
@@ -651,7 +627,7 @@ export function paletteActionSkills(
       (skill) =>
         skill.type === 'Action' &&
         // The shared action row starts with synthetic actions; profession presentation
-        // filters contextual controls while API skills remain on their owning bars.
+        // filters contextual controls while ordinary skills remain on their owning bars.
         Number(skill.id) < 0 &&
         (skill.inputCategory !== 'weapon-swap' || Boolean(app.build.alternateWeapons?.[0])) &&
         (!skill.specialization || skill.specialization === specialization) &&

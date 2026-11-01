@@ -25,7 +25,7 @@ test('owned effects prepare once at impact and retain their reserved identity', 
     ...testProfessionModifiers,
     id: 'effect-ownership-fixture',
     buffPolicies: () => [{ kind: 'ownership-fixture' }],
-    catalog: createCanonicalCatalog({ generated: [] }),
+    catalog: createCanonicalCatalog({ skills: [] }),
     createState: () => ({ value: 1 }),
     initialize(runtime) {
       references.push(runtime.effects.emit({ receipt: true, kind: 'packet', event: packet('cancelled', 1) }));

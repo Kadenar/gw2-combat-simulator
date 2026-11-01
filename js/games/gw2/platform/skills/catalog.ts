@@ -1,9 +1,15 @@
+/**
+ * Canonical catalog assembly for profession-neutral skill metadata. This is the
+ * boundary where complete owner declarations become one validated immutable lookup.
+ */
 import { prepareCatalogActionRequirements } from '#gw2/platform/effects/action-declarations.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
-import { deriveAutoattackChains, indexAutoattackChains } from '#gw2/platform/skills/autoattack-chain-index.js';
+import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/specialization-data-types.js';
+import { indexAutoattackChains } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { professionProfileFields } from '#gw2/platform/skills/profile-fields.js';
 import { professionSkillFields } from '#gw2/platform/skills/shared-fields.js';
+import { normalizeSkillFlips, type SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js';
 import type {
   AutoattackChainPosition,
   BalanceProfile,
@@ -14,30 +20,18 @@ import type {
 } from '#gw2/platform/skills/types.js';
 import { normalizeSkill, validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
 
-/**
- * Canonical catalog assembly for profession-neutral skill metadata. This is the
- * boundary where generated API data, hand-authored mechanics, explicit
- * overrides, and resolver handlers become one validated immutable lookup.
- */
-
-/** Corrects derived catalog chains with authored additions and exclusions shared by module contributions. */
-export interface AutoattackChainOptions {
-  readonly additional?: readonly (readonly SkillId[])[];
-  readonly excludeSkillIds?: readonly SkillId[];
-}
+/** Ordered, explicit chain declarations; each skill belongs to at most one sequence. */
+export type AutoattackChains = readonly (readonly SkillId[])[];
 
 interface CanonicalCatalogOptions<TSkill extends Skill> {
-  readonly generated?: readonly TSkill[];
-  readonly mechanics?: Readonly<Record<string, Partial<TSkill>>>;
-  readonly overrides?: Readonly<Record<string, Partial<TSkill>>>;
-  readonly extraSkills?: readonly TSkill[];
+  readonly skills?: readonly TSkill[];
   readonly balanceProfiles?: readonly BalanceProfile[];
-  readonly autoattackChains?: AutoattackChainOptions;
+  readonly autoattackChains?: AutoattackChains;
+  readonly skillFlips?: SkillFlips;
   readonly traits?: readonly CatalogEntity[];
-  readonly specializations?: readonly CatalogEntity[];
+  readonly specializations?: readonly Gw2SpecializationData[];
   readonly weapons?: readonly string[];
   readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
-  readonly skillNormalizer?: (skill: Partial<TSkill>) => Partial<TSkill>;
   /** Fields only this profession's code reads; the shared vocabulary is always included. */
   readonly skillFields?: FieldSpecs;
   readonly profileFields?: FieldSpecs;
@@ -49,39 +43,19 @@ interface NormalizedAutoattackChains {
 }
 
 /**
- * Discovers the catalog's normal weapon chains, applies the small number of
- * API-data corrections supplied by a profession, and creates the shared
- * per-skill position index used by runtime rules.
+ * Validates authored sequences and creates the position index used by runtime
+ * rules. Chain membership comes only from these declarations.
  */
 function normalizeAutoattackChains(
   skills: readonly Skill[],
-  options: AutoattackChainOptions = {}
+  declarations: AutoattackChains = []
 ): NormalizedAutoattackChains {
-  if (options == null || typeof options !== 'object' || Array.isArray(options)) {
-    throw new TypeError('Autoattack-chain options must be an object.');
+  if (!Array.isArray(declarations) || declarations.some((chain) => !Array.isArray(chain))) {
+    throw new TypeError('Autoattack chains must be an array of skill-ID arrays.');
   }
 
-  const additional = options.additional ?? [];
-  const excluded = options.excludeSkillIds ?? [];
-
-  if (!Array.isArray(additional) || !Array.isArray(excluded)) {
-    throw new TypeError('Autoattack-chain additions and exclusions must be arrays.');
-  }
-
-  const excludedIds = new Set(excluded.map(Number));
-  const chainSources: readonly (readonly SkillId[])[] = [
-    ...deriveAutoattackChains(skills), // derived from API data flip-skill links
-    ...additional // hand-authored corrections from the profession
-  ];
-  // Entire chains containing an excluded skill are dropped; partial chains would
-  // break the chain-step index and produce incorrect autoattack sequencing.
-  const chains = Object.freeze(
-    chainSources
-      .filter((chain) => !chain.some((skillId) => excludedIds.has(Number(skillId))))
-      .map((chain) => Object.freeze(chain.map(Number)))
-  );
-  // All chain members must exist in the skill list — a missing id means the API
-  // data and hand-authored corrections are out of sync.
+  const chains = Object.freeze(declarations.map((chain) => Object.freeze(chain.map(Number))));
+  // Every declared member must be a supported skill in this catalog.
   const skillIds = new Set(skills.map((skill) => skill.id));
   for (const chain of chains) {
     for (const skillId of chain) {
@@ -102,58 +76,38 @@ function normalizeAutoattackChains(
  * app adapters, preserving the owning profession's skill fields through normalization.
  */
 export function createCanonicalCatalog<TSkill extends Skill = Skill>({
-  generated = [],
-  mechanics = {},
-  overrides = {},
-  extraSkills = [],
+  skills: declared = [],
   balanceProfiles = [],
-  autoattackChains = {},
+  autoattackChains = [],
+  skillFlips = [],
   traits = [],
   specializations = [],
   weapons = [],
   weaponHands = {},
-  skillNormalizer,
   skillFields: professionFields,
   profileFields: professionProfileDeclarations
 }: CanonicalCatalogOptions<TSkill> = {}): Readonly<CanonicalCatalog<TSkill>> {
-  // Every merged skill, including patched replacements, is checked against this one profession-wide table.
+  // Every declared skill, including patched replacements, is checked against this one profession-wide table.
   const skillFields = professionSkillFields(professionFields);
   const profileFields = professionProfileFields(professionProfileDeclarations);
-  const declared = [...generated, ...extraSkills];
-  const declaredIds = new Set();
-  for (const skill of declared) {
-    if (declaredIds.has(skill.id)) {
-      throw new Error(`Duplicate skill id: ${skill.id}`);
-    }
-
-    declaredIds.add(skill.id);
-  }
-
-  const generatedById = new Map(generated.map((skill) => [skill.id, skill]));
-  const allIds = new Set([
-    ...generatedById.keys(),
-    ...Object.keys(mechanics).map(Number),
-    ...Object.keys(overrides).map(Number),
-    ...extraSkills.map((skill) => skill.id)
-  ]);
-  const normalizedSkills: TSkill[] = [...allIds].map((id) => {
-    // Merge priority (lowest → highest): generated API data → hand-authored mechanics
-    // → explicit overrides → extraSkills. Each layer shadows fields from the layer below.
-    const mergedSource = {
-      ...(generatedById.get(id) || {}),
-      ...(mechanics[id] || {}),
-      ...(overrides[id] || {}),
-      ...(extraSkills.find((candidate) => candidate.id === id) || {})
-    };
-    return normalizeSkill(id, mergedSource, skillNormalizer, skillFields);
-  });
+  const normalizedSkills = declared.map((skill) => normalizeSkill(skill, skillFields));
   const normalizedAutoattacks = normalizeAutoattackChains(normalizedSkills, autoattackChains);
+  const normalizedFlips = normalizeSkillFlips(normalizedSkills, skillFlips, normalizedAutoattacks.positions);
   // Inject chain position data (root id + step index) into each skill after the chain
   // index is built, since chains depend on the complete normalized skill list.
   const skills = normalizedSkills.map((skill) => {
     const position = normalizedAutoattacks.positions.get(Number(skill.id));
     return Object.freeze({
       ...skill,
+      // Explicit declarations supply the runtime flip identities.
+      flipSkillId: normalizedFlips.defaults.get(Number(skill.id)) ?? null,
+      flipParentId: normalizedFlips.parents.get(Number(skill.id)) ?? null,
+      ...(position
+        ? {
+            autoattack: skill.autoattack ?? true,
+            nextChainId: position.next
+          }
+        : {}),
       chainRoot: position?.root ?? null,
       // Public chain steps are one-based; the chain index owns the underlying position.
       chainStep: position ? position.index + 1 : null
@@ -209,6 +163,7 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
     balanceProfiles: Object.freeze(profiles),
     balanceProfilesById: new Map(profiles.map((profile) => [profile.id, profile])),
     autoattackChains: normalizedAutoattacks.chains,
+    skillFlips: normalizedFlips.flips,
     autoattackChainPositions: normalizedAutoattacks.positions,
     traits: Object.freeze(traits.map((trait) => Object.freeze({ ...trait }))),
     specializations: Object.freeze(specializations.map((specialization) => Object.freeze({ ...specialization }))),

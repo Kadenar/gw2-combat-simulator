@@ -30,7 +30,7 @@ const fixture = (effects, hooks = {}) =>
     id: 'damage-test',
     name: 'Damage test',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 991001,
           name: 'Measured',

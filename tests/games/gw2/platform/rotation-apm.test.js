@@ -12,12 +12,13 @@ import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // Minimal commands isolate input accounting from damage formulas and saved benchmark rotations.
 const catalog = createCanonicalCatalog({
-  generated: [
-    { id: 980001, name: 'Auto one', type: 'Weapon', slot: 'Weapon_1', nextChainId: 980002, castTimeMs: 1000 },
+  autoattackChains: [[980001, 980002]],
+  skills: [
+    { id: 980001, name: 'Auto one', type: 'Weapon', slot: 'Weapon_1', castTimeMs: 1000 },
     { id: 980002, name: 'Auto two', type: 'Weapon', slot: 'Weapon_1', castTimeMs: 1000 },
     { id: 980003, name: 'Replacement', slot: 'Weapon_1', castTimeMs: 600 },
     { id: 980004, name: 'Instant', castTimeMs: 0 },
-    { id: 980005, name: 'Ammo', castTimeMs: 0, ammo: 2, ammoRecharge: 10 },
+    { id: 980005, name: 'Ammo', castTimeMs: 0, ammo: 2, cooldown: 10 },
     { id: 980006, name: 'Swap', castTimeMs: 0, inputCategory: 'weapon-swap' },
     { id: 980007, name: 'Bar', castTimeMs: 0, inputCategory: 'bar-swap' },
     { id: 980009, name: 'Pet command', castTimeMs: 1000, independentCast: true },
@@ -201,10 +202,8 @@ test('canonical autoattack metadata covers kits, transformed bars and manual rep
   };
   for (const [name, [autos, manual]] of Object.entries(cases)) {
     const canonical = (await import(`#gw2/professions/${name}/catalog.js`))[`${name}Catalog`];
-    for (const id of autos)
-      assert.equal(isAutoattackSkill(canonical, canonical.skillsById.get(id)), true, `${name}: ${id}`);
-    for (const id of manual)
-      assert.equal(isAutoattackSkill(canonical, canonical.skillsById.get(id)), false, `${name}: ${id}`);
+    for (const id of autos) assert.equal(isAutoattackSkill(canonical.skillsById.get(id)), true, `${name}: ${id}`);
+    for (const id of manual) assert.equal(isAutoattackSkill(canonical.skillsById.get(id)), false, `${name}: ${id}`);
   }
 });
 

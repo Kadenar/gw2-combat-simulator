@@ -1,3 +1,7 @@
+/**
+ * Catalog skill, balance-profile, task, and lookup schemas so authored skill data stays independent of runtime
+ * implementations.
+ */
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
@@ -5,15 +9,53 @@ import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/specialization-data-types.js';
 import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
-
-/**
- * Catalog skill, balance-profile, task, and lookup schemas so authored skill data stays independent of runtime
- * implementations.
- */
+import type { SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js';
 
 export type SkillId = string | number;
+
+/** One authored family shared by profession mechanics, relics, and presentation. */
+export type SkillFamily =
+  | 'Arcane'
+  | 'Attunement'
+  | 'Augment'
+  | 'Cantrip'
+  | 'Chant'
+  | 'Command'
+  | 'Conjure'
+  | 'Corruption'
+  | 'Deception'
+  | 'Dodge'
+  | 'Elixir'
+  | 'Familiar'
+  | 'Gadget'
+  | 'Glyph'
+  | 'Jade Sphere'
+  | 'Mantra'
+  | 'Mark'
+  | 'Meditation'
+  | 'Physical'
+  | 'Rage'
+  | 'Shout'
+  | 'Signet'
+  | 'SpiritWeapon'
+  | 'Stance'
+  | 'Trait'
+  | 'Trap'
+  | 'Weapon skill'
+  | 'Well';
+
+/** The map, module, and explicit chain/flip declarations supply these fields during catalog assembly. */
+type AssembledSkillField =
+  'id' | 'specialization' | 'chainRoot' | 'chainStep' | 'nextChainId' | 'flipSkillId' | 'flipParentId';
+
+/** Keyed owner entries carry presentation and behavior, without authoring fields supplied by assembly. */
+export type SkillDefinition<TSkill extends Skill = Skill> = Partial<TSkill> &
+  Required<Pick<TSkill, 'name' | 'description' | 'icon'>> & {
+    readonly [TField in AssembledSkillField]?: never;
+  };
 
 type SkillInterruptMode = 'commit' | 'per-packet';
 
@@ -49,7 +91,7 @@ export interface Skill extends CatalogEntity {
   readonly modifiers?: readonly SkillDamageModifier[];
   /** Identity-only tombstones scoped to this skill in its selected catalog. */
   readonly removedEffectKeys?: readonly string[];
-  /** Explicit classification when absent from the chain index, or when a manual follow-up reuses that index. */
+  /** Input classification; explicit chains supply true unless a manual sequence declares false. */
   readonly autoattack?: boolean;
   /** Explicit control for synthetic actions whose metadata has no physical bar slot. */
   readonly inputControl?: import('#gw2/platform/skills/input-controls.js').InputControlId;
@@ -130,7 +172,6 @@ export interface Skill extends CatalogEntity {
   /** Measures the Peitha impact delay from activation (default) or from the activation's cast end. */
   readonly peithaImpactAnchor?: 'castStart' | 'castEnd';
   readonly ammo?: number;
-  readonly ammoRecharge?: number;
   /** Minimum delay between consecutive casts of an ammo skill, in seconds. */
   readonly ammoCastLockout?: number;
   readonly defaultInterruptMs?: number;
@@ -155,7 +196,7 @@ export interface Skill extends CatalogEntity {
   readonly weaponBarChainRootId?: SkillId | null;
   readonly weaponBarChainStep?: number | null;
   readonly tags?: readonly string[];
-  readonly categories?: readonly string[];
+  readonly skillFamily?: SkillFamily;
   readonly resource?: unknown;
   /** Amount of the resource selected by the consuming profession mechanic. */
   readonly resourceGain?: number;
@@ -185,6 +226,7 @@ export interface Skill extends CatalogEntity {
  * Trait-owned balance data, using the same declarative effects as skills.
  */
 export interface BalanceProfile extends CatalogEntity {
+  readonly skillFamily?: SkillFamily;
   /** Fixed amounts keyed by canonical attribute, shared by preview, combat, and tooltips. */
   readonly attributeBonuses?: Skill['attributeBonuses'];
   /** Alternative or additional fixed grants selected by the owner's condition. */
@@ -276,9 +318,10 @@ export interface CanonicalCatalog<TSkill extends Skill = Skill> {
   readonly balanceProfiles: readonly BalanceProfile[];
   readonly balanceProfilesById: ReadonlyMap<SkillId, BalanceProfile>;
   readonly autoattackChains: readonly (readonly number[])[];
+  readonly skillFlips: SkillFlips;
   readonly autoattackChainPositions: ReadonlyMap<number, AutoattackChainPosition>;
   readonly traits: readonly CatalogEntity[];
-  readonly specializations: readonly CatalogEntity[];
+  readonly specializations: readonly Gw2SpecializationData[];
   readonly weapons: ReadonlySet<string>;
   readonly weaponHands: ReadonlyMap<string, string>;
   readonly [field: string]: unknown;

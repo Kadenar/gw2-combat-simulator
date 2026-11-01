@@ -23,7 +23,7 @@ function reconstructMantraCharges(
   if (!normal || !final || !prepare) return context.recordedActions;
 
   // Assume continuous Alacrity for simulation imports when inferring charge recovery and final-charge rearming.
-  const chargeMs = (Number(normal.ammoRecharge) * 1000) / 1.25;
+  const chargeMs = (Number(normal.cooldown) * 1000) / 1.25;
   const rearmMs = (Number(prepare.cooldown) * 1000) / 1.25;
 
   if (!(chargeMs > 0 && rearmMs >= 2 * chargeMs && Number(normal.ammo) === 3)) return context.recordedActions;

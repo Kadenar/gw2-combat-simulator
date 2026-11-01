@@ -35,14 +35,12 @@ const ECHO_EXPIRY = 'revenant.herald-echo-expiry';
 
 /** Owns Core Value tuning and behavior at its established execution boundaries. */
 const coreValue = defineTrait({
-  name: 'Core Value',
   id: TRAIT.CORE_VALUE,
   balance: { duration: 1 }
 });
 
 /** Retain consumed facets while allowing each facet's bonus to be tuned independently. */
 export const draconicEcho = defineTrait({
-  name: 'Draconic Echo',
   id: TRAIT.DRACONIC_ECHO,
   balance: {
     duration: 6,
@@ -97,7 +95,6 @@ export const draconicEcho = defineTrait({
 
 /** Owns Elevated Compassion tuning and behavior at its established execution boundaries. */
 const elevatedCompassion = defineTrait({
-  name: 'Elevated Compassion',
   id: TRAIT.ELEVATED_COMPASSION,
   balance: {
     attributeConversion: 0.13,
@@ -132,7 +129,6 @@ const elevatedCompassion = defineTrait({
 
 /** Owns Forceful Persistence tuning and behavior at its established execution boundaries. */
 const forcefulPersistence = defineTrait({
-  name: 'Forceful Persistence',
   id: TRAIT.FORCEFUL_PERSISTENCE,
   balance: { damageIncreasePerStack: 0.1, upkeepDamageIncrease: 0.25 },
   modifierRules: [
@@ -162,7 +158,6 @@ const forcefulPersistence = defineTrait({
 
 /** Owns Reinforced Potency tuning and behavior at its established execution boundaries. */
 const reinforcedPotency = defineTrait({
-  name: 'Reinforced Potency',
   id: TRAIT.REINFORCED_POTENCY,
   balance: {
     damagePerBoon: 0.01,
@@ -194,7 +189,6 @@ const reinforcedPotency = defineTrait({
 
 /** Owns Shared Empowerment tuning and behavior at its established execution boundaries. */
 const sharedEmpowerment = defineTrait({
-  name: 'Shared Empowerment',
   id: TRAIT.SHARED_EMPOWERMENT,
   balance: {
     description: 'Applying a boon to an ally grants nearby allies one stack of might.',

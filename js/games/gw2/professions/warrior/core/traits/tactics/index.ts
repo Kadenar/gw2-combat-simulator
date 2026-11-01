@@ -29,7 +29,6 @@ import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Convert Power to Healing Power once, preserving the build's existing conversion pool. */
 export const vigorousShouts = defineTrait({
-  name: 'Vigorous Shouts',
   id: TRAIT.VIGOROUS_SHOUTS,
   balance: { attributeConversion: 0.13 },
   attributes: traitAttributeEffects(TRAIT.VIGOROUS_SHOUTS, [
@@ -46,7 +45,6 @@ export const vigorousShouts = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const legSpecialist = defineTrait({
-  name: 'Leg Specialist',
   id: TRAIT.LEG_SPECIALIST,
   balance: {
     damageMultiplier: 1.05,
@@ -81,7 +79,6 @@ export const legSpecialist = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const marchingOrders = defineTrait({
-  name: 'Marching Orders',
   id: TRAIT.MARCHING_ORDERS,
   balance: {
     internalCooldown: 10,
@@ -96,7 +93,6 @@ export const marchingOrders = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const soldiersComfort = defineTrait({
-  name: "Soldier's Comfort",
   id: TRAIT.SOLDIERS_COMFORT,
   balance: {
     effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 4 }]
@@ -111,7 +107,6 @@ export const soldiersComfort = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const martialCadence = defineTrait({
-  name: 'Martial Cadence',
   id: TRAIT.MARTIAL_CADENCE,
   balance: {
     effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
@@ -138,7 +133,6 @@ const empowerAlliesPassive = definePeriodicTask<WarriorRuntime>({
 
 /** Owns this trait's tuning and selected contributions. */
 export const empowerAllies = defineTrait({
-  name: 'Empower Allies',
   id: TRAIT.EMPOWER_ALLIES,
   balance: {
     pulseInterval: 10,
@@ -150,7 +144,6 @@ export const empowerAllies = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const roaringReveille = defineTrait({
-  name: 'Roaring Reveille',
   id: TRAIT.ROARING_REVEILLE,
   balance: {
     attributeBonuses: { concentration: 120 }
@@ -172,7 +165,6 @@ export const roaringReveille = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const empowered = defineTrait({
-  name: 'Empowered',
   id: TRAIT.EMPOWERED,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
@@ -194,7 +186,6 @@ export const empowered = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const warriorsCunning = defineTrait({
-  name: "Warrior's Cunning",
   id: TRAIT.WARRIORS_CUNNING,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.25, threshold: 0.8 },

@@ -8,7 +8,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import {
@@ -163,9 +163,15 @@ export function cleanseHexEater(runtime: RevenantRuntime, cast: RuntimeCast<Reve
 }
 
 // Align measured impacts and their attached effects on the nearest 40 ms action tick.
-export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // The selected follow-up owns its payload and charge budget; the main button retains the activation identity.
   [ID.BEGUILING_HAZE_FOLLOW_UP]: {
+    name: 'Beguiling Haze (Follow-Up)',
+    description: 'Use a remaining Beguiling Haze charge to strike your target without spending energy.',
+    icon: 'https://render.guildwars2.com/file/93F823A8E8CD7EA9E579D1A8E32505D5DEB9DD53/3680203.png',
+    type: 'Action',
+    slot: 'Action',
+
     // Recorded follow-up segments replay through the same player button and shared charge pool.
     parentId: ID.BEGUILING_HAZE,
     simulatorExcluded: true,
@@ -187,6 +193,12 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   // The land button composes its shared strike with the equipped legend's resonance effects.
   [ID.TWIN_MOON_SWEEP]: {
+    name: 'Twin Moon Sweep',
+    description:
+      'Spawn a Fragment of Razah at your targeted location. Both you and the fragment attack with a scythe, damaging and inflicting conditions on foes at your locations. Gain might for each enemy struck.\n\nResonance. This skill gains bonus effects depending on the legend equipped in the other slot.',
+    icon: 'https://render.guildwars2.com/file/7092333DE604FB98B3DEF024E01ABDCFFD967DDA/3680198.png',
+    type: 'Elite',
+    slot: 'Elite',
     cooldown: 3,
     energyCost: 25,
     affinityOnHit: true,
@@ -275,6 +287,12 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
   },
   // The land button selects its opening or follow-up payload from the current charge state.
   [ID.BEGUILING_HAZE]: {
+    name: 'Beguiling Haze',
+    description:
+      'Send an unblockable fragment of Razah toward the targeted area. When the fragment reaches its target, shadowstep to its position, dealing damage to enemies in the area. If it hits, you can use this skill up to two more times with no energy cost or casting time.\n\nResonance. If Legendary Assassin Stance is equipped, this skill deals additional damage and removes boons if only one enemy was struck by this attack.',
+    icon: 'https://render.guildwars2.com/file/93F823A8E8CD7EA9E579D1A8E32505D5DEB9DD53/3680203.png',
+    type: 'Utility',
+    slot: 'Utility',
     // Relic of Peitha impacts 320 ms after the strike, which lands 40 ms before either variant's cast end.
     shadowstepSkill: true,
     peithaImpactAnchor: 'castEnd',
@@ -282,7 +300,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     cooldown: 10,
     ammoCastLockout: 0,
     ammo: 1,
-    ammoRecharge: 10,
+
     energyCost: 20,
     legendId: 'LegendaryEntity',
     // The 280 ms launch and 240 ms teleport form one main cast; impact precedes completion by one action tick.
@@ -316,6 +334,12 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.HEX_EATER_VORTEX]: {
+    name: 'Hex-Eater Vortex',
+    description:
+      'Remove conditions on yourself, then fire projectiles that inflict conditions at random enemies within your radius, based on the number of conditions removed. \n\nResonance. If Legendary Demon Stance is equipped, the maximum number of projectiles is always fired regardless of conditions removed, and all projectiles are fired at the closest enemy instead.',
+    icon: 'https://render.guildwars2.com/file/B12634A1D7E5E3A725B6EED5ED13E0482908FE26/3680205.png',
+    type: 'Utility',
+    slot: 'Utility',
     cooldown: 5,
     energyCost: 15,
     legendId: 'LegendaryEntity',
@@ -357,6 +381,12 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     ]
   },
   [ID.GLADIATORS_DEFENSE]: {
+    name: "Gladiator's Defense",
+    description:
+      'Break out of stun, damaging and weakening enemies close to you. Gain boons if this skill strikes at least one enemy. Remove additional energy if this skill was used to break a stun. \n\nResonance. If Legendary Dwarf Stance is equipped, the additional energy cost for breaking stuns is reduced, and the boons are also granted to allies in a radius around you.',
+    icon: 'https://render.guildwars2.com/file/0C0B690F1C692AA93DCDEB97B2F2CBDD06C3ECB3/3680204.png',
+    type: 'Utility',
+    slot: 'Utility',
     cooldown: 5,
     energyCost: 10,
     legendId: 'LegendaryEntity',
@@ -399,6 +429,11 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, Partial<Ski
     sideEffects: [{ on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }]
   },
   [ID.LEGENDARY_ENTITY_STANCE]: {
+    name: 'Legendary Entity Stance',
+    description: 'Invoke the power of the legendary entity of the Mists, Razah.',
+    icon: 'https://render.guildwars2.com/file/3FEE4B97282956F1F3654BE36119A0030E08C1D7/3680200.png',
+    type: 'Profession',
+    slot: 'Profession_1',
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 0,

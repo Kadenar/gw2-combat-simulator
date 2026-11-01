@@ -115,13 +115,13 @@ test('Jacaranda Photosynthesize resolves to a companion skill outside and inside
     assert.ok(pet, specialization);
     assert.equal(pet.petSkill, true);
     assert.equal(pet.petAutonomousSkill, true);
-    assert.equal(pet.beastmodeSkill, false);
+    assert.equal(!!pet.beastmodeSkill, false);
     assert.equal(pet.rechargeBuffAudience, RECIPIENT.SUMMONS);
     const merged = catalog.skillsById.get(ID.PHOTOSYNTHESIZE);
 
     if (specialization === 'Soulbeast') {
       assert.ok(merged);
-      assert.equal(merged.petSkill, false);
+      assert.equal(!!merged.petSkill, false);
       assert.equal(merged.beastmodeSkill, true);
       assert.notEqual(pet.id, merged.id);
     } else {

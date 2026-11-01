@@ -30,7 +30,7 @@ import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromance
 import { necromancerStrike } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import type { TasteForBloodGrant } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import { TRAITS as NECROMANCER_TRAITS } from '#gw2/professions/necromancer/data/traits-data.js';
+import { TRAIT_LINES } from '#gw2/professions/necromancer/data/trait-lines.js';
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
@@ -41,7 +41,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Grant Last Rites' full-health Healing Power once in either build or raw runtime attributes. */
 export const lastRites = defineTrait({
-  name: 'Last Rites',
   id: TRAIT.LAST_RITES,
   balance: { attributeBonuses: { healingPower: 150 } },
   attributes: traitAttributeEffects(TRAIT.LAST_RITES, [{ kind: 'flat', to: 'Healing Power', feedsConversions: 'all' }])
@@ -49,7 +48,6 @@ export const lastRites = defineTrait({
 
 /** Owns Vampiric tuning and behavior at its existing execution boundaries. */
 export const vampiric = defineTrait({
-  name: 'Vampiric',
   id: TRAIT.VAMPIRIC,
   balance: {
     effects: [
@@ -91,7 +89,6 @@ export const vampiric = defineTrait({
 
 /** Owns Vampiric Presence tuning and behavior at its existing execution boundaries. */
 export const vampiricPresence = defineTrait({
-  name: 'Vampiric Presence',
   id: TRAIT.VAMPIRIC_PRESENCE,
   balance: {
     cooldown: 0.5,
@@ -137,7 +134,6 @@ export const vampiricPresence = defineTrait({
 
 /** Owns Overflowing Thirst tuning and behavior at its existing execution boundaries. */
 export const overflowingThirst = defineTrait({
-  name: 'Overflowing Thirst',
   id: TRAIT.OVERFLOWING_THIRST,
   balance: {
     minimumStacks: 1,
@@ -180,7 +176,6 @@ export const overflowingThirst = defineTrait({
 
 /** Owns Transfusion tuning and behavior at its existing execution boundaries. */
 export const transfusion = defineTrait({
-  name: 'Transfusion',
   id: TRAIT.TRANSFUSION,
   triggers: [
     { order: 2, on: 'castCommit', when: (_runtime, cast) => cast.skill.shroudSlot === 4, invoke: ID.LESSER_CHILBLAINS }
@@ -189,7 +184,6 @@ export const transfusion = defineTrait({
 
 /** A completed combat dodge triggers its mark at the landing position, without an internal cooldown. */
 export const markOfEvasion = defineTrait({
-  name: 'Mark of Evasion',
   id: TRAIT.MARK_OF_EVASION,
   triggers: [
     {
@@ -202,7 +196,6 @@ export const markOfEvasion = defineTrait({
 
 /** Extend the swarm and its swiftness while increasing siphon base damage, leaving Power scaling unchanged. */
 export const bansheesWail = defineTrait({
-  name: "Banshee's Wail",
   id: TRAIT.BANSHEES_WAIL,
   balance: { pulseInterval: 0.5, durationMultiplier: 1.5 },
   hooks: {
@@ -282,7 +275,8 @@ function queueBloodMagicLifeSteal(
 
 // Both packet variants explicitly use the granting trait's artwork so the
 // minion variant cannot fall back to the icon of the attack that triggered it.
-const VAMPIRIC_ICON = NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.VAMPIRIC)?.icon || '';
+const BLOOD_MAGIC = TRAIT_LINES.find((specialization) => specialization.name === 'Blood Magic')!;
+const VAMPIRIC_ICON = BLOOD_MAGIC.minorTraits.find((trait) => trait.id === TRAIT.VAMPIRIC)!.icon;
 
 /** Applies Vampiric to qualifying player, minion, and Ritualist spirit strikes. */
 function applyVampiric(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
@@ -430,7 +424,9 @@ function addTasteForBloodApplication(
 
 // Trait-derived Taste for Blood packets and proc markers keep Overflowing
 // Thirst artwork so attribution matches the mechanic that granted the stacks.
-const OVERFLOWING_THIRST_ICON = NECROMANCER_TRAITS.find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)?.icon || '';
+const OVERFLOWING_THIRST_ICON = BLOOD_MAGIC.majorTraits
+  .flat()
+  .find((trait) => trait.id === TRAIT.OVERFLOWING_THIRST)!.icon;
 
 /**
  * Consumes a recipient charge as Taste for Blood's power-only life-steal packet. Charges exist only to deliver the

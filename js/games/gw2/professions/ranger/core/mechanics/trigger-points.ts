@@ -75,7 +75,7 @@ export const commandApplied = defineTriggerPoint<{ readonly skill: Pick<RangerSk
 
 /** Merged commands extend player boons without targeting an absent pet. */
 export const mergedCommandApplied = defineTriggerPoint<{
-  readonly skill: Pick<RangerSkill, 'id' | 'categories'>;
+  readonly skill: Pick<RangerSkill, 'id' | 'skillFamily'>;
   readonly at: number;
 }>('ranger.merged-command-applied', [TRAIT.RESOUNDING_TIMBRE]);
 

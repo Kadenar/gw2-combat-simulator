@@ -6,7 +6,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { revenantEnduranceRate } from '#gw2/professions/revenant/core/mechanics/resources.js';
-import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/supplemental-skills.js';
+import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-scars.js';
 import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_SKILL_IDS as SKILL,

@@ -1,12 +1,21 @@
 /** Core Warrior spear packets use nearest-40 ms offsets to remove false timing precision. */
 import { COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
-export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.MIGHTY_THROW]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Mighty Throw',
+    description:
+      'Throw a spear at your enemy that shatters on contact, scattering shards that damage enemies around the initial target.',
+    icon: 'https://render.guildwars2.com/file/F02129C7049F590E00BB7B09EDC1B258655D9459/3379199.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 640,
     interruptMode: 'commit',
     // Once the throw commits, its effects survive interruption.
@@ -35,6 +44,14 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.MAIMING_SPEAR]: {
+    name: 'Maiming Spear',
+    description:
+      'Throw your spear at a targeted location, damaging and inflicting conditions on opponents in the area and causing an aftershock after a short delay. The aftershock deals more damage to the opponent closest to the epicenter.',
+    icon: 'https://render.guildwars2.com/file/AB9C0E53733CDA025F4B7EB813C8AEF932F4E74F/3379200.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_2',
+    cooldown: 5,
     castTimeMs: 480,
     interruptMode: 'commit',
     // Committed throws preserve their effects and hold the cast lane through the remaining animation.
@@ -82,6 +99,14 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.DISRUPTING_THROW]: {
+    name: 'Disrupting Throw',
+    description:
+      'Throw a spear that pierces foes in a line, immobilizing them. The first enemy struck by this skill is additionally dazed.',
+    icon: 'https://render.guildwars2.com/file/6AC359F6D6C8D8F11372EE01FBB09D9CE25D767D/3379202.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_3',
+    cooldown: 10,
     castTimeMs: 520,
     interruptMode: 'commit',
     // Committed throws preserve their effects and hold the cast lane through the remaining animation.
@@ -114,6 +139,14 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.SPEARMARSHALS_SUPPORT]: {
+    name: "Spearmarshal's Support",
+    description:
+      'Mark a single target; after a short delay, bombard the area with spears that deal more damage to the marked target and continue to track their location.',
+    icon: 'https://render.guildwars2.com/file/43132DEC934F072272F14B19FC03FB62111502FB/3379203.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_4',
+    cooldown: 15,
     castTimeMs: 520,
     interruptMode: 'commit',
     // Once support commits, its delayed strikes survive interruption.
@@ -136,6 +169,14 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Part
     ])
   },
   [ID.SPEAR_SWIPE]: {
+    name: 'Spear Swipe',
+    description:
+      'Jump up and evade attacks, then swipe forward, sending a wave of air in front of you that pushes you backward, knocks enemies back, and reflects projectiles. The first enemy struck is launched instead of knocked back. Evading an attack reduces the cooldown of this skill.',
+    icon: 'https://render.guildwars2.com/file/EB6D03527064DF984CA10F08426765070948A9E3/3379201.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_5',
+    cooldown: 20,
     // Movement classification drives completed Brave Stride rewards.
     movementSkill: true,
     castTimeMs: 1240,

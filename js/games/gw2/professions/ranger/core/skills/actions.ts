@@ -20,18 +20,17 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
   }),
   {
     name: 'Swap Pets',
+    description: 'Swap your active pet and trigger pet-swap traits.',
+    icon: WEAPON_SWAP_ICON,
     id: ID.PET_SWAP,
     // Pet swapping occupies the fourth profession control on the active pet bar.
     inputControl: 'profession-4',
-    description: 'Swap your active pet and trigger pet-swap traits.',
-    icon: WEAPON_SWAP_ICON,
     type: 'Action',
-    weapon: '',
+
     slot: 'Action',
     rechargeAnchor: 'castStart',
     cooldown: 20,
     castTimeMs: 0,
-
     effects: [],
     // Publish the new pet generation before shared pet-swap observers execute.
     sideEffects: [{ on: 'castCommit', do: { type: 'ranger.swap-pets' } }]

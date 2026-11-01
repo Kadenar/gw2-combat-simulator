@@ -136,10 +136,7 @@ test('Warrior catalog normalizes authored skills and reviewed aliases', () => {
     warriorCatalog.skills.every((skill) => !Object.hasOwn(skill, 'recharge')),
     true
   );
-  const authoredSkills = warriorNativeModules.flatMap((module) => [
-    ...Object.values(module.data.skillMechanics || {}),
-    ...(module.data.extraSkills || [])
-  ]);
+  const authoredSkills = warriorNativeModules.flatMap((module) => [...(module.data.skills || [])]);
 
   assert.equal(
     authoredSkills.every((skill) => !Object.hasOwn(skill, 'recharge')),
@@ -1019,7 +1016,7 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
   const mending = warriorCatalog.skillsById.get(ID.MENDING);
 
   assert.equal(mending.cooldown, 12);
-  assert.equal(mending.categories.includes('Physical'), true);
+  assert.equal(mending?.skillFamily === 'Physical', true);
   const mendingProc = simulate('Core', ['Mending'], {
     selectedTraitIds: [TRAIT.PEAK_PERFORMANCE],
     boons: { quickness: true }

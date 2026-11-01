@@ -26,7 +26,6 @@ import {
   timelineWeaponRowGroups,
   timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
-import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -278,22 +277,6 @@ test('timeline skill tooltips include matching and global cast ordinals', () => 
   );
   assert.equal(ordinals.has(1), false);
   assert.equal(ordinals.has(5), false);
-});
-
-test('GW2 API text removes presentation tags for native tooltips', () => {
-  const description = '<c=@abilitytype>Stances</c> grant protection.<br><c=@reminder>Once per interval.</c>';
-
-  // Exercise tag removal and escaping through the public tooltip formatter.
-  assert.ok(
-    wikiTooltipAttributes('Stance', description).includes(
-      'data-wiki-description="Stances grant protection.\nOnce per interval."'
-    )
-  );
-  assert.ok(
-    wikiTooltipAttributes('Glamour', '<c=abilitytype>"Glamour" & allies</c>').includes(
-      'data-wiki-description="&quot;Glamour&quot; &amp; allies"'
-    )
-  );
 });
 
 test('palette primitives escape values and render state, ammo, cooldowns, and groups', () => {

@@ -1,6 +1,6 @@
 /**
  * Owns Necromancer sword autoattack-chain retention and expiry scheduling.
- * Sword skill fragments remain in `skills/weapons/sword.ts`; the profession observes shared chain transitions here.
+ * Sword skill definitions remain in `skills/weapons/sword.ts`; the profession observes shared chain transitions here.
  */
 
 import {

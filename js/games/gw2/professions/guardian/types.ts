@@ -86,6 +86,8 @@ export interface GuardianSkill
     NumericSkillFields<typeof GUARDIAN_CORE_SKILL_FIELDS>,
     NumericSkillFields<typeof FIREBRAND_SKILL_FIELDS> {
   readonly radiantForgeSkill?: boolean;
+  /** Identifies the actual virtue activation; follow-ups and proc identities leave this absent. */
+  readonly virtue?: GuardianVirtue;
   readonly radiantWeapon?: string;
   readonly tome?: string;
 }

@@ -10,7 +10,7 @@ import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // The pilot owns its hooks directly; none of the production scheduler/resolver state factories are installed.
 const catalog = createCanonicalCatalog({
-  generated: [
+  skills: [
     {
       id: 990001,
       name: 'Cast',
@@ -29,7 +29,7 @@ const catalog = createCanonicalCatalog({
       castTimeMs: 0,
       effects: [{ type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 }]
     },
-    { id: 990007, name: 'Ammo', castTimeMs: 0, ammo: 2, ammoRecharge: 2, ammoCastLockout: 0.5, effects: [] },
+    { id: 990007, name: 'Ammo', castTimeMs: 0, ammo: 2, cooldown: 2, ammoCastLockout: 0.5, effects: [] },
     { id: 990008, name: 'Strike', weapon: 'Sword', castTimeMs: 0, effects: [{ type: 'strike', coefficient: 1 }] },
     {
       id: 990009,
@@ -79,7 +79,7 @@ test('shared lockout deadlines retry at the next absolute action tick', () => {
     effects: [],
     lockouts: [{ group: 'test', durationMs: 50 }]
   };
-  const profession = { ...fixture(), catalog: createCanonicalCatalog({ generated: [skill] }) };
+  const profession = { ...fixture(), catalog: createCanonicalCatalog({ skills: [skill] }) };
   const result = observeGw2Runtime({ profession, config, rotation: [wait(1360), cast(skill.id), cast(skill.id)] });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps.findLast((step) => step.skillId === skill.id).start, 1440);
@@ -577,7 +577,7 @@ test('cast tasks detach snapshots, retain catalog callbacks, and preserve priori
   const seen = [];
   let accepted;
   const taskCatalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 990021,
         name: 'Callback skill',

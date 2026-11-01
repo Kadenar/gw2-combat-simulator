@@ -15,7 +15,7 @@ function captureFixture() {
     id: 'effect-capture',
     name: 'Effect capture',
     catalog: createCanonicalCatalog({
-      generated: [{ id: 990101, name: 'Grant', castTimeMs: 0, effects: [] }]
+      skills: [{ id: 990101, name: 'Grant', castTimeMs: 0, effects: [] }]
     }),
     hooks: {
       initialize(runtime) {

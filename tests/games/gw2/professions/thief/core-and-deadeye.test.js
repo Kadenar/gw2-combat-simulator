@@ -16,13 +16,12 @@ import { thiefWeaponSkillMatchesSet } from '#gw2/professions/thief/build/weapon-
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { thiefBonusStealthAttack } from '#gw2/professions/thief/core/mechanics/stealth.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { THIEF_SUPPLEMENTAL_SKILLS } from '#gw2/professions/thief/data/thief-supplemental-skills.js';
+import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/data/stolen-skills.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
 import { daredevilModule } from '#gw2/professions/thief/specializations/daredevil/module.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
 import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
-import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/specializations/deadeye/skills/stolen-skills.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import {
   createObservedProfessionSimulator,
@@ -305,12 +304,6 @@ test('Thief catalog retains valid effect schemas and skill metadata', () => {
     }
   }
 
-  assert.ok(
-    THIEF_SUPPLEMENTAL_SKILLS.every(
-      (skill) =>
-        !Object.hasOwn(skill, 'effects') && !Object.hasOwn(skill, 'cooldown') && !Object.hasOwn(skill, 'recharge')
-    )
-  );
   assert.ok(
     thiefCatalog.skills
       .filter((skill) => skill.type === 'Weapon')
@@ -1549,5 +1542,42 @@ test('Deadeye stolen effects capture malice and preserve party audience and Reve
         }
       }
     }
+  }
+});
+
+// Trait admission must retain empty-offhand dual attacks and the newer weapon-pair attacks.
+test('Deadly Ambition uses explicit dual-attack eligibility across weapon variants', () => {
+  for (const [skillId, expected] of [
+    [13110, true],
+    [13111, true],
+    [13112, true],
+    [71864, true],
+    [71965, true],
+    [80244, true],
+    [ID.DOUBLE_STRIKE, false]
+  ]) {
+    const skill = thiefCatalog.skillsById.get(skillId);
+    const result = runThief(
+      [{ type: 'wait', durationMs: 500 }],
+      { selectedTraitIds: [TRAIT.DEADLY_AMBITION] },
+      {
+        timeline: [
+          {
+            at: 0.1,
+            run(runtime) {
+              runtime.effects.emit({
+                kind: 'packet',
+                event: thiefHit(runtime.time, { skillId, sourceId: skillId, skillName: skill.name })
+              });
+            }
+          }
+        ]
+      }
+    );
+    assert.equal(
+      result.resolvedEvents.some((event) => event.type === 'condition' && event.skillName === 'Deadly Ambition'),
+      expected,
+      skill.name
+    );
   }
 });

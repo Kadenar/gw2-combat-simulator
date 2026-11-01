@@ -274,20 +274,6 @@ export const outsideScopeTooltip = traitTooltip(
   "This trait is either outside the simulator's scope or has not been implemented yet. To request support for it, submit an issue."
 );
 
-/** A trait or skill can explicitly reference a mechanic profile when its payload has a separate catalog identity. */
-export function profileTooltip(
-  profileId: SkillId,
-  description: string,
-  facts: TooltipFacts<SkillId> = [],
-  qualifier = ''
-): DescribeSimulationTooltip {
-  return (context) => {
-    const effects = simulationEffectFacts(tooltipProfile(context, profileId).effects, qualifier);
-    const custom = typeof facts === 'function' ? facts(context, profileId) : resolveFacts(context, profileId, facts);
-    return { ...effects, description, facts: [...custom, ...effects.facts] };
-  };
-}
-
 /** Skill-specific wording can augment the selected skill's ordinary declarative payload. */
 export function skillTooltip(description: string, facts: TooltipFacts<Skill> = []): DescribeSimulationTooltip {
   return (context, entity) => {

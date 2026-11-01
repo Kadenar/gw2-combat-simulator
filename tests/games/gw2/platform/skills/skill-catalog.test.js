@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  deriveAutoattackChains,
-  indexAutoattackChains,
-  resolveAutoattackChainStep
-} from '#gw2/platform/skills/autoattack-chain-index.js';
+import { indexAutoattackChains, resolveAutoattackChainStep } from '#gw2/platform/skills/autoattack-chain-index.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { numberField } from '#gw2/platform/skills/field-specs.js';
 
@@ -13,7 +9,7 @@ test('fixed costs validate nonnegative finite amounts and reject competing selec
   // A fixed game rule must resolve unambiguously before a runtime can admit or spend it.
   const load = (amount, extra = {}) =>
     createCanonicalCatalog({
-      generated: [{ id: 1, name: 'Fixed cost', cost: { resource: 'endurance', amount, ...extra } }]
+      skills: [{ id: 1, name: 'Fixed cost', cost: { resource: 'endurance', amount, ...extra } }]
     });
   for (const amount of [0, 0.5, 50]) assert.doesNotThrow(() => load(amount));
   for (const amount of [-1, NaN, Infinity, '50']) assert.throws(() => load(amount), /invalid fixed cost/);
@@ -24,14 +20,8 @@ test('fixed costs validate nonnegative finite amounts and reject competing selec
   );
 });
 
-test('shared autoattack helpers derive and index ID-based chains', () => {
-  const chains = deriveAutoattackChains([
-    { id: 1, type: 'Weapon', slot: 'Weapon_1', nextChainId: 2 },
-    { id: 2, type: 'Weapon', slot: 'Weapon_1', nextChainId: 3 },
-    { id: 3, type: 'Weapon', slot: 'Weapon_1', nextChainId: null }
-  ]);
-
-  assert.deepEqual(chains, [[1, 2, 3]]);
+test('shared autoattack helpers index explicit ID-based chains', () => {
+  const chains = [[1, 2, 3]];
   assert.deepEqual(indexAutoattackChains(chains).get(2), {
     root: 1,
     index: 1,
@@ -57,7 +47,8 @@ test('shared autoattack helper resolves root and progressed chain expectations',
   assert.equal(resolveAutoattackChainStep(positions, { 1: 2 }, 99), null);
 });
 
-test('canonical catalogs own derived and exceptional autoattack chains', () => {
+// Authored sequences alone determine membership; previously derived links cannot silently introduce another chain.
+test('canonical catalogs own explicit weapon and transformed autoattack chains', () => {
   const skill = (id, nextChainId = null, type = 'Weapon') => ({
     id,
     name: `Skill ${id}`,
@@ -66,7 +57,7 @@ test('canonical catalogs own derived and exceptional autoattack chains', () => {
     nextChainId
   });
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       skill(1, 2),
       skill(2, 3),
       skill(3),
@@ -75,10 +66,10 @@ test('canonical catalogs own derived and exceptional autoattack chains', () => {
       skill(6, null, 'Profession'),
       skill(7, null, 'Profession')
     ],
-    autoattackChains: {
-      excludeSkillIds: [5],
-      additional: [[6, 7]]
-    }
+    autoattackChains: [
+      [1, 2, 3],
+      [6, 7]
+    ]
   });
 
   assert.deepEqual(catalog.autoattackChains, [
@@ -95,13 +86,71 @@ test('canonical catalogs own derived and exceptional autoattack chains', () => {
   assert.equal(catalog.skillsById.get(4).chainRoot, null);
   assert.equal(catalog.skillsById.get(5).chainStep, null);
   assert.equal(catalog.skillsById.get(7).chainRoot, 6);
+  for (const id of [1, 2, 3, 6, 7]) assert.equal(catalog.skillsById.get(id).autoattack, true);
+});
+
+test('explicit chain order replaces previously derived links and clears intra-chain flips', () => {
+  const catalog = createCanonicalCatalog({
+    skills: [
+      { id: 1, name: 'First', nextChainId: 3, flipSkillId: 2 },
+      { id: 2, name: 'Second', nextChainId: 1, flipParentId: 1 },
+      { id: 3, name: 'Last', nextChainId: 1, flipSkillId: 4 },
+      { id: 4, name: 'Separate flip', flipParentId: 3 }
+    ],
+    autoattackChains: [[1, 2, 3]],
+    skillFlips: [{ parentId: 3, followUpId: 4 }]
+  });
+  assert.equal(catalog.skillsById.get(1).nextChainId, 2);
+  assert.equal(catalog.skillsById.get(2).nextChainId, 3);
+  assert.equal(catalog.skillsById.get(3).nextChainId, null);
+  assert.equal(catalog.skillsById.get(1).flipSkillId, null);
+  assert.equal(catalog.skillsById.get(2).flipParentId, null);
+  assert.equal(catalog.skillsById.get(3).flipSkillId, 4);
+  assert.equal(catalog.skillsById.get(4).flipParentId, 3);
+});
+
+test('manual sequences retain their explicit input classification', () => {
+  const catalog = createCanonicalCatalog({
+    skills: [
+      { id: 1, name: 'Manual opener', autoattack: false },
+      { id: 2, name: 'Manual follow-up', autoattack: false }
+    ],
+    autoattackChains: [[1, 2]]
+  });
+  assert.equal(catalog.skillsById.get(1).autoattack, false);
+  assert.equal(catalog.skillsById.get(2).autoattack, false);
+  assert.equal(catalog.skillsById.get(2).chainRoot, 1);
+});
+
+test('catalogs reject malformed, overlapping, and missing chain declarations', () => {
+  const load = (autoattackChains) =>
+    createCanonicalCatalog({
+      skills: [1, 2, 3].map((id) => ({ id, name: `Skill ${id}` })),
+      autoattackChains
+    });
+  for (const value of [
+    null,
+    {},
+    [1, 2],
+    [[1]],
+    [
+      [1, 2],
+      [2, 3]
+    ],
+    [[1, 1]],
+    [[1, 99]]
+  ]) {
+    assert.throws(() => load(value), TypeError);
+  }
+
+  assert.deepEqual(load([]).autoattackChains, []);
 });
 
 // Reject malformed declarations before runtime execution can partially mutate combat state.
 test('catalogs validate side-effect payloads, amounts, and variant references', () => {
   const load = (extra) =>
     createCanonicalCatalog({
-      generated: [
+      skills: [
         { id: 1, name: 'Action', effects: [], ...extra },
         { id: 2, name: 'Ammo', ammo: 2, effects: [] }
       ],
@@ -173,7 +222,7 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
 test('resource grants validate current-skill amounts without accepting them for unrelated actions', () => {
   const load = (resourceGain, action) =>
     createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 1,
           name: 'Reward',
@@ -213,7 +262,7 @@ test('skill costs validate authored field selectors and reject competing amount 
   const load = (initiativeCost, cost = { resource: 'initiative', skillAmount: 'initiativeCost' }) =>
     createCanonicalCatalog({
       skillFields: { initiativeCost: numberField() },
-      generated: [{ id: 1, name: 'Paid', initiativeCost, cost }]
+      skills: [{ id: 1, name: 'Paid', initiativeCost, cost }]
     });
   for (const value of [0, 0.1, 4]) assert.doesNotThrow(() => load(value));
   for (const value of [undefined, -1, Infinity, NaN, '4']) assert.throws(() => load(value), TypeError);
@@ -232,7 +281,7 @@ test('skill costs validate authored field selectors and reject competing amount 
 
 // Aura declarations validate their name and duration as supported effects before any cast can apply them.
 test('skill aura effects accept only a canonical aura with a positive finite duration', () => {
-  const load = (aura) => createCanonicalCatalog({ generated: [{ id: 1, name: 'Aura', effects: aura ? [aura] : [] }] });
+  const load = (aura) => createCanonicalCatalog({ skills: [{ id: 1, name: 'Aura', effects: aura ? [aura] : [] }] });
   for (const aura of [
     undefined,
     { type: 'aura', aura: 'Fire Aura', duration: 4 },
@@ -254,12 +303,7 @@ test('skill aura effects accept only a canonical aura with a positive finite dur
 test('catalogs reject unsupported skill fields in every authoring layer', () => {
   const skill = { id: 1, name: 'Validation' };
   for (const field of ['retiredField', 'createsClone', 'flipDelay', 'aura']) {
-    for (const options of [
-      { generated: [{ ...skill, [field]: true }] },
-      { generated: [skill], mechanics: { 1: { [field]: true } } },
-      { generated: [skill], overrides: { 1: { [field]: true } } },
-      { extraSkills: [{ ...skill, [field]: true }] }
-    ])
+    for (const options of [{ skills: [{ ...skill, [field]: true }] }])
       assert.throws(() => createCanonicalCatalog(options), new RegExp(`unsupported field: ${field}`));
   }
 });

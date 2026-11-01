@@ -337,7 +337,7 @@ test('Primordial Stance variants share charges and count recharge', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(casts.length, 3);
   // The first two variants spend the shared pool; the third waits for a charge.
-  const recharge = (elementalistCatalog.skillsById.get(40183).ammoRecharge * 1000) / 1.25;
+  const recharge = (elementalistCatalog.skillsById.get(40183).cooldown * 1000) / 1.25;
   assert.ok(casts[1].start - casts[0].start < recharge);
   assert.ok(casts[2].start - casts[0].start >= recharge);
 });

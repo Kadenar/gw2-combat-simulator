@@ -1,13 +1,25 @@
-/** Canonical Core thief skill fragments grouped by their GW2 owner. */
+/** Canonical Core thief skill definitions grouped by their GW2 owner. */
 import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.HOOK_STRIKE]: {
+    name: 'Hook Strike',
+    description: 'Stealth Attack. Attack your foes with stealth, knocking enemies down.',
+    icon: 'https://render.guildwars2.com/file/24CD7E636FADCB6F0CFE07F0B0CA21010FD223E6/1058623.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_1',
+
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
     cooldown: 1,
     initiativeCost: 0,
     requiredMainHand: WEAPON.STAFF,
@@ -30,6 +42,19 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.STAFF_STRIKE]: {
+    name: 'Staff Strike',
+    description: 'Strike your enemies with your staff.',
+    icon: 'https://render.guildwars2.com/file/3BBEF12B9DA30A070D6D09B3946E279FC9505407/1058624.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_1',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     initiativeCost: 0,
     castTimeMs: 360,
@@ -45,6 +70,19 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.STAFF_BASH]: {
+    name: 'Staff Bash',
+    description: 'Swing your staff a second time, striking multiple enemies.',
+    icon: 'https://render.guildwars2.com/file/BD05C8AE68016991E7611C9407CF4B945BC431DA/1058621.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_1',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     initiativeCost: 0,
     castTimeMs: 360,
@@ -60,6 +98,19 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.PUNISHING_STRIKES]: {
+    name: 'Punishing Strikes',
+    description: 'Whirl your staff around, striking nearby enemies.',
+    icon: 'https://render.guildwars2.com/file/0A76E8D24BFC37B724150C071C5ABB44A553806C/1058622.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_1',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     initiativeCost: 0,
     castTimeMs: 760,
@@ -92,6 +143,18 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.WEAKENING_WHIRL]: {
+    name: 'Weakening Whirl',
+    description: 'Deliver multiple strikes, weakening foes.',
+    icon: 'https://render.guildwars2.com/file/EDBECD6ACE170F25312C15C3056006FA1170F654/1058625.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_2',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
     cooldown: 0,
     initiativeCost: 3,
     castTimeMs: 720,
@@ -122,6 +185,19 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.DEBILITATING_ARC]: {
+    name: 'Debilitating Arc',
+    description:
+      'Strike enemies in front of you and roll backward, breaking immobilizing effects. Gain access to Helmet Breaker.',
+    icon: 'https://render.guildwars2.com/file/5AC578E641FC79E9B2F11F43EAF857140F937CF3/1058626.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_3',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
     flipDuration: 3,
     cooldown: 0,
     initiativeCost: 3,
@@ -146,6 +222,18 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.HELMET_BREAKER } }]
   },
   [ID.HELMET_BREAKER]: {
+    name: 'Helmet Breaker',
+    description: 'Leap at your target with an overhead strike that dazes them.',
+    icon: 'https://render.guildwars2.com/file/682C0FBF776E555D24162043AE229FDC915DDD01/3199672.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_3',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
     cooldown: 0,
     initiativeCost: 1,
     castTimeMs: 360,
@@ -168,6 +256,19 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.HELMET_BREAKER } }]
   },
   [ID.DUST_STRIKE]: {
+    name: 'Dust Strike',
+    description:
+      'Spin your staff in the air, creating a vortex of dust around you that blinds enemies and reflects projectiles.',
+    icon: 'https://render.guildwars2.com/file/9F6C490726B9ED26C4CEC20A1825DC9A2C13E5A0/1058628.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_4',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
     cooldown: 0,
     initiativeCost: 4,
     castTimeMs: 520,
@@ -193,6 +294,18 @@ export const THIEF_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.VAULT]: {
+    name: 'Vault',
+    description: 'Leap toward your destination, damaging foes upon impact.',
+    icon: 'https://render.guildwars2.com/file/C0BF3D5A0CE30631EF8034597794C053696790EB/1058627.png',
+    type: 'Weapon',
+    weapon: 'Staff',
+    slot: 'Weapon_5',
+    cost: {
+      resource: 'initiative',
+      skillAmount: 'initiativeCost',
+      spendOn: 'castStart'
+    },
+
     // The leap is a movement skill for movement-triggered rewards.
     movementSkill: true,
     cooldown: 0,

@@ -43,7 +43,7 @@ function declaredBuckets(modules) {
     for (const trait of module.traitDefinitions ?? [])
       for (const rule of trait.modifierRules ?? []) {
         traitRuleIds.add(rule.id);
-        recordBuckets(traits, trait.name, rule);
+        recordBuckets(traits, trait.name ?? module.data.traits.find(({ id }) => id === trait.id).name, rule);
       }
 
   for (const module of modules)
@@ -174,7 +174,7 @@ const EXPECTED = {
       'Septic Corruption': { condition: 'additive' },
       'Soul Barbs': { strike: 'additive', condition: 'additive' },
       'Soul Eater': { strike: 'multiplier' },
-      "Spirits' Strength": { strike: 'multiplier' },
+      "Spirit's Strength": { strike: 'multiplier' },
       'Spiteful Talisman': { strike: 'multiplier' },
       'Wicked Corruption': { strike: 'additive' }
     },
@@ -200,7 +200,7 @@ const EXPECTED = {
       'Go for the Throat': { strike: 'multiplier' },
       'Hidden Barbs': { condition: 'multiplier' },
       "Hunter's Tactics": { strike: 'multiplier' },
-      'Light on Your Feet': { strike: 'multiplier' },
+      'Light on your Feet': { strike: 'multiplier' },
       'Loud Whistle': { strike: 'multiplier' },
       'Natural Balance': { condition: 'additive' },
       'Oppressive Superiority': { strike: 'multiplier' },

@@ -33,7 +33,6 @@ import type { WarriorResolverContext, WarriorRuntime, WarriorSkill } from '#gw2/
 
 /** Using a healing skill grants self boons even when the player is already at full health. */
 export const restorativeStrength = defineTrait({
-  name: 'Restorative Strength',
   id: TRAIT.RESTORATIVE_STRENGTH,
   balance: {
     effects: [
@@ -53,7 +52,6 @@ export const restorativeStrength = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const berserkersPower = defineTrait({
-  name: "Berserker's Power",
   id: TRAIT.BERSERKERS_POWER,
   balance: {
     // Damage, presentation, and tooltip consumers share this trait's balance values.
@@ -92,7 +90,6 @@ export const berserkersPower = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const recklessDodge = defineTrait({
-  name: 'Reckless Dodge',
   id: TRAIT.RECKLESS_DODGE,
   balance: {
     effects: [
@@ -124,7 +121,6 @@ export const recklessDodge = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const braveStride = defineTrait({
-  name: 'Brave Stride',
   id: TRAIT.BRAVE_STRIDE,
   balance: {
     resourceGain: 5,
@@ -139,7 +135,6 @@ export const braveStride = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const peakPerformance = defineTrait({
-  name: 'Peak Performance',
   id: TRAIT.PEAK_PERFORMANCE,
   balance: {
     baseBonus: 0.05,
@@ -170,7 +165,6 @@ export const peakPerformance = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const bodyBlow = defineTrait({
-  name: 'Body Blow',
   id: TRAIT.BODY_BLOW,
   balance: {
     effects: [
@@ -196,7 +190,6 @@ export const bodyBlow = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const aggressiveOnslaught = defineTrait({
-  name: 'Aggressive Onslaught',
   id: TRAIT.AGGRESSIVE_ONSLAUGHT,
   balance: {
     internalCooldown: 0.32,
@@ -217,7 +210,6 @@ export const aggressiveOnslaught = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const buildingMomentum = defineTrait({
-  name: 'Building Momentum',
   id: TRAIT.BUILDING_MOMENTUM,
   balance: {
     resourceGain: 15
@@ -227,7 +219,6 @@ export const buildingMomentum = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const pinnacleOfStrength = defineTrait({
-  name: 'Pinnacle of Strength',
   id: TRAIT.PINNACLE_OF_STRENGTH,
   balance: {
     criticalChance: 0.05,
@@ -264,7 +255,6 @@ export const pinnacleOfStrength = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const forcefulGreatsword = defineTrait({
-  name: 'Forceful Greatsword',
   id: TRAIT.FORCEFUL_GREATSWORD,
   balance: {
     rechargeMultiplier: 0.8,
@@ -318,7 +308,6 @@ export const forcefulGreatsword = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const greatFortitude = defineTrait({
-  name: 'Great Fortitude',
   id: TRAIT.GREAT_FORTITUDE,
   balance: {
     attributeConversion: 0.1
@@ -368,7 +357,7 @@ function peakPerformanceBuff(context: WarriorResolverContext, event: Gw2Resolver
 function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const skill = cast.skill;
 
-  if (!skill.categories?.includes('Physical')) return;
+  if (skill.skillFamily !== 'Physical') return;
 
   let at = cast.effectiveEnd;
 

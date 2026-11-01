@@ -26,7 +26,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns Furious Focus's live tuning and trait behavior. */
 export const furiousFocus = defineTrait({
-  name: 'Furious Focus',
   id: TRAIT.FURIOUS_FOCUS,
   balance: { damageIncrease: 0.1 },
   modifierRules: [
@@ -44,7 +43,6 @@ export const furiousFocus = defineTrait({
 
 /** Owns Symbolic Exposure's live tuning and trait behavior. */
 export const symbolicExposure = defineTrait({
-  name: 'Symbolic Exposure',
   id: TRAIT.SYMBOLIC_EXPOSURE,
   balance: {
     damageMultiplier: 1.05,
@@ -93,7 +91,6 @@ export const symbolicExposure = defineTrait({
 
 /** Owns Symbolic Avenger's live tuning and trait behavior. */
 export const symbolicAvenger = defineTrait({
-  name: 'Symbolic Avenger',
   id: TRAIT.SYMBOLIC_AVENGER,
   balance: {
     maximumDamageStacks: 5,
@@ -125,7 +122,6 @@ export const symbolicAvenger = defineTrait({
 
 /** Owns Zealot's Resolution's live tuning and trait behavior. */
 export const zealotsResolution = defineTrait({
-  name: "Zealot's Resolution",
   id: TRAIT.ZEALOTS_RESOLUTION,
   balance: { threshold: 0.25 },
   // The threshold-crossing symbol hit cannot trigger its own reward.
@@ -139,7 +135,6 @@ export const zealotsResolution = defineTrait({
 
 /** Owns Zealous Blade's live tuning and trait behavior. */
 export const zealousBlade = defineTrait({
-  name: 'Zealous Blade',
   id: TRAIT.ZEALOUS_BLADE,
   balance: {
     conditionalAttributeBonuses: { power: 240 },
@@ -181,7 +176,6 @@ export const zealousBlade = defineTrait({
 
 /** Owns Kindled Zeal's live tuning and trait behavior. */
 export const kindledZeal = defineTrait({
-  name: 'Kindled Zeal',
   id: TRAIT.KINDLED_ZEAL,
   balance: { attributeConversion: 0.1 },
   attributes: traitAttributeEffects(TRAIT.KINDLED_ZEAL, [
@@ -198,7 +192,6 @@ export const kindledZeal = defineTrait({
 
 /** Owns Eternal Armory's live tuning and trait behavior. */
 export const eternalArmory = defineTrait({
-  name: 'Eternal Armory',
   id: TRAIT.ETERNAL_ARMORY,
   balance: {
     resourceGain: 1
@@ -208,7 +201,6 @@ export const eternalArmory = defineTrait({
 
 /** Owns Fiery Wrath's live tuning and trait behavior. */
 export const fieryWrath = defineTrait({
-  name: 'Fiery Wrath',
   id: TRAIT.FIERY_WRATH,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.05 },
@@ -275,7 +267,7 @@ function placeZealotsResolutionSymbol(
 
 /** Spirit weapons gain their extra capacity before the runtime constructs ammunition pools. */
 function eternalArmoryMaximumAmmo(context: MaximumAmmoContext<object>, skill: Skill, maximum: number): number {
-  return skill.categories?.includes('SpiritWeapon') && context.hasTrait(TRAIT.ETERNAL_ARMORY)
+  return skill.skillFamily === 'SpiritWeapon' && context.hasTrait(TRAIT.ETERNAL_ARMORY)
     ? maximum + balanceProfileNumber(context.requireBalanceProfile(TRAIT.ETERNAL_ARMORY), 'resourceGain')
     : maximum;
 }

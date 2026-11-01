@@ -51,7 +51,6 @@ import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/prof
 
 /** Arcane definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const arcaneProwess = defineTrait({
-  name: 'Arcane Prowess',
   id: TRAIT.ARCANE_PROWESS,
   balance: {
     effects: [{ type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 1, duration: 8 }]
@@ -65,7 +64,6 @@ export const arcaneProwess = defineTrait({
 });
 
 export const arcanePrecision = defineTrait({
-  name: 'Arcane Precision',
   id: TRAIT.ARCANE_PRECISION,
   balance: {
     procChance: 0.33,
@@ -86,7 +84,6 @@ export const arcanePrecision = defineTrait({
 });
 
 export const renewingStamina = defineTrait({
-  name: 'Renewing Stamina',
   id: TRAIT.RENEWING_STAMINA,
   balance: {
     internalCooldown: 10,
@@ -101,7 +98,6 @@ export const renewingStamina = defineTrait({
 });
 
 export const elementalAttunement = defineTrait({
-  name: 'Elemental Attunement',
   id: TRAIT.ELEMENTAL_ATTUNEMENT,
   balance: {
     effects: [
@@ -154,7 +150,6 @@ export const elementalAttunement = defineTrait({
 });
 
 export const elementalLockdown = defineTrait({
-  name: 'Elemental Lockdown',
   id: TRAIT.ELEMENTAL_LOCKDOWN,
   balance: {
     internalCooldown: 1,
@@ -173,7 +168,6 @@ export const elementalLockdown = defineTrait({
 });
 
 export const elementalEnchantment = defineTrait({
-  name: 'Elemental Enchantment',
   id: TRAIT.ELEMENTAL_ENCHANTMENT,
   balance: {
     attributeBonuses: { concentration: 180 },
@@ -191,14 +185,12 @@ export const elementalEnchantment = defineTrait({
 });
 
 export const evasiveArcana = defineTrait({
-  name: 'Evasive Arcana',
   id: TRAIT.EVASIVE_ARCANA,
   triggers: [onTriggerPoint(elementalistDodgeCompleted, { run: triggerEvasiveArcana })],
   lifetime: { eventHandlers: { 'elementalist.evasive-arcana': OBSERVABLE_EVENT_HANDLER } }
 });
 
 export const arcaneLightning = defineTrait({
-  name: 'Arcane Lightning',
   id: TRAIT.ARCANE_LIGHTNING,
   balance: {
     attributeBonuses: { ferocity: 150 },
@@ -234,7 +226,6 @@ export const arcaneLightning = defineTrait({
 });
 
 export const bountifulPower = defineTrait({
-  name: 'Bountiful Power',
   id: TRAIT.BOUNTIFUL_POWER,
   balance: {
     damageIncrease: 0.2,

@@ -5,8 +5,9 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 export const SPELLBREAKER_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   {
     name: 'Magebane Tether',
-    id: ID.MAGEBANE_TETHER,
+    description: 'Automatically triggered Magebane Tether effect.',
     icon: 'https://render.guildwars2.com/file/040FEAA53CC4AE3273E753D16A585EA3C9452F6E/1770020.png',
+    id: ID.MAGEBANE_TETHER,
     type: 'Proc',
     slot: 'Action',
     simulatorExcluded: true,

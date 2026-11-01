@@ -1,17 +1,23 @@
 /** Core Engineer Grenade Kit skill mechanics. */
 import { ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 // Grenade projectiles commit together during the quickened cast, but their serial recovery still occupies the full throw animation after a weapon-kit transition.
 const GRENADE_THROW_INTERRUPT_COMMIT_MS = 360;
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Grenade Kit. */
-export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Partial<Skill>>> = Object.freeze({
+export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = Object.freeze({
   [ID.GRENADE_KIT]: {
+    name: 'Grenade Kit',
+    description: 'Engineering Kit. Equip a kit that replaces your weapon with grenade skills.',
+    icon: 'https://render.guildwars2.com/file/C2A603094B5709BE213D391AFD4D33293C19EA38/103396.png',
+    type: 'Utility',
+    slot: 'Utility',
     // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    inputCategory: 'bar-swap',
+    // Count the explicit bar-changing input in effort summaries.
     kitTransition: 'equip',
     cooldown: 0,
     castTimeMs: 0,
@@ -20,7 +26,14 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }]
   },
   [ID.GRENADE]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Grenade',
+    description: 'Throw several grenades that explode.',
+    icon: 'https://render.guildwars2.com/file/99C41308F9993ED99233525FA009C203E50A6CAF/103423.png',
+    type: 'Weapon',
+    slot: 'Weapon_1',
+
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     kitId: ID.GRENADE_KIT,
     castTimeMs: 680,
@@ -53,6 +66,12 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     ]
   },
   [ID.SHRAPNEL_GRENADE]: {
+    name: 'Shrapnel Grenade',
+    description: 'Throw grenades that explode in a hail of shrapnel, causing bleeding.',
+    icon: 'https://render.guildwars2.com/file/467E6BF83D152F95BC5D0B3573F4D2D71F5A4BFA/102830.png',
+    type: 'Weapon',
+    slot: 'Weapon_2',
+
     cooldown: 5,
     kitId: ID.GRENADE_KIT,
     castTimeMs: 680,
@@ -77,6 +96,12 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     ])
   },
   [ID.FLASH_GRENADE]: {
+    name: 'Flash Grenade',
+    description: 'Throw grenades that explode in blinding flashes.',
+    icon: 'https://render.guildwars2.com/file/5F7AB3AAB46F21CDBE633A953A4509EAE46C6920/103397.png',
+    type: 'Weapon',
+    slot: 'Weapon_3',
+
     cooldown: 10,
     kitId: ID.GRENADE_KIT,
     castTimeMs: 360,
@@ -107,6 +132,12 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     ]
   },
   [ID.FREEZE_GRENADE]: {
+    name: 'Freeze Grenade',
+    description: 'Throw grenades that chill foes with frigid blasts.',
+    icon: 'https://render.guildwars2.com/file/D95F525D4F2898CDE205CCACE09FD35FEA78B6DD/103103.png',
+    type: 'Weapon',
+    slot: 'Weapon_4',
+
     cooldown: 20,
     kitId: ID.GRENADE_KIT,
     castTimeMs: 680,
@@ -131,6 +162,12 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     ])
   },
   [ID.GRENADE_BARRAGE]: {
+    name: 'Grenade Barrage',
+    description: 'Throw several grenades at once.',
+    icon: 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png',
+    type: 'Profession',
+    slot: 'Action',
+
     cooldown: 25,
     toolbeltParentId: ID.GRENADE_KIT,
     castTimeMs: 680,
@@ -151,6 +188,12 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     ]
   },
   [ID.POISON_GRENADE]: {
+    name: 'Poison Grenade',
+    description: 'Throw several grenades that explode in poisonous blasts.',
+    icon: 'https://render.guildwars2.com/file/D7236B1D9176DBEEA8C4570AE04965E902B14502/103172.png',
+    type: 'Weapon',
+    slot: 'Weapon_5',
+
     cooldown: 20,
     kitId: ID.GRENADE_KIT,
     castTimeMs: 680,
@@ -175,8 +218,14 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Parti
     ])
   },
   [ID.STOW_GRENADE_KIT]: {
+    name: 'Stow Grenade Kit',
+    description: 'Stow your grenade kit.',
+    icon: 'https://render.guildwars2.com/file/7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
+    type: 'Utility',
+    slot: 'Utility',
     // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
-    inputCategory: 'bar-swap', // Count the explicit bar-changing input in effort summaries.
+    inputCategory: 'bar-swap',
+    // Count the explicit bar-changing input in effort summaries.
     kitTransition: 'stow',
     paletteFlip: false,
     cooldown: 0,

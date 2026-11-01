@@ -1,9 +1,10 @@
 import type { AuraEffect } from '#gw2/platform/effects/types.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
-import { createElementalistModuleData } from '#gw2/professions/elementalist/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
@@ -18,7 +19,7 @@ type EliteCast = NonNullable<typeof weaverHooks.onCastStart>;
 
 // Real modules, selected catalogs, and hooks retain profession fields without widening to Skill or any.
 export type ElementalistSkillFlowAssertions = [
-  Assert<Equal<NonNullable<typeof elementalistCoreModule.data.generatedSkills>[number], ElementalistSkill>>,
+  Assert<Equal<NonNullable<typeof elementalistCoreModule.data.skills>[number], ElementalistSkill>>,
   Assert<Equal<(typeof elementalistCatalog.skills)[number], ElementalistSkill>>,
   Assert<Equal<(typeof elementalistProfession.catalog.skills)[number], ElementalistSkill>>,
   Assert<Equal<(typeof first.catalog.skills)[number], ElementalistSkill>>,
@@ -43,17 +44,26 @@ export function elementalistHookSkillReads(runtime: ElementalistRuntime, cast: P
   void [cost, flag, indexed, listed, invalid];
 }
 
-createElementalistModuleData('Core', {
-  skillMechanics: {
-    1: {
-      // @ts-expect-error Known profession fields reject invalid authored values.
-      attunement: 5
-    },
-    2: {
-      effects: [
-        // @ts-expect-error Aura effects require a canonical aura name.
-        { type: 'aura', aura: 'Fire|4', duration: 4 }
-      ]
-    }
+const invalidDefinitions: Record<string, SkillDefinition<ElementalistSkill>> = {
+  1: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    // @ts-expect-error Known profession fields reject invalid authored values.
+    attunement: 5
+  },
+  2: {
+    name: 'Fixture',
+    description: 'Fixture skill.',
+    icon: 'fixture.png',
+    effects: [
+      // @ts-expect-error Aura effects require a canonical aura name.
+      { type: 'aura', aura: 'Fire|4', duration: 4 }
+    ]
   }
+};
+createNativeModuleData<ElementalistSkill>({
+  id: 'Core',
+  traitLines: TRAIT_LINES,
+  skillMechanics: invalidDefinitions
 });

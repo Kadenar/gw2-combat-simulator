@@ -1,15 +1,24 @@
-/** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+/** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.RENDING_CLAWS]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Rending Claws',
+    description:
+      'Slash your foe twice with ghostly claws to make them vulnerable. Vulnerability applied increases against foes below the health threshold.',
+    icon: 'https://render.guildwars2.com/file/9D1757C3D6ACA4727ECDE0049771C55FC250A81F/103811.png',
+    type: 'Weapon',
+    weapon: 'Axe',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 720,
     // Each logged claw applies one Vulnerability stack at its own impact.
     interruptMode: 'per-packet',
@@ -36,10 +45,16 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
     ])
   },
   [ID.GHASTLY_CLAWS]: {
+    name: 'Ghastly Claws',
+    description:
+      'Summon spectral claws to slash your foe in a quick flurry of strikes, gaining life force per strike. This attack deals increased damage per stack of vulnerability on your target.',
+    icon: 'https://render.guildwars2.com/file/96100F58946716DF6E23E975287AA9680BD144FA/103799.png',
+    type: 'Weapon',
+    weapon: 'Axe',
+    slot: 'Weapon_2',
     cooldown: 6,
     castTimeMs: 1520,
     interruptMode: 'per-packet',
-
     effects: [
       {
         type: 'strike',
@@ -61,6 +76,13 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
     ]
   },
   [ID.UNHOLY_FEAST]: {
+    name: 'Unholy Feast',
+    description:
+      'Cripple nearby foes and remove their boons. Release an Unholy Burst on foes below the health threshold.',
+    icon: 'https://render.guildwars2.com/file/2A1707BB93BBF8B1A414D37BBFC5CAC90105D5DF/103567.png',
+    type: 'Weapon',
+    weapon: 'Axe',
+    slot: 'Weapon_3',
     cooldown: 10,
     // The impact precedes cast completion; its health-gated burst is scheduled from that impact.
     castTimeMs: 920,
@@ -91,6 +113,8 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Pa
 export const NECROMANCER_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
     name: 'Unholy Burst',
+    description: 'Automatically triggered Unholy Burst effect.',
+    icon: 'https://render.guildwars2.com/file/2A1707BB93BBF8B1A414D37BBFC5CAC90105D5DF/103567.png',
     id: ID.UNHOLY_BURST,
     type: 'Proc',
     simulatorExcluded: true,

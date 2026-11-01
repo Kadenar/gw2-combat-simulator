@@ -30,7 +30,6 @@ import type { EngineerResolverContext, EngineerResolverEvent } from '#gw2/profes
 
 /** Owns Serrated Steel tuning and behavior at its established runtime and build boundaries. */
 export const serratedSteel = defineTrait({
-  name: 'Serrated Steel',
   id: TRAIT.SERRATED_STEEL,
   balance: {
     procRate: {
@@ -74,7 +73,6 @@ export const serratedSteel = defineTrait({
 
 /** Owns No Scope tuning and behavior at its established runtime and build boundaries. */
 export const noScope = defineTrait({
-  name: 'No Scope',
   id: TRAIT.NO_SCOPE,
   balance: {
     internalCooldown: 8,
@@ -118,7 +116,6 @@ export const noScope = defineTrait({
 
 /** Owns Incendiary Powder tuning and behavior at its established runtime and build boundaries. */
 export const incendiaryPowder = defineTrait({
-  name: 'Incendiary Powder',
   id: TRAIT.INCENDIARY_POWDER,
   balance: {
     internalCooldown: 10,
@@ -158,7 +155,6 @@ export const incendiaryPowder = defineTrait({
 
 /** Owns Thermal Vision tuning and behavior at its established runtime and build boundaries. */
 export const thermalVision = defineTrait({
-  name: 'Thermal Vision',
   id: TRAIT.THERMAL_VISION,
   balance: {
     conditionDamageIncrease: 0.05,
@@ -184,7 +180,6 @@ export const thermalVision = defineTrait({
 
 /** Owns Sanguine Array tuning and behavior at its established runtime and build boundaries. */
 export const sanguineArray = defineTrait({
-  name: 'Sanguine Array',
   id: TRAIT.SANGUINE_ARRAY,
   balance: {
     effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 4 }]
@@ -195,7 +190,6 @@ export const sanguineArray = defineTrait({
 
 /** Owns Hematic Focus tuning and behavior at its established runtime and build boundaries. */
 export const hematicFocus = defineTrait({
-  name: 'Hematic Focus',
   id: TRAIT.HEMATIC_FOCUS,
   balance: {
     criticalChance: 0.15,
@@ -219,7 +213,6 @@ export const hematicFocus = defineTrait({
 
 /** Owns Chemical Rounds tuning and behavior at its established runtime and build boundaries. */
 export const chemicalRounds = defineTrait({
-  name: 'Chemical Rounds',
   id: TRAIT.CHEMICAL_ROUNDS,
   balance: {
     conditionDurationMultiplier: 4 / 3,
@@ -242,7 +235,6 @@ export const chemicalRounds = defineTrait({
 
 /** Owns High Caliber tuning and behavior at its established runtime and build boundaries. */
 export const highCaliber = defineTrait({
-  name: 'High Caliber',
   id: TRAIT.HIGH_CALIBER,
   balance: {
     criticalChance: 0.15
@@ -261,7 +253,6 @@ export const highCaliber = defineTrait({
 
 /** Owns Heavy Metal tuning and behavior at its established runtime and build boundaries. */
 export const heavyMetal = defineTrait({
-  name: 'Heavy Metal',
   id: TRAIT.HEAVY_METAL,
   balance: {
     lowerThreshold: 0.25,
@@ -295,7 +286,6 @@ export const heavyMetal = defineTrait({
 
 /** Owns Sharpshooter tuning and behavior at its established runtime and build boundaries. */
 export const sharpshooter = defineTrait({
-  name: 'Sharpshooter',
   id: TRAIT.SHARPSHOOTER,
   balance: {
     coefficientMultiplier: 2 / 3
@@ -311,7 +301,6 @@ export const sharpshooter = defineTrait({
 
 /** Owns Modified Ammunition tuning and behavior at its established runtime and build boundaries. */
 export const modifiedAmmunition = defineTrait({
-  name: 'Modified Ammunition',
   id: TRAIT.MODIFIED_AMMUNITION,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damagePerCondition: 0.01, maximumConditions: CANONICAL_TARGET_CONDITIONS.length },

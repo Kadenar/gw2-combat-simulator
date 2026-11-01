@@ -54,7 +54,7 @@ with `defineNativeModule()`:
 
 | Section            | Owns                                                                           |
 | ------------------ | ------------------------------------------------------------------------------ |
-| `data`             | Generated identities, skill mechanics, traits, weapon hands, and chains        |
+| `data`             | Authored skills, trait lines, weapon hands, and explicit chains                |
 | `state`            | One `create` factory and optional detached public `project` projection         |
 | `hooks`            | Availability, cast hooks, named tasks, resource policies, and combat reactions |
 | `modifiers`        | Declarative formula rules and imperative modifier hooks                        |
@@ -77,29 +77,28 @@ the existing attribute conversion pass. Patch previews consume expanded declarat
 
 ### Catalog assembly
 
-`createNativeModuleData()` selects generated metadata for one owner and merges local mechanics.
-`assembleNativeApplicationCatalog()` derives the full editor/build catalog from all modules; runtime fragments contain
-Core plus only the selected elite. There is no separate ownership table. Assembly fails on duplicate IDs or weapon hands
-and invalid specialization-only IDs. Weapon skills belong to Core (Weaponmaster Training) unless listed in
-`specializationOnlySkillIds`.
+`createNativeModuleData()` materializes complete owner declarations and selects the module’s nested specialization
+records. Traits derive from those records; Core owns all non-elite trait lines. `assembleNativeApplicationCatalog()`
+derives the full editor/build catalog from all modules; runtime fragments contain Core plus only the selected elite. The
+contributing module owns each skill, including weapons. Assembly derives `skill.specialization` from that owner,
+omitting it for Core, and rejects authored labels. Shared Weaponmaster Training weapons are declared in Core; elite
+mechanic variants are declared in their elite module. Assembly rejects duplicate IDs or weapon hands and cross-module
+chains or flips.
 
 ### Build eligibility
 
 `platform/builds/selected-skills.ts` (`isBuildSkillAvailable`) is the baseline gate: excluded skills are never
-selectable or castable, weapon skills are shared across specializations, and other skills need their declared
+selectable or castable, Core-owned skills are shared across specializations, and elite-owned skills need their owning
 specialization. Core installs it in runtime and palette availability for every profession; runtime rejection uses
 `gw2.build-unavailable` and runs before profession state checks. Profession callbacks only add restrictions. Equipped
 slots, weapon variants, resources, cooldowns, and dynamic state are separate checks.
 
 ### Source roles
 
-Generated API metadata carries identity and presentation only, never coefficients or conditions. Skill files hold the
-authoritative ID-keyed declarations and intrinsic skill behavior. Trait policies remain with their trait owners;
-mechanics own shared state and hook files register those contributions. Tests compose cross-profession inventories under
-`tests/`. Elementalist is a catalog-generation exception: its `data/module-data.ts` aggregates all five module-owned
-skill inventories before partitioning them back into disjoint owners. That aggregate contains no separate source of
-skill tuning, and ESLint permits only the module skill-index imports at that boundary. The full list of file roles is in
-[MODULES.md](./MODULES.md#profession-file-roles).
+Owner-local skill files hold complete ID-keyed declarations, including presentation, selection metadata, costs,
+recharge, and intrinsic behavior. `data/ids.ts` remains the maintained identity inventory. Module assembly attaches IDs
+and builds indexes without joining skill metadata. Trait policies remain with their trait owners; mechanics own shared
+state and hook files register those contributions. See [MODULES.md](./MODULES.md#profession-file-roles).
 
 ### Authoring workflow
 
@@ -276,11 +275,11 @@ Explicit numeric strength, flat damage, conditions, and profile-less summon form
 
 ## Skills and rotations
 
-Behavior keys on stable IDs. The catalog merges generated metadata, mechanics, overrides, and extra skills, then rejects
-duplicate IDs, unknown skill fields, missing parents or variant profiles, invalid effects or slots, and unavailable
-weapon metadata. Imperative behavior lives in module hooks, not in the catalog. Display-name lookup is used only when
-normalizing rotation input that names skills (see [Rotation commands](#rotation-commands)). Profession catalogs own
-exact `weaponHands`; shared weapon data owns broad capabilities; app adapters combine both.
+Behavior keys on stable IDs. The catalog validates complete module contributions, then rejects duplicate IDs, unknown
+skill fields, missing parents or variant profiles, invalid effects or slots, and unavailable weapon metadata. Imperative
+behavior lives in module hooks, not in the catalog. Display-name lookup is used only when normalizing rotation input
+that names skills (see [Rotation commands](#rotation-commands)). Profession catalogs own exact `weaponHands`; shared
+weapon data owns broad capabilities; app adapters combine both.
 
 Skills and balance profiles are open records today, so field names are checked by runtime lists rather than types.
 
@@ -290,8 +289,8 @@ Skills and balance profiles are open records today, so field names are checked b
   boons. Runtime variants may change it.
 - Independent summons keep base `castTimeMs`, optional `quicknessCastTimeMs`, Quickness rate conversion, and 40 ms
   rounding. Autonomous summons use profession-owned timing.
-- `cooldown` is the skill cooldown, `ammoRecharge` the per-charge timer, `ammoCastLockout` the min gap between ammo
-  casts. API `recharge` is normalized away at catalog boundaries.
+- `cooldown` is the base recovery time for an ordinary activation or one ammo charge. `ammoCastLockout` is the
+  independent minimum gap between ammo casts.
 - `rechargeAnchor`: `castEnd` (default) or `castStart`.
 - `lockouts: [{ group, durationMs }]` blocks only other skills in the same group.
 - Timed effects declare `timingAnchor: "castStart" | "castEnd"` and `timingScale: "cast" | "fixed"`. Even spacing uses

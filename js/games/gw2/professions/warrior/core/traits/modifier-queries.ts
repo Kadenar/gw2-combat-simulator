@@ -1,4 +1,4 @@
-/** Shares live Warrior modifier queries without coupling trait-line fragments to their composer. */
+/** Shares live Warrior modifier queries without coupling trait-line definitions to their composer. */
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import {
   activeBuffStacks,

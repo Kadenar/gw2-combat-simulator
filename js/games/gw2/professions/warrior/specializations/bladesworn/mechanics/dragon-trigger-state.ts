@@ -15,7 +15,7 @@ export interface DragonTriggerState {
   dragonTriggerEventActivationId: string;
 }
 
-/** A fresh state fragment keeps the active charging window and its thresholds isolated between runs. */
+/** A fresh state definition keeps the active charging window and its thresholds isolated between runs. */
 export function createDragonTriggerState(): DragonTriggerState {
   return {
     dragonTriggerActive: false,

@@ -1,16 +1,26 @@
 /**
- * Owns Core Ranger pet skill fragments for the Janthiri Bee family.
+ * Owns Core Ranger pet skill definitions for the Janthiri Bee family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
+import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   // Natural Nibble uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.JANTHIRI_BEE_NIBBLE]: {
-    petSkill: true,
+  [ID.JANTHIRI_BEE_NIBBLE]: definePetSkill({
+    name: 'Nibble',
+    description: 'Nibble your foe.',
+    icon: new URL('@images/wiki/nibble.png', import.meta.url).href,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Janthiri Bee'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 0,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.JANTHIRI_BEE_NIBBLE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.JANTHIRI_BEE_NIBBLE]!.quicknessCastTimeMs,
     effects: [
@@ -21,10 +31,19 @@ export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<numbe
         actorType: ACTOR.SUMMON
       }
     ]
-  },
+  }),
   // Natural Bumble uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.JANTHIRI_BEE_BUMBLE]: {
-    petSkill: true,
+  [ID.JANTHIRI_BEE_BUMBLE]: definePetSkill({
+    name: 'Bumble',
+    description: 'Charge at your enemy, knocking them down.',
+    icon: 'https://render.guildwars2.com/file/DCA96000060D21F6E4A9600DB3D8A90CE8AB574B/3594073.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Janthiri Bee'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 24,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.JANTHIRI_BEE_BUMBLE]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.JANTHIRI_BEE_BUMBLE]!.quicknessCastTimeMs,
     effects: [
@@ -42,10 +61,19 @@ export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<numbe
         actorType: ACTOR.SUMMON
       }
     ]
-  },
+  }),
   // Natural Stinging Sorrow uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
-  [ID.JANTHIRI_BEE_STINGING_SORROW]: {
-    petSkill: true,
+  [ID.JANTHIRI_BEE_STINGING_SORROW]: definePetSkill({
+    name: 'Stinging Sorrow',
+    description: 'Unleash a flurry of rage-filled jabs.',
+    icon: 'https://render.guildwars2.com/file/7869ABC7D2937825AD34ECEEF9014801BA11EB53/3594076.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Janthiri Bee'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     castTimeMs: RANGER_PET_SKILL_TIMINGS[ID.JANTHIRI_BEE_STINGING_SORROW]!.castTimeMs,
     quicknessCastTimeMs: RANGER_PET_SKILL_TIMINGS[ID.JANTHIRI_BEE_STINGING_SORROW]!.quicknessCastTimeMs,
     effects: [
@@ -66,9 +94,16 @@ export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<numbe
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.HONEY_TOSS]: {
-    petSkill: true,
+  }),
+  [ID.HONEY_TOSS]: definePetSkill({
+    name: 'Honey Toss',
+    description: 'Beast. Launch a beehive at your enemy, covering the ground with sticky honey on impact.',
+    icon: 'https://render.guildwars2.com/file/A498FD1BEC7AA69FE91B010516050B084DB42626/3594074.png',
+    petNames: ['Janthiri Bee'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 25,
     quicknessCastTimeMs: 500,
     effects: [
       {
@@ -95,5 +130,5 @@ export const RANGER_CORE_JANTHIRI_BEE_PET_SKILL_MECHANICS: Readonly<Record<numbe
         actorType: ACTOR.SUMMON
       }
     ]
-  }
+  })
 });

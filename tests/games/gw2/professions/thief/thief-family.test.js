@@ -3,22 +3,16 @@ import test from 'node:test';
 
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
 import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
-import { ANTIQUARY_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import {
   createAntiquaryState,
   projectAntiquaryPlanningState
 } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/daredevil/skills/index.js';
 import {
   createDaredevilState,
   projectDaredevilPlanningState
 } from '#gw2/professions/thief/specializations/daredevil/state.js';
-import { DEADEYE_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
-import { SPECTER_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/specter/skills/index.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
-import { composeSkillMechanics } from '#tests/helpers/skill-mechanics.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 test('Antiquary projects its own charge fields and initialized empty grants', () => {
@@ -68,37 +62,6 @@ const specializationStateKeys = Object.freeze({
   Deadeye: ['markedTargetId', 'malice', 'maleficentSevenTriggered'],
   Specter: ['shadowClock', 'shadowShroudActive'],
   Antiquary: ['artifactSlots', 'artifactUsesRemaining', 'mistburn', 'holoUtilityCooldownReductionExpirations']
-});
-
-test('Thief raw skill mechanics retain a disjoint no-loss union', () => {
-  const fragments = [
-    ['Core', THIEF_CORE_SKILL_MECHANICS],
-    ['Daredevil', DAREDEVIL_SKILL_MECHANICS],
-    ['Deadeye', DEADEYE_SKILL_MECHANICS],
-    ['Specter', SPECTER_SKILL_MECHANICS],
-    ['Antiquary', ANTIQUARY_SKILL_MECHANICS]
-  ];
-  const catalogById = new Map(thiefCatalog.skills.map((skill) => [String(skill.id), skill]));
-  const aggregate = composeSkillMechanics(
-    'Thief',
-    fragments.map(([, mechanics]) => mechanics)
-  );
-  const seen = new Set();
-
-  for (const [owner, fragment] of fragments) {
-    for (const id of Object.keys(fragment)) {
-      assert.equal(seen.has(id), false, id);
-      seen.add(id);
-      const skill = catalogById.get(id);
-
-      if (skill) assert.equal(thiefSkillOwners.get(skill.id), owner, id);
-    }
-  }
-
-  assert.deepEqual(
-    [...seen].sort((left, right) => Number(left) - Number(right)),
-    Object.keys(aggregate).sort((left, right) => Number(left) - Number(right))
-  );
 });
 
 test('Thief runtimes exclude inactive elite state, catalogs, and registries', () => {

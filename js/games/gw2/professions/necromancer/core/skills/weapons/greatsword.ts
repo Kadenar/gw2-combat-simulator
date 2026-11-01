@@ -1,12 +1,21 @@
-/** Canonical Core necromancer skill fragments grouped by their GW2 owner. */
+/** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.DUSK_STRIKE]: {
+    name: 'Dusk Strike',
+    description: 'Chain. Cleave foes in front of you.',
+    icon: 'https://render.guildwars2.com/file/586BB9520AA13949955903702C5871A25902B9B8/1012921.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 480,
     interruptCommitMs: 440,
     effects: [
@@ -28,6 +37,15 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     ]
   },
   [ID.FADING_TWILIGHT]: {
+    name: 'Fading Twilight',
+    description: 'Chain. Cleave foes in front of you again.',
+    icon: 'https://render.guildwars2.com/file/4761E414945BD91B4B0F5D0B0C2DA4615710D6CE/1012922.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 640,
     effects: [
       {
@@ -49,6 +67,15 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     ]
   },
   [ID.CHILLING_SCYTHE]: {
+    name: 'Chilling Scythe',
+    description: 'Chain. Strike foes and chill them. A successful strike reduces the recharge on Gravedigger.',
+    icon: 'https://render.guildwars2.com/file/95FD52BE3FDA503BF96A4AEA1F5FD7A976F6382F/1012923.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 920,
     // Once the strike lands, the next skill may safely cancel the remaining Chilling Scythe aftercast.
     interruptCommitMs: 720,
@@ -79,6 +106,14 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     ])
   },
   [ID.GRAVEDIGGER]: {
+    name: 'Gravedigger',
+    description:
+      'Perform a huge swing that deals heavy damage. Recharges faster if it hits a downed or low-health foe.',
+    icon: 'https://render.guildwars2.com/file/A818623898AEE40827F139A945EFAB385913559F/1012924.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_2',
+    cooldown: 8,
     castTimeMs: 1080,
     // The strike commits at 840 ms, but cancelling after it lands retains the full skill lockout.
     interruptCommitMs: 840,
@@ -108,6 +143,13 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     ]
   },
   [ID.DEATH_SPIRAL]: {
+    name: 'Death Spiral',
+    description: 'Conjure a drill of dark energy on your blade, and rend the armor of foes in front of you.',
+    icon: 'https://render.guildwars2.com/file/5CE4CE5573EEF5054F016F13D3E1F850F2A1DB0C/1012925.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_3',
+    cooldown: 10,
     castTimeMs: 720,
     effects: [
       {
@@ -143,10 +185,17 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     ]
   },
   [ID.NIGHTFALL]: {
+    name: 'Nightfall',
+    description:
+      'Call down a growing column of shadows that damages and applies conditions to foes every pulse. The initial strike blinds foes and converts their boons into conditions. Gain life force while inside the area.',
+    icon: 'https://render.guildwars2.com/file/586F0469807BB7CB7942F098CC24331D0FF3CA4E/1012926.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_4',
+    cooldown: 20,
     castTimeMs: 480,
     // The field commits at 440 ms; every delayed pulse then survives the interrupted cast.
     interruptCommitMs: 440,
-
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
@@ -193,10 +242,17 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     ]
   },
   [ID.GRASPING_DARKNESS]: {
+    name: 'Grasping Darkness',
+    description:
+      'Conjure claws of darkness from the shadows to attack foes, applying a condition to them and pulling them to you. Gain quickness if you strike a foe and gain life force for each struck foe.',
+    icon: 'https://render.guildwars2.com/file/5B26FDF0B9ACD9B004543B9F3C01AFDEDA540F2A/1012927.png',
+    type: 'Weapon',
+    weapon: 'Greatsword',
+    slot: 'Weapon_5',
+    cooldown: 25,
     castTimeMs: 520,
     // The projectile commits after 120 ms, so its delayed hit and attached effects survive later interruption.
     interruptCommitMs: 120,
-
     // Share this impact's timing while preserving independent payloads and declaration order.
     effects: impactEffects(
       { atMs: 1440, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },

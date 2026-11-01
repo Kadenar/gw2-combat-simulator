@@ -1,5 +1,6 @@
+import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { CORE_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/core/skills/guild-attacks.js';
 import { THIEF_MISC_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/misc-skills.js';
 import { THIEF_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/profession-skills.js';
@@ -15,20 +16,20 @@ import { THIEF_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/thief/core
 import { THIEF_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/weapons/sword.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
-export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  ...THIEF_MISC_SKILL_MECHANICS,
-  ...THIEF_PROFESSION_SKILLS_SKILL_MECHANICS,
-  ...THIEF_SLOT_SKILLS_SKILL_MECHANICS,
-  ...THIEF_WEAPONS_AXE_SKILL_MECHANICS,
-  ...THIEF_WEAPONS_DAGGER_SKILL_MECHANICS,
-  ...THIEF_WEAPONS_PISTOL_SKILL_MECHANICS,
-  ...THIEF_WEAPONS_RIFLE_SKILL_MECHANICS,
-  ...THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS,
-  ...THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS,
-  ...THIEF_WEAPONS_SPEAR_SKILL_MECHANICS,
-  ...THIEF_WEAPONS_STAFF_SKILL_MECHANICS,
-  ...THIEF_WEAPONS_SWORD_SKILL_MECHANICS
-});
+export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+  THIEF_MISC_SKILL_MECHANICS,
+  THIEF_PROFESSION_SKILLS_SKILL_MECHANICS,
+  THIEF_SLOT_SKILLS_SKILL_MECHANICS,
+  THIEF_WEAPONS_AXE_SKILL_MECHANICS,
+  THIEF_WEAPONS_DAGGER_SKILL_MECHANICS,
+  THIEF_WEAPONS_PISTOL_SKILL_MECHANICS,
+  THIEF_WEAPONS_RIFLE_SKILL_MECHANICS,
+  THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS,
+  THIEF_WEAPONS_SHORTBOW_SKILL_MECHANICS,
+  THIEF_WEAPONS_SPEAR_SKILL_MECHANICS,
+  THIEF_WEAPONS_STAFF_SKILL_MECHANICS,
+  THIEF_WEAPONS_SWORD_SKILL_MECHANICS
+);
 
 export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
   ...CORE_GUILD_ATTACK_SKILLS,

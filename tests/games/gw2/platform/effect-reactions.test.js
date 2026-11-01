@@ -34,7 +34,7 @@ const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cast = (extra = {}) => ({ type: 'cast', skillId: 990101, ...extra });
 function catalogFor(effects, skill = {}, balanceProfiles = []) {
   return createCanonicalCatalog({
-    generated: [{ id: 990101, name: 'Reaction fixture', weapon: 'Sword', castTimeMs: 0, effects, ...skill }],
+    skills: [{ id: 990101, name: 'Reaction fixture', weapon: 'Sword', castTimeMs: 0, effects, ...skill }],
     balanceProfiles
   });
 }

@@ -1,13 +1,22 @@
-/** Canonical Core guardian skill fragments grouped by their GW2 owner. */
+/** Canonical Core guardian skill definitions grouped by their GW2 owner. */
 import { COMBO_FIELD, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 // Packet offsets are the canonical Quickness timings measured from EVTC animation starts.
-export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.PUNCTURE_SHOT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Puncture Shot',
+    description:
+      'Fire an arrow that pierces enemies. If the arrow hits a second target, all enemies struck are crippled.',
+    icon: 'https://render.guildwars2.com/file/080363673FCB09916AF7D035C31327C105EE219E/1012869.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 680,
     // The shot has committed by its observed impact; cancelling the remaining animation preserves the projectile.
     interruptCommitMs: 560,
@@ -22,6 +31,13 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.TRUE_SHOT]: {
+    name: 'True Shot',
+    description: 'Charge up energy, creating a powerful attack that pierces through enemies.',
+    icon: 'https://render.guildwars2.com/file/0B0A3D5C61D9DD0619FE032E3E752FB5AE0CE7BE/1012870.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_2',
+    cooldown: 4,
     castTimeMs: 680,
     effects: [
       {
@@ -33,6 +49,13 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.DEFLECTING_SHOT]: {
+    name: 'Deflecting Shot',
+    description: 'Fire a missile that knocks back enemies and blocks missiles.',
+    icon: 'https://render.guildwars2.com/file/71415F58F7FF445672ADA1DA7BC12576E7FA557B/1012871.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_3',
+    cooldown: 10,
     castTimeMs: 600,
     // Keep the shot's strike and control on one impact.
     effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -47,6 +70,15 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
     ])
   },
   [ID.SYMBOL_OF_ENERGY]: {
+    name: 'Symbol of Energy',
+    description:
+      'Symbol. Fire a slow, arcing arrow that explodes on impact to burn targets and sear a symbol of energy into the ground.',
+    icon: 'https://render.guildwars2.com/file/7DFEE492C091D39ABA7F26020F06FFE0C7A30453/1012872.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_4',
+
+    cooldown: 12,
     // Author symbol identity independently of the skill's display text.
     tags: ['symbol'],
     castTimeMs: 400,
@@ -80,6 +112,13 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, P
     ]
   },
   [ID.HUNTERS_WARD]: {
+    name: "Hunter's Ward",
+    description: 'Form your arrows into a barrier, and deal damage at the location.',
+    icon: 'https://render.guildwars2.com/file/BA2C3116B20CF142F70D18394E377A043D3E0E96/1012873.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_5',
+    cooldown: 20,
     castTimeMs: 720,
     effects: [
       {

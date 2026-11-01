@@ -12,7 +12,7 @@ import {
 export const dragonhunter = defineRelic({
   buffPolicies: [{ kind: 'relic-dragonhunter', name: 'Relic of the Dragonhunter', maximumStacks: 1 }],
   afterHit(ctx, _state, event, skill) {
-    if (!isGw2PlayerActorEvent(event) || !skill?.categories?.includes('Trap')) {
+    if (!isGw2PlayerActorEvent(event) || skill?.skillFamily !== 'Trap') {
       return;
     }
 
@@ -29,7 +29,7 @@ export const dragonhunter = defineRelic({
   strikeMultiplier(ctx, state, event) {
     // The trap hit benefits from the debuff it applies; afterHit records the window for subsequent attacks.
     const skill = ctx.helpers ? skillForEvent(ctx.helpers, event) : undefined;
-    return isGw2PlayerActorEvent(event) && skill?.categories?.includes('Trap')
+    return isGw2PlayerActorEvent(event) && skill?.skillFamily === 'Trap'
       ? 1.1
       : timedStrikeBuff('relic-dragonhunter', 1.1)(ctx, state, event);
   }

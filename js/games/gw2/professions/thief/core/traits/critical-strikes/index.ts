@@ -39,7 +39,6 @@ import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/
 
 /** Owns Assassin's Fury tuning and behavior at the existing execution boundaries. */
 export const assassinsFury = defineTrait({
-  name: "Assassin's Fury",
   id: TRAIT.ASSASSINS_FURY,
   balance: {
     internalCooldown: 2,
@@ -67,7 +66,6 @@ export const assassinsFury = defineTrait({
 
 /** Own the Fury payload and ICD; the critical-boon handler retains the dispatcher's precise reaction boundary. */
 export const unrelentingStrikes = defineTrait({
-  name: 'Unrelenting Strikes',
   id: TRAIT.UNRELENTING_STRIKES,
   balance: {
     internalCooldown: 8,
@@ -82,7 +80,6 @@ export const unrelentingStrikes = defineTrait({
 
 /** Owns this trait's modifier eligibility. */
 export const deadlyAim = defineTrait({
-  name: 'Deadly Aim',
   id: TRAIT.DEADLY_AIM,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1.1 },
@@ -102,7 +99,6 @@ export const deadlyAim = defineTrait({
 
 /** Owns Ferocious Strikes tuning and behavior at the existing execution boundaries. */
 export const ferociousStrikes = defineTrait({
-  name: 'Ferocious Strikes',
   id: TRAIT.FEROCIOUS_STRIKES,
   balance: {
     threshold: 0.5,
@@ -124,7 +120,6 @@ export const ferociousStrikes = defineTrait({
 
 /** Owns Hidden Killer tuning and behavior at the existing execution boundaries. */
 export const hiddenKiller = defineTrait({
-  name: 'Hidden Killer',
   id: TRAIT.HIDDEN_KILLER,
   balance: {
     criticalChance: 1,
@@ -152,7 +147,6 @@ export const hiddenKiller = defineTrait({
 
 /** Owns Keen Observer tuning and behavior at the existing execution boundaries. */
 export const keenObserver = defineTrait({
-  name: 'Keen Observer',
   id: TRAIT.KEEN_OBSERVER,
   balance: {
     threshold: 0.5,
@@ -179,7 +173,6 @@ export const keenObserver = defineTrait({
 
 /** Owns No Quarter tuning and behavior at the existing execution boundaries. */
 export const noQuarter = defineTrait({
-  name: 'No Quarter',
   id: TRAIT.NO_QUARTER,
   balance: {
     internalCooldown: 2,
@@ -209,7 +202,6 @@ export const noQuarter = defineTrait({
 
 /** Owns Practiced Tolerance tuning and behavior at the existing execution boundaries. */
 export const practicedTolerance = defineTrait({
-  name: 'Practiced Tolerance',
   id: TRAIT.PRACTICED_TOLERANCE,
   balance: { attributeConversion: 0.1 },
   attributes({ balanceContext }) {
@@ -230,7 +222,6 @@ export const practicedTolerance = defineTrait({
 
 /** Owns Signets of Power tuning and behavior at the existing execution boundaries. */
 export const signetsOfPower = defineTrait({
-  name: 'Signets of Power',
   id: TRAIT.SIGNETS_OF_POWER,
   balance: {
     resourceGain: 3
@@ -249,7 +240,6 @@ export const signetsOfPower = defineTrait({
 
 /** Owns Sundering Shade tuning and behavior at the existing execution boundaries. */
 export const sunderingShade = defineTrait({
-  name: 'Sundering Shade',
   id: TRAIT.SUNDERING_SHADE,
   balance: {
     effects: [
@@ -271,7 +261,6 @@ export const sunderingShade = defineTrait({
 
 /** Owns Twin Fangs tuning and behavior at the existing execution boundaries. */
 export const twinFangs = defineTrait({
-  name: 'Twin Fangs',
   id: TRAIT.TWIN_FANGS,
   balance: {
     threshold: 0.5,

@@ -8,7 +8,7 @@ import { testProfessionModifiers } from '#tests/fixtures/profession.js';
 
 // Every reported packet carries an identity, and reactions name the event whose handling created them.
 const catalog = createCanonicalCatalog({
-  generated: [
+  skills: [
     { id: 991001, name: 'Strike', weapon: 'Sword', castTimeMs: 0, effects: [{ type: 'strike', coefficient: 1 }] },
     { id: 991002, name: 'Boon', castTimeMs: 0, effects: [{ type: 'boon', boon: 'might', stacks: 1, duration: 5 }] }
   ],

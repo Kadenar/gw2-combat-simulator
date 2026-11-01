@@ -18,7 +18,6 @@ import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Every accepted dodge grants self Might immediately, including selected dodge variants. */
 export const pumpingUp = defineTrait({
-  name: 'Pumping Up',
   id: TRAIT.PUMPING_UP,
   balance: {
     effects: [
@@ -48,7 +47,6 @@ export const pumpingUp = defineTrait({
 
 /** Owns Fluid Strikes tuning and behavior at the existing execution boundaries. */
 export const fluidStrikes = defineTrait({
-  name: 'Fluid Strikes',
   id: TRAIT.FLUID_STRIKES,
   balance: {
     damageIncrease: 0.1,
@@ -74,7 +72,6 @@ export const fluidStrikes = defineTrait({
 
 /** Owns Hard to Catch tuning and behavior at the existing execution boundaries. */
 export const hardToCatch = defineTrait({
-  name: 'Hard to Catch',
   id: TRAIT.HARD_TO_CATCH,
   balance: {
     resourceGain: 8
@@ -89,7 +86,6 @@ export const hardToCatch = defineTrait({
 
 /** Owns Swindler's Equilibrium tuning and behavior at the existing execution boundaries. */
 export const swindlersEquilibrium = defineTrait({
-  name: "Swindler's Equilibrium",
   id: TRAIT.SWINDLERS_EQUILIBRIUM,
   balance: { attributeBonuses: { power: 120 }, conditionalAttributeBonuses: { power: 240 } },
   attributes({ loadout, weaponSet, balanceContext }) {
@@ -114,7 +110,6 @@ export const swindlersEquilibrium = defineTrait({
 
 /** Owns Upper Hand tuning and behavior at the existing execution boundaries. */
 export const upperHand = defineTrait({
-  name: 'Upper Hand',
   id: TRAIT.UPPER_HAND,
   balance: {
     internalCooldown: 2,

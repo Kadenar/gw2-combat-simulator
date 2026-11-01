@@ -1,6 +1,7 @@
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
@@ -15,7 +16,7 @@ export function amalgamCastAvailability(
   // distinct skill IDs depending on which mechanic slot it occupies. Block any
   // morph skill whose ID was not selected for its slot so rotations that
   // reference an unequipped protocol are rejected rather than silently cast.
-  if (skill.categories?.includes('Morph') && !state.selectedMorphSkillIds.includes(Number(skill.id))) {
+  if (AMALGAM_MORPH_KIND_BY_SKILL_ID.has(skill.id) && !state.selectedMorphSkillIds.includes(Number(skill.id))) {
     return denyEngineerCast(skill, 'engineer.morph-selection', 'another morph is selected for this profession slot.');
   }
 

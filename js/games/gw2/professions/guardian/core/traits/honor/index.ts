@@ -17,7 +17,6 @@ import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Owns Empowering Might's live tuning and trait behavior. */
 export const empoweringMight = defineTrait({
-  name: 'Empowering Might',
   id: TRAIT.EMPOWERING_MIGHT,
   balance: {
     internalCooldown: 1,
@@ -54,7 +53,6 @@ export const empoweringMight = defineTrait({
 
 /** Owns Protector's Restoration's live tuning and trait behavior. */
 export const protectorsRestoration = defineTrait({
-  name: "Protector's Restoration",
   id: TRAIT.PROTECTORS_RESTORATION,
   triggers: [
     onTriggerPoint(guardianCastCompleted, {
@@ -66,7 +64,6 @@ export const protectorsRestoration = defineTrait({
 
 /** Writ changes only symbol lifetimes; each symbol owns its fields, cadences, and repeated payloads. */
 export const writOfPersistence = defineTrait({
-  name: 'Writ of Persistence',
   id: TRAIT.WRIT_OF_PERSISTENCE,
   balance: { durationExtension: 2 },
   // Field duration is extended by Core after its weapon-field selection; see guardian core hooks.
@@ -78,7 +75,6 @@ export const writOfPersistence = defineTrait({
 
 /** Owns Force of Will's live tuning and trait behavior. */
 export const forceOfWill = defineTrait({
-  name: 'Force of Will',
   id: TRAIT.FORCE_OF_WILL,
   balance: { attributeBonuses: { vitality: 300 } },
   attributes: traitAttributeEffects(TRAIT.FORCE_OF_WILL, [{ kind: 'flat', to: 'Vitality', feedsConversions: 'all' }])
@@ -86,7 +82,6 @@ export const forceOfWill = defineTrait({
 
 /** Owns Honorable Staff's live tuning and trait behavior. */
 export const honorableStaff = defineTrait({
-  name: 'Honorable Staff',
   id: TRAIT.HONORABLE_STAFF,
   balance: { attributeBonuses: { concentration: 120 } },
   attributes: traitAttributeEffects(TRAIT.HONORABLE_STAFF, [
@@ -96,7 +91,6 @@ export const honorableStaff = defineTrait({
 
 /** Mace boons gain base duration before capped boon-duration bonuses; recharge uses the shared controller. */
 export const invigoratedBulwark = defineTrait({
-  name: 'Invigorated Bulwark',
   id: TRAIT.INVIGORATED_BULWARK,
   balance: { rechargeMultiplier: 0.8, durationMultiplier: 1.33 },
   rechargeRules: [

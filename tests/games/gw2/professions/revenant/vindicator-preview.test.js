@@ -31,9 +31,6 @@ test('Vindicator preview owns the moved layout and separate saved trait choices'
       [REWORK.FRIEND_OF_THE_LUXONS, REWORK.HEATED_RIVALRY, REWORK.FRIEND_OF_THE_KURZICKS]
     ]
   );
-  for (const [tier, traits] of line(preview.catalog).majorTraits.entries()) {
-    assert.ok(traits.every((trait) => trait.tier === tier + 1));
-  }
 
   const saved = { name: 'Vindicator', traits: '1-1-1' };
   assert.deepEqual(missingPatchTraits(preview.catalog, [saved]), ['Vindicator']);

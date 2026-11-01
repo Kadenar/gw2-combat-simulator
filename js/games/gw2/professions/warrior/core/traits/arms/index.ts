@@ -36,7 +36,6 @@ import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const signetMastery = defineTrait({
-  name: 'Signet Mastery',
   id: TRAIT.SIGNET_MASTERY,
   balance: {
     threshold: 0.5,
@@ -71,7 +70,7 @@ export const signetMastery = defineTrait({
       order: 7,
 
       on: 'castCommit',
-      when: (_runtime, cast) => Boolean(cast.skill.categories?.includes('Signet')),
+      when: (_runtime, cast) => cast.skill.skillFamily === 'Signet',
       emit: TRAIT.SIGNET_MASTERY,
       effects: (effect) => effect.type === 'buff' && effect.kind === 'signet-mastery',
       attribution: { name: 'Signet Mastery', priority: 0 }
@@ -81,7 +80,6 @@ export const signetMastery = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const burstPrecision = defineTrait({
-  name: 'Burst Precision',
   id: TRAIT.BURST_PRECISION,
   balance: {
     threshold: 30,
@@ -125,7 +123,6 @@ export const burstPrecision = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const bloodlust = defineTrait({
-  name: 'Bloodlust',
   id: TRAIT.BLOODLUST,
   balance: {
     conditionDurationBonus: 0.33,
@@ -156,7 +153,6 @@ export const bloodlust = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const furious = defineTrait({
-  name: 'Furious',
   id: TRAIT.FURIOUS,
   balance: {
     resourceGain: 1,
@@ -192,7 +188,6 @@ export const furious = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const sunderingBurst = defineTrait({
-  name: 'Sundering Burst',
   id: TRAIT.SUNDERING_BURST,
   balance: {
     internalCooldown: 5,
@@ -211,7 +206,6 @@ export const sunderingBurst = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const opportunist = defineTrait({
-  name: 'Opportunist',
   id: TRAIT.OPPORTUNIST,
   balance: {
     internalCooldown: 1,
@@ -230,7 +224,6 @@ export const opportunist = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const furiousBurst = defineTrait({
-  name: 'Furious Burst',
   id: TRAIT.FURIOUS_BURST,
   balance: {
     criticalChance: 0.05,
@@ -263,7 +256,6 @@ export const furiousBurst = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const deepStrikes = defineTrait({
-  name: 'Deep Strikes',
   id: TRAIT.DEEP_STRIKES,
   balance: {
     criticalChance: 0.05,
@@ -296,7 +288,6 @@ export const deepStrikes = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const unsuspectingFoe = defineTrait({
-  name: 'Unsuspecting Foe',
   id: TRAIT.UNSUSPECTING_FOE,
   balance: {
     criticalChance: 0.25
@@ -315,7 +306,6 @@ export const unsuspectingFoe = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const woundingPrecision = defineTrait({
-  name: 'Wounding Precision',
   id: TRAIT.WOUNDING_PRECISION,
   balance: { attributeConversion: 0.07 },
   attributes(context) {
@@ -337,7 +327,6 @@ export const woundingPrecision = defineTrait({
 
 /** Owns this trait's tuning and selected contributions. */
 export const blademaster = defineTrait({
-  name: 'Blademaster',
   id: TRAIT.BLADEMASTER,
   balance: {
     rechargeMultiplier: 0.8,
@@ -378,7 +367,6 @@ export const blademaster = defineTrait({
 
 /** Select measured dual wield durations for the active offhand. */
 export const dualWielding = defineTrait({
-  name: 'Dual Wielding',
   id: TRAIT.DUAL_WIELDING,
   hooks: {
     castDurationMs(runtime, skill, durationMs) {

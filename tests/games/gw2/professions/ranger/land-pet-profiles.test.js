@@ -10,13 +10,11 @@ import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
-import { RANGER_PET_SKILL_IDS } from '../../../../../scripts/data/ranger-pet-skills.mjs';
-
 const wait = (durationMs) => ({ type: 'wait', durationMs });
 const petActions = (result) =>
   result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');
 
-for (const name of Object.keys(RANGER_PET_SKILL_IDS)) {
+for (const name of RANGER_PETS.filter((pet) => rangerPetAutoProfile(pet.name)).map((pet) => pet.name)) {
   const profile = rangerPetAutoProfile(name);
   // Every new selection must execute owned natural skills without spending its explicit Beast command.
   test(`${name} loads and autonomously uses only its natural skills`, () => {

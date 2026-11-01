@@ -1,5 +1,5 @@
 /**
- * Owns Core Ranger pet skill fragments for the Fanged Iboga family.
+ * Owns Core Ranger pet skill definitions for the Fanged Iboga family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
@@ -7,15 +7,23 @@ import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.j
 import { ACTOR, COMBO_FIELD, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
+import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { packAlphaPetRecharge } from '#gw2/professions/ranger/core/traits/beastmastery/pet-attributes.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
-export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
-  [ID.FANG_GRAPPLE]: {
-    petSkill: true,
+export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+  [ID.FANG_GRAPPLE]: definePetSkill({
+    name: 'Fang Grapple',
+    description: 'Beast. Spits a fanged projectile to pull in its prey.',
+    icon: 'https://render.guildwars2.com/file/35FD907EDEF66355A431696550722AEBE5D65360/1770559.png',
+    petNames: ['Fanged Iboga'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 20,
     quicknessCastTimeMs: 1000,
     effects: impactEffects({ atMs: 1040, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -39,9 +47,18 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         controlKind: CONTROL.PULL
       }
     ])
-  },
-  [ID.CONSUMING_BITE]: {
-    petSkill: true,
+  }),
+  [ID.CONSUMING_BITE]: definePetSkill({
+    name: 'Consuming Bite',
+    description: 'Bite foes, dealing additional damage for each condition afflicting anyone struck.',
+    icon: new URL('@images/wiki/consuming-bite.png', import.meta.url).href,
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Fanged Iboga'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 0,
     quicknessCastTimeMs: 480,
     effects: [
       {
@@ -53,11 +70,20 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         actorType: ACTOR.SUMMON
       }
     ]
-  },
-  [ID.CRIPPLING_ANGUISH_PET]: {
+  }),
+  [ID.CRIPPLING_ANGUISH_PET]: definePetSkill({
+    name: 'Crippling Anguish',
+    description: 'Launch a projectile that inflicts conditions.',
+    icon: 'https://render.guildwars2.com/file/DF000038FF639A0601ECBC46222467D6FECE7046/1770580.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Fanged Iboga'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 10,
     autonomousRecharge: 14,
     quicknessAutonomousRecharge: 12,
-    petSkill: true,
     quicknessCastTimeMs: 600,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -83,10 +109,19 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         actorType: ACTOR.SUMMON
       }
     ])
-  },
-  [ID.NARCOTIC_SPORES_PET]: {
+  }),
+  [ID.NARCOTIC_SPORES_PET]: definePetSkill({
+    name: 'Narcotic Spores',
+    description: 'Spit a glob of confusing spores at a foe, inflicting confusion at that location.',
+    icon: 'https://render.guildwars2.com/file/510AE44E0E0452005337386A66526522F817424E/1770581.png',
+    petFamilySkill: true,
+    petAutonomousSkill: true,
+    petNames: ['Fanged Iboga'],
+    type: 'Profession',
+    slot: 'Profession_2',
+
+    cooldown: 15,
     autonomousRecharge: 16.5,
-    petSkill: true,
     quicknessCastTimeMs: 720,
     comboFields: [
       {
@@ -119,7 +154,7 @@ export const RANGER_CORE_FANGED_IBOGA_PET_SKILL_MECHANICS: Readonly<Record<numbe
         actorType: ACTOR.SUMMON
       }
     ])
-  }
+  })
 });
 
 /** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */

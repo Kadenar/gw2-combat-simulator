@@ -3,11 +3,16 @@ import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { skillCostAmount } from '#gw2/platform/skills/cost.js';
 
 export const thief = defineRelic({
   createState: () => ({ refreshedStacks: { stacks: 0, expiresAt: 0 } }),
   afterHit(ctx, state, event, skill) {
-    if (!isGw2PlayerActorEvent(event) || skill?.type !== 'Weapon' || !((skill.cooldown || 0) > 0 || skill.resource)) {
+    if (
+      !isGw2PlayerActorEvent(event) ||
+      skill?.type !== 'Weapon' ||
+      !((skill.cooldown || 0) > 0 || skillCostAmount(skill) > 0 || skill.resource)
+    ) {
       return;
     }
 

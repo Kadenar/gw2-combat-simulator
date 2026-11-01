@@ -234,15 +234,17 @@ test('Heroic Command refreshes only live Fervor at commitment, including when Mi
         initialize(runtime) {
           renegadeState.from(runtime).kallasFervor = [
             { at: 0, expiresAt: 0.5 },
-            { at: 0, expiresAt: 2 }
+            { at: 0, expiresAt: 2 },
+            { at: 10, expiresAt: 20 }
           ];
         }
       }
     );
     assert.deepEqual(result.warnings, []);
     const fervor = renegadeState.from(observedRuntime(result)).kallasFervor;
-    assert.equal(fervor.length, 1);
+    assert.equal(fervor.length, 2);
     assert.ok(fervor[0].expiresAt > 2);
+    assert.deepEqual(fervor[1], { at: 10, expiresAt: 20 }, 'future applications are neither counted nor refreshed');
     // Only the Fervor-scaled grant may emit; the authored payload never applies as an ordinary cast effect.
     const might = result.events.filter((event) => event.type === 'buff' && event.kind === 'might');
     assert.deepEqual(

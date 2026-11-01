@@ -3,12 +3,21 @@ import { BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constant
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.MACE_SMASH]: {
+    name: 'Mace Smash',
+    description: 'Chain. Smash your foe.',
+    icon: 'https://render.guildwars2.com/file/F6440A5D08EDFB78FD5A5BB31E30CD25040D3F23/103121.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 440,
     effects: [
       {
@@ -22,6 +31,15 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.MACE_BASH]: {
+    name: 'Mace Bash',
+    description: 'Chain. Bash your foe.',
+    icon: 'https://render.guildwars2.com/file/61EE97EF77FE27CB0A2A36AECD0769E334551645/102764.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     effects: [
       {
@@ -35,6 +53,15 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.PULVERIZE]: {
+    name: 'Pulverize',
+    description: 'Thrash your foe, leaving them weakened.',
+    icon: 'https://render.guildwars2.com/file/0399B3F49AB8C94602BECE809EBC0FE238ECB64E/103122.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 920,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -52,6 +79,12 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.COUNTERBLOW]: {
+    name: 'Counterblow',
+    description: 'Block the next attack. Counter with an attack if you are in melee range.',
+    icon: 'https://render.guildwars2.com/file/92C19D3798F16AC716CAC7A5C044E4CFC251E4A2/102986.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_2',
     // Like Illusionary Counter, the block arms a separate attack and can release its channel early.
     cooldown: 7,
     castTimeMs: 1960,
@@ -68,6 +101,13 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.TACTICAL_BLOW]: {
+    name: 'Tactical Blow',
+    description: 'Stop blocking and swing out with an attack.',
+    icon: 'https://render.guildwars2.com/file/5FB73638B8554158621B50CB6C16C1FABEB6D05B/3645916.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_2',
+    cooldown: 0,
     castTimeMs: 480,
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -90,6 +130,12 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ]
   },
   [ID.POMMEL_BASH]: {
+    name: 'Pommel Bash',
+    description: 'Daze your foe with a brutal pommel bash. If you strike a foe that is using a skill, gain barrier.',
+    icon: 'https://render.guildwars2.com/file/F069CFD79FE89D70F612901FE5FAD70451732E02/103208.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_3',
     cooldown: 10,
     castTimeMs: 440,
     // Share impact timing while preserving independent payloads and declaration order.
@@ -106,6 +152,14 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.CRUSHING_BLOW]: {
+    name: 'Crushing Blow',
+    description:
+      "Crush your opponent's armor, leaving them vulnerable and gaining might. Vulnerability and might stacks doubled if you hit a disabled foe.\nDisables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.",
+    icon: 'https://render.guildwars2.com/file/53DD40AE0BFA70045A054E30516CC054ECA73E15/103149.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_4',
+    cooldown: 12,
     dualWieldEffectOffsetsMs: { 440: 320 },
     castTimeMs: 560,
     dualWieldCastTimeMs: 400,
@@ -132,6 +186,14 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Parti
     ])
   },
   [ID.TREMOR]: {
+    name: 'Tremor',
+    description:
+      'Smash the ground with your mace, damaging your target and sending out a shock wave that damages and knocks down foes. Recharge Crushing Blow if you strike an enemy.',
+    icon: 'https://render.guildwars2.com/file/60B9CD0D66AAA817ACF9F250B33391A0157D1BFE/103287.png',
+    type: 'Weapon',
+    weapon: 'Mace',
+    slot: 'Weapon_5',
+    cooldown: 18,
     // The travelling impacts retain their observed spacing instead of scaling every packet proportionally.
     dualWieldEffectOffsetsMs: { 440: 320, 520: 360 },
     // Tremor refreshes Crushing Blow when its cast completes.

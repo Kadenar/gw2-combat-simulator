@@ -13,7 +13,7 @@ export function rangerPetByName(name: string | undefined): RangerPetDefinition {
   return (name ? RANGER_PETS_BY_NAME.get(name) : undefined) ?? RANGER_PETS[0]!;
 }
 
-/** Saved builds and UI selections accept only names present in the generated pet catalog. */
+/** Saved builds and UI selections accept only names present in the pet catalog. */
 export function isRangerPetName(name: unknown): name is string {
   return typeof name === 'string' && RANGER_PETS_BY_NAME.has(name);
 }

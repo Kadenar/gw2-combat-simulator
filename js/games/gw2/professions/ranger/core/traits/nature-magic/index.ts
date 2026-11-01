@@ -61,7 +61,6 @@ function shareFortifyingBond(runtime: RangerRuntime, kind: string, stacks: numbe
 
 /** Share received player boons with the active pet using the trait's durations and the ranger's concentration. */
 export const fortifyingBond = defineTrait({
-  name: 'Fortifying Bond',
   id: TRAIT.FORTIFYING_BOND,
   balance: {
     pulseInterval: 3,
@@ -158,7 +157,6 @@ const admittedSpiritRepeats = new WeakSet<RuntimeCast<RangerSkill>>();
 
 /** Repeat only slam payloads after the last shake, without another cast, summon reward, or boon sequence. */
 export const naturesVengeance = defineTrait({
-  name: "Nature's Vengeance",
   id: TRAIT.NATURES_VENGEANCE,
   // The trait owns the delay between the final spirit shake and its repeated slam.
   balance: { baseDuration: 1 },
@@ -242,7 +240,6 @@ const wellspringPlayerAttributes = traitAttributeEffects(TRAIT.WELLSPRING, [
 
 /** Owns Wellspring's live tuning and trait behavior. */
 export const wellspring = defineTrait({
-  name: 'Wellspring',
   id: TRAIT.WELLSPRING,
   balance: {
     attributeConversion: 0.07,
@@ -278,7 +275,6 @@ export const wellspring = defineTrait({
 
 /** Owns Windborne Notes's live tuning and trait behavior. */
 export const windborneNotes = defineTrait({
-  name: 'Windborne Notes',
   id: TRAIT.WINDBORNE_NOTES,
   balance: {
     effects: [
@@ -312,7 +308,6 @@ export const windborneNotes = defineTrait({
 
 /** Owns Rejuvenation's live tuning and trait behavior. */
 export const rejuvenation = defineTrait({
-  name: 'Rejuvenation',
   id: TRAIT.REJUVENATION,
   balance: {
     internalCooldown: 20,
@@ -327,7 +322,6 @@ export const rejuvenation = defineTrait({
 
 /** Owns Spirited Arrival's live tuning and trait behavior. */
 export const spiritedArrival = defineTrait({
-  name: 'Spirited Arrival',
   id: TRAIT.SPIRITED_ARRIVAL,
   balance: {
     effects: [
@@ -344,7 +338,6 @@ export const spiritedArrival = defineTrait({
 
 /** Owns Lingering Magic's live tuning and trait behavior. */
 export const lingeringMagic = defineTrait({
-  name: 'Lingering Magic',
   id: TRAIT.LINGERING_MAGIC,
   balance: {
     attributeBonuses: { concentration: 240 }
@@ -356,7 +349,6 @@ export const lingeringMagic = defineTrait({
 
 /** Owns Bountiful Hunter's live tuning and trait behavior. */
 export const bountifulHunter = defineTrait({
-  name: 'Bountiful Hunter',
   id: TRAIT.BOUNTIFUL_HUNTER,
   // Trait balance is the single tuning source for modifiers and presentation.
   balance: { damageMultiplier: 1, damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },

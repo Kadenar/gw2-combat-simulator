@@ -219,7 +219,7 @@ function simulateCombatBoundary(events, phase, start, inherited) {
     id: 'encounter-entry',
     name: 'Encounter entry',
     catalog: createCanonicalCatalog({
-      generated: [{ id: 990301, name: 'Precast', castTimeMs: 0, effects: [] }]
+      skills: [{ id: 990301, name: 'Precast', castTimeMs: 0, effects: [] }]
     }),
     hooks: {
       onCastStart(runtime) {
@@ -381,7 +381,7 @@ test('skills used during splits retain cooldowns and self buffs into the next da
     id: 'encounter-fixture',
     name: 'Encounter fixture',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 990101,
           name: 'Self buff',
@@ -645,7 +645,7 @@ test('intermissions defer the rotation while split preparation skills and cooldo
     id: 'encounter-pause',
     name: 'Encounter pause',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 990201,
           name: 'Preparation',
@@ -703,7 +703,7 @@ test('intermissions hold waits, reset controls, and concurrent skills without co
     id: 'encounter-pause-inputs',
     name: 'Encounter pause inputs',
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         { id: 990203, name: 'Anchor', castTimeMs: 0, effects: [] },
         { id: 990204, name: 'Queued action', castTimeMs: 400, effects: [] }
       ]

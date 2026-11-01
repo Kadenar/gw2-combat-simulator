@@ -32,7 +32,6 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 
 /** Landed player attacks against defiant foes trigger Lesser Haste's self boons on one shared skill recharge. */
 export const burstOfAgility = defineTrait({
-  name: 'Burst of Agility',
   id: TRAIT.BURST_OF_AGILITY,
   triggers: [
     {
@@ -48,7 +47,6 @@ export const burstOfAgility = defineTrait({
 
 /** Owns Bountiful Theft tuning and behavior at the existing execution boundaries. */
 export const bountifulTheft = defineTrait({
-  name: 'Bountiful Theft',
   id: TRAIT.BOUNTIFUL_THEFT,
   balance: {
     effects: [
@@ -61,7 +59,6 @@ export const bountifulTheft = defineTrait({
 
 /** Owns Deadly Ambush tuning and behavior at the existing execution boundaries. */
 export const deadlyAmbush = defineTrait({
-  name: 'Deadly Ambush',
   id: TRAIT.DEADLY_AMBUSH,
   balance: {
     conditionDamageMultiplier: 1.25,
@@ -82,7 +79,6 @@ export const deadlyAmbush = defineTrait({
 
 /** Owns Kleptomaniac tuning and behavior at the existing execution boundaries. */
 export const kleptomaniac = defineTrait({
-  name: 'Kleptomaniac',
   id: TRAIT.KLEPTOMANIAC,
   balance: {
     resourceGain: 2
@@ -92,7 +88,6 @@ export const kleptomaniac = defineTrait({
 
 /** Owns Lead Attacks tuning and behavior at the existing execution boundaries. */
 export const leadAttacks = defineTrait({
-  name: 'Lead Attacks',
   id: TRAIT.LEAD_ATTACKS,
   balance: {
     maximumStacks: 15,
@@ -130,7 +125,6 @@ export const leadAttacks = defineTrait({
 
 /** Owns Preparedness tuning and behavior at the existing execution boundaries. */
 export const preparedness = defineTrait({
-  name: 'Preparedness',
   id: TRAIT.PREPAREDNESS,
   balance: { attributeBonuses: { expertise: 150 }, maximumStacks: 15 },
   attributes({ balanceContext }) {
@@ -149,7 +143,6 @@ export const preparedness = defineTrait({
 
 /** Owns Quick Pockets tuning and behavior at the existing execution boundaries. */
 export const quickPockets = defineTrait({
-  name: 'Quick Pockets',
   id: TRAIT.QUICK_POCKETS,
   balance: {
     internalCooldown: 8,
@@ -165,7 +158,6 @@ export const quickPockets = defineTrait({
 
 /** Owns Sleight of Hand tuning and behavior at the existing execution boundaries. */
 export const sleightOfHand = defineTrait({
-  name: 'Sleight of Hand',
   id: TRAIT.SLEIGHT_OF_HAND,
   balance: {
     rechargeMultiplier: 0.8,
@@ -182,7 +174,6 @@ export const sleightOfHand = defineTrait({
 
 /** Owns Thrill of the Crime tuning and behavior at the existing execution boundaries. */
 export const thrillOfTheCrime = defineTrait({
-  name: 'Thrill of the Crime',
   id: TRAIT.THRILL_OF_THE_CRIME,
   balance: {
     effects: [
@@ -196,7 +187,6 @@ export const thrillOfTheCrime = defineTrait({
 
 /** Owns Uncatchable tuning and behavior at the existing execution boundaries. */
 export const uncatchable = defineTrait({
-  name: 'Uncatchable',
   id: TRAIT.UNCATCHABLE,
   triggers: [onTriggerPoint(thiefDodgeStarted, { run: startUncatchable })]
 });

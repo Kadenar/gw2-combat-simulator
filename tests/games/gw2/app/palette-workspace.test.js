@@ -139,9 +139,10 @@ test('weapon palette families display one live autoattack or flip skill', () => 
   );
 });
 
-test('palette flip projection infers catalog children and honors timed expiry', () => {
+// Palette fixtures carry the canonical ancestry produced by explicit flip declarations.
+test('palette flip projection follows canonical children and honors timed expiry', () => {
   const parent = { id: 10, name: 'Opening Skill', flipSkillId: 11 };
-  const child = { id: 11, name: 'Follow-up Skill' };
+  const child = { id: 11, name: 'Follow-up Skill', flipParentId: 10 };
   const skills = [parent, child];
   const skillsById = new Map(skills.map((skill) => [skill.id, skill]));
   const app = {

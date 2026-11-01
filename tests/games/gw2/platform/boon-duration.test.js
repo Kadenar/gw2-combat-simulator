@@ -19,7 +19,7 @@ test('boon grants round durations to milliseconds and expirations up to action t
     name: 'Boon rounding',
     hooks: { buffPolicies: () => [{ kind: 'custom' }] },
     catalog: createCanonicalCatalog({
-      generated: [
+      skills: [
         {
           id: 990001,
           name: 'Grant',
@@ -255,7 +255,7 @@ test('shared emissions scale live boons once and preserve fixed and custom durat
 
 test('declarative boons can gate dynamic skill availability', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 920001,
         name: 'Grant Aegis',
@@ -317,7 +317,7 @@ test('declarative boons can gate dynamic skill availability', () => {
 test('declarative generic buffs use shared timed state without boon-duration scaling', () => {
   let observedAsBuff = false;
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 920011,
         name: 'Grant Trait Buff',
@@ -358,7 +358,7 @@ test('declarative generic buffs use shared timed state without boon-duration sca
 
 test('repeated Alacrity grants do not change permanent recharge', () => {
   const catalog = createCanonicalCatalog({
-    generated: [
+    skills: [
       {
         id: 930025,
         name: 'Grant Alacrity',

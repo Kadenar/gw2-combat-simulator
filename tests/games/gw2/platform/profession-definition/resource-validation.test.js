@@ -97,7 +97,7 @@ test('prepared grant requirements detach authored inputs and reject current reso
   }).runtimeFor({});
   const action = { type: 'resourceGrant', resource: 'energy', amount: 1 };
   const catalog = createCanonicalCatalog({
-    generated: [{ id: 990102, name: 'Grant', sideEffects: [{ on: 'castStart', do: action }] }]
+    skills: [{ id: 990102, name: 'Grant', sideEffects: [{ on: 'castStart', do: action }] }]
   });
   action.resource = 'malice';
   assert.equal(catalog.skills[0].sideEffects[0].do.resource, 'energy');
@@ -112,7 +112,7 @@ test('prepared grant requirements detach authored inputs and reject current reso
   assert.deepEqual(runGw2Runtime({ profession: { ...native, catalog }, rotation: [] }).warnings, []);
 
   const alternate = createCanonicalCatalog({
-    generated: [{ id: 990102, name: 'Grant', sideEffects: [{ on: 'castStart', do: action }] }]
+    skills: [{ id: 990102, name: 'Grant', sideEffects: [{ on: 'castStart', do: action }] }]
   });
   assert.throws(
     () => runGw2Runtime({ profession: { ...native, catalog: alternate }, rotation: [] }),
@@ -149,7 +149,7 @@ test('declaration snapshots reuse immutable inputs and isolate keys around opaqu
   const payload = new Map([['value', 1]]);
   const withPayload = { ...action, payload };
   const catalog = createCanonicalCatalog({
-    generated: [{ id: 990104, name: 'Opaque grant', sideEffects: [{ on: 'castStart', do: withPayload }] }]
+    skills: [{ id: 990104, name: 'Opaque grant', sideEffects: [{ on: 'castStart', do: withPayload }] }]
   });
   const owned = catalog.skills[0].sideEffects[0].do;
   assert.equal(owned.payload, payload);

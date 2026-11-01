@@ -7,13 +7,13 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Generic charges and Dragon's Roar magazines share the same one-at-a-time recharge contract.
-const sequential = { id: 990060, name: 'Sequential ammo', ammo: 6, ammoRecharge: 5 };
+const sequential = { id: 990060, name: 'Sequential ammo', ammo: 6, cooldown: 5 };
 const roar = warriorProfession.runtimeFor({ specialization: 'Bladesworn' }).catalog.skillsById.get(ID.DRAGONS_ROAR);
 function magazine(skill = sequential, rate = 1) {
   const state = { time: 0 };
   const controller = createCooldownController({
     clock: state,
-    rechargeDuration: () => skill.ammoRecharge / rate,
+    rechargeDuration: () => skill.cooldown / rate,
     rechargeIntervals: (_skill, start, end) => [{ start, end, rate }]
   });
   for (let round = 0; round < skill.ammo; round++) controller.spendAmmo(skill, 0);

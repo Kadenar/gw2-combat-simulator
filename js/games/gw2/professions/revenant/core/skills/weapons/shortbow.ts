@@ -1,12 +1,19 @@
-/** Canonical Core revenant skill fragments grouped by their GW2 owner. */
+/** Canonical Core revenant skill definitions grouped by their GW2 owner. */
 import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 
-export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.SHATTERSHOT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Shattershot',
+    description: 'Release an arrow that shatters upon striking, inflicting bleeding on nearby foes.',
+    icon: 'https://render.guildwars2.com/file/232D91913C60F230422E410CB6C8BD56E93751C4/1770596.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 480,
@@ -41,6 +48,13 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     )
   },
   [ID.BLOODBANE_PATH]: {
+    name: 'Bloodbane Path',
+    description:
+      'Conjure a portal through the Mists and fire barbed arrows to strike from unexpected directions at your enemy.',
+    icon: 'https://render.guildwars2.com/file/07F358B1429B2535C2C83454F235A99E0902A50E/1770597.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_2',
     cooldown: 3,
     energyCost: 4,
     castTimeMs: 760,
@@ -62,6 +76,12 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.SEVENSHOT]: {
+    name: 'Sevenshot',
+    description: 'Conjure a focused volley of arrows to harass your foes.',
+    icon: 'https://render.guildwars2.com/file/9F93AB3310F46308219A25AE985AE252336843F2/1770598.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_3',
     cooldown: 7,
     energyCost: 7,
     castTimeMs: 440,
@@ -95,6 +115,12 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.SPIRITCRUSH]: {
+    name: 'Spiritcrush',
+    description: 'Create a debilitating zone by firing a volley of flaming arrows at an area.',
+    icon: 'https://render.guildwars2.com/file/AF0F3CECA42ABDE06707040ECDD994F8FB2B5F21/1770599.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_4',
     cooldown: 9,
     energyCost: 12,
     castTimeMs: 400,
@@ -143,6 +169,12 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     ])
   },
   [ID.SCORCHRAZOR]: {
+    name: 'Scorchrazor',
+    description: 'Unleash a fiery edge to ignite and knock down your enemies.',
+    icon: 'https://render.guildwars2.com/file/20C1136E80C36692C3434E0B52A36645B131FACD/1770600.png',
+    type: 'Weapon',
+    weapon: 'Shortbow',
+    slot: 'Weapon_5',
     cooldown: 12,
     energyCost: 16,
     castTimeMs: 360,

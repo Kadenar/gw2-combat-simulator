@@ -14,7 +14,7 @@ test('shared weapon swap commits canonical state and event before profession ext
   const profession = defineTestProfession({
     id: 'swap-fixture',
     name: 'Swap fixture',
-    catalog: createCanonicalCatalog({ generated: [gw2WeaponSwapSkill] }),
+    catalog: createCanonicalCatalog({ skills: [gw2WeaponSwapSkill] }),
     resources: {
       createState: () => ({ core: { autoattackChains: { 100: 101 } }, specialization: { kind: 'Core', state: {} } })
     },

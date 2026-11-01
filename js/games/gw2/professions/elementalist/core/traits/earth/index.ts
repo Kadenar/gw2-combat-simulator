@@ -5,6 +5,8 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { ACTOR, AURA, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
+import type { AuraEffect } from '#gw2/platform/effects/types.js';
+import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -39,7 +41,6 @@ import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/prof
 
 /** Earth definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const earthsEmbrace = defineTrait({
-  name: "Earth's Embrace",
   id: TRAIT.EARTHS_EMBRACE,
   balance: {
     internalCooldown: 15,
@@ -49,7 +50,6 @@ export const earthsEmbrace = defineTrait({
 });
 
 export const serratedStones = defineTrait({
-  name: 'Serrated Stones',
   id: TRAIT.SERRATED_STONES,
   balance: {
     damageMultiplier: 1.05,
@@ -74,7 +74,6 @@ export const serratedStones = defineTrait({
 });
 
 export const elementalShielding = defineTrait({
-  name: 'Elemental Shielding',
   id: TRAIT.ELEMENTAL_SHIELDING,
   balance: {
     effects: [{ type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
@@ -88,7 +87,6 @@ export const elementalShielding = defineTrait({
 });
 
 export const earthenBlast = defineTrait({
-  name: 'Earthen Blast',
   id: TRAIT.EARTHEN_BLAST,
   balance: {
     effects: [{ name: 'Earthen Blast', type: 'strike', coefficient: 0.36, hits: 1, canCrit: false }]
@@ -107,7 +105,6 @@ export const earthenBlast = defineTrait({
 });
 
 export const strengthOfStone = defineTrait({
-  name: 'Strength of Stone',
   id: TRAIT.STRENGTH_OF_STONE,
   balance: {
     attributeConversion: 0.1,
@@ -138,7 +135,6 @@ export const strengthOfStone = defineTrait({
 });
 
 export const rockSolid = defineTrait({
-  name: 'Rock Solid',
   id: TRAIT.ROCK_SOLID,
   balance: {
     effects: [
@@ -173,20 +169,19 @@ export const geomancersTrainingRechargeRule = {
 };
 
 export const geomancersTraining = defineTrait({
-  name: "Geomancer's Training",
   id: TRAIT.GEOMANCERS_TRAINING,
   balance: { rechargeMultiplier: 0.8 },
   rechargeRules: [geomancersTrainingRechargeRule]
 });
 
 export const writtenInStone = defineTrait({
-  name: 'Written in Stone',
   id: TRAIT.WRITTEN_IN_STONE,
   balance: {
+    // Signet identity selects its aura directly, independently of the effect's display name.
     effects: [
-      { type: 'aura', name: 'Restoration', aura: AURA.FROST, duration: 4 },
-      { type: 'aura', name: 'Fire', aura: AURA.FIRE, duration: 4 },
-      { type: 'aura', name: 'Earth', aura: AURA.MAGNETIC, duration: 3 }
+      { type: 'aura', sourceId: ID.SIGNET_OF_RESTORATION, aura: AURA.FROST, duration: 4 },
+      { type: 'aura', sourceId: ID.SIGNET_OF_FIRE, aura: AURA.FIRE, duration: 4 },
+      { type: 'aura', sourceId: ID.SIGNET_OF_EARTH, aura: AURA.MAGNETIC, duration: 3 }
     ]
   },
   triggers: [onTriggerPoint(elementalistCastCompleted, { run: applyWrittenInStone })]
@@ -233,19 +228,10 @@ function applyWrittenInStone(context: ElementalistRuntime, { cast }: Elementalis
 
   if (skill.skillFamily !== 'Signet') return;
 
-  const signet =
-    skill.id === ID.SIGNET_OF_RESTORATION
-      ? 'Restoration'
-      : skill.id === ID.SIGNET_OF_FIRE
-        ? 'Fire'
-        : skill.id === ID.SIGNET_OF_EARTH
-          ? 'Earth'
-          : null;
-
-  if (!signet) return;
-
   const writtenInStoneProfile = requireBalanceProfileFromContext(context, TRAIT.WRITTEN_IN_STONE);
-  const effect = requireEffect(writtenInStoneProfile, 'aura', signet);
+  const effect = requireCanonicalSkillEffects(writtenInStoneProfile).find(
+    (effect): effect is AuraEffect => effect.type === 'aura' && effect.sourceId === skill.id
+  );
 
   if (effect) {
     applyElementalistAura(context, {

@@ -5,7 +5,6 @@ import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.j
 import {
   admitVirtueActivation,
   completeVirtueActivation,
-  guardianVirtueForSlot,
   reactToJusticeHitWithOptions,
   refreshGuardianVirtues
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -91,8 +90,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
       // Sovereign admits detonation before replacement auras from the cast or shared virtue rewards.
       runtime.fireTrigger(luminaryCastStarted, { cast });
 
-      if (VIRTUES.includes(Number(cast.skill.id)))
-        admitVirtueActivation(runtime, cast, guardianVirtueForSlot(cast.skill.slot)!);
+      if (VIRTUES.includes(Number(cast.skill.id))) admitVirtueActivation(runtime, cast, cast.skill.virtue!);
 
       if (cast.skill.radiantWeapon && cast.skill.flipParentId == null)
         runtime.fireTrigger(radiantWeaponDrawn, { cast });
@@ -100,7 +98,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
     onCastCommit(runtime, cast) {
       if (!VIRTUES.includes(Number(cast.skill.id))) return;
 
-      completeVirtueActivation(runtime, cast, guardianVirtueForSlot(cast.skill.slot)!);
+      completeVirtueActivation(runtime, cast, cast.skill.virtue!);
       runtime.fireTrigger(luminaryVirtueCompleted, { cast });
     },
     reactions: {

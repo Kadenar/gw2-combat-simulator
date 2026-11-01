@@ -22,13 +22,9 @@ function assertCatalogMetadata(entry, catalog) {
     // Nested metadata and flattened catalog records must identify the same selectable trait position.
     for (const [tier, majors] of specialization.majorTraits.entries()) {
       assert.equal(majors.length, 3, specialization.name);
-      for (const [position, trait] of [specialization.minorTraits[tier], ...majors].entries()) {
+      for (const trait of [specialization.minorTraits[tier], ...majors]) {
         assert.equal(traitById.has(trait.id), true, trait.name);
-        for (const record of [trait, traitById.get(trait.id)]) {
-          assert.equal(record.specialization, specialization.name, trait.name);
-          assert.equal(record.tier, tier + 1, trait.name);
-          assert.equal(record.slot, position === 0 ? 'Minor' : 'Major', trait.name);
-        }
+        assert.deepEqual(traitById.get(trait.id), trait);
 
         referencedTraitIds.add(trait.id);
       }

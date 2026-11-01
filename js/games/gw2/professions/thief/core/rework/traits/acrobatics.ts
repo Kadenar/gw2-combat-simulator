@@ -30,7 +30,6 @@ const mobilityEligible = (_runtime: unknown, { cast }: ThiefCastCompletion) => c
 
 /** Combat entry and mobility arm one next-hit payload; unknown numbers stay in the selected profiles. */
 export const deftInitiation = defineTrait({
-  name: 'Deft Initiation',
   id: REWORK.DEFT_INITIATION,
   balance: {
     internalCooldown: 0,
@@ -59,7 +58,6 @@ export const deftInitiation = defineTrait({
 
 /** Cause-free cast completion emits self swiftness explicitly; zero cooldown never merges same-instant grants. */
 export const felineGrace = defineTrait({
-  name: 'Feline Grace',
   id: TRAIT.FELINE_GRACE,
   balance: {
     internalCooldown: 0,
@@ -102,7 +100,6 @@ export const felineGrace = defineTrait({
 
 /** Target assumptions and applied impairing conditions share the same damage predicate. */
 export const opportuneOpening = defineTrait({
-  name: 'Opportune Opening',
   id: REWORK.OPPORTUNE_OPENING,
   balance: {
     damageIncrease: 0,
@@ -126,7 +123,6 @@ export const opportuneOpening = defineTrait({
 
 /** Keep this shared completion listener in both rulesets, replacing movement endurance with Steal resistance. */
 export const hardToCatch = defineTrait({
-  name: 'Hard to Catch',
   id: TRAIT.HARD_TO_CATCH,
   balance: {
     effects: [
@@ -157,7 +153,6 @@ export const hardToCatch = defineTrait({
 
 /** Each actual self swiftness application can grant endurance; permanent boon assumptions are not producers. */
 export const dontStop = defineTrait({
-  name: "Don't Stop",
   id: TRAIT.DONT_STOP,
   balance: { resourceGain: 0, internalCooldown: 0 },
   triggers: [
@@ -180,7 +175,6 @@ export const dontStop = defineTrait({
 
 /** The extra strike uses the unequipped strength profile so it stays independent of the triggering weapon. */
 export const sharpInitiation = defineTrait({
-  name: 'Sharp Initiation',
   id: REWORK.SHARP_INITIATION,
   balance: {
     effects: [
@@ -203,6 +197,6 @@ export const acrobaticsReworkTraits = [
   hardToCatch,
   dontStop,
   sharpInitiation,
-  defineTrait({ name: 'Endurance Training', id: REWORK.ENDURANCE_TRAINING }),
-  defineTrait({ name: "Assassin's Reward", id: TRAIT.ASSASSINS_REWARD })
+  defineTrait({ id: REWORK.ENDURANCE_TRAINING }),
+  defineTrait({ id: TRAIT.ASSASSINS_REWARD })
 ];

@@ -7,16 +7,24 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
-export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.DRAKES_SWIPE]: {
-    flipSkillId: null,
+    name: "Drake's Swipe",
+    description: 'Chain. Swing your spear.',
+    icon: 'https://render.guildwars2.com/file/414A30909FE90ABA80BD36D4426DE80B5A081710/3379171.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 520,
     // Separate contact from recovery; per-packet cancellation retains only contacts already reached.
     interruptMode: 'per-packet',
@@ -32,6 +40,15 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.WYVERNS_LASH]: {
+    name: "Wyvern's Lash",
+    description: 'Chain. Strike with your spear, crippling your foe.',
+    icon: 'https://render.guildwars2.com/file/D2C90A1160383EE7487A4F652C02C7525698CDD3/3379172.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 440,
     interruptMode: 'per-packet',
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -49,7 +66,15 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.CHEETAHS_STRIKE]: {
-    flipSkillId: null,
+    name: "Cheetah's Strike",
+    description: 'Chain. Heave your spear, gaining swiftness if you strike an enemy.',
+    icon: 'https://render.guildwars2.com/file/E2CF3E65CFD875E103D8F260A2806642A644AEFE/3379173.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 760,
     interruptMode: 'per-packet',
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -67,6 +92,13 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.MONGOOSES_FRENZY]: {
+    name: "Mongoose's Frenzy",
+    description: 'Swipe at enemies in front of you, cleaving them.',
+    icon: 'https://render.guildwars2.com/file/D69F9EC04864417F0956045A1A3B1FBF455EC4C8/3379174.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_2',
+    cooldown: 5,
     castTimeMs: 667,
     interruptMode: 'per-packet',
     effects: [
@@ -85,6 +117,14 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.FALCONS_STOOP]: {
+    name: "Falcon's Stoop",
+    description:
+      'Fling your spear at your enemy, dealing heavy damage. Damage is increased against immobilized, disabled, or defiant foes.',
+    icon: 'https://render.guildwars2.com/file/3AD908302F5A733FB07AF295DBDB30B637ADD0F4/3379176.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_3',
+    cooldown: 7,
     castTimeMs: 600,
     interruptMode: 'per-packet',
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
@@ -104,6 +144,14 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ])
   },
   [ID.WARCLAWS_ENGAGE]: {
+    name: "Warclaw's Engage",
+    description:
+      'Leap to a target location, damaging nearby enemies. Deal more damage to foes below the health threshold.',
+    icon: 'https://render.guildwars2.com/file/DA9AE866CC0D07E0453B64EFFB2019E17306D7D0/3379178.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_4',
+    cooldown: 12,
     evades: true,
     castTimeMs: 960,
     interruptMode: 'per-packet',
@@ -122,9 +170,18 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
     ]
   },
   [ID.PANTHERS_PROWL]: {
+    name: "Panther's Prowl",
+    description:
+      "Conceal yourself in the brush, gaining stealth. Gain Hunter's Prowess, allowing you to use a Stealth Attack even if revealed.",
+    icon: 'https://render.guildwars2.com/file/07F83EAFE63F1BBD31ABE1C954BED3D1C5CB090C/3379180.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_5',
+
+    cooldown: 10,
     ammo: 2,
-    ammoRecharge: 10,
-    // The API omits this skill's ammo count; keep its between-cast lockout with the authored charges.
+
+    // Keep this skill's between-cast lockout with its authored ammo charges.
     ammoCastLockout: 0.5,
     castTimeMs: 400,
     effects: [
@@ -146,19 +203,17 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Partial<
   }
 });
 
-/** Owns supplemental Ranger spear stealth-attack identities omitted by the API catalog. */
+/** Owns Ranger spear stealth attacks alongside the other weapon skills. */
 export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   {
     name: "Wolf's Onslaught",
-    id: ID.WOLFS_ONSLAUGHT,
     description: 'Stealth Attack. Slash enemies in front of you, then follow up with a powerful blow.',
     icon: 'https://render.guildwars2.com/file/E1550C4BB87B62B14AC39E3F2DB2AC4E07F55F91/3379175.png',
+    id: ID.WOLFS_ONSLAUGHT,
     type: 'Weapon',
     weapon: WEAPON.SPEAR,
     slot: 'Weapon_2',
-
     cooldown: 5,
-    flipParentId: ID.MONGOOSES_FRENZY,
     stealthAttack: true,
     // Both EVTC animation segments are one attack; cancellation drops pending hits, not earlier contacts.
     castTimeMs: 1000,
@@ -184,15 +239,13 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: "Owl's Flight",
-    id: ID.OWLS_FLIGHT,
     description: 'Stealth Attack. Reveal yourself and throw an unblockable, piercing spear.',
     icon: 'https://render.guildwars2.com/file/FBA45321DB6E98FB510AF8215EF0A19EB4FB4FC6/3379177.png',
+    id: ID.OWLS_FLIGHT,
     type: 'Weapon',
     weapon: WEAPON.SPEAR,
     slot: 'Weapon_3',
-
     cooldown: 7,
-    flipParentId: ID.FALCONS_STOOP,
     stealthAttack: true,
     castTimeMs: 500,
     interruptMode: 'per-packet',
@@ -221,16 +274,14 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: "Predator's Ambush",
-    id: ID.PREDATORS_AMBUSH,
     description:
       'Stealth Attack. Leap to a target location, dazing enemies. Deal increased damage to foes below the health threshold.',
     icon: 'https://render.guildwars2.com/file/2D36D9D30E372A750D700F3334A8CE697B4C3010/3379179.png',
+    id: ID.PREDATORS_AMBUSH,
     type: 'Weapon',
     weapon: WEAPON.SPEAR,
     slot: 'Weapon_4',
-
     cooldown: 12,
-    flipParentId: ID.WARCLAWS_ENGAGE,
     stealthAttack: true,
     evades: true,
     castTimeMs: 960,
@@ -259,15 +310,13 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: "Spider's Web",
-    id: ID.SPIDERS_WEB,
     description: 'Stealth Attack. Throw a net that damages, immobilizes, and cripples enemies.',
     icon: 'https://render.guildwars2.com/file/1C6D1E0860B3B6C24136F1489F5AACD87D329EC7/3379181.png',
+    id: ID.SPIDERS_WEB,
     type: 'Weapon',
     weapon: WEAPON.SPEAR,
     slot: 'Weapon_5',
-
     cooldown: 20,
-    flipParentId: ID.PANTHERS_PROWL,
     stealthAttack: true,
     castTimeMs: 333,
     interruptMode: 'per-packet',

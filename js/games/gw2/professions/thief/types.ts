@@ -104,6 +104,8 @@ export interface ThiefSkill
   readonly artifactKind?: ThiefArtifactKind;
   readonly backfire?: boolean;
   readonly dualWieldOpener?: boolean;
+  /** Marks attacks eligible for dual-attack traits, including the supported empty-offhand variants. */
+  readonly dualWieldAttack?: boolean;
   readonly kneelSkill?: boolean;
   readonly malicious?: boolean;
   readonly movementSkill?: boolean;

@@ -1,13 +1,21 @@
-/** Canonical Core ranger skill fragments grouped by their GW2 owner. */
+/** Canonical Core ranger skill definitions grouped by their GW2 owner. */
 import { COMBO_FINISHER, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
-export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partial<Skill>>> = Object.freeze({
+export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
   [ID.LONG_RANGE_SHOT]: {
-    autoattack: true, // Ordinary repeatable attack; excluded from player-input metrics.
+    name: 'Long Range Shot',
+    description: 'Shoot your foe from long range. The farther the arrow flies, the more damage it does.',
+    icon: 'https://render.guildwars2.com/file/2A4CFDE1D6FC1B04D864E32190E7A6521C000104/102827.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_1',
+    cooldown: 0,
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 480,
     effects: [
       {
@@ -26,6 +34,13 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.RAPID_FIRE]: {
+    name: 'Rapid Fire',
+    description: 'Fire multiple arrows at your foe.',
+    icon: 'https://render.guildwars2.com/file/F74408EC9F2354940976E1E80D46E29C7C693C62/102828.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_2',
+    cooldown: 8,
     castTimeMs: 1800,
     interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -54,6 +69,13 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
     ])
   },
   [ID.HUNTERS_SHOT]: {
+    name: "Hunter's Shot",
+    description: 'Fire an arrow that grants you stealth when it hits an enemy. Your pet gains swiftness.',
+    icon: 'https://render.guildwars2.com/file/04C30811DB264CFE9049BF480CC4D34D7BF353AA/104012.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_3',
+    cooldown: 12,
     castTimeMs: 320,
     effects: [
       {
@@ -77,6 +99,13 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.POINT_BLANK_SHOT]: {
+    name: 'Point-Blank Shot',
+    description: 'Push back your foe with a point-blank shot. The closer they are, the farther it pushes them back.',
+    icon: 'https://render.guildwars2.com/file/0C976CDCD10C3A7F4E54CABDC09ABEB6C1CB230D/103251.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_4',
+    cooldown: 15,
     castTimeMs: 360,
     effects: [
       {
@@ -98,6 +127,14 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Partia
     ]
   },
   [ID.BARRAGE]: {
+    name: 'Barrage',
+    description: 'Barrage the target area with a hail of arrows that cripple.',
+    icon: 'https://render.guildwars2.com/file/0A4C91B8E60CC4F23BE64DA0AA6C56BF3E330C3B/103042.png',
+    type: 'Weapon',
+    weapon: 'Longbow',
+    slot: 'Weapon_5',
+    cooldown: 20,
+
     castTimeMs: 1880,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [

@@ -1,5 +1,6 @@
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
+import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import { heraldAttributes } from '#gw2/professions/revenant/specializations/herald/attributes.js';
 import {
   HERALD_SKILL_FIELDS,
@@ -11,14 +12,19 @@ import {
   burstOfStrengthModifiers,
   HERALD_BASE_SKILL_MECHANICS
 } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
+import { REVENANT_HERALD_SKILL_FLIPS } from '#gw2/professions/revenant/specializations/herald/skills/skill-flips.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { traitDefinitions } from '#gw2/professions/revenant/specializations/herald/traits/index.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const heraldModule = defineNativeModule({
   traitDefinitions,
   id: 'Herald',
-  data: createRevenantModuleData('Herald', {
+  data: createNativeModuleData<RevenantSkill>({
+    id: 'Herald',
+    traitLines: TRAIT_LINES,
+    skillFlips: REVENANT_HERALD_SKILL_FLIPS,
     profileFields: REVENANT_HERALD_PROFILE_FIELDS,
     skillFields: HERALD_SKILL_FIELDS,
     skillMechanics: HERALD_BASE_SKILL_MECHANICS

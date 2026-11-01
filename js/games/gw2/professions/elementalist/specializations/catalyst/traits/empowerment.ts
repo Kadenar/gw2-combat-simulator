@@ -3,7 +3,7 @@ import { ATTRIBUTE_NAMES, attributeSeed, attributeSourcePool } from '#gw2/platfo
 import type { Gw2AttributeContributions, Gw2NumericAttributes } from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -21,7 +21,6 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistModifierContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
-import { insertSorted } from '#kernel/core/collections.js';
 
 /**
  * Adds timed Elemental Empowerment stacks: expired stacks are dropped first, and
@@ -36,19 +35,13 @@ export function grantCatalystElementalEmpowerment(
 ): void {
   // Timed stacks use the same tick-aligned expiry as their emitted buff applications.
   const expiresAt = gw2EffectExpiresAt(at, Math.max(0, duration));
-  const active = state.elementalEmpowermentExpiries.filter((expiry) => expiry > at).sort((left, right) => left - right);
-  for (let stack = 0; stack < Math.max(1, stacks); stack += 1) {
-    if (active.length >= maximumStacks) {
-      active.shift();
-    }
-
-    if (expiresAt > at) {
-      // Insert after equal deadlines so the next grant can evict the earliest stack without sorting again.
-      insertSorted(active, expiresAt, (left, right) => left - right);
-    }
-  }
-
-  state.elementalEmpowermentExpiries = active;
+  state.elementalEmpowermentExpiries = grantTimedStacks(state.elementalEmpowermentExpiries, {
+    at,
+    expiresAt,
+    count: Math.ceil(Math.max(1, stacks)),
+    maximumStacks,
+    retain: 'replace-earliest'
+  }).sort((left, right) => left - right);
 }
 
 /** Track accepted empowerment grants independently of current selection so applied effects retain their lifetime. */

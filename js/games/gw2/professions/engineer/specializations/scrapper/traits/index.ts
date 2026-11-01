@@ -39,7 +39,6 @@ function scrapperMaximumAmmo(context: MaximumAmmoContext<object>, skill: Enginee
 
 /** Owns Ex Machina tuning and its existing gameplay boundaries. */
 const exMachina = defineTrait<EngineerSkill>({
-  name: 'Ex Machina',
   id: TRAIT.EX_MACHINA,
   balance: { maximumAmmo: 2 },
   hooks: { maximumAmmo: scrapperMaximumAmmo }
@@ -50,7 +49,6 @@ const healingSkill = (skill: Skill | undefined) => skill?.type === 'Heal' || ski
 
 /** Owns Speed of Synergy tuning and its existing gameplay boundaries. */
 const speedOfSynergy = defineTrait<EngineerSkill>({
-  name: 'Speed of Synergy',
   id: TRAIT.SPEED_OF_SYNERGY,
   balance: {
     // Separate authored grants retain the Med Kit toolbelt exception and the per-application cap.
@@ -107,7 +105,6 @@ const speedOfSynergy = defineTrait<EngineerSkill>({
 
 /** Owns Gyroscopic Acceleration tuning and its existing gameplay boundaries. */
 const gyroscopicAcceleration = defineTrait<EngineerSkill>({
-  name: 'Gyroscopic Acceleration',
   id: TRAIT.GYROSCOPIC_ACCELERATION,
   balance: {
     effects: [
@@ -118,9 +115,7 @@ const gyroscopicAcceleration = defineTrait<EngineerSkill>({
     {
       emit: TRAIT.GYROSCOPIC_ACCELERATION,
       on: 'castCommit',
-      when: (_runtime, cast) =>
-        cast.skill.id === ID.FUNCTION_GYRO ||
-        Boolean(cast.skill.categories?.some((category) => category.toLowerCase() === 'well')),
+      when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO || cast.skill.skillFamily === 'Well',
       effects: (effect) => effect.type === 'buff' && effect.name === STATUS.SUPERSPEED,
       attribution: { actorType: ACTOR.PLAYER, name: 'Gyroscopic Acceleration \u2014 superspeed' }
     }
@@ -129,7 +124,6 @@ const gyroscopicAcceleration = defineTrait<EngineerSkill>({
 
 /** Owns System Shocker tuning and its existing gameplay boundaries. */
 const systemShocker = defineTrait<EngineerSkill>({
-  name: 'System Shocker',
   id: TRAIT.SYSTEM_SHOCKER,
   balance: {
     effects: [{ name: 'System Shocker', type: 'control', controlKind: CONTROL.DAZE }]
@@ -147,7 +141,6 @@ const systemShocker = defineTrait<EngineerSkill>({
 
 /** Owns Kinetic Accelerators tuning and its existing gameplay boundaries. */
 export const kineticAccelerators = defineTrait<EngineerSkill>({
-  name: 'Kinetic Accelerators',
   id: TRAIT.KINETIC_ACCELERATORS,
   balance: {
     attributeConversion: 0.13,
@@ -180,7 +173,6 @@ export const kineticAccelerators = defineTrait<EngineerSkill>({
 
 /** Owns Mass Momentum tuning and its existing gameplay boundaries. */
 const massMomentum = defineTrait<EngineerSkill>({
-  name: 'Mass Momentum',
   id: TRAIT.MASS_MOMENTUM,
   balance: {
     pulseInterval: 1,
@@ -233,7 +225,6 @@ const massMomentum = defineTrait<EngineerSkill>({
 
 /** Owns Applied Force tuning and its existing gameplay boundaries. */
 export const appliedForce = defineTrait<EngineerSkill>({
-  name: 'Applied Force',
   id: TRAIT.APPLIED_FORCE,
   balance: {
     maximumStacks: 25,
@@ -266,7 +257,6 @@ export const appliedForce = defineTrait<EngineerSkill>({
 
 /** Movement boons multiply Object in Motion's player-owned strike bonus. */
 const objectInMotion = defineTrait<EngineerSkill>({
-  name: 'Object in Motion',
   id: TRAIT.OBJECT_IN_MOTION,
   // The trait balance owns tuning consumed by damage rules and presentation.
   balance: { damageMultiplier: 1.05 },

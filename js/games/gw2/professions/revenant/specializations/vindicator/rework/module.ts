@@ -1,7 +1,7 @@
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { createRevenantModuleData } from '#gw2/professions/revenant/data/module-data.js';
-import { SPECIALIZATIONS } from '#gw2/professions/revenant/data/revenant-api-metadata.js';
+import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import { VINDICATOR_DODGE_INPUT } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
@@ -12,11 +12,12 @@ import {
   projectVindicatorPlanningState,
   vindicatorState
 } from '#gw2/professions/revenant/specializations/vindicator/state.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-const live = SPECIALIZATIONS.find((specialization) => specialization.name === 'Vindicator')!;
+const live = TRAIT_LINES.find((traitLine) => traitLine.name === 'Vindicator')!;
 
 /** Preserve moved identities so existing dodge and Energy Meld selectors follow the preview's legal choices. */
-const specialization = {
+const traitLine = {
   ...live,
   minorTraits: live.minorTraits.map((trait) => {
     if (trait.id === TRAIT.BALANCE_IN_DISCORD)
@@ -38,8 +39,8 @@ const specialization = {
     return trait;
   }),
   majorTraits: [
-    live.majorTraits[1]!.map((trait) => ({ ...trait, tier: 1 })),
-    live.majorTraits[2]!.map((trait) => ({ ...trait, tier: 2 })),
+    live.majorTraits[1]!,
+    live.majorTraits[2]!,
     [
       {
         id: REWORK.FRIEND_OF_THE_LUXONS,
@@ -60,9 +61,6 @@ const specialization = {
       }
     ].map((trait) => ({
       ...trait,
-      tier: 3,
-      slot: 'Major',
-      specialization: 'Vindicator',
       icon: live.icon
     }))
   ]
@@ -71,14 +69,12 @@ const specialization = {
 /** Replace only the preview's trait layout and behavior, retaining the existing supported skill set. */
 export const vindicatorReworkModule = defineNativeModule({
   id: 'Vindicator',
-  data: {
-    ...createRevenantModuleData('Vindicator', {
-      skillMechanics: VINDICATOR_BASE_SKILL_MECHANICS,
-      extraSkills: [VINDICATOR_DODGE_INPUT]
-    }),
-    traits: [...specialization.minorTraits, ...specialization.majorTraits.flat()],
-    specializations: [specialization]
-  },
+  data: createNativeModuleData<RevenantSkill>({
+    id: 'Vindicator',
+    traitLines: [traitLine],
+    skillMechanics: VINDICATOR_BASE_SKILL_MECHANICS,
+    extraSkills: [VINDICATOR_DODGE_INPUT]
+  }),
   traitDefinitions: vindicatorReworkTraits,
   state: { create: vindicatorState.create, project: projectVindicatorPlanningState },
   hooks: vindicatorHooks,
