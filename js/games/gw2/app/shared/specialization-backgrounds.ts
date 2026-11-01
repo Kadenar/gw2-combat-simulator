@@ -1,5 +1,4 @@
 // Explicit asset URLs let Vite bundle every trait-line background for any deployment base path.
-// Source URLs and checksums are recorded in images/wiki/manifest.json.
 export const SPECIALIZATION_BACKGROUNDS: Readonly<Record<string, string>> = {
   Acrobatics: new URL('@images/wiki/acrobatics-specialization.png', import.meta.url).href,
   Air: new URL('@images/wiki/air-specialization.png', import.meta.url).href,
