@@ -214,6 +214,8 @@ export interface EffectMetadata {
   readonly guardianSymbol?: boolean;
   /** Only the Gleaming Blade cast that consumed Radiant Courage receives its damage multiplier. */
   readonly guardianRadiantCourage?: boolean;
+  /** Falling Spider retains the factor earned by its predecessor at cast acceptance. */
+  readonly thiefFallingSpiderDamageFactor?: number;
   readonly hitboxIndex?: number;
   readonly largeHitboxOnly?: boolean;
   readonly legendId?: string;

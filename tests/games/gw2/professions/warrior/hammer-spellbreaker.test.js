@@ -10,6 +10,7 @@ import {
   observedRuntime,
   observeGw2Runtime
 } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Permanent Alacrity sets recharge progress; the next action tick admits a new tether.
 test('Magebane Tether ignores Alacrity gained or lost during its recharge', () => {
@@ -120,14 +121,17 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
     assert.equal(Object.hasOwn(skill, 'recharge'), false);
   }
 
-  const fierceCoefficient = (defiant) =>
+  const fierceStrike = (defiant) =>
     simulate('Core', ['Fierce Blow'], {
       primaryWeapon: 'Hammer',
       target: { defiant }
-    }).resolvedEvents.find((event) => event.type === 'damage').coefficient;
+    }).resolvedEvents.find((event) => event.type === 'damage');
 
-  assert.equal(fierceCoefficient(false), 1.8);
-  assert.equal(fierceCoefficient(true), 2.7);
+  const ordinary = fierceStrike(false);
+  const defiant = fierceStrike(true);
+  assert.equal(ordinary.coefficient, 1.8);
+  assert.equal(defiant.coefficient, 1.8);
+  assertFlooredDamageMultiplier(defiant.damage, ordinary.damage, 1.5);
 
   const reset = simulate('Core', ['Fierce Blow', 'Backbreaker', 'Fierce Blow'], { primaryWeapon: 'Hammer' });
 

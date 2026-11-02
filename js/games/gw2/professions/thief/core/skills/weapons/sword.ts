@@ -1,4 +1,5 @@
 /** Canonical Core thief skill definitions grouped by their GW2 owner. */
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -197,6 +198,16 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillD
     requiredMainHand: WEAPON.SWORD,
     requiredOffHand: WEAPON.DAGGER,
     castTimeMs: 360,
+    // Keep the intrinsic strike factor separate from the editable base coefficient.
+    modifiers: [
+      {
+        id: 'thief.larcenous-strike',
+        label: 'Larcenous Strike',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.2
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -205,20 +216,6 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillD
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
-      }
-    ],
-    // Apply the intrinsic factor to the current packet, retaining coefficient patch semantics.
-    effectVariants: [
-      {
-        when: () => true,
-        transform: (_runtime, _cast, effects) =>
-          effects.map((effect) =>
-            effect.type !== 'strike'
-              ? effect
-              : effect.ticks?.length
-                ? { ...effect, ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * 1.2 })) }
-                : { ...effect, coefficient: (effect.coefficient || 0) * 1.2 }
-          )
       }
     ],
     // A committed follow-up consumes its window and restores the parent.

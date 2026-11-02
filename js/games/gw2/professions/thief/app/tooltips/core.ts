@@ -1,4 +1,5 @@
 import {
+  fromModifier,
   fromSkill,
   modifierFact,
   simulationEffectFacts,
@@ -191,6 +192,9 @@ export const thiefCoreTooltips = {
       : [{ name: 'Follow-up window', detail: tooltipSeconds(tooltipNumber(entity, 'flipDuration')) }])
   ],
   skills: {
+    [ID.LARCENOUS_STRIKE]: skillTooltip('Strike your target with increased damage.', [
+      fromModifier('thief.larcenous-strike', 'factor', 'Strike damage', tooltipFactorChange)
+    ]),
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: weaponSwapTooltip,
     [SHARED_SKILL_IDS.DODGE]: dodgeTooltip,
     [ID.STEAL]: stealTooltip,

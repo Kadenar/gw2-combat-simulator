@@ -33,7 +33,6 @@ import {
 } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { combustiveShotFields } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { signetOfRageLifecycle } from '#gw2/professions/warrior/core/skills/slot-skills.js';
-import { fierceBlowDamage } from '#gw2/professions/warrior/core/skills/weapons/hammer.js';
 import { counterblowLifecycle } from '#gw2/professions/warrior/core/skills/weapons/mace.js';
 import { swordFlipLifecycle } from '#gw2/professions/warrior/core/skills/weapons/sword.js';
 import { resolveWarriorDualWieldSkill } from '#gw2/professions/warrior/data/dual-wielding.js';
@@ -193,7 +192,6 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   },
   onCooldownReset: resetWarriorAdrenaline,
   reactions: {
-    'damage.resolving': fierceBlowDamage,
     'damage.resolved'(runtime, event, details) {
       if (
         (event.actorType === ACTOR.PLAYER || event.canTriggerCriticalTraits === true) &&

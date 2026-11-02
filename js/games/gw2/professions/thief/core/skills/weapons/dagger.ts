@@ -1,12 +1,10 @@
 /** Canonical Core thief skill definitions grouped by their GW2 owner. */
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-
-// The packet transform and tooltip share Backstab's intrinsic positional bonus.
-export const BACKSTAB_DEFIANT_MULTIPLIER = 2;
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
@@ -109,6 +107,17 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
     stealthAttack: true,
     castTimeMs: 320,
     interruptCommitMs: 200,
+    // Keep the intrinsic strike factor separate from the editable base coefficient.
+    modifiers: [
+      {
+        id: 'thief.backstab-defiant',
+        label: 'Backstab',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 2,
+        when: (context) => Boolean(context.config?.target?.defiant)
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -117,26 +126,6 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
-      }
-    ],
-    // Apply the intrinsic factor to the current packet, retaining coefficient patch semantics.
-    effectVariants: [
-      {
-        when: (runtime) => Boolean(runtime.config.target?.defiant),
-        transform: (_runtime, _cast, effects) =>
-          effects.map((effect) =>
-            effect.type !== 'strike'
-              ? effect
-              : effect.ticks?.length
-                ? {
-                    ...effect,
-                    ticks: effect.ticks.map((tick) => ({
-                      ...tick,
-                      coefficient: tick.coefficient * BACKSTAB_DEFIANT_MULTIPLIER
-                    }))
-                  }
-                : { ...effect, coefficient: (effect.coefficient || 0) * BACKSTAB_DEFIANT_MULTIPLIER }
-          )
       }
     ]
   },

@@ -105,7 +105,14 @@ export const warriorCoreTooltips = {
     [ID.COUNTERBLOW]: skillTooltip(
       'Begin a block and unlock Tactical Blow for the original block window. Tactical Blow can be used as a manual follow-up. Incoming attacks are outside simulation scope.'
     ),
-    [ID.FIERCE_BLOW]: skillTooltip('Strike your target. Damage increases against a defiant target.', undefined),
+    [ID.FIERCE_BLOW]: skillTooltip('Strike your target. Damage increases against a defiant target.', [
+      fromModifier(
+        'warrior.fierce-blow-defiant',
+        'factor',
+        'Strike damage against a defiant target',
+        tooltipFactorChange
+      )
+    ]),
     [ID.MIGHTY_THROW]: (balanceContext, entity) => {
       const selected = balanceContext.catalog.skillsById.get(entity.id);
 

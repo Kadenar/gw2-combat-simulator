@@ -1,10 +1,9 @@
 /** Canonical Core warrior skill definitions grouped by their GW2 owner. */
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
-import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.HAMMER_SWING]: {
@@ -74,6 +73,17 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     cooldown: 6,
     castTimeMs: 880,
     interruptCommitMs: 600,
+    // The intrinsic bonus applies at resolution only against defiant targets.
+    modifiers: [
+      {
+        id: 'warrior.fierce-blow-defiant',
+        label: 'Fierce Blow',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.5,
+        when: (context) => Number(context.event?.coefficient) > 0 && Boolean(context.config?.target?.defiant)
+      }
+    ],
     // Share impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -158,12 +168,4 @@ export const WARRIOR_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ]),
     sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.FIERCE_BLOW] } }]
   }
-};
-
-export const fierceBlowDamage: NonNullable<
-  RuntimeProfession<WarriorRuntimeState, WarriorSkill>['reactions']
->['damage.resolving'] = (runtime, event) => {
-  // Only defiant targets receive the bonus; temporary disable windows are outside simulation scope.
-  if (event.skillId === ID.FIERCE_BLOW && Number(event.coefficient) > 0 && runtime.config.target?.defiant)
-    return { coefficient: Number(event.coefficient) * 1.5 };
 };

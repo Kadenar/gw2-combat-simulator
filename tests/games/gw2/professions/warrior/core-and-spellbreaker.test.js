@@ -888,15 +888,15 @@ test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coe
     );
   }
 
-  for (const [target, expected] of [
-    [{ defiant: false }, 3.6],
-    [{ defiant: true }, 5.4]
-  ]) {
-    assert.equal(
-      coefficient(run('Core', [ID.FIERCE_BLOW], { primaryWeapon: 'Hammer', target }), ID.FIERCE_BLOW),
-      expected
+  const fierce = (defiant) =>
+    run('Core', [ID.FIERCE_BLOW], { primaryWeapon: 'Hammer', target: { defiant } }).resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillId === ID.FIERCE_BLOW
     );
-  }
+  const ordinary = fierce(false);
+  const defiant = fierce(true);
+  assert.equal(ordinary.coefficient, 3.6);
+  assert.equal(defiant.coefficient, 3.6);
+  assertFlooredDamageMultiplier(defiant.damage, ordinary.damage, 1.5);
 });
 
 test('Dual Strike preserves separate hit and boon application indices at its shared impact', () => {

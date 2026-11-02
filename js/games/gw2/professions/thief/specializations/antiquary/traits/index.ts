@@ -183,38 +183,23 @@ const meticulousCustodian = defineTrait({
         context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL &&
         context.event.condition === CONDITION.BURNING &&
         context.event.triggeredBy == null // only the base skill packet needs enhancement
+    },
+    {
+      order: 407,
+      id: 'thief.meticulous-custodian-kryptis-torment',
+      target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+      operation: 'multiply',
+      // This strengthens the authored duration before expertise and the ordinary duration cap.
+      factor: (context) =>
+        balanceNumberFromContext(context, TRAIT.METICULOUS_CUSTODIAN, 'kryptisTormentDurationMultiplier'),
+      when: (context) =>
+        context.event?.skillId === ID.SUMMON_KRYPTIS_TURRET && context.event.condition === CONDITION.TORMENT
     }
   ],
   triggers: [
     onTriggerPoint(artifactActivated, { run: applyMeticulousChakShield }),
     onTriggerPoint(antiquaryStruck, { run: applyMeticulousSunCrystal })
-  ],
-  hooks: {
-    modifyEffects(runtime, cast, effects) {
-      if (cast.skill.id !== ID.SUMMON_KRYPTIS_TURRET || !hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)) return effects;
-
-      // Enhance the base Torment duration before expertise and its cap; this is not a duration-stat bonus.
-      const multiplier = balanceNumberFromContext(
-        runtime,
-        TRAIT.METICULOUS_CUSTODIAN,
-        'kryptisTormentDurationMultiplier'
-      );
-      return effects.map((effect) =>
-        effect.type !== 'condition'
-          ? effect
-          : effect.ticks?.length
-            ? {
-                ...effect,
-                ticks: effect.ticks.map((tick) =>
-                  tick.condition === CONDITION.TORMENT ? { ...tick, duration: tick.duration * multiplier } : tick
-                )
-              }
-            : effect.condition === CONDITION.TORMENT
-              ? { ...effect, duration: Number(effect.duration) * multiplier }
-              : effect
-      );
-    }
-  }
+  ]
 });
 
 /** Owns Possessive Hoarder tuning and behavior at the existing execution boundaries. */

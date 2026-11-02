@@ -287,6 +287,9 @@ const EXPECTED = {
       'Weakening Strikes': { strike: 'multiplier' }
     },
     rules: {
+      'thief.backstab-defiant': { strike: 'multiplier' },
+      'thief.larcenous-strike': { strike: 'multiplier' },
+      'thief.falling-spider-empowered': { strike: 'multiplier' },
       'thief.distracting-throw-finisher-strike': { strike: 'additive' },
       'thief.distracting-throw-finisher-condition': { condition: 'additive' },
       'thief.kryptis-turret-damage': { strike: 'multiplier' },
@@ -318,6 +321,7 @@ const EXPECTED = {
       "Warrior's Sprint": { strike: 'additive' }
     },
     rules: {
+      'warrior.fierce-blow-defiant': { strike: 'multiplier' },
       'warrior.breaching-strike-boonless': { strike: 'multiplier' },
       'warrior.kill-shot-threshold': { strike: 'multiplier' },
       'warrior.maiming-spear-epicenter': { strike: 'multiplier' },

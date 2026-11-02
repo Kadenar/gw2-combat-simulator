@@ -201,6 +201,17 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
     empoweredConditionStacks: 1,
     cooldown: 0,
     castTimeMs: 600,
+    // The accepted predecessor supplies the captured factor even after the chain advances.
+    modifiers: [
+      {
+        id: 'thief.falling-spider-empowered',
+        label: 'Falling Spider',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.thiefFallingSpiderDamageFactor),
+        when: (context) => context.event?.metadata?.thiefFallingSpiderDamageFactor != null
+      }
+    ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -245,12 +256,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
             [CONDITION.BLEEDING, CONDITION.POISONED].some((name) => name === String(condition));
           return (cast.skill.effects ?? []).map((effect) => {
             if (effect.type === 'strike')
-              return effect.ticks?.length
-                ? {
-                    ...effect,
-                    ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * factor }))
-                  }
-                : { ...effect, coefficient: (effect.coefficient || 0) * factor };
+              return { ...effect, metadata: { ...effect.metadata, thiefFallingSpiderDamageFactor: factor } };
 
             if (effect.type !== 'condition') return effect;
 

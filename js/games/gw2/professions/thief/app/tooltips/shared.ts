@@ -9,7 +9,6 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { TooltipFact } from '#gw2/platform/skills/types.js';
-import { BACKSTAB_DEFIANT_MULTIPLIER } from '#gw2/professions/thief/core/skills/weapons/dagger.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
@@ -30,12 +29,17 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
     description +=
       ' Snapshots malice when the cast starts. The first hit against your active mark consumes malice; Malicious Intent can then seed the next cycle.';
 
-  // Core Backstab owns a packet transform; Malicious Backstab still owns a balance modifier.
+  // Each Backstab owns an independent selected positional modifier.
   if (selected.id === ID.BACKSTAB)
-    facts.push({
-      name: 'Strike damage against a defiant target',
-      detail: tooltipFactorChange(BACKSTAB_DEFIANT_MULTIPLIER)
-    });
+    facts.push(
+      modifierFact(
+        balanceContext,
+        'thief.backstab-defiant',
+        'factor',
+        'Strike damage against a defiant target',
+        tooltipFactorChange
+      )
+    );
 
   if (selected.id === ID.MALICIOUS_BACKSTAB) {
     facts.push(

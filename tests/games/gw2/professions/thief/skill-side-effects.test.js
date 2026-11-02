@@ -2,15 +2,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Variant selection snapshots the chain before completion, but transforms the live, independently editable packets.
 test('Falling Spider empowers only the accepted predecessor and preserves effect and tick edits', () => {
   for (const ticks of [false, true]) {
+    let baselineDamage;
     for (const empowered of [false, true]) {
       const result = runThief(
         [ID.FALLING_SPIDER],
@@ -49,7 +53,13 @@ test('Falling Spider empowers only the accepted predecessor and preserves effect
       );
       assert.deepEqual(result.warnings, []);
       const packets = result.resolvedEvents.filter((event) => event.skillId === ID.FALLING_SPIDER);
-      assert.equal(packets.find((event) => event.type === 'damage').coefficient, empowered ? 3 : 2);
+      const strike = packets.find((event) => event.type === 'damage');
+      assert.equal(strike.coefficient, 2);
+
+      if (!empowered) baselineDamage = strike.damage;
+
+      assertFlooredDamageMultiplier(strike.damage, baselineDamage, empowered ? 1.5 : 1);
+      assert.equal(strike.metadata?.thiefFallingSpiderDamageFactor, empowered ? 1.5 : undefined);
       assert.equal(
         packets.filter((event) => event.condition === 'Bleeding').reduce((sum, event) => sum + event.stacks, 0),
         empowered ? 5 : 3
@@ -398,4 +408,52 @@ test('Distracting Throw does not apply its new damage window to its granting str
   );
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(windows, [false, true]);
+});
+
+// Intrinsic bonuses remain independently patchable and apply once after the selected base coefficient.
+test('Backstab and Larcenous Strike use selected modifiers without changing their base packets', () => {
+  for (const [id, rule, rotation, weapon, offhand, factor] of [
+    [ID.BACKSTAB, 'thief.backstab-defiant', ['Cloak and Dagger', 'Backstab'], 'Dagger', 'Dagger', 2.5],
+    [ID.LARCENOUS_STRIKE, 'thief.larcenous-strike', ['Flanking Strike', 'Larcenous Strike'], 'Sword', 'Dagger', 1.4]
+  ]) {
+    for (const defiant of [false, true]) {
+      const run = (factor) => {
+        const profession = withPatchPreview(thiefProfession, {
+          id: 'intrinsic-strikes',
+          label: 'Intrinsic strikes',
+          professions: {
+            thief: {
+              modifierRules: { [rule]: { factor } },
+              skills: { [id]: { effects: [{ type: 'strike', tickIndex: 'all', coefficient: { multiply: 2 } }] } }
+            }
+          }
+        });
+        return runThief(
+          rotation,
+          {
+            patchId: 'intrinsic-strikes',
+            primaryWeapon: weapon,
+            secondaryWeapon: offhand,
+            target: { armor: 2597, conditions: {}, defiant }
+          },
+          { profession }
+        );
+      };
+
+      const baseline = run(1);
+      const boosted = run(factor);
+      assert.deepEqual(baseline.warnings, []);
+      assert.deepEqual(boosted.warnings, []);
+      const hit = (result) => result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id);
+      assert.equal(hit(boosted).coefficient, id === ID.BACKSTAB ? 3 : 4.34);
+      assertFlooredDamageMultiplier(
+        hit(boosted).damage,
+        hit(baseline).damage,
+        id === ID.BACKSTAB && !defiant ? 1 : factor
+      );
+      const opening = (result) =>
+        result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId !== id);
+      assert.equal(opening(boosted).damage, opening(baseline).damage);
+    }
+  }
 });
