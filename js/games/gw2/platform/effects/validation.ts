@@ -23,7 +23,7 @@ import type {
 import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
-import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
+import { normalizeSkillEffectModifiers } from '#gw2/platform/skills/modifiers.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
@@ -611,12 +611,11 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     }
   }
 
-  // Effect bonuses belong only to strikes and remain immutable when a cast derives its packets.
-  if (normalizedEffect.modifiers != null && normalizedEffect.type !== 'strike')
-    throw new TypeError(`${label} modifiers require a strike effect.`);
-
+  // Packet-specific targets are validated before immutable declarations reach materialization.
   const modifiers =
-    normalizedEffect.modifiers == null ? undefined : normalizeSkillDamageModifiers(normalizedEffect.modifiers, label);
+    normalizedEffect.modifiers == null
+      ? undefined
+      : normalizeSkillEffectModifiers(normalizedEffect.modifiers, label, normalizedEffect.type);
   // Spread normalized numeric fields on top so runtime consumers always get typed values.
   return Object.freeze({
     ...normalizedEffect,

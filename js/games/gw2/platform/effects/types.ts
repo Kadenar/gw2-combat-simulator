@@ -4,7 +4,7 @@ import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
 import type { DamageEvent, EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
+import type { SkillModifier } from '#gw2/platform/skills/modifiers.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /**
@@ -111,7 +111,7 @@ export interface SkillEffectBase {
 export interface StrikeEffect extends SkillEffectBase, StrikePacketFields {
   readonly type: 'strike';
   /** Intrinsic bonuses apply to every strike packet from this effect, excluding sibling effects. */
-  readonly modifiers?: readonly SkillDamageModifier[];
+  readonly modifiers?: readonly Extract<SkillModifier, { target: 'strikeDamage' | 'criticalDamage' }>[];
   /** Autonomous summon animation, excluding idle time, for recipient-specific attack scheduling. */
   readonly castTimeMs?: number;
   /** Aggregate coefficient; hits above one require one explicit shared atMs timestamp. */
@@ -131,6 +131,8 @@ export interface StrikeEffect extends SkillEffectBase, StrikePacketFields {
 
 export interface ConditionEffect extends SkillEffectBase {
   readonly type: 'condition';
+  /** Base-duration rules affect only applications from this effect, before ordinary duration bonuses. */
+  readonly modifiers?: readonly Extract<SkillModifier, { target: 'conditionBaseDuration' }>[];
   readonly condition?: string;
   readonly stacks?: number;
   readonly duration?: number;

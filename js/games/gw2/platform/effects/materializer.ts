@@ -205,6 +205,8 @@ export function materializeSkillEffectApplications({
           duration: Number(packet.duration),
           applicationIndex,
           totalApplications: count,
+          // A condition carries only its own rules, clearing any identities inherited from the source event.
+          effectModifierIds: effect.modifiers?.length ? effect.modifiers.map((rule) => rule.id) : undefined,
           ...(effect.damageKind != null ? { damageKind: effect.damageKind } : {}),
           ...(tick?.damageKind != null ? { damageKind: tick.damageKind } : {}),
           ...(effect.projectile != null ? { projectile: effect.projectile } : {}),

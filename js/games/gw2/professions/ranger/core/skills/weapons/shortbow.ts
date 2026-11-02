@@ -1,5 +1,5 @@
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
-import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
@@ -18,7 +18,7 @@ import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw
 
 /** Share the patched base and intrinsic extension so trait extensions add seconds without compounding them. */
 export function shortbowConditionDuration(context: Gw2ModifierContext) {
-  const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+  const skill = skillForEvent<RangerSkill>(context.profession?.catalog, context.event, context.skillId);
   const base =
     skill?.effects?.find(
       (effect): effect is ConditionEffect => effect.type === 'condition' && effect.condition === context.condition
@@ -26,25 +26,14 @@ export function shortbowConditionDuration(context: Gw2ModifierContext) {
   let intrinsic = 0;
 
   if (qualifiesForFlankingBonuses(context)) {
-    if (skill?.id === ID.CROSSFIRE && context.condition === CONDITION.BLEEDING) intrinsic = 1;
-    else if (skill?.id === ID.POISON_VOLLEY && context.condition === CONDITION.POISONED) intrinsic = 2;
+    if (skill?.id === ID.CROSSFIRE && context.condition === CONDITION.BLEEDING)
+      intrinsic = skill.durationExtension || 0;
+    else if (skill?.id === ID.POISON_VOLLEY && context.condition === CONDITION.POISONED)
+      intrinsic = skill.durationExtension || 0;
   }
 
   return { skillId: skill?.id, base, intrinsic };
 }
-
-/** Defiant targets receive the weapon's native extension independently of trait selection. */
-export const rangerShortbowConditionDurationModifier: Gw2ModifierRule = {
-  id: 'ranger.shortbow-base-duration',
-  order: 0,
-  target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
-  operation: 'multiply',
-  factor: (context) => {
-    const { base, intrinsic } = shortbowConditionDuration(context);
-    return base > 0 ? (base + intrinsic) / base : 1;
-  },
-  when: (context) => shortbowConditionDuration(context).intrinsic > 0
-};
 
 // Full-cast medians and successful minimums from 20261006-010612, snapped to 40 ms.
 // Committed arrows retain their impacts and observed aftercast; offsets include this log's projectile travel.
@@ -62,6 +51,21 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     // Infer commitment at 200 ms from pQEm-20260716-181334's connected arrows; retain the full 360 ms lockout.
     interruptCommitMs: 200,
     retainsCastLockoutAfterInterrupt: true,
+    // Intrinsic seconds precede Light on Your Feet so both extensions add to the same base.
+    durationExtension: 1,
+    modifiers: [
+      {
+        id: 'ranger.crossfire-base-duration',
+        order: 0,
+        target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+        operation: 'multiply',
+        factor: (context) => {
+          const { base, intrinsic } = shortbowConditionDuration(context);
+          return base > 0 ? (base + intrinsic) / base : 1;
+        },
+        when: (context) => context.condition === CONDITION.BLEEDING && qualifiesForFlankingBonuses(context)
+      }
+    ],
     effects: impactEffects(
       { atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
@@ -97,6 +101,21 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     castTimeMs: 560,
     interruptCommitMs: 280,
     retainsCastLockoutAfterInterrupt: true,
+    // Intrinsic seconds precede Light on Your Feet so both extensions add to the same base.
+    durationExtension: 2,
+    modifiers: [
+      {
+        id: 'ranger.poison-volley-base-duration',
+        order: 0,
+        target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+        operation: 'multiply',
+        factor: (context) => {
+          const { base, intrinsic } = shortbowConditionDuration(context);
+          return base > 0 ? (base + intrinsic) / base : 1;
+        },
+        when: (context) => context.condition === CONDITION.POISONED && qualifiesForFlankingBonuses(context)
+      }
+    ],
     effects: impactEffects(
       { atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [

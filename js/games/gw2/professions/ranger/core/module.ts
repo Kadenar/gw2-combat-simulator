@@ -10,7 +10,6 @@ import { RANGER_CORE_SKILL_FLIPS } from '#gw2/professions/ranger/core/skills/ski
 import { sicEmPetModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
 import { rangerForceOfNatureModifier } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
-import { rangerShortbowConditionDurationModifier } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { createRangerCoreState, projectRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { rangerCoreTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/ranger/data/trait-lines.js';
@@ -52,7 +51,6 @@ export const rangerCoreModule = defineNativeModule({
   // Keep player/shared rules before the pet audience and retain the established duration stage.
   modifiers: {
     modifierRules: [
-      rangerShortbowConditionDurationModifier,
       rangerAttackOfOpportunityModifier,
       rangerForceOfNatureModifier,
       ...sicEmPetModifiers.map((rule, index) => ({ ...rule, order: 30 + index }))

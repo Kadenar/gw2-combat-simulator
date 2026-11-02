@@ -11,7 +11,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/specialization-data-types.js';
 import type { FieldSpecs, NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
+import type { SkillModifier } from '#gw2/platform/skills/modifiers.js';
 import type { SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 import type { SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js';
 
@@ -89,8 +89,8 @@ export interface Skill extends CatalogEntity, SharedNumericSkillFields {
   readonly attributeBonuses?: Readonly<Partial<Record<SkillAttributeKey, number>>>;
   /** Fixed grants while the skill's active state applies. */
   readonly activeAttributeBonuses?: Skill['attributeBonuses'];
-  /** Intrinsic strike and critical-damage modifiers apply only to damage attributed to this skill. */
-  readonly modifiers?: readonly SkillDamageModifier[];
+  /** Intrinsic strike, critical-damage, and condition-base-duration rules apply only to this skill's packets. */
+  readonly modifiers?: readonly SkillModifier[];
   /** Identity-only tombstones scoped to this skill in its selected catalog. */
   readonly removedEffectKeys?: readonly string[];
   /** Input classification; explicit chains supply true unless a manual sequence declares false. */

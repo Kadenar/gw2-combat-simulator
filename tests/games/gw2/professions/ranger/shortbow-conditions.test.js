@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { triggerBloodThirst } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
@@ -108,4 +110,45 @@ test('Crippling Shot grants pet bleeding with player condition duration', () => 
   );
   assert.ok(bleeds.length > 0);
   assert.ok(bleeds.every((e) => e.skillName === 'Blood Thirst' && e.effectiveDuration === 30));
+});
+
+// Skill-owned tuning and the trait contribute seconds before the ordinary duration bonus reaches its cap.
+test('shortbow intrinsic duration edits preserve additive trait extensions and the duration cap', () => {
+  for (const durationExtension of [0, 4]) {
+    const profession = withPatchPreview(rangerProfession, {
+      id: 'shortbow-duration',
+      label: 'Shortbow duration',
+      professions: {
+        ranger: {
+          skills: {
+            [ID.CROSSFIRE]: { fields: { durationExtension } },
+            [ID.POISON_VOLLEY]: { fields: { durationExtension } }
+          }
+        }
+      }
+    });
+    const result = runRanger(
+      [ID.CROSSFIRE, ID.POISON_VOLLEY, { type: 'wait', durationMs: 1000 }],
+      {
+        patchId: 'shortbow-duration',
+        primaryWeapon: 'Shortbow',
+        selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET],
+        attributeInputs: baseAttributeInputs({ expertise: 3000 }),
+        target: { armor: 2597, defiant: true, conditions: {} }
+      },
+      { profession }
+    );
+    assert.deepEqual(result.warnings, []);
+    for (const [id, condition, base] of [
+      [ID.CROSSFIRE, 'Bleeding', 2],
+      [ID.POISON_VOLLEY, 'Poisoned', 5]
+    ]) {
+      const applications = result.resolvedEvents.filter(
+        (event) => event.type === 'condition' && event.sourceId === id && event.condition === condition
+      );
+      assert.ok(applications.length > 0);
+      for (const application of applications)
+        assert.equal(application.effectiveDuration, (base + durationExtension + 2) * 2);
+    }
+  }
 });

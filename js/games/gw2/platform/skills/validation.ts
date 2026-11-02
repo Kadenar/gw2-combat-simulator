@@ -10,7 +10,7 @@ import { skillActions } from '#gw2/platform/effects/actions.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import { fieldValue, validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
-import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
+import { normalizeSkillModifiers } from '#gw2/platform/skills/modifiers.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
@@ -306,8 +306,7 @@ export function normalizeSkill<TSkill extends Skill>(source: TSkill): TSkill {
   }
 
   const effects = normalizeSkillEffects(source.effects || [], `skill=${id}`);
-  const modifiers =
-    source.modifiers == null ? undefined : normalizeSkillDamageModifiers(source.modifiers, `Skill ${id}`);
+  const modifiers = source.modifiers == null ? undefined : normalizeSkillModifiers(source.modifiers, `Skill ${id}`);
 
   // A cost names one resource and one amount; the `cost.amount` field declaration bounds the value.
   if (

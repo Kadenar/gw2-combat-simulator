@@ -113,7 +113,7 @@ test('catalog validation rejects malformed intrinsic modifiers and registration 
           modifiers: [bonus('bad', 1.5)]
         }
       ]),
-    /strike effect/
+    /invalid for a condition effect/
   );
   const core = moduleFor([skill(1, [bonus('duplicate', 2)]), skill(2, [], [strike([bonus('duplicate', 2)])])]);
   assert.throws(
@@ -207,4 +207,141 @@ test('effect ownership reaches damage resolution without multiplying a sibling s
   const initial = result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Initial');
   const aftershock = result.resolvedEvents.find((event) => event.type === 'damage' && event.name === 'Aftershock');
   assertFlooredDamageMultiplier(aftershock.damage, initial.damage, 1.5);
+});
+
+// Base-duration rules use the same ordered evaluator without affecting ordinary duration or damage hooks.
+test('base-duration modifiers preserve live predicates, scalar order, and packet ownership', () => {
+  const owner = skill(
+    1,
+    [
+      {
+        id: 'skill-duration',
+        target: 'conditionBaseDuration',
+        operation: 'multiply',
+        order: 1,
+        parameters: { perStack: 0.5 },
+        factor: (context, _target, parameters) => 1 + context.runtime.stacks * parameters.perStack,
+        when: (context) => context.condition === 'Bleeding'
+      }
+    ],
+    [
+      { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 },
+      {
+        type: 'condition',
+        condition: 'Bleeding',
+        stacks: 1,
+        duration: 2,
+        modifiers: [
+          {
+            id: 'effect-duration',
+            target: 'conditionBaseDuration',
+            operation: 'add',
+            amount: 0.25,
+            order: 2
+          }
+        ]
+      }
+    ]
+  );
+  const core = moduleFor([owner, skill(2)], {
+    modifierRules: [
+      {
+        id: 'shared-duration',
+        target: 'conditionBaseDuration',
+        operation: 'add',
+        amount: 0.5,
+        order: 0
+      }
+    ]
+  });
+  const profession = defineNativeProfession({ id: 'duration-hooks', name: 'Duration hooks', modules: [core] });
+  const hooks = profession.runtimeFor({});
+  const context = { condition: 'Bleeding', runtime: { stacks: 2 }, event: packet(owner, owner.effects[1]) };
+  assert.equal(hooks.modifyConditionBaseDuration(context, 1), 3.25);
+  context.runtime.stacks = 0;
+  assert.equal(hooks.modifyConditionBaseDuration(context, 1), 1.75);
+  context.runtime.stacks = 2;
+  assert.equal(hooks.modifyConditionBaseDuration({ ...context, condition: 'Poisoned' }, 1), 1.75);
+  const sibling = packet(owner, owner.effects[0], context.event);
+  assert.equal(sibling.effectModifierIds, undefined);
+  assert.equal(hooks.modifyConditionBaseDuration({ ...context, event: sibling }, 1), 3);
+  assert.equal(hooks.modifyConditionBaseDuration({ ...context, event: { ...context.event, skillId: 2 } }, 1), 1.5);
+  assert.equal(hooks.modifyConditionDuration?.(context, 1) ?? 1, 1);
+  assert.equal(hooks.modifyStrikeDamage?.(context, 100) ?? 100, 100);
+});
+
+test('base-duration declarations reject invalid operations, factors, and effect targets', () => {
+  const duration = { id: 'duration', target: 'conditionBaseDuration', operation: 'multiply', factor: 1.5 };
+  const condition = { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 };
+  for (const rule of [
+    { ...duration, operation: 'damage-additive', amount: 0.5 },
+    { ...duration, factor: -1 },
+    { ...duration, factor: Infinity }
+  ]) {
+    assert.throws(() => createCanonicalCatalog({ skills: [skill(1, [rule])] }), /modifier|Modifier/);
+    assert.throws(() => normalizeSkillEffects([{ ...condition, modifiers: [rule] }]), /modifier|Modifier/);
+  }
+
+  assert.throws(() => normalizeSkillEffects([strike([duration])]), /invalid for a strike effect/);
+  assert.throws(() => moduleFor([skill(1, [], [strike([duration])])]), /invalid for a strike effect/);
+  assert.throws(
+    () => normalizeSkillEffects([{ type: 'buff', kind: 'Test', duration: 1, modifiers: [duration] }]),
+    /strike or condition effect/
+  );
+  const core = moduleFor([skill(1, [duration], [{ ...condition, modifiers: [duration] }])]);
+  assert.throws(
+    () => defineNativeProfession({ id: 'duplicate-duration', name: 'Duplicate', modules: [core] }),
+    /Duplicate modifier rule/
+  );
+});
+
+// Exercise real condition lifetimes: intrinsic changes precede the capped bonus, while zero suppresses application.
+test('intrinsic base duration reaches condition resolution before the ordinary duration cap', () => {
+  const condition = { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 };
+  const duration = (id, factor) => ({ id, target: 'conditionBaseDuration', operation: 'multiply', factor });
+  const owner = skill(
+    1,
+    [{ ...duration('skill-duration', 1.5), when: (context) => context.condition === 'Bleeding' }],
+    [
+      { ...condition, name: 'Plain' },
+      { ...condition, name: 'Enhanced', modifiers: [duration('effect-duration', 2)] },
+      { ...condition, name: 'Different condition', condition: 'Poisoned' },
+      { ...condition, name: 'Suppressed', condition: 'Burning', modifiers: [duration('zero-duration', 0)] }
+    ]
+  );
+  const other = skill(2, [], [{ ...condition, name: 'Other skill' }]);
+  const profession = defineNativeProfession({
+    id: 'duration-fixture',
+    name: 'Duration fixture',
+    modules: [moduleFor([owner, other])]
+  });
+  const result = createProfessionSimulator(profession)(
+    [
+      { type: 'cast', skillId: 1 },
+      { type: 'cast', skillId: 2 },
+      { type: 'wait', durationMs: 15000 }
+    ],
+    {
+      attributeInputs: baseAttributeInputs({ expertise: 3000 }),
+      target: { armor: 1000, conditions: {} }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const applications = result.resolvedEvents.filter((event) => event.type === 'condition');
+  for (const [name, duration] of [
+    ['Plain', 6],
+    ['Enhanced', 12],
+    ['Different condition', 4],
+    ['Other skill', 4]
+  ]) {
+    const application = applications.find((event) => event.name === name);
+    assert.ok(application, name);
+    assert.equal(application.effectiveDuration, duration, name);
+    assert.equal(application.naturalExpiresAt - application.at, duration, name);
+  }
+
+  assert.equal(
+    applications.some((event) => event.name === 'Suppressed'),
+    false
+  );
 });
