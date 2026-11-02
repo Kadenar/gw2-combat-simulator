@@ -519,7 +519,12 @@ test('section navigation fits workspace controls and tools on mobile and desktop
   const navigation = page.getByRole('navigation', { name: 'Simulator sections' });
   const links = navigation.locator('.simulator-view-tab');
   await expect(links).toHaveText(['Simulation', 'Analysis', 'Gear Optimizer']);
-  await expect(navigation.locator('.simulator-workspace-option')).toHaveText(['Golem', 'Bosses', 'Benchmarks']);
+  await expect(navigation.locator('.simulator-workspace-option')).toHaveText([
+    'Golem',
+    'Bosses',
+    'Benchmarks',
+    'Modifiers'
+  ]);
 
   for (const width of [320, 390, 600, 1100]) {
     await page.setViewportSize({ width, height: 844 });
