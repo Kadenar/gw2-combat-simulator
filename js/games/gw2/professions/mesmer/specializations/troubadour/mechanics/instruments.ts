@@ -256,16 +256,23 @@ export function resolveCrescendo(
   const effectiveness = masterOfFragmentationCrescendo(context, skill);
 
   if (strike)
-    buildMesmerStrikes(context, skill, damageAt, {
-      ...strike,
-      name: undefined,
-      summonKind: undefined,
-      ...(strike.coefficient === undefined
-        ? { multiplier: 1 + activeInstruments.size * effectiveness }
-        : { coefficient: strike.coefficient * (1 + activeInstruments.size * effectiveness) }),
-      source: 'Player',
-      weaponStrengthProfileId: 'nonweapon.profession-mechanic'
-    }).forEach((packet) => {
+    buildMesmerStrikes(
+      context,
+      skill,
+      damageAt,
+      {
+        ...strike,
+        name: undefined,
+        summonKind: undefined,
+        source: 'Player',
+        weaponStrengthProfileId: 'nonweapon.profession-mechanic'
+      },
+      {
+        // Preserve the same snapshot for scalar and timeline strikes; the skill owns the damage calculation.
+        crescendoInstrumentCount: activeInstruments.size,
+        crescendoEffectiveness: effectiveness
+      }
+    ).forEach((packet) => {
       context.effects.emit({
         ...delivery,
         kind: 'packet',

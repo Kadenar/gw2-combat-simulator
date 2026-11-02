@@ -4,6 +4,7 @@ import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
+import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
@@ -15,6 +16,7 @@ import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/tro
 import { hasLute } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
+import { troubadourModule } from '#gw2/professions/mesmer/specializations/troubadour/module.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
 import { fortissimo } from '#gw2/professions/mesmer/specializations/troubadour/traits/index.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -23,6 +25,11 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
+
+// Isolate Crescendo's captured bonus from the live Lute buff when checking instrument selection.
+const crescendoModifiers = createModifierHooks({
+  rules: troubadourModule.modifiers.modifierRules.filter(({ id }) => id === 'mesmer.crescendo-instruments')
+});
 
 // Keep real profiles and instrument handlers while isolating windows from cast speed, random damage, and cooldowns.
 function instrumentContext(traits = [TRAIT.FORTISSIMO]) {
@@ -181,7 +188,12 @@ test('shorter instrument replays replace their own window without reviving old b
       id: 'crescendo'
     }
   });
-  assert.equal(context.events.find((event) => event.skillId === ID.CRESCENDO).coefficient, 2.25 * 1.25);
+  const strike = context.events.find((event) => event.skillId === ID.CRESCENDO);
+  assert.equal(strike.coefficient, 2.25);
+  assert.equal(
+    crescendoModifiers.modifyStrikeDamage(modifierContext(context, context.time, strike), strike.coefficient),
+    2.25 * 1.25
+  );
 });
 
 test('instrument damage queries respect commitment order at the same timestamp', () => {
@@ -276,7 +288,11 @@ test('Crescendo reads an instrument committed between acceptance and impact', ()
   troubadourHooks.tasks[queued[0].type](context, { cast });
   const strike = context.events.find((event) => event.type === 'damage');
   assert.equal(strike.at, context.time);
-  assert.equal(strike.coefficient, 2.25 * 1.25);
+  assert.equal(strike.coefficient, 2.25);
+  assert.equal(
+    crescendoModifiers.modifyStrikeDamage(modifierContext(context, context.time, strike), strike.coefficient),
+    2.25 * 1.25
+  );
 });
 
 test('Flute endurance regeneration uses the final live microsecond and loses the bonus at expiry', () => {

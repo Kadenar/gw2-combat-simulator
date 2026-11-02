@@ -1,23 +1,8 @@
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
 
-// Explicit Core orders keep moved trait multipliers between skill rules and elite multipliers.
-const mesmerCoreModifierRules: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'mesmer.event-final-multiplier',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: Object.freeze({ fallbackFactor: 1 }),
-    factor: (context, _target, parameters) => Number(context.event?.multiplier ?? parameters.fallbackFactor),
-    order: 1000
-  }
-]);
-
 // Illusion strikes share profession additions but do not inherit the player's additive sigil bonuses.
 export const mesmerCoreModifiers = Object.freeze({
-  modifierRules: mesmerCoreModifierRules,
   damageBuckets: {
     strikeDamage: {
       includeSigil: (context) => !illusionSource(context)

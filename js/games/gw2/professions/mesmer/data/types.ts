@@ -44,7 +44,11 @@ export interface MesmerEventExtra {
   readonly sourceSkill?: string;
   readonly icon?: string;
   readonly count?: number;
-  readonly multiplier?: number;
+  /** Repeat damage retains the Chronophantasma factor accepted with this phantasm batch. */
+  readonly chronophantasmaDamageFactor?: number;
+  /** Crescendo samples its active instruments and selected effectiveness together at its scheduled strike. */
+  readonly crescendoInstrumentCount?: number;
+  readonly crescendoEffectiveness?: number;
   readonly amount?: number;
   readonly maximum?: number;
   readonly value?: number;

@@ -139,6 +139,7 @@ const EXPECTED = {
     traits: {
       'Altered Chord': { strike: 'additive' },
       Bloodsong: { condition: 'multiplier' },
+      Chronophantasma: { strike: 'multiplier' },
       'Compounding Power': { strike: 'additive', condition: 'additive' },
       'Deadly Blades': { strike: 'additive', condition: 'additive' },
       Egotism: { strike: 'multiplier' },
@@ -158,7 +159,7 @@ const EXPECTED = {
       'Vicious Expression': { strike: 'multiplier' }
     },
     rules: {
-      'mesmer.event-final-multiplier': { strike: 'multiplier' },
+      'mesmer.crescendo-instruments': { strike: 'multiplier' },
       'mesmer.mind-stab-vulnerability': { strike: 'multiplier' }
     }
   },

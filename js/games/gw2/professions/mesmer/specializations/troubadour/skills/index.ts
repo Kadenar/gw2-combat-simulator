@@ -3,7 +3,9 @@
  * Instrument and Tale runtime behavior lives under `mechanics/`.
  */
 import { boonKey } from '#gw2/platform/combat/boons.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
+import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, AURA, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -238,6 +240,19 @@ const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
     damageIncreasePerInstrument: 0.25,
     damageAtMs: 840,
     castTimeMs: 1000,
+    // Captured instrument state strengthens only this skill's player strike without altering its coefficient.
+    modifiers: [
+      {
+        id: 'mesmer.crescendo-instruments',
+        label: 'Crescendo',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        order: 1000,
+        factor: (context) =>
+          1 + Number(context.event?.crescendoInstrumentCount) * Number(context.event?.crescendoEffectiveness),
+        when: (context) => isGw2PlayerActorEvent(context.event) && context.event?.crescendoInstrumentCount != null
+      }
+    ],
     effects: [],
     sideEffects: [
       {

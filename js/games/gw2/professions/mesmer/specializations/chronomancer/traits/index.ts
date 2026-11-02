@@ -2,7 +2,11 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { gw2EventActorType, isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import {
+  gw2EventActorType,
+  isGw2PhantasmEvent,
+  isGw2PlayerActorEvent
+} from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -72,6 +76,18 @@ const chronophantasma = defineTrait<MesmerSkill>({
   balance: {
     damageMultiplier: 1.05
   },
+  // Accepted repeat packets retain their captured bonus independently of later trait selection.
+  modifierRules: [
+    {
+      id: 'mesmer.chronophantasma-repeat',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      requiresSelection: false,
+      order: 1000,
+      factor: (context) => Number(context.event?.chronophantasmaDamageFactor),
+      when: (context) => isGw2PhantasmEvent(context.event) && context.event?.chronophantasmaDamageFactor != null
+    }
+  ],
   // Admit repeat work once for this batch; the illusion owner retains its conversion and delivery lifetime.
   triggers: [
     onTriggerPoint(mesmerPhantasmPreparing, {

@@ -3,14 +3,18 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { chronomancerModule } from '#gw2/professions/mesmer/specializations/chronomancer/module.js';
 import { mesmerSelectedAmbush } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush.js';
 import { mesmerSelectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-projection.js';
+import { troubadourModule } from '#gw2/professions/mesmer/specializations/troubadour/module.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Intrinsic skills have one patch owner; fixed clone capacity needs no balance profile.
 test('Mesmer catalog removes skill profiles and assigns intrinsic specialization policy to traits', () => {
@@ -143,4 +147,147 @@ test('Signet of Illusions skill fields control passive resource generation', () 
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession[STATE.RESOURCE], 2);
+});
+
+// Both repeat builders must retain the accepted factor while ordinary attacks and non-phantasm actors stay neutral.
+test('Chronophantasma owns captured repeat damage across phantasm packet builders', () => {
+  const hooks = createModifierHooks({
+    rules: chronomancerModule.modifiers.modifierRules.filter(({ id }) => id === 'mesmer.chronophantasma-repeat')
+  });
+  for (const [skill, primaryWeapon, secondaryWeapon] of [
+    ['Phantasmal Swordsman', 'Sword', 'Sword'],
+    ['Phantasmal Lancer', 'Spear', '']
+  ]) {
+    const run = (factor) => {
+      const profession = withPatchPreview(mesmerProfession, {
+        id: 'repeat-owner',
+        label: 'Repeat owner',
+        professions: {
+          mesmer: {
+            balanceProfiles: { [TRAIT.CHRONOPHANTASMA]: { fields: { damageMultiplier: factor } } }
+          }
+        }
+      });
+      return runMesmer(
+        [skill, { type: 'wait', durationMs: 15000 }],
+        {
+          ...createDefaultConfig(),
+          patchId: 'repeat-owner',
+          specialization: 'Chronomancer',
+          primaryWeapon,
+          secondaryWeapon,
+          selectedTraitIds: [TRAIT.CHRONOPHANTASMA],
+          initialResource: 0
+        },
+        { profession }
+      );
+    };
+
+    const baseline = run(1);
+    const boosted = run(1.4);
+    assert.deepEqual(baseline.warnings, []);
+    assert.deepEqual(boosted.warnings, []);
+    const strike = (result, repeated) =>
+      result.resolvedEvents.find(
+        (event) =>
+          event.type === 'damage' &&
+          event.summonKind === 'phantasm' &&
+          (event.chronophantasmaDamageFactor != null) === repeated
+      );
+    assert.equal(strike(boosted, false).damage, strike(baseline, false).damage);
+    const repeat = strike(boosted, true);
+    assert.equal(repeat.coefficient, strike(baseline, true).coefficient);
+    assert.equal(repeat.chronophantasmaDamageFactor, 1.4);
+    assertFlooredDamageMultiplier(repeat.damage, strike(baseline, true).damage, 1.4);
+    // Changing current selection or profile cannot rewrite a bonus already accepted by this repeat.
+    const context = { event: repeat, config: { selectedTraitIds: [] }, catalog: mesmerCatalog, time: repeat.at };
+    assert.equal(hooks.modifyStrikeDamage(context, 100), 140);
+    for (const event of [
+      strike(boosted, false),
+      { ...repeat, actorType: 'player' },
+      { ...repeat, summonKind: 'clone' }
+    ])
+      assert.equal(hooks.modifyStrikeDamage({ ...context, event }, 100), 100);
+  }
+});
+
+// A timeline attack delivered after instrument expiry uses the same selected snapshot as the ordinary scalar strike.
+test('Crescendo owns instrument scaling and Fragmentation replacement for scalar and delayed strikes', () => {
+  const hooks = createModifierHooks({
+    rules: troubadourModule.modifiers.modifierRules.filter(({ id }) => id === 'mesmer.crescendo-instruments')
+  });
+  for (const delayed of [false, true]) {
+    for (const fragmentation of [false, true]) {
+      const run = (bonus) => {
+        const profession = withPatchPreview(mesmerProfession, {
+          id: 'crescendo-owner',
+          label: 'Crescendo owner',
+          professions: {
+            mesmer: {
+              skills: {
+                [ID.CRESCENDO]: {
+                  fields: { damageIncreasePerInstrument: bonus ? 0.4 : 0 },
+                  ...(delayed
+                    ? {
+                        sideEffects: {
+                          crescendo: {
+                            removeEffects: [{ type: 'strike', name: 'Strike' }],
+                            addEffects: [
+                              {
+                                type: 'strike',
+                                name: 'Strike',
+                                ticks: [{ atMs: 6000, coefficient: 2.25 }],
+                                timingScale: 'fixed'
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    : {})
+                }
+              },
+              balanceProfiles: {
+                [TRAIT.MASTER_OF_FRAGMENTATION]: { fields: { damageIncreasePerStack: bonus ? 0.6 : 0 } }
+              }
+            }
+          }
+        });
+        return runMesmer(
+          ['Flustering Flute', 'Crescendo', { type: 'wait', durationMs: 9000 }],
+          {
+            ...createDefaultConfig(),
+            patchId: 'crescendo-owner',
+            specialization: 'Troubadour',
+            initialResource: 0,
+            selectedTraitIds: fragmentation ? [TRAIT.MASTER_OF_FRAGMENTATION] : []
+          },
+          { profession }
+        );
+      };
+
+      const baseline = run(false);
+      const boosted = run(true);
+      assert.deepEqual(baseline.warnings, []);
+      assert.deepEqual(boosted.warnings, []);
+      const strike = (result) =>
+        result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.CRESCENDO);
+      const event = strike(boosted);
+      const instrument = boosted.events.find(
+        (entry) => entry.type === 'mesmer.instrument' && entry.instrument === 'Flute'
+      );
+      assert.equal(event.at >= instrument.expiresAt, delayed);
+      assert.equal(event.coefficient, 2.25);
+      assert.equal(event.crescendoInstrumentCount, 1);
+      assert.equal(event.crescendoEffectiveness, fragmentation ? 0.6 : 0.4);
+      const factor = fragmentation ? 1.6 : 1.4;
+      assertFlooredDamageMultiplier(event.damage, strike(baseline).damage, factor);
+      const context = { event, config: { selectedTraitIds: [] }, time: event.at + 100, catalog: mesmerCatalog };
+      assert.equal(hooks.modifyStrikeDamage(context, 100), 100 * factor);
+      for (const other of [
+        { ...event, skillId: ID.FLUSTERING_FLUTE },
+        { ...event, actorType: 'summon', summonKind: 'afterimage' }
+      ])
+        assert.equal(hooks.modifyStrikeDamage({ ...context, event: other }, 100), 100);
+    }
+  }
 });

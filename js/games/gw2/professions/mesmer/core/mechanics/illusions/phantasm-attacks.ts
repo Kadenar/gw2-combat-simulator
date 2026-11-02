@@ -192,7 +192,7 @@ export function schedulePhantasmStrike(
         },
         {
           name: `${repeatAttackName} - ${repeatPolicy.label}`,
-          multiplier: repeatPolicy.damageMultiplier
+          chronophantasmaDamageFactor: repeatPolicy.damageMultiplier
         }
       ).forEach((packet) => {
         emitAttackPacket(state, execution, packet);
@@ -223,7 +223,7 @@ export function schedulePhantasmStrike(
           },
           {
             name: `${repeatAttackName} - ${repeatPolicy.label}`,
-            multiplier: repeatPolicy.damageMultiplier
+            chronophantasmaDamageFactor: repeatPolicy.damageMultiplier
           }
         ).forEach((packet) => {
           emitAttackPacket(state, execution, packet);
