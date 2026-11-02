@@ -17,7 +17,9 @@ import {
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
+  holosmithEventConditionBaseDurationFactor,
   holosmithEventMetadata,
+  holosmithEventStrikeFactor,
   type HolosmithResolverEvent
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { holosmithModifierState } from '#gw2/professions/engineer/specializations/holosmith/mechanics/modifier-queries.js';
@@ -202,7 +204,29 @@ export const holosmithTraits = [
   // Unlocking Photon Forge supplies its baseline heat generation and overheat recharge.
   defineTrait({
     id: TRAIT.PHOTON_PROJECTOR,
-    balance: { energyRegenerationPerSecond: 2, cooldown: 15 }
+    balance: { energyRegenerationPerSecond: 2, cooldown: 15 },
+    // Forge's intrinsic skill factors apply whenever Holosmith is loaded, including isolated skill previews.
+    modifierRules: [
+      {
+        id: 'engineer.enhanced-capacity-damage-tier',
+        requiresSelection: false,
+        order: 1,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        parameters: { defaultFactor: 1 },
+        // Delayed packets retain captured heat; direct packets use their skill's live tier.
+        factor: (context, _target, parameters) =>
+          holosmithEventStrikeFactor(context, context.event || {}, parameters.defaultFactor),
+        when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
+      },
+      {
+        id: 'engineer.heat-condition-base-duration',
+        requiresSelection: false,
+        target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
+        operation: 'multiply',
+        factor: holosmithEventConditionBaseDurationFactor
+      }
+    ]
   }),
   lasersEdge,
   solarFocusingLens,

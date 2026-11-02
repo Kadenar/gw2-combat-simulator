@@ -7,7 +7,6 @@ import {
   HOLOSMITH_SKILL_FIELDS
 } from '#gw2/professions/engineer/specializations/holosmith/catalog-fields.js';
 import { holosmithHooks } from '#gw2/professions/engineer/specializations/holosmith/hooks.js';
-import { holosmithModifiers } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
 import { bindHolosmithUi } from '#gw2/professions/engineer/specializations/holosmith/presentation.js';
 import { ENGINEER_HOLOSMITH_AUTOATTACK_CHAINS } from '#gw2/professions/engineer/specializations/holosmith/skills/autoattack-chains.js';
 import { HOLOSMITH_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/holosmith/skills/index.js';
@@ -33,7 +32,6 @@ export const holosmithModule = defineNativeModule({
   }),
   // Heat tasks and impact formulas read the same live specialization state.
   state: { create: holosmithState.create, project: projectHolosmithPlanningState },
-  modifiers: holosmithModifiers,
   hooks: holosmithHooks,
   presentation: bindHolosmithUi
 });

@@ -9,8 +9,8 @@ import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { holosmithSkillStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import { holosmithModifierRules } from '#gw2/professions/engineer/specializations/holosmith/modifiers.js';
 import { createHolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import { holosmithTraits } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -34,6 +34,27 @@ const baseConfig = Object.freeze({
 });
 
 const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
+
+// Photon Projector owns intrinsic heat scaling even when an isolated run supplies no selected trait IDs.
+test('Photon Projector scales condition base duration independently of ordinary duration bonuses', () => {
+  const native = engineerProfession.runtimeFor({ specialization: 'Holosmith', selectedTraitIds: [] });
+  for (const [factor, expected] of [
+    [undefined, 1],
+    [0.5, 0.5],
+    [1.5, 1.5],
+    [0, 0],
+    [-1, 0],
+    [NaN, 1]
+  ]) {
+    const context = {
+      time: 0,
+      config: { selectedTraitIds: [] },
+      event: { holosmithConditionBaseDurationFactor: factor }
+    };
+    assert.equal(native.modifyConditionBaseDuration(context, 2), 2 * expected);
+    assert.equal(native.modifyConditionDuration(context, 2), 2);
+  }
+});
 
 // Defensive self-burning must never enter the outgoing condition pipeline.
 test('Cauterize deals no outgoing damage on a clean target', () => {
@@ -725,7 +746,9 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   assert.ok(Math.abs(swordDamage(cappedSword, 'Sun Edge') / swordDamage(tiered, 'Sun Edge') - 1) < 1e-12);
   assert.ok(swordDamage(enhancedSword, 'Sun Edge') > swordDamage(tiered, 'Sun Edge'));
 
-  const swordTierRule = holosmithModifierRules.find((rule) => rule.id === 'engineer.enhanced-capacity-damage-tier');
+  const swordTierRule = holosmithTraits
+    .find((trait) => trait.id === TRAIT.PHOTON_PROJECTOR)
+    .modifierRules.find((rule) => rule.id === 'engineer.enhanced-capacity-damage-tier');
   const swordTierFactor = (heat, selectedTraitIds = []) =>
     holosmithSkillStrikeFactor(
       {
@@ -1112,7 +1135,9 @@ test('Relic of Fireworks ignores Grenade Kit bundle skills', () => {
 
 // Positive heat-factor reductions preserve player ownership and captured heat.
 test('Holosmith positive strike factors below one apply and retain delayed captures', () => {
-  const rule = holosmithModifierRules.find((candidate) => candidate.id === 'engineer.enhanced-capacity-damage-tier');
+  const rule = holosmithTraits
+    .find((trait) => trait.id === TRAIT.PHOTON_PROJECTOR)
+    .modifierRules.find((candidate) => candidate.id === 'engineer.enhanced-capacity-damage-tier');
   const native = engineerProfession.runtimeFor({ specialization: 'Holosmith', selectedTraitIds: [] });
   for (const factor of [0.5, 1, 1.3]) {
     const context = {

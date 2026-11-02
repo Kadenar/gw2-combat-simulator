@@ -3,6 +3,42 @@ import test from 'node:test';
 
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 
+// Zero base duration suppresses a condition without relaxing validation for damage or other scalar factors.
+test('base-duration factors admit zero while rejecting negative and non-finite values', () => {
+  for (const dynamic of [false, true]) {
+    const rule = (target, value) => ({
+      id: 'duration-suppression',
+      target,
+      operation: 'multiply',
+      factor: dynamic ? () => value : value
+    });
+    const hooks = createModifierHooks({ rules: [rule(MODIFIER_TARGET.CONDITION_BASE_DURATION, 0)] });
+    assert.equal(hooks.modifyConditionBaseDuration({}, 2), 0);
+    for (const value of [-1, NaN, Infinity]) {
+      assert.throws(
+        () =>
+          createModifierHooks({
+            rules: [rule(MODIFIER_TARGET.CONDITION_BASE_DURATION, value)]
+          }).modifyConditionBaseDuration({}, 2),
+        /non-negative/
+      );
+    }
+
+    for (const target of [
+      MODIFIER_TARGET.STRIKE_DAMAGE,
+      MODIFIER_TARGET.CONDITION_DURATION,
+      [MODIFIER_TARGET.CONDITION_BASE_DURATION, MODIFIER_TARGET.CONDITION_DURATION]
+    ]) {
+      assert.throws(() => {
+        const invalid = createModifierHooks({ rules: [rule(target, 0)] });
+
+        if (target === MODIFIER_TARGET.STRIKE_DAMAGE) invalid.modifyStrikeDamage({}, 1);
+        else invalid.modifyConditionDuration({}, 1);
+      }, /positive/);
+    }
+  }
+});
+
 function context({
   sigils = {
     strike: 1.08,

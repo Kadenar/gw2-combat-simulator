@@ -1,3 +1,5 @@
+/** Present heat costs and trait bonuses with their in-game fact icons and selected balance values. */
+import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -8,11 +10,13 @@ import {
   tooltipDecimal,
   tooltipNumber,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type DescribeSimulationTooltip,
-  type ProfessionTooltips
+  type ProfessionTooltips,
+  type SimulationTooltip
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -27,11 +31,17 @@ import {
 } from '#gw2/professions/engineer/app/tooltips/shared.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
-import { PHOTONIC_BLAST_DELAY_SECONDS } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
 import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/holosmith/types.js';
 
-/** Heat variants describe mutually exclusive packets without evaluating a live combat context. */
-function heatPacketTooltip(skillId: SkillId, description: string, field = false): DescribeSimulationTooltip {
+// Heat uses the official thermometer glyph; percentage bonuses use the book glyph.
+const HEAT_FACT_ICON = 'https://render.guildwars2.com/file/1BA1F3645206FB4BE92C5AD6326054250DC7D0DB/1770205.png';
+const BONUS_FACT_ICON = 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png';
+
+/** Heat is authored in percentage points, so its display must not multiply the value by 100. */
+const heatPercent = (value: number): string => `${tooltipDecimal(value)}%`;
+
+/** Present each activation-heat variant in its own tab using the selected balance data. */
+function heatPacketTooltip(skillId: SkillId, description: string, { field = false } = {}): DescribeSimulationTooltip {
   return (balanceContext, entity) => {
     const skill = requireSkillFromContext(balanceContext, skillId);
     const facts = [
@@ -39,45 +49,81 @@ function heatPacketTooltip(skillId: SkillId, description: string, field = false)
         balanceContext.catalog.skillsById
           .get(entity.id)!
           .effects?.filter((effect) => effect.type !== 'custom' && effect.metadata?.trigger !== 'heat-field')
+          .map((effect) => (field && effect.type === 'strike' ? { ...effect, name: 'Initial beam' } : effect))
       ).facts
     ];
-    for (let tier = field ? 1 : 0; tier < heatTiers(balanceContext).length; tier += 1) {
+    const factTabs: NonNullable<SimulationTooltip['factTabs']>[number][] = [];
+    const tabLabels = [
+      `≤${heatPercent(HOLOSMITH_HEAT.highThreshold)}`,
+      `>${heatPercent(HOLOSMITH_HEAT.highThreshold)}`,
+      `>${heatPercent(tooltipNumber(tooltipProfile(balanceContext, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT), 'threshold'))} · ECSU`
+    ];
+
+    // The low-heat beam has no field; each tab includes the initial strike and launch for a complete tier preview.
+    if (field) factTabs.push({ label: tabLabels[0]!, facts: [...facts] });
+
+    for (let tier = field ? 1 : 0; tier < tabLabels.length; tier += 1) {
       const count = tooltipNumber(skill, field ? 'packetCount' : tier === 0 ? 'basePacketCount' : 'highPacketCount');
       const factor = tier === 0 ? 1 : tooltipNumber(skill, tier === 2 ? 'enhancedStrikeFactor' : 'highStrikeFactor');
-      facts.push(
-        ...simulationEffectFacts(
-          (field
-            ? skill.effects!.filter((effect) => effect.metadata?.trigger === 'heat-field')
-            : requireSkillAction(skill, 'heat-payload').effects
-          ).map((effect): SkillEffect =>
-            effect.type === 'strike'
-              ? { ...effect, coefficient: tooltipNumber(effect, 'coefficient') * count * factor, hits: count }
-              : effect.type === 'condition'
-                ? {
-                    ...effect,
-                    applications: count,
-                    duration:
-                      tooltipNumber(effect, 'duration') *
-                      (field && tier === 2 ? tooltipNumber(skill, 'enhancedConditionBaseDurationFactor') : 1)
-                  }
-                : effect
-          ),
-          heatTiers(balanceContext)[tier]
-        ).facts
-      );
+      const tierFacts = simulationEffectFacts(
+        (field
+          ? skill.effects!.filter((effect) => effect.metadata?.trigger === 'heat-field')
+          : requireSkillAction(skill, 'heat-payload').effects
+        ).map((effect): SkillEffect =>
+          effect.type === 'strike'
+            ? {
+                ...effect,
+                name: field ? 'Lingering field' : 'Strike',
+                coefficient: tooltipNumber(effect, 'coefficient') * count * factor,
+                hits: count
+              }
+            : effect.type === 'condition'
+              ? {
+                  ...effect,
+                  applications: count,
+                  duration:
+                    tooltipNumber(effect, 'duration') *
+                    (field && tier === 2 ? tooltipNumber(skill, 'enhancedConditionBaseDurationFactor') : 1)
+                }
+              : effect
+        )
+      ).facts;
+
+      factTabs.push({
+        label: tabLabels[tier]!,
+        facts: [
+          ...facts,
+          ...tierFacts,
+          ...('packetInterval' in skill
+            ? [skillFact(balanceContext, skillId, 'packetInterval', 'Pulse interval', tooltipSeconds)]
+            : []),
+          // Identify the enhanced tier's required trait using its catalog artwork.
+          ...(tier === 2
+            ? [
+                {
+                  name: 'Requires',
+                  detail: 'Enhanced Capacity Storage Unit',
+                  icon: balanceContext.catalog.traits.find(
+                    (trait) => trait.id === TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT
+                  )!.icon
+                }
+              ]
+            : [])
+        ]
+      });
     }
 
-    if ('packetInterval' in skill)
-      facts.push(skillFact(balanceContext, skillId, 'packetInterval', 'Pulse interval', tooltipSeconds));
-
-    return { description, facts };
+    return { description, facts: [], factTabs };
   };
 }
 
 const photonForgeEnterTooltip: DescribeSimulationTooltip = skillTooltip(
   'Replace your weapon skills with Photon Forge attacks. Heat builds over time and when you use Forge skills. At maximum heat, you overheat and can no longer use Forge attacks. Use Deactivate Photon Forge to leave Forge. Kits are briefly unavailable after entering.',
   (balanceContext) => [
-    profileFact(balanceContext, TRAIT.PHOTON_PROJECTOR, 'energyRegenerationPerSecond', 'Passive heat per second'),
+    {
+      ...profileFact(balanceContext, TRAIT.PHOTON_PROJECTOR, 'energyRegenerationPerSecond', 'Passive heat per second'),
+      icon: HEAT_FACT_ICON
+    },
     skillFact(
       balanceContext,
       ID.ENGAGE_PHOTON_FORGE,
@@ -85,12 +131,15 @@ const photonForgeEnterTooltip: DescribeSimulationTooltip = skillTooltip(
       'Kit lockout after Forge entry',
       tooltipSeconds
     ),
-    profileFact(
-      balanceContext,
-      TRAIT.LIGHT_DENSITY_AMPLIFIER,
-      'resourceGain',
-      'Additional heat per second with Light Density Amplifier'
-    ),
+    {
+      ...profileFact(
+        balanceContext,
+        TRAIT.LIGHT_DENSITY_AMPLIFIER,
+        'resourceGain',
+        'Additional heat per second with Light Density Amplifier'
+      ),
+      icon: HEAT_FACT_ICON
+    },
     { name: 'Maximum heat', detail: tooltipDecimal(HOLOSMITH_HEAT.baseMaximum) },
     {
       name: 'Maximum heat with Enhanced Capacity Storage Unit',
@@ -129,7 +178,7 @@ const photonBlitzHeatTooltip: DescribeSimulationTooltip = skillTooltip(
 
 /** Describe holosmith tooltips from the selected balance data. */
 export const holosmithTooltips = {
-  // Pulsed skills show the total heat across their pulses or projectiles.
+  // Every heat-generating attack uses the heat glyph; pulsed skills show their total heat.
   skillFacts: (_c, entity) =>
     entity.heatGain == null
       ? []
@@ -139,7 +188,8 @@ export const holosmithTooltips = {
               entity.id === ID.CORONA_BURST || entity.id === ID.PHOTON_BLITZ
                 ? 'Total heat generated'
                 : 'Heat generated',
-            detail: tooltipDecimal(tooltipNumber(entity, 'heatGain'))
+            detail: tooltipDecimal(tooltipNumber(entity, 'heatGain')),
+            icon: HEAT_FACT_ICON
           }
         ],
   skills: {
@@ -163,16 +213,16 @@ export const holosmithTooltips = {
     [ID.PHOTON_BLITZ]: photonBlitzHeatTooltip,
     [ID.LAUNCH_WALL]: heatPacketTooltip(
       ID.LAUNCH_WALL,
-      "Consume Photon Wall's follow-up and launch the heat-tier-selected walls. All walls arrive together; each owns its explosion and vulnerability application."
+      'Launch Photon Wall to strike foes and inflict vulnerability. Heat when activated determines the number of walls and their damage.'
     ),
     [ID.LASER_DISK]: heatPacketTooltip(
       ID.LASER_DISK,
-      'Create rotating blades. Activation heat determines the pulse count and enhanced damage; later heat changes do not alter the sequence.'
+      "Create rotating blades that strike and inflict bleeding. Heat when activated determines the attack's effects."
     ),
     [ID.PRIME_LIGHT_BEAM]: heatPacketTooltip(
       ID.PRIME_LIGHT_BEAM,
-      'Fire the initial beam. Above the heat threshold, also create the damaging field. The activation heat tier determines every delayed field pulse.',
-      true
+      "Fire a beam that launches foes. Above 50% heat, leave a lingering field that strikes and burns foes. Heat when activated determines the field's damage and burning duration.",
+      { field: true }
     ),
     [ID.RADIANT_ARC]: (balanceContext, entity) => ({
       description: 'Leap, strike, and gain quickness based on the activation heat tier.',
@@ -234,41 +284,74 @@ export const holosmithTooltips = {
     )
   },
   traits: {
-    [TRAIT.PHOTON_PROJECTOR]: traitTooltip('Unlock Photon Forge, its skill bar, and the heat resource.'),
+    [TRAIT.PHOTON_PROJECTOR]: traitTooltip(
+      'Unlock Photon Forge, its skill bar, and the heat resource. Heat strengthens eligible skills, with an additional tier from Enhanced Capacity Storage Unit. Delayed attacks retain their activation heat tier.'
+    ),
     [TRAIT.HEAT_THERAPY]: outsideScopeTooltip,
     [TRAIT.LASERS_EDGE]: traitTooltip(
       'Heat increases player strike damage in Photon Forge. Photonic Blasting Module retains the bonus while cooling after overheating.',
-      [
-        fromProfile(TRAIT.LASERS_EDGE, 'bonusPerHeat', 'Strike damage per heat', tooltipPercent),
-        fromProfile(TRAIT.LASERS_EDGE, 'maximumDamageIncrease', 'Normal maximum bonus', tooltipPercent),
-        fromProfile(
-          TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
-          'maximumDamageIncrease',
-          'Enhanced Capacity maximum bonus',
-          tooltipPercent
-        )
+      (context, id) =>
+        [
+          profileFact(context, id, 'bonusPerHeat', 'Strike damage per heat', tooltipPercent),
+          profileFact(context, id, 'maximumDamageIncrease', 'Normal maximum bonus', tooltipPercent),
+          profileFact(
+            context,
+            TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
+            'maximumDamageIncrease',
+            'Enhanced Capacity maximum bonus',
+            tooltipPercent
+          )
+        ].map((fact) => ({ ...fact, icon: BONUS_FACT_ICON }))
+    ),
+    [TRAIT.LIGHT_DENSITY_AMPLIFIER]: traitTooltip(
+      'Photon Forge passively generates additional heat.',
+      (context, id) => [
+        { ...profileFact(context, id, 'resourceGain', 'Bonus heat per second', heatPercent), icon: HEAT_FACT_ICON }
       ]
     ),
-    [TRAIT.LIGHT_DENSITY_AMPLIFIER]: traitTooltip('Photon Forge passively generates additional heat.', [
-      fromProfile(TRAIT.LIGHT_DENSITY_AMPLIFIER, 'resourceGain', 'Additional heat per second')
-    ]),
     [TRAIT.PRISMATIC_CONVERTER]: outsideScopeTooltip,
     [TRAIT.SOLAR_FOCUSING_LENS]: traitTooltip(
       'Photon Forge transitions grant charges that empower subsequent eligible strikes and inflict burning. High-heat transitions grant more charges.',
-      [
-        ['minimumStacks', 'Base charges'],
-        ['maximumStacks', 'High-heat charges'],
-        ['duration', 'Charge window', tooltipSeconds],
-        fromProfile(TRAIT.SOLAR_FOCUSING_LENS, 'damageIncrease', 'Empowered strike damage', tooltipPercent)
+      (context, id) => [
+        profileFact(context, id, 'minimumStacks', 'Base charges'),
+        profileFact(context, id, 'maximumStacks', 'High-heat charges'),
+        {
+          ...profileFact(context, id, 'duration', 'Charge window', tooltipSeconds),
+          icon: MODIFIER_EFFECT_ICONS.Interval
+        },
+        profileFact(context, id, 'damageIncrease', 'Empowered strike damage', tooltipPercent)
       ]
     ),
     [TRAIT.CRYSTAL_CONFIGURATION_STORM]: traitTooltip(
-      "Replace Photon Forge's autoattack chain with its Storm projectile variants."
+      'Photon Forge autoattacks fire explosive projectiles but generate additional heat.',
+      (context) => {
+        // Read the replacement's mechanics so trait facts follow the selected skill balance.
+        const storm = requireSkillFromContext(context, ID.LIGHT_STRIKE_STORM);
+        const melee = requireSkillFromContext(context, ID.LIGHT_STRIKE);
+        return [
+          {
+            name: 'Additional heat gained',
+            detail: heatPercent(tooltipNumber(storm, 'heatGain') - tooltipNumber(melee, 'heatGain')),
+            icon: HEAT_FACT_ICON
+          },
+          ...(storm.comboFinishers || []).map((finisher) => ({
+            name: 'Combo finisher',
+            detail: `${finisher.finisherType} · ${tooltipPercentValue(tooltipNumber(finisher, 'chance'))} chance`
+          }))
+        ];
+      }
     ),
     [TRAIT.CRYSTAL_CONFIGURATION_ECLIPSE]: outsideScopeTooltip,
     [TRAIT.CRYSTAL_CONFIGURATION_ZEPHYR]: outsideScopeTooltip,
     [TRAIT.THERMAL_RELEASE_VALVE]: traitTooltip(
-      'Dodging grants vigor and invokes Vent Exhaust when heat can be spent. Photonic Blasting Module prevents venting before its overheat explosion.'
+      'Dodging grants vigor. While you have heat to spend, it also triggers Vent Exhaust, losing heat and striking and burning nearby foes.',
+      (context) => [
+        { ...skillFact(context, ID.VENT_EXHAUST, 'heatLoss', 'Heat lost', heatPercent), icon: HEAT_FACT_ICON },
+        // The description identifies the single invoked skill; its effect rows need no repeated source labels.
+        ...simulationEffectFacts(
+          requireSkillFromContext(context, ID.VENT_EXHAUST).effects?.map((effect) => ({ ...effect, name: undefined }))
+        ).facts
+      ]
     ),
     [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]: traitTooltip(
       'Raise the heat limit, unlock enhanced heat tiers on supported skills, and periodically gain might at high heat.',
@@ -283,12 +366,8 @@ export const holosmithTooltips = {
       ]
     ),
     [TRAIT.PHOTONIC_BLASTING_MODULE]: traitTooltip(
-      "Overheating triggers a delayed explosion and burning. Cooling occurs only after overheating; Laser's Edge remains active while heat remains.",
-      // Share the fixed delivery delay with the scheduler; recharge remains selected balance data.
-      (context, id) => [
-        { name: 'Explosion delay', detail: tooltipSeconds(PHOTONIC_BLAST_DELAY_SECONDS) },
-        profileFact(context, id, 'cooldown', 'Overheat recharge', tooltipSeconds)
-      ]
+      "When you overheat, explode to strike and burn nearby foes. Heat is retained after leaving Photon Forge and only dissipates after overheating. Laser's Edge continues to grant bonus damage as you cool.",
+      [['cooldown', 'Overheat recharge', tooltipSeconds]]
     )
   }
 } satisfies ProfessionTooltips<HolosmithSkill>;

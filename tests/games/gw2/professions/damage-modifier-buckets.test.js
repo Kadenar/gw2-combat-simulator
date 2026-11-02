@@ -90,6 +90,7 @@ const EXPECTED = {
       "Laser's Edge": { strike: 'multiplier' },
       'Modified Ammunition': { strike: 'multiplier' },
       'Object in Motion': { strike: 'multiplier' },
+      'Photon Projector': { strike: 'multiplier' },
       'Shaped Charge': { strike: 'multiplier' },
       'Solar Focusing Lens': { strike: 'additive' },
       'Symbiotic Synergy': { strike: 'multiplier' },
@@ -98,7 +99,6 @@ const EXPECTED = {
       'Willing Host': { strike: 'additive', condition: 'additive' }
     },
     rules: {
-      'engineer.enhanced-capacity-damage-tier': { strike: 'multiplier' },
       'engineer.flame-jet-burning-target': { strike: 'additive' },
       'engineer.force-signet': { strike: 'additive' },
       'engineer.plasmatic-state': { strike: 'additive', condition: 'additive' },

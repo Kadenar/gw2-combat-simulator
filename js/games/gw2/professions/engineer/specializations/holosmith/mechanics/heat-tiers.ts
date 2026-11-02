@@ -36,6 +36,12 @@ export function holosmithEventMetadata(event: unknown): HolosmithEventMetadata {
   return event && typeof event === 'object' ? event : {};
 }
 
+/** Captured skill factors adjust base condition duration before ordinary duration bonuses are capped. */
+export function holosmithEventConditionBaseDurationFactor(context: Gw2ModifierContext): number {
+  const factor = holosmithEventMetadata(context.event).holosmithConditionBaseDurationFactor ?? 1;
+  return Number.isFinite(factor) ? Math.max(0, factor) : 1;
+}
+
 /** Captures activation heat and ECSU selection so delayed packets retain their original tier. */
 export function snapshotHolosmithHeat(
   state: Pick<HolosmithState, 'heat'>,

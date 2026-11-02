@@ -13,6 +13,7 @@ import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 interface NormalizeResolverOptions {
   readonly positive?: boolean;
+  readonly allowZero?: boolean;
 }
 
 interface CreateModifierHooksOptions {
@@ -108,12 +109,12 @@ function ruleError(id: string, message: string): TypeError {
 /**
  * Validates a static numeric value or retains a dynamic value resolver.
  * Dynamic results are validated by `resolveNumeric` when the hook runs.
- * The positive option rejects zero and negative values.
+ * Positive factors reject zero unless base-duration suppression explicitly admits it.
  */
 function normalizeResolver(
   rule: Gw2ModifierRule,
   field: 'amount' | 'factor',
-  { positive = false }: NormalizeResolverOptions = {}
+  { positive = false, allowZero = false }: NormalizeResolverOptions = {}
 ): number | Gw2ModifierNumericResolver {
   if (!(field in rule)) {
     throw ruleError(rule.id, `${field} is required.`);
@@ -125,8 +126,15 @@ function normalizeResolver(
   // their result can depend on timestamp-specific combat context.
   if (typeof resolver === 'function') return resolver;
 
-  if (typeof resolver !== 'number' || !Number.isFinite(resolver) || (positive && !(resolver > 0))) {
-    throw ruleError(rule.id, `${field} must be ${positive ? 'a positive ' : 'a '}finite number or function.`);
+  if (
+    typeof resolver !== 'number' ||
+    !Number.isFinite(resolver) ||
+    (positive && !(resolver > 0 || (allowZero && resolver === 0)))
+  ) {
+    throw ruleError(
+      rule.id,
+      `${field} must be ${positive ? (allowZero ? 'a non-negative ' : 'a positive ') : 'a '}finite number or function.`
+    );
   }
 
   return resolver;
@@ -239,7 +247,14 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
     conditionSampleInvariant: rule.conditionSampleInvariant === true
   };
   const field = operation === 'multiply' ? 'factor' : 'amount';
-  const resolver = normalizeResolver({ ...rule, id }, field, field === 'factor' ? { positive: true } : undefined);
+  // A zero base-duration factor suppresses an application; other multipliers remain strictly positive.
+  const resolver = normalizeResolver(
+    { ...rule, id },
+    field,
+    field === 'factor'
+      ? { positive: true, allowZero: targets.every((target) => target === MODIFIER_TARGET.CONDITION_BASE_DURATION) }
+      : undefined
+  );
 
   if (Object.keys(normalized.parameters).length && typeof resolver !== 'function') {
     throw ruleError(id, 'parameters require a resolver-backed numeric value.');
@@ -314,8 +329,17 @@ function resolveNumeric(
   const declared = rule[field];
   const value = typeof declared === 'function' ? declared(context, target, rule.parameters) : declared;
 
-  if (typeof value !== 'number' || !Number.isFinite(value) || (field === 'factor' && !(value > 0))) {
-    throw ruleError(rule.id, `${field} must resolve to ${field === 'factor' ? 'a positive ' : 'a '}finite number.`);
+  const allowZero = rule.targets.length === 1 && target === MODIFIER_TARGET.CONDITION_BASE_DURATION;
+
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value) ||
+    (field === 'factor' && !(value > 0 || (allowZero && value === 0)))
+  ) {
+    throw ruleError(
+      rule.id,
+      `${field} must resolve to ${field === 'factor' ? (allowZero ? 'a non-negative ' : 'a positive ') : 'a '}finite number.`
+    );
   }
 
   return value;
@@ -545,7 +569,7 @@ function createDamageHook(
  * - `target`: one `MODIFIER_TARGET` value or an array of values.
  * - `operation`: `add`, `damage-additive`, or `multiply`.
  * - `amount`: finite number or `(context, target) => number` for additive rules.
- * - `factor`: positive finite number or resolver for multiplicative rules.
+ * - `factor`: positive finite number or resolver for multiplicative rules; base duration also permits zero.
  * - `parameters`: optional finite named inputs passed to a resolver as its third
  *   argument so preview overlays can patch dynamic formulas safely.
  * - `when`: optional `(context) => boolean` predicate.
