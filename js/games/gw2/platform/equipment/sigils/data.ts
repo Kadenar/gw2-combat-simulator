@@ -1,5 +1,5 @@
 /** Owns the static sigil tables: passive stat entries and active proc declarations. */
-import { CONDITION } from '#gw2/platform/constants.js';
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2SigilDataEntry } from '#gw2/platform/equipment/sigils/types.js';
 
 /** Canonical exotic item IDs verified against the public GW2 items API. */
@@ -23,6 +23,8 @@ export const SIGIL_IDS = Object.freeze({
   AIR: 24554,
   BLIGHT: 67913,
   EARTH: 24560,
+  STRENGTH: 24562,
+  FRAILTY: 24567,
   TORMENT: 48911,
   DOOM: 24609,
   ENERGY: 24607,
@@ -141,6 +143,14 @@ export const SIGIL_DATA: Readonly<Record<string, Gw2SigilDataEntry>> = {
     id: SIGIL_IDS.EARTH,
     icon: 'https://render.guildwars2.com/file/251EE3B8B5ADB8D7F7A35DBAEFABA35AEACDF51B/220677.png'
   },
+  Strength: {
+    id: SIGIL_IDS.STRENGTH,
+    icon: 'https://render.guildwars2.com/file/71C00204BDD7FC11AAE1906FC2EF7D37A35DF82E/220682.png'
+  },
+  Frailty: {
+    id: SIGIL_IDS.FRAILTY,
+    icon: 'https://render.guildwars2.com/file/58EF3FB57B16D9F12ACCC2E67225CC2697C7C866/220683.png'
+  },
   Torment: {
     id: SIGIL_IDS.TORMENT,
     icon: 'https://render.guildwars2.com/file/E42EB6198022E5B4D71C5EE41465DD4EB84A0465/665778.png'
@@ -189,6 +199,26 @@ export const SIGIL_BY_ID: Readonly<Record<number, Gw2SigilDataEntry & { readonly
 );
 
 export const SIGIL_PROCS = Object.freeze({
+  // Strength grants ordinary Might so live boon duration and attribute queries apply to each earned stack.
+  [SIGIL_IDS.STRENGTH]: {
+    trigger: 'crit',
+    cooldown: 1,
+    effect: 'boon',
+    boon: BOON.MIGHT,
+    stacks: 1,
+    duration: 10,
+    icon: SIGIL_BY_ID[SIGIL_IDS.STRENGTH].icon
+  },
+  // Frailty shares Ice's positional eligibility and applies ordinary duration-scaled Vulnerability.
+  [SIGIL_IDS.FRAILTY]: {
+    trigger: 'strike',
+    cooldown: 2,
+    effect: 'condition',
+    condition: CONDITION.VULNERABILITY,
+    stacks: 2,
+    duration: 8,
+    icon: SIGIL_BY_ID[SIGIL_IDS.FRAILTY].icon
+  },
   [SIGIL_IDS.AIR]: {
     trigger: 'crit',
     cooldown: 3,

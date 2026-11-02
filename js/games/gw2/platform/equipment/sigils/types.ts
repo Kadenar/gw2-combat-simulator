@@ -27,6 +27,8 @@ export interface Gw2SigilProc {
   readonly canCrit?: boolean;
   readonly projectile?: boolean;
   readonly condition?: string;
+  /** Boon procs use the same live duration and stack handling as other player boon grants. */
+  readonly boon?: string;
   readonly stacks?: number;
   readonly duration?: number;
   readonly amount?: number;

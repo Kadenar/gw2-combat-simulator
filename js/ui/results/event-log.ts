@@ -2,10 +2,41 @@
 import { timeKey } from '#kernel/core/clock.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
+/** One line of a calculation: what it is, how it was derived, and the value it contributes. */
+export interface EventLogCalculationStep {
+  readonly label: string;
+  readonly explanation: string;
+  readonly value: string;
+  /** Unformatted value offered as a tooltip, so displayed numbers can stay readable. */
+  readonly exact: string;
+}
+
+/** One factor behind a calculation, with how the result would change without it. */
+export interface EventLogCalculationFactor {
+  readonly label: string;
+  readonly value: string;
+  readonly impact: string;
+  readonly exact: string;
+}
+
+/** A row whose value was computed: leads with its equation and keeps unformatted facts a click away. */
+export interface EventLogCalculation {
+  readonly heading: string;
+  readonly meta: string;
+  /** Steps in evaluation order; the final step is the result. */
+  readonly steps: readonly EventLogCalculationStep[];
+  readonly factors: readonly EventLogCalculationFactor[];
+  readonly effects: readonly string[];
+  readonly trace: string;
+  /** Every recorded fact at full precision, listed under the trace and copied by its action. */
+  readonly raw: readonly string[];
+}
+
 export interface EventLogDescriptor {
   readonly type: string;
   readonly description: string;
   readonly details?: readonly string[];
+  readonly calculation?: EventLogCalculation;
   readonly className?: string;
 }
 
@@ -108,10 +139,22 @@ interface LogViewState {
   view: LogView;
   timeMode: LogTimeMode;
   readonly hiddenSources: Set<string>;
-  readonly collapsed: Set<string>;
+  /** Groups start collapsed; Expand all and Collapse all replace this so groups from later reruns follow the choice. */
+  groupsOpen: boolean;
+  /** Groups the reader toggled away from `groupsOpen`. */
+  readonly toggledGroups: Set<string>;
 }
 
 const viewStates = new WeakMap<object, LogViewState>();
+
+function isGroupOpen(state: LogViewState, id: string): boolean {
+  return state.groupsOpen !== state.toggledGroups.has(id);
+}
+
+function toggleGroup(state: LogViewState, id: string): void {
+  if (state.toggledGroups.has(id)) state.toggledGroups.delete(id);
+  else state.toggledGroups.add(id);
+}
 
 /** Links rows into a forest by `parentId`; rows keep input order so siblings stay chronological. */
 function buildLogModel<TRow extends EventLogRow>(rows: readonly TRow[]): LogModel<TRow> {
@@ -215,9 +258,33 @@ function highlightHtml(text: string, query: string): string {
   return `${escapeHtml(text.slice(0, index))}<mark>${escapeHtml(text.slice(index, index + needle.length))}</mark>${escapeHtml(text.slice(index + needle.length))}`;
 }
 
+/** Renders the equation above its factors and context, so the result can be understood before any raw fact is read. */
+function calculationHtml(calculation: EventLogCalculation, classes: string, query: string): string {
+  const lastStep = calculation.steps.length - 1;
+  const steps = calculation.steps
+    .map(
+      (step, index) =>
+        `<tr${index === lastStep ? ' class="log-calc-result"' : ''}><th scope="row">${escapeHtml(step.label)}</th><td>${escapeHtml(step.explanation)}</td><td class="log-calc-value" title="${escapeHtml(step.exact)}">${escapeHtml(step.value)}</td></tr>`
+    )
+    .join('');
+  const factors = calculation.factors.length
+    ? `<table class="log-calc-factors"><thead><tr><th scope="col" colspan="2" class="log-calc-title">Modifiers</th><th scope="col" class="log-calc-title log-calc-value" title="How this result alone would change without only this modifier; not a rerun of the simulation.">If removed</th></tr></thead><tbody>${calculation.factors
+        .map(
+          (factor) =>
+            `<tr><th scope="row">${escapeHtml(factor.label)}</th><td title="${escapeHtml(factor.exact)}">${escapeHtml(factor.value)}</td><td class="log-calc-value">${escapeHtml(factor.impact)}</td></tr>`
+        )
+        .join('')}</tbody></table>`
+    : '';
+  const effects = calculation.effects.map(escapeHtml).join(' · ') || 'None';
+  return `<details class="${classes} log-calc"><summary><span class="log-calc-heading">${highlightHtml(calculation.heading, query)}</span><span class="log-calc-meta">${escapeHtml(calculation.meta)}</span></summary><div class="log-calc-body"><table class="log-calc-steps"><tbody>${steps}</tbody></table><div class="log-calc-lower">${factors}<div class="log-calc-side"><div class="log-calc-title">Active effects</div><div>${effects}</div><details class="log-calc-trace"><summary>Trace: ${escapeHtml(calculation.trace)}</summary><ul class="log-calc-raw">${calculation.raw.map((fact) => `<li>${escapeHtml(fact)}</li>`).join('')}</ul></details><button type="button" class="log-jump log-calc-copy" data-role="event-log-copy-raw">Copy raw</button></div></div></div></details>`;
+}
+
 function descriptionHtml(row: EventLogRow, query: string): string {
   const descriptionClasses = safeClassNames(row.className);
   const classes = `log-desc${descriptionClasses ? ` ${descriptionClasses}` : ''}`;
+
+  if (row.calculation) return calculationHtml(row.calculation, classes, query);
+
   const text = highlightHtml(row.description, query);
   // Native disclosures keep optional calculations keyboard accessible and leave ordinary rows unchanged.
   return row.details?.length
@@ -341,8 +408,10 @@ function treeLinesHtml<TRow extends EventLogRow>(model: LogModel<TRow>, context:
     if (!isVisible(node)) return;
 
     const children = node.children.filter(isVisible);
-    const open = context.forceOpen || !node.row.id || !context.state.collapsed.has(node.row.id);
-    lines.push(treeLineHtml(node, trail, isLast, children.length > 0, open, !context.matches(node.row), context));
+    const dimmed = !context.matches(node.row);
+    // Searches reveal every group, and a dimmed row is listed only for its matches, so it opens to show them.
+    const open = context.forceOpen || dimmed || !node.row.id || isGroupOpen(context.state, node.row.id);
+    lines.push(treeLineHtml(node, trail, isLast, children.length > 0, open, dimmed, context));
 
     if (!open) return;
 
@@ -408,6 +477,24 @@ function traceHtml<TRow extends EventLogRow>(node: LogNode<TRow>): string {
   return parts.join('');
 }
 
+/** Copies the facts rendered beside the button, so copying needs no row lookup in any layout. */
+async function copyCalculationFacts(button: HTMLButtonElement): Promise<void> {
+  const facts = [...(button.closest('.log-calc')?.querySelectorAll('.log-calc-raw li') ?? [])]
+    .map((fact) => fact.textContent)
+    .join('\n');
+  try {
+    await navigator.clipboard.writeText(facts);
+    button.textContent = 'Copied';
+  } catch {
+    // Clipboard access can be denied outside secure contexts; the facts remain readable under the trace.
+    button.textContent = 'Copy failed';
+  }
+
+  setTimeout(() => {
+    button.textContent = 'Copy raw';
+  }, 1500);
+}
+
 function downloadCsv(rows: readonly EventLogRow[], filename: string): void {
   // Stay safe in SSR/test environments where browser download APIs are absent.
   if (typeof Blob === 'undefined' || !globalThis.URL?.createObjectURL || !globalThis.document?.createElement) {
@@ -439,7 +526,8 @@ export function mountEventLog<TRow extends EventLogRow>(
     view: 'tree',
     timeMode: 'offset',
     hiddenSources: new Set<string>(),
-    collapsed: new Set<string>()
+    groupsOpen: false,
+    toggledGroups: new Set<string>()
   };
   viewStates.set(container, state);
   const summaryMemo = new Map<LogNode<TRow>, LogSummary>();
@@ -594,6 +682,13 @@ export function mountEventLog<TRow extends EventLogRow>(
   // Export the complete log, independent of temporary display filters.
   if (download) download.onclick = () => downloadCsv(resolvedRows, filename);
 
+  // Logs without causal links still render calculations, so copying is wired before the tree-only controls.
+  logElement?.addEventListener('click', (event) => {
+    const copy = (event.target as Element | null)?.closest?.<HTMLButtonElement>('[data-role="event-log-copy-raw"]');
+
+    if (copy) void copyCalculationFacts(copy);
+  });
+
   if (!model.hasTree) return;
 
   const syncSegmented = (role: string, key: string, current: string): void => {
@@ -635,23 +730,19 @@ export function mountEventLog<TRow extends EventLogRow>(
     };
   }
 
+  const setAllGroups = (groupsOpen: boolean): void => {
+    state.groupsOpen = groupsOpen;
+    state.toggledGroups.clear();
+    rerender();
+  };
+
   const expand = container.querySelector<HTMLButtonElement>('[data-role="event-log-expand"]');
 
-  if (expand) {
-    expand.onclick = () => {
-      state.collapsed.clear();
-      rerender();
-    };
-  }
+  if (expand) expand.onclick = () => setAllGroups(true);
 
   const collapse = container.querySelector<HTMLButtonElement>('[data-role="event-log-collapse"]');
 
-  if (collapse) {
-    collapse.onclick = () => {
-      for (const node of model.nodes) if (node.children.length && node.row.id) state.collapsed.add(node.row.id);
-      rerender();
-    };
-  }
+  if (collapse) collapse.onclick = () => setAllGroups(false);
 
   for (const button of container.querySelectorAll<HTMLButtonElement>('[data-source]')) {
     button.onclick = () => {
@@ -695,9 +786,7 @@ export function mountEventLog<TRow extends EventLogRow>(
 
     if (!id) return;
 
-    if (state.collapsed.has(id)) state.collapsed.delete(id);
-    else state.collapsed.add(id);
-
+    toggleGroup(state, id);
     rerender();
     logElement.querySelector<HTMLElement>(`[data-toggle="${node.key}"]`)?.focus({ preventScroll: true });
   };
@@ -705,7 +794,7 @@ export function mountEventLog<TRow extends EventLogRow>(
   // Reveal a row inside the tree from the chronological layout, expanding its ancestors first.
   const reveal = (node: LogNode<TRow>): void => {
     for (let current = node.parent; current; current = current.parent) {
-      if (current.row.id) state.collapsed.delete(current.row.id);
+      if (current.row.id && !isGroupOpen(state, current.row.id)) toggleGroup(state, current.row.id);
     }
 
     setView('tree');

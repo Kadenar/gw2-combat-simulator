@@ -81,8 +81,8 @@ export function applyRuntimeSigils(
 
     if (proc?.trigger !== trigger) continue;
 
-    // Defiance also represents flanking; ineligible Ice hits must leave the shared ICD untouched.
-    if (id === SIGIL_IDS.ICE && !runtime.config.target?.defiant) continue;
+    // Defiance also represents flanking; ineligible positional hits must leave the shared ICD untouched.
+    if ((id === SIGIL_IDS.ICE || id === SIGIL_IDS.FRAILTY) && !runtime.config.target?.defiant) continue;
 
     const cooldownKey = `sigil.${id}`;
 

@@ -107,9 +107,9 @@ test('equipment dropdowns support search, cancellation, and keyboard selection',
   const choice = (value) => menu.locator(`[data-value="${value}"]`);
   const initial = await select.inputValue();
   await trigger.click();
-  await page.keyboard.type('rotationCommandIndex');
+  await page.keyboard.type('rit');
   await expect(search).toBeFocused();
-  await expect(search).toHaveValue('rotationCommandIndex');
+  await expect(search).toHaveValue('rit');
   await expect(choice("Ritualist's")).toBeVisible();
   await expect(choice("Berserker's")).toBeHidden();
   await expect(select).toHaveValue(initial);

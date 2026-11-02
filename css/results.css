@@ -1251,6 +1251,162 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
   font-weight: 700;
 }
 
+/* Calculation rows lead with their equation; their summaries opt out of the log panel's heading style. */
+.log-line .log-calc {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.log-calc summary {
+  color: inherit;
+  font-size: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* The meta wraps below the heading on narrow logs; the marker stays inside the heading so it never sits alone. */
+.log-calc > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 12px;
+  max-width: 900px;
+  list-style: none;
+}
+
+.log-calc > summary::-webkit-details-marker {
+  display: none;
+}
+
+.log-calc-heading {
+  min-width: 0;
+}
+
+/* A labelled chip, not an arrow: the tree already uses an arrow beside this row to mean its child rows. */
+.log-calc-heading::after {
+  content: 'Calc';
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 4px;
+  border: 1px solid color-mix(in srgb, var(--text-dim) 45%, transparent);
+  border-radius: 3px;
+  color: var(--text-dim);
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.log-calc > summary:hover .log-calc-heading::after {
+  color: var(--text-bright);
+}
+
+.log-calc[open] > summary .log-calc-heading::after {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.log-calc-meta {
+  flex: none;
+  margin-left: auto;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.log-calc-body {
+  display: grid;
+  gap: 10px;
+  max-width: 900px;
+  margin: 4px 0 10px;
+  padding-left: 14px;
+}
+
+.log-calc table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.log-calc th,
+.log-calc td {
+  padding: 0 12px 0 0;
+  vertical-align: top;
+  text-align: left;
+  font-weight: normal;
+}
+
+.log-calc tbody th {
+  color: var(--text-dim);
+}
+
+.log-calc-steps th {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.log-calc .log-calc-value {
+  width: 1%;
+  padding-right: 0;
+  color: var(--text-bright);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.log-calc-result th,
+.log-calc-result td {
+  padding-top: 2px;
+  /* Stays visible on the hover highlight, where the panel border color disappears. */
+  border-top: 1px solid color-mix(in srgb, var(--text-dim) 45%, transparent);
+}
+
+.log-calc .log-calc-result th,
+.log-calc .log-calc-result .log-calc-value {
+  color: var(--text-bright);
+  font-weight: 700;
+}
+
+/* Modifiers and context sit side by side until the log is too narrow, whatever panel it is mounted in. */
+.log-calc-lower {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 10px 28px;
+  align-items: start;
+}
+
+/* Factors stay whole on narrow logs; labels wrap instead. */
+.log-calc-factors td {
+  white-space: nowrap;
+}
+
+.log-calc .log-calc-title {
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.log-calc-side {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.log-calc-trace {
+  margin-top: 6px;
+  color: var(--text-dim);
+}
+
+.log-calc-raw {
+  margin: 3px 0 0;
+  padding-left: 14px;
+}
+
+.log-calc-copy {
+  align-self: flex-end;
+  margin: 0;
+  padding: 1px 8px;
+}
+
 .log-tree-root {
   box-shadow: inset 0 1px 0 var(--border);
 }
@@ -1311,6 +1467,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 }
 
 .log-toggle {
+  /* Open calculations make rows tall; the toggle stays beside the row's first line. */
+  align-self: flex-start;
   padding: 0;
   background: none;
   border: 0;

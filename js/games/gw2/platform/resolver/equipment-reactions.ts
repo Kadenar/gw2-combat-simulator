@@ -51,6 +51,8 @@ function createResolvedCriticalSigilEffects(
     ctx.procs.setDeadline(`sigil.${id}`, readyAt);
     ctx.effects.emit({
       kind: 'packet',
+      // Boon procs sample the triggering actor's duration modifiers at application time.
+      durationContext: event,
       event: {
         ...createCriticalSigilEvent(id, proc, sourceSkill),
         at: event.at

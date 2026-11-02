@@ -3,6 +3,8 @@ import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { BASE_CRITICAL_DAMAGE_MULTIPLIER } from '#gw2/platform/combat/formulas.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
@@ -117,6 +119,8 @@ test('diagnostic factors reconstruct actual rounded packets without changing que
     assert.equal(calculation.power, 1000);
     assert.equal(calculation.precision, 1800);
     assert.equal(calculation.ferocity, 500);
+    // Armor scales strikes only, so fixed packets must not claim an armor divisor.
+    assert.equal('targetArmor' in calculation, !Number.isFinite(hit.flatDamage ?? hit.flatStrikeBase));
     // Diagnostics must describe the same crit outcome used for damage, including summon and flat packets.
     assert.equal(calculation.criticalMultiplier, hit.didCrit ? hit.criticalDamage : 1);
   }
@@ -253,6 +257,89 @@ test('active buff diagnostics preserve player stacks before same-time grants and
     'native-charge': 1
   });
   assert.deepEqual(snapshots.Expired, { alacrity: 1, might: 25, 'after-hit': 1, later: 1, 'native-charge': 1 });
+});
+
+// Crit modifiers can bypass the Ferocity attribute, so recorded steps must rebuild the multiplier the hit really used.
+test('scaling hits record armor and critical-damage steps that rebuild their multiplier', () => {
+  const catalog = createCanonicalCatalog({
+    skills: [
+      {
+        id: 990002,
+        name: 'Hit',
+        type: 'Weapon',
+        weapon: 'Axe',
+        castTimeMs: 100,
+        cooldown: 0,
+        effects: [{ type: 'strike', coefficient: 1 }]
+      }
+    ],
+    weapons: ['Axe'],
+    weaponHands: { Axe: 'mh+oh' }
+  });
+  const profession = defineTestProfession({
+    id: 'diagnostic-critical',
+    name: 'Diagnostic critical',
+    catalog,
+    modifiers: {
+      modifierRules: [
+        {
+          id: 'test.keen-critical-damage',
+          target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+          operation: 'multiply',
+          factor: 1.1
+        }
+      ]
+    }
+  });
+  const options = {
+    profession: profession.runtimeFor({}),
+    rotation: ['Hit'],
+    config: {
+      primaryWeapon: 'Axe',
+      target: { armor: 1500 },
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 1800, ferocity: 500 }),
+      sigilSets: [{ names: ['Severance'] }],
+      randomness: { mode: 'stochastic', seed: 72 }
+    },
+    engineInitialize(runtime) {
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          source: 'Fixture',
+          sourceId: 'fixture',
+          actorType: 'player',
+          type: 'buff',
+          at: 0,
+          kind: 'sigil-severance',
+          stacks: 1,
+          duration: 5
+        }
+      });
+    }
+  };
+  const hit = observeGw2Runtime({ ...options, damageDiagnostics: true }).resolvedEvents.find(
+    (event) => event.type === 'damage'
+  );
+  const calculation = hit.damageCalculation;
+  assert.equal(calculation.targetArmor, 1500);
+  assert.deepEqual(
+    calculation.criticalDamageContributors.map(({ id, label }) => [id, label]),
+    [
+      ['ferocity', 'Ferocity'],
+      ['test.keen-critical-damage', 'Keen'],
+      ['sigil-severance', 'Severance']
+    ]
+  );
+  assert.equal(calculation.criticalDamageContributors[1].value, 1.1);
+  const rebuilt = calculation.criticalDamageContributors.reduce(
+    (value, step) => (step.bucket === 'additive' ? value + step.value : value * step.value),
+    BASE_CRITICAL_DAMAGE_MULTIPLIER
+  );
+  assert.ok(Math.abs(rebuilt - hit.criticalDamage) < 1e-12);
+  // Ordinary runs pass no sink, so they retain no explanatory steps.
+  const plain = observeGw2Runtime(options).resolvedEvents.find((event) => event.type === 'damage');
+  assert.equal(plain.damageCalculation, undefined);
+  assert.equal(plain.criticalDamage, hit.criticalDamage);
 });
 
 // Capture observes the same actual execution and never adds a gameplay pass.

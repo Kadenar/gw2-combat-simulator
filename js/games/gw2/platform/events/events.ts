@@ -397,8 +397,15 @@ export interface Gw2DamageCalculation {
   readonly precision?: number;
   readonly ferocity?: number;
   readonly coefficientMultiplier: number;
+  /** Armor divisor of a scaling strike; fixed packets ignore armor and omit it. */
+  readonly targetArmor?: number;
   readonly baseDamage: number;
   readonly criticalMultiplier: number;
+  /**
+   * Ordered steps building the critical-hit multiplier from its base: additive entries add, multipliers scale what
+   * precedes them. Absent for multipliers not derived from Ferocity, such as a summon's authored critical damage.
+   */
+  readonly criticalDamageContributors?: readonly Gw2ModifierContribution[];
   readonly outgoingMultiplier: number;
   /** Traced factors behind outgoingMultiplier: (1 + Σ additive) × Π multipliers equals it. */
   readonly outgoingContributors?: readonly Gw2ModifierContribution[];

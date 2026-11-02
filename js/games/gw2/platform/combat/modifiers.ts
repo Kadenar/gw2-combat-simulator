@@ -328,7 +328,7 @@ function modifierRuleLabel(rule: Readonly<Gw2NormalizedModifierRule>): string {
   return rule.id
     .split('.')
     .at(-1)!
-    .replace(/-(strike-damage|condition-damage|condition-duration|damage|duration)$/, '')
+    .replace(/-(strike-damage|condition-damage|critical-damage|condition-duration|damage|duration)$/, '')
     .split('-')
     .filter(Boolean)
     .map((part) => part[0].toUpperCase() + part.slice(1))
@@ -361,9 +361,16 @@ function createScalarHook(
 
       const contribution = result - previous;
 
-      // Duration previews explain the final multiplier; tracing never changes the sequential result.
-      if (target === MODIFIER_TARGET.CONDITION_DURATION && context.durationContributors && contribution) {
-        context.durationContributors.push({
+      // Previews and damage diagnostics explain the final value; tracing never changes the sequential result.
+      const valueContributors =
+        target === MODIFIER_TARGET.CONDITION_DURATION
+          ? context.durationContributors
+          : target === MODIFIER_TARGET.CRITICAL_DAMAGE
+            ? context.criticalDamageContributors
+            : undefined;
+
+      if (valueContributors && contribution) {
+        valueContributors.push({
           id: rule.id,
           label: modifierRuleLabel(rule),
           bucket: rule.operation === 'add' ? 'additive' : 'multiplier',
@@ -681,6 +688,8 @@ export interface Gw2ModifierContext {
   readonly damageContributors?: Gw2ModifierContribution[];
   /** Optional preview/diagnostic sink for condition-duration factors; never read by rules. */
   readonly durationContributors?: Gw2ModifierContribution[];
+  /** Optional diagnostic sink for critical-hit multiplier steps; never read by rules. */
+  readonly criticalDamageContributors?: Gw2ModifierContribution[];
   readonly conditionSample?: Gw2ConditionSample;
 }
 

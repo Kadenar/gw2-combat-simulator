@@ -12,6 +12,8 @@ const CONDITION_SIGILS = new Set([
   'Demons',
   'Doom',
   'Earth',
+  // Frailty belongs with condition-applying sigils even though Vulnerability amplifies all damage.
+  'Frailty',
   'Geomancy',
   'Ice',
   'Malice',

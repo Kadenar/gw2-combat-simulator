@@ -44,5 +44,5 @@ test('generic resource spending retains the recorded amount and planning capacit
     resolvedEvents: [],
     planningState: { profession: { [STATE.RESOURCE_DEFINITION]: { maximum: 3 } } }
   });
-  assert.equal(rows[0].description, 'CLONES SPENT x2 -> 1/3');
+  assert.equal(rows[0].description, 'CLONES SPENT x2 → 1/3');
 });

@@ -30,6 +30,17 @@ export function createCriticalSigilEvent(id: number, proc: Gw2SigilProc, sourceS
 
   if (proc.effect === 'condition') return createSigilConditionEvent(id, proc, sourceSkill);
 
+  // Critical boon procs enter ordinary buff resolution, retaining the sigil's player ownership.
+  if (proc.effect === 'boon')
+    return {
+      ...commonSigilEvent(id, sourceSkill),
+      type: 'buff',
+      at: 0,
+      kind: proc.boon?.toLowerCase(),
+      stacks: proc.stacks,
+      duration: proc.duration
+    };
+
   throw new TypeError(`Unsupported critical sigil effect: ${SIGIL_BY_ID[id]?.name ?? id} (${proc.effect}).`);
 }
 

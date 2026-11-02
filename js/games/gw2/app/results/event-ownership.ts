@@ -123,7 +123,7 @@ export function deriveEventLogOwnership(
   const castIds = new Map<string, string>();
   shown.forEach((event, index) => {
     const order = finiteOrder(event.eventOrder);
-    // Casts use their activation id so collapsed groups survive reruns of an unchanged rotation prefix.
+    // Casts use their activation id so toggled groups survive reruns of an unchanged rotation prefix.
     const id =
       event.type === 'action' && event.activationId
         ? `activation:${event.activationId}`

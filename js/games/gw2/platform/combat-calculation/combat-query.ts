@@ -6,6 +6,8 @@ import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timelin
 import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK, type Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
 import {
+  BASE_CRITICAL_DAMAGE_MULTIPLIER,
+  CRITICAL_DAMAGE_FEROCITY_CONTRIBUTOR,
   criticalChance,
   criticalDamageMultiplier,
   gw2ConditionDurationMultiplier
@@ -81,6 +83,7 @@ interface HookContextOptions {
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
   readonly damageContributors?: Gw2ModifierContribution[];
   readonly durationContributors?: Gw2ModifierContribution[];
+  readonly criticalDamageContributors?: Gw2ModifierContribution[];
   readonly conditionSample?: Gw2ConditionSample;
 }
 
@@ -319,7 +322,8 @@ export function createGw2CombatQuery({
       conditionSample,
       criticalChanceContributors,
       damageContributors,
-      durationContributors
+      durationContributors,
+      criticalDamageContributors
     }: HookContextOptions = {}
   ): Gw2ModifierContext => {
     const weaponSet = attributeWeaponSetAt(time, event, runtime);
@@ -344,7 +348,8 @@ export function createGw2CombatQuery({
       conditionSample,
       criticalChanceContributors,
       damageContributors,
-      durationContributors
+      durationContributors,
+      criticalDamageContributors
     };
   };
 
@@ -421,7 +426,8 @@ export function createGw2CombatQuery({
       event: SimulationEvent,
       time: number,
       runtime: Gw2QueryRuntime | null = null,
-      sampledStats?: Gw2ResolvedStats
+      sampledStats?: Gw2ResolvedStats,
+      damageContributors?: Gw2ModifierContribution[]
     ) {
       // Preserve the hit's boon fact even when forced critical chance replaces its presentation contributors.
       const furyActive = furyActiveAt(time, runtime, event);
@@ -511,11 +517,30 @@ export function createGw2CombatQuery({
       chance += relicBonus;
       addContributor('relic', 'Relic', relicBonus);
       let damage = criticalDamageMultiplier(stats.ferocity);
-      damage = activeProfession.modifyCriticalDamage(hookContext(time, { event, runtime }), damage);
+      damageContributors?.push({
+        id: CRITICAL_DAMAGE_FEROCITY_CONTRIBUTOR,
+        label: 'Ferocity',
+        bucket: 'additive',
+        value: damage - BASE_CRITICAL_DAMAGE_MULTIPLIER
+      });
+      damage = activeProfession.modifyCriticalDamage(
+        hookContext(time, { event, runtime, criticalDamageContributors: damageContributors }),
+        damage
+      );
       const severanceCritical = severanceCriticalContribution(runtime, time);
       chance += severanceCritical.chance;
       contributors?.push(...severanceCritical.chanceContributors);
       damage += severanceCritical.damage;
+
+      // Severance's Ferocity joins after profession scaling, so it is traced as its own step rather than in the stat.
+      if (severanceCritical.damage)
+        damageContributors?.push({
+          id: 'sigil-severance',
+          label: 'Severance',
+          bucket: 'additive',
+          value: severanceCritical.damage
+        });
+
       let chanceBeforeCap = chance;
 
       if (event.canCrit === false) chance = 0;
@@ -777,11 +802,13 @@ export interface Gw2CombatQuery {
   mightStacksAt(time: number, runtime?: Gw2QueryRuntime | null, event?: SimulationEvent | null): number;
   furyActiveAt(time: number, runtime?: Gw2QueryRuntime | null, event?: SimulationEvent | null): boolean;
   vulnerabilityStacksAt(time: number, runtime?: Gw2QueryRuntime | null): number;
+  /** An optional sink receives the ordered critical-damage steps; it never changes the returned multiplier. */
   critical(
     event: SimulationEvent,
     time: number,
     runtime?: Gw2QueryRuntime | null,
-    sampledStats?: Gw2ResolvedStats
+    sampledStats?: Gw2ResolvedStats,
+    damageContributors?: Gw2ModifierContribution[]
   ): Gw2CriticalResult;
   /** An optional contributor sink receives every traced factor; it never changes the returned multiplier. */
   strikeMultiplier(

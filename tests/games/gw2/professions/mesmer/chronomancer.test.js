@@ -143,7 +143,7 @@ test('Illusionary Reversion refunds one clone only after shattering three', () =
   assert.equal(continuumSplit.planningState.profession[STATE.RESOURCE], 1);
   assert.ok(
     simulationEventLogRows(fullShatter).some((event) =>
-      event.description.includes('CLONE SPAWNED x1 -> 1/3 [Illusionary Reversion] (Clone #4 [Dagger])')
+      event.description.includes('CLONE SPAWNED x1 → 1/3 [Illusionary Reversion] (Clone #4 [Dagger])')
     )
   );
 });

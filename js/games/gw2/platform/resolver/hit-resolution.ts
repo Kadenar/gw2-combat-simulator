@@ -13,6 +13,7 @@ import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 interface ResolvedStrikeParts {
   readonly coefficientMultiplier: number;
+  readonly targetArmor: number | null;
   readonly baseDamage: number;
   readonly criticalMultiplier: number;
   readonly outgoingMultiplier: number;
@@ -61,7 +62,8 @@ export function createGw2HitResolution({
     ctx: Gw2ResolverRuntime,
     event: Gw2ResolverEvent,
     flatStrike: boolean,
-    stats: Gw2ResolvedStats
+    stats: Gw2ResolvedStats,
+    damageContributors?: Gw2ModifierContribution[]
   ): Gw2HitResolutionContext['critical'] {
     if (event.canCrit === false || flatStrike) {
       return {
@@ -73,7 +75,7 @@ export function createGw2HitResolution({
       };
     }
 
-    const critical = ctx.query.critical(event, event.at, ctx, stats);
+    const critical = ctx.query.critical(event, event.at, ctx, stats, damageContributors);
     critical.didCrit =
       typeof event.didCrit === 'boolean'
         ? event.didCrit
@@ -104,6 +106,7 @@ export function createGw2HitResolution({
     return {
       baseDamage,
       coefficientMultiplier: 1,
+      targetArmor: null,
       criticalMultiplier: 1,
       outgoingMultiplier,
       weaponStrength: null
@@ -162,6 +165,7 @@ export function createGw2HitResolution({
       return {
         baseDamage,
         coefficientMultiplier: 1,
+        targetArmor,
         criticalMultiplier,
         outgoingMultiplier,
         outgoingContributors,
@@ -180,6 +184,7 @@ export function createGw2HitResolution({
     return {
       baseDamage,
       coefficientMultiplier: effectiveCoefficientMultiplier,
+      targetArmor,
       criticalMultiplier,
       outgoingMultiplier,
       outgoingContributors,
@@ -193,7 +198,9 @@ export function createGw2HitResolution({
       Number.isFinite(event.flatDamage) ||
       Number.isFinite(event.flatStrikeBase) ||
       Number.isFinite(event.flatStrikePowerCoeff);
-    const critical = resolveCritical(ctx, event, flatStrike, stats);
+    // Diagnostics trace the same critical query; ordinary runs pass no sink and record nothing.
+    const criticalDamageContributors: Gw2ModifierContribution[] | undefined = ctx.damageDiagnostics ? [] : undefined;
+    const critical = resolveCritical(ctx, event, flatStrike, stats, criticalDamageContributors);
     const critEligible = !flatStrike && event.canCrit !== false;
     const strike = flatStrike
       ? resolveFlatStrike(ctx, event, stats)
@@ -205,10 +212,12 @@ export function createGw2HitResolution({
       // Preserve the struck target's health before damage can switch targets or replace its health bar.
       targetHealthFractionBefore: currentHealthFraction(ctx),
       coefficientMultiplier: strike.coefficientMultiplier,
+      targetArmor: strike.targetArmor,
       unroundedDamage: damage,
       critical,
       critEligible,
       criticalMultiplier: strike.criticalMultiplier,
+      ...(criticalDamageContributors?.length ? { criticalDamageContributors } : {}),
       outgoingMultiplier: strike.outgoingMultiplier,
       ...(strike.outgoingContributors ? { outgoingContributors: strike.outgoingContributors } : {}),
       weaponStrength: strike.weaponStrength,
@@ -242,8 +251,12 @@ export function createGw2HitResolution({
         ...(Number.isFinite(hitContext.stats.precision) ? { precision: hitContext.stats.precision } : {}),
         ...(Number.isFinite(hitContext.stats.ferocity) ? { ferocity: hitContext.stats.ferocity } : {}),
         coefficientMultiplier: hitContext.coefficientMultiplier,
+        ...(hitContext.targetArmor == null ? {} : { targetArmor: hitContext.targetArmor }),
         baseDamage: hitContext.baseDamage,
         criticalMultiplier: hitContext.criticalMultiplier,
+        ...(hitContext.criticalDamageContributors
+          ? { criticalDamageContributors: hitContext.criticalDamageContributors }
+          : {}),
         outgoingMultiplier: hitContext.outgoingMultiplier,
         ...(hitContext.outgoingContributors ? { outgoingContributors: hitContext.outgoingContributors } : {}),
         unroundedDamage: hitContext.unroundedDamage,
@@ -336,12 +349,16 @@ export interface Gw2DamageBreakdownEntry {
 export interface Gw2HitResolutionContext {
   readonly targetHealthFractionBefore: number | null;
   readonly coefficientMultiplier: number;
+  /** Armor divisor of a scaling strike; null for fixed packets. */
+  readonly targetArmor: number | null;
   readonly unroundedDamage: number;
   readonly stats: Gw2ResolvedStats;
   readonly critical: Gw2CriticalResult;
   // Whether this strike can crit at all (scaling strike, not flagged canCrit=false). Non-eligible hits are excluded from crit-rate reporting.
   readonly critEligible: boolean;
   readonly criticalMultiplier: number;
+  /** Present only in diagnostic runs: ordered steps that build the critical-hit multiplier. */
+  readonly criticalDamageContributors?: readonly Gw2ModifierContribution[];
   readonly outgoingMultiplier: number;
   /** Present only in diagnostic runs: the traced factors behind outgoingMultiplier. */
   readonly outgoingContributors?: readonly Gw2ModifierContribution[];

@@ -1,5 +1,6 @@
 /** Maps simulation events to display rows and mounts the rotation event-log view. */
 import { downloadJson } from '#gw2/app/import-export/files.js';
+import { damageCalculationPresentation } from '#gw2/app/results/damage-calculation.js';
 import { damageDebugPayload } from '#gw2/app/results/damage-debug.js';
 import {
   CAST_LINK,
@@ -17,7 +18,6 @@ import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.j
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
@@ -77,41 +77,6 @@ type OrderedEventLogRow = EventLogRow & {
   readonly castEnd?: boolean;
 };
 
-/** Show recorded formula inputs at full clock precision; the log's activation grouping is not an execution trace. */
-function damageCalculationDetails(
-  event: SimulationEvent,
-  presentations: readonly ProfessionEffectPresentation[]
-): string[] {
-  const calculation = event.damageCalculation!;
-  // These are captured player effects, not a claim that every effect contributes to this packet's multiplier.
-  const buffs = calculation.activeBuffs.map(
-    ({ kind, stacks, name }) => `${name ?? effectName(kind, {}, presentations)} x${stacks}`
-  );
-  return [
-    `Simulation time: ${event.at.toFixed(6)}s; phase: ${calculation.phase}`,
-    `Active player buffs and boons: ${buffs.join(', ') || 'None'}`,
-    `Target health before: ${calculation.targetHealthBefore ?? 'unbounded'}; fraction: ${calculation.targetHealthFractionBefore ?? 'unbounded'}`,
-    `Power: ${calculation.power}`,
-    ...(calculation.precision == null ? [] : [`Precision: ${calculation.precision}`]),
-    ...(calculation.ferocity == null ? [] : [`Ferocity: ${calculation.ferocity}`]),
-    ...(event.coefficient == null ? [] : [`Authored coefficient: ${event.coefficient}`]),
-    `Coefficient multiplier: ${calculation.coefficientMultiplier}`,
-    ...(event.resolvedWeaponStrength == null
-      ? []
-      : [`Weapon strength: ${event.resolvedWeaponStrength} (${event.weaponStrengthProfileId})`]),
-    ...(event.activationId == null ? [] : [`Activation: ${event.activationId}`]),
-    `Base damage: ${calculation.baseDamage}`,
-    `Critical chance: ${event.criticalChance}; critical multiplier: ${calculation.criticalMultiplier}`,
-    `Outgoing multiplier: ${calculation.outgoingMultiplier}`,
-    ...(calculation.outgoingContributors ?? []).map(({ label, bucket, value }) =>
-      bucket === 'additive'
-        ? `Outgoing additive: ${label} ${value >= 0 ? '+' : ''}${value}`
-        : `Outgoing factor: ${label} ×${value}`
-    ),
-    `Unrounded damage: ${calculation.unroundedDamage}; rounding: ${calculation.rounding}; damage: ${event.damage}`
-  ];
-}
-
 export function simulationEventLogRows(
   result: Gw2SimulationResult | null | undefined,
   build: Gw2CanonicalBuild | null = null,
@@ -158,15 +123,23 @@ export function simulationEventLogRows(
     type: string,
     description: string,
     className = '',
-    at: unknown = event.at
+    at: unknown = event.at,
+    heading = description
   ): void => {
     const displayAt = Number(at || 0) - displayReferenceSeconds;
+    const rowAt = Math.abs(displayAt) < 1e-12 ? 0 : displayAt;
     rows.push({
-      at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
+      at: rowAt,
       type,
       description,
       ...(type === 'damage' && event.damageCalculation
-        ? { details: damageCalculationDetails(event, effectPresentations) }
+        ? {
+            calculation: damageCalculationPresentation(event, event.damageCalculation, {
+              heading,
+              atSeconds: rowAt,
+              presentations: effectPresentations
+            })
+          }
         : {}),
       className,
       activationOrder: activationOrder(event),
@@ -256,14 +229,14 @@ export function simulationEventLogRows(
             push(
               event,
               event.type,
-              `${singular.toUpperCase()} SPAWNED x${amount} -> ${event.value}/${maximumResource}${reason}${created ? ` (${created})` : ''}`,
+              `${singular.toUpperCase()} SPAWNED x${amount} → ${event.value}/${maximumResource}${reason}${created ? ` (${created})` : ''}`,
               'resource'
             );
           } else {
             push(
               event,
               event.type,
-              `${resource.toUpperCase()} SPENT x${Math.abs(amount)} -> ${event.value}/${maximumResource}${reason}`,
+              `${resource.toUpperCase()} SPENT x${Math.abs(amount)} → ${event.value}/${maximumResource}${reason}`,
               'resource'
             );
           }
@@ -331,11 +304,17 @@ export function simulationEventLogRows(
           ? `Triggered by ${triggeredBy}`
           : '';
       const attribution = attacker || procTrigger;
+      const label = `${source} ${event.name}${attribution ? ` [${attribution}]` : ''}`;
+      const hits = event.hits || 1;
+      const damage = Math.round(Number(event.damage || 0)).toLocaleString();
+      // Search, CSV, and tracing keep the full description; an expanded calculation already states its own units.
       push(
         event,
         'damage',
-        `${source} ${event.name}${attribution ? ` [${attribution}]` : ''} x${event.hits || 1} -> ${Math.round(Number(event.damage || 0)).toLocaleString()} damage`,
-        isCloneHit ? 'resource' : ''
+        `${label} x${hits} → ${damage} damage`,
+        isCloneHit ? 'resource' : '',
+        event.at,
+        `${label}${hits > 1 ? ` x${hits}` : ''} → ${damage}`
       );
     } else if (event.type === 'condition') {
       // Preserve milliseconds for condition durations, matching buff durations.

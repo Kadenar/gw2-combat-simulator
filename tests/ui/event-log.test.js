@@ -33,19 +33,28 @@ const rows = [
 ];
 
 // Model an already-open disclosure so rerenders retain user state without a production-only test option.
+// Bulk buttons are stubbed because the next mount through this container renders the state they leave behind.
 function openContainer(query = '') {
   const container = inertContainer();
+  container.expandAll = {};
+  container.collapseAll = {};
   container.querySelector = (selector) =>
     selector.includes('event-log-details')
       ? { open: true }
       : selector.includes('event-log-search')
         ? { value: query }
-        : null;
+        : selector.includes('event-log-expand')
+          ? container.expandAll
+          : selector.includes('event-log-collapse')
+            ? container.collapseAll
+            : null;
   return container;
 }
 
 test('event-log tree nests rows depth first with guides, offsets, and group summaries', () => {
   const container = openContainer();
+  mountEventLog(container, rows, { metricUnit: ['hit', 'hits'] });
+  container.expandAll.onclick();
   mountEventLog(container, rows, { metricUnit: ['hit', 'hits'] });
   const html = container.innerHTML;
 
@@ -63,6 +72,44 @@ test('event-log tree nests rows depth first with guides, offsets, and group summ
   // End markers belong to the chronological layout only, but still count as events.
   assert.doesNotMatch(html, /END Strike/);
   assert.match(html, /\(6 events\)/);
+});
+
+// Bulk choices must also cover the groups a later rerun adds, such as a cast appended to the rotation.
+test('event-log tree starts collapsed and reruns follow Expand all and Collapse all', () => {
+  const container = openContainer();
+  mountEventLog(container, rows);
+  assert.match(container.innerHTML, /CAST Strike/);
+  assert.match(container.innerHTML, /\+3 rows/);
+  assert.doesNotMatch(container.innerHTML, /HIT Strike/);
+
+  const rerun = [
+    ...rows,
+    { at: 2, type: 'cast', description: 'CAST Later', id: 'c2' },
+    { at: 2, type: 'damage', description: 'HIT Later', id: 'h3', parentId: 'c2', parentLink: recorded }
+  ];
+  container.expandAll.onclick();
+  mountEventLog(container, rerun);
+  assert.match(container.innerHTML, /BUFF Might/);
+  assert.match(container.innerHTML, /HIT Later/);
+
+  container.collapseAll.onclick();
+  mountEventLog(container, rerun);
+  assert.doesNotMatch(container.innerHTML, /HIT Strike/);
+  assert.doesNotMatch(container.innerHTML, /HIT Later/);
+});
+
+// Hiding a source leaves its rows listed only as owners, so collapsing them would hide every match they were kept for.
+test('event-log tree opens dimmed owners when a source is hidden and keeps matching groups collapsed', () => {
+  const container = openContainer();
+  const hideSkill = { dataset: { source: 'skill' }, setAttribute() {} };
+  container.querySelectorAll = (selector) => (selector === '[data-source]' ? [hideSkill] : []);
+  mountEventLog(container, rows);
+  hideSkill.onclick();
+  mountEventLog(container, rows);
+
+  assert.match(container.innerHTML, /log-tree-root log-dimmed"[^>]*>[\s\S]*CAST Strike/);
+  assert.match(container.innerHTML, /HIT Strike/);
+  assert.doesNotMatch(container.innerHTML, /BUFF Might/);
 });
 
 test('event-log tree keeps filtered matches under dimmed ancestors', () => {

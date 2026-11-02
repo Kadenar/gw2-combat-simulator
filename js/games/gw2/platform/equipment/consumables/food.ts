@@ -1,6 +1,5 @@
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
-
 /** Owns food catalog data, proc metadata, and UI groupings. */
+import { BOON, CONDITION } from '#gw2/platform/constants.js';
 
 // ─── Food Data ────────────────────────────────────────────────────────────────
 // isConverted: true  → stats feed into the conversion pool (subject to utility/trait conversions)

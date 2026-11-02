@@ -37,6 +37,8 @@ test('damage capture reruns the baseline and exports its calculations without pe
   await expect(page.locator('#rotation-event-log .btn-csv-export')).toHaveCount(1);
   expect(await page.evaluate(() => window.professionApp.results.totalDamage)).toBe(original.damage);
   expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(original.revision);
+  // Hits sit inside their collapsed casts.
+  await page.getByRole('button', { name: 'Expand all', exact: true }).click();
   const hit = page
     .locator('#rotation-event-log .log-desc summary')
     .filter({ hasText: /^(CLONE )?HIT / })
@@ -150,7 +152,7 @@ test('event log preserves reading position and follows the end across updates', 
 });
 
 // Real event handling verifies collapsing, ancestry tracing, and revealing a chronological row inside the tree.
-test('event log tree collapses groups, traces causes, and reveals rows from the chronological layout', async ({
+test('event log tree starts collapsed, traces causes, and reveals rows from the chronological layout', async ({
   page
 }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
@@ -184,12 +186,12 @@ test('event log tree collapses groups, traces causes, and reveals rows from the 
   });
   await page.locator('[data-role="event-log-details"] > summary').click();
   const rows = page.locator('[data-role="event-log-rows"] .log-line');
-  await expect(rows).toHaveCount(4);
-
-  await page.getByRole('button', { name: 'Collapse CAST Strike (500ms)' }).click();
   await expect(rows).toHaveCount(1);
   await expect(rows.first()).toContainText('+3 rows');
+
   await page.getByRole('button', { name: 'Expand CAST Strike (500ms)' }).click();
+  await expect(rows).toHaveCount(3);
+  await page.getByRole('button', { name: 'Expand HIT Strike' }).click();
   await expect(rows).toHaveCount(4);
 
   await rows.filter({ hasText: 'BUFF Might' }).hover();
@@ -197,6 +199,8 @@ test('event log tree collapses groups, traces causes, and reveals rows from the 
     'BUFF Might ← triggered by ← HIT Strike ← part of ← CAST Strike (500ms) · #1'
   );
 
+  await page.getByRole('button', { name: 'Collapse all', exact: true }).click();
+  await expect(rows).toHaveCount(1);
   await page.getByRole('button', { name: 'Chronological', exact: true }).click();
   await expect(rows).toHaveCount(5);
   await expect(rows.filter({ hasText: 'END Strike' })).toHaveCount(1);
