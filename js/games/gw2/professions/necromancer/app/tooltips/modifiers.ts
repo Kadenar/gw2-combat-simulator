@@ -24,17 +24,19 @@ export const necromancerModifierDescriptions: ModifierDescriptions = {
     description: 'Life Siphon deals increased strike damage while the target is bleeding.',
     facts: [['factor', 'Strike damage against a bleeding target', tooltipFactorChange]]
   }),
-  'necromancer.reaper-shout-melee': (context, rule) => ({
-    ...modifierDescription({
-      name: 'Reaper shouts — melee bonus',
-      category: 'utility',
-      description:
-        "Reaper shouts deal increased strike damage to nearby targets. The simulator's target is always nearby.",
-      facts: [['factor', 'Shout strike damage at melee range', tooltipFactorChange]]
-    })(context, rule)!,
-    skills: context.catalog.skills.filter((skill) => skill.skillFamily === 'Shout').map((skill) => skill.id),
-    icon: context.catalog.specializations.find((line) => line.name === 'Reaper')!.icon
-  }),
+  // Each shout exposes its own editable rule while sharing the nearby-target explanation.
+  ...Object.fromEntries(
+    ['you-are-all-weaklings', 'nothing-can-save-you', 'chilled-to-the-bone', 'your-soul-is-mine', 'suffer', 'rise'].map(
+      (skill) => [
+        `necromancer.${skill}-melee`,
+        modifierDescription({
+          description:
+            "This shout deals increased strike damage to nearby targets. The simulator's target is always nearby.",
+          facts: [['factor', 'Shout strike damage at melee range', tooltipFactorChange]]
+        })
+      ]
+    )
+  ),
   'necromancer.anguish-conditional-damage': modifierDescription({
     description:
       "Anguish's attacks gain strike damage for each distinct condition on the target. The bonus also applies to its Summon Spirits attack, but not Innervate Anguish.",

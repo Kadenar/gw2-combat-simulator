@@ -2,7 +2,7 @@
  * Owns Evoker familiar basic and empowered skill definitions.
  * Owns their patchable timing, replacement cancellation, tier selection, and basic-to-empowered conversion.
  */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -186,6 +186,18 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     cooldown: 0,
     skillFamily: 'Familiar',
     castTimeMs: 0,
+    // The Air familiar buff increases outgoing strikes throughout its active window.
+    modifiers: [
+      {
+        id: 'elementalist.zap',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.03,
+        when: (context: ElementalistModifierContext) =>
+          context.config?.evokerElement === 'Air' && activeBuffStacks(context, 'zap buff', 1) > 0
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -451,15 +463,3 @@ export function settleBasicFamiliar(context: ElementalistRuntime, cast: RuntimeC
 
   emitResource(context, cast, skill, state);
 }
-
-/** Zap grants its strike bonus only to the Air familiar configuration during its buff. */
-export const zapModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'elementalist.zap',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.03,
-    when: (context: ElementalistModifierContext) =>
-      context.config?.evokerElement === 'Air' && activeBuffStacks(context, 'zap buff', 1) > 0
-  }
-]);

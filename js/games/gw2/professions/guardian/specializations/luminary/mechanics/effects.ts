@@ -1,6 +1,4 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, AURA, CONTROL } from '#gw2/platform/constants.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
@@ -166,42 +164,3 @@ const luminaryEffectTasks = {
 export const luminaryEffectLifecycle = {
   tasks: luminaryEffectTasks
 } satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
-
-/** Daring Advance boosts its own impact or proc only when an older application was already active. */
-function daringAdvanceModifierActive(context: Gw2ModifierContext): boolean {
-  const kind = 'guardian-daring-advance';
-
-  if (!buffActive(context, kind)) return false;
-
-  if (context.event?.skillId !== ID.DARING_ADVANCE && context.event?.triggeredBy !== 'Daring Advance') return true;
-
-  return (context.events || []).some(
-    (event) =>
-      event.type === 'buff' &&
-      event.kind === kind &&
-      event.at < context.time &&
-      gw2EffectExpiresAt(event.at, event.duration || 0) > context.time
-  );
-}
-
-/** Stances own their damage windows and the eligibility of their activating impact. */
-export const luminaryStanceModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'guardian.piercing-stance',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.1,
-    // The stance is active before its impact, including the damage it triggers at that timestamp.
-    when: (context) => buffActive(context, 'guardian-piercing-stance')
-  },
-  {
-    id: 'guardian.daring-advance',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.15,
-    // order: 100 places this after additive stacking; multiplicative modifiers
-    // that interact with additive sums must sort after them.
-    order: 100,
-    when: (context) => daringAdvanceModifierActive(context)
-  }
-]);

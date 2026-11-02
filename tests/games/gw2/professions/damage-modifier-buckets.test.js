@@ -71,7 +71,8 @@ const EXPECTED = {
       'Transcendent Tempest': { strike: 'additive', condition: 'additive' }
     },
     rules: {
-      'elementalist.hammer-fire-orb': { strike: 'additive', condition: 'additive' },
+      'elementalist.hammer-fire-orb-strike': { strike: 'additive' },
+      'elementalist.hammer-fire-orb-condition': { condition: 'additive' },
       'elementalist.meteor-center-impact': { strike: 'multiplier' },
       'elementalist.relentless-fire': { strike: 'additive' },
       'elementalist.relentless-fire-condition': { condition: 'additive' },
@@ -101,7 +102,8 @@ const EXPECTED = {
     rules: {
       'engineer.flame-jet-burning-target': { strike: 'additive' },
       'engineer.force-signet': { strike: 'additive' },
-      'engineer.plasmatic-state': { strike: 'additive', condition: 'additive' },
+      'engineer.plasmatic-state-strike': { strike: 'additive' },
+      'engineer.plasmatic-state-condition': { condition: 'additive' },
       'engineer.superconducting-signet': { condition: 'additive' }
     }
   },
@@ -184,7 +186,12 @@ const EXPECTED = {
       'necromancer.essence-blast-active-spirits': { strike: 'multiplier' },
       'necromancer.ghastly-claws-vulnerability': { strike: 'multiplier' },
       'necromancer.life-siphon-bleeding-target': { strike: 'multiplier' },
-      'necromancer.reaper-shout-melee': { strike: 'multiplier' }
+      'necromancer.you-are-all-weaklings-melee': { strike: 'multiplier' },
+      'necromancer.nothing-can-save-you-melee': { strike: 'multiplier' },
+      'necromancer.chilled-to-the-bone-melee': { strike: 'multiplier' },
+      'necromancer.your-soul-is-mine-melee': { strike: 'multiplier' },
+      'necromancer.suffer-melee': { strike: 'multiplier' },
+      'necromancer.rise-melee': { strike: 'multiplier' }
     }
   },
   ranger: {
@@ -279,11 +286,14 @@ const EXPECTED = {
       'Weakening Strikes': { strike: 'multiplier' }
     },
     rules: {
-      'thief.distracting-throw-finisher': { strike: 'additive', condition: 'additive' },
+      'thief.distracting-throw-finisher-strike': { strike: 'additive' },
+      'thief.distracting-throw-finisher-condition': { condition: 'additive' },
       'thief.kryptis-turret-damage': { strike: 'multiplier' },
       'thief.malicious-backstab-position': { strike: 'multiplier' },
-      'thief.malicious-stealth-attack': { strike: 'multiplier' },
-      'thief.shadow-flare-marked': { strike: 'multiplier' }
+      'thief.malicious-backstab-malice': { strike: 'multiplier' },
+      'thief.malicious-deaths-judgment-malice': { strike: 'multiplier' },
+      'thief.shadow-flare-marked': { strike: 'multiplier' },
+      'thief.shadow-swap-marked': { strike: 'multiplier' }
     }
   },
   warrior: {

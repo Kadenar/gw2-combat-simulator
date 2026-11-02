@@ -127,7 +127,8 @@ const plasmaticStateTooltip: DescribeSimulationTooltip = skillTooltip(
   'Strike and burn foes, starting a temporary outgoing-damage bonus with the first strike.',
   (balanceContext, skill) => [
     { name: 'Damage bonus duration', detail: tooltipSeconds(tooltipNumber(skill, 'duration')) },
-    modifierFact(balanceContext, 'engineer.plasmatic-state', 'amount', 'Strike and condition damage')
+    modifierFact(balanceContext, 'engineer.plasmatic-state-strike', 'amount', 'Strike damage'),
+    modifierFact(balanceContext, 'engineer.plasmatic-state-condition', 'amount', 'Condition damage')
   ]
 );
 

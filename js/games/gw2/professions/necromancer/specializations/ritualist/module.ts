@@ -4,10 +4,7 @@ import { TRAIT_LINES } from '#gw2/professions/necromancer/data/trait-lines.js';
 import { RITUALIST_SKILL_FIELDS } from '#gw2/professions/necromancer/specializations/ritualist/catalog-fields.js';
 import { ritualistHooks } from '#gw2/professions/necromancer/specializations/ritualist/hooks.js';
 import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ritualist/presentation.js';
-import {
-  anguishConditionModifier,
-  RITUALIST_SKILLS
-} from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
+import { RITUALIST_SKILLS } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
 import { NECROMANCER_RITUALIST_SKILL_FLIPS } from '#gw2/professions/necromancer/specializations/ritualist/skills/skill-flips.js';
 import { projectRitualistState, ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { necromancerRitualistTraits } from '#gw2/professions/necromancer/specializations/ritualist/traits/index.js';
@@ -27,7 +24,5 @@ export const ritualistModule = defineNativeModule({
   // One state factory supplies the live combat owner.
   state: { create: ritualistState.create, project: projectRitualistState },
   hooks: ritualistHooks,
-  // Retain the skill rules' established order relative to registered trait modifiers.
-  modifiers: [{ ...anguishConditionModifier, order: 2 }],
   presentation: bindRitualistUi
 });

@@ -1,12 +1,9 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { activeChargeGrants, appendChargeGrant, grantCharges } from '#gw2/platform/combat/resources/charges.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
   allArtifactChoices,
@@ -139,17 +136,3 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
         at + Math.min(maximum, Math.max(0, state.forgedSurferBombDropUntil - at) + duration);
     }
   };
-
-/** The turret artifact strengthens player-owned strikes until its accepted damage window expires. */
-export const kryptisTurretModifiers = Object.freeze<readonly Gw2ModifierRule[]>([
-  {
-    order: 403,
-    id: 'thief.kryptis-turret-damage',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.15,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').kryptisDamageUntil || 0) > context.time
-  }
-]);

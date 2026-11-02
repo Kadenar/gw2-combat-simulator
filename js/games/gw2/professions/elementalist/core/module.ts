@@ -5,8 +5,6 @@ import {
   ELEMENTALIST_CORE_SKILL_FIELDS
 } from '#gw2/professions/elementalist/core/catalog-fields.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
-import { frostBowDurationModifier } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
-import { hammerOrbModifiers } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
 import { ELEMENTALIST_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/elementalist/core/skills/autoattack-chains.js';
@@ -58,8 +56,6 @@ export const elementalistCoreModule = defineNativeModule({
     project: projectElementalistCorePlanningState
   },
   traitDefinitions: elementalistCoreTraits,
-  // Preserve resource-rule ordering while each mechanic owns its declarations.
-  modifiers: [...hammerOrbModifiers, frostBowDurationModifier],
   hooks: elementalistCoreHooks,
   presentation: bindElementalistCoreUi
 });

@@ -53,7 +53,9 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
     facts.push(
       modifierFact(
         balanceContext,
-        'thief.malicious-stealth-attack',
+        selected.id === ID.MALICIOUS_BACKSTAB
+          ? 'thief.malicious-backstab-malice'
+          : 'thief.malicious-deaths-judgment-malice',
         'damagePerMalice',
         'Strike damage per malice against your mark'
       )

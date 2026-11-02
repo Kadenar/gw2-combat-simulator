@@ -3,7 +3,7 @@
  * Facet runtime state remains under sibling `mechanics/` modules.
  */
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -297,6 +297,30 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         consume: true,
         // Herald mechanics/facets.ts ends the upkeep on accepted consume and applies recharge on completion.
         castTimeMs: 840,
+        // The consumed facet strengthens outgoing damage for its active buff window.
+        modifiers: [
+          {
+            id: 'revenant.burst-of-strength-strike',
+            scope: 'profession',
+            label: 'Burst of Strength',
+            order: 101,
+            target: MODIFIER_TARGET.STRIKE_DAMAGE,
+            operation: 'damage-additive',
+            // "burst-of-strength" is a timed buff key written by the skill handler, not a boon; it uses buffActive rather than boon tracking.
+            amount: 0.1,
+            when: (context) => buffActive(context, 'burst-of-strength')
+          },
+          {
+            id: 'revenant.burst-of-strength-condition',
+            scope: 'profession',
+            label: 'Burst of Strength',
+            order: 102,
+            target: MODIFIER_TARGET.CONDITION_DAMAGE,
+            operation: 'damage-additive',
+            amount: 0.05,
+            when: (context) => buffActive(context, 'burst-of-strength')
+          }
+        ],
         // Share timing defaults while preserving each packet, effect order, and local schedule.
         effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
           {
@@ -392,28 +416,3 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
       }
     }
   );
-
-/** Burst of Strength's distinct damage rules share a skill identity and label in reference views. */
-export const burstOfStrengthModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'revenant.burst-of-strength-strike',
-    sourceSkillId: ID.BURST_OF_STRENGTH,
-    label: 'Burst of Strength',
-    order: 101,
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    // "burst-of-strength" is a timed buff key written by the skill handler, not a boon; it uses buffActive rather than boon tracking.
-    amount: 0.1,
-    when: (context) => buffActive(context, 'burst-of-strength')
-  },
-  {
-    id: 'revenant.burst-of-strength-condition',
-    sourceSkillId: ID.BURST_OF_STRENGTH,
-    label: 'Burst of Strength',
-    order: 102,
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.05,
-    when: (context) => buffActive(context, 'burst-of-strength')
-  }
-]);

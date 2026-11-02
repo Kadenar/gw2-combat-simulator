@@ -10,7 +10,6 @@ import {
 import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
 import { mechanistUi } from '#gw2/professions/engineer/specializations/mechanist/presentation.js';
 import { MECHANIST_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/mechanist/skills/index.js';
-import { signetModifierRules } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import {
   mechanistState,
   projectMechanistPlanningState
@@ -32,8 +31,6 @@ export const mechanistModule = defineNativeModule({
   }),
   state: { create: mechanistState.create, project: projectMechanistPlanningState },
   attributes: mechanistAttributes,
-  // Signets own their packet rules; actor projection remains in the attribute calculator.
-  modifiers: Object.freeze([...signetModifierRules]),
   hooks: mechanistHooks,
   presentation: mechanistUi
 });

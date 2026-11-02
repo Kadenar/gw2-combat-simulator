@@ -8,10 +8,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/evoker/catalog-fields.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
 import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
-import {
-  EVOKER_FAMILIAR_SKILL_MECHANICS,
-  zapModifiers
-} from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
+import { EVOKER_FAMILIAR_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { EVOKER_MEDITATION_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/meditation-skills.js';
 import { ELEMENTALIST_EVOKER_SKILL_FLIPS } from '#gw2/professions/elementalist/specializations/evoker/skills/skill-flips.js';
 import { evokerState, projectEvokerPlanningState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
@@ -38,8 +35,6 @@ export const evokerModule = defineNativeModule({
     )
   }),
   state: { create: evokerState.create, project: projectEvokerPlanningState },
-  // Register the skill/mechanic-owned rules alongside trait declarations.
-  modifiers: zapModifiers,
   hooks: evokerHooks,
   presentation: evokerUi
 });

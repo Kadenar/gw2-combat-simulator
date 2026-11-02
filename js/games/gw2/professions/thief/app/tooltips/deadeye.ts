@@ -46,7 +46,7 @@ const deadeyeShadowFlareTooltip: DescribeSimulationTooltip = skillTooltip(
 
 const deadeyeShadowSwapTooltip: DescribeSimulationTooltip = skillTooltip(
   'Consume the Shadow Flare follow-up and shadowstep to the field. Its strike deals increased damage against your active mark.',
-  [fromModifier('thief.shadow-flare-marked', 'factor', 'Strike damage against your mark', tooltipFactorChange)]
+  [fromModifier('thief.shadow-swap-marked', 'factor', 'Strike damage against your mark', tooltipFactorChange)]
 );
 
 const deadeyeShadowMeldTooltip: DescribeSimulationTooltip = skillTooltip(

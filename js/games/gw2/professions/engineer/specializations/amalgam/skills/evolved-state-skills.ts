@@ -2,6 +2,8 @@
  * Owns Amalgam Evolve, locked-slot, and evolved-state skill definitions.
  * Persistent strain and morph state remain under `mechanics/evolved-form.ts`.
  */
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -9,6 +11,7 @@ import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platfo
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
 import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
@@ -228,6 +231,31 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
     // Custom: Activates Plasmatic State and its duration/state event; see `amalgam/mechanics/evolved-form.ts`.
 
     castTimeMs: PLASMATIC_STATE_CAST_TIME_MS,
+    // The active strain strengthens player-owned strike and condition packets.
+    modifiers: [
+      {
+        order: 1,
+        id: 'engineer.plasmatic-state-strike',
+        label: 'Plasmatic State',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.07,
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) && activeAmalgamState(context, 'plasmaticStateUntil')
+      },
+      {
+        order: 1,
+        id: 'engineer.plasmatic-state-condition',
+        label: 'Plasmatic State',
+        scope: 'profession',
+        target: MODIFIER_TARGET.CONDITION_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.07,
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) && activeAmalgamState(context, 'plasmaticStateUntil')
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

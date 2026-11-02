@@ -51,9 +51,15 @@ export const elementalistCoreTooltips = {
       ? [
           modifierFact(
             balanceContext,
-            'elementalist.hammer-fire-orb',
+            'elementalist.hammer-fire-orb-strike',
             'amount',
-            'Strike and condition damage while Fire orb is active'
+            'Strike damage while Fire orb is active'
+          ),
+          modifierFact(
+            balanceContext,
+            'elementalist.hammer-fire-orb-condition',
+            'amount',
+            'Condition damage while Fire orb is active'
           )
         ]
       : []),

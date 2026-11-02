@@ -7,7 +7,6 @@ import { weaverHooks } from '#gw2/professions/elementalist/specializations/weave
 import { weaverUi } from '#gw2/professions/elementalist/specializations/weaver/presentation.js';
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 import { ELEMENTALIST_WEAVER_SKILL_FLIPS } from '#gw2/professions/elementalist/specializations/weaver/skills/skill-flips.js';
-import { weaveSelfModifiers } from '#gw2/professions/elementalist/specializations/weaver/skills/slot-skills.js';
 import { projectWeaverPlanningState, weaverState } from '#gw2/professions/elementalist/specializations/weaver/state.js';
 import { weaverTraits } from '#gw2/professions/elementalist/specializations/weaver/traits/index.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
@@ -30,8 +29,6 @@ export const weaverModule = defineNativeModule({
   }),
   state: { create: weaverState.create, project: projectWeaverPlanningState },
   traitDefinitions: weaverTraits,
-  // Register the skill/mechanic-owned rules alongside trait declarations.
-  modifiers: weaveSelfModifiers,
   hooks: weaverHooks,
   presentation: weaverUi
 });

@@ -1,9 +1,12 @@
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { ANTIQUARY_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/antiquary/skills/guild-attacks.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
@@ -460,6 +463,21 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     cooldown: 0,
     artifactKind: 'offensive',
     castTimeMs: 440,
+    // The artifact grants a timed player-owned strike bonus across skills.
+    modifiers: [
+      {
+        order: 403,
+        id: 'thief.kryptis-turret-damage',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.15,
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').kryptisDamageUntil || 0) >
+            context.time
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castEnd' as const, timingScale: 'fixed' as const }, [
       {

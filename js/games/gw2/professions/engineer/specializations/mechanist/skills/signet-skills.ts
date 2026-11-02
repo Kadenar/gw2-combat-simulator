@@ -4,7 +4,7 @@
  */
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { MODIFIER_TARGET, type Gw2ModifierContext, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, COMBO_FIELD, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -63,6 +63,20 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
     cooldown: 30,
     castTimeMs: 880,
     interruptCommitMs: 560,
+    // The selected passive strengthens conditions while recharge and J-Drive permit it.
+    modifiers: [
+      {
+        id: 'engineer.superconducting-signet',
+        scope: 'profession',
+        target: MODIFIER_TARGET.CONDITION_DAMAGE,
+        operation: 'damage-additive',
+        // Ordinary signets lose their passive on recharge; J-Drive retains and improves it.
+        amount: superconductingSignetDamage,
+        when: (context) =>
+          selectedSignet(context, ID.SUPERCONDUCTING_SIGNET) &&
+          signetPassiveAvailable(context, !context.timeline?.skillOnCooldownAt(ID.SUPERCONDUCTING_SIGNET, context.time))
+      }
+    ],
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
       {
@@ -118,6 +132,19 @@ export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
     damageIncrease: 0.15,
     cooldown: 30,
     castTimeMs: 520,
+    // The selected passive affects outgoing strikes while recharge and J-Drive permit it.
+    modifiers: [
+      {
+        id: 'engineer.force-signet',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'damage-additive',
+        amount: forceSignetDamage,
+        when: (context) =>
+          selectedSignet(context, ID.FORCE_SIGNET) &&
+          signetPassiveAvailable(context, !context.timeline?.skillOnCooldownAt(ID.FORCE_SIGNET, context.time))
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -193,28 +220,6 @@ export function shiftSignetPassive(context: MechanicQueriesOf<EngineerRuntime>, 
   );
 }
 
-/** Passive modifiers respond to selection and recharge without requiring an activation. */
-export const signetModifierRules: readonly Gw2ModifierRule[] = [
-  {
-    id: 'engineer.force-signet',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: forceSignetDamage,
-    when: (context) =>
-      selectedSignet(context, ID.FORCE_SIGNET) &&
-      signetPassiveAvailable(context, !context.timeline?.skillOnCooldownAt(ID.FORCE_SIGNET, context.time))
-  },
-  {
-    id: 'engineer.superconducting-signet',
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'damage-additive',
-    // Ordinary signets lose their passive on recharge; J-Drive retains and improves it.
-    amount: superconductingSignetDamage,
-    when: (context) =>
-      selectedSignet(context, ID.SUPERCONDUCTING_SIGNET) &&
-      signetPassiveAvailable(context, !context.timeline?.skillOnCooldownAt(ID.SUPERCONDUCTING_SIGNET, context.time))
-  }
-];
 /** Overclock's selected passive affects other signets; trait precedence is applied by the recharge owner. */
 function overclockSignetApplies(context: MechanicQueriesOf<EngineerRuntime>, skill: EngineerSkill): boolean {
   return (

@@ -8,10 +8,7 @@ import {
 import { bladeswornHooks } from '#gw2/professions/warrior/specializations/bladesworn/hooks.js';
 import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
 import { WARRIOR_BLADESWORN_AUTOATTACK_CHAINS } from '#gw2/professions/warrior/specializations/bladesworn/skills/autoattack-chains.js';
-import {
-  BLADESWORN_SKILLS,
-  cartridgeModifiers
-} from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
+import { BLADESWORN_SKILLS } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { WARRIOR_BLADESWORN_SKILL_FLIPS } from '#gw2/professions/warrior/specializations/bladesworn/skills/skill-flips.js';
 import {
   bladeswornState,
@@ -38,8 +35,6 @@ export const bladeswornModule = defineNativeModule({
     create: bladeswornState.create,
     project: projectBladeswornPlanningState
   },
-  // Granted cartridges retain skill-owned damage rules; traits own their attribute contributions.
-  modifiers: { modifierRules: cartridgeModifiers },
   hooks: bladeswornHooks,
   presentation: bladeswornUi
 });

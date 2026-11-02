@@ -44,7 +44,7 @@ const rangerSurvivalInstincts = modifierRule(rangerCoreModule.modifiers.modifier
 const soulbeastLoudWhistle = modifierRule(rangerCoreModule.modifiers.modifierRules, 'ranger.loud-whistle-player');
 const galeshotBirdOfPrey = modifierRule(galeshotModule.modifiers.modifierRules, 'ranger.bird-of-prey');
 const amalgamWillingHost = modifierRule(amalgamModule.modifiers.modifierRules, 'engineer.willing-host');
-const reaperShout = modifierRule(reaperModule.modifiers.modifierRules, 'necromancer.reaper-shout-melee');
+const reaperShout = modifierRule(reaperModule.modifiers.modifierRules, 'necromancer.you-are-all-weaklings-melee');
 const engineerHighCaliber = modifierRule(engineerCoreModule.modifiers.modifierRules, 'engineer.high-caliber');
 const revenantFerociousAggression = modifierRule(
   revenantCoreModule.modifiers.modifierRules,
@@ -182,9 +182,15 @@ test('actual-player skill modifiers do not follow modifier ownership', () => {
     }
   };
 
-  assert.equal(reaperShout.when({ ...context, event: { actorType: 'player', skillId: 1 } }), true);
   assert.equal(
-    reaperShout.when({ ...context, event: { actorType: 'effect', ownerActorType: 'player', skillId: 1 } }),
+    reaperShout.when({ ...context, event: { actorType: 'player', skillId: reaperShout.sourceSkillId } }),
+    true
+  );
+  assert.equal(
+    reaperShout.when({
+      ...context,
+      event: { actorType: 'effect', ownerActorType: 'player', skillId: reaperShout.sourceSkillId }
+    }),
     false
   );
   assert.equal(

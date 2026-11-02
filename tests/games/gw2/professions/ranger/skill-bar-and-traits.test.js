@@ -584,12 +584,13 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     'ranger.bountiful-hunter-pet',
     // Core owns these trait rules; their predicates restrict the merged player bonuses to Soulbeast.
     'ranger.loud-whistle-player',
-    'ranger.lesser-sic-em-player'
+    'ranger.lesser-sic-em-player',
+    'ranger.sic-em-player'
   ]) {
     assert.equal(coreOperations.get(id), 'multiply', id);
   }
 
-  for (const id of ['ranger.sic-em-player', 'ranger.oppressive-superiority']) {
+  for (const id of ['ranger.oppressive-superiority']) {
     assert.equal(soulbeastOperations.get(id), 'multiply', id);
   }
 

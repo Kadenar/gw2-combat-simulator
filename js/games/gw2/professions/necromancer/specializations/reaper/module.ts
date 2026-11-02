@@ -6,7 +6,6 @@ import { NECROMANCER_REAPER_PROFILE_FIELDS } from '#gw2/professions/necromancer/
 import { bindReaperUi } from '#gw2/professions/necromancer/specializations/reaper/presentation.js';
 import { NECROMANCER_REAPER_AUTOATTACK_CHAINS } from '#gw2/professions/necromancer/specializations/reaper/skills/autoattack-chains.js';
 import { REAPER_BASE_SKILL_MECHANICS } from '#gw2/professions/necromancer/specializations/reaper/skills/index.js';
-import { reaperShoutMeleeModifier } from '#gw2/professions/necromancer/specializations/reaper/skills/shout-skills.js';
 import { NECROMANCER_REAPER_SKILL_FLIPS } from '#gw2/professions/necromancer/specializations/reaper/skills/skill-flips.js';
 import { reaperState } from '#gw2/professions/necromancer/specializations/reaper/state.js';
 import { necromancerReaperTraits } from '#gw2/professions/necromancer/specializations/reaper/traits/index.js';
@@ -26,7 +25,5 @@ export const reaperModule = defineNativeModule({
   // One state factory supplies the live combat owner.
   state: { create: reaperState.create },
 
-  // Preserve the shout rule's effective position in the composed profession modifiers.
-  modifiers: [{ ...reaperShoutMeleeModifier, order: 0 }],
   presentation: bindReaperUi
 });

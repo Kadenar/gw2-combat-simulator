@@ -5,6 +5,8 @@
  * Finale flipover. The slot-3 skills create the elemental orbs that Grand Finale
  * spends; the orb bookkeeping itself lives in `core/mechanics/hammer-orbs.ts`.
  */
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -73,6 +75,25 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 18,
     skillFamily: 'Weapon skill',
     castTimeMs: 0,
+    // Any active fire orb grants the bonus, including orbs created by dual attacks.
+    modifiers: [
+      {
+        id: 'elementalist.hammer-fire-orb-strike',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.05,
+        when: (context) => activeBuffStacks(context, 'hammer fire orb', 1) > 0
+      },
+      {
+        id: 'elementalist.hammer-fire-orb-condition',
+        scope: 'profession',
+        target: MODIFIER_TARGET.CONDITION_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.05,
+        when: (context) => activeBuffStacks(context, 'hammer fire orb', 1) > 0
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -456,6 +477,17 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 18,
     skillFamily: 'Weapon skill',
     castTimeMs: 0,
+    // Any active air orb grants critical chance until it expires or is consumed.
+    modifiers: [
+      {
+        id: 'elementalist.hammer-air-orb',
+        scope: 'profession',
+        target: MODIFIER_TARGET.CRITICAL_CHANCE,
+        operation: 'add',
+        amount: 0.15,
+        when: (context) => activeBuffStacks(context, 'hammer air orb', 1) > 0
+      }
+    ],
     effects: [
       {
         type: 'strike',

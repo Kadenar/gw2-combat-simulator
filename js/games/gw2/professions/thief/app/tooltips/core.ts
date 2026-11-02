@@ -156,10 +156,21 @@ const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
     description += ' Applies additional bleeding against a target above the supported high-health threshold.';
   else if (entity.id === ID.DISTRACTING_THROW) {
     description =
-      'At the start of a spear chain, or after a finisher, this acts as a lead attack. Following a finisher also starts a strike-damage bonus.';
+      'At the start of a spear chain, or after a finisher, this acts as a lead attack. Following a finisher also starts a strike and condition damage bonus.';
     facts.push(
       skillFact(balanceContext, ID.DISTRACTING_THROW, 'duration', 'Bonus duration', tooltipSeconds),
-      modifierFact(balanceContext, 'thief.distracting-throw-finisher', 'amount', 'Strike damage after a finisher')
+      modifierFact(
+        balanceContext,
+        'thief.distracting-throw-finisher-strike',
+        'amount',
+        'Strike damage after a finisher'
+      ),
+      modifierFact(
+        balanceContext,
+        'thief.distracting-throw-finisher-condition',
+        'amount',
+        'Condition damage after a finisher'
+      )
     );
   }
 

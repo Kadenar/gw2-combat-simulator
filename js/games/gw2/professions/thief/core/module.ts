@@ -8,7 +8,6 @@ import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attri
 import { THIEF_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/thief/core/skills/autoattack-chains.js';
 import { THIEF_CORE_SKILLS } from '#gw2/professions/thief/core/skills/index.js';
 import { THIEF_CORE_SKILL_FLIPS } from '#gw2/professions/thief/core/skills/skill-flips.js';
-import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { createThiefCoreState, projectThiefCorePlanningState } from '#gw2/professions/thief/core/state.js';
 import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/thief/data/trait-lines.js';
@@ -44,8 +43,6 @@ export const thiefCoreModule = defineNativeModule({
   }),
   state: { create: createThiefCoreState, project: projectThiefCorePlanningState },
 
-  // Register the skill/mechanic-owned rules alongside trait declarations.
-  modifiers: distractingThrowModifiers,
   hooks: thiefCoreHooks,
   presentation: thiefCoreUi
 });

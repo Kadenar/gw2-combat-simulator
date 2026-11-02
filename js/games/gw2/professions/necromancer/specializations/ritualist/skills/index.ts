@@ -5,7 +5,7 @@
  * definitions. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -130,6 +130,25 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
     interruptMode: 'commit',
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
+    // Spirit ownership covers opening, autonomous, and commanded attacks without changing their attribution.
+    modifiers: [
+      {
+        id: 'necromancer.anguish-conditional-damage',
+        label: 'Anguish — damage per condition',
+        scope: 'profession',
+        order: 2,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'damage-additive',
+        // Apply the condition bonus; temporary target-control bonuses are outside simulation scope.
+        parameters: {
+          damagePerCondition: 0.02
+        },
+        amount: (context, _target, parameters) => targetConditionCount(context) * parameters.damagePerCondition,
+        // Existing spirit ownership and attack type identify every non-Innervate Anguish attack, including Summon Spirits.
+        when: (context) =>
+          context.event?.summonOwner === 'spirit:anguish' && context.event.metadata?.spiritAttackType !== 'innervate'
+      }
+    ],
     effects: [],
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
     sideEffects: [
@@ -508,23 +527,6 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.resilient-weapon' } }]
   }
-};
-
-/** Anguish retains its impact-time formula and source identity for the reference's icon and description. */
-export const anguishConditionModifier: Gw2ModifierRule = {
-  id: 'necromancer.anguish-conditional-damage',
-  sourceSkillId: ID.ANGUISH,
-  label: 'Anguish — damage per condition',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'damage-additive',
-  // Apply the condition bonus; temporary target-control bonuses are outside simulation scope.
-  parameters: {
-    damagePerCondition: 0.02
-  },
-  amount: (context, _target, parameters) => targetConditionCount(context) * parameters.damagePerCondition,
-  // Existing spirit ownership and attack type identify every non-Innervate Anguish attack, including Summon Spirits.
-  when: (context) =>
-    context.event?.summonOwner === 'spirit:anguish' && context.event.metadata?.spiritAttackType !== 'innervate'
 };
 
 /** One complete module collection includes authored skills, generated attacks, and simulator actions. */

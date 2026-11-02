@@ -8,9 +8,11 @@
  * These are pure data definitions - no behavior. Stateful behavior is owned by the corresponding
  * mechanic subsystem, while `tasks` names handlers in `core/execution/index.ts`.
  */
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 import { ELEMENTALIST_GLYPHS } from '#gw2/professions/elementalist/data/glyphs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -181,6 +183,17 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 60,
     skillFamily: 'Conjure',
     castTimeMs: 480,
+    // The held Frost Bow grants duration, including copies acquired by pickup.
+    modifiers: [
+      {
+        id: 'elementalist.frost-bow-condition-duration',
+        scope: 'profession',
+        target: MODIFIER_TARGET.CONDITION_DURATION,
+        operation: 'multiply',
+        factor: 1.2,
+        when: (context) => wieldedConjure(context) === 'Frost Bow'
+      }
+    ],
     effects: [],
     // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }]

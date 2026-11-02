@@ -7,8 +7,6 @@ import { rangerPassiveAttributes } from '#gw2/professions/ranger/core/skills/att
 import { RANGER_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/ranger/core/skills/autoattack-chains.js';
 import { RANGER_CORE_SKILLS } from '#gw2/professions/ranger/core/skills/index.js';
 import { RANGER_CORE_SKILL_FLIPS } from '#gw2/professions/ranger/core/skills/skill-flips.js';
-import { sicEmPetModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
-import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
 import { rangerForceOfNatureModifier } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { createRangerCoreState, projectRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { rangerCoreTraits } from '#gw2/professions/ranger/core/traits/index.js';
@@ -48,14 +46,7 @@ export const rangerCoreModule = defineNativeModule({
     skills: RANGER_CORE_SKILLS
   }),
   state: { create: createRangerCoreState, project: projectRangerCoreState },
-  // Keep player/shared rules before the pet audience and retain the established duration stage.
-  modifiers: {
-    modifierRules: [
-      rangerAttackOfOpportunityModifier,
-      rangerForceOfNatureModifier,
-      ...sicEmPetModifiers.map((rule, index) => ({ ...rule, order: 30 + index }))
-    ]
-  },
+  modifiers: [rangerForceOfNatureModifier],
   hooks: rangerCoreHooks,
   presentation: bindRangerCoreUi
 });

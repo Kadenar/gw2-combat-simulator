@@ -5,7 +5,6 @@ import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
 import { ELEMENTALIST_CATALYST_PROFILE_FIELDS } from '#gw2/professions/elementalist/specializations/catalyst/catalog-fields.js';
 import { catalystHooks } from '#gw2/professions/elementalist/specializations/catalyst/hooks.js';
 import { catalystUi } from '#gw2/professions/elementalist/specializations/catalyst/presentation.js';
-import { relentlessFireModifiers } from '#gw2/professions/elementalist/specializations/catalyst/skills/augment-skills.js';
 import { CATALYST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/catalyst/skills/index.js';
 import {
   catalystState,
@@ -30,8 +29,6 @@ export const catalystModule = defineNativeModule({
     skills: materializeSkillDefinitions(CATALYST_SKILL_MECHANICS)
   }),
   state: { create: catalystState.create, project: projectCatalystPlanningState },
-  // Register the skill/mechanic-owned rules alongside trait declarations.
-  modifiers: relentlessFireModifiers,
   hooks: catalystHooks,
   presentation: catalystUi
 });

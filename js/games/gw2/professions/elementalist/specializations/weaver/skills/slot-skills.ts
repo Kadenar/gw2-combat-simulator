@@ -1,4 +1,4 @@
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -119,6 +119,27 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
     cooldown: 90,
     skillFamily: 'Stance',
     castTimeMs: 800,
+    // Each elemental window strengthens outgoing damage while its buff is active.
+    modifiers: [
+      {
+        id: 'elementalist.weave-self-air',
+        scope: 'profession',
+        label: 'Weave Self',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.1,
+        when: (context) => activeBuffStacks(context, 'weave self air', 1) > 0
+      },
+      {
+        id: 'elementalist.weave-self-fire',
+        scope: 'profession',
+        label: 'Weave Self',
+        target: MODIFIER_TARGET.CONDITION_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.2,
+        when: (context) => activeBuffStacks(context, 'weave self fire', 1) > 0
+      }
+    ],
     effects: [],
     // Schedule the mid-cast activation at the recharge point; interruption before it grants no window.
     sideEffects: [{ on: 'castStart', do: { type: 'elementalist.weaver.start-weave-self' } }]
@@ -209,28 +230,6 @@ export function primordialStancePayload(context: unknown) {
   const skill = requireSkillFromContext(context, ID.PRIMORDIAL_STANCE);
   return { skill, action: requireSkillAction(skill, 'pulses') };
 }
-
-/** Weave Self's distinct elemental windows share one source and reference entry with both damage bonuses. */
-export const weaveSelfModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'elementalist.weave-self-air',
-    label: 'Weave Self',
-    sourceSkillId: ID.WEAVE_SELF,
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.1,
-    when: (context) => activeBuffStacks(context, 'weave self air', 1) > 0
-  },
-  {
-    id: 'elementalist.weave-self-fire',
-    label: 'Weave Self',
-    sourceSkillId: ID.WEAVE_SELF,
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.2,
-    when: (context) => activeBuffStacks(context, 'weave self fire', 1) > 0
-  }
-]);
 
 /** Dual attacks grant the stance reward only while its committed window remains active. */
 export function applyFerventStance(

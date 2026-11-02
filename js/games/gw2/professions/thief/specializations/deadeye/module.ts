@@ -8,9 +8,7 @@ import { DEADEYE_SKILL_FIELDS } from '#gw2/professions/thief/specializations/dea
 import { deadeyeHooks } from '#gw2/professions/thief/specializations/deadeye/hooks.js';
 import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presentation.js';
 import { DEADEYE_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
-import { maliciousAttackModifiers } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';
 import { THIEF_DEADEYE_SKILL_FLIPS } from '#gw2/professions/thief/specializations/deadeye/skills/skill-flips.js';
-import { deadeyeSlotModifiers } from '#gw2/professions/thief/specializations/deadeye/skills/slot-skills.js';
 import { deadeyeState, projectDeadeyePlanningState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { deadeyeTraits } from '#gw2/professions/thief/specializations/deadeye/traits/index.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -30,8 +28,6 @@ export const deadeyeModule = defineNativeModule({
     create: () => deadeyeState.create(),
     project: projectDeadeyePlanningState
   },
-  // Skill owners declare the rules; the module registers them alongside selected traits.
-  modifiers: [...deadeyeSlotModifiers, ...maliciousAttackModifiers],
   // The malicious variant uses the shared all-strikes refund contract with its own live tuning.
   hooks: composeRuntimeHooks([deadeyeHooks, landedChannelRefundLifecycle(ID.MALICIOUS_ASHEN_ASSAULT)]),
   presentation: deadeyeUi

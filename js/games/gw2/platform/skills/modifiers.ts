@@ -1,18 +1,39 @@
 import { createModifierHooks, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
 
-/** Intrinsic damage and base-duration rules are scoped to their owner; duration additions adjust the multiplier, not seconds. */
+export type SkillModifierScope = 'skill' | 'profession';
+
+/** Skill-owned rules default to their owner's packets; duration additions adjust the multiplier, not seconds. */
 export type SkillModifier = Pick<
   Gw2ModifierRule,
   'id' | 'label' | 'amount' | 'factor' | 'parameters' | 'when' | 'order'
-> &
-  (
+> & {
+  /** Profession scope uses only the authored predicate; the declaring skill remains the source. */
+  readonly scope?: SkillModifierScope;
+} & (
     | { readonly target: 'strikeDamage'; readonly operation: 'multiply' | 'damage-additive' }
+    | { readonly target: 'conditionDamage'; readonly operation: 'multiply' | 'damage-additive' }
+    | { readonly target: 'criticalChance'; readonly operation: 'multiply' | 'add' }
     | { readonly target: 'criticalDamage'; readonly operation: 'multiply' | 'add' }
+    | { readonly target: 'conditionDuration'; readonly operation: 'multiply' | 'add' }
     | { readonly target: 'conditionBaseDuration'; readonly operation: 'multiply' | 'add' }
   );
 
-const FIELDS = new Set(['id', 'label', 'target', 'operation', 'amount', 'factor', 'parameters', 'when', 'order']);
+/** Effect declarations cannot grant bonuses beyond their own skill and packet identity. */
+export type SkillEffectModifier = SkillModifier & { readonly scope?: 'skill' };
+
+const FIELDS = new Set([
+  'id',
+  'label',
+  'target',
+  'operation',
+  'amount',
+  'factor',
+  'parameters',
+  'when',
+  'order',
+  'scope'
+]);
 
 /** Validate authoring at the catalog boundary, retaining only immutable declarations and existing formula semantics. */
 export function normalizeSkillModifiers(value: unknown, label: string): readonly SkillModifier[] {
@@ -26,14 +47,23 @@ export function normalizeSkillModifiers(value: unknown, label: string): readonly
       typeof rule !== 'object' ||
       Array.isArray(rule) ||
       Object.keys(rule).some((field) => !FIELDS.has(field)) ||
-      !['strikeDamage', 'criticalDamage', 'conditionBaseDuration'].includes(rule.target)
+      ![
+        'strikeDamage',
+        'conditionDamage',
+        'criticalChance',
+        'criticalDamage',
+        'conditionDuration',
+        'conditionBaseDuration'
+      ].includes(rule.target) ||
+      (rule.scope !== undefined && !['skill', 'profession'].includes(rule.scope))
     ) {
       throw new TypeError(`${label} has an invalid skill modifier.`);
     }
   }
 
   // Shared validation owns scalar operations and permits zero only for base-duration suppression.
-  createModifierHooks({ rules: value });
+  // Scope belongs to skill registration, not the shared modifier compiler's schema.
+  createModifierHooks({ rules: value.map(({ scope: _scope, ...rule }) => rule) });
   return Object.freeze(
     value.map((rule) =>
       Object.freeze({
@@ -55,7 +85,14 @@ export function normalizeSkillEffectModifiers(
 
   const rules = normalizeSkillModifiers(value, label);
   for (const rule of rules) {
-    if ((rule.target === 'conditionBaseDuration') !== (effectType === 'condition'))
+    if (rule.scope === 'profession')
+      throw new TypeError(`${label} modifier ${rule.id} cannot use profession scope on an effect.`);
+
+    // Damage and duration rules follow condition packets; critical rules follow strikes.
+    if (
+      ['conditionDamage', 'conditionDuration', 'conditionBaseDuration'].includes(rule.target) !==
+      (effectType === 'condition')
+    )
       throw new TypeError(`${label} modifier ${rule.id} target ${rule.target} is invalid for a ${effectType} effect.`);
   }
 
@@ -68,12 +105,12 @@ export function nativeSkillModifierRules(data: NativeModuleCatalogData): readonl
   // Complete owner declarations expose intrinsic modifiers without metadata merge precedence.
   for (const skill of data.skills ?? []) {
     const id = skill.id;
-    const scoped = (rule: SkillModifier, effect: boolean): Gw2ModifierRule => ({
+    const scoped = ({ scope = 'skill', ...rule }: SkillModifier, effect: boolean): Gw2ModifierRule => ({
       ...rule,
-      // Preserve intrinsic ownership for consumers of the compiled modifier inventory.
+      // Ownership remains the declaring skill even when a buff affects other skills or actors.
       sourceSkillId: id,
       when: (context) =>
-        String(context.event?.skillId ?? context.skillId) === String(id) &&
+        (scope === 'profession' || String(context.event?.skillId ?? context.skillId) === String(id)) &&
         (!effect || context.event?.effectModifierIds?.includes(rule.id) === true) &&
         (rule.when?.(context) ?? true)
     });

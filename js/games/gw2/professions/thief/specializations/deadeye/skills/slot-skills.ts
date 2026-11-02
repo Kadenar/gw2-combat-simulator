@@ -1,5 +1,4 @@
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -23,6 +22,17 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition<ThiefS
     flipDuration: 4,
     cooldown: 20,
     castTimeMs: 480,
+    // This skill scales its player-owned strikes against the active mark.
+    modifiers: [
+      {
+        order: 200,
+        id: 'thief.shadow-flare-marked',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.5,
+        when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && markedTarget(context)
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -147,6 +157,17 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition<ThiefS
     slot: 'Utility',
     cooldown: 0,
     castTimeMs: 0,
+    // This skill scales its player-owned strikes against the active mark.
+    modifiers: [
+      {
+        order: 200,
+        id: 'thief.shadow-swap-marked',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.5,
+        when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && markedTarget(context)
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -193,23 +214,6 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition<ThiefS
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }]
   }
 };
-
-const SHADOW_FLARE_SKILL_IDS: ReadonlySet<number> = new Set([ID.SHADOW_FLARE, ID.SHADOW_SWAP]);
-
-/** Apply this skill family's intrinsic damage rules using live mark eligibility. */
-export const deadeyeSlotModifiers: readonly Gw2ModifierRule[] = [
-  {
-    order: 200,
-    id: 'thief.shadow-flare-marked',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      markedTarget(context) &&
-      SHADOW_FLARE_SKILL_IDS.has(Number(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id))
-  }
-];
 
 /** Register actions beside the skills whose accepted casts select them. */
 const deadeyeSlotActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {

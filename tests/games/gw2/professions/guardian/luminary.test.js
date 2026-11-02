@@ -1463,3 +1463,25 @@ test('Luminary definitions preserve eligible build grants and applied armament w
     assert.equal(runtime.modifyStrikeDamage({ ...context, time: 2 }, 100), 100);
   }
 });
+
+// Utility ownership must not restrict the buff to its own damage, and expiration restores unrelated attacks.
+test('Luminary utility-owned modifiers boost other skills only during their active buff windows', () => {
+  for (const [stance, multiplier] of [
+    ['Piercing Stance', 1.1],
+    ['Daring Advance', 1.15]
+  ]) {
+    const result = createObservedProfessionSimulator(guardianProfession, {
+      ...config,
+      specialization: 'Luminary',
+      primaryWeapon: 'Scepter',
+      selectedTraitIds: []
+    })(undefined, ['Orb of Wrath', stance, 'Orb of Wrath', { type: 'wait', durationMs: 9000 }, 'Orb of Wrath']);
+    assert.deepEqual(result.warnings, []);
+    const hits = result.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.ORB_OF_WRATH
+    );
+    assert.equal(hits.length, 3);
+    assertFlooredDamageMultiplier(hits[1].damage, hits[0].damage, multiplier);
+    assert.equal(hits[2].damage, hits[0].damage);
+  }
+});

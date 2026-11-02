@@ -1,6 +1,5 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -56,6 +55,23 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     malicious: true,
     castTimeMs: 680,
     interruptCommitMs: 560,
+    // The launched strike retains its captured malice after the resource is consumed.
+    modifiers: [
+      {
+        order: 202,
+        id: 'thief.malicious-deaths-judgment-malice',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        // Malice scales the attack itself; additive equipment bonuses must not dilute its ten percent per stack.
+        // Snapshotting preserves the consumed value for the launched hit after the resource is spent.
+        parameters: { damagePerMalice: 0.1 },
+        factor: (context, _target, parameters) =>
+          1 +
+          Math.max(0, (context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0) *
+            parameters.damagePerMalice,
+        when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && markedTarget(context)
+      }
+    ],
     effects: [
       {
         type: 'strike' as const,
@@ -182,6 +198,21 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     retainsCastLockoutAfterInterrupt: true,
     // Preserve player ownership and the defiant-target proxy for the rear-position bonus.
     modifiers: [
+      // The launched strike retains its captured malice after the resource is consumed.
+      {
+        order: 202,
+        id: 'thief.malicious-backstab-malice',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        // Malice scales the attack itself; additive equipment bonuses must not dilute its ten percent per stack.
+        // Snapshotting preserves the consumed value for the launched hit after the resource is spent.
+        parameters: { damagePerMalice: 0.1 },
+        factor: (context, _target, parameters) =>
+          1 +
+          Math.max(0, (context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0) *
+            parameters.damagePerMalice,
+        when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && markedTarget(context)
+      },
       {
         order: 201,
         id: 'thief.malicious-backstab-position',
@@ -528,34 +559,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' as const } }]
   }
 };
-
-const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
-  ID.MALICIOUS_BACKSTAB,
-  ID.MALICIOUS_DEATHS_JUDGMENT
-]);
-
-/** Apply this skill family's intrinsic damage rules using live mark eligibility. */
-export const maliciousAttackModifiers: readonly Gw2ModifierRule[] = [
-  {
-    order: 202,
-    id: 'thief.malicious-stealth-attack',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    // Malice scales the attack itself; additive equipment bonuses must not dilute its ten percent per stack.
-    // Snapshotting preserves the consumed value for the launched hit after the resource is spent.
-    parameters: { damagePerMalice: 0.1 },
-    factor: (context, _target, parameters) =>
-      1 +
-      Math.max(0, (context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0) *
-        parameters.damagePerMalice,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      markedTarget(context) &&
-      MALICIOUS_DAMAGE_SCALING_SKILL_IDS.has(
-        Number(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id)
-      )
-  }
-];
 
 /** Called after Core observers and the shared first-landed latch, before malice consumption. */
 export function refundMaliciousTacticalStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent): void {

@@ -5,8 +5,6 @@
  * consumption that spends them, plus the queries availability uses to gate both.
  * Hammer skill effects, including Grand Finale's projectiles, live in `skills/weapons/hammer.ts`.
  */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
@@ -20,7 +18,6 @@ import {
   type ElementalistAttunement,
   type ElementalistCoreState
 } from '#gw2/professions/elementalist/core/state.js';
-import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Orb skills share a fixed admission delay independently of their authored lifetimes. */
@@ -103,22 +100,3 @@ export function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCas
     state.hammerOrbActivationIds[element] = null;
   }
 }
-
-/** Live orb windows supply bonuses; source identity keeps their skill artwork available to reference views. */
-export const hammerOrbModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'elementalist.hammer-fire-orb',
-    sourceSkillId: ID.FLAME_WHEEL,
-    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: 'damage-additive',
-    amount: 0.05,
-    when: (context) => activeBuffStacks(context, 'hammer fire orb', 1) > 0
-  },
-  {
-    id: 'elementalist.hammer-air-orb',
-    target: MODIFIER_TARGET.CRITICAL_CHANCE,
-    operation: 'add',
-    amount: 0.15,
-    when: (context) => activeBuffStacks(context, 'hammer air orb', 1) > 0
-  }
-]);

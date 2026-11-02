@@ -7,7 +7,6 @@ import {
 } from '#gw2/professions/thief/specializations/antiquary/catalog-fields.js';
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
 import { antiquaryUi } from '#gw2/professions/thief/specializations/antiquary/presentation.js';
-import { kryptisTurretModifiers } from '#gw2/professions/thief/specializations/antiquary/skills/artifact-actions.js';
 import { ANTIQUARY_SKILLS } from '#gw2/professions/thief/specializations/antiquary/skills/index.js';
 import { THIEF_ANTIQUARY_SKILL_FLIPS } from '#gw2/professions/thief/specializations/antiquary/skills/skill-flips.js';
 import {
@@ -30,8 +29,6 @@ export const antiquaryModule = defineNativeModule({
     skills: ANTIQUARY_SKILLS
   }),
   state: { create: antiquaryState.create, project: projectAntiquaryPlanningState },
-  // Register the skill/mechanic-owned rules alongside trait declarations.
-  modifiers: kryptisTurretModifiers,
   hooks: antiquaryHooks,
   presentation: antiquaryUi
 });

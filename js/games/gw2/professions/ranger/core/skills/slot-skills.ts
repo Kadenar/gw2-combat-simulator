@@ -1,6 +1,6 @@
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
   activeChargeGrants,
   appendChargeGrant,
@@ -14,7 +14,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket, emitRangerAction, emitRangerProfile } from '#gw2/professions/ranger/core/events.js';
@@ -616,6 +616,31 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     duration: 10,
     skillFamily: 'Command',
     castTimeMs: 0,
+    // Accepted player grants retain Soulbeast eligibility independently of the command skill.
+    modifiers: [
+      // The pet grant affects only eligible companion packets.
+      {
+        id: 'ranger.sic-em-pet',
+        scope: 'profession',
+        order: 30,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.4,
+        when: (context) => rangerPetEvent(context) && activeBuff(context, 'sic-em-pet')
+      },
+      {
+        id: 'ranger.sic-em-player',
+        scope: 'profession',
+        order: 102,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.25,
+        when: (context) =>
+          (context.runtime
+            ? readProfessionSpecializationState(context.runtime.profession, 'Soulbeast') != null
+            : context.config?.specialization === 'Soulbeast') && activeBuff(context, 'sic-em')
+      }
+    ],
     effects: [],
     // Instant activation selects the current pet or merged recipient before subsequent impacts.
     sideEffects: [{ on: 'castStart', do: { type: 'ranger.sic-em' } }]
@@ -882,29 +907,6 @@ export const sharpeningStoneLifecycle = {
   },
   eventHandlers: { 'ranger.sharpening-stone': handleRangerSharpeningStone }
 } satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
-
-/** Soulbeast registers the accepted player command bonus separately from its pet recipient. */
-export const sicEmPlayerModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'ranger.sic-em-player',
-    order: 102,
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.25,
-    when: (context) => activeBuff(context, 'sic-em')
-  }
-]);
-
-/** Pet command grants affect only their eligible companion audience. */
-export const sicEmPetModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'ranger.sic-em-pet',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.4,
-    when: (context) => rangerPetEvent(context) && activeBuff(context, 'sic-em-pet')
-  }
-]);
 
 // Player strikes grant Might to the current pet, or to the player while merged in Beastmode.
 export function triggerStrengthOfThePack(context: RangerResolverContext, event: Gw2ResolverEvent): void {

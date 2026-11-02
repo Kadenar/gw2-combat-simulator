@@ -12,7 +12,6 @@ import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attri
 import { THIEF_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/thief/core/skills/autoattack-chains.js';
 import { THIEF_CORE_SKILLS } from '#gw2/professions/thief/core/skills/index.js';
 import { THIEF_CORE_SKILL_FLIPS } from '#gw2/professions/thief/core/skills/skill-flips.js';
-import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { projectThiefCorePlanningState } from '#gw2/professions/thief/core/state.js';
 import { coreTraits } from '#gw2/professions/thief/core/traits/index.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -79,7 +78,6 @@ export const thiefCoreReworkModule = defineNativeModule({
     // Rework-only combat bookkeeping stays private; both Core variants expose the same observations.
     project: projectThiefCorePlanningState
   },
-  modifiers: distractingThrowModifiers,
   hooks: thiefCoreReworkHooks,
   presentation: thiefCoreReworkUi
 });

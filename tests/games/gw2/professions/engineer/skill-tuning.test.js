@@ -12,10 +12,7 @@ import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/p
 import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { holosmithSkillStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
-import {
-  overclockRechargeWork,
-  signetModifierRules
-} from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
+import { overclockRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
@@ -85,8 +82,13 @@ test('signet passives and Static Discharge consume independent selected skill fi
     const expected = (id, field, patched) =>
       patchId === 'current' ? engineerCatalog.skillsById.get(id)[field] : patched;
     for (const [rule, id, field, patched] of [
-      [signetModifierRules[0], ID.FORCE_SIGNET, 'damageIncrease', 0.31],
-      [signetModifierRules[1], ID.SUPERCONDUCTING_SIGNET, 'conditionDamageIncrease', 0.27]
+      [selected.modifierRulesById.get('engineer.force-signet'), ID.FORCE_SIGNET, 'damageIncrease', 0.31],
+      [
+        selected.modifierRulesById.get('engineer.superconducting-signet'),
+        ID.SUPERCONDUCTING_SIGNET,
+        'conditionDamageIncrease',
+        0.27
+      ]
     ]) {
       assert.equal(rule.when(context), true);
       assert.equal(rule.amount(context), expected(id, field, patched));

@@ -6,16 +6,18 @@ import { CONTROL } from '#gw2/platform/constants.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
-import {
-  rangerAttackOfOpportunityModifier,
-  reactToRangerGreatswordDamage
-} from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
+import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
+import { reactToRangerGreatswordDamage } from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+
+const rangerAttackOfOpportunityModifier = rangerCoreModule.modifiers.modifierRules.find(
+  (rule) => rule.id === 'ranger.attack-of-opportunity'
+);
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {
   primaryWeapon: 'Greatsword',

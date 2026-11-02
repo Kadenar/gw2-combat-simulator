@@ -89,7 +89,7 @@ export interface Skill extends CatalogEntity, SharedNumericSkillFields {
   readonly attributeBonuses?: Readonly<Partial<Record<SkillAttributeKey, number>>>;
   /** Fixed grants while the skill's active state applies. */
   readonly activeAttributeBonuses?: Skill['attributeBonuses'];
-  /** Intrinsic strike, critical-damage, and condition-base-duration rules apply only to this skill's packets. */
+  /** Owned damage, critical, and condition-duration rules default to this skill's packets; profession scope is explicit. */
   readonly modifiers?: readonly SkillModifier[];
   /** Identity-only tombstones scoped to this skill in its selected catalog. */
   readonly removedEffectKeys?: readonly string[];

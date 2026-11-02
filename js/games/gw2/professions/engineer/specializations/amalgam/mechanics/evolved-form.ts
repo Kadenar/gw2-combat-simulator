@@ -1,6 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
@@ -11,7 +9,6 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import { effectNumber, requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
 import {
   AMALGAM_MORPH_KIND_BY_SKILL_ID,
   type AmalgamMorphKind
@@ -98,19 +95,6 @@ function evolveAmalgam(context: EngineerRuntime, skill: EngineerSkill): void {
 
   context.fireTrigger(amalgamEvolved);
 }
-
-/** Plasmatic State strengthens eligible player packets while its accepted strain is active. */
-export const plasmaticStateModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    order: 1,
-    id: 'engineer.plasmatic-state',
-    target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
-    operation: 'damage-additive',
-    amount: 0.07,
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) && activeAmalgamState(context, 'plasmaticStateUntil')
-  }
-]);
 
 /** Schedule accepted form work beside its execution, preserving Core, retaliation, and Morph trait ordering. */
 export const evolvedFormLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerSkill> = {

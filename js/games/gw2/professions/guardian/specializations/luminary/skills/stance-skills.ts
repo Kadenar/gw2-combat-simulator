@@ -2,6 +2,9 @@
  * Owns Luminary stance and stance-chain skill definitions.
  * Persistent stance windows and scheduled effects remain in `hooks.ts`.
  */
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { AURA, BOON, COMBO_FIELD, COMBO_FINISHER, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
@@ -39,6 +42,33 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     skillFamily: 'Stance',
     cooldown: 60,
     castTimeMs: 1000,
+    // A fresh application boosts subsequent attacks; its own impact requires an older active application.
+    modifiers: [
+      {
+        id: 'guardian.daring-advance',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.15,
+        order: 100,
+        when: (context) => {
+          const kind = 'guardian-daring-advance';
+
+          if (!buffActive(context, kind)) return false;
+
+          if (context.event?.skillId !== ID.DARING_ADVANCE && context.event?.triggeredBy !== 'Daring Advance')
+            return true;
+
+          return (context.events || []).some(
+            (event) =>
+              event.type === 'buff' &&
+              event.kind === kind &&
+              event.at < context.time &&
+              gw2EffectExpiresAt(event.at, event.duration || 0) > context.time
+          );
+        }
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -101,6 +131,17 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     ammo: 2,
 
     castTimeMs: 200,
+    // The buff boosts all eligible strikes, including this stance's activating impact and its triggered damage.
+    modifiers: [
+      {
+        id: 'guardian.piercing-stance',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.1,
+        when: (context) => buffActive(context, 'guardian-piercing-stance')
+      }
+    ],
     // Keep the stance's strike and daze on one impact.
     effects: impactEffects({ atMs: PIERCING_STANCE_IMPACT_MS, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {

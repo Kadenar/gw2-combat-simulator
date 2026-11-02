@@ -9,10 +9,7 @@ import {
 } from '#gw2/professions/revenant/specializations/herald/catalog-fields.js';
 import { heraldHooks } from '#gw2/professions/revenant/specializations/herald/hooks.js';
 import { heraldUi } from '#gw2/professions/revenant/specializations/herald/presentation.js';
-import {
-  burstOfStrengthModifiers,
-  HERALD_BASE_SKILL_MECHANICS
-} from '#gw2/professions/revenant/specializations/herald/skills/index.js';
+import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
 import { REVENANT_HERALD_SKILL_FLIPS } from '#gw2/professions/revenant/specializations/herald/skills/skill-flips.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { traitDefinitions } from '#gw2/professions/revenant/specializations/herald/traits/index.js';
@@ -32,8 +29,6 @@ export const heraldModule = defineNativeModule({
   }),
   state: { create: heraldState.create },
   attributes: heraldAttributes,
-  // Register the skill/mechanic-owned rules alongside trait declarations.
-  modifiers: burstOfStrengthModifiers,
   hooks: heraldHooks,
   presentation: heraldUi
 });

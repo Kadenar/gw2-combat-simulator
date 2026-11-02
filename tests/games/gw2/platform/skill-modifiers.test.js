@@ -345,3 +345,254 @@ test('intrinsic base duration reaches condition resolution before the ordinary d
     false
   );
 });
+
+// Ownership is stable while profession scope delegates activation and audience to the authored predicate.
+test('profession-scoped skill rules affect other skills only while their predicate is active', () => {
+  const core = moduleFor([
+    skill(1, [
+      bonus('implicit-skill', 2),
+      { ...bonus('explicit-skill', 2), scope: 'skill' },
+      { ...bonus('profession-strike', 1.5), scope: 'profession', when: (context) => context.runtime.active },
+      {
+        ...bonus('profession-critical', 2),
+        scope: 'profession',
+        target: 'criticalDamage',
+        when: (context) => context.runtime.active && context.event?.actorType === 'player'
+      },
+      {
+        ...bonus('profession-duration', 2),
+        scope: 'profession',
+        target: 'conditionBaseDuration',
+        when: (context) => context.runtime.active && context.condition === 'Bleeding'
+      }
+    ]),
+    skill(2)
+  ]);
+  const profession = defineNativeProfession({ id: 'scope-fixture', name: 'Scope fixture', modules: [core] });
+  const hooks = profession.runtimeFor({});
+  const context = { event: { skillId: 2, actorType: 'player' }, runtime: { active: false }, condition: 'Bleeding' };
+  assert.equal(hooks.modifyStrikeDamage(context, 100), 100);
+  context.runtime.active = true;
+  assert.equal(hooks.modifyStrikeDamage(context, 100), 150);
+  assert.equal(hooks.modifyStrikeDamage({ ...context, event: { skillId: 1 } }, 100), 600);
+  assert.equal(hooks.modifyCriticalDamage(context, 1.5), 3);
+  assert.equal(hooks.modifyConditionBaseDuration(context, 1), 2);
+  assert.equal(hooks.modifyConditionBaseDuration({ ...context, condition: 'Burning' }, 1), 1);
+  // Profession scope adds no implicit player filter; only the critical rule declares one here.
+  const summon = { ...context, event: { skillId: 2, actorType: 'summon' } };
+  assert.equal(hooks.modifyStrikeDamage(summon, 100), 150);
+  assert.equal(hooks.modifyCriticalDamage(summon, 1.5), 1.5);
+  context.runtime.active = false;
+  assert.equal(hooks.modifyStrikeDamage(context, 100), 100);
+  assert.equal(hooks.modifyCriticalDamage(context, 1.5), 1.5);
+  assert.equal(hooks.modifyConditionBaseDuration(context, 1), 1);
+  for (const rule of core.modifiers.modifierRules) {
+    assert.equal(rule.sourceSkillId, 1);
+    assert.equal(Object.hasOwn(rule, 'scope'), false);
+  }
+});
+
+test('skill scope validation rejects unknown scopes and profession-scoped effect declarations', () => {
+  for (const scope of ['global', null, 1]) {
+    assert.throws(
+      () => createCanonicalCatalog({ skills: [skill(1, [{ ...bonus('invalid-scope', 2), scope }])] }),
+      /invalid skill modifier/
+    );
+  }
+
+  for (const effect of [
+    strike([{ ...bonus('effect-scope', 2), scope: 'profession' }]),
+    {
+      type: 'condition',
+      condition: 'Bleeding',
+      stacks: 1,
+      duration: 2,
+      modifiers: [{ ...bonus('effect-scope', 2), target: 'conditionBaseDuration', scope: 'profession' }]
+    }
+  ]) {
+    assert.throws(() => normalizeSkillEffects([effect]), /cannot use profession scope on an effect/);
+    assert.throws(() => moduleFor([skill(1, [], [effect])]), /cannot use profession scope on an effect/);
+  }
+
+  const owner = skill(1, [], [strike([{ ...bonus('explicit-effect', 2), scope: 'skill' }]), strike()]);
+  const hooks = createModifierHooks({ rules: moduleFor([owner]).modifiers.modifierRules });
+  assert.equal(hooks.modifyStrikeDamage({ event: packet(owner, owner.effects[0]) }, 100), 200);
+  assert.equal(hooks.modifyStrikeDamage({ event: packet(owner, owner.effects[1]) }, 100), 100);
+});
+
+// New targets retain the same owner scoping and live activation as existing damage and base-duration rules.
+test('condition damage, duration, and critical chance support profession scope and shared arithmetic', () => {
+  for (const [target, hook, operation, input, expected] of [
+    ['conditionDamage', 'modifyConditionDamage', 'damage-additive', 100, 150],
+    ['conditionDuration', 'modifyConditionDuration', 'add', 1, 1.5],
+    ['criticalChance', 'modifyCriticalChance', 'add', 0.1, 0.6]
+  ]) {
+    const core = moduleFor([
+      skill(1, [
+        { id: target, target, operation, amount: 0.5, scope: 'profession', when: (context) => context.enabled }
+      ])
+    ]);
+    const hooks = createModifierHooks({ rules: core.modifiers.modifierRules });
+    const context = { event: { skillId: 2 }, enabled: true };
+    assert.equal(hooks[hook](context, input), expected);
+    assert.equal(hooks[hook]({ ...context, enabled: false }, input), input);
+  }
+});
+
+test('new skill targets reject incompatible operations and effect packet types', () => {
+  for (const target of ['conditionDamage', 'conditionDuration', 'criticalChance']) {
+    const rule = { ...bonus('new-target', 2), target };
+    const invalidOperation = {
+      ...rule,
+      operation: target === 'conditionDamage' ? 'add' : 'damage-additive',
+      amount: 0.5
+    };
+    assert.throws(() => createCanonicalCatalog({ skills: [skill(1, [invalidOperation])] }), /modifier|Modifier/);
+    const wrongEffect =
+      target === 'criticalChance'
+        ? { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2, modifiers: [rule] }
+        : strike([rule]);
+    assert.throws(() => normalizeSkillEffects([wrongEffect]), /invalid for a .* effect/);
+    assert.throws(() => moduleFor([skill(1, [], [wrongEffect])]), /invalid for a .* effect/);
+  }
+});
+
+// Condition ticks must retain the declaring effect's identity without transferring its bonus to sibling applications.
+test('condition damage combines additive bonuses and effect multipliers during resolution', () => {
+  const condition = { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 3 };
+  const owner = skill(
+    1,
+    [{ id: 'skill-condition-add', target: 'conditionDamage', operation: 'damage-additive', amount: 0.25 }],
+    [
+      { ...condition, name: 'Plain' },
+      {
+        ...condition,
+        name: 'Enhanced',
+        modifiers: [{ ...bonus('effect-condition-multiply', 2), target: 'conditionDamage' }]
+      }
+    ]
+  );
+  const other = skill(2, [], [{ ...condition, name: 'Other skill' }]);
+  const profession = defineNativeProfession({
+    id: 'condition-damage-fixture',
+    name: 'Condition damage fixture',
+    modules: [
+      moduleFor([owner, other], {
+        modifierRules: [
+          { id: 'shared-condition-add', target: 'conditionDamage', operation: 'damage-additive', amount: 0.25 }
+        ]
+      })
+    ]
+  });
+  const result = createProfessionSimulator(profession)(
+    [
+      { type: 'cast', skillId: 1 },
+      { type: 'cast', skillId: 2 },
+      { type: 'wait', durationMs: 5000 }
+    ],
+    {
+      attributeInputs: baseAttributeInputs({ conditionDamage: 900, expertise: 0 }),
+      target: { armor: 1000, conditions: {} }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  for (const [name, factor] of [
+    ['Plain', 1.5],
+    ['Enhanced', 3],
+    ['Other skill', 1.25]
+  ]) {
+    const application = result.resolvedEvents.find((event) => event.type === 'condition' && event.name === name);
+    const tick = application.damageTicks.find((tick) => tick.fraction === 1);
+    // Integral contributions isolate modifier composition from shared owner-packet rounding.
+    // Bleeding deals 76 damage per full stack-second at 900 condition damage.
+    assert.equal(tick.damage, 76 * factor, name);
+  }
+});
+
+// Ordinary duration is capped independently; intrinsic base-duration extensions still apply outside that cap.
+test('skill and effect condition duration preserve the cap separately from base duration', () => {
+  const condition = { type: 'condition', condition: 'Bleeding', stacks: 1, duration: 2 };
+  const owner = skill(
+    1,
+    [
+      { id: 'skill-duration-add', target: 'conditionDuration', operation: 'add', amount: 0.5 },
+      { ...bonus('skill-base-duration', 1.5), target: 'conditionBaseDuration' }
+    ],
+    [
+      { ...condition, name: 'Plain' },
+      {
+        ...condition,
+        name: 'Enhanced',
+        modifiers: [{ ...bonus('effect-duration-multiply', 2), target: 'conditionDuration' }]
+      }
+    ]
+  );
+  const other = skill(2, [], [{ ...condition, name: 'Other skill' }]);
+  const profession = defineNativeProfession({
+    id: 'capped-duration-fixture',
+    name: 'Capped duration fixture',
+    modules: [moduleFor([owner, other])]
+  });
+  const result = createProfessionSimulator(profession)(
+    [
+      { type: 'cast', skillId: 1 },
+      { type: 'cast', skillId: 2 },
+      { type: 'wait', durationMs: 8000 }
+    ],
+    {
+      attributeInputs: baseAttributeInputs({ expertise: 0 }),
+      target: { armor: 1000, conditions: {} }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  for (const [name, duration] of [
+    ['Plain', 4.5],
+    ['Enhanced', 6],
+    ['Other skill', 2]
+  ]) {
+    const application = result.resolvedEvents.find((event) => event.type === 'condition' && event.name === name);
+    assert.equal(application.effectiveDuration, duration, name);
+    assert.equal(application.naturalExpiresAt - application.at, duration, name);
+  }
+});
+
+// Critical chance modifies strike probability, stays with its owner, and is capped by damage resolution.
+test('skill and effect critical chance preserve sibling isolation and the probability cap', () => {
+  const owner = skill(
+    1,
+    [{ id: 'skill-critical-add', target: 'criticalChance', operation: 'add', amount: 0.25 }],
+    [
+      { ...strike(), name: 'Plain', weaponStrength: 1000 },
+      {
+        ...strike([{ ...bonus('effect-critical-multiply', 8), target: 'criticalChance' }]),
+        name: 'Enhanced',
+        weaponStrength: 1000
+      }
+    ]
+  );
+  const other = skill(2, [], [{ ...strike(), name: 'Other skill', weaponStrength: 1000 }]);
+  const profession = defineNativeProfession({
+    id: 'critical-chance-fixture',
+    name: 'Critical chance fixture',
+    modules: [moduleFor([owner, other])]
+  });
+  const result = createProfessionSimulator(profession)(
+    [
+      { type: 'cast', skillId: 1 },
+      { type: 'cast', skillId: 2 }
+    ],
+    {
+      attributeInputs: baseAttributeInputs({ power: 1000, precision: 895, ferocity: 0 }),
+      target: { armor: 1000, conditions: {} }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  for (const [name, chance] of [
+    ['Plain', 0.25],
+    ['Enhanced', 1],
+    ['Other skill', 0]
+  ]) {
+    const hit = result.resolvedEvents.find((event) => event.type === 'damage' && event.name === name);
+    assert.equal(hit.criticalChance, chance, name);
+  }
+});

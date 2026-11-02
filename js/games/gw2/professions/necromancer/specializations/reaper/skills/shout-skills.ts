@@ -2,8 +2,7 @@
  * Owns Reaper shout skill definitions.
  * Reaper Shroud skill definitions live in `shroud-skills.ts`.
  */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -21,6 +20,18 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     skillFamily: 'Shout',
     cooldown: 20,
     castTimeMs: 0,
+    // The nearby-target assumption grants this shout its melee strike multiplier.
+    modifiers: [
+      {
+        // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
+        id: 'necromancer.you-are-all-weaklings-melee',
+        order: 0,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 2,
+        when: (context) => isGw2PlayerActorEvent(context.event)
+      }
+    ],
     effects: [{ type: 'strike', coefficient: 2.5, hits: 1 }]
   },
   [ID.NOTHING_CAN_SAVE_YOU]: {
@@ -31,6 +42,18 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     skillFamily: 'Shout',
     cooldown: 16,
     castTimeMs: 360,
+    // The nearby-target assumption grants this shout its melee strike multiplier.
+    modifiers: [
+      {
+        // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
+        id: 'necromancer.nothing-can-save-you-melee',
+        order: 0,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 2,
+        when: (context) => isGw2PlayerActorEvent(context.event)
+      }
+    ],
     effects: [
       { type: 'strike', coefficient: 2, hits: 1 },
       { type: 'condition', condition: CONDITION.VULNERABILITY, duration: 10, stacks: 6 }
@@ -44,6 +67,18 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     skillFamily: 'Shout',
     cooldown: 30,
     castTimeMs: 680,
+    // The nearby-target assumption grants this shout its melee strike multiplier.
+    modifiers: [
+      {
+        // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
+        id: 'necromancer.chilled-to-the-bone-melee',
+        order: 0,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 2,
+        when: (context) => isGw2PlayerActorEvent(context.event)
+      }
+    ],
     effects: [
       { type: 'strike', coefficient: 3, hits: 1 },
       { type: 'control', controlKind: CONTROL.STUN },
@@ -58,6 +93,18 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     skillFamily: 'Shout',
     cooldown: 16,
     castTimeMs: 680,
+    // The nearby-target assumption grants this shout its melee strike multiplier.
+    modifiers: [
+      {
+        // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
+        id: 'necromancer.your-soul-is-mine-melee',
+        order: 0,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 2,
+        when: (context) => isGw2PlayerActorEvent(context.event)
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -86,6 +133,18 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     // The handler and tooltip share the maximum number of distinct self-condition types transferred.
     conditionsTransferred: 2,
     castTimeMs: 0,
+    // The nearby-target assumption grants this shout its melee strike multiplier.
+    modifiers: [
+      {
+        // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
+        id: 'necromancer.suffer-melee',
+        order: 0,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 2,
+        when: (context) => isGw2PlayerActorEvent(context.event)
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -113,20 +172,18 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     skillFamily: 'Shout',
     cooldown: 32,
     castTimeMs: 360,
+    // The nearby-target assumption grants this shout its melee strike multiplier.
+    modifiers: [
+      {
+        // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
+        id: 'necromancer.rise-melee',
+        order: 0,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 2,
+        when: (context) => isGw2PlayerActorEvent(context.event)
+      }
+    ],
     effects: [{ type: 'strike', coefficient: 0.8, hits: 1 }]
   }
-};
-
-/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
-export const reaperShoutMeleeModifier: Gw2ModifierRule = {
-  // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
-  id: 'necromancer.reaper-shout-melee',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: 2,
-  // order: 100 places this after additive damage buckets so it multiplies the already-summed base.
-  order: 100,
-  when: (context) =>
-    isGw2PlayerActorEvent(context.event) &&
-    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.skillFamily === 'Shout'
 };

@@ -4,9 +4,23 @@ import test from 'node:test';
 
 import { createModifierReference } from '#gw2/app/modifier-reference/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
+import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
+import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
+import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
+import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { NECROMANCER_SKILL_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
+import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { thiefAppAdapter } from '#gw2/professions/thief/app/app-definition.js';
+import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
+import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorAppAdapter } from '#gw2/professions/warrior/app/app-definition.js';
 import { WARRIOR_SKILL_IDS as WARRIOR } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -243,5 +257,246 @@ test('Piercing Gales samples live vulnerability only for its own damage after Ga
         assert.equal(runtime.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
       }
     }
+  }
+});
+
+// Splitting shared IDs must make patch values independent without changing mark or captured-malice eligibility.
+test('Deadeye skill-owned modifiers retain independent patch tuning and captured malice', () => {
+  const family = withPatchPreview(thiefProfession, {
+    id: 'deadeye-owned-rules',
+    label: 'Deadeye owned rules',
+    professions: {
+      thief: {
+        modifierRules: {
+          'thief.shadow-flare-marked': { factor: 1.8 },
+          'thief.malicious-backstab-malice': { parameters: { damagePerMalice: 0.2 } }
+        }
+      }
+    }
+  });
+  const config = {
+    specialization: 'Deadeye',
+    patchId: 'deadeye-owned-rules',
+    selectedTraitIds: [],
+    target: { defiant: false }
+  };
+  const runtime = family.runtimeFor(config);
+  const state = { markedTargetId: 'target', markExpiresAt: 10, malice: { value: 0 } };
+  for (const [skillId, factor] of [
+    [THIEF.SHADOW_FLARE, 1.8],
+    [THIEF.SHADOW_SWAP, 1.5],
+    [THIEF.MALICIOUS_BACKSTAB, 1.6],
+    [THIEF.MALICIOUS_DEATHS_JUDGMENT, 1.3]
+  ]) {
+    const context = {
+      catalog: runtime.catalog,
+      config,
+      time: 1,
+      runtime: { profession: { core: {}, specialization: { kind: 'Deadeye', state } } },
+      event: { skillId, actorType: 'player', deadeyeMaliceSnapshot: 3 }
+    };
+    assert.equal(runtime.modifyStrikeDamage(context, 100), factor * 100);
+    assert.equal(runtime.modifyStrikeDamage({ ...context, time: 10 }, 100), 100);
+    assert.equal(
+      runtime.modifyStrikeDamage({ ...context, event: { ...context.event, actorType: 'environment' } }, 100),
+      100
+    );
+  }
+});
+
+// One shout's balance edit cannot alter another shout, and the player-actor gate survives automatic skill scoping.
+test('Reaper shouts retain independent patch tuning and exclude unrelated packets', () => {
+  const family = withPatchPreview(necromancerProfession, {
+    id: 'shout-owned-rules',
+    label: 'Shout owned rules',
+    professions: {
+      necromancer: {
+        modifierRules: {
+          'necromancer.you-are-all-weaklings-melee': { factor: 3 }
+        }
+      }
+    }
+  });
+  const config = { specialization: 'Reaper', patchId: 'shout-owned-rules', selectedTraitIds: [] };
+  const runtime = family.runtimeFor(config);
+  for (const skillId of [
+    NECROMANCER.YOU_ARE_ALL_WEAKLINGS,
+    NECROMANCER.NOTHING_CAN_SAVE_YOU,
+    NECROMANCER.CHILLED_TO_THE_BONE,
+    NECROMANCER.YOUR_SOUL_IS_MINE,
+    NECROMANCER.SUFFER,
+    NECROMANCER.RISE
+  ]) {
+    const context = { catalog: runtime.catalog, config, time: 1, event: { skillId, actorType: 'player' } };
+    assert.equal(runtime.modifyStrikeDamage(context, 100), skillId === NECROMANCER.YOU_ARE_ALL_WEAKLINGS ? 300 : 200);
+    assert.equal(
+      runtime.modifyStrikeDamage(
+        { ...context, event: { skillId, actorType: 'effect', ownerActorType: 'player' } },
+        100
+      ),
+      100
+    );
+  }
+
+  assert.equal(
+    runtime.modifyStrikeDamage(
+      {
+        catalog: runtime.catalog,
+        config,
+        time: 1,
+        event: { skillId: NECROMANCER.NECROTIC_SLASH, actorType: 'player' }
+      },
+      100
+    ),
+    100
+  );
+});
+
+// Core owns the utility now, so its player buff must explicitly retain the former Soulbeast module restriction.
+test('Sic Em player modifier preserves Soulbeast eligibility in live and detached queries', () => {
+  const rule = rangerCoreModule.modifiers.modifierRules.find((candidate) => candidate.id === 'ranger.sic-em-player');
+  for (const specialization of ['Core', 'Soulbeast', 'Untamed']) {
+    const context = {
+      time: 1,
+      event: { skillId: RANGER.SLASH, actorType: 'player' },
+      config: { specialization },
+      timeline: { buffStacksAt: () => 1 }
+    };
+    assert.equal(rule.when(context), specialization === 'Soulbeast');
+    const live = {
+      ...context,
+      config: { specialization: 'Core' },
+      runtime: {
+        profession: { specialization: { kind: specialization, state: {} } },
+        buffs: new Map([
+          [
+            'sic-em',
+            [
+              {
+                at: 0,
+                expiresAt: 2,
+                stacks: 1,
+                resolvedAudience: {
+                  includesSelf: true,
+                  includesSummons: false,
+                  alliedPlayerCount: 0,
+                  companionIds: [],
+                  recipientCount: 1
+                }
+              }
+            ]
+          ]
+        ])
+      }
+    };
+    assert.equal(rule.when(live), specialization === 'Soulbeast');
+  }
+});
+
+// Separate targets must remain independently patchable while the granting skill owns both outgoing bonuses.
+test('split buff rules retain recipient checks, expiry, and independent selected tooltip values', () => {
+  for (const [profession, adapter, owner, prefix, buff, playerOnly] of [
+    [
+      elementalistProfession,
+      elementalistAppAdapter,
+      ELEMENTALIST.FLAME_WHEEL,
+      'elementalist.hammer-fire-orb',
+      'hammer fire orb',
+      false
+    ],
+    [engineerProfession, engineerAppAdapter, ENGINEER.PLASMATIC_STATE, 'engineer.plasmatic-state', null, true],
+    [
+      thiefProfession,
+      thiefAppAdapter,
+      THIEF.DISTRACTING_THROW,
+      'thief.distracting-throw-finisher',
+      'distracting-throw',
+      true
+    ]
+  ]) {
+    const patched = withPatchPreview(profession, {
+      id: 'split-buff-targets',
+      label: 'Independent buff targets',
+      professions: {
+        [profession.id]: {
+          modifierRules: {
+            [`${prefix}-strike`]: { amount: 0.25 },
+            [`${prefix}-condition`]: { amount: 0.4 }
+          }
+        }
+      }
+    });
+    const patch = patched.resolvePatch({ id: 'split-buff-targets' });
+    const rules = ['strike', 'condition'].map((target) =>
+      patch.balanceContext.modifierRulesById.get(`${prefix}-${target}`)
+    );
+    const hooks = createModifierHooks({ rules });
+    for (const rule of rules) assert.equal(rule.sourceSkillId, owner);
+    // Use an unrelated attack: profession scope must preserve the buff beyond its source skill.
+    for (const actor of [
+      { actorType: 'player' },
+      { actorType: 'summon', ownerActorType: 'player' },
+      { actorType: 'summon' }
+    ]) {
+      for (const time of [1, 6]) {
+        const context = {
+          time,
+          event: { skillId: -1, ...actor },
+          runtime: {
+            profession: { specialization: { kind: 'Amalgam', state: { plasmaticStateUntil: 5 } } },
+            buffs: new Map(
+              buff ? [[buff, [{ at: 0, expiresAt: 5, stacks: 1, resolvedAudience: { includesSelf: true } }]]] : []
+            )
+          }
+        };
+        const active = time < 5 && (!playerOnly || actor.actorType === 'player' || actor.ownerActorType === 'player');
+        assert.equal(hooks.modifyStrikeDamage(context, 100), active ? 125 : 100);
+        assert.equal(hooks.modifyConditionDamage(context, 100), active ? 140 : 100);
+      }
+    }
+
+    const facts = adapter.skillTooltip(patch.balanceContext.catalog.skillsById.get(owner), patch).facts;
+
+    assert.ok(facts.some((fact) => /Strike damage/.test(fact.name) && fact.detail === '+25%'));
+    assert.ok(facts.some((fact) => /Condition damage/.test(fact.name) && fact.detail === '+40%'));
+    const entries = createModifierReference(adapter, patch).filter((entry) =>
+      entry.skills.some((skill) => skill.id === owner)
+    );
+    assert.equal(entries.length, 1);
+    assert.deepEqual(
+      entries[0].rules.map(({ targets, value }) => [targets, value]),
+      [
+        [['Strike'], '25%'],
+        [['Condition'], '40%']
+      ]
+    );
+  }
+});
+
+// Owning the declaration must not restrict state bonuses to the activation's skill ID or require a direct cast.
+test('Frost Bow and Crescent Wind retain cross-skill state bonuses and stop at expiry', () => {
+  const rules = ['elementalist.frost-bow-condition-duration', 'elementalist.hammer-air-orb'].map((id) =>
+    elementalistCoreModule.modifiers.modifierRules.find((rule) => rule.id === id)
+  );
+  const hooks = createModifierHooks({ rules });
+  assert.equal(rules[0].sourceSkillId, ELEMENTALIST.CONJURE_FROST_BOW);
+  assert.equal(rules[1].sourceSkillId, ELEMENTALIST.CRESCENT_WIND);
+  for (const time of [1, 6]) {
+    const context = {
+      time,
+      event: { skillId: -1, actorType: 'player' },
+      runtime: {
+        profession: { core: { conjureEquipped: 'Frost Bow', conjureExpiresAt: 5 } },
+        buffs: new Map([
+          ['hammer air orb', [{ at: 0, expiresAt: 5, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+        ])
+      }
+    };
+    assert.equal(hooks.modifyConditionDuration(context, 1), time < 5 ? 1.2 : 1);
+    assert.equal(hooks.modifyCriticalChance(context, 0.5), time < 5 ? 0.65 : 0.5);
+    context.runtime.profession.core.conjureEquipped = null;
+    context.runtime.buffs.clear();
+    assert.equal(hooks.modifyConditionDuration(context, 1), 1);
+    assert.equal(hooks.modifyCriticalChance(context, 0.5), 0.5);
   }
 });

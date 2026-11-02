@@ -2,7 +2,7 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -201,6 +201,18 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
     dualWieldCastTimeMs: 480,
     // Committed interrupted casts keep the cartridge window consumed by later explosions.
     interruptCommitMs: 400,
+    // Active cartridges scale qualifying explosions across skills.
+    modifiers: [
+      {
+        id: 'warrior.overcharged-cartridges',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        parameters: { baseFactor: 1 },
+        factor: (context, _target, parameters) => parameters.baseFactor + cartridgeDamageBonus(context),
+        when: (context) => context.event?.damageKind === 'explosion' && cartridgeDamageBonus(context) > 0
+      }
+    ],
     effects: [],
     // Activation precedes completion, so acceptance schedules its own guarded wake.
     sideEffects: [
@@ -986,15 +998,3 @@ function cartridgeDamageBonus(context: Gw2ModifierContext): number {
   const effect = requireEffect(profile, 'buff', latest.kind, action);
   return effect ? effectNumber(profile, effect, 'damageIncreasePerStack') : 0;
 }
-
-/** Cartridge explosions retain their live outgoing multiplier independently of the Burning component. */
-export const cartridgeModifiers: readonly Gw2ModifierRule[] = [
-  {
-    id: 'warrior.overcharged-cartridges',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    parameters: { baseFactor: 1 },
-    factor: (context, _target, parameters) => parameters.baseFactor + cartridgeDamageBonus(context),
-    when: (context) => context.event?.damageKind === 'explosion' && cartridgeDamageBonus(context) > 0
-  }
-];

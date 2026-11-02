@@ -4,11 +4,17 @@ import { tooltipFactorChange } from '#gw2/app/shared/simulation-tooltip.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 
 export const thiefModifierDescriptions: ModifierDescriptions = {
-  'thief.distracting-throw-finisher': modifierDescription({
+  'thief.distracting-throw-finisher-strike': modifierDescription({
     name: 'Distracting Throw — damage buff',
     skills: [ID.DISTRACTING_THROW],
     description: 'The spear finisher grants a temporary bonus to player-owned strike and condition damage.',
-    facts: [['amount', 'Strike and condition damage while active']]
+    facts: [['amount', 'Strike damage while active']]
+  }),
+  'thief.distracting-throw-finisher-condition': modifierDescription({
+    name: 'Distracting Throw — damage buff',
+    skills: [ID.DISTRACTING_THROW],
+    description: 'The spear finisher grants a temporary bonus to player-owned strike and condition damage.',
+    facts: [['amount', 'Condition damage while active']]
   }),
   'thief.kryptis-turret-damage': modifierDescription({
     name: 'Summon Kryptis Turret — player damage bonus',
@@ -23,19 +29,24 @@ export const thiefModifierDescriptions: ModifierDescriptions = {
       "Malicious Backstab receives its rear-position damage bonus when the simulator's defiant-target assumption is enabled.",
     facts: [['factor', 'Positional strike damage bonus', tooltipFactorChange]]
   }),
-  'thief.malicious-stealth-attack': modifierDescription({
-    name: "Malice — Backstab and Death's Judgment",
-    skills: [ID.MALICIOUS_BACKSTAB, ID.MALICIOUS_DEATHS_JUDGMENT],
-    category: 'weapon',
-    description:
-      "Malicious Backstab and Malicious Death's Judgment gain strike damage per consumed malice when attacking the marked target. The launched attack retains the malice consumed by its cast.",
-    facts: [['damagePerMalice', 'Strike damage per consumed malice']]
-  }),
-  'thief.shadow-flare-marked': modifierDescription({
-    name: 'Shadow Flare / Shadow Swap — marked target',
-    skills: [ID.SHADOW_FLARE, ID.SHADOW_SWAP],
-    category: 'utility',
-    description: 'Shadow Flare and its Shadow Swap follow-up deal increased strike damage to the marked target.',
-    facts: [['factor', 'Strike damage against the marked target', tooltipFactorChange]]
-  })
+  // Skill-owned rules keep independent patch values while sharing their eligibility descriptions.
+  ...Object.fromEntries(
+    ['malicious-backstab-malice', 'malicious-deaths-judgment-malice'].map((skill) => [
+      `thief.${skill}`,
+      modifierDescription({
+        description:
+          'The attack gains strike damage per captured malice against the active mark. Its launched packet retains that value after malice is consumed.',
+        facts: [['damagePerMalice', 'Strike damage per captured malice']]
+      })
+    ])
+  ),
+  ...Object.fromEntries(
+    ['shadow-flare-marked', 'shadow-swap-marked'].map((skill) => [
+      `thief.${skill}`,
+      modifierDescription({
+        description: 'This skill deals increased player-owned strike damage against the active mark.',
+        facts: [['factor', 'Strike damage against the marked target', tooltipFactorChange]]
+      })
+    ])
+  )
 };

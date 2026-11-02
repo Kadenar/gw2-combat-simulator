@@ -1,5 +1,4 @@
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
-import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
@@ -136,7 +135,38 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     type: 'Weapon',
     weapon: 'Greatsword',
     slot: 'Weapon_2',
-    ...maul
+    ...maul,
+    // The charge boosts its eligible recipient, even when a different skill consumes it.
+    modifiers: [
+      {
+        id: 'ranger.attack-of-opportunity',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        parameters: { petFactor: 1.5, playerFactor: 1.25 },
+        factor: (context, _target, parameters) =>
+          attackRecipient(context.event) === 'pet' ? parameters.petFactor : parameters.playerFactor,
+        // Read live applications so consuming the charge also affects other packets at the same timestamp.
+        when: (context) => {
+          const recipient = attackRecipient(context.event);
+
+          if (!recipient) return false;
+
+          const buffs =
+            recipient === 'pet'
+              ? context.runtime?.companions?.get(String(context.event?.summonOwner))?.buffs
+              : context.runtime?.buffs;
+          return (buffs?.get(`attack-of-opportunity-${recipient}`) || []).some(
+            (application) =>
+              application.at <= context.time &&
+              application.expiresAt > context.time &&
+              application.stacks > 0 &&
+              (recipient === ACTOR.PLAYER ||
+                application.resolvedAudience.companionIds.includes(String(context.event?.summonOwner)))
+          );
+        }
+      }
+    ]
   },
   [ID.SWOOP]: {
     name: 'Swoop',
@@ -220,36 +250,6 @@ function attackRecipient(event?: SimulationEvent | null): 'pet' | typeof ACTOR.P
 
   if (isPlayerStrike(event)) return ACTOR.PLAYER;
 }
-
-export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
-  id: 'ranger.attack-of-opportunity',
-  // Maul grants the charge; its source identity supplies reference artwork without changing the recipient rules.
-  sourceSkillId: ID.MAUL_BASE,
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  parameters: { petFactor: 1.5, playerFactor: 1.25 },
-  factor: (context, _target, parameters) =>
-    attackRecipient(context.event) === 'pet' ? parameters.petFactor : parameters.playerFactor,
-  // Read live applications so consuming the charge also affects other packets at the same timestamp.
-  when: (context) => {
-    const recipient = attackRecipient(context.event);
-
-    if (!recipient) return false;
-
-    const buffs =
-      recipient === 'pet'
-        ? context.runtime?.companions?.get(String(context.event?.summonOwner))?.buffs
-        : context.runtime?.buffs;
-    return (buffs?.get(`attack-of-opportunity-${recipient}`) || []).some(
-      (application) =>
-        application.at <= context.time &&
-        application.expiresAt > context.time &&
-        application.stacks > 0 &&
-        (recipient === ACTOR.PLAYER ||
-          application.resolvedAudience.companionIds.includes(String(context.event?.summonOwner)))
-    );
-  }
-};
 
 /** Each Maul ID grants its own recipient's next-attack bonus after its strike resolves. */
 function grantMaulAttackOfOpportunity(

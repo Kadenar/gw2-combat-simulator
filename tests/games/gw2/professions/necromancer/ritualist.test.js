@@ -6,7 +6,7 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
-import { anguishConditionModifier } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
+import { ritualistModule } from '#gw2/professions/necromancer/specializations/ritualist/module.js';
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { cast, wait } from '#tests/helpers/commands.js';
@@ -23,6 +23,9 @@ const state = (result) => observedRuntime(result).profession.specialization.stat
 
 // Ownership selects Anguish even when Summon Spirits supplies the skill identity; Innervate remains excluded.
 test('Anguish condition bonus follows spirit ownership and attack type', () => {
+  const anguishConditionModifier = ritualistModule.modifiers.modifierRules.find(
+    (rule) => rule.id === 'necromancer.anguish-conditional-damage'
+  );
   for (const skillId of [ID.ANGUISH, ID.SUMMON_SPIRITS]) {
     for (const spiritAttackType of ['initial', 'autoattack', 'innervate']) {
       for (const summonOwner of ['spirit:anguish', 'spirit:wanderlust', undefined]) {

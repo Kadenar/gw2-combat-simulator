@@ -440,6 +440,23 @@ Ownership rules for the sections:
   `bindGuardianCoreUi`) when the UI needs the completed catalog. Presentation reads simulation state and must not
   reproduce combat rules. Palette availability is the current exception.
 
+### Skill-owned modifiers
+
+Declare a skill's modifiers after its identity and scalar fields, before effects. `scope: 'skill'` is the default:
+registration limits the rule to packets attributed to that skill. `scope: 'profession'` omits that skill-ID filter so a
+utility can own a buff that affects other attacks. Both scopes retain the declaring skill as `sourceSkillId`.
+
+Profession scope adds no actor or selection filter. The rule's `when` predicate must express its activation and
+audience, such as an active stance buff, a selected passive, or a pet recipient. Rules retain the shared compiler's
+ordering and arithmetic; registration consumes scope before handing the rule to that compiler. Strike and condition
+effect modifiers remain restricted to their owning packets and reject profession scope.
+
+Skill rules support `strikeDamage`, `conditionDamage`, `criticalChance`, `criticalDamage`, `conditionDuration`, and
+`conditionBaseDuration`. Damage targets use `multiply` or `damage-additive`; critical and duration targets use
+`multiply` or `add`. Strike effects admit strike damage and critical targets; condition effects admit condition damage
+and both duration targets. Ordinary condition duration retains its normal cap; base-duration modifiers apply separately
+before that bonus. Targets remain singular: separate declarations are required to affect different targets.
+
 ### Autoattack chain declarations
 
 Every module declares its supported chains as ordered skill-ID arrays in `skills/autoattack-chains.ts` and passes them

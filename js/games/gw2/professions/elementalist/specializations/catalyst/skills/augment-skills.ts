@@ -1,4 +1,4 @@
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
@@ -25,6 +25,27 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, SkillDefinition>> 
     cooldown: 20,
     skillFamily: 'Augment',
     castTimeMs: 240,
+    // The active augment strengthens outgoing strike and condition damage.
+    modifiers: [
+      {
+        id: 'elementalist.relentless-fire',
+        scope: 'profession',
+        label: 'Relentless Fire',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.1,
+        when: (context) => activeBuffStacks(context, 'relentless fire', 1) > 0
+      },
+      {
+        id: 'elementalist.relentless-fire-condition',
+        scope: 'profession',
+        label: 'Relentless Fire',
+        target: MODIFIER_TARGET.CONDITION_DAMAGE,
+        operation: 'damage-additive',
+        amount: 0.1,
+        when: (context) => activeBuffStacks(context, 'relentless fire', 1) > 0
+      }
+    ],
     effects: [
       {
         type: 'buff',
@@ -141,28 +162,6 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, SkillDefinition>> 
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.catalyst.refresh-weapons' } }]
   }
 };
-
-/** Relentless Fire's two damage rules share one source and display name for a single reference entry. */
-export const relentlessFireModifiers: readonly Gw2ModifierRule[] = Object.freeze([
-  {
-    id: 'elementalist.relentless-fire',
-    sourceSkillId: ID.RELENTLESS_FIRE,
-    label: 'Relentless Fire',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.1,
-    when: (context) => activeBuffStacks(context, 'relentless fire', 1) > 0
-  },
-  {
-    id: 'elementalist.relentless-fire-condition',
-    sourceSkillId: ID.RELENTLESS_FIRE,
-    label: 'Relentless Fire',
-    target: MODIFIER_TARGET.CONDITION_DAMAGE,
-    operation: 'damage-additive',
-    amount: 0.1,
-    when: (context) => activeBuffStacks(context, 'relentless fire', 1) > 0
-  }
-]);
 
 // Reset weapon cooldowns matching Catalyst's single active attunement while
 // preserving exclusions and active ammo-recharge contracts.
