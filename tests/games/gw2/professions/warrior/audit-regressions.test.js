@@ -272,7 +272,11 @@ test('Vigorous Shouts converts Power to Healing Power once in builds and raw run
     { id: TRAIT.VIGOROUS_SHOUTS, name: 'Vigorous Shouts' }
   );
   assert.match(tooltip.description, /healing power based on power/);
-  assert.equal(tooltip.facts.find(({ name }) => name === 'Power converted to healing power').detail, '+13%');
+  // Conversion facts describe the bonus and make clear that the source attribute is preserved.
+  assert.equal(
+    tooltip.facts.find(({ name }) => name === 'Healing power gained from power').detail,
+    '13% (source attribute unchanged)'
+  );
 });
 
 test('endurance integration and Dodge readiness follow actual pooled Vigor windows', () => {

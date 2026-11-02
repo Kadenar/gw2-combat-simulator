@@ -90,20 +90,25 @@ test('Weaver single dual group is authoritative and utility variants follow live
     { id: 2, attunement: 'Fire+Water' }
   ];
   assert.equal(ui.paletteWeaponGroups({ specialization: 'Weaver' }, duals), null);
-  const fire = { id: 34736, loadoutSkillId: 34736, name: 'Renamed fire utility', attunement: 'Fire' };
-  const water = { id: 34772, loadoutSkillId: 34736, name: 'Renamed water utility', attunement: 'Water' };
+  // Equipped selector roots keep input identity while their concrete choices follow the live attunement.
+  const root = { id: 3, name: 'Renamed utility', selector: { Fire: 34736, Water: 34772 } };
+  const fire = { id: 34736, loadoutSkillId: root.id, name: 'Renamed fire utility', attunement: 'Fire' };
+  const water = { id: 34772, loadoutSkillId: root.id, name: 'Renamed water utility', attunement: 'Water' };
   const build = { startAttunement: 'Fire' };
   const catalog = {
-    skills: [fire, water]
+    skills: [root, fire, water],
+    skillsById: new Map([root, fire, water].map((skill) => [skill.id, skill]))
   };
   assert.deepEqual(
     ui.paletteSelectedSlotSkills(
       { specialization: 'Weaver', build, catalog, professionState: { [STATE.PRIMARY_ATTUNEMENT]: 'Water' } },
-      [fire]
+      [root]
     ),
-    [water]
+    [{ ...water, inputSkillId: root.id }]
   );
-  assert.deepEqual(ui.paletteSelectedSlotSkills({ specialization: 'Core', build, catalog }, [water]), [fire]);
+  assert.deepEqual(ui.paletteSelectedSlotSkills({ specialization: 'Core', build, catalog }, [root]), [
+    { ...fire, inputSkillId: root.id }
+  ]);
   assert.equal(build.startAttunement, 'Fire');
 });
 

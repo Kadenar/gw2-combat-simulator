@@ -195,7 +195,11 @@ function upgradeSavedBuild(candidate: unknown): unknown {
           'Current Elementalist builds must equip glyph roots, not elemental variants.'
         );
 
-      if (seen.has(id))
+      // Reject collapsed glyph/stance choices, while ordinary duplicate slots retain shared codec normalization.
+      if (
+        seen.has(id) &&
+        (id === SKILL.GLYPH_OF_STORMS || id === SKILL.GLYPH_OF_ELEMENTAL_POWER || id === SKILL.PRIMORDIAL_STANCE)
+      )
         throw new SelectedSkillMigrationError('Duplicate selected skill after Elementalist migration: ' + String(id));
 
       seen.add(id);

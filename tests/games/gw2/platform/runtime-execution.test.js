@@ -390,10 +390,12 @@ test('isolated damage retains authored hit reactions without starting combat or 
   assert.deepEqual(calls, ['combat', 'authored', 'profession']);
 });
 
-// Delayed work runs once in the existing scheduler; preview calculation never asks for chart observations.
+// Delayed work runs once; previews observe buffs for hit diagnostics without collecting chart histories.
 test('finite occurrence completes delayed work once without collecting effect histories', () => {
   let starts = 0;
   let initialized = 0;
+  let observations = 0;
+  let policies = 0;
   const profession = fixture({
     hooks: {
       initialize(runtime) {
@@ -426,10 +428,12 @@ test('finite occurrence completes delayed work once without collecting effect hi
         }
       },
       observeEffects() {
-        throw new Error('Preview must not observe chart effects.');
+        observations++;
+        return [];
       },
       buffPolicies() {
-        throw new Error('Preview must not collect chart policies.');
+        policies++;
+        return [];
       }
     }
   });
@@ -437,6 +441,10 @@ test('finite occurrence completes delayed work once without collecting effect hi
   const application = result.events.find((event) => event.condition === 'Bleeding' && event.effectiveDuration != null);
   assert.equal(initialized, 1);
   assert.equal(starts, 1);
+  const diagnosticHits = result.events.filter((event) => event.damageCalculation);
+  assert.ok(diagnosticHits.length > 0);
+  assert.equal(observations, diagnosticHits.length);
+  assert.equal(policies, diagnosticHits.length);
   assert.equal(application.effectiveDuration, 4);
   assert.ok(application.damage > 0);
 });
