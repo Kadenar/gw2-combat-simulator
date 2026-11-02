@@ -5,6 +5,7 @@ import {
   grantTimedStacks,
   purgeExpiredStacks
 } from '#gw2/platform/combat/resources/timed-stacks.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import {
   conditionEffectTicks,
@@ -282,6 +283,18 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         finisherType: COMBO_FINISHER.BLAST
       }
     ],
+    // The impact captures this packet's stack bonus without rewriting its authored coefficient.
+    modifiers: [
+      {
+        id: 'revenant.abyssal-raze-stacks',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.revenantAbyssalRazeDamageFactor),
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.event?.metadata?.revenantAbyssalRazeDamageFactor != null
+      }
+    ],
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -328,13 +341,17 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
 
 const REVENANT_ABYSSAL_RAZE = 'revenant.abyssal-raze-impact';
 
+/** Remove expired stack timestamps from the owning state before an impact or swap reads the pool. */
 function activeCrushingAbyss(runtime: RevenantRuntime): number[] {
   const core = runtime.profession.core;
   core.crushingAbyss = purgeExpiredStacks(core.crushingAbyss, runtime.time);
   return core.crushingAbyss;
 }
 
-// Emit Abyssal Raze's stack-scaled strike and Torment packets at the current instant.
+/**
+ * Build a Raze from the caller's sampled stack count. Ordinary impacts scale strike damage and add Torment stacks;
+ * weapon-swap triggers keep the base strike damage but still receive the additional Torment.
+ */
 function abyssalRazePackets(
   runtime: RevenantRuntime,
   skill: RevenantSkill,
@@ -351,6 +368,7 @@ function abyssalRazePackets(
     throw new Error('Abyssal Raze is missing its declarative effects.');
 
   const base = strikeEffectCoefficient(strike);
+  // Even a weapon-swap trigger belongs to Raze and uses Spear attribution; activationId identifies its causing action.
   const common = {
     at: runtime.time,
     source: 'revenant',
@@ -367,7 +385,13 @@ function abyssalRazePackets(
     event: buildResolverStrike({
       ...common,
       name: triggeredBy ? 'Abyssal Raze - Crushing Abyss' : 'Abyssal Raze',
-      coefficient: triggeredBy ? base : base * (1 + (strike.damageIncreasePerStack || 0) * stacks)
+      coefficient: base,
+      metadata: {
+        ...strike.metadata,
+        // The skill's strikeDamage modifier reads this snapshot during resolution. Later stack grants or consumption
+        // cannot change this packet's bonus, and the authored coefficient remains available unchanged.
+        revenantAbyssalRazeDamageFactor: triggeredBy ? 1 : 1 + (strike.damageIncreasePerStack || 0) * stacks
+      }
     })
   });
   const baseTick = conditionEffectTicks(baseTorment)[0];
@@ -382,6 +406,7 @@ function abyssalRazePackets(
     })
   });
 
+  // Crushing Abyss adds a separate Torment application by stack count; it does not extend the base application's duration.
   if (stacks > 0) {
     const crushingTick = conditionEffectTicks(crushingTorment)[0];
     runtime.effects.emit({
@@ -403,6 +428,7 @@ function startRevenantAbyssalRaze(runtime: RevenantRuntime, cast: RuntimeCast<Re
 
   if (!strike) throw new Error('Abyssal Raze is missing its strike effect.');
 
+  // Carry the activation identity, but defer reading stacks until impact so intervening expiry or swaps take effect.
   runtime.schedule(REVENANT_ABYSSAL_RAZE, canonicalTime(cast.start + (effectFirstAtMs(strike) || 0) / 1000), {
     activationId: cast.id
   });
@@ -415,6 +441,7 @@ function revenantAbyssalRazeImpact(runtime: RevenantRuntime, data: unknown): voi
   if (!skill) return;
 
   const { activationId } = data as { activationId: string };
+  // Capture and emit damage before adding this impact's stack: a Raze cannot benefit from its own new stack.
   abyssalRazePackets(runtime, skill, activeStackCount(activeCrushingAbyss(runtime), runtime.time), activationId);
   const effect = skill.effects?.find((candidate) => candidate.type === 'buff' && candidate.kind === 'crushing-abyss');
 
@@ -478,7 +505,7 @@ function sameWeaponSets(runtime: RevenantRuntime): boolean {
   return JSON.stringify(set(1)) === JSON.stringify(set(2));
 }
 
-/** A committed swap to a genuinely different set spends maximum Crushing Abyss on an empowered Raze. */
+/** A committed swap to different weapon types consumes a full pool for a base-damage Raze with stack-scaled Torment. */
 function completeRevenantCrushingAbyssSwap(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const skill = runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE);
 
@@ -488,6 +515,7 @@ function completeRevenantCrushingAbyssSwap(runtime: RevenantRuntime, cast: Runti
 
   if (activeCrushingAbyss(runtime).length < maximum || sameWeaponSets(runtime)) return;
 
+  // Spend the pool before emitting the proc, passing the consumed count explicitly so Torment retains its bonus.
   runtime.profession.core.crushingAbyss = [];
   abyssalRazePackets(runtime, skill, maximum, cast.id, 'Swap Weapons');
 }
@@ -503,6 +531,7 @@ function reactRevenantSpearRecharge(runtime: RevenantRuntime, event: Gw2Resolver
   // Spear reductions are authored in base seconds; the shared controller converts them to tracked recharge time.
   const reducedBy = runtime.cooldownController.reduceSkillRecharge(raze, seconds, runtime.time);
 
+  // Report the actual reduction applied; a ready skill has no outstanding recharge to reward or announce.
   if (reducedBy <= 0) return;
 
   const cooldownReduction = Number(reducedBy.toFixed(3));
@@ -548,9 +577,11 @@ export const spearLifecycle = {
   },
   sideEffectHandlers: {
     'revenant.abyssal-raze'(runtime, context) {
+      // Cast acceptance schedules the impact task; the skill's effect variant suppresses duplicate ordinary emission.
       if (context.kind === 'cast') startRevenantAbyssalRaze(runtime, context.cast);
     },
     'revenant.spear-recharge'(runtime, context) {
+      // The qualifying hit's effect reaction supplies the source event used to attribute the recharge reward.
       if (context.kind === 'effect') reactRevenantSpearRecharge(runtime, context.trigger.event);
     }
   },

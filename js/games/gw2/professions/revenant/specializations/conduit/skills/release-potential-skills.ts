@@ -1,5 +1,6 @@
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
-import { conditionEffectTicks, impactEffects } from '#gw2/platform/effects/authoring.js';
+import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -36,12 +37,13 @@ function releaseEffects(
     if (effect.type === 'strike') return [{ ...effect, weapon }];
 
     if (effect.type === 'condition') {
+      // Mesmer's dedicated impact task emits these conditions after sampling affinity; ordinary emission would duplicate them.
       if (cast.skill.id === ID.RELEASE_POTENTIAL_MESMER) return [];
 
       if (assassin) {
+        // Each condition keeps its own rate and base duration; the modifier uses this accepted factor after affinity changes.
         const multiplier = 1 + affinity * (effect.durationPerAffinity || 0);
-        const ticks = conditionEffectTicks(effect).map((tick) => ({ ...tick, duration: tick.duration * multiplier }));
-        return ticks.length ? [{ ...effect, ticks }] : [];
+        return [{ ...effect, metadata: { ...effect.metadata, revenantReleaseConditionDurationFactor: multiplier } }];
       }
     }
 
@@ -86,6 +88,18 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     energyCost: 0,
     // Strike and daze use ordinary scheduling; Conduit evaluates the conditions' affinity at impact.
     castTimeMs: 440,
+    // Outgoing Torment carries impact-time affinity; self-Torment retains its separate expiry handler.
+    modifiers: [
+      {
+        id: 'revenant.release-mesmer-condition-affinity',
+        target: 'conditionBaseDuration',
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.revenantReleaseConditionDurationFactor),
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.event?.metadata?.revenantReleaseConditionDurationFactor != null
+      }
+    ],
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -198,8 +212,24 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
     icon: 'https://render.guildwars2.com/file/11A390F793A2EBE57DA6DD6FFD03290CCE6F0305/3713169.png',
     type: 'Profession',
     slot: 'Profession_2',
+    cooldown: 10,
+    energyCost: 0,
+    // Conduit snapshots condition-duration scaling; the shared scheduler owns all release packets.
+    // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
+    castTimeMs: 720,
+    interruptCommitMs: 640,
+    retainsCastLockoutAfterInterrupt: true,
     // Strike affinity remains live while the condition durations retain their separate cast snapshot.
     modifiers: [
+      {
+        id: 'revenant.release-assassin-condition-affinity',
+        target: 'conditionBaseDuration',
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.revenantReleaseConditionDurationFactor),
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.event?.metadata?.revenantReleaseConditionDurationFactor != null
+      },
       {
         id: 'revenant.release-assassin-affinity',
         label: 'Release Potential: Assassin - affinity',
@@ -210,13 +240,6 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         factor: (context, _target, parameters) => 1 + affinity(context) * parameters.damagePerAffinity
       }
     ],
-    cooldown: 10,
-    energyCost: 0,
-    // Conduit snapshots condition-duration scaling; the shared scheduler owns all release packets.
-    // Assassin releases the cast lane at 720 ms; the final strike follows at 800 ms.
-    castTimeMs: 720,
-    interruptCommitMs: 640,
-    retainsCastLockoutAfterInterrupt: true,
     effects: [
       {
         type: 'strike',

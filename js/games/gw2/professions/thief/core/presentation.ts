@@ -213,7 +213,10 @@ export const thiefCoreUi = Object.freeze({
     });
     preview.targetHealth(TRAIT.FEROCIOUS_STRIKES);
     // Unsuspecting Strike's health-dependent Bleeding is procedural, without a coefficient modifier to inspect.
-    preview.damageTargetHealth(preview.hasId(TRAIT.EXECUTIONER) || context.weapons.includes(WEAPON.SPEAR));
+    preview.damageTargetHealth(
+      preview.hasId(TRAIT.EXECUTIONER) ||
+        context.weapons.some((weapon) => weapon === WEAPON.SPEAR || weapon === WEAPON.DAGGER)
+    );
     preview.playerHealth(['Keen Observer', 'Twin Fangs'], preview.has('Keen Observer') ? 50 : 100);
 
     if (preview.has('Twin Fangs'))

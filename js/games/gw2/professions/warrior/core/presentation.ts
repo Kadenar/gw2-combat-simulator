@@ -230,9 +230,12 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
-    // Kill Shot has a procedural execute bonus; primal bursts and Dragon Trigger replace that rifle burst.
+    // Weapon execute modifiers need target health in isolated damage previews.
     preview.damageTargetHealth(
       preview.hasId(TRAIT.WARRIORS_CUNNING) ||
+        context.weapons.includes(WEAPON.AXE) ||
+        (context.weapons.includes(WEAPON.GREATSWORD) &&
+          !['Berserker', 'Bladesworn'].includes(context.specialization)) ||
         (context.weapons.includes(WEAPON.RIFLE) && !['Berserker', 'Bladesworn'].includes(context.specialization))
     );
     // Expose held combat bonuses to isolated damage calculations.

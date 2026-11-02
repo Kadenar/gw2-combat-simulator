@@ -34,6 +34,7 @@ const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, E
     const { cast } = context;
     const state = runtime.profession.core;
     const at = runtime.time;
+    // Replace the rod's entire lifetime so old pulses cannot grant charges to the new Artillery window.
     runtime.cancelOwner({ id: 'engineer.lightning-rod', generation: state.lightningRodGeneration });
     const owner = { id: 'engineer.lightning-rod', generation: ++state.lightningRodGeneration };
     state.lightningRodChargeExpiries = [];
@@ -59,6 +60,7 @@ const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, E
     const { cast } = context;
     const state = runtime.profession.core;
     const at = runtime.time;
+    // Capture live charges into the travelling shot before cancelling the rod and emptying its charge pool.
     buildEngineerPackets(
       'engineer.electric-artillery',
       {

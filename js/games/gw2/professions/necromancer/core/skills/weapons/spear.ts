@@ -1,4 +1,5 @@
 /** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -79,14 +80,11 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })]
-          },
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: [{ type: 'necromancer.soul-shards', amount: 1 }]
+            // Both rewards share the same landed-hit gate; grant life force before the shard.
+            do: [
+              lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } }),
+              { type: 'necromancer.soul-shards', amount: 1 }
+            ]
           }
         ],
         coefficient: 1.8
@@ -104,60 +102,34 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
     // The measured Quickness cast ends one 40 ms action tick after its final packet.
     castTimeMs: 800,
     interruptMode: 'per-packet',
-    effects: [
+    // One skill-owned rule covers every impact without repeating the modifier's registration identity.
+    modifiers: [
       {
-        type: 'strike',
-        // Only this selected application owns its accepted-impact reward.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'each',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: [{ type: 'necromancer.perforate' }]
-          }
-        ],
-        ticks: [
-          {
-            atMs: 400,
-            coefficient: 0.5
-          },
-          {
-            atMs: 480,
-            coefficient: 0.5
-          },
-          {
-            atMs: 520,
-            coefficient: 0.5
-          },
-          {
-            atMs: 560,
-            coefficient: 0.5
-          },
-          {
-            atMs: 640,
-            coefficient: 0.5
-          },
-          {
-            atMs: 720,
-            coefficient: 0.5
-          },
-          {
-            atMs: 760,
-            coefficient: 0.5
-          }
-        ],
-        timingAnchor: 'castStart',
-        timingScale: 'cast',
-        coefficientModifiers: [
-          {
-            kind: 'target-health-below',
-            threshold: 0.5,
-            multiplier: 1.2
-          }
-        ]
+        id: 'necromancer.perforate-target-health',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        factor: 1.2,
+        when: (context) => targetHealthBelow(context, 0.5)
       }
-    ]
+    ],
+    // Contacts are irregularly spaced; each impact independently consumes a shard only when its strike resolves.
+    effects: [400, 480, 520, 560, 640, 720, 760].flatMap((atMs) =>
+      impactEffects({ atMs, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        {
+          type: 'strike',
+          coefficient: 0.5,
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: ACTOR.PLAYER,
+              packets: 'each',
+              when: (_runtime, { event }) => Number(event.coefficient) > 0,
+              do: [{ type: 'necromancer.perforate' }]
+            }
+          ]
+        }
+      ])
+    )
   },
   [ID.ADDLE]: {
     name: 'Addle',
@@ -187,14 +159,9 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })]
-          },
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            // Unconditional hit rewards share one gate while retaining life-force-before-control ordering.
             do: [
+              lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } }),
               {
                 type: 'necromancer.addle-control'
               }
@@ -322,14 +289,11 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
               actor: ACTOR.PLAYER,
               packets: 'first',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 } })]
-            },
-            {
-              on: 'damage.resolved',
-              actor: ACTOR.PLAYER,
-              packets: 'first',
-              when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: [{ type: 'necromancer.soul-shards', amount: 2 }]
+              // Both rewards share the same landed-hit gate; grant life force before the shards.
+              do: [
+                lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 } }),
+                { type: 'necromancer.soul-shards', amount: 2 }
+              ]
             }
           ],
           coefficient: 3.8,

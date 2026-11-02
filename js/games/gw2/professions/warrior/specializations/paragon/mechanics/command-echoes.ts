@@ -33,6 +33,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
   if (!echo) return;
 
   const ownerId = `${ECHO}.${activationId}`;
+  // A burst can claim an echo before its timer fires; cancel that timer before awarding or scheduling another repeat.
   runtime.cancelOwner({ id: ownerId, generation: echo.generation });
   const skill = runtime.helpers.skillsById.get(echo.skillId)!;
   // The selected command owns its reward; echo consumption alone decides when it is emitted.

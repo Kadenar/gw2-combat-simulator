@@ -1,4 +1,5 @@
 /** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -111,11 +112,14 @@ export const NECROMANCER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         coefficient: 2,
         hits: 1,
-        coefficientModifiers: [
+        // Use one matching health tier; bonuses never compound when the target crosses multiple thresholds.
+        modifiers: [
           {
-            kind: 'target-health-below',
-            threshold: 0.5,
-            multiplier: 1.5
+            id: 'necromancer.satiate-target-health',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            factor: 1.5,
+            when: (context) => targetHealthBelow(context, 0.5)
           }
         ]
       }

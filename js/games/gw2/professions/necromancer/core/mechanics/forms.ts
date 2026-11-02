@@ -38,6 +38,7 @@ export function exitLich(runtime: NecromancerRuntime): void {
   grantNecromancerLifeForce(runtime, 15);
 }
 
+/** Apply the form transition lock and publish the bar change while retaining the underlying equipped weapon set. */
 function transition(runtime: NecromancerRuntime, entering: boolean, skill?: NecromancerSkill): void {
   const kind = entering ? 'shroudEntryMs' : 'shroudExitMs';
   lockTransitionInput(runtime, kind, skill);

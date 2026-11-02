@@ -192,6 +192,21 @@ export const thiefCoreTooltips = {
       : [{ name: 'Follow-up window', detail: tooltipSeconds(tooltipNumber(entity, 'flipDuration')) }])
   ],
   skills: {
+    // Read execute tiers from their owning modifiers, including balance patches.
+    [ID.HEARTSEEKER]: skillTooltip('Leap at your target, dealing increased damage at low target health.', [
+      fromModifier(
+        'thief.heartseeker-target-health',
+        'belowQuarter',
+        'Strike damage below 25% target health; lowest matching tier applies',
+        tooltipFactorChange
+      ),
+      fromModifier(
+        'thief.heartseeker-target-health',
+        'belowHalf',
+        'Strike damage below 50% target health; lowest matching tier applies',
+        tooltipFactorChange
+      )
+    ]),
     [ID.LARCENOUS_STRIKE]: skillTooltip('Strike your target with increased damage.', [
       fromModifier('thief.larcenous-strike', 'factor', 'Strike damage', tooltipFactorChange)
     ]),

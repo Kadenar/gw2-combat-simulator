@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -492,5 +493,66 @@ test('Malicious Ashen keeps marked-malice eligibility after the live mark change
     assert.equal(Boolean(torment), marked);
 
     if (marked) assert.equal(torment.duration, 3);
+  }
+});
+
+// Base-duration rules retain accepted malice through spending and compose with expertise without affecting other conditions.
+test('malicious Poison modifiers preserve selected tick durations and accepted marked malice', () => {
+  for (const [skillId, weapon, factor] of [
+    [ID.MALICIOUS_SHADOWSQUALL, 'Scepter', 1.8],
+    [ID.MALICIOUS_CUNNING_SALVO, 'Axe', 4]
+  ]) {
+    const result = runThief(
+      [skillId, { type: 'wait', durationMs: 1000 }],
+      {
+        specialization: 'Deadeye',
+        primaryWeapon: weapon,
+        secondaryWeapon: 'Pistol',
+        attributeInputs: baseAttributeInputs({ expertise: 1500 })
+      },
+      {
+        initialize(runtime) {
+          runtime.profession.core.stealthUntil = 10;
+          runtime.resourceController.replace('malice', 4);
+          Object.assign(runtime.profession.specialization.state, {
+            markedTargetId: 'primary-target',
+            markExpiresAt: 10
+          });
+        },
+        probes: [
+          [
+            0.1,
+            (runtime) => {
+              runtime.resourceController.replace('malice', 0);
+              runtime.profession.specialization.state.markExpiresAt = 0;
+            }
+          ]
+        ],
+        catalog: (catalog) =>
+          withSkill(catalog, skillId, {
+            effects: [
+              { type: 'strike', coefficient: 1, atMs: 200, timingAnchor: 'castStart' },
+              {
+                type: 'condition',
+                timingAnchor: 'castStart',
+                ticks: [
+                  { atMs: 400, condition: 'Poisoned', stacks: 1, duration: 2 },
+                  { atMs: 400, condition: 'Bleeding', stacks: 1, duration: 2 }
+                ]
+              }
+            ]
+          })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const poison = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Poisoned');
+    const bleeding = result.resolvedEvents.find(
+      (event) => event.type === 'condition' && event.condition === 'Bleeding'
+    );
+    assert.equal(poison.duration, 2);
+    assert.equal(poison.metadata.thiefMaliciousPoisonDurationFactor, factor);
+    assert.equal(poison.effectiveDuration, 2 * factor * 2);
+    assert.equal(bleeding.duration, 2);
+    assert.equal(bleeding.effectiveDuration, 4);
   }
 });

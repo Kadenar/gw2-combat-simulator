@@ -55,6 +55,7 @@ function illuminatedSpearEffects(
 
   if (!(multiplier > 1)) return effects;
 
+  // Luminance grants a window without spending a charge. Otherwise remember the exact grant for later settlement.
   if (!luminance) consumedCharges.set(cast, state.spearIlluminated);
 
   let firstBonus: SkillEffect | undefined;
@@ -159,6 +160,7 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
       .filter((packet) => packet.type === 'strike' && strikeEffectCoefficient(packet) > 0)
       .map((packet) => effectFirstAt(cast.start, cast.fullEnd, scaleCastBoundTiming(cast, cast.skill, packet)))
   );
+  // A regular attack earns the follow-up window from its first strike, so cast completion cannot extend that window.
   const origin = symbol || !Number.isFinite(firstStrike) ? runtime.time : firstStrike;
   const expiresAt = gw2EffectExpiresAt(origin, duration);
 

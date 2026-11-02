@@ -73,11 +73,14 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         coefficient: 2,
         hits: 1,
-        coefficientModifiers: [
+        // Use one matching health tier; bonuses never compound when the target crosses multiple thresholds.
+        modifiers: [
           {
-            kind: 'target-health-below',
-            threshold: 0.5,
-            multiplier: 1.5
+            id: 'warrior.arcing-slice-target-health',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            factor: 1.5,
+            when: (context) => targetHealthBelow(context, 0.5)
           }
         ]
       },

@@ -825,9 +825,7 @@ test('Arcing Slice scales Fury by adrenaline tier and damage below half health',
 
   assert.equal(arcingSlice.cooldown, 8);
   assert.deepEqual(furyDurations, [8, 12, 16]);
-  assert.deepEqual(arcingSlice.effects[0].coefficientModifiers, [
-    { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
-  ]);
+  assert.equal(arcingSlice.effects[0].modifiers[0].id, 'warrior.arcing-slice-target-health');
 });
 
 test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gains its target bonus', () => {

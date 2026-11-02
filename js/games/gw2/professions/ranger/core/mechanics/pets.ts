@@ -149,6 +149,7 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
   );
 }
 
+/** Queue the next autonomous decision after the pet lane is free; its deadline also identifies the current pending wake. */
 function schedulePet(context: RangerRuntime, at: number): void {
   if (!autonomousActionsAllowed(context)) return;
 
@@ -264,6 +265,7 @@ function petRechargeReadyAt(context: RangerRuntime, skillId: string | number): n
   return gw2CooldownReadyAt(context.cooldownController.readyAt(skillId) ?? 0);
 }
 
+/** Choose from this pet lifetime's opening state and shared cooldowns; specializations requiring commands use only basics. */
 function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile): PetAutoSkill {
   const pet = context.profession.core.pet!;
 
@@ -376,6 +378,7 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
   );
 }
 
+/** Reserve a command slot now, then start it on the current pet's lifetime once earlier manual work permits. */
 export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const skill = cast.skill;
 
@@ -385,6 +388,7 @@ export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<
   const state = context.profession.core;
   const start = petCommandStart(context, skill);
   const recovery = petCommandRecovery(context, cast);
+  // Reserve before queuing the task so two player commands cannot both claim the same future opening.
   state.pet!.commandReadyAt = start + recovery;
 
   context.scheduleForCast(PET_COMMAND_START_TASK, start, cast, {}, owner(context));

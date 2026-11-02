@@ -1,4 +1,5 @@
 import {
+  fromModifier,
   fromProfile,
   outsideScopeTooltip,
   skillTooltip,
@@ -19,6 +20,21 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 /** Describe reaper tooltips from the selected balance data. */
 export const reaperTooltips = {
   skills: {
+    // Read execute tiers from their owning modifiers, including balance patches.
+    [ID.EXECUTIONERS_SCYTHE]: skillTooltip('Strike your target, dealing increased damage at low target health.', [
+      fromModifier(
+        'necromancer.executioners-scythe-target-health',
+        'belowQuarter',
+        'Strike damage below 25% target health; lowest matching tier applies',
+        tooltipFactorChange
+      ),
+      fromModifier(
+        'necromancer.executioners-scythe-target-health',
+        'belowHalf',
+        'Strike damage below 50% target health; lowest matching tier applies',
+        tooltipFactorChange
+      )
+    ]),
     [ID.SUFFER]: conditionTransferTooltip,
     [ID.INFUSING_TERROR]: flipTooltip,
     [ID.REAPERS_SHROUD]: shroudTooltip,

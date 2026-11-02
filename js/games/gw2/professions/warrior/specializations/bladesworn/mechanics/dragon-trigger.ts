@@ -41,6 +41,7 @@ interface DragonSlashRelease {
 
 const dragonSlashReleases = new WeakMap<RuntimeCast<WarriorSkill>, DragonSlashRelease>();
 
+/** Interpolate between the one-charge and full-charge endpoints, including traits that reduce maximum capacity. */
 function dragonSlashCoefficient(minimum: number, maximum: number, charges: number, maximumCharges: number): number {
   if (maximumCharges <= 1) return maximum;
 
@@ -158,6 +159,7 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
   });
 }
 
+/** Advance only the current activation's charge clock; an unaffordable interval grants nothing but still advances the clock. */
 function chargeTick(runtime: WarriorRuntime, identity: unknown): void {
   const state = bladeswornState.from(runtime.profession);
 
@@ -278,6 +280,7 @@ function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>):
       maximum
     )
   };
+  // Mode exit clears the resource pool; packet construction and burst observers must read this cast-owned snapshot.
   dragonSlashReleases.set(cast, Object.freeze(release));
   runtime.effects.emit({
     kind: 'packet',

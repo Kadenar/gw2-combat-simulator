@@ -73,6 +73,7 @@ function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
   if (runtime.cooldownController.hasAmmo(normal.id)) {
     const ammo = runtime.cooldownController.refreshAmmo(normal, runtime.time)!;
     const flips = runtime.profession.core.availableFlips;
+    // Recovery can turn the final face back into the normal face; availability follows the shared ammo pool.
     const current = ammo.charges > 1 ? definition.normalId : definition.finalId;
     consumeSkillFlip(flips, current === definition.normalId ? definition.finalId : definition.normalId);
 
@@ -104,6 +105,7 @@ function refreshFirebrandMantras(runtime: GuardianRuntime): void {
       sync(runtime, definition);
 }
 
+/** A charge deadline refreshes one mantra; an untargeted wake settles all prepared pools after a shared change. */
 function firebrandMantraWake(runtime: GuardianRuntime, rootId: unknown): void {
   if (rootId == null) {
     refreshFirebrandMantras(runtime);

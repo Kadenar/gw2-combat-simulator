@@ -50,6 +50,7 @@ export const mesmerIllusionHooks = {
       return;
     }
 
+    // Clones need entities and attack schedules as well as a count, so seed them through the normal creation owner.
     createMesmerIllusionRewards(runtime).gainResources(
       0,
       boundedNumber(runtime.config.initialResource ?? 0, 0, 0, resourceDefinition.maximum),
@@ -61,9 +62,11 @@ export const mesmerIllusionHooks = {
   modifyEffects(runtime, cast, effects) {
     const skill = cast.skill;
 
+    // Summon execution owns phantasm attacks; only the caster's separate control effects remain on the ordinary path.
     if (skill.phantasm)
       return effects.filter((effect) => effect.type === 'control' && effect.summonKind !== 'phantasm');
 
+    // Shatter execution builds packets from the illusions actually consumed, rather than emitting the templates directly.
     if (mesmerShatterDefinition(runtime, skill.id)) return [];
 
     return effects.filter((effect) => !(effect.type === 'buff' && effect.kind === 'clarity'));

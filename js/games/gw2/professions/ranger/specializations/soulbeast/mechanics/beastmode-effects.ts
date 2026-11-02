@@ -182,6 +182,7 @@ export function handleSharedStanceHit(context: RangerResolverContext, event: Gw2
   });
 }
 
+/** Resolve eligible per-hit stance procs before restricting merged Beast rewards to the activation's first qualifying hit. */
 export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (!(Number(event.coefficient) > 0)) return;
 
@@ -286,6 +287,7 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
     context.effects.emit(rangerProfileEffectRequest(event, profile, weakness, ID.WINTERS_BITE, "Winter's Bite"));
 }
 
+/** Gate merged skills against both current Beastmode state and the active pet's skill family. */
 export function soulbeastCastAvailability(
   context: MechanicQueriesOf<RangerRuntime>,
   skill: RangerSkill

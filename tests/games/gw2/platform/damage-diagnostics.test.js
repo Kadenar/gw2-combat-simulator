@@ -4,7 +4,8 @@ import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { BASE_CRITICAL_DAMAGE_MULTIPLIER } from '#gw2/platform/combat/formulas.js';
-import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
@@ -20,8 +21,7 @@ function resolveHits(damageDiagnostics, output = 'detailed', target = { health: 
   const events = [
     {
       coefficient: 1,
-      weaponStrengthProfileId: 'weapon.axe',
-      coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 2 }]
+      weaponStrengthProfileId: 'weapon.axe'
     },
     {
       flatStrikeBase: 10,
@@ -52,6 +52,17 @@ function resolveHits(damageDiagnostics, output = 'detailed', target = { health: 
     actorType: 'player',
     ...event
   }));
+  const modifiers = createModifierHooks({
+    rules: [
+      {
+        id: 'diagnostic-threshold',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        factor: 2,
+        when: (context) => context.event.sourceId === 'hit-0' && targetHealthBelow(context, 0.5)
+      }
+    ]
+  });
   const result = resolveTestGw2Events({
     damageDiagnostics,
     output,
@@ -67,9 +78,9 @@ function resolveHits(damageDiagnostics, output = 'detailed', target = { health: 
         queries += 1;
         return { chance: 0.5, damage: 1.75 };
       },
-      strikeMultiplier: () => {
+      strikeMultiplier: (event, time, runtime, modifierTrace) => {
         queries += 1;
-        return 1.2;
+        return modifiers.modifyStrikeDamage({ event, time, runtime, config: runtime.config, modifierTrace }, 1.2);
       }
     },
     helpers: { conditionName: canonicalTargetConditionName, skills: [] },
@@ -126,7 +137,7 @@ test('diagnostic factors reconstruct actual rounded packets without changing que
   }
 
   assert.equal(hits[0].damageCalculation.targetHealthBefore, 40000);
-  assert.equal(hits[0].damageCalculation.coefficientMultiplier, 2);
+  assert.equal(hits[0].damageCalculation.outgoingMultiplier, 2.4);
   assert.equal(hits[1].damageCalculation.targetHealthBefore, 40000 - hits[0].damage);
   assert.equal(hits[1].damageCalculation.baseDamage, 110);
   assert.equal(hits[1].damageCalculation.outgoingMultiplier, 2.4);
@@ -138,7 +149,7 @@ test('diagnostic factors reconstruct actual rounded packets without changing que
   const unbounded = resolveHits(true, 'detailed', {}).result.resolvedEvents[0].damageCalculation;
   assert.equal(unbounded.targetHealthBefore, null);
   assert.equal(unbounded.targetHealthFractionBefore, null);
-  assert.equal(unbounded.coefficientMultiplier, 1);
+  assert.equal(unbounded.outgoingMultiplier, 1.2);
 });
 
 test('diagnostics capture settlement and environment health before the following hit', () => {

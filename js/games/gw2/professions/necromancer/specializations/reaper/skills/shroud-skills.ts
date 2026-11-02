@@ -2,6 +2,7 @@
  * Owns Reaper Shroud entry, exit, and weapon skill definitions.
  * Shroud attribute modifiers live in `modifiers.ts`; shroud state and reactions live in `hooks.ts` and `mechanics/shroud-effects.ts`.
  */
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -246,9 +247,17 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
           type: 'strike',
           coefficient: 4,
           comboFields: [{ ownerId: 'necromancer', fieldType: COMBO_FIELD.ICE, duration: 4 }],
-          coefficientModifiers: [
-            { kind: 'target-health-below', threshold: 0.25, multiplier: 2 },
-            { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
+          // Use one matching health tier; bonuses never compound when the target crosses multiple thresholds.
+          modifiers: [
+            {
+              id: 'necromancer.executioners-scythe-target-health',
+              target: 'strikeDamage',
+              operation: 'multiply',
+              parameters: { belowQuarter: 2, belowHalf: 1.5 },
+              factor: (context, _target, parameters) =>
+                targetHealthBelow(context, 0.25) ? parameters.belowQuarter : parameters.belowHalf,
+              when: (context) => targetHealthBelow(context, 0.5)
+            }
           ]
         },
         { type: 'control', controlKind: CONTROL.STUN }

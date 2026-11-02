@@ -432,39 +432,6 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     }
   }
 
-  // `coefficientModifiers` scale strike damage based on target health thresholds
-  // (e.g. execute-style bonuses). Only the "target-health-below" kind is supported.
-  let coefficientModifiers = null;
-
-  if (normalizedEffect.coefficientModifiers != null) {
-    if (normalizedEffect.type !== 'strike' || !Array.isArray(normalizedEffect.coefficientModifiers)) {
-      throw new TypeError('Coefficient modifiers are only valid on strike effects.');
-    }
-
-    coefficientModifiers = Object.freeze(
-      normalizedEffect.coefficientModifiers.map((modifier, index) => {
-        requireBalanceNumber(modifier?.threshold, `modifier=${index} field=threshold`);
-        requireBalanceNumber(modifier?.multiplier, `modifier=${index} field=multiplier`);
-
-        if (
-          !modifier ||
-          modifier.kind !== 'target-health-below' ||
-          !(Number(modifier.threshold) > 0) ||
-          !(Number(modifier.threshold) < 1) ||
-          !(Number(modifier.multiplier) > 0)
-        ) {
-          throw new TypeError(`Invalid strike coefficient modifier ${index + 1}.`);
-        }
-
-        return Object.freeze({
-          kind: modifier.kind,
-          threshold: Number(modifier.threshold),
-          multiplier: Number(modifier.multiplier)
-        });
-      })
-    );
-  }
-
   // timingAnchor and timingScale are only meaningful when the effect carries an
   // explicit schedule; bare effects inherit timing from the cast window implicitly.
   if (hasExplicitTiming) {
@@ -633,7 +600,6 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     ...(applications ? { applications } : {}),
     ...(strikeTicks ? { ticks: strikeTicks } : {}),
     ...(conditionTicks ? { ticks: conditionTicks } : {}),
-    ...(coefficientModifiers ? { coefficientModifiers } : {}),
     ...(audience ? { audience } : {}),
     ...(metadata ? { metadata } : {})
   }) as SkillEffect;

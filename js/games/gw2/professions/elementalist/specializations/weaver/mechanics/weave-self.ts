@@ -91,6 +91,7 @@ export function applyWeaveSelfAttunement(
   const visited = new Set(state.weaveSelfVisited);
   visited.add(target);
   state.weaveSelfVisited = [...visited];
+  // Partial elemental bonuses share the original deadline, so revisiting an element cannot extend Weave Self.
   const remaining = Math.max(0, state.weaveSelfUntil - at);
 
   if (target === 'Fire' || target === 'Air') {

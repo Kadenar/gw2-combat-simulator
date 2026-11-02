@@ -94,6 +94,7 @@ function resolveOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2Resolv
     audience: {
       recipients: RECIPIENT.PARTY,
       maximumRecipients: 5,
+      // Capture the companions present at this impact; later summons are not recipients of this Might grant.
       eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
     }
   };

@@ -1,7 +1,7 @@
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { AuraName, SimulationActorType } from '#gw2/platform/constants.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
-import type { DamageEvent, EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
+import type { EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillEffectModifier } from '#gw2/platform/skills/modifiers.js';
@@ -124,7 +124,6 @@ export interface StrikeEffect extends SkillEffectBase, StrikePacketFields {
   readonly ticks?: readonly StrikeTick[];
   /** Spacing of repeated applications; each application is one hit carrying the full coefficient. */
   readonly intervalMs?: number;
-  readonly coefficientModifiers?: DamageEvent['coefficientModifiers'];
   readonly weapon?: string;
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrengthSource?: 'equipped';

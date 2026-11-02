@@ -17,6 +17,7 @@ function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
 
   if (!state.radiantJusticeArmed) return;
 
+  // Spend before emitting either payload: one hammer consumes the entitlement even when its attack is off target.
   state.radiantJusticeArmed = false;
   const { cast } = data as { cast: RuntimeCast<GuardianSkill> };
   const cause = guardianCastCause(runtime, cast);

@@ -300,6 +300,7 @@ function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<
         activationId: cast.id,
         name: 'Imperial Guard - Blocking',
         kind: 'blocking',
+        // Blocking ends with the actual channel; the separately armed True Strike window can remain afterward.
         duration: Math.max(0, cast.effectiveEnd - cast.start),
         stacks: 1
       },

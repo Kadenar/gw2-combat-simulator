@@ -1150,11 +1150,7 @@ test('handler-owned tooltips distinguish conditional values and recipients', asy
   const variants = simulationEffectFacts([
     {
       type: 'strike',
-      coefficient: 1,
-      coefficientModifiers: [
-        { kind: 'target-health-below', threshold: 0.25, multiplier: 2 },
-        { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
-      ]
+      coefficient: 1
     },
     {
       type: 'buff',
@@ -1165,7 +1161,6 @@ test('handler-owned tooltips distinguish conditional values and recipients', asy
       audience: { recipients: 'party' }
     }
   ]);
-  assert.match(variants.facts[1].detail, /2× below 25% target health; lowest matching threshold applies/);
   assert.match(variants.facts.at(-1).detail, /5 on yourself · 3 on each ally/);
   assert.equal(variants.facts.at(-1).stacks, 5);
 });

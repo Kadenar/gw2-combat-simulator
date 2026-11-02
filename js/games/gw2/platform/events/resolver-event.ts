@@ -19,11 +19,6 @@ export type Gw2ResolverEvent = SimulationEvent & {
   readonly fraction?: number;
   readonly fixedDuration?: boolean;
   readonly coefficient?: number;
-  readonly coefficientModifiers?: readonly {
-    readonly kind?: string;
-    readonly threshold?: number;
-    readonly multiplier?: number;
-  }[];
   readonly flatDamage?: number;
   /** Non-condition damage over time can scale with live Condition Damage without outgoing modifiers. */
   readonly flatDamageConditionCoeff?: number;

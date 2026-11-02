@@ -153,6 +153,7 @@ export const ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
 function detonatePrecastMines(runtime: EngineerRuntime): void {
   const skill = runtime.helpers.skillsById.get(ID.MINE_FIELD)!;
   const detonation = runtime.helpers.skillsById.get(ID.DETONATE_MINE_FIELD)!;
+  // Drain before emission so each queued cast detonates once, even if its packets cause further combat reactions.
   for (const activationId of runtime.profession.core.pendingMineFieldActivationIds.splice(0)) {
     runtime.effects.emit({
       kind: 'profile',
@@ -166,6 +167,7 @@ function detonatePrecastMines(runtime: EngineerRuntime): void {
         skillName: skill.name
       }
     });
+    // The packets belong to the original Mine Field cast; toolbelt activation rewards belong to its detonation skill.
     notifyToolbeltActivation(runtime, detonation);
   }
 }

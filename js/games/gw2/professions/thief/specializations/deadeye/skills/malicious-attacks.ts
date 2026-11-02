@@ -23,21 +23,16 @@ import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/ski
 import { deadeyeCastFacts } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefRuntimeState, ThiefSimulationEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 
-/** Rewrites only poison durations, keeping each malicious attack's formula and other effects intact. */
-function mapPoisonDurations(effects: readonly SkillEffect[], scaled: (duration: unknown) => number): SkillEffect[] {
+/** Accepted malice travels with condition packets; only outgoing Poison consumes this captured duration factor. */
+function capturePoisonDuration(effects: readonly SkillEffect[], factor: number): SkillEffect[] {
+  // Tag condition groups without rewriting mixed-condition ticks; the modifier applies this factor only to Poison.
   return effects.map((effect) =>
-    effect.type !== 'condition'
-      ? effect
-      : effect.ticks?.length
-        ? {
-            ...effect,
-            ticks: effect.ticks.map((tick) =>
-              tick.condition === CONDITION.POISONED ? { ...tick, duration: scaled(tick.duration) } : tick
-            )
-          }
-        : effect.condition === CONDITION.POISONED
-          ? { ...effect, duration: scaled(effect.duration) }
-          : effect
+    effect.type === 'condition'
+      ? {
+          ...effect,
+          metadata: { ...effect.metadata, thiefMaliciousPoisonDurationFactor: factor }
+        }
+      : effect
   );
 }
 
@@ -136,6 +131,19 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     stealthAttack: true,
     malicious: true,
     castTimeMs: 680,
+    // Only the completed channel's Torment carries its accepted marked-malice factor; Bleeding stays unchanged.
+    modifiers: [
+      {
+        id: 'thief.malicious-sneak-attack-torment',
+        target: 'conditionBaseDuration',
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.thiefMaliciousSneakDurationFactor),
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.condition === CONDITION.TORMENT &&
+          context.event?.metadata?.thiefMaliciousSneakDurationFactor != null
+      }
+    ],
     effects: [
       {
         type: 'strike' as const,
@@ -273,6 +281,20 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     stealthAttack: true,
     malicious: true,
     castTimeMs: 1680,
+    // Only accepted outgoing Poison scales; recalled axes use the original base declaration.
+    modifiers: [
+      {
+        id: 'thief.malicious-shadowsquall-poison',
+        target: 'conditionBaseDuration',
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.thiefMaliciousPoisonDurationFactor),
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.condition === CONDITION.POISONED &&
+          context.event?.metadata?.recallSkillId == null &&
+          context.event?.metadata?.thiefMaliciousPoisonDurationFactor != null
+      }
+    ],
     effects: [
       {
         type: 'strike' as const,
@@ -296,14 +318,13 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
       }
     ],
     // This combat variant targets enemies; regeneration belongs only to the unsupported ally-target variant.
-    // Transform the selected base packet so coefficient and duration patches remain authoritative.
+    // Capture the accepted factor while keeping patched base durations authoritative.
     effectVariants: [
       {
         when: () => true,
         transform: (_runtime, cast, effects) => {
           const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
-          const scaled = (duration: unknown) => Number(duration || 0) * (1 + 0.2 * malice);
-          return mapPoisonDurations(effects, scaled);
+          return capturePoisonDuration(effects, 1 + 0.2 * malice);
         }
       }
     ]
@@ -374,6 +395,20 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     // A committed axe preserves its impact and the remaining cast lockout after interruption.
     interruptCommitMs: 400,
     retainsCastLockoutAfterInterrupt: true,
+    // Only accepted outgoing Poison scales; recalled axes use the original base declaration.
+    modifiers: [
+      {
+        id: 'thief.malicious-cunning-salvo-poison',
+        target: 'conditionBaseDuration',
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.thiefMaliciousPoisonDurationFactor),
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.condition === CONDITION.POISONED &&
+          context.event?.metadata?.recallSkillId == null &&
+          context.event?.metadata?.thiefMaliciousPoisonDurationFactor != null
+      }
+    ],
     effects: impactEffects(
       { atMs: 0, timingAnchor: 'castEnd' as const, timingScale: 'fixed' as const, persistsAfterInterrupt: true },
       [
@@ -426,7 +461,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         }
       ]
     ),
-    // Transform the selected base packet so coefficient and duration patches remain authoritative.
+    // Capture the accepted factor while keeping patched base durations authoritative.
     effectVariants: [
       {
         when: () => true,
@@ -437,8 +472,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
           if (malice === 0)
             return effects.filter((effect) => effect.type !== 'condition' || effect.condition !== CONDITION.POISONED);
 
-          const scaled = (duration: unknown) => Number(duration || 0) * malice;
-          return mapPoisonDurations(effects, scaled);
+          return capturePoisonDuration(effects, malice);
         }
       }
     ],
@@ -592,7 +626,8 @@ function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, mal
       at: runtime.time,
       activationId: cast.id,
       condition: String(torment.condition),
-      duration: baseDuration * maliceDuration,
+      duration: baseDuration,
+      metadata: { ...torment.metadata, thiefMaliciousSneakDurationFactor: maliceDuration },
       stacks: effectNumber(profile, torment, 'stacks')
     })
   });
@@ -601,6 +636,7 @@ function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, mal
 /** Register actions beside the skills whose accepted casts select them. */
 const maliciousAttackActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {
   'thief.sneak-torment'(runtime, context) {
+    // Earlier channel hits may already have spent malice; completion uses the facts captured for this exact cast.
     if (context.kind === 'cast')
       maliceTorment(runtime, context.cast, deadeyeCastFacts.get(context.cast)?.markedMalice ?? 0);
   }

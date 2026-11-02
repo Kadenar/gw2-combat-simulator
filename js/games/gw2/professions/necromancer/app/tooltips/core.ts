@@ -1,4 +1,6 @@
 import {
+  fromModifier,
+  modifierFact,
   simulationEffectFacts,
   skillFact,
   skillTooltip,
@@ -87,6 +89,13 @@ const addleTooltip: DescribeSimulationTooltip = skillTooltip(
 const perforateTooltip: DescribeSimulationTooltip = skillTooltip(
   'Strike repeatedly. Each hit can consume an available Soul Shard for an additional life-steal strike. Soul Shard damage increases against a low-health target.',
   (balanceContext) => [
+    modifierFact(
+      balanceContext,
+      'necromancer.perforate-target-health',
+      'factor',
+      'Strike damage below 50% target health',
+      tooltipFactorChange
+    ),
     ...simulationEffectFacts(requireSkillFromContext(balanceContext, ID.SOUL_SHARDS).effects, 'per Soul Shard consumed')
       .facts,
     skillFact(
@@ -210,6 +219,15 @@ export const necromancerCoreTooltips = {
             ]
       ),
   skills: {
+    // Read execute tiers from their owning modifiers, including balance patches.
+    [ID.SATIATE]: skillTooltip('Strike your target, dealing increased damage at low target health.', [
+      fromModifier(
+        'necromancer.satiate-target-health',
+        'factor',
+        'Strike damage below 50% target health',
+        tooltipFactorChange
+      )
+    ]),
     [ID.OPPRESSIVE_COLLAPSE]: oppressiveCollapseTooltip,
     [ID.PLAGUE_SIGNET]: conditionTransferTooltip,
     [ID.DEATHLY_SWARM]: conditionTransferTooltip,

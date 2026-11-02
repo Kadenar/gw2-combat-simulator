@@ -133,6 +133,7 @@ function clearTorchLockout(runtime: GuardianRuntime, cast: RuntimeCast<GuardianS
   )
     return;
 
+  // An interrupted channel may have landed packets, but it has not completed the action needed to unlock Flame.
   if (skill.interruptMode === 'per-packet' && castWasInterrupted(cast)) return;
 
   if (skill.id !== ID.ZEALOTS_FIRE && skill.type !== 'Action')

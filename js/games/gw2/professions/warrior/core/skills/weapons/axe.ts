@@ -1,4 +1,5 @@
 /** Canonical Core warrior skill definitions grouped by their GW2 owner. */
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -150,13 +151,20 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     effects: impactEffects({ atMs: 280, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        // Impact-time health selects the narrowest execute threshold once.
-        coefficientModifiers: [
-          { kind: 'target-health-below', threshold: 0.25, multiplier: 2 },
-          { kind: 'target-health-below', threshold: 0.5, multiplier: 1.5 }
-        ],
         coefficient: 0.85,
-        projectile: true
+        projectile: true,
+        // Impact-time health selects one execute tier without compounding bonuses.
+        modifiers: [
+          {
+            id: 'warrior.throw-axe-target-health',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            parameters: { belowQuarter: 2, belowHalf: 1.5 },
+            factor: (context, _target, parameters) =>
+              targetHealthBelow(context, 0.25) ? parameters.belowQuarter : parameters.belowHalf,
+            when: (context) => targetHealthBelow(context, 0.5)
+          }
+        ]
       },
       {
         type: 'condition',

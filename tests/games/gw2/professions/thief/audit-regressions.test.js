@@ -529,9 +529,11 @@ test('THF-009: malicious sword, staff, axe, and scepter use the consumed malice 
         near(Number(boon?.duration || 0), malice * 0.75);
         assert.equal(boon != null, malice > 0);
       } else {
-        const poison = result.events.find((event) => event.type === 'condition' && event.condition === 'Poisoned');
+        const poison = result.resolvedEvents.find(
+          (event) => event.type === 'condition' && event.condition === 'Poisoned'
+        );
         // Salvo's outgoing poison is exactly the consumed malice; zero malice emits no poison.
-        near(poison?.duration ?? 0, weapon === 'Axe' ? malice : 3 * (1 + 0.2 * malice));
+        near(poison?.effectiveDuration ?? 0, weapon === 'Axe' ? malice : 3 * (1 + 0.2 * malice));
       }
     }
   }

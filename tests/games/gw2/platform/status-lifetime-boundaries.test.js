@@ -365,7 +365,7 @@ test('Reavers Curse requires an arm, includes the final landing, and cannot be c
       });
       const [first, second] = ['landing-1', 'landing-2'].map(
         (activationId) =>
-          result.events.find((event) => event.type === 'damage' && event.activationId === activationId).coefficient
+          result.resolvedEvents.find((event) => event.type === 'damage' && event.activationId === activationId).damage
       );
       assert.equal(first > second, armed && delta === 0);
     }

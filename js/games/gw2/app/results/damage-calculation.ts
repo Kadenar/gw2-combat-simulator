@@ -27,11 +27,11 @@ const signed = (value: number, text: string): string => `${value < 0 ? '−' : '
 
 /** Spells out base damage so its result can be checked by hand, using the formula this packet actually took. */
 function baseExplanation(event: SimulationEvent, calculation: Gw2DamageCalculation): string {
-  const { coefficientMultiplier, power, targetArmor } = calculation;
+  const { power, targetArmor } = calculation;
 
   if (targetArmor == null) return 'Fixed packet';
 
-  const scaled = `${grouped(power)} Power × ${trimmed(Number(event.coefficient ?? 0))} coef${coefficientMultiplier === 1 ? '' : ` × ${trimmed(coefficientMultiplier)} coef multiplier`}`;
+  const scaled = `${grouped(power)} Power × ${trimmed(Number(event.coefficient ?? 0))} coef`;
 
   if (event.resolvedWeaponStrength != null) {
     return `${scaled} × ${grouped(Number(event.resolvedWeaponStrength))} weapon ÷ ${grouped(targetArmor)} armor`;
@@ -143,7 +143,6 @@ function rawFacts(
     ...(calculation.precision == null ? [] : [`Precision: ${calculation.precision}`]),
     ...(calculation.ferocity == null ? [] : [`Ferocity: ${calculation.ferocity}`]),
     ...(event.coefficient == null ? [] : [`Authored coefficient: ${event.coefficient}`]),
-    `Coefficient multiplier: ${calculation.coefficientMultiplier}`,
     ...(event.resolvedWeaponStrength == null
       ? []
       : [`Weapon strength: ${event.resolvedWeaponStrength} (${event.weaponStrengthProfileId})`]),

@@ -12,6 +12,7 @@ import { elementalistCatalog, elementalistProfession } from '#gw2/professions/el
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Patch declarations through every catalog lookup while retaining the real lifecycle and state owners.
 function patchedProfession(changes, afterCommit) {
@@ -151,7 +152,15 @@ test('ordinary spear snapshots retire at completion while prepared delayed strik
 
       if (!cancelled && skillId === ID.BLAZING_BARRAGE) {
         assert.ok(strikes.length > 0);
-        assert.ok(strikes.every((event) => event.at > 1 && event.coefficient === 2.6 * 1.2 && event.forceCrit));
+        assert.ok(
+          strikes.every(
+            (event) =>
+              event.at > 1 &&
+              event.coefficient === 2.6 &&
+              event.metadata?.elementalistSeetheDamageFactor === 1.2 &&
+              event.forceCrit
+          )
+        );
         assert.equal(result.events.filter((event) => event.type === 'control' && event.skillId === skillId).length, 1);
       } else assert.deepEqual(strikes, []);
 
@@ -230,7 +239,11 @@ test('Fulgor keeps spear bonuses through the final procedural packet and consume
     strikes.map((event) => event.at),
     [1, 2, 2]
   );
-  assert.ok(strikes.every((event) => event.coefficient === 2 * 1.2 && event.forceCrit));
+  assert.ok(
+    strikes.every(
+      (event) => event.coefficient === 2 && event.metadata?.elementalistSeetheDamageFactor === 1.2 && event.forceCrit
+    )
+  );
   assert.ok(strikes.some((event) => event.at === 2));
   assert.equal(result.events.filter((event) => event.type === 'control' && event.skillId === ID.FULGOR).length, 1);
 });
@@ -962,4 +975,25 @@ test('meditation declarations own their live-element bonuses and refill before A
           );
       }
   }
+});
+
+test('Seethe scales a prepared delayed strike after the activation snapshot is retired', () => {
+  const strike = (armed) =>
+    runElementalist(
+      [
+        { type: 'cast', skillId: ID.BLAZING_BARRAGE, impactDelayMs: 2000 },
+        { type: 'wait', durationMs: 3000 }
+      ],
+      { specialization: 'Core', primaryWeapon: 'Spear', startAttunement: 'Fire', selectedTraitIds: [] },
+      {
+        initialize(runtime) {
+          runtime.profession.core.spearNextDamageBonus = armed;
+        },
+        timeline: [{ at: 1, run: (runtime) => assert.deepEqual(runtime.profession.core.spearFollowups, {}) }]
+      }
+    ).resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.BLAZING_BARRAGE);
+  const base = strike(false);
+  const empowered = strike(true);
+  assert.equal(empowered.coefficient, base.coefficient);
+  assertFlooredDamageMultiplier(empowered.damage, base.damage, 1.2);
 });

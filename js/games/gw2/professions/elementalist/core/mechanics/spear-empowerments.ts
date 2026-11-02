@@ -61,8 +61,11 @@ export function empowerElementalistSpearPacket(
     ...event,
     ...(followup.damage
       ? {
-          coefficient:
-            Number(event.coefficient) * skillNumberFromContext(context, ID.SEETHE, 'nextSkillDamageMultiplier')
+          // Keep the accepted entitlement on the packet after the cast's transient state is retired.
+          metadata: {
+            ...event.metadata,
+            elementalistSeetheDamageFactor: skillNumberFromContext(context, ID.SEETHE, 'nextSkillDamageMultiplier')
+          }
         }
       : {}),
     ...(followup.critical ? { forceCrit: true } : {})
@@ -77,6 +80,7 @@ export function openElementalistEtching(context: ElementalistRuntime, skill: Ski
   context.schedule('elementalist.expire-state', expiresAt, null);
 }
 
+/** The selected release spends its etching; the cast-progress observer must not credit that release toward another one. */
 export function consumeElementalistEtching(context: ElementalistRuntime, skill: Skill): void {
   professionCoreState(context.profession).etchings[etchingChain(skill.id)!.etching] = null;
 }

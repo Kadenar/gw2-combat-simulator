@@ -1,6 +1,8 @@
 import {
+  fromModifier,
   fromProfile,
   outsideScopeTooltip,
+  skillTooltip,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
@@ -17,7 +19,14 @@ export const spellbreakerTooltips = {
   skills: {
     [ID.EARTHSHAKER_ID_40601]: resourceTooltip,
     [ID.SKULL_CRACK_ID_41110]: resourceTooltip,
-    [ID.ARCING_SLICE_ID_42707]: resourceTooltip,
+    [ID.ARCING_SLICE_ID_42707]: skillTooltip('Spend adrenaline to perform a burst strike and gain Fury.', [
+      fromModifier(
+        'warrior.arcing-slice-id-42707-target-health',
+        'factor',
+        'Strike damage below 50% target health',
+        tooltipFactorChange
+      )
+    ]),
     [ID.COMBUSTIVE_SHOT_ID_42803]: resourceTooltip,
     [ID.EVISCERATE_ID_43566]: resourceTooltip,
     [ID.PATH_TO_VICTORY_ID_72089]: resourceTooltip,

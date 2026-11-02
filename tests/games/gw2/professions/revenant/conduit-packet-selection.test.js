@@ -103,10 +103,10 @@ test('Assassin Release snapshots each authored condition tick duration before la
     }
   );
   assert.deepEqual(result.warnings, []);
-  const cripple = result.events.filter((event) => event.type === 'condition' && event.condition === 'Crippled');
+  const cripple = result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Crippled');
   // Distinct authored durations expose affinity resnapshotting without pinning hit timestamps.
   assert.deepEqual(
-    cripple.map((event) => Number(event.duration.toFixed(6))),
+    cripple.map((event) => Number(event.effectiveDuration.toFixed(6))),
     [3, 4].map((duration) => Number((duration * 1.2).toFixed(6)))
   );
 });
@@ -153,7 +153,10 @@ test('Mesmer Release keeps impact-time conditions independent of its ordinary st
     assert.equal(self.length, mode === 'cancelled' ? 0 : 1);
 
     if (mode !== 'cancelled') {
-      assert.ok(Math.abs(torment[0].duration - 3 * 1.2) < 1e-9);
+      const application = result.resolvedEvents.find(
+        (event) => event.type === 'condition' && event.skillId === ID.RELEASE_POTENTIAL_MESMER
+      );
+      assert.ok(Math.abs(application.effectiveDuration - 3 * 1.2) < 1e-9);
       assert.ok(Math.abs(self[0].expiresAt - torment[0].at - 8 * 0.7) < 1e-9);
     }
   }

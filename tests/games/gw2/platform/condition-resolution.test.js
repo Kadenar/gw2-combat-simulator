@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
@@ -401,7 +403,8 @@ function resolveEnvironmentConditions({
   rotationEndTime = 2,
   targetHealth = 10_000,
   target = {},
-  professionReactions = {}
+  professionReactions = {},
+  strikeMultiplier = () => 1
 } = {}) {
   const config = {
     target: {
@@ -431,7 +434,7 @@ function resolveEnvironmentConditions({
         healingPower: 0
       }),
       critical: () => ({ chance: 0, damage: 1.5 }),
-      strikeMultiplier: () => 1,
+      strikeMultiplier,
       conditionMultiplier: () => 1,
       conditionDurationMultiplier: () => 1,
       conditionBaseDurationMultiplier: () => 1,
@@ -631,7 +634,20 @@ test('non-damaging permanent target conditions do not schedule environment ticks
   assert.equal(result.deathTime, null);
 });
 
-test('target-health coefficient thresholds include environment damage', () => {
+test('target-health modifier thresholds include environment damage', () => {
+  const hooks = createModifierHooks({
+    rules: [
+      {
+        id: 'environment-threshold',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        factor: 2,
+        when: (context) => context.event.sourceId === 'threshold-finisher' && targetHealthBelow(context, 0.5)
+      }
+    ]
+  });
+  const strikeMultiplier = (event, time, runtime) =>
+    hooks.modifyStrikeDamage({ event, time, runtime, config: runtime.config }, 1);
   const events = [
     {
       type: 'damage',
@@ -654,12 +670,12 @@ test('target-health coefficient thresholds include environment damage', () => {
       name: 'Threshold Finisher',
       coefficient: 0.04,
       weaponStrengthProfileId: 'weapon.sword',
-      coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 2 }],
       canCrit: false
     }
   ];
-  const baseline = resolveEnvironmentConditions({ events, rotationEndTime: 2, targetHealth: 100 });
+  const baseline = resolveEnvironmentConditions({ events, strikeMultiplier, rotationEndTime: 2, targetHealth: 100 });
   const ambient = resolveEnvironmentConditions({
+    strikeMultiplier,
     conditions: { Bleeding: 1 },
     events,
     rotationEndTime: 2,

@@ -31,6 +31,7 @@ function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<Necromancer
   const blight = harbingerState.from(runtime.profession).blightExpiries.length;
   runtime.fireTrigger(harbingerElixirLaunched, { cast });
 
+  // Carry post-spend Blight and empowerment together; later gains cannot rewrite this launched elixir.
   runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered, blight });
 }
 
@@ -68,12 +69,14 @@ const harbingerElixirTasks = {
       runtime.time,
       harbingerBlightMaximum(runtime)
     );
+    // Publish the new live stacks before emission while the packet policy below still carries the launch-time Blight.
     publishBlight(runtime);
     runtime.effects.emit({
       kind: 'profile',
       profile: cast.skill,
       effects: (empowered ? action.effects : (cast.skill.effects ?? [])).map((effect): SkillEffect => ({
         ...effect,
+        // The task has already waited for impact; emit the chosen payload now without applying its cast offsets again.
         atMs: 0,
         timingAnchor: 'castStart',
         timingScale: 'fixed',

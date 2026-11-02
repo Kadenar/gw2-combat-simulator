@@ -57,6 +57,21 @@ export const warriorCoreTooltips = {
         ])
   ],
   skills: {
+    // Read execute tiers from their owning modifiers, including balance patches.
+    [ID.THROW_AXE]: skillTooltip('Throw your axe, dealing increased damage at low target health.', [
+      fromModifier(
+        'warrior.throw-axe-target-health',
+        'belowQuarter',
+        'Strike damage below 25% target health; lowest matching tier applies',
+        tooltipFactorChange
+      ),
+      fromModifier(
+        'warrior.throw-axe-target-health',
+        'belowHalf',
+        'Strike damage below 50% target health; lowest matching tier applies',
+        tooltipFactorChange
+      )
+    ]),
     // Skill-owned critical and target bonuses read the selected modifier values rather than duplicating tuning.
     [ID.PRECISE_CUT]: skillTooltip('Slash your target. Critical strikes deal increased damage.', [
       fromModifier('warrior.precise-cut-critical-damage', 'factor', 'Critical damage', tooltipFactorChange)
@@ -242,7 +257,15 @@ export const warriorCoreTooltips = {
       ]
     ),
     [ID.ARCING_SLICE]: skillTooltip(
-      "Deliver a burst strike and gain Fury. Higher adrenaline tiers extend Fury's duration."
+      "Deliver a burst strike and gain Fury. Higher adrenaline tiers extend Fury's duration.",
+      [
+        fromModifier(
+          'warrior.arcing-slice-target-health',
+          'factor',
+          'Strike damage below 50% target health',
+          tooltipFactorChange
+        )
+      ]
     )
   },
   traits: {

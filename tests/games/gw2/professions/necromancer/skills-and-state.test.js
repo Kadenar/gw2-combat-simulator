@@ -980,18 +980,6 @@ test('Spear skills generate, refresh, consume, and damage with Soul Shards', () 
     perforate.map((event) => event.coefficient),
     Array(7).fill(0.5)
   );
-  assert.deepEqual(
-    perforate.map((event) => event.coefficientModifiers),
-    Array(7)
-      .fill(null)
-      .map(() => [
-        {
-          kind: 'target-health-below',
-          threshold: 0.5,
-          multiplier: 1.2
-        }
-      ])
-  );
   assert.equal(shards.length, 4);
   assert.equal(
     shards.every((event) => event.parentSkillName === 'Perforate'),

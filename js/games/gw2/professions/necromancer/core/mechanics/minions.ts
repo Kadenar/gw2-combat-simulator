@@ -128,6 +128,7 @@ export function necromancerMinionAvailability(runtime: MechanicQueriesOf<Necroma
   return null;
 }
 
+/** A queued attack must still belong to a living creature and its current attack sequence, not just the same minion type. */
 function active(runtime: NecromancerRuntime, work: MinionWork): boolean {
   const state = runtime.profession.core;
   return (
@@ -202,6 +203,7 @@ function emitAttack(
   if (controlKind) runtime.effects.emit({ kind: 'packet', event: { ...attribution, type: 'control', controlKind } });
 }
 
+/** Retire queued attacks without replacing the creatures; commands can pause and resume their existing attack cursors. */
 function replaceAttacks(runtime: NecromancerRuntime, key: string): void {
   const state = runtime.profession.core;
   runtime.cancelOwner(owner(key, state.minionAttackGenerations[key] ?? 0));
@@ -261,6 +263,7 @@ function attack(runtime: NecromancerRuntime, data: unknown): void {
   if (next > runtime.time) scheduleAttack(runtime, next, work);
 }
 
+/** Deliver the accepted command payload, allowing committed sacrifice attacks to outlive the creature they consumed. */
 function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as MinionWork;
 

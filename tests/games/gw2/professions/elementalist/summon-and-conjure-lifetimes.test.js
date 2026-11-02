@@ -138,7 +138,8 @@ test('selected spear owners preserve one-shot acceptance and independent etching
   // A delayed sequence can retain the accepted bonus after later casts have begun.
   const captured = { ...core.spearFollowups.first };
   const packet = { type: 'damage', coefficient: 2 };
-  assert.equal(empowerElementalistSpearPacket(context, packet, captured).coefficient, 3.4);
+  assert.equal(empowerElementalistSpearPacket(context, packet, captured).coefficient, 2);
+  assert.equal(empowerElementalistSpearPacket(context, packet, captured).metadata.elementalistSeetheDamageFactor, 1.7);
   assert.equal(empowerElementalistSpearPacket(context, packet, core.spearFollowups.second).coefficient, 2);
   core.spearNextRechargeReduction = true;
   assert.equal(reserveElementalistRecharge(context, balance.catalog.skillsById.get(ID.FLAME_SPEAR), 10), 10);

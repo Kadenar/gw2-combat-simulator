@@ -10,6 +10,7 @@
  * `core/execution/index.ts`, the chain/stage gating lives in
  * `core/mechanics/availability.ts`, and the table is merged in by `core/skills/index.ts`.
  */
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -97,6 +98,19 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ],
     castTimeMs: 360,
+    // A captured entitlement follows the next spear activation, including its delayed packets after cast cleanup.
+    modifiers: [
+      {
+        id: 'elementalist.seethe',
+        scope: 'profession',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.elementalistSeetheDamageFactor),
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.event?.metadata?.elementalistSeetheDamageFactor != null
+      }
+    ],
     effects: impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 },
       { type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10 }

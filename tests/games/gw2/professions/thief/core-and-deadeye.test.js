@@ -1582,3 +1582,48 @@ test('Deadly Ambition uses explicit dual-attack eligibility across weapon varian
     );
   }
 });
+
+test('Malicious Sneak Attack uses captured marked malice only for completion Torment', () => {
+  for (const marked of [false, true])
+    for (const interrupted of [false, true]) {
+      const result = runThief(
+        [
+          { type: 'cast', skillId: ID.MALICIOUS_SNEAK_ATTACK, ...(interrupted ? { interruptAfterMs: 400 } : {}) },
+          { type: 'wait', durationMs: 1000 }
+        ],
+        { specialization: 'Deadeye', primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' },
+        {
+          initialize(runtime) {
+            runtime.profession.core.stealthUntil = 10;
+            runtime.resourceController.replace('malice', 4);
+
+            if (marked)
+              Object.assign(runtime.profession.specialization.state, {
+                markedTargetId: 'primary-target',
+                markExpiresAt: 10
+              });
+          },
+          probes: [[0.1, (runtime) => runtime.resourceController.replace('malice', 0)]]
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const torment = result.resolvedEvents.filter(
+        (event) => event.type === 'condition' && event.condition === 'Torment'
+      );
+
+      if (marked && !interrupted) {
+        assert.equal(torment.length, 1);
+        assert.equal(torment[0].metadata.thiefMaliciousSneakDurationFactor, 8);
+        assert.equal(torment[0].duration, 1);
+        assert.equal(torment[0].effectiveDuration, 8);
+      } else assert.deepEqual(torment, []);
+
+      if (!interrupted) assert.ok(result.events.some((event) => event.condition === 'Bleeding'));
+
+      assert.ok(
+        result.events
+          .filter((event) => event.condition === 'Bleeding')
+          .every((event) => event.metadata?.thiefMaliciousSneakDurationFactor == null)
+      );
+    }
+});

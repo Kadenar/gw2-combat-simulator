@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
@@ -521,5 +522,45 @@ test('Dervish release reads its selected all-legend Affinity threshold', () => {
       threshold === 2
     );
     assert.equal(conduitState.from(observedRuntime(result).profession).affinity.maximum, 5);
+  }
+});
+
+// Assassin's accepted affinity includes the virtual trait bonus and must survive live resource changes before impact.
+test('Assassin release snapshots condition affinity and composes with patched durations and expertise', () => {
+  for (const kinetic of [false, true]) {
+    const result = runRevenant(
+      [ID.RELEASE_POTENTIAL_ASSASSIN, wait(1000)],
+      {
+        specialization: 'Conduit',
+        selectedLegends: [LEGEND.ASSASSIN, LEGEND.ENTITY],
+        startingLegend: LEGEND.ASSASSIN,
+        selectedTraitIds: kinetic ? [TRAIT.KINETIC_INSIGHT] : [],
+        attributeInputs: baseAttributeInputs({ expertise: 1500 })
+      },
+      {
+        initialize(runtime) {
+          runtime.resourceController.replace('affinity', 3);
+        },
+        probes: [[0.1, (runtime) => runtime.resourceController.replace('affinity', 0)]],
+        catalog: (catalog) => {
+          const skill = catalog.skillsById.get(ID.RELEASE_POTENTIAL_ASSASSIN);
+          return withSkill(catalog, skill.id, {
+            effects: skill.effects.map((effect) =>
+              effect.type === 'condition' ? { ...effect, duration: 3, durationPerAffinity: 0.3 } : effect
+            )
+          });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const factor = 1 + (kinetic ? 5 : 3) * 0.3;
+    for (const condition of ['Crippled', 'Immobilized']) {
+      const application = result.resolvedEvents.find(
+        (event) => event.type === 'condition' && event.condition === condition
+      );
+      assert.equal(application.duration, 3);
+      assert.equal(application.metadata.revenantReleaseConditionDurationFactor, factor);
+      assert.ok(Math.abs(application.effectiveDuration - 3 * factor * 2) < 1e-9);
+    }
   }
 });

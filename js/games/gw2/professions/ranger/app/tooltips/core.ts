@@ -49,6 +49,24 @@ export const rangerCoreTooltips = {
       : [])
   ],
   skills: {
+    // Read execute tiers from their owning modifiers, including balance patches.
+    [ID.PREDATORS_AMBUSH]: skillTooltip('Leap at your target, dealing increased damage at low target health.', [
+      fromModifier(
+        'ranger.predators-ambush-target-health',
+        'factor',
+        'Strike damage below 50% target health',
+        tooltipFactorChange
+      )
+    ]),
+    // Read execute tiers from their owning modifiers, including balance patches.
+    [ID.WARCLAWS_ENGAGE]: skillTooltip('Leap at your target, dealing increased damage at low target health.', [
+      fromModifier(
+        'ranger.warclaws-engage-target-health',
+        'factor',
+        'Strike damage below 50% target health',
+        tooltipFactorChange
+      )
+    ]),
     // Intrinsic bonuses share selected rule values with combat and the modifier reference.
     [ID.POUNCE]: skillTooltip('Leap and strike your target, gaining increased damage against a defiant target.', [
       fromModifier('ranger.pounce-defiant', 'factor', 'Strike damage against defiant targets', tooltipFactorChange)

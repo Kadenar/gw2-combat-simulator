@@ -4,6 +4,7 @@ import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const weapons = new Map([
@@ -77,13 +78,16 @@ for (const [skillId, weapon] of weapons) {
 test('pistol and spear Torment require marked malice and keep their own duration formulas', () => {
   for (const skillId of [ID.MALICIOUS_SNEAK_ATTACK, ID.MALICIOUS_ASHEN_ASSAULT]) {
     const torment = (result) =>
-      result.events.find((event) => event.skillId === skillId && event.condition === 'Torment');
+      result.resolvedEvents.find((event) => event.skillId === skillId && event.condition === 'Torment');
     for (const options of [{ marked: false }, { offTarget: true }]) {
       assert.equal(torment(maliciousAttack(5, { skillId, ...options })), undefined);
     }
 
     assert.equal(torment(maliciousAttack(0, { skillId })), undefined);
-    assert.equal(torment(maliciousAttack(5, { skillId })).duration, skillId === ID.MALICIOUS_SNEAK_ATTACK ? 10 : 3);
+    assert.equal(
+      torment(maliciousAttack(5, { skillId })).effectiveDuration,
+      skillId === ID.MALICIOUS_SNEAK_ATTACK ? 10 : 3
+    );
   }
 });
 
@@ -92,8 +96,8 @@ test('spear scales only its final strike and only with marked malice', () => {
   const final = (malice, marked) =>
     maliciousAttack(malice, { skillId, marked }).resolvedEvents.find(
       (event) => event.name === 'Malicious Ashen Assault - Final Strike'
-    ).coefficient;
-  assert.ok(Math.abs(final(5, true) / final(0, true) - 1.1) < 1e-9);
+    ).damage;
+  assertFlooredDamageMultiplier(final(5, true), final(0, true), 1.1);
   assert.equal(final(5, false), final(0, false));
 });
 
@@ -104,7 +108,7 @@ test('pistol bleeding and scepter poison accompany landed channel strikes', () =
   ]) {
     const result = maliciousAttack(5, { skillId });
     const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
-    const applications = result.events.filter(
+    const applications = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillId === skillId && event.condition === condition
     );
     // Assert causal coupling, not a calibrated packet count or hard-coded schedule.
@@ -112,7 +116,7 @@ test('pistol bleeding and scepter poison accompany landed channel strikes', () =
       applications.map((event) => event.at),
       hits.map((event) => event.at)
     );
-    assert.ok(applications.every((event) => event.duration === (condition === 'Poisoned' ? 6 : 5)));
+    assert.ok(applications.every((event) => event.effectiveDuration === (condition === 'Poisoned' ? 6 : 5)));
   }
 });
 

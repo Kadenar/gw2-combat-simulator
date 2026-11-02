@@ -12,7 +12,6 @@ import { resolvedWeaponStrength } from '#gw2/platform/resolver/weapon-strength-r
 import { roundHalfToEven } from '#kernel/core/numeric.js';
 
 interface ResolvedStrikeParts {
-  readonly coefficientMultiplier: number;
   readonly targetArmor: number | null;
   readonly baseDamage: number;
   readonly criticalMultiplier: number;
@@ -31,25 +30,9 @@ export function createGw2HitResolution({
   readonly strikeMultiplier?: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => number;
   readonly activeBuffs: () => Gw2DamageCalculation['activeBuffs'];
 }): Readonly<Gw2HitResolution> {
-  // Remaining target health as a fraction, or null when the encounter has no
-  // configured target health. Shared by every "target-health-below" gate.
+  // Flat-strike thresholds use the same remaining-health query as ordinary modifier predicates.
   function currentHealthFraction(ctx: Gw2ResolverRuntime): number | null {
     return remainingTargetHealthFraction(ctx.config, ctx);
-  }
-
-  function coefficientMultiplier(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): number {
-    const modifiers = Array.isArray(event.coefficientModifiers) ? event.coefficientModifiers : [];
-
-    if (!modifiers.length) return 1;
-
-    const healthFraction = currentHealthFraction(ctx);
-
-    if (healthFraction == null) return 1;
-
-    const selected = modifiers
-      .filter((modifier) => modifier?.kind === 'target-health-below' && healthFraction < Number(modifier.threshold))
-      .sort((left, right) => Number(left.threshold) - Number(right.threshold))[0];
-    return selected ? Number(selected.multiplier) : 1;
   }
 
   function targetArmorFor(ctx: Gw2ResolverRuntime): number {
@@ -105,7 +88,6 @@ export function createGw2HitResolution({
       (event.flatDamageConditionCoeff ? event.flatDamageConditionCoeff * stats.conditionDamage : 0);
     return {
       baseDamage,
-      coefficientMultiplier: 1,
       targetArmor: null,
       criticalMultiplier: 1,
       outgoingMultiplier,
@@ -164,7 +146,6 @@ export function createGw2HitResolution({
         targetArmor;
       return {
         baseDamage,
-        coefficientMultiplier: 1,
         targetArmor,
         criticalMultiplier,
         outgoingMultiplier,
@@ -174,16 +155,9 @@ export function createGw2HitResolution({
     }
 
     const weaponStrength = resolvedWeaponStrength(ctx, event);
-    const effectiveCoefficientMultiplier = coefficientMultiplier(ctx, event);
-    const baseDamage = strikeDamage(
-      (event.coefficient || 0) * effectiveCoefficientMultiplier,
-      weaponStrength.value,
-      power,
-      targetArmor
-    );
+    const baseDamage = strikeDamage(event.coefficient || 0, weaponStrength.value, power, targetArmor);
     return {
       baseDamage,
-      coefficientMultiplier: effectiveCoefficientMultiplier,
       targetArmor,
       criticalMultiplier,
       outgoingMultiplier,
@@ -211,7 +185,6 @@ export function createGw2HitResolution({
       stats,
       // Preserve the struck target's health before damage can switch targets or replace its health bar.
       targetHealthFractionBefore: currentHealthFraction(ctx),
-      coefficientMultiplier: strike.coefficientMultiplier,
       targetArmor: strike.targetArmor,
       unroundedDamage: damage,
       critical,
@@ -250,7 +223,6 @@ export function createGw2HitResolution({
         power: hitContext.stats.power,
         ...(Number.isFinite(hitContext.stats.precision) ? { precision: hitContext.stats.precision } : {}),
         ...(Number.isFinite(hitContext.stats.ferocity) ? { ferocity: hitContext.stats.ferocity } : {}),
-        coefficientMultiplier: hitContext.coefficientMultiplier,
         ...(hitContext.targetArmor == null ? {} : { targetArmor: hitContext.targetArmor }),
         baseDamage: hitContext.baseDamage,
         criticalMultiplier: hitContext.criticalMultiplier,
@@ -348,7 +320,6 @@ export interface Gw2DamageBreakdownEntry {
 
 export interface Gw2HitResolutionContext {
   readonly targetHealthFractionBefore: number | null;
-  readonly coefficientMultiplier: number;
   /** Armor divisor of a scaling strike; null for fixed packets. */
   readonly targetArmor: number | null;
   readonly unroundedDamage: number;

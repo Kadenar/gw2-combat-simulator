@@ -102,6 +102,7 @@ export function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
   // The fifth arriving projectile owns immobilize, even when a later-emitted Salvo returns first.
   arrivals.sort((a, b) => a.at - b.at);
   for (const [index, { skill, at }] of arrivals.entries()) {
+    // The pool holds individual axes, while Volley's declaration describes all three; return only one projectile's share.
     const projectiles = skill.id === ID.VENOMOUS_VOLLEY ? 3 : 1;
     runtime.effects.emit({
       kind: 'profile',
@@ -109,9 +110,7 @@ export function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
       effects: skill.effects?.map((effect) => ({
         ...effect,
         // Impact refunds remain on returned packets; only casts create a new axe generation.
-        ...(effect.type === 'strike'
-          ? { coefficient: (Number(effect.coefficient) / projectiles) * (torment ? 1 : 1.33), hits: 1 }
-          : {}),
+        ...(effect.type === 'strike' ? { coefficient: Number(effect.coefficient) / projectiles, hits: 1 } : {}),
         ...(effect.type === 'condition' ? { stacks: Number(effect.stacks) / projectiles } : {})
       })),
       skillWeaponFallback: WEAPON.AXE,
@@ -122,6 +121,7 @@ export function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
         skillName: skill.name,
         actorType: ACTOR.PLAYER,
         activationId: cast.id,
+        // Keep projectile ownership for damage and traits; the recall marker selects the returning-damage modifier.
         metadata: { recallSkillId: cast.skill.id }
       },
       transform: (event) => ({

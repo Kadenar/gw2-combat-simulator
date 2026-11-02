@@ -877,10 +877,10 @@ test('Mesmer release reads enemy and self Torment affinity at impact after a leg
         boons: { quickness: true }
       }
     );
-    const torment = result.events.find(
+    const torment = result.resolvedEvents.find(
       (event) => event.type === 'condition' && event.skillId === SKILL.RELEASE_POTENTIAL_MESMER
     );
-    assert.ok(Math.abs(torment.duration - 3 * (1 + expectedAffinity * 0.1)) < 1e-9);
+    assert.ok(Math.abs(torment.effectiveDuration - 3 * (1 + expectedAffinity * 0.1)) < 1e-9);
     const [self] = result.planningState.profession[STATE.SELF_CONDITIONS];
     assert.equal(result.planningState.profession[STATE.SELF_CONDITIONS].length, 1);
     // Both Torment applications share the impact; self expiry uses affinity at that impact.
@@ -898,12 +898,12 @@ test('Release Potential variants use affinity and equipped-legend effects', () =
     startingLegend: LEGEND.DEMON,
     initialEnergy: 100
   });
-  const enemyTorment = mesmer.events.find(
+  const enemyTorment = mesmer.resolvedEvents.find(
     (event) =>
       event.type === 'condition' && event.skillName === 'Release Potential: Mesmer' && event.condition === 'Torment'
   );
 
-  assert.ok(Math.abs(enemyTorment.duration - 3.9) < 1e-9);
+  assert.ok(Math.abs(enemyTorment.effectiveDuration - 3.9) < 1e-9);
   assert.equal(mesmer.planningState.profession[STATE.SELF_CONDITIONS].length, 1);
   assert.ok(
     Math.abs(mesmer.planningState.profession[STATE.SELF_CONDITIONS][0].expiresAt - enemyTorment.at - 4.4) < 1e-9

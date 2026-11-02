@@ -1,5 +1,6 @@
 /** Canonical Core thief skill definitions grouped by their GW2 owner. */
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -148,16 +149,16 @@ export const THIEF_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skill
         ticks: [{ atMs: 0, coefficient: 1 }],
         name: 'Heartseeker',
         actorType: ACTOR.PLAYER,
-        coefficientModifiers: [
+        // Use one matching health tier; bonuses never compound when the target crosses multiple thresholds.
+        modifiers: [
           {
-            kind: 'target-health-below',
-            threshold: 0.25,
-            multiplier: 2.22
-          },
-          {
-            kind: 'target-health-below',
-            threshold: 0.5,
-            multiplier: 1.6
+            id: 'thief.heartseeker-target-health',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            parameters: { belowQuarter: 2.22, belowHalf: 1.6 },
+            factor: (context, _target, parameters) =>
+              targetHealthBelow(context, 0.25) ? parameters.belowQuarter : parameters.belowHalf,
+            when: (context) => targetHealthBelow(context, 0.5)
           }
         ],
         timingAnchor: 'castEnd',

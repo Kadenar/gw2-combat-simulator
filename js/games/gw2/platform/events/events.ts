@@ -218,6 +218,14 @@ export interface EffectMetadata {
   readonly thiefFallingSpiderDamageFactor?: number;
   /** Malicious Ashen Assault's final strike retains its accepted marked-malice factor. */
   readonly thiefMaliciousAshenDamageFactor?: number;
+  /** Skill-owned bonuses retain their impact, detonation, or acceptance sample through damage resolution. */
+  readonly revenantAbyssalRazeDamageFactor?: number;
+  readonly revenantBlossomingAuraDamageFactor?: number;
+  readonly revenantReleaseConditionDurationFactor?: number;
+  readonly thiefMaliciousPoisonDurationFactor?: number;
+  /** Captured skill bonuses survive cast cleanup and resource consumption until their packets resolve. */
+  readonly elementalistSeetheDamageFactor?: number;
+  readonly thiefMaliciousSneakDurationFactor?: number;
   readonly hitboxIndex?: number;
   readonly largeHitboxOnly?: boolean;
   readonly legendId?: string;
@@ -316,11 +324,6 @@ export type DamageEvent = SimulationEventBase<'damage'> &
         readonly flatStrikePowerCoeff: number;
       }
   ) & {
-    readonly coefficientModifiers?: ReadonlyArray<{
-      readonly kind: 'target-health-below';
-      readonly threshold: number;
-      readonly multiplier: number;
-    }>;
     readonly hits?: number;
     readonly canCrit?: boolean;
     readonly forceCrit?: boolean;
@@ -400,7 +403,6 @@ export interface Gw2DamageCalculation {
   readonly power: number;
   readonly precision?: number;
   readonly ferocity?: number;
-  readonly coefficientMultiplier: number;
   /** Armor divisor of a scaling strike; fixed packets ignore armor and omit it. */
   readonly targetArmor?: number;
   readonly baseDamage: number;

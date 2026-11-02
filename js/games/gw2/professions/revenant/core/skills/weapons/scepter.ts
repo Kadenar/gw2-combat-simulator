@@ -1,4 +1,5 @@
 /** Canonical Core revenant skill definitions grouped by their GW2 owner. */
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { StrikeEffect } from '#gw2/platform/effects/types.js';
@@ -111,6 +112,18 @@ export const REVENANT_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
     energyCost: 10,
     castTimeMs: 600,
     interruptCommitMs: 480,
+    // The impact captures this packet's stack bonus without rewriting its authored coefficient.
+    modifiers: [
+      {
+        id: 'revenant.blossoming-aura-stacks',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.revenantBlossomingAuraDamageFactor),
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.event?.metadata?.revenantBlossomingAuraDamageFactor != null
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -245,6 +258,7 @@ function releaseRevenantBond(runtime: RevenantRuntime): void {
   const active = runtime.consumeFlip(ID.OTHERWORLDLY_ATTRACTION_ENEMY);
   runtime.consumeFlip(ID.DEACTIVATE_OTHERWORLDLY_BOND);
 
+  // Only the first release consumes the tether; later expiry or swap callbacks must not restart its recharge.
   if (active)
     runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(ID.OTHERWORLDLY_BOND)!, runtime.time);
 }
@@ -277,6 +291,7 @@ function auraSkill(runtime: RevenantRuntime): RevenantSkill {
   return runtime.helpers.skillsById.get(ID.BLOSSOMING_AURA)!;
 }
 
+/** Read pulse coefficients from the selected skill so scheduled pulses respect its balance edits. */
 function auraPulseTicks(skill: Skill) {
   const pulse = skill.effects?.find((effect) => effect.type === 'strike' && effect.name === 'Pulsing Damage');
   const ticks = (pulse as StrikeEffect | undefined)?.ticks;
@@ -293,6 +308,7 @@ function startRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast
   const firstAt =
     cast.start + projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, ticks[0].atMs) / 1000;
   const expiresAt = canonicalTime(firstAt + Number(skill.duration));
+  // The final task is the fuse detonation, not another pulse; all tasks carry the same aura deadline.
   for (let index = 0; index <= ticks.length; index += 1)
     runtime.schedule(
       REVENANT_BLOSSOMING_AURA,
@@ -337,7 +353,12 @@ function detonateAura(runtime: RevenantRuntime, activationId?: string): void {
     event: buildResolverStrike({
       ...common,
       name: final.name,
-      coefficient: Number(final.coefficient) * (1 + Number(final.damageIncreasePerStack) * stacks),
+      coefficient: Number(final.coefficient),
+      metadata: {
+        ...final.metadata,
+        // Capture the reached tier before the flip is consumed; only this final packet carries the strike bonus.
+        revenantBlossomingAuraDamageFactor: 1 + Number(final.damageIncreasePerStack) * stacks
+      },
       skillWeapon: skill.weapon || ''
     })
   });
@@ -362,6 +383,7 @@ function revenantBlossomingAuraPulse(runtime: RevenantRuntime, data: unknown): v
   const { pulse, ticks } = auraPulseTicks(skill);
   const flips = runtime.profession.core.availableFlips;
 
+  // Manual detonation removes the flip. A replacement aura has a different deadline, so old tasks cannot affect it.
   if (index === 0) armSkillFlip(flips, ID.DETONATE_BLOSSOMING_AURA, runtime.time, expiresAt);
   else if (Number(flips[ID.DETONATE_BLOSSOMING_AURA]?.expiresAt) !== expiresAt) return;
 

@@ -182,6 +182,8 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
+      // Spear execute modifiers sample the preview target health at impact.
+      preview.damageTargetHealth(context.weapons.includes(WEAPON.SPEAR));
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Light on your Feet', 'lightOnYourFeet', 'light-on-your-feet');
 

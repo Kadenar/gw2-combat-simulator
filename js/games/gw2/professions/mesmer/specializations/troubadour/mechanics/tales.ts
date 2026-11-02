@@ -45,6 +45,7 @@ function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleI
     });
   }
 
+  // Instrument eligibility gates only the note reward; the Tale still grants its boons and notifies traits without it.
   if (eligible && skill.tale) {
     createMesmerIllusionRewards(context).queueResources(
       at,

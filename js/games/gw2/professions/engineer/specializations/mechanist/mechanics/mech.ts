@@ -443,6 +443,7 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
 
       // The autonomous attack waits until the same canonical instant as lane release.
       if (runtime.time < canonicalTime(mech.busyUntil)) {
+        // Preserve the pending chain phase while a command owns the lane; waiting does not count as an executed attack.
         runtime.schedule('engineer.mech-attack', mech.busyUntil, phase);
         return;
       }

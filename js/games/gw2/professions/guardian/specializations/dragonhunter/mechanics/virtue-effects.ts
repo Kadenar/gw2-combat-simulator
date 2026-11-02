@@ -35,6 +35,7 @@ import type {
 } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
+/** Reuse Justice's hit counter and passive suppression, adding Dragonhunter's Crippled only when that hit procs Burning. */
 function reactToDragonhunterJusticeHit(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,

@@ -28,6 +28,7 @@ interface ConditionWork {
   offTarget?: boolean;
 }
 
+/** Prune the live self-condition ledger before applying or transferring conditions, including expiry-time callbacks. */
 function purge(runtime: NecromancerRuntime): void {
   runtime.profession.core.selfConditions = runtime.profession.core.selfConditions.filter((application) =>
     isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
@@ -101,6 +102,7 @@ export function transfer(
       types.add(application.condition);
     }
 
+  // Ordinary transfers limit condition types and move every application of those types; latest mode limits applications.
   const selected = latest
     ? state.selfConditions.slice(-maximum)
     : state.selfConditions.filter((application) => types.has(application.condition));
@@ -131,6 +133,7 @@ export function isCorruptionCompletionEffect(effect: SkillEffect): boolean {
   return (effect.type === 'condition' && effect.target === RECIPIENT.SELF) || effect.type === 'boon';
 }
 
+/** Resolve friendly corruption effects in declaration order so subsequent transfers see the self-conditions just applied. */
 function corruption(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as ConditionWork;
   const skill = runtime.helpers.skillsById.get(work.skillId)!;

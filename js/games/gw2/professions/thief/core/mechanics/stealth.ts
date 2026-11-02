@@ -130,6 +130,7 @@ export function beginThiefStealthAttack(runtime: ThiefRuntime, cast: RuntimeCast
 const stealthPackets = new WeakMap<ThiefRuntime, Map<string, readonly SkillEffect[]>>();
 const stealthGrantActivations = new WeakMap<ThiefRuntime, Set<string>>();
 
+/** Save eligible stealth packets for their cast's hit or commitment trigger, removing them from ordinary effect emission. */
 export function selectThiefStealth(
   runtime: ThiefRuntime,
   cast: RuntimeCast<ThiefSkill>,
@@ -160,6 +161,7 @@ export function selectThiefStealth(
 export function commitThiefStealth(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
   const activationId = context.kind === 'cast' ? context.cast.id : String(context.trigger.event.activationId);
   const effects = stealthPackets.get(runtime)?.get(activationId) ?? [];
+  // Claim the grant before checking Revealed: a blocked attempt cannot be replayed later by the other trigger.
   stealthPackets.get(runtime)?.delete(activationId);
 
   if (revealedActive(runtime.profession.core, runtime.time)) return;

@@ -33,6 +33,7 @@ import { inertContainer } from '#tests/helpers/dom.js';
 import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Attribute assertions use the same calculator composed into the Revenant adapter.
 const calculateRevenantAttributes = createCalculateAttributes(
@@ -1203,16 +1204,18 @@ test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', (
   });
 
   assert.equal(result.warnings.length, 0);
-  assert.deepEqual(
-    result.steps.filter((step) => step.skillName === 'Abyssal Raze').map((step) => step.start),
-    [0, 1400, 2800]
-  );
-  const razes = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Abyssal Raze');
+  const razes = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Abyssal Raze');
 
   assert.deepEqual(
     razes.map((event) => event.coefficient),
-    [1, 1.33, 1.6600000000000001, 1]
+    [1, 1, 1, 1]
   );
+  // Each impact captures its stacks before the grant; swapping consumes stacks without boosting its strike.
+  for (const [index, factor] of [1, 1.33, 1.6600000000000001, 1].entries()) {
+    assert.equal(razes[index].metadata.revenantAbyssalRazeDamageFactor, factor);
+    assertFlooredDamageMultiplier(razes[index].damage, razes[0].damage, factor);
+  }
+
   assert.ok(
     result.events
       .filter(

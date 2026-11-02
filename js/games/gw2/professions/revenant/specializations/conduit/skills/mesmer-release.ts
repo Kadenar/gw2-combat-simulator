@@ -43,8 +43,10 @@ export function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
     durationPerAffinity: number;
     durationReductionPerAffinity: number;
   };
+  // Read affinity here, not when scheduling: a legend swap while the cast is in flight changes both Torment payloads.
   const affinity = effectiveConduitAffinity(runtime);
 
+  // Self-Torment is tracked as an expiry for profession mechanics, outside outgoing condition damage resolution.
   if (event.target === RECIPIENT.SELF) {
     const duration = Number(event.duration) * Math.max(0, 1 - affinity * durationReductionPerAffinity);
     runtime.profession.core.selfConditions.push({
@@ -53,8 +55,12 @@ export function mesmerRelease(runtime: RevenantRuntime, data: unknown): void {
     return;
   }
 
+  // Outgoing Torment keeps its base duration; the skill modifier applies this impact snapshot before duration bonuses.
   runtime.effects.emit({
     kind: 'packet',
-    event: { ...event, duration: Number(event.duration) * (1 + affinity * durationPerAffinity) }
+    event: {
+      ...event,
+      metadata: { ...event.metadata, revenantReleaseConditionDurationFactor: 1 + affinity * durationPerAffinity }
+    }
   });
 }

@@ -1,4 +1,5 @@
 /** Explicit PvE skill mechanics owned by the Spellbreaker Warrior module. */
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
@@ -89,11 +90,14 @@ const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warr
         type: 'strike',
         coefficient: 2,
         hits: 1,
-        coefficientModifiers: [
+        // Use one matching health tier; bonuses never compound when the target crosses multiple thresholds.
+        modifiers: [
           {
-            kind: 'target-health-below',
-            threshold: 0.5,
-            multiplier: 1.5
+            id: 'warrior.arcing-slice-id-42707-target-health',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            factor: 1.5,
+            when: (context) => targetHealthBelow(context, 0.5)
           }
         ]
       },

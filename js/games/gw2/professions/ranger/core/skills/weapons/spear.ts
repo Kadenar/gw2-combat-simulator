@@ -1,6 +1,6 @@
 /** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { targetConditionActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { endStealth } from '#gw2/platform/combat/stealth.js';
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -169,7 +169,16 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
         type: 'strike',
         coefficient: 2.75,
         // Read remaining target health at impact, including strict exclusion of the threshold itself.
-        coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 1.2 }],
+        // Use one matching health tier; bonuses never compound when the target crosses multiple thresholds.
+        modifiers: [
+          {
+            id: 'ranger.warclaws-engage-target-health',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            factor: 1.2,
+            when: (context) => targetHealthBelow(context, 0.5)
+          }
+        ],
         hits: 1,
         atMs: 800,
         timingAnchor: 'castStart',
@@ -296,7 +305,16 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly RangerSkill[] = [
         type: 'strike',
         coefficient: 3.67,
         // Read remaining target health at impact, including strict exclusion of the threshold itself.
-        coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 1.2 }],
+        // Use one matching health tier; bonuses never compound when the target crosses multiple thresholds.
+        modifiers: [
+          {
+            id: 'ranger.predators-ambush-target-health',
+            target: 'strikeDamage',
+            operation: 'multiply',
+            factor: 1.2,
+            when: (context) => targetHealthBelow(context, 0.5)
+          }
+        ],
         hits: 1,
         comboFinishers: [
           {
@@ -365,6 +383,7 @@ function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast<Rang
 
     if (parent === ID.PANTHERS_PROWL || (cast.skill.id !== parent && cast.skill.id !== flip)) continue;
 
+    // Either member can be used; mirror its actual reserved recharge instead of recomputing the other skill's duration.
     runtime.cooldownController.copy(cast.skill.id, parent);
     runtime.cooldownController.copy(cast.skill.id, flip);
   }

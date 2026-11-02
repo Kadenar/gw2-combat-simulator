@@ -500,3 +500,79 @@ test('Frost Bow and Crescent Wind retain cross-skill state bonuses and stop at e
     assert.equal(hooks.modifyCriticalChance(context, 0.5), 0.5);
   }
 });
+
+// Health tiers select one multiplier at impact, including the exact boundaries and targets without health.
+for (const [profession, specialization, skillId, ruleId, half, quarter] of [
+  [necromancerProfession, 'Core', NECROMANCER.PERFORATE, 'necromancer.perforate-target-health', 1.2, 1.2],
+  [necromancerProfession, 'Core', NECROMANCER.SATIATE, 'necromancer.satiate-target-health', 1.5, 1.5],
+  [
+    necromancerProfession,
+    'Reaper',
+    NECROMANCER.EXECUTIONERS_SCYTHE,
+    'necromancer.executioners-scythe-target-health',
+    1.5,
+    2.0
+  ],
+  [rangerProfession, 'Core', RANGER.WARCLAWS_ENGAGE, 'ranger.warclaws-engage-target-health', 1.2, 1.2],
+  [rangerProfession, 'Core', RANGER.PREDATORS_AMBUSH, 'ranger.predators-ambush-target-health', 1.2, 1.2],
+  [thiefProfession, 'Core', THIEF.HEARTSEEKER, 'thief.heartseeker-target-health', 1.6, 2.22],
+  [warriorProfession, 'Core', WARRIOR.ARCING_SLICE, 'warrior.arcing-slice-target-health', 1.5, 1.5],
+  [warriorProfession, 'Core', WARRIOR.THROW_AXE, 'warrior.throw-axe-target-health', 1.5, 2.0],
+  [
+    warriorProfession,
+    'Spellbreaker',
+    WARRIOR.ARCING_SLICE_ID_42707,
+    'warrior.arcing-slice-id-42707-target-health',
+    1.5,
+    1.5
+  ]
+]) {
+  test(`${ruleId} preserves threshold selection and packet ownership`, () => {
+    for (const patched of [false, true]) {
+      const profile = withPatchPreview(
+        profession,
+        patched
+          ? {
+              id: 'health-tier-test',
+              label: 'Health tiers',
+              professions: {
+                [profession.id]: {
+                  modifierRules: {
+                    [ruleId]: half === quarter ? { factor: 1.7 } : { parameters: { belowHalf: 1.7, belowQuarter: 2.7 } }
+                  }
+                }
+              }
+            }
+          : null
+      ).resolvePatch({ id: patched ? 'health-tier-test' : 'current' });
+      const rule = profile.balanceContext.modifierRulesById.get(ruleId);
+      const hooks = createModifierHooks({ rules: [rule] });
+      const skill = profile.balanceContext.catalog.skillsById.get(skillId);
+      const effectScoped = skill.effects.some((effect) =>
+        effect.modifiers?.some((candidate) => candidate.id === ruleId)
+      );
+      for (const health of [null, 1, 0.5, 0.499, 0.25, 0.249, 0]) {
+        const config = { specialization, target: health == null ? {} : { fixedHealthFraction: health } };
+        const context = { config, event: { skillId, actorType: 'player', effectModifierIds: [ruleId] } };
+        const factor =
+          health == null || health >= 0.5
+            ? 1
+            : health >= 0.25
+              ? patched
+                ? 1.7
+                : half
+              : patched
+                ? half === quarter
+                  ? 1.7
+                  : 2.7
+                : quarter;
+        assert.equal(hooks.modifyStrikeDamage(context, 100), 100 * factor);
+        assert.equal(hooks.modifyStrikeDamage({ ...context, event: { ...context.event, skillId: -1 } }, 100), 100);
+
+        if (effectScoped) assert.equal(hooks.modifyStrikeDamage({ ...context, event: { skillId } }, 100), 100);
+
+        assert.equal(hooks.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
+      }
+    }
+  });
+}

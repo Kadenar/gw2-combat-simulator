@@ -859,9 +859,9 @@ export function releaseFrostTrap(runtime: RangerRuntime): void {
     });
 }
 
+/** Apply each resolved charge grant with its own expiry so recasting does not refresh older stones. */
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context.profession);
-  // Recasts add charges without renewing the lifetime of the remaining stones.
   state.sharpeningStoneGrants = appendChargeGrant(
     state.sharpeningStoneGrants,
     grantCharges(Math.trunc(Math.max(0, Number(event.charges || 0))), event.at + (event.duration || 0)),
@@ -870,6 +870,7 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
   );
 }
 
+/** A positive player strike can consume one live stone and attribute its Bleeding to the utility rather than the weapon. */
 export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context.profession);
   // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits.

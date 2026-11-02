@@ -1,4 +1,5 @@
 /** Canonical Core thief skill definitions grouped by their GW2 owner. */
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -214,6 +215,18 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     requiredMainHand: WEAPON.AXE,
     requiredOffHand: false,
     castTimeMs: 360,
+    // Recalled packets retain their projectile skill IDs; the recall marker identifies this skill's bonus.
+    modifiers: [
+      {
+        id: 'thief.recall-axes-damage',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        scope: 'profession',
+        factor: 1.33,
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) && context.event?.metadata?.recallSkillId === ID.RECALL_AXES
+      }
+    ],
     // Return packets depend on the live axe pool and are emitted by the recall owner.
     effects: [],
     // The skill owns this transition at successful commitment.
@@ -235,6 +248,19 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     // A committed recall survives interruption and keeps its remaining cast lockout.
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,
+    // Recalled packets retain their projectile skill IDs; the recall marker identifies this skill's bonus.
+    modifiers: [
+      {
+        id: 'thief.orchestrated-assault-recall',
+        target: 'strikeDamage',
+        operation: 'multiply',
+        scope: 'profession',
+        factor: 1.33,
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.event?.metadata?.recallSkillId === ID.ORCHESTRATED_ASSAULT
+      }
+    ],
     // Return packets depend on the live axe pool and are emitted by the recall owner.
     effects: [],
     // The skill owns this transition at successful commitment.

@@ -14,6 +14,7 @@ import { untamedState } from '#gw2/professions/ranger/specializations/untamed/st
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
+/** Match the player and pet skill bars to the current unleash owner, with a separate deadline for player ambushes. */
 export function untamedCastAvailability(
   context: MechanicQueriesOf<RangerRuntime>,
   skill: RangerSkill
@@ -74,6 +75,7 @@ export const untamedUnleashed = defineTriggerPoint<{ readonly skill: RangerSkill
 function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerUnleashed: boolean): void {
   untamedState.from(runtime.profession).rangerUnleashed = rangerUnleashed;
   const readyAt = cast.start + skillNumber(cast.skill, 'cooldown');
+  // Both directions share one ready time; changing the visible toggle must not allow an immediate transfer back.
   runtime.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
   runtime.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
 

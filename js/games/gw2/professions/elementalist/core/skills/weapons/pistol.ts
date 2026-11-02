@@ -850,6 +850,7 @@ export const elementalistPistolLifecycle = {
           sourceId: cast.skill.id
         });
 
+      // Aura selection above uses the attunement at task execution; bullet consumption happens only after that reward.
       spendAllPistolBullets(runtime);
     }
   }
@@ -862,6 +863,7 @@ export function reservePistolRecharge(context: ElementalistRuntime, skill: Skill
   const state = professionCoreState(context.profession);
 
   if (state.dazingDischargeUntil > context.time && skillWeapon(skill) === WEAPON.PISTOL) {
+    // Spend when reserving recharge so a later expiry or another cast cannot change this cast's accepted reduction.
     state.dazingDischargeUntil = 0;
     return duration * skillNumberFromContext(context, ID.DAZING_DISCHARGE, 'nextSkillRechargeMultiplier');
   }

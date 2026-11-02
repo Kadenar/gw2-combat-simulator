@@ -273,8 +273,8 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
   }
 };
 
+/** Resolve Crippling Shot's charge grant by replacing the remaining pool and its deadline together. */
 export function handleRangerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  // Crippling Shot replaces the remaining charges with a new finite grant.
   professionCoreState(context.profession).bloodThirst = grantCharges(
     Math.max(0, Number(event.charges || 0)),
     event.at + (event.duration || 0)
@@ -286,6 +286,7 @@ export function triggerBloodThirst(context: RangerResolverContext, event: Gw2Res
   const state = professionCoreState(context.profession);
   expireCharges(state.bloodThirst, event.at);
 
+  // The granting skill cannot spend its own new charges, and its attributed bonus packets cannot spend further charges.
   if (event.sourceId === ID.CRIPPLING_SHOT) return;
 
   const merged = rangerMerged(context.profession);

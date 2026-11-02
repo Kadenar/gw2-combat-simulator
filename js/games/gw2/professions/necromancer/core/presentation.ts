@@ -218,7 +218,12 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
-      preview.damageTargetHealth(preview.hasId(TRAIT.CLOSE_TO_DEATH));
+      // Weapon and Reaper execute modifiers also depend on the preview target health.
+      preview.damageTargetHealth(
+        preview.hasId(TRAIT.CLOSE_TO_DEATH) ||
+          context.specialization === 'Reaper' ||
+          context.weapons.some((weapon) => weapon === WEAPON.SPEAR || weapon === WEAPON.SWORD)
+      );
 
       // Expose held combat bonuses to isolated damage calculations.
       if (context.weapons.includes(WEAPON.DAGGER))

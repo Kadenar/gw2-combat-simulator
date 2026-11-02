@@ -71,6 +71,7 @@ const EXPECTED = {
       'Transcendent Tempest': { strike: 'additive', condition: 'additive' }
     },
     rules: {
+      'elementalist.seethe': { strike: 'multiplier' },
       'elementalist.hammer-fire-orb-strike': { strike: 'additive' },
       'elementalist.hammer-fire-orb-condition': { condition: 'additive' },
       'elementalist.meteor-center-impact': { strike: 'multiplier' },
@@ -183,6 +184,9 @@ const EXPECTED = {
       'Wicked Corruption': { strike: 'additive' }
     },
     rules: {
+      'necromancer.perforate-target-health': { strike: 'multiplier' },
+      'necromancer.satiate-target-health': { strike: 'multiplier' },
+      'necromancer.executioners-scythe-target-health': { strike: 'multiplier' },
       'necromancer.anguish-conditional-damage': { strike: 'additive' },
       // Active spirits scale Essence Blast independently of additive outgoing damage bonuses.
       'necromancer.essence-blast-active-spirits': { strike: 'multiplier' },
@@ -222,6 +226,8 @@ const EXPECTED = {
       Wolfsong: { strike: 'multiplier' }
     },
     rules: {
+      'ranger.warclaws-engage-target-health': { strike: 'multiplier' },
+      'ranger.predators-ambush-target-health': { strike: 'multiplier' },
       'ranger.attack-of-opportunity': { strike: 'multiplier' },
       'ranger.condition-count-skill-bonus': { strike: 'multiplier' },
       'ranger.consuming-bite-condition-count': { strike: 'multiplier' },
@@ -258,6 +264,8 @@ const EXPECTED = {
       'Vicious Reprisal': { strike: 'additive', condition: 'additive' }
     },
     rules: {
+      'revenant.abyssal-raze-stacks': { strike: 'multiplier' },
+      'revenant.blossoming-aura-stacks': { strike: 'multiplier' },
       'revenant.beguiling-haze-assassin-resonance': { strike: 'multiplier' },
       'revenant.burst-of-strength-condition': { condition: 'additive' },
       'revenant.burst-of-strength-strike': { strike: 'additive' },
@@ -289,6 +297,9 @@ const EXPECTED = {
       'Weakening Strikes': { strike: 'multiplier' }
     },
     rules: {
+      'thief.heartseeker-target-health': { strike: 'multiplier' },
+      'thief.orchestrated-assault-recall': { strike: 'multiplier' },
+      'thief.recall-axes-damage': { strike: 'multiplier' },
       'thief.malicious-ashen-assault-malice': { strike: 'multiplier' },
       'thief.backstab-defiant': { strike: 'multiplier' },
       'thief.larcenous-strike': { strike: 'multiplier' },
@@ -324,6 +335,9 @@ const EXPECTED = {
       "Warrior's Sprint": { strike: 'additive' }
     },
     rules: {
+      'warrior.arcing-slice-target-health': { strike: 'multiplier' },
+      'warrior.throw-axe-target-health': { strike: 'multiplier' },
+      'warrior.arcing-slice-id-42707-target-health': { strike: 'multiplier' },
       'warrior.fierce-blow-defiant': { strike: 'multiplier' },
       'warrior.breaching-strike-boonless': { strike: 'multiplier' },
       'warrior.kill-shot-threshold': { strike: 'multiplier' },

@@ -326,7 +326,16 @@ test('Volley divides its coefficient across three poisonous axes and recall repe
   assert.equal(outgoing.length, 3);
   assert.ok(outgoing.every((event) => Math.abs(event.coefficient - 0.4) < 1e-12));
   assert.equal(returned(result, 'damage').length, 3);
-  assert.ok(returned(result, 'damage').every((event) => Math.abs(event.coefficient - 0.4 * 1.33) < 1e-12));
+  const outgoingStrike = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && !event.metadata?.recallSkillId
+  );
+  const returningStrike = result.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.metadata?.recallSkillId
+  );
+  assertFlooredDamageMultiplier(returningStrike.damage, outgoingStrike.damage, 1.33);
+  assert.equal(returningStrike.skillId, ID.VENOMOUS_VOLLEY);
+  assert.equal(returningStrike.sourceId, ID.VENOMOUS_VOLLEY);
+  assert.ok(returned(result, 'damage').every((event) => Math.abs(event.coefficient - 0.4) < 1e-12));
   assert.deepEqual(
     returned(result, 'condition').map(({ condition, stacks, duration }) => [condition, stacks, duration]),
     Array(3).fill(['Poisoned', 1, 2])
@@ -355,7 +364,18 @@ test('recall excludes expired axes, preserves axe identity, and immobilizes once
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(returned(result, 'damage').length, 6);
-    assert.ok(returned(result, 'damage').every((event) => Math.abs(event.coefficient - 0.8 * multiplier) < 1e-12));
+    const baseline = runThief([ID.SPINNING_AXE_ID_71967, ID.SPINNING_AXE, { type: 'wait', durationMs: 1000 }], {
+      ...axeConfig,
+      secondaryWeapon
+    });
+    assert.deepEqual(baseline.warnings, []);
+    const baseStrike = baseline.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillId === ID.SPINNING_AXE
+    );
+    const returningStrike = result.resolvedEvents.find((event) => event.type === 'damage');
+    assert.equal(returningStrike.skillId, ID.SPINNING_AXE);
+    assertFlooredDamageMultiplier(returningStrike.damage, baseStrike.damage, multiplier);
+    assert.ok(returned(result, 'damage').every((event) => Math.abs(event.coefficient - 0.8) < 1e-12));
     assert.equal(
       result.events.filter((event) => event.type === 'condition' && event.condition === extraCondition).length,
       6
@@ -438,7 +458,7 @@ test('outgoing malicious poison lasts exactly the consumed malice and is absent 
       }
     );
     assert.deepEqual(result.warnings, []);
-    const poison = result.events.find((event) => event.type === 'condition' && event.condition === 'Poisoned');
-    assert.equal(poison?.duration, marked ? 4 : undefined);
+    const poison = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Poisoned');
+    assert.equal(poison?.effectiveDuration, marked ? 4 : undefined);
   }
 });

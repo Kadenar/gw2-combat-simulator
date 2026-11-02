@@ -394,7 +394,7 @@ export function createSkillDamagePlan(
 ): SkillDamagePlan {
   const { config, context, inputs } = createSkillDamagePreview(app, controls, values);
   // Inspect declarations and the rows already being collected; never sample extra health states in the engine.
-  let usesTargetHealth =
+  const usesTargetHealth =
     config.relic === 'Eagle' || professionDamageControls(app).some((control) => control.key === 'targetHealth');
   const groups: SkillDamageGroupDefinition[] = [];
   const rows = new Map<string, SkillDamageRowDefinition>();
@@ -424,13 +424,6 @@ export function createSkillDamagePlan(
       skill = resolved;
     }
 
-    usesTargetHealth ||= Boolean(
-      skill.effects?.some(
-        (effect) =>
-          effect.type === 'strike' &&
-          effect.coefficientModifiers?.some((modifier) => modifier.kind === 'target-health-below')
-      )
-    );
     occurrences.push({
       id,
       effect: { kind: 'skill', id: skill.id },

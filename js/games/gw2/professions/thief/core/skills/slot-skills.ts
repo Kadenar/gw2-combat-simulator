@@ -587,6 +587,7 @@ const infiltratorsSignetPassive = definePeriodicTask<ThiefRuntime>({
   }
 });
 
+/** Replace the pending passive wake using current selection and recharge, so resets never leave an older pulse armed. */
 function restartThiefInfiltratorsSignet(runtime: ThiefRuntime): void {
   infiltratorsSignetPassive.restart(runtime, nextInfiltratorsSignetPulse(runtime));
 }

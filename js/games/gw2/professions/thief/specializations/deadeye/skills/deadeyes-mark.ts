@@ -47,6 +47,7 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   const remarking = state.markedTargetId === 'primary-target' && state.markExpiresAt > runtime.time;
   state.markedTargetId = 'primary-target';
   state.markExpiresAt = canonicalTime(runtime.time + skillNumberFromContext(runtime, ID.DEADEYES_MARK, 'duration'));
+  // A refresh is a new mark lifetime even on the same target; older expiry tasks must not clear its malice.
   state.markGeneration += 1;
 
   if (remarking) runtime.resourceController.grant('malice', initialMalice(runtime));

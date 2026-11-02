@@ -455,19 +455,6 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
 
       if (detail) add(effect, 'Strike damage', detail);
       else incomplete = true;
-
-      for (const modifier of effect.coefficientModifiers || []) {
-        if (modifier.kind !== 'target-health-below') {
-          incomplete = true;
-          continue;
-        }
-
-        add(
-          effect,
-          'Strike damage',
-          `${tooltipDecimal(modifier.multiplier)}× below ${tooltipDecimal(modifier.threshold * 100)}% target health; lowest matching threshold applies`
-        );
-      }
     } else if (effect.type === 'condition') {
       for (const condition of effect.ticks || [effect]) {
         if (!condition.condition) {
