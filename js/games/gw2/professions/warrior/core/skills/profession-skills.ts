@@ -1,6 +1,6 @@
 /** Canonical Core warrior skill definitions grouped by their GW2 owner. */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
@@ -148,6 +148,18 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     adrenalineCost: 10,
     burst: true,
     castTimeMs: 1160,
+    // Only this burst gains damage against a defiant target or one strictly below half health.
+    modifiers: [
+      {
+        id: 'warrior.kill-shot-threshold',
+        label: 'Kill Shot',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.2,
+        order: 100,
+        when: (context) => context.config?.target?.defiant === true || targetHealthBelow(context, 0.5)
+      }
+    ],
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -299,6 +311,17 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     castTimeMs: 840,
     // Keep commitment, damage, and boon removal together on the nearest 40 ms tick.
     interruptCommitMs: 760,
+    // The simulated target has no boons; this multiplier belongs to the dagger burst.
+    modifiers: [
+      {
+        id: 'warrior.breaching-strike-boonless',
+        label: 'Breaching Strike',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.5,
+        order: 100
+      }
+    ],
     comboFinishers: [
       {
         ownerId: 'warrior',
@@ -507,32 +530,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   }
 };
-
-/** Intrinsic live modifiers retain critical semantics and the simulator's boonless-target assumption. */
-export const warriorBurstSkillModifiers: readonly Gw2ModifierRule[] = [
-  {
-    id: 'warrior.kill-shot-threshold',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    order: 100,
-    // Kill Shot gets the same execute bonus from either a defiant target or live sub-50% health.
-    when: (context) =>
-      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.KILL_SHOT &&
-      (context.config?.target?.defiant === true || targetHealthBelow(context, 0.5))
-  },
-  {
-    id: 'warrior.breaching-strike-boonless',
-    // Retain the supplying skill so the reference can show its icon and description.
-    sourceSkillId: ID.BREACHING_STRIKE,
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    order: 100,
-    when: (context) =>
-      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.BREACHING_STRIKE
-  }
-];
 
 /** Fields select their tier before the shared burst reservation spends adrenaline. */
 export const combustiveShotFields: NonNullable<

@@ -1,6 +1,5 @@
 /** Canonical Core warrior skill definitions grouped by their GW2 owner. */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -19,6 +18,17 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 320,
     dualWieldCastTimeMs: 240,
+    // This chain attack multiplies critical damage without increasing noncritical strikes.
+    modifiers: [
+      {
+        id: 'warrior.precise-cut-critical-damage',
+        label: 'Precise Cut',
+        target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+        operation: 'multiply',
+        factor: 1.15,
+        order: 100
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -42,6 +52,17 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     dualWieldEffectOffsetsMs: { 280: 200 },
     castTimeMs: 360,
     dualWieldCastTimeMs: 240,
+    // This chain attack multiplies critical damage without increasing noncritical strikes.
+    modifiers: [
+      {
+        id: 'warrior.focused-slash-critical-damage',
+        label: 'Focused Slash',
+        target: MODIFIER_TARGET.CRITICAL_DAMAGE,
+        operation: 'multiply',
+        factor: 1.15,
+        order: 100
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -180,6 +201,18 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 440,
     dualWieldCastTimeMs: 320,
     interruptCommitMs: 400,
+    // Only this off-hand attack receives the defiant-target multiplier.
+    modifiers: [
+      {
+        id: 'warrior.wastrels-ruin-defiant',
+        label: "Wastrel's Ruin",
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 2,
+        order: 100,
+        when: (context) => context.config?.target?.defiant === true
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -217,28 +250,3 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
     ])
   }
 };
-
-/** Intrinsic live modifiers retain critical semantics and the simulator's boonless-target assumption. */
-export const warriorDaggerSkillModifiers: readonly Gw2ModifierRule[] = [
-  {
-    id: 'warrior.dagger-auto-critical-damage',
-    target: MODIFIER_TARGET.CRITICAL_DAMAGE,
-    operation: 'multiply',
-    factor: 1.15,
-    order: 100,
-    when: (context) => {
-      const skillId = Number(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id);
-      return skillId === ID.PRECISE_CUT || skillId === ID.FOCUSED_SLASH;
-    }
-  },
-  {
-    id: 'warrior.wastrels-ruin-defiant',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 2,
-    order: 100,
-    when: (context) =>
-      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.WASTRELS_RUIN &&
-      context.config?.target?.defiant === true
-  }
-];

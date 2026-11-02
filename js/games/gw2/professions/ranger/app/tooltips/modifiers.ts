@@ -22,13 +22,6 @@ export const rangerModifierDescriptions: ModifierDescriptions = {
       "Mace attacks build Nature's Strength. Consuming five stacks grants Force of Nature, increasing your strike damage even after a weapon swap. Pets do not receive this bonus.",
     facts: [['factor', 'Player strike damage during Force of Nature', tooltipFactorChange]]
   }),
-  'ranger.piercing-gales-vulnerability': modifierDescription({
-    name: 'Piercing Gales — additional Vulnerability scaling',
-    skills: [ID.PIERCING_GALES],
-    description:
-      "Piercing Gales gains additional strike damage per Vulnerability stack. Its own bonus multiplies separately from the target's ordinary Vulnerability bonus.",
-    facts: [['vulnerabilityPerStack', 'Additional strike damage per Vulnerability stack']]
-  }),
   'ranger.sic-em-pet': modifierDescription({
     name: "“Sic 'Em!”",
     skills: [ID.SIC_EM],

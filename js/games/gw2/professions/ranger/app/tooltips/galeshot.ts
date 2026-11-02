@@ -1,4 +1,5 @@
 import {
+  fromModifier,
   fromProfile,
   outsideScopeTooltip,
   profileFact,
@@ -50,11 +51,17 @@ export const galeshotTooltips = {
         )
       ])
     ),
-    ...Object.fromEntries(
-      [ID.PERFECT_STORM, ID.PIERCING_GALES].map((id) => [
-        id,
-        skillTooltip("Apply this skill's effects and restore Cyclone Bow arrows up to their capacity.")
-      ])
+    [ID.PERFECT_STORM]: skillTooltip("Apply this skill's effects and restore Cyclone Bow arrows up to their capacity."),
+    // Preserve arrow recovery while exposing the independently multiplied Vulnerability bonus.
+    [ID.PIERCING_GALES]: skillTooltip(
+      "Fire piercing projectiles and restore Cyclone Bow arrows up to their capacity. Gain additional strike damage per Vulnerability stack, multiplying separately from the target's ordinary Vulnerability bonus.",
+      [
+        fromModifier(
+          'ranger.piercing-gales-vulnerability',
+          'vulnerabilityPerStack',
+          'Additional strike damage per Vulnerability stack'
+        )
+      ]
     ),
     [ID.MISTRAL]: skillTooltip(
       'Restore arrows and arm Mistral. Each eligible missile hit during its window adds a strike and Chilled.',

@@ -1,5 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -180,6 +180,21 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     cooldown: 20,
     arrowsRestored: 1,
     castTimeMs: 640,
+    // This skill's live Vulnerability bonus multiplies separately after Galeshot trait rules.
+    modifiers: [
+      {
+        id: 'ranger.piercing-gales-vulnerability',
+        label: 'Piercing Gales',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        parameters: { baseFactor: 1, vulnerabilityPerStack: 0.02 },
+        order: 103,
+        factor: (context, _target, parameters) =>
+          parameters.baseFactor +
+          (context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) *
+            parameters.vulnerabilityPerStack
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -461,24 +476,4 @@ export const GALESHOT_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
       cloudburstBlusterReset
     ]
   }
-};
-
-/** Piercing Gales reads live vulnerability in addition to the ordinary platform multiplier. */
-export const piercingGalesModifier: Gw2ModifierRule = {
-  id: 'ranger.piercing-gales-vulnerability',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  // Piercing Gales applies its own doubled vulnerability multiplier (2% per
-  // stack) in addition to the standard vulnerability already baked into the
-  // platform strikeMultiplier, effectively tripling the vulnerability bonus
-  // for this skill.
-  parameters: {
-    baseFactor: 1,
-    vulnerabilityPerStack: 0.02
-  },
-  factor: (context, _target, parameters) =>
-    parameters.baseFactor +
-    (context.query?.vulnerabilityStacksAt(context.time, context.runtime || undefined) || 0) *
-      parameters.vulnerabilityPerStack,
-  when: (context) => Number(context.event?.skillId ?? context.skillId) === ID.PIERCING_GALES
 };

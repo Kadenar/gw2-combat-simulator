@@ -17,6 +17,7 @@ const preview = {
   professions: {
     ranger: {
       modifierRules: {
+        'ranger.piercing-gales-vulnerability': { parameters: { vulnerabilityPerStack: 0.03 } },
         'ranger.pounce-defiant': { factor: 1.3 },
         'ranger.falcons-stoop-disabled': { factor: 1.4 },
         'ranger.unleashed-wild-swing-defiant': { factor: 1.5 },
@@ -25,7 +26,16 @@ const preview = {
         'ranger.consuming-bite-condition-count': { parameters: { maximumConditions: 2, coefficientPerCondition: 0.05 } }
       }
     },
-    warrior: { modifierRules: { 'warrior.slicing-maelstrom-boonless': { factor: 1.8 } } }
+    warrior: {
+      modifierRules: {
+        'warrior.slicing-maelstrom-boonless': { factor: 1.8 },
+        'warrior.kill-shot-threshold': { factor: 1.3 },
+        'warrior.breaching-strike-boonless': { factor: 1.6 },
+        'warrior.wastrels-ruin-defiant': { factor: 2.2 },
+        'warrior.precise-cut-critical-damage': { factor: 1.25 },
+        'warrior.focused-slash-critical-damage': { factor: 1.35 }
+      }
+    }
   }
 };
 const ranger = withPatchPreview(rangerProfession, preview);
@@ -101,6 +111,7 @@ test('intrinsic modifier references reuse skill cards and selected numeric facts
         ranger,
         rangerAppAdapter,
         [
+          [RANGER.PIERCING_GALES, 'Additional strike damage per Vulnerability stack', patched ? '+3%' : '+2%'],
           [RANGER.POUNCE, 'Strike damage against defiant targets', patched ? '+30%' : '+20%'],
           [RANGER.FALCONS_STOOP, 'Strike damage against defiant or immobilized targets', patched ? '+40%' : '+20%'],
           [RANGER.UNLEASHED_WILD_SWING, 'Strike damage against defiant targets', patched ? '+50%' : '+20%'],
@@ -117,7 +128,12 @@ test('intrinsic modifier references reuse skill cards and selected numeric facts
       [
         warrior,
         warriorAppAdapter,
-        [[WARRIOR.SLICING_MAELSTROM, 'Strike damage against a boonless target', patched ? '+80%' : '+50%']]
+        [
+          [WARRIOR.SLICING_MAELSTROM, 'Strike damage against a boonless target', patched ? '+80%' : '+50%'],
+          [WARRIOR.BREACHING_STRIKE, 'Strike damage against a boonless target', patched ? '+60%' : '+50%'],
+          [WARRIOR.KILL_SHOT, 'Strike damage against a defiant or below-half-health target', patched ? '+30%' : '+20%'],
+          [WARRIOR.WASTRELS_RUIN, 'Strike damage against a defiant target', patched ? '+120%' : '+100%']
+        ]
       ]
     ]) {
       const patch = family.resolvePatch({ id: patchId });
@@ -140,6 +156,91 @@ test('intrinsic modifier references reuse skill cards and selected numeric facts
         if (id === WARRIOR.SLICING_MAELSTROM) assert.match(tooltip.description, /Spend adrenaline.*primal burst/);
 
         if (id === RANGER.UNLEASHED_SAVAGE_SHOCK_WAVE) assert.equal(owned[0].rules.length, 2);
+      }
+    }
+  }
+});
+
+// Target health belongs to the encounter; changing player health is never part of these execute rules.
+test('Warrior skill bonuses preserve the strict target-health boundary and remain scoped to their attack', () => {
+  for (const patchId of ['current', preview.id]) {
+    const patched = patchId === preview.id;
+    const runtime = warrior.runtimeFor({ specialization: 'Core', patchId });
+    for (const defiant of [false, true]) {
+      for (const fraction of [1, 0.5, 0.499]) {
+        const expected = new Map([
+          [WARRIOR.KILL_SHOT, defiant || fraction < 0.5 ? (patched ? 1.3 : 1.2) : 1],
+          [WARRIOR.BREACHING_STRIKE, patched ? 1.6 : 1.5],
+          [WARRIOR.WASTRELS_RUIN, defiant ? (patched ? 2.2 : 2) : 1],
+          [WARRIOR.KICK, 1]
+        ]);
+        for (const [skillId, factor] of expected) {
+          for (const live of [false, true]) {
+            const context = {
+              catalog: runtime.catalog,
+              time: 1,
+              config: { selectedTraitIds: [], target: { defiant, fixedHealthFraction: live ? 1 : fraction } },
+              ...(live
+                ? {
+                    event: { skillId },
+                    runtime: {
+                      encounter: {
+                        remainingHealthFraction: fraction,
+                        remainingHealth: 1000 * fraction,
+                        maximumHealth: 1000
+                      }
+                    }
+                  }
+                : { skillId })
+            };
+            assert.equal(runtime.modifyStrikeDamage(context, 100), 100 * factor);
+            assert.equal(runtime.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
+          }
+        }
+      }
+    }
+  }
+});
+
+test('dagger chain attacks own independent critical-only factors and selected tooltip facts', () => {
+  for (const patchId of ['current', preview.id]) {
+    const patched = patchId === preview.id;
+    const runtime = warrior.runtimeFor({ specialization: 'Core', patchId });
+    const patch = warrior.resolvePatch({ id: patchId });
+    for (const [skillId, factor, fact] of [
+      [WARRIOR.PRECISE_CUT, patched ? 1.25 : 1.15, patched ? '+25%' : '+15%'],
+      [WARRIOR.FOCUSED_SLASH, patched ? 1.35 : 1.15, patched ? '+35%' : '+15%'],
+      [WARRIOR.KEEN_STRIKE, 1, undefined],
+      [WARRIOR.KICK, 1, undefined]
+    ]) {
+      const context = { catalog: runtime.catalog, config: { selectedTraitIds: [] }, time: 0, event: { skillId } };
+      assert.equal(runtime.modifyCriticalDamage(context, 2), 2 * factor);
+      assert.equal(runtime.modifyStrikeDamage(context, 100), 100);
+      const skill = patch.balanceContext.catalog.skillsById.get(skillId);
+      const tooltip = warriorAppAdapter.skillTooltip(skill, patch);
+      assert.equal(tooltip.facts.find((entry) => entry.name === 'Critical damage')?.detail, fact);
+    }
+  }
+});
+
+test('Piercing Gales samples live vulnerability only for its own damage after Galeshot trait rules', () => {
+  for (const patchId of ['current', preview.id]) {
+    const runtime = ranger.runtimeFor({ specialization: 'Galeshot', patchId });
+    const patch = ranger.resolvePatch({ id: patchId });
+    assert.equal(patch.balanceContext.modifierRulesById.get('ranger.piercing-gales-vulnerability').order, 103);
+    for (const skillId of [RANGER.PIERCING_GALES, RANGER.PERFECT_STORM]) {
+      for (const time of [0, 1, 2]) {
+        const stacks = time * 10;
+        const context = {
+          catalog: runtime.catalog,
+          config: { selectedTraitIds: [] },
+          time,
+          event: { skillId },
+          query: { vulnerabilityStacksAt: (at) => at * 10 }
+        };
+        const factor = skillId === RANGER.PIERCING_GALES ? 1 + stacks * (patchId === preview.id ? 0.03 : 0.02) : 1;
+        assert.equal(runtime.modifyStrikeDamage(context, 100), 100 * factor);
+        assert.equal(runtime.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
       }
     }
   }

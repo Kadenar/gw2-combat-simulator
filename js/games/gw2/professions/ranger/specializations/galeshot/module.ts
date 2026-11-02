@@ -5,10 +5,7 @@ import { TRAIT_LINES } from '#gw2/professions/ranger/data/trait-lines.js';
 import { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/catalog-fields.js';
 import { galeshotHooks } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
 import { bindGaleshotUi } from '#gw2/professions/ranger/specializations/galeshot/presentation.js';
-import {
-  GALESHOT_BASE_SKILL_MECHANICS,
-  piercingGalesModifier
-} from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
+import { GALESHOT_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/galeshot/skills/index.js';
 import { galeshotState, projectGaleshotPlanningState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { galeshotTraits } from '#gw2/professions/ranger/specializations/galeshot/traits/index.js';
 import type { RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -24,8 +21,6 @@ export const galeshotModule = defineNativeModule({
     skills: materializeSkillDefinitions(GALESHOT_BASE_SKILL_MECHANICS)
   }),
   state: { create: galeshotState.create, project: projectGaleshotPlanningState },
-  // The skill modifier keeps its position after Galeshot's trait rules.
-  modifiers: [{ ...piercingGalesModifier, order: 103 }],
   hooks: galeshotHooks,
   presentation: bindGaleshotUi
 });

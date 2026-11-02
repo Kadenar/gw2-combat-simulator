@@ -1,9 +1,12 @@
 import {
+  fromModifier,
   fromSkill,
+  modifierFact,
   simulationEffectFacts,
   skillFact,
   skillTooltip,
   tooltipDecimal,
+  tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
   tooltipSeconds,
@@ -54,13 +57,45 @@ export const warriorCoreTooltips = {
         ])
   ],
   skills: {
+    // Skill-owned critical and target bonuses read the selected modifier values rather than duplicating tuning.
+    [ID.PRECISE_CUT]: skillTooltip('Slash your target. Critical strikes deal increased damage.', [
+      fromModifier('warrior.precise-cut-critical-damage', 'factor', 'Critical damage', tooltipFactorChange)
+    ]),
+    [ID.FOCUSED_SLASH]: skillTooltip('Slash your target. Critical strikes deal increased damage.', [
+      fromModifier('warrior.focused-slash-critical-damage', 'factor', 'Critical damage', tooltipFactorChange)
+    ]),
+    [ID.WASTRELS_RUIN]: skillTooltip('Strike your target, dealing increased damage against a defiant target.', [
+      fromModifier(
+        'warrior.wastrels-ruin-defiant',
+        'factor',
+        'Strike damage against a defiant target',
+        tooltipFactorChange
+      )
+    ]),
     [ID.DEFIANT_ROAR]: resourceTooltip,
     [ID.VALIANT_LEAP]: resourceTooltip,
     [ID.TACTICAL_BLOW]: resourceTooltip,
     [ID.ADRENALINE_RUSH]: resourceTooltip,
     [ID.EARTHSHAKER]: resourceTooltip,
     [ID.SKULL_CRACK]: resourceTooltip,
-    [ID.BREACHING_STRIKE]: resourceTooltip,
+    // Keep the burst resource description while sharing its intrinsic multiplier with the reference.
+    [ID.BREACHING_STRIKE]: (context, entity) => {
+      const tooltip = resourceTooltip(context, entity);
+      return {
+        ...tooltip,
+        description: `${tooltip.description} Deal increased damage against the simulator's boonless target.`,
+        facts: [
+          ...tooltip.facts,
+          modifierFact(
+            context,
+            'warrior.breaching-strike-boonless',
+            'factor',
+            'Strike damage against a boonless target',
+            tooltipFactorChange
+          )
+        ]
+      };
+    },
     [ID.PATH_TO_VICTORY]: resourceTooltip,
     [ID.PATH_TO_VICTORY_ID_71932]: resourceTooltip,
     [ID.PATH_TO_VICTORY_ID_71950]: resourceTooltip,
@@ -189,7 +224,15 @@ export const warriorCoreTooltips = {
       };
     },
     [ID.KILL_SHOT]: skillTooltip(
-      'Fire a burst shot. The listed strike is the first-tier base; higher adrenaline tiers increase its coefficient.'
+      'Fire a burst shot. The listed strike is the first-tier base; higher adrenaline tiers increase its coefficient. Deal increased damage when the target is defiant or below 50% health.',
+      [
+        fromModifier(
+          'warrior.kill-shot-threshold',
+          'factor',
+          'Strike damage against a defiant or below-half-health target',
+          tooltipFactorChange
+        )
+      ]
     ),
     [ID.ARCING_SLICE]: skillTooltip(
       "Deliver a burst strike and gain Fury. Higher adrenaline tiers extend Fury's duration."

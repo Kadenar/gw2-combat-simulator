@@ -10,10 +10,8 @@ import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
 import { warriorPassiveAttributes } from '#gw2/professions/warrior/core/skills/attribute-passives.js';
 import { WARRIOR_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/warrior/core/skills/autoattack-chains.js';
 import { WARRIOR_CORE_SKILLS } from '#gw2/professions/warrior/core/skills/index.js';
-import { warriorBurstSkillModifiers } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { WARRIOR_CORE_SKILL_FLIPS } from '#gw2/professions/warrior/core/skills/skill-flips.js';
 import { signetActiveAttributeEffects } from '#gw2/professions/warrior/core/skills/slot-skills.js';
-import { warriorDaggerSkillModifiers } from '#gw2/professions/warrior/core/skills/weapons/dagger.js';
 import { createWarriorCoreState, projectWarriorCorePlanningState } from '#gw2/professions/warrior/core/state.js';
 import { warriorCoreTraits } from '#gw2/professions/warrior/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/warrior/data/trait-lines.js';
@@ -58,8 +56,6 @@ export const warriorCoreModule = defineNativeModule({
     project: projectWarriorCorePlanningState
   },
   traitDefinitions: warriorCoreTraits,
-  // Keep burst rules before dagger rules when their explicit orders tie.
-  modifiers: [...warriorBurstSkillModifiers, ...warriorDaggerSkillModifiers],
   hooks: warriorCoreHooks,
   // Core presentation is catalog-independent and can be registered directly.
   presentation: warriorCoreUi
