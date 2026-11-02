@@ -8,7 +8,6 @@ import {
 } from '#gw2/professions/revenant/specializations/conduit/catalog-fields.js';
 import { conduitHooks } from '#gw2/professions/revenant/specializations/conduit/hooks.js';
 import { conduitUi } from '#gw2/professions/revenant/specializations/conduit/presentation.js';
-import { conduitEntityModifierRules } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
 import { CONDUIT_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/conduit/skills/index.js';
 import { conduitState, projectConduitPlanningState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { traitDefinitions } from '#gw2/professions/revenant/specializations/conduit/traits/index.js';
@@ -27,7 +26,6 @@ export const conduitModule = defineNativeModule({
   }),
   state: { create: conduitState.create, project: projectConduitPlanningState },
   // Copy the entity declarations at registration so module composition owns its rule list.
-  modifiers: Object.freeze([...conduitEntityModifierRules]),
   hooks: conduitHooks,
   presentation: conduitUi
 });

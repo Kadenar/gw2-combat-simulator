@@ -1,6 +1,6 @@
 /** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -96,6 +96,17 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
     slot: 'Weapon_2',
     cooldown: 8,
     castTimeMs: 560,
+    // Bleeding targets receive the intrinsic multiplier at impact.
+    modifiers: [
+      {
+        id: 'necromancer.life-siphon-bleeding-target',
+        order: -20,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.5,
+        when: (context) => targetConditionActive(context, CONDITION.BLEEDING)
+      }
+    ],
     // First-hit templates never emit at cast acceptance; the landed reaction selects them.
     effectVariants: [
       {
@@ -239,16 +250,4 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
       ]
     )
   }
-};
-
-/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
-export const lifeSiphonBleedingModifier: Gw2ModifierRule = {
-  id: 'necromancer.life-siphon-bleeding-target',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: 1.5,
-  order: 100,
-  when: (context) =>
-    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.LIFE_SIPHON &&
-    targetConditionActive(context, CONDITION.BLEEDING)
 };

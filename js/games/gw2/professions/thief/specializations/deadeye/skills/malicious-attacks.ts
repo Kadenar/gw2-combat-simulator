@@ -180,6 +180,18 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     // Once the stab commits, preserve its strike and the remaining cast lockout after interruption.
     interruptCommitMs: 320,
     retainsCastLockoutAfterInterrupt: true,
+    // Preserve player ownership and the defiant-target proxy for the rear-position bonus.
+    modifiers: [
+      {
+        order: 201,
+        id: 'thief.malicious-backstab-position',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 2,
+        // Malicious Backstab belongs to Deadeye; its rear-position rule stays out of the base Thief modifier set.
+        when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && Boolean(context.config?.target?.defiant)
+      }
+    ],
     effects: [
       {
         type: 'strike' as const,
@@ -524,18 +536,6 @@ const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
 
 /** Apply this skill family's intrinsic damage rules using live mark eligibility. */
 export const maliciousAttackModifiers: readonly Gw2ModifierRule[] = [
-  {
-    order: 201,
-    id: 'thief.malicious-backstab-position',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 2,
-    // Malicious Backstab belongs to Deadeye; its rear-position rule stays out of the base Thief modifier set.
-    when: (context) =>
-      isGw2PlayerModifierOwnedEvent(context.event) &&
-      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.MALICIOUS_BACKSTAB &&
-      Boolean(context.config?.target?.defiant)
-  },
   {
     order: 202,
     id: 'thief.malicious-stealth-attack',

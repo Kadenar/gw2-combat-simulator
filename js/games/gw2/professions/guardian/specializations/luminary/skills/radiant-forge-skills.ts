@@ -1,5 +1,5 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
   ACTOR,
   AURA,
@@ -44,6 +44,18 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     // The replacement strike lands at 480 ms and remains committed when the
     // action lane is released at the observed 520 ms cancel point.
     interruptCommitMs: 520,
+    // The accepted hammer variant scales this strike after shared additive bonuses.
+    modifiers: [
+      {
+        id: 'guardian.glaring-burst-hammer',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        // Glaring Burst's hammer variant scales its packet after shared additive damage bonuses.
+        operation: 'multiply',
+        factor: 1.25,
+        order: 100,
+        when: (context) => context.event?.metadata?.radiantWeapon === 'hammer'
+      }
+    ],
     // Variants follow weapon slots 2–5; shared Vulnerability always follows the selected payload.
     effects: [
       {
@@ -201,6 +213,17 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 480,
     // The 400 ms strike remains committed when the remaining aftercast is cancelled at 440 ms.
     interruptCommitMs: 440,
+    // Defiant targets receive this skill's intrinsic damage bonus.
+    modifiers: [
+      {
+        id: 'guardian.shining-spin',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.2,
+        order: 100,
+        when: (context) => Boolean(context.config?.target?.defiant)
+      }
+    ],
     effects: [
       {
         weaponStrengthProfileId: 'transform.radiant-forge',
@@ -323,6 +346,17 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 840,
     interruptCommitMs: 760,
     retainsCastLockoutAfterInterrupt: true,
+    // Use the packet's captured Radiant Courage empowerment.
+    modifiers: [
+      {
+        id: 'guardian.gleaming-blade',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.5,
+        order: 100,
+        when: (context) => context.event?.metadata?.guardianRadiantCourage === true
+      }
+    ],
     effects: [
       {
         weaponStrengthProfileId: 'transform.radiant-forge',
@@ -595,36 +629,6 @@ function radiantResolveStaff(runtime: GuardianRuntime, effects: readonly SkillEf
     ...atFirstStrike(effects, 'radiant-resolve')
   ];
 }
-
-/** Intrinsic weapon multipliers run after shared additive bonuses using each packet's accepted empowerment. */
-export const luminaryWeaponModifiers: readonly Gw2ModifierRule[] = [
-  {
-    id: 'guardian.shining-spin',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.2,
-    order: 100,
-    when: (context) => context.event?.skillId === ID.SHINING_SPIN && Boolean(context.config?.target?.defiant)
-  },
-  {
-    id: 'guardian.glaring-burst-hammer',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    // Glaring Burst's hammer variant scales its packet after shared additive damage bonuses.
-    operation: 'multiply',
-    factor: 1.25,
-    order: 100,
-    when: (context) => context.event?.skillId === ID.GLARING_BURST && context.event.metadata?.radiantWeapon === 'hammer'
-  },
-  {
-    id: 'guardian.gleaming-blade',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    order: 100,
-    when: (context) =>
-      context.event?.skillId === ID.GLEAMING_BLADE && context.event.metadata?.guardianRadiantCourage === true
-  }
-];
 
 /** Linked self effects use the packet materializer's scaling and anchor so they resolve with the selected impact. */
 export function luminaryImpactAt(cast: RuntimeCast<GuardianSkill>): number {

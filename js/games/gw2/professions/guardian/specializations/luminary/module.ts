@@ -7,7 +7,6 @@ import { luminaryHooks } from '#gw2/professions/guardian/specializations/luminar
 import { luminaryStanceModifiers } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
 import { LUMINARY_SKILL_MECHANICS } from '#gw2/professions/guardian/specializations/luminary/skills/index.js';
-import { luminaryWeaponModifiers } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { GUARDIAN_LUMINARY_SKILL_FLIPS } from '#gw2/professions/guardian/specializations/luminary/skills/skill-flips.js';
 import {
   luminaryState,
@@ -28,7 +27,7 @@ export const luminaryModule = defineNativeModule({
   }),
   state: { create: luminaryState.create, project: projectLuminaryPlanningState },
   // Stance rules precede weapon rules when their authored order ties.
-  modifiers: [...luminaryStanceModifiers, ...luminaryWeaponModifiers],
+  modifiers: luminaryStanceModifiers,
   traitDefinitions: luminaryTraits,
   hooks: luminaryHooks,
   presentation: bindLuminaryUi

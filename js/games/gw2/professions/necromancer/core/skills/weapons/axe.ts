@@ -1,5 +1,5 @@
 /** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -51,6 +51,20 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 6,
     castTimeMs: 1520,
     interruptMode: 'per-packet',
+    // Intrinsic Vulnerability scaling multiplies the ordinary target bonus.
+    modifiers: [
+      {
+        // Ghastly Claws' own Vulnerability bonus multiplies the target's ordinary Vulnerability multiplier.
+        id: 'necromancer.ghastly-claws-vulnerability',
+        order: 108,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        // The reference and runtime share this per-stack value, including selected balance edits.
+        parameters: { damagePerStack: 0.01 },
+        factor: (context, _target, parameters) => 1 + vulnerabilityStacks(context) * parameters.damagePerStack,
+        when: (context) => context.event?.actorType === ACTOR.PLAYER
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -125,15 +139,3 @@ export const NECROMANCER_AXE_EXTRA_SKILLS: readonly Skill[] = [
     ]
   }
 ];
-
-/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
-export const ghastlyClawsVulnerabilityModifier: Gw2ModifierRule = {
-  // Ghastly Claws' own Vulnerability bonus multiplies the target's ordinary Vulnerability multiplier.
-  id: 'necromancer.ghastly-claws-vulnerability',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  // The reference and runtime share this per-stack value, including selected balance edits.
-  parameters: { damagePerStack: 0.01 },
-  factor: (context, _target, parameters) => 1 + vulnerabilityStacks(context) * parameters.damagePerStack,
-  when: (context) => context.event?.skillId === ID.GHASTLY_CLAWS && context.event.actorType === ACTOR.PLAYER
-};

@@ -6,7 +6,7 @@
  * makes elite weapon families profession-wide.
  */
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
+import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
@@ -72,6 +72,19 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
     shroudSlot: 1,
     castTimeMs: 600,
     interruptCommitMs: 560,
+    // Scale this strike with the spirit count captured for its packet.
+    modifiers: [
+      {
+        id: 'necromancer.essence-blast-active-spirits',
+        order: 0,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        parameters: { damagePerSpirit: 0.15 },
+        factor: (context, _target, parameters) =>
+          1 + (context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
+        when: (context) => (context.event?.metadata?.activeSpirits || 0) > 0
+      }
+    ],
     effects: [
       {
         weaponStrengthProfileId: 'transform.ritualist-shroud',
@@ -495,19 +508,6 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
     // This definition selects its producer; shared owners retain recipients, charge pools, and creature lifetimes.
     sideEffects: [{ on: 'castCommit', do: { type: 'ritualist.resilient-weapon' } }]
   }
-};
-
-/** Spirit bonuses add together, then scale Essence Blast separately from other outgoing damage bonuses. */
-export const essenceBlastSpiritModifier: Gw2ModifierRule = {
-  id: 'necromancer.essence-blast-active-spirits',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  parameters: { damagePerSpirit: 0.15 },
-  factor: (context, _target, parameters) =>
-    1 + (context.event?.metadata?.activeSpirits || 0) * parameters.damagePerSpirit,
-  when: (context) =>
-    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.ESSENCE_BLAST &&
-    (context.event?.metadata?.activeSpirits || 0) > 0
 };
 
 /** Anguish retains its impact-time formula and source identity for the reference's icon and description. */

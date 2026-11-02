@@ -6,7 +6,6 @@ import { ritualistHooks } from '#gw2/professions/necromancer/specializations/rit
 import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ritualist/presentation.js';
 import {
   anguishConditionModifier,
-  essenceBlastSpiritModifier,
   RITUALIST_SKILLS
 } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
 import { NECROMANCER_RITUALIST_SKILL_FLIPS } from '#gw2/professions/necromancer/specializations/ritualist/skills/skill-flips.js';
@@ -29,9 +28,6 @@ export const ritualistModule = defineNativeModule({
   state: { create: ritualistState.create, project: projectRitualistState },
   hooks: ritualistHooks,
   // Retain the skill rules' established order relative to registered trait modifiers.
-  modifiers: [
-    { ...essenceBlastSpiritModifier, order: 0 },
-    { ...anguishConditionModifier, order: 2 }
-  ],
+  modifiers: [{ ...anguishConditionModifier, order: 2 }],
   presentation: bindRitualistUi
 });

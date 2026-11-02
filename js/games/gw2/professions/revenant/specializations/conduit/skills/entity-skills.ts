@@ -1,5 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { conditionEffectTicks, impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
@@ -201,6 +201,16 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     affinityOnHit: true,
     legendId: 'LegendaryEntity',
     castTimeMs: 920,
+    // Assassin resonance scales every strike owned by this skill.
+    modifiers: [
+      {
+        id: 'revenant.twin-moon-assassin-resonance',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.5,
+        when: (context) => assassinLegendEquipped(context)
+      }
+    ],
     comboFinishers: [
       {
         ownerId: 'revenant',
@@ -305,6 +315,17 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     legendId: 'LegendaryEntity',
     // The 280 ms launch and 240 ms teleport form one main cast; impact precedes completion by one action tick.
     castTimeMs: 520,
+    // Assassin resonance follows the equipped legend, even when it is inactive.
+    modifiers: [
+      {
+        id: 'revenant.beguiling-haze-assassin-resonance',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        // Assassin resonance doubles Beguiling Haze damage when Assassin is equipped (not necessarily active).
+        factor: 2,
+        when: (context) => assassinLegendEquipped(context)
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -441,24 +462,3 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
 function assassinLegendEquipped(context: Gw2ModifierContext): boolean {
   return (revenantRuntimeCoreState(context).selectedLegendIds || []).includes(LEGEND.ASSASSIN);
 }
-
-// Resonance retains its multiplier stage and source skill identity for reference icons and descriptions.
-export const conduitEntityModifierRules: readonly Gw2ModifierRule[] = [
-  {
-    id: 'revenant.beguiling-haze-assassin-resonance',
-    sourceSkillId: ID.BEGUILING_HAZE,
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    // Assassin resonance doubles Beguiling Haze damage when Assassin is equipped (not necessarily active).
-    factor: 2,
-    when: (context) => Number(context.event?.skillId) === ID.BEGUILING_HAZE && assassinLegendEquipped(context)
-  },
-  {
-    id: 'revenant.twin-moon-assassin-resonance',
-    sourceSkillId: ID.TWIN_MOON_SWEEP,
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    when: (context) => Number(context.event?.skillId) === ID.TWIN_MOON_SWEEP && assassinLegendEquipped(context)
-  }
-];
