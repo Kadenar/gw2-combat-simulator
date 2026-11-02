@@ -263,8 +263,8 @@ test("Serpent's Touch distinguishes Potent Poison without repeating its base eff
     { type: 'condition', condition: 'Poisoned', name: 'poisoned', duration: 2, target: 'self' },
     { type: 'condition', condition: 'Poisoned', name: 'bonus application', duration: 3 }
   ]);
-  assert.equal(effects.facts[0].detail, '2s — on yourself');
-  assert.equal(effects.facts[1].detail, '3s — bonus application');
+  assert.equal(effects.facts[0].detail, '2s - on yourself');
+  assert.equal(effects.facts[1].detail, '3s - bonus application');
 });
 
 test('Specter barrier tooltips distinguish self recipients and use the barrier CDN glyph', async () => {
@@ -699,7 +699,7 @@ test('boon tooltip stack counts appear only for Might and Stability', () => {
       const model = simulationEffectFacts([
         { type, [type === 'boon' ? 'boon' : 'kind']: boon, stacks, duration: 4, audience: { recipients: 'party' } }
       ]);
-      assert.equal(model.facts[0].detail, '4s — party');
+      assert.equal(model.facts[0].detail, '4s - party');
       assert.equal(model.facts[0].stacks, badge);
     }
   }
@@ -1103,7 +1103,7 @@ test('New Genes tooltip lists shared boons and each Morph bonus once', async () 
     const qualifier = effect.metadata?.trigger
       ? `${effect.metadata.trigger.replace(/^\w/, (letter) => letter.toUpperCase())} only`
       : 'All Morph skills';
-    const matching = model.facts.filter((fact) => fact.name === effect.boon && fact.detail.endsWith(`— ${qualifier}`));
+    const matching = model.facts.filter((fact) => fact.name === effect.boon && fact.detail.endsWith(`- ${qualifier}`));
     assert.equal(matching.length, 1, `${effect.name} appears once with its granting skill`);
   }
 
@@ -1145,7 +1145,7 @@ test('handler-owned tooltips distinguish conditional values and recipients', asy
   const warriorContext = withPatchPreview(warrior, null).resolvePatch().balanceContext;
   const sundering = describeSimulationTrait(warriorContext, { id: 1316, name: 'Sundering Burst' }, warriorTooltips);
   assert.equal(sundering.facts.find((fact) => fact.detail.includes('noncritical')).stacks, 5);
-  assert.equal(sundering.facts.find((fact) => /— critical hit/.test(fact.detail)).stacks, 10);
+  assert.equal(sundering.facts.find((fact) => /- critical hit/.test(fact.detail)).stacks, 10);
 
   const variants = simulationEffectFacts([
     {

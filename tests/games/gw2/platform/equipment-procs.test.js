@@ -642,8 +642,8 @@ test('Relic of Akeem triggers on control against five confusion stacks', () => {
         proc.type === 'relic_proc' && proc.skill === 'Relic of Akeem' && proc.sourceSkill === 'Bladesong Dissonance'
     )
   );
-  assert.ok(result.breakdown.some((entry) => entry.name === 'Relic of Akeem — Confusion' && entry.conditionDamage > 0));
-  assert.ok(result.breakdown.some((entry) => entry.name === 'Relic of Akeem — Torment' && entry.conditionDamage > 0));
+  assert.ok(result.breakdown.some((entry) => entry.name === 'Relic of Akeem - Confusion' && entry.conditionDamage > 0));
+  assert.ok(result.breakdown.some((entry) => entry.name === 'Relic of Akeem - Torment' && entry.conditionDamage > 0));
   // Both Akeem applications declare effect ownership without relying on the Relic source label.
   const applications = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.skillName === 'Relic of Akeem'

@@ -303,7 +303,7 @@ test('Bladesworn Gunsaber transitions omit EI swaps and Dragon Trigger charge wa
     {
       s62745: { name: 'Unsheathe Gunsaber' },
       s62803: { name: 'Dragon Trigger' },
-      s62797: { name: 'Dragon Slash—Force' },
+      s62797: { name: 'Dragon Slash-Force' },
       s62861: { name: 'Sheathe Gunsaber' },
       's-2': { name: 'Weapon Swap', isSwap: true }
     }
@@ -498,7 +498,7 @@ test('Revenant import preserves an explicit follow-up without inventing its miss
   assert.equal(simulation.steps.at(-1).invalid, true);
   assert.match(
     simulation.warnings.map(({ message }) => message).join(' '),
-    /Brutal Blade is unavailable — cast Preparation Thrust first/
+    /Brutal Blade is unavailable - cast Preparation Thrust first/
   );
 });
 
@@ -649,7 +649,7 @@ for (const timeGained of [200, -200]) {
     assert.equal(simulation.steps.at(-1).invalid, true);
     assert.match(
       simulation.warnings.map(({ message }) => message).join(' '),
-      /Vengeful Strike is unavailable — cast Strike first/
+      /Vengeful Strike is unavailable - cast Strike first/
     );
   });
 }
@@ -708,7 +708,7 @@ test('aligns dps.report combat start with an opening Symbol of Luminance packet'
   });
 
   assert.ok(
-    simulation.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Symbol of Luminance — Initial')
+    simulation.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Symbol of Luminance - Initial')
   );
 });
 

@@ -56,7 +56,7 @@ export const dwarvenBattleTraining = defineTrait({
         actorType: ACTOR.PLAYER,
         skillId: TRAIT.DWARVEN_BATTLE_TRAINING,
         skillName: 'Dwarven Battle Training',
-        name: 'Dwarven Battle Training — Weakness'
+        name: 'Dwarven Battle Training - Weakness'
       }
     }
   ]

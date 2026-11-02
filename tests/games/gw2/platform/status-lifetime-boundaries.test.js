@@ -279,7 +279,7 @@ test('Symbol of Ignition includes its endpoint while Dragonhunter tether stops a
     );
     assert.equal(ignition, at >= 0.001 && at <= 1.001);
     const tether = result.events.some(
-      (event) => event.type === 'condition' && event.name === 'Spear of Justice — Active Burning' && event.at === at
+      (event) => event.type === 'condition' && event.name === 'Spear of Justice - Active Burning' && event.at === at
     );
     assert.equal(tether, at < 1.001);
   }

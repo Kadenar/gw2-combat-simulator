@@ -30,7 +30,7 @@ const definitions = [
     rotation: [
       { type: 'combat-start' },
       'Dragon Trigger',
-      { name: 'Dragon Slash—Force', releaseAtCharges: 2, releaseDelayMs: 960, impactDelayMs: 500 }
+      { name: 'Dragon Slash-Force', releaseAtCharges: 2, releaseDelayMs: 960, impactDelayMs: 500 }
     ],
     verify(result) {
       const release = result.events.find(

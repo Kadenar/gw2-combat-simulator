@@ -24,12 +24,12 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 
 ## Implemented systems
 
-- **Core** — active and alternate pets, autonomous pet attacks, Beast commands, pet Alacrity, pet swaps, pet traits, two
+- **Core** - active and alternate pets, autonomous pet attacks, Beast commands, pet Alacrity, pet swaps, pet traits, two
   weapon sets, shared gear/resolver rules.
-- **Druid** — Astral Force, Celestial Avatar entry/drain/exit, glyphs, and damage-relevant Avatar traits.
-- **Soulbeast** — merge state, Beast skills, pet-family bonuses, and stance / damage modifiers.
-- **Untamed** — player/pet unleash state, Hammer variants, ambush windows, and specialization traits.
-- **Galeshot** — Cyclone Bow, rechargeable arrows, Wind Force, bow transitions, and its pet interactions.
+- **Druid** - Astral Force, Celestial Avatar entry/drain/exit, glyphs, and damage-relevant Avatar traits.
+- **Soulbeast** - merge state, Beast skills, pet-family bonuses, and stance / damage modifiers.
+- **Untamed** - player/pet unleash state, Hammer variants, ambush windows, and specialization traits.
+- **Galeshot** - Cyclone Bow, rechargeable arrows, Wind Force, bow transitions, and its pet interactions.
 
 `data/gw2/builds/ranger/manifest.json` and `data/gw2/rotations/ranger/` hold the supported build and rotation corpus.
 

@@ -91,7 +91,7 @@ export function buildThiefCondition(
     ...fields,
     type: 'condition',
     at: canonicalTime(options.at),
-    name: options.name ?? `${fields.skillName ?? skill?.name} — ${options.condition}`
+    name: options.name ?? `${fields.skillName ?? skill?.name} - ${options.condition}`
   };
 }
 

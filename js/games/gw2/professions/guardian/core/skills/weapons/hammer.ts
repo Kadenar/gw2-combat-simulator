@@ -67,7 +67,7 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         metadata: { guardianSymbol: true },
         coefficient: 1,
         hits: 1,
-        name: 'Symbol of Protection — Hammer Damage'
+        name: 'Symbol of Protection - Hammer Damage'
       },
       {
         type: 'strike',
@@ -79,7 +79,7 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
         intervalMs: 1000,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        name: 'Symbol of Protection — Symbol Damage'
+        name: 'Symbol of Protection - Symbol Damage'
       }
     ]
   },

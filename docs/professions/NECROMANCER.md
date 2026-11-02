@@ -16,18 +16,18 @@ through Core for Weaponmaster Training.
 
 ## Implemented systems
 
-- **Core** — Death Shroud (five-skill bar, minimum entry resource, continuous life-force drain, manual/forced exit,
+- **Core** - Death Shroud (five-skill bar, minimum entry resource, continuous life-force drain, manual/forced exit,
   entry-skill recharge starting on exit); all terrestrial weapon families with swap validation, ammo, recharge, flips,
   and autoattack chains; persistent minions, command flips, minion attacks/consumption; signets, life siphons,
   corruption self-conditions, and duration-preserving condition transfers; Lich Form; Spear Soul Shards; Weaponmaster
   Training presentation.
-- **Reaper** — Reaper's Shroud (full bar, autoattack chain, flips, channels, control, chill), wells, shouts, and Reaper
+- **Reaper** - Reaper's Shroud (full bar, autoattack chain, flips, channels, control, chill), wells, shouts, and Reaper
   trait modifiers.
-- **Scourge** — F1-F5, three-charge Manifest Sand Shade, fixed base-health life-force costs, Desert/Sandstorm Shroud,
+- **Scourge** - F1-F5, three-charge Manifest Sand Shade, fixed base-health life-force costs, Desert/Sandstorm Shroud,
   and barrier-reactive traits. Scourge is the non-transform exception.
-- **Harbinger** — Harbinger Shroud (zero-resource entry, Blight generation to a 25-stack cap, empowered-consumption
+- **Harbinger** - Harbinger Shroud (zero-resource entry, Blight generation to a 25-stack cap, empowered-consumption
   thresholds), elixirs, and Dark Barrage.
-- **Ritualist** — Ritualist's Shroud, spirits (Anguish/Wanderlust/Preservation), spirit attacks, Essence Blast,
+- **Ritualist** - Ritualist's Shroud, spirits (Anguish/Wanderlust/Preservation), spirit attacks, Essence Blast,
   innervates, and its supporting traits.
 - Static and resolver-time strike/critical/condition/duration/recharge/resource/ shroud/chill/fear/minion/spirit/Blight
   modifiers, with additive vs. multiplicative grouping. Critical procs use the shared seeded critical-hit facts in both

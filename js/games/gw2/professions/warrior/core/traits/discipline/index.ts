@@ -280,7 +280,7 @@ function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
             skillName: cast.skill.name,
             activationId: cast.id
           },
-          transform: (event) => ({ ...event, name: 'Burst Mastery — Swiftness', priority: 5 }),
+          transform: (event) => ({ ...event, name: 'Burst Mastery - Swiftness', priority: 5 }),
           effects: (candidate) => candidate === selectedEffect
         });
     }

@@ -123,7 +123,7 @@ function formatDifference(value: number): string {
 }
 
 function formatPercent(value: number | null): string {
-  return value == null || !Number.isFinite(value) ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
+  return value == null || !Number.isFinite(value) ? '-' : `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
 }
 
 /** Reuses one stable Compare control so entering comparison mode never reorders the heading actions. */
@@ -255,29 +255,29 @@ function createComparisonView(
   summary.setAttribute('aria-label', 'Rotation comparison summary');
   summary.innerHTML = `<div class="rotation-comparison-metrics">
     <div class="rotation-comparison-stat rotation-comparison-reference-stat">
-      <span>Reference DPS</span><strong data-comparison-reference-dps>—</strong>
-      <small>Damage <span data-comparison-reference-damage>—</span></small>
+      <span>Reference DPS</span><strong data-comparison-reference-dps>-</strong>
+      <small>Damage <span data-comparison-reference-damage>-</span></small>
     </div>
     <div class="rotation-comparison-stat rotation-comparison-current-stat">
-      <span>Current DPS</span><strong data-comparison-current-dps>—</strong>
-      <small>Damage <span data-comparison-current-damage>—</span></small>
+      <span>Current DPS</span><strong data-comparison-current-dps>-</strong>
+      <small>Damage <span data-comparison-current-damage>-</span></small>
     </div>
     <div class="rotation-comparison-stat rotation-comparison-change-stat">
-      <span>Change</span><strong><span data-comparison-dps-change>—</span> <small data-comparison-dps-percent>—</small></strong>
-      <small>Damage <span data-comparison-damage-change>—</span> <span data-comparison-damage-percent>—</span></small>
+      <span>Change</span><strong><span data-comparison-dps-change>-</span> <small data-comparison-dps-percent>-</small></strong>
+      <small>Damage <span data-comparison-damage-change>-</span> <span data-comparison-damage-percent>-</span></small>
     </div>
   </div>`;
 
   const currentLabel = document.createElement('h4');
   currentLabel.id = 'rotation-comparison-current-label';
   currentLabel.className = 'rotation-comparison-timeline-label rotation-comparison-current-label';
-  currentLabel.textContent = 'Current — Editing';
+  currentLabel.textContent = 'Current - Editing';
 
   const referenceSection = document.createElement('section');
   referenceSection.id = 'rotation-comparison-reference';
   referenceSection.className = 'rotation-comparison-reference';
   referenceSection.innerHTML = `<header class="rotation-comparison-reference-header">
-      <h4 class="rotation-comparison-timeline-label rotation-comparison-reference-label">Reference — Read only</h4>
+      <h4 class="rotation-comparison-timeline-label rotation-comparison-reference-label">Reference - Read only</h4>
       <label class="rotation-comparison-scroll-link" title="Align casts by combat time when scrolling either rotation. Uncheck to scroll independently.">
         <input type="checkbox" data-comparison-link-scrolling> Link scrolling by time
       </label>
@@ -457,10 +457,10 @@ export function renderRotationComparison(app: ProfessionAppState): void {
   setText('[data-comparison-current-dps]', formatNumber(metrics.currentDps));
   setText('[data-comparison-reference-damage]', formatNumber(metrics.referenceDamage));
   setText('[data-comparison-current-damage]', formatNumber(metrics.currentDamage));
-  setText('[data-comparison-dps-change]', fresh ? formatDifference(metrics.dpsDifference) : '—');
-  setText('[data-comparison-dps-percent]', fresh ? formatPercent(metrics.dpsPercentDifference) : '—');
-  setText('[data-comparison-damage-change]', fresh ? formatDifference(metrics.damageDifference) : '—');
-  setText('[data-comparison-damage-percent]', fresh ? formatPercent(metrics.damagePercentDifference) : '—');
+  setText('[data-comparison-dps-change]', fresh ? formatDifference(metrics.dpsDifference) : '-');
+  setText('[data-comparison-dps-percent]', fresh ? formatPercent(metrics.dpsPercentDifference) : '-');
+  setText('[data-comparison-damage-change]', fresh ? formatDifference(metrics.damageDifference) : '-');
+  setText('[data-comparison-damage-percent]', fresh ? formatPercent(metrics.damagePercentDifference) : '-');
 
   applyTimelinePreviewHighlight(currentTimeline, currentResult, metrics.timeMs);
 }

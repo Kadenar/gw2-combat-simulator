@@ -31,7 +31,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
     (hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'Meticulous ' : '') + (occurrence === 0 ? 'Dash' : 'Bomb');
   const strike = requireEffect(profile, 'strike', packet, requireSkillAction(profile, 'surfer'));
   const burning = requireEffect(profile, 'condition', packet, requireSkillAction(profile, 'surfer'));
-  const name = occurrence === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash — Bomb';
+  const name = occurrence === 0 ? 'Forged Surfer Dash' : 'Forged Surfer Dash - Bomb';
 
   if (strike)
     buildThiefStrikes({
@@ -51,7 +51,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
         at: runtime.time,
         skillId,
         skillName: 'Forged Surfer Dash',
-        name: `${name} — Burning`,
+        name: `${name} - Burning`,
         condition: String(burning.condition),
         stacks: effectNumber(profile, burning, 'stacks'),
         duration: effectNumber(profile, burning, 'duration')

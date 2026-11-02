@@ -383,7 +383,7 @@ export function executeMirageCloneAmbushPackets(
           source: 'Clone',
           actorType: ACTOR.SUMMON,
           summonKind: 'clone',
-          name: `${ambush.name} — Clone`
+          name: `${ambush.name} - Clone`
         }
       ).forEach((packet) => {
         state.effects.emit({
@@ -396,7 +396,7 @@ export function executeMirageCloneAmbushPackets(
       });
 
     for (const condition of ambush.clone.conditions || []) {
-      buildMesmerConditions(state, `${ambush.name} — Clone`, impactAt, condition, 'Clone', '', {
+      buildMesmerConditions(state, `${ambush.name} - Clone`, impactAt, condition, 'Clone', '', {
         metadata: { cloneId: clone.id },
         skillId: ambush.id,
         actorType: ACTOR.SUMMON,

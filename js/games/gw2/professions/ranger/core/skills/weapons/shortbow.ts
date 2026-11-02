@@ -290,7 +290,7 @@ export function triggerBloodThirst(context: RangerResolverContext, event: Gw2Res
         skillName: 'Blood Thirst',
         triggeredBy: event.skillName
       },
-      name: 'Blood Thirst — Bleeding'
+      name: 'Blood Thirst - Bleeding'
     }
   );
 }

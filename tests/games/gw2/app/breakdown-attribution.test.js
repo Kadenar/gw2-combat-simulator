@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import {
+  baseBreakdownName,
   ownerConditionBreakdown,
   skillBreakdownRows,
   skillDamageIdentityKey,
@@ -13,6 +14,13 @@ import { ENGINEER_SKILL_IDS as SKILL, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/p
 import { RANGER_SKILL_IDS as RANGER_SKILL } from '#gw2/professions/ranger/data/ids.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
+
+// Attribution strips effect suffixes without truncating hyphenated canonical skill names.
+test('breakdown name attribution preserves skill-name hyphens', () => {
+  assert.equal(baseBreakdownName('Dragon Slash-Force'), 'Dragon Slash-Force');
+  assert.equal(baseBreakdownName('Dragon Slash-Force - Burning'), 'Dragon Slash-Force');
+  assert.equal(baseBreakdownName('Mech Arms: Single-Edge Cutters - Bleeding'), 'Mech Arms: Single-Edge Cutters');
+});
 
 // The condition composition uses resolved payouts, isolates owners, and shares the report's observation window.
 test('condition contributions combine skills within player and named entity ownership', () => {
@@ -96,7 +104,7 @@ test('same-named trait applications do not lend a skill ID or icon to another tr
               event: {
                 type: 'condition',
                 at,
-                name: 'Solar Focusing Lens — Burning',
+                name: 'Solar Focusing Lens - Burning',
                 sourceId: TRAIT.SOLAR_FOCUSING_LENS,
                 source: 'Trait',
                 actorType: 'player',

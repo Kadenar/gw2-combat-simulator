@@ -30,9 +30,9 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
 
   if (apm) {
     const share = (value: number, total: number): string =>
-      total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '—';
+      total > 0 ? `${((value / total) * 100).toFixed(1)}%` : '-';
     const time = (seconds: number): string =>
-      `${seconds.toFixed(1)}s — ${share(seconds, apm.durationSeconds)} of rotation`;
+      `${seconds.toFixed(1)}s - ${share(seconds, apm.durationSeconds)} of rotation`;
     const details = [
       { label: 'Non-autoattack actions', value: apm.actionCount.toLocaleString() },
       { label: 'Execution window', value: `${apm.durationSeconds.toFixed(1)}s` },
@@ -54,12 +54,12 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
         label: `Peak APM over ${window}`,
         value: peak
           ? `${Math.round(peak.apm)} APM (${peak.startSeconds.toFixed(1)} to ${peak.endSeconds.toFixed(1)}s)`
-          : '—'
+          : '-'
       }))
     ];
     metrics.splice(1, 0, {
       label: 'Actions / min',
-      value: apm.apm == null ? '\u2014' : `${Math.round(apm.apm).toLocaleString()} APM`,
+      value: apm.apm == null ? '-' : `${Math.round(apm.apm).toLocaleString()} APM`,
       className: 'apm',
       title: `${apm.actionCount.toLocaleString()} non-autoattack actions over ${apm.durationSeconds.toFixed(1)} seconds.\n${details.map((detail) => `${detail.label}: ${detail.value}`).join('\n')}`,
       details

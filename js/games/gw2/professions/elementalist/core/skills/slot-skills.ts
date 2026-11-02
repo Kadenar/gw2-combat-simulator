@@ -5,7 +5,7 @@
  * attunement-specific Elemental Power and Storms variants), conjures, cantrips, and the two
  * Glyph of Elementals summons.
  *
- * These are pure data definitions — no behavior. Stateful behavior is owned by the corresponding
+ * These are pure data definitions - no behavior. Stateful behavior is owned by the corresponding
  * mechanic subsystem, while `tasks` names handlers in `core/execution/index.ts`.
  */
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
@@ -89,7 +89,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   // --- Arcane -----------------------------------------------------------------
   // Blast and Wave are ammo skills: `cooldown` is the short between-charge lockout while
-  // `cooldown` refills a charge. Arcane Echo carries no packets — its recast window is
+  // `cooldown` refills a charge. Arcane Echo carries no packets - its recast window is
   // driven from core/execution/index.ts.
   [ID.ARCANE_BLAST]: {
     name: 'Arcane Blast',
@@ -167,7 +167,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // --- Conjures ---------------------------------------------------------------
   // Summoning a bundle has no packets of its own; the cast swaps the equipped conjure and arms
   // the ground pickup in core/mechanics/conjures.ts, and the bundle's weapon skills live in
-  // conjure-skills.ts. (Conjure Fiery Greatsword, below, is the exception — it also strikes.)
+  // conjure-skills.ts. (Conjure Fiery Greatsword, below, is the exception - it also strikes.)
   [ID.CONJURE_FROST_BOW]: {
     name: 'Conjure Frost Bow',
     icon: 'https://render.guildwars2.com/file/CC6D556B7C3F95C49E54D697CC2B4E79105DC594/103348.png',
@@ -205,7 +205,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }]
   },
   // --- Glyph of Elemental Power (one variant per attunement) --------------------
-  // The four entries share one slot; `attunement` is the gate — availability rejects a variant
+  // The four entries share one slot; `attunement` is the gate - availability rejects a variant
   // unless it matches the current primary attunement. Only the Fire and Air variants carry
   // packets; Water and Earth are modelled as no-ops.
   // The selectable glyph resolves to its live elemental payload before cast acceptance.

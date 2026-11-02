@@ -64,9 +64,9 @@ export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<Thief
       )?.icon,
       name:
         effect.type === 'condition'
-          ? `${name} — ${effect.condition}`
+          ? `${name} - ${effect.condition}`
           : effect.type === 'boon'
-            ? `${name} — ${effect.boon}`
+            ? `${name} - ${effect.boon}`
             : name
     })
   });

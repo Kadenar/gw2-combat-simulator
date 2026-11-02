@@ -129,17 +129,17 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
               {
                 atMs: 280,
                 coefficient: 1.5,
-                name: 'Elemental Blast — Pulse 1'
+                name: 'Elemental Blast - Pulse 1'
               },
               {
                 atMs: 1280,
                 coefficient: 1.5,
-                name: 'Elemental Blast — Pulse 2'
+                name: 'Elemental Blast - Pulse 2'
               },
               {
                 atMs: 2280,
                 coefficient: 1.5,
-                name: 'Elemental Blast — Pulse 3'
+                name: 'Elemental Blast - Pulse 3'
               }
             ]
           },

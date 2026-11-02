@@ -45,14 +45,14 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
         ticks: [{ atMs: 240, coefficient: 0.45 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        name: 'Double Chop — First Chop Damage'
+        name: 'Double Chop - First Chop Damage'
       },
       {
         type: 'strike',
         ticks: [{ atMs: 560, coefficient: 1.05 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        name: 'Double Chop — Second Chop Damage'
+        name: 'Double Chop - Second Chop Damage'
       }
     ]
   },
@@ -82,7 +82,7 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
         ticks: [{ atMs: 1000, coefficient: 1.6 }],
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        name: 'Triple Chop — Final chop damage.'
+        name: 'Triple Chop - Final chop damage.'
       }
     ]
   },

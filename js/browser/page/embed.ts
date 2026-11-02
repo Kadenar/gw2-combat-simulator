@@ -3,14 +3,14 @@
  * `<iframe>` on another site).
  *
  * Three concerns:
- *  1. Iframe auto-resize — reports document height to the parent via
+ *  1. Iframe auto-resize - reports document height to the parent via
  *     `postMessage` so the host can size the frame to its content.
- *  2. Embed chrome — when the page is opened with `?embed=1`, a top-level
+ *  2. Embed chrome - when the page is opened with `?embed=1`, a top-level
  *     `embed` class is added so standalone-site chrome (hero, footer, marketing
  *     sections) can be hidden in CSS, and internal navigation is rewritten to
  *     preserve the flag so the whole tool stays embedded as the user moves
  *     between the landing page and profession pages.
- *  3. Host viewport tracking — keeps embedded dialogs, focus mode, and the
+ *  3. Host viewport tracking - keeps embedded dialogs, focus mode, and the
  *     sticky header in the visible browser area while the parent page scrolls
  *     and resizes.
  *
@@ -128,7 +128,7 @@ function isFramed(): boolean {
   try {
     return globalThis.self !== globalThis.top;
   } catch {
-    // Cross-origin access to `top` throws — which only happens when framed.
+    // Cross-origin access to `top` throws - which only happens when framed.
     return true;
   }
 }

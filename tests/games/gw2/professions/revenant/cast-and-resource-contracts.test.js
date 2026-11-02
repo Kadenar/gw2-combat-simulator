@@ -503,7 +503,7 @@ test('Thrill of Combat catches up on its original cadence while capped grants re
   const withoutSiphon = (catalog) =>
     applyBalanceProfilePatch(
       applySkillPatch(catalog, {
-        skills: { [skillId]: { removeEffects: [{ type: 'strike', name: 'Battle Scars — Life Siphon' }] } }
+        skills: { [skillId]: { removeEffects: [{ type: 'strike', name: 'Battle Scars - Life Siphon' }] } }
       }),
       {
         balanceProfiles: {

@@ -37,7 +37,7 @@ function seconds(value: number): string {
 export function chargeReleaseRowLabel(row: ChargeReleaseEditorRow, combatReferenceMs = 0): string {
   if (row.disabled) return `${row.charges} charges · unavailable`;
 
-  const flow = row.flowAfter == null ? '—' : row.flowAfter.toFixed(2);
+  const flow = row.flowAfter == null ? '-' : row.flowAfter.toFixed(2);
   return (
     `${row.charges} charges · ${formatTimelineTime(row.at * 1000, combatReferenceMs, 3)} (+${seconds(row.delta)}) · ` +
     `${flow} Flow · ${row.coefficient.toFixed(2)} coefficient`

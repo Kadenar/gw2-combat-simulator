@@ -30,7 +30,7 @@ for (const [duration, reload, daringDragon, expectedDelay] of [
       { id: 62803, at: triggerAt, duration },
       { id: 62797, at: slashAt, duration: 1040 }
     ];
-    const names = { 62901: 'Tactical Reload', 62803: 'Dragon Trigger', 62797: 'Dragon Slash—Force' };
+    const names = { 62901: 'Tactical Reload', 62803: 'Dragon Trigger', 62797: 'Dragon Slash-Force' };
     const end = slashAt + 1100;
     const report = parseDpsReport({
       durationMS: end,

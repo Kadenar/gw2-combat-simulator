@@ -2,8 +2,8 @@
  * Parses a raw arcdps EVTC combat log and prints its contents as JSON.
  *
  * Decompresses the input (plain `.evtc`, `.zevtc`, or zipped), parses it with the
- * project's EVTC parser, and emits the log header, the player agents, and — unless
- * `--summary` is given — every agent and skill. Optional `--debug-*` filters pull
+ * project's EVTC parser, and emits the log header, the player agents, and - unless
+ * `--summary` is given - every agent and skill. Optional `--debug-*` filters pull
  * matching combat events into a `debugEvents` array for troubleshooting.
  *
  * Requires a prior `npm run build` so the selected game's compiled log integration exists.

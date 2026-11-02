@@ -108,7 +108,7 @@ test('Malicious Ashen Torment survives final-strike removal and still spends acc
         applySkillPatch(catalog, {
           skills: {
             [ID.MALICIOUS_ASHEN_ASSAULT]: {
-              removeEffects: [{ type: 'strike', name: 'Malicious Ashen Assault — Final Strike' }]
+              removeEffects: [{ type: 'strike', name: 'Malicious Ashen Assault - Final Strike' }]
             }
           }
         })

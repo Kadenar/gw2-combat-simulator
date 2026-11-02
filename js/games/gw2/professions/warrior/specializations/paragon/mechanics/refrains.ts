@@ -117,7 +117,7 @@ function pulseRefrain(runtime: WarriorRuntime): void {
     },
     transform: (event) => ({
       ...event,
-      name: `${skill.name} — ${event.kind}`,
+      name: `${skill.name} - ${event.kind}`,
       audience: { recipients: RECIPIENT.PARTY },
       stacks:
         event.kind === boonKey(BOON.MIGHT)
@@ -173,7 +173,7 @@ function activateChant(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>)
     },
     transform: (event) => ({
       ...event,
-      name: cast.skill.name + ' — ' + event.kind,
+      name: cast.skill.name + ' - ' + event.kind,
       audience: { recipients: RECIPIENT.PARTY }
     })
   });

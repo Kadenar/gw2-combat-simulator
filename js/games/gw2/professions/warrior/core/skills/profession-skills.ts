@@ -160,7 +160,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         coefficient: 2.25,
         hits: 1,
-        name: 'Kill Shot — Level 1 Damage',
+        name: 'Kill Shot - Level 1 Damage',
         atMs: 1000,
         timingAnchor: 'castStart',
         timingScale: 'fixed'

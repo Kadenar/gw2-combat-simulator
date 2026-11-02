@@ -60,7 +60,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
       {
         type: 'strike' as const,
         ticks: [{ atMs: 560, coefficient: 2.67 }],
-        name: "Malicious Death's Judgment — Packet 1",
+        name: "Malicious Death's Judgment - Packet 1",
         actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
         comboFinishers: [{ ownerId: 'thief', finisherType: COMBO_FINISHER.PROJECTILE }],
@@ -438,7 +438,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
           type: 'strike' as const,
           coefficient: 0.3,
           hits: 1,
-          name: 'Malicious Ashen Assault — Final Strike',
+          name: 'Malicious Ashen Assault - Final Strike',
           actorType: ACTOR.PLAYER
         },
         {
@@ -494,11 +494,11 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
               effect.packetLabel === 'malice'
                 ? {
                     ...effect,
-                    name: 'Malicious Ashen Assault — Torment',
+                    name: 'Malicious Ashen Assault - Torment',
                     duration:
                       effectNumber(profile, effect, 'duration') + malice * skillNumber(profile, 'durationPerMalice')
                   }
-                : effect.type !== 'strike' || effect.name !== 'Malicious Ashen Assault — Final Strike'
+                : effect.type !== 'strike' || effect.name !== 'Malicious Ashen Assault - Final Strike'
                   ? effect
                   : effect.ticks?.length
                     ? {

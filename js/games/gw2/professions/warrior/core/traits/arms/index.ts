@@ -488,7 +488,7 @@ function bloodlustCritical(
           ...packet,
           priority: 5,
           stacks: proc.quantity * Number(packet.stacks),
-          name: 'Bloodlust \u2014 Bleeding',
+          name: 'Bloodlust - Bleeding',
           skillName: 'Bloodlust',
           triggeredBy: event.skillName,
           metadata: { procCount: proc.quantity }
@@ -557,7 +557,7 @@ function sunderingBurstCritical(
           ...packet,
           priority: 5,
           stacks: 1 * Number(packet.stacks),
-          name: 'Sundering Burst — Vulnerability'
+          name: 'Sundering Burst - Vulnerability'
         }),
         effects: (candidate) => candidate === effect
       });

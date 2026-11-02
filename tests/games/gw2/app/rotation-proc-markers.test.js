@@ -337,7 +337,7 @@ test('cooldown-reduction procs use a refresh icon and reduction badge', () => {
   };
   const proc = {
     type: 'skill_proc',
-    skill: 'Abyssal Strike — Abyssal Raze recharge',
+    skill: 'Abyssal Strike - Abyssal Raze recharge',
     sourceSkill: 'Abyssal Strike',
     icon: sourceIcon,
     cooldownReduction: 1

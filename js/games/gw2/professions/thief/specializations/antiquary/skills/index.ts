@@ -40,7 +40,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         coefficient: 3.2,
         hits: 4,
         atMs: 0,
-        name: 'Metal Legion Guitar — Packet 1',
+        name: 'Metal Legion Guitar - Packet 1',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd' as const,
         timingScale: 'fixed' as const
@@ -269,9 +269,9 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
               ({
                 ...effect,
                 name: backfire
-                  ? 'Stone Summit Cannon — Backfire'
+                  ? 'Stone Summit Cannon - Backfire'
                   : effect.type === 'condition'
-                    ? 'Stone Summit Cannon — Burning'
+                    ? 'Stone Summit Cannon - Burning'
                     : 'Stone Summit Cannon',
                 timingAnchor: 'castStart' as const,
                 timingScale: 'fixed' as const,

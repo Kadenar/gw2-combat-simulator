@@ -165,7 +165,7 @@ function reactToWillbenderHit(
             skillName: 'Justice',
             // Keep virtue damage separate from the attack that satisfies its hit counter.
             procType: 'profession',
-            name: 'Justice — Active Burning',
+            name: 'Justice - Active Burning',
             icon: runtime.helpers.skillsById.get(ID.RUSHING_JUSTICE)?.icon,
             condition: String(burn.condition),
             stacks: effectNumber(profile, burn, 'stacks'),
@@ -198,7 +198,7 @@ function reactToWillbenderHit(
             transform: (packet) => ({
               ...packet,
               duration: packet.duration,
-              name: profile.name + ' — ' + name,
+              name: profile.name + ' - ' + name,
               causalOrder: event.causalOrder ?? event.eventOrder,
               audience: { recipients: RECIPIENT.SELF }
             })

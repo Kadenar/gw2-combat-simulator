@@ -270,8 +270,8 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
     ),
     480
   );
-  assert.equal(full.resolvedEvents.find((event) => event.name === 'Rushing Justice — Impact Damage').coefficient, 1.5);
-  assert.equal(full.resolvedEvents.find((event) => event.name === 'Rushing Justice — Initial Burning').duration, 4);
+  assert.equal(full.resolvedEvents.find((event) => event.name === 'Rushing Justice - Impact Damage').coefficient, 1.5);
+  assert.equal(full.resolvedEvents.find((event) => event.name === 'Rushing Justice - Initial Burning').duration, 4);
   assert.equal(flameStrikes.length, 5);
   assert.equal(
     flameStrikes.every((event) => event.coefficient === 0.22),
@@ -300,20 +300,20 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
   );
   assert.equal(
     full.resolvedEvents.some(
-      (event) => event.name === 'Justice — Active Burning' && event.duration === 2 && event.icon
+      (event) => event.name === 'Justice - Active Burning' && event.duration === 2 && event.icon
     ),
     true
   );
   assert.equal(
-    amplifiedWrath.resolvedEvents.find((event) => event.name === 'Rushing Justice — Initial Burning').effectiveDuration,
+    amplifiedWrath.resolvedEvents.find((event) => event.name === 'Rushing Justice - Initial Burning').effectiveDuration,
     4
   );
   assert.equal(
-    amplifiedWrath.resolvedEvents.find((event) => event.name === 'Justice — Active Burning').effectiveDuration,
+    amplifiedWrath.resolvedEvents.find((event) => event.name === 'Justice - Active Burning').effectiveDuration,
     2.4
   );
-  assert.equal(amplifiedWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 3);
-  assert.equal(permeatingWrath.resolvedEvents.filter((event) => event.name === 'Justice — Active Burning').length, 5);
+  assert.equal(amplifiedWrath.resolvedEvents.filter((event) => event.name === 'Justice - Active Burning').length, 3);
+  assert.equal(permeatingWrath.resolvedEvents.filter((event) => event.name === 'Justice - Active Burning').length, 5);
   assert.equal(full.planningState.profession[STATE.JUSTICE_UNTIL], 10.04);
   assert.equal(full.planningState.profession[STATE.LETHAL_TEMPO].stacks, 5);
   assert.equal(
@@ -334,7 +334,7 @@ test('Willbender virtues, flames, and trait triggers use their full mechanics', 
     (event) => event.type === 'action' && event.skillName === 'Rushing Justice'
   );
   const rushingJusticePackets = full.resolvedEvents.filter(
-    (event) => event.name === 'Rushing Justice — Impact Damage' || event.name === 'Rushing Justice — Initial Burning'
+    (event) => event.name === 'Rushing Justice - Impact Damage' || event.name === 'Rushing Justice - Initial Burning'
   );
 
   // Authored packets retain their impact identity after removing the static modifyEffects hook.
@@ -558,7 +558,7 @@ test('Holy Reckoning grants Fury on Rushing Justice activation and Might only on
   })(undefined, ['Rushing Justice', 'Whirling Wrath']);
   const activation = result.events.find((event) => event.type === 'buff' && event.kind === 'willbender-justice');
   const triggers = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.name === 'Justice — Active Burning'
+    (event) => event.type === 'condition' && event.name === 'Justice - Active Burning'
   );
   const fury = result.events.filter(
     (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.HOLY_RECKONING && event.kind === 'fury'
@@ -650,12 +650,12 @@ test('Guardian autoattack chains and torch flips enforce sequence state', () => 
 
   assert.match(
     invalidChain.warnings.map(({ message }) => message).join(' '),
-    /Faithful Strike is unavailable — cast Pure Strike first\./
+    /Faithful Strike is unavailable - cast Pure Strike first\./
   );
   assert.equal(chain.resolvedEvents.filter((event) => event.type === 'damage').length, 3);
   assert.match(
     invalidFlip.warnings.map(({ message }) => message).join(' '),
-    /Zealot's Fire is unavailable — not currently armed\./
+    /Zealot's Fire is unavailable - not currently armed\./
   );
   assert.ok(flip.strikeDamage > 0);
   assert.ok(flip.conditionDamage > 0);

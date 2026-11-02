@@ -1018,7 +1018,7 @@ test('RNG runner limits heavy batches and merges outcomes after every worker com
 
 function minimalResult(damageAt1s) {
   // buildChartSeries only needs the DPS window, resolved damage events, and
-  // (optionally) breakdown/events — keep it minimal but non-empty.
+  // (optionally) breakdown/events - keep it minimal but non-empty.
   return {
     dps: damageAt1s / 4,
     dpsStartTime: 0,

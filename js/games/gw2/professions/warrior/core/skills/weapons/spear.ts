@@ -24,7 +24,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 1.2 }],
-        name: 'Mighty Throw — Spear Damage',
+        name: 'Mighty Throw - Spear Damage',
         damageKind: 'explosion',
         timingAnchor: 'castStart',
         timingScale: 'cast'
@@ -32,7 +32,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 0.9 }],
-        name: 'Mighty Throw — Shard Damage',
+        name: 'Mighty Throw - Shard Damage',
         damageKind: 'explosion',
         // Single-target suppression follows this stable packet identity rather than the display label.
         metadata: { packetKind: 'warrior.mighty-throw-shard' },
@@ -58,7 +58,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
       {
         type: 'strike',
         ticks: [{ atMs: 1000, coefficient: 1.1 }],
-        name: 'Maiming Spear — Initial Strike Damage',
+        name: 'Maiming Spear - Initial Strike Damage',
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       },
@@ -75,7 +75,7 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
           }
         ],
         ticks: [{ atMs: 1520, coefficient: 0.75 }],
-        name: 'Maiming Spear — Aftershock Damage',
+        name: 'Maiming Spear - Aftershock Damage',
         // Only the delayed aftershock counts as an explosion for explosion-triggered effects.
         damageKind: 'explosion',
         timingAnchor: 'castStart',

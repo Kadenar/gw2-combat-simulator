@@ -20,7 +20,7 @@ function prefixChoices(name: string, selected: string, slot?: string): string {
       (group) =>
         `<div class="equipment-prefix-group"><div class="gear-select-group-label">${group.label}</div>${group.items
           .map((prefix) => {
-            const details = prefixOptionLabel(prefix, slot).split(' — ')[1] || '';
+            const details = prefixOptionLabel(prefix, slot).split(' - ')[1] || '';
             return `<label class="equipment-choice"><input type="radio" name="${name}" value="${escapeHtml(prefix)}"${prefix === selected ? ' checked' : ''}>
           <span><span class="gear-option-name">${escapeHtml(prefix)}</span><span class="gear-option-detail">${escapeHtml(details)}</span></span></label>`;
           })

@@ -57,7 +57,7 @@ test('Harbinger cast policy preserves per-effect ownership and independent trait
   assert.equal(condition.activationId, `${cast.id}:effect:${trait.id}`);
   assert.equal(condition.skillId, trait.id);
   assert.equal(condition.parentSkillName, skill.name);
-  assert.equal(condition.name, 'Corruption — Torment');
+  assert.equal(condition.name, 'Corruption - Torment');
   assert.equal(condition.offTarget, true);
 });
 

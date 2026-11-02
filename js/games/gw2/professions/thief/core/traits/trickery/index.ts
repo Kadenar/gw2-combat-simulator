@@ -202,7 +202,7 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
       attribution: { source: 'Trait', sourceId: TRAIT.BOUNTIFUL_THEFT, actorType: ACTOR.PLAYER },
       transform: (event, effect) => ({
         ...event,
-        name: 'Steal \u2014 ' + String((effect as StatusEffect).boon),
+        name: 'Steal - ' + String((effect as StatusEffect).boon),
         kind: String((effect as StatusEffect).boon).toLowerCase(),
         boon: String((effect as StatusEffect).boon),
         fixedDuration: false,
@@ -228,7 +228,7 @@ function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealAcceptance): vo
       skillName: 'Deadly Ambush',
       triggeredBy: cast.skill.name,
       activationId: cast.id,
-      name: 'Deadly Ambush — Bleeding',
+      name: 'Deadly Ambush - Bleeding',
       actorType: ACTOR.PLAYER,
       sourceId: TRAIT.DEADLY_AMBUSH
     }
@@ -274,7 +274,7 @@ function applyThrillOfTheCrime(runtime: ThiefRuntime, { cast }: StealAcceptance)
     attribution: { source: 'Trait', sourceId: TRAIT.THRILL_OF_THE_CRIME, actorType: ACTOR.PLAYER },
     transform: (event, effect) => ({
       ...event,
-      name: 'Steal \u2014 ' + String((effect as StatusEffect).boon),
+      name: 'Steal - ' + String((effect as StatusEffect).boon),
       kind: String((effect as StatusEffect).boon).toLowerCase(),
       boon: String((effect as StatusEffect).boon),
       fixedDuration: false,
@@ -342,6 +342,6 @@ function startUncatchable(runtime: ThiefRuntime, { cast }: ThiefDodge): void {
       triggeredBy: cast.skill.name,
       activationId: cast.id
     },
-    transform: (event) => ({ ...event, icon: caltrops.icon, name: 'Uncatchable \u2014 Lesser Caltrops' })
+    transform: (event) => ({ ...event, icon: caltrops.icon, name: 'Uncatchable - Lesser Caltrops' })
   });
 }

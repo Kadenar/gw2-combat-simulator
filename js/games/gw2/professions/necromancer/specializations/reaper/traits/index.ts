@@ -356,7 +356,7 @@ function queueChillingNovaChill(context: NecromancerResolverContext, event: Necr
   emitTraitProfile(context, TRAIT.CHILLING_NOVA, TRAIT.CHILLING_NOVA, undefined, {
     at: event.at,
     effect: { type: 'condition', name: CONDITION.CHILLED },
-    attribution: { skillName: 'Chilling Nova', name: 'Chilling Nova — Chilled' }
+    attribution: { skillName: 'Chilling Nova', name: 'Chilling Nova - Chilled' }
   });
 }
 
@@ -412,7 +412,7 @@ function applyShiversOfDread(context: NecromancerResolverContext, event: Necroma
     fullEnd: event.at,
     effect: { type: 'condition', name: CONDITION.CHILLED },
     attribution: {
-      name: 'Shivers of Dread — Chilled',
+      name: 'Shivers of Dread - Chilled',
       source: 'Trait',
       sourceId: TRAIT.SHIVERS_OF_DREAD,
       actorType: ACTOR.EFFECT,

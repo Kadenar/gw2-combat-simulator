@@ -81,6 +81,6 @@ test('header DPS mounts once and tracks the latest result', () => {
   assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS: 12,345');
 
   updateHeaderDps(null, root);
-  assert.equal(indicator.querySelector('.header-dps-value').textContent, '—');
+  assert.equal(indicator.querySelector('.header-dps-value').textContent, '-');
   assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS unavailable');
 });

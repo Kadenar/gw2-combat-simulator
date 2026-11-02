@@ -107,7 +107,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
       {
         type: 'strike',
         ticks: [{ atMs: 0, coefficient: 2.67 }],
-        name: "Death's Judgment — Packet 1",
+        name: "Death's Judgment - Packet 1",
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',

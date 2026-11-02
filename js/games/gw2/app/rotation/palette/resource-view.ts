@@ -174,7 +174,7 @@ function offsetPipRows(rowCount: number): ReadonlySet<number> {
 /**
  * Assigns each pip its fill rank in on-screen left-to-right order. Columns are
  * two half-pitch units wide and an interlocking (offset) row adds one, so
- * sorting by that x — tie-broken top-to-bottom — makes the active state advance
+ * sorting by that x - tie-broken top-to-bottom - makes the active state advance
  * across the zigzag rather than lighting an entire row before the next begins.
  * Single-row resources keep their natural left-to-right order.
  */

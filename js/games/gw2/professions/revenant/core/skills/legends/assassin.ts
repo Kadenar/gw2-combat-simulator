@@ -48,7 +48,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
         damageKind: 'life-steal',
         flatStrikeBase: 1028,
         flatStrikePowerCoeff: 0.06,
-        name: 'Enchanted Daggers — Siphon Damage',
+        name: 'Enchanted Daggers - Siphon Damage',
         actorType: ACTOR.EFFECT
       }
     ],
@@ -195,7 +195,7 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
 
   if (!skill) throw new Error('Missing Enchanted Daggers skill declaration.');
 
-  const strike = requireEffect(skill, 'strike', 'Enchanted Daggers — Siphon Damage');
+  const strike = requireEffect(skill, 'strike', 'Enchanted Daggers - Siphon Damage');
   const buff = requireEffect(skill, 'buff', 'enchanted-daggers');
 
   // Charges exist only to deliver the siphon, so a removed strike leaves them unspent.
@@ -215,7 +215,7 @@ export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEve
 /** A single delayed siphon is independent of how the healing skill armed its charges. */
 function emitEnchantedDagger(runtime: RevenantRuntime, event: Gw2ResolverEvent, hitIndex = 1, totalHits = 1): void {
   const skill = runtime.helpers.skillsById.get(ID.ENCHANTED_DAGGERS)!;
-  const strike = requireEffect(skill, 'strike', 'Enchanted Daggers — Siphon Damage');
+  const strike = requireEffect(skill, 'strike', 'Enchanted Daggers - Siphon Damage');
 
   if (!strike) return;
 
@@ -234,7 +234,7 @@ function emitEnchantedDagger(runtime: RevenantRuntime, event: Gw2ResolverEvent, 
       // The armed heal owns this siphon; its causal hit must not absorb the damage in isolated previews.
       procType: 'profession',
       icon: skill.icon,
-      name: 'Enchanted Daggers — Siphon Damage',
+      name: 'Enchanted Daggers - Siphon Damage',
       coefficient: 0,
       damageKind: strike.damageKind,
       flatStrikeBase: effectNumber(skill, strike, 'flatStrikeBase'),

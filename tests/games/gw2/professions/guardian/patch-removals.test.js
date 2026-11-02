@@ -176,7 +176,7 @@ test('Soaring Devastation strike removal preserves immobilization', () => {
     ['Wings of Resolve'],
     [TRAIT.SOARING_DEVASTATION]
   );
-  assert.equal(has(result, 'damage', 'name', 'Wings of Resolve — Soaring Devastation'), false);
+  assert.equal(has(result, 'damage', 'name', 'Wings of Resolve - Soaring Devastation'), false);
   assert.ok(has(result, 'condition', 'condition', 'Immobilized'));
 });
 
@@ -240,7 +240,7 @@ test('Radiant Justice strike removal preserves delayed Vulnerability', () => {
     {},
     { [SKILL.DAZZLING_HAMMER]: remove('strike', 'Radiant Justice Strike') }
   );
-  assert.equal(has(result, 'damage', 'name', 'Dazzling Hammer — Radiant Justice Impact'), false);
+  assert.equal(has(result, 'damage', 'name', 'Dazzling Hammer - Radiant Justice Impact'), false);
   assert.ok(
     result.events.some(
       (event) => event.type === 'condition' && event.condition === 'Vulnerability' && event.stacks === 8

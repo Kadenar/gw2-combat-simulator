@@ -104,7 +104,7 @@ function emitDamagePayload(
       ...attribution,
       type: 'condition',
       at: impactAt,
-      name: 'Relic of Peitha — Torment',
+      name: 'Relic of Peitha - Torment',
       condition: CONDITION.TORMENT,
       duration: 7,
       stacks: 2

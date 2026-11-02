@@ -102,7 +102,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         type: 'strike',
         coefficient: 1.4,
         hits: 1,
-        name: 'Refraction Cutter (non-holosmith) — Packet 1',
+        name: 'Refraction Cutter (non-holosmith) - Packet 1',
         actorType: ACTOR.PLAYER
       },
       ...impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [

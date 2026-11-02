@@ -266,7 +266,7 @@ test('Last Blaze preserves completion, profile edits, and mode-before-condition 
       assert.equal(event.actorType, 'effect');
       assert.equal(event.ownerActorType, 'player');
       assert.equal(event.skillId, ID.BLOOD_RECKONING);
-      assert.equal(event.name, 'Last Blaze \u2014 Burning');
+      assert.equal(event.name, 'Last Blaze - Burning');
       assert.equal(event.stacks, 1);
       assert.equal(event.duration, 3);
       const detonation = result.events.find(

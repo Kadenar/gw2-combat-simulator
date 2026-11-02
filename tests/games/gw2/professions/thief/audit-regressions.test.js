@@ -674,9 +674,9 @@ test('guild combat activation starts parallel streams once and replacement retir
   assert.deepEqual(
     guildPackets(first).map((event) => [event.at, event.damageBreakdownName]),
     [
-      [1, 'Test thief — Fast'],
-      [1.5, 'Test thief — Slow'],
-      [2, 'Test thief — Fast']
+      [1, 'Test thief - Fast'],
+      [1.5, 'Test thief - Slow'],
+      [2, 'Test thief - Fast']
     ]
   );
 

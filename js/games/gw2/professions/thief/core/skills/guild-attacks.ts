@@ -3,7 +3,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Guild actor attacks own their selected packets and repeat recharge; shared AI keeps engagement and lifetime. */
 export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = [
   {
-    name: 'Thieves Guild (Core) \u2014 Black Powder',
+    name: 'Thieves Guild (Core) - Black Powder',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3669,
     displayName: 'Black Powder',
@@ -23,7 +23,7 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Core) \u2014 Unload',
+    name: 'Thieves Guild (Core) - Unload',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3666,
     displayName: 'Unload',
@@ -43,7 +43,7 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Core) \u2014 Scorpion Wire',
+    name: 'Thieves Guild (Core) - Scorpion Wire',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3665,
     displayName: 'Scorpion Wire',
@@ -79,7 +79,7 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Core) \u2014 Twisting Fang I',
+    name: 'Thieves Guild (Core) - Twisting Fang I',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3661,
     displayName: 'Twisting Fang I',
@@ -99,7 +99,7 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Core) \u2014 Twisting Fang II',
+    name: 'Thieves Guild (Core) - Twisting Fang II',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3662,
     displayName: 'Twisting Fang II',
@@ -119,7 +119,7 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Core) \u2014 Twisting Fang III',
+    name: 'Thieves Guild (Core) - Twisting Fang III',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3663,
     displayName: 'Twisting Fang III',
@@ -139,7 +139,7 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Core) \u2014 Basic Attack',
+    name: 'Thieves Guild (Core) - Basic Attack',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 'thief.guild.core.basic',
     displayName: 'Basic Attack',

@@ -212,7 +212,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
       buildMesmerStrikes(
         state,
         {
-          name: `${skill.name} — Clone`,
+          name: `${skill.name} - Clone`,
           icon: 'https://render.guildwars2.com/file/516ED87B7FC703AC09DE924218CDB53D2FFF39C9/1770504.png',
           id: ID.AXES_OF_SYMMETRY,
           weapon: WEAPON.AXE,
@@ -230,7 +230,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
           source: 'Clone',
           actorType: ACTOR.SUMMON,
           summonKind: 'clone',
-          name: `${skill.name} — Clone`
+          name: `${skill.name} - Clone`
         }
       ).forEach((packet) => {
         state.effects.emit({
@@ -247,7 +247,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         impactAt,
         { type: 'condition', condition: CONDITION.CONFUSION, duration: 6, stacks: 1 },
         'Clone',
-        `${skill.name} — Clone`,
+        `${skill.name} - Clone`,
         { metadata: { cloneId: clone.id }, skillId: skill.id, actorType: ACTOR.SUMMON, summonKind: 'clone' }
       ).forEach((packet) => {
         state.effects.emit({

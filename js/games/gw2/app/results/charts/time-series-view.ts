@@ -841,7 +841,7 @@ export function mountTimeSeriesCharts(
       const label =
         panel.kind === 'dps' ? resolvedOptions.dpsLabel : panel.kind === 'conditions' ? 'Conditions' : 'Boons & Buffs';
 
-      if (title) title.textContent = `${label} Over Time${activePhase.id === 'full' ? '' : ` — ${activePhase.label}`}`;
+      if (title) title.textContent = `${label} Over Time${activePhase.id === 'full' ? '' : ` - ${activePhase.label}`}`;
 
       if (panel.kind === 'dps') {
         // Every source uses the same phase origin and rolling denominator, so contributions sum to total DPS.

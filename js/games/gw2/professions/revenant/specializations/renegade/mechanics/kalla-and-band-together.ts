@@ -67,7 +67,7 @@ export function grantKallasFervor(
         actorType: effect.actorType || ACTOR.PLAYER,
         skillId: sourceId,
         skillName: sourceName,
-        name: `${sourceName} — Kalla's Fervor`,
+        name: `${sourceName} - Kalla's Fervor`,
         kind: String(effect.kind),
         duration,
         stacks

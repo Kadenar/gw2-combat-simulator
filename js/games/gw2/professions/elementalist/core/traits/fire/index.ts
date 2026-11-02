@@ -360,7 +360,7 @@ function applyBurningPrecision(context: MechanicCombatContext, event: Gw2Resolve
         triggeredBy: resolverSourceSkill(event),
         metadata: { procCount: 1 }
       },
-      transform: (packet) => ({ ...packet, name: 'Burning Precision' + ' — ' + packet.condition })
+      transform: (packet) => ({ ...packet, name: 'Burning Precision' + ' - ' + packet.condition })
     });
 
     context.effects.emit({

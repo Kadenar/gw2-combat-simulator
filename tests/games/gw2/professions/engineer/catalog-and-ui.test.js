@@ -252,7 +252,7 @@ test('Holosmith palette exposes tool-belt skills, forge, and replacement bars', 
   assert.equal(profession.stackId, 'holosmith-profession');
   assert.equal(forge.stackId, 'holosmith-profession');
   assert.equal(forge.skillIds.length, 7);
-  assert.ok(names(forge).every((name) => !name.endsWith('—Storm')));
+  assert.ok(names(forge).every((name) => !name.endsWith('-Storm')));
 });
 
 test('Engineer renders Endurance only for Tools and uses a standard bar', () => {

@@ -166,7 +166,7 @@ export const WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skil
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
         coefficient: 2.5,
-        name: 'Rend — Follow-Up Damage'
+        name: 'Rend - Follow-Up Damage'
       },
       {
         type: 'condition',

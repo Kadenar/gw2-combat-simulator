@@ -69,7 +69,7 @@ function applySelfCondition(
   });
   runtime.effects.emit({
     kind: 'packet',
-    event: { ...event, name: `${skill.name} — self ${condition}`, duration: effectiveDuration, expiresAt }
+    event: { ...event, name: `${skill.name} - self ${condition}`, duration: effectiveDuration, expiresAt }
   });
   runtime.schedule(EXPIRY, expiresAt, null, undefined, -20);
 }
@@ -116,7 +116,7 @@ export function transfer(
         skillId: skill.id,
         skillName: skill.name,
         activationId: work.activationId,
-        name: `${skill.name} — Transferred ${application.condition}`,
+        name: `${skill.name} - Transferred ${application.condition}`,
         condition: application.condition,
         stacks: application.stacks,
         duration: application.expiresAt - runtime.time,

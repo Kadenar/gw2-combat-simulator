@@ -565,17 +565,17 @@ function rowHtml(row: SkillDamageRowView, model: SkillDamageViewModel, columns: 
     `<span class="sd-num sd-dim">${castLabel(row)}</span>`,
     ...(model.showStrikeColumns
       ? [
-          `<span class="sd-num sd-dim">${m.hits ? integer(m.hits) : '—'}</span>`,
-          `<span class="sd-num sd-dim">${m.coefficient ? m.coefficient.toFixed(2) : '—'}</span>`
+          `<span class="sd-num sd-dim">${m.hits ? integer(m.hits) : '-'}</span>`,
+          `<span class="sd-num sd-dim">${m.coefficient ? m.coefficient.toFixed(2) : '-'}</span>`
         ]
       : []),
     ...(model.showAppliedColumn
-      ? [`<span class="sd-applied">${applied || '<span class="sd-dim">—</span>'}</span>`]
+      ? [`<span class="sd-applied">${applied || '<span class="sd-dim">-</span>'}</span>`]
       : []),
-    `<span class="sd-num">${m.strike ? integer(m.strike) : '—'}</span>`,
-    `<span class="sd-num">${m.conditionDamage ? integer(m.conditionDamage) : '—'}</span>`,
+    `<span class="sd-num">${m.strike ? integer(m.strike) : '-'}</span>`,
+    `<span class="sd-num">${m.conditionDamage ? integer(m.conditionDamage) : '-'}</span>`,
     `<span class="sd-num sd-total">${integer(m.total)}</span>`,
-    `<span class="sd-num">${row.perCastSecond == null ? '—' : integer(row.perCastSecond)}</span>`
+    `<span class="sd-num">${row.perCastSecond == null ? '-' : integer(row.perCastSecond)}</span>`
   ].join('');
   return `<div class="sd-row sd-${row.status}${row.expanded ? ' is-expanded' : ''}"><div class="sd-cells" style="grid-template-columns: ${columns}">${cells}</div>${
     row.expanded ? breakdownHtml(row, model) : ''
@@ -632,7 +632,7 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
     const rows = m.conditions
       .map((condition) => {
         const perSecond = conditionPerSecond(condition);
-        return `<div class="sd-condition-row" data-condition="${esc(condition.condition)}"><span class="sd-condition-name">${esc(conditionLabel(condition.condition))}</span><span class="sd-condition-attribution">${esc(condition.attribution)}</span><span class="sd-mono">${integer(condition.stacks)}</span><span class="sd-mono">${perSecond == null ? '&mdash;' : integer(perSecond)}</span><span class="sd-mono">${condition.baseDurationSeconds}s &rarr; ${condition.effectiveDurationSeconds.toFixed(1)}s <small>${signedPercent(condition.effectiveDurationSeconds / Math.max(condition.baseDurationSeconds, 1e-9) - 1)}</small></span><span class="sd-mono">${integer(condition.damage)}</span></div>`;
+        return `<div class="sd-condition-row" data-condition="${esc(condition.condition)}"><span class="sd-condition-name">${esc(conditionLabel(condition.condition))}</span><span class="sd-condition-attribution">${esc(condition.attribution)}</span><span class="sd-mono">${integer(condition.stacks)}</span><span class="sd-mono">${perSecond == null ? '-' : integer(perSecond)}</span><span class="sd-mono">${condition.baseDurationSeconds}s &rarr; ${condition.effectiveDurationSeconds.toFixed(1)}s <small>${signedPercent(condition.effectiveDurationSeconds / Math.max(condition.baseDurationSeconds, 1e-9) - 1)}</small></span><span class="sd-mono">${integer(condition.damage)}</span></div>`;
       })
       .join('');
     // Keep damage and duration separate, with the contributing sources next to the factor they explain.
@@ -654,7 +654,7 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
         const baseDurationFactor =
           condition.baseDurationMultiplier !== 1 ? ` &times; ${condition.baseDurationMultiplier.toFixed(3)}` : '';
         return `<div class="sd-condition-factors"><strong>${esc(conditionLabel(condition.condition))}</strong>
-        <div class="sd-condition-calculation"><span>Damage / second</span><span class="sd-mono">${condition.damagePerStackSecond == null ? '&mdash;' : integer(condition.damagePerStackSecond)} &times; ${(condition.multiplier ?? 1).toFixed(3)} = <b>${perSecond == null ? '&mdash;' : integer(perSecond)}</b></span><small>${sources(condition.damageContributors)}${condition.conditionDamageAttribute == null ? '' : ` &middot; Base rate at ${integer(condition.conditionDamageAttribute)} Condition Damage`}</small></div>
+        <div class="sd-condition-calculation"><span>Damage / second</span><span class="sd-mono">${condition.damagePerStackSecond == null ? '-' : integer(condition.damagePerStackSecond)} &times; ${(condition.multiplier ?? 1).toFixed(3)} = <b>${perSecond == null ? '-' : integer(perSecond)}</b></span><small>${sources(condition.damageContributors)}${condition.conditionDamageAttribute == null ? '' : ` &middot; Base rate at ${integer(condition.conditionDamageAttribute)} Condition Damage`}</small></div>
         <div class="sd-condition-calculation"><span>Duration</span><span class="sd-mono">${condition.baseDurationSeconds}s${baseDurationFactor} &times; ${condition.durationMultiplier.toFixed(3)} = <b>${condition.effectiveDurationSeconds.toFixed(1)}s</b></span><small>${sources(condition.durationContributors)} &middot; Bonus capped at +100%</small></div>
       </div>`;
       })

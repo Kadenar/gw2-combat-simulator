@@ -63,7 +63,7 @@ test('clone shatter tooltips and combat share selected repeat packets without re
   );
   assert.deepEqual(
     patched.facts.filter(({ name }) => name === 'Strike damage').map(({ detail }) => detail),
-    ['1.5 coefficient total · 3 hits — 2 clones spent', '2.5 coefficient total · 3 hits — 2 clones spent']
+    ['1.5 coefficient total · 3 hits - 2 clones spent', '2.5 coefficient total · 3 hits - 2 clones spent']
   );
   const removed = scenario(profession, 'shatter-projection', 'Chronomancer', ID.SPLIT_SECOND, 1);
   assert.equal(
@@ -153,7 +153,7 @@ test('Bladesong Confusion tooltips follow selected packet cadence rather than bl
       );
       assert.equal(
         facts.find(({ name }) => name === 'Strike damage').detail,
-        '1 coefficient total · 3 hits — 2 blades spent'
+        '1 coefficient total · 3 hits - 2 blades spent'
       );
     }
   }

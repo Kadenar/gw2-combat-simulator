@@ -179,7 +179,7 @@ test('Electric Discharge retains proc identity, actor ownership and accepted cas
   // Targeting is carried to the runtime submission boundary separately from the materialized payload.
   for (const delivery of deliveries) assert.deepEqual(delivery.cast, cast);
   assert.equal(strike.name, 'Electric Discharge');
-  assert.equal(condition.name, 'Electric Discharge — Vulnerability');
+  assert.equal(condition.name, 'Electric Discharge - Vulnerability');
   assert.equal(announcements[0].announcement.sourceSkill, skill.name);
   emitElectricDischarge(context, context.time, skill.id, cast);
   assert.equal(events[2].activationId, 'elementalist.effect:1');

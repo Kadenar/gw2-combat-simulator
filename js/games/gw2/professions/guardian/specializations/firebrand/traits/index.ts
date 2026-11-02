@@ -444,7 +444,7 @@ function grantWeightyTerms(runtime: GuardianRuntime, { context }: FinalMantraCha
     type: 'emitProfile',
     profileId: TRAIT.WEIGHTY_TERMS,
     // Keep the granting trait visible while the shared profile preserves cast lineage.
-    attribution: { source: 'guardian', actorType: ACTOR.PLAYER, name: 'Weighty Terms — Slow' }
+    attribution: { source: 'guardian', actorType: ACTOR.PLAYER, name: 'Weighty Terms - Slow' }
   });
 }
 
@@ -563,7 +563,7 @@ function applyUnrelentingCriticism(runtime: GuardianRuntime, { cause: event }: F
     attribution: {
       ...attribution(event),
       sourceId: event.skillId!,
-      name: 'Unrelenting Criticism — Bleeding',
+      name: 'Unrelenting Criticism - Bleeding',
       triggeredBy: 'Unrelenting Criticism'
     }
   });

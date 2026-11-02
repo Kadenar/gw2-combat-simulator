@@ -26,7 +26,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.exit-forge' } }]
   },
   [ID.LIGHT_STRIKE_STORM]: {
-    name: 'Light Strike—Storm',
+    name: 'Light Strike-Storm',
     icon: 'https://render.guildwars2.com/file/F42AE073CD260A5A14BE304D2D60EBA7F2F8FF64/1770398.png',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -52,7 +52,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         type: 'strike',
         coefficient: 1,
         hits: 1,
-        name: 'Light Strike—Storm',
+        name: 'Light Strike-Storm',
         actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
@@ -62,7 +62,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.BRIGHT_SLASH_STORM]: {
-    name: 'Bright Slash—Storm',
+    name: 'Bright Slash-Storm',
     icon: 'https://render.guildwars2.com/file/427D5FB516D8E05016AA4AB8B228D40CA3226CE1/1770399.png',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -91,7 +91,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true,
-        name: 'Bright Slash—Storm',
+        name: 'Bright Slash-Storm',
         actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true
@@ -101,7 +101,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     sideEffects: [{ on: 'castStart', do: { type: 'engineer.forge-heat' } }]
   },
   [ID.FLASH_CUTTER_STORM]: {
-    name: 'Flash Cutter—Storm',
+    name: 'Flash Cutter-Storm',
     icon: 'https://render.guildwars2.com/file/EF04A72D9336FE56EC730E460C114CAD2B04080E/1770400.png',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -128,7 +128,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
         ticks: [200, 360].map((atMs) => ({ atMs, coefficient: 1.6 / 2 })),
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        name: 'Flash Cutter—Storm',
+        name: 'Flash Cutter-Storm',
         actorType: ACTOR.PLAYER,
         damageKind: 'explosion',
         projectile: true

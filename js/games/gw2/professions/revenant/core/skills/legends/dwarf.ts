@@ -184,7 +184,7 @@ export function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: 
         actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
-        name: `Vengeful Hammers — Hammer ${index}`,
+        name: `Vengeful Hammers - Hammer ${index}`,
         coefficient: (strike.coefficient || 0) / hammers,
         hitIndex: index,
         totalHits: hammers,

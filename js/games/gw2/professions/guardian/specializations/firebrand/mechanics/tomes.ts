@@ -104,7 +104,7 @@ const courage = createPassiveCourageTask({
       actorType: ACTOR.PLAYER,
       skillId: ID.TOME_OF_COURAGE,
       skillName: 'Tome of Courage',
-      name: 'Tome of Courage — Passive Aegis'
+      name: 'Tome of Courage - Passive Aegis'
     };
     runtime.effects.emit({
       kind: 'profile',

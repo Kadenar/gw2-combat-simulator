@@ -175,7 +175,7 @@ test('Radiant Justice is claimed at hammer impact and retains missed activation 
       ],
       luminary
     );
-    const extra = result.resolvedEvents.find((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact');
+    const extra = result.resolvedEvents.find((event) => event.name === 'Dazzling Hammer - Radiant Justice Impact');
     assert.equal(Boolean(extra), before);
     assert.equal(lum(result).radiantJusticeArmed, !before);
 
@@ -192,7 +192,7 @@ test('Radiant Justice is claimed at hammer impact and retains missed activation 
   );
   assert.equal(lum(missed).radiantJusticeArmed, false);
   assert.equal(
-    missed.resolvedEvents.some((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact'),
+    missed.resolvedEvents.some((event) => event.name === 'Dazzling Hammer - Radiant Justice Impact'),
     false
   );
 });
@@ -1108,7 +1108,7 @@ test('committed illuminated projectiles retain their activation after a weapon s
   });
   assert.deepEqual(result.warnings, []);
   const extra = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && /Solar Storm — [45]th Strike/.test(event.name)
+    (event) => event.type === 'damage' && /Solar Storm - [45]th Strike/.test(event.name)
   );
   assert.ok(extra.length > 0);
   assert.ok(extra.every((event) => event.activationId === result.steps[0].activationId));
@@ -1196,11 +1196,11 @@ test('spear selects remaining projectile components', () => {
   const detailed = run(rotation, config, { initialize: initialize, profession: patched });
   assert.deepEqual(detailed.warnings, []);
   const extra = detailed.resolvedEvents.filter(
-    (event) => event.type === 'damage' && /Solar Storm — [45]th Strike/.test(event.name)
+    (event) => event.type === 'damage' && /Solar Storm - [45]th Strike/.test(event.name)
   );
   assert.deepEqual(
     extra.map((event) => [event.name, event.coefficient]),
-    [['Solar Storm — 5th Strike', 0.3]]
+    [['Solar Storm - 5th Strike', 0.3]]
   );
 });
 
@@ -1580,7 +1580,7 @@ test('Dragonhunter misses cannot attach a tether or arm Verdict, while commitmen
   assert.equal(core(result).availableFlips[ID.HUNTERS_VERDICT], undefined);
   assert.ok(core(result).virtueReadyAt.justice > observedRuntime(result).time);
   assert.equal(
-    result.resolvedEvents.some((event) => event.name === 'Spear of Justice — Active Burning'),
+    result.resolvedEvents.some((event) => event.name === 'Spear of Justice - Active Burning'),
     false
   );
 });
@@ -1593,7 +1593,7 @@ test('Dragonhunter tether waits for a delayed impact and its burn retains the sp
   const after = run([...rotation, wait(1500)], dragonhunter);
   assert.deepEqual(after.warnings, []);
   const hit = after.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.SPEAR_OF_JUSTICE);
-  const burn = after.resolvedEvents.find((event) => event.name === 'Spear of Justice — Active Burning');
+  const burn = after.resolvedEvents.find((event) => event.name === 'Spear of Justice - Active Burning');
   assert.equal(burn.at, hit.at);
   assert.equal(burn.activationId, hit.activationId);
   assert.equal(dh(after).tetherUntil, hit.at + 6);
@@ -1604,7 +1604,7 @@ test('Verdict consumes its occurrence and stops subsequent tether work', () => {
   const result = run([ID.SPEAR_OF_JUSTICE, ID.HUNTERS_VERDICT, wait(3000)], dragonhunter);
   assert.deepEqual(result.warnings, []);
   const verdict = result.steps.find((step) => step.skillId === ID.HUNTERS_VERDICT);
-  const burns = result.resolvedEvents.filter((event) => event.name === 'Spear of Justice — Active Burning');
+  const burns = result.resolvedEvents.filter((event) => event.name === 'Spear of Justice - Active Burning');
   assert.ok(burns.length > 0);
   assert.ok(burns.every((event) => event.at <= verdict.end / 1000));
   assert.equal(core(result).availableFlips[ID.HUNTERS_VERDICT], undefined);
@@ -1626,7 +1626,7 @@ test('Dragonhunter tether expiry and replacement invalidate old burns and flip w
   assert.equal(dh(replaced).tetherActivationId, newest.activationId);
   assert.ok(dh(replaced).tetherUntil > observedRuntime(replaced).time);
   const later = replaced.resolvedEvents.filter(
-    (event) => event.name === 'Spear of Justice — Active Burning' && event.at > newest.end / 1000
+    (event) => event.name === 'Spear of Justice - Active Burning' && event.at > newest.end / 1000
   );
   assert.ok(later.length > 0);
   assert.ok(later.every((event) => event.activationId === newest.activationId));
@@ -1683,7 +1683,7 @@ test('Dragonhunter passive Courage preserves its cadence while actual recharge s
   );
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.events.filter((event) => event.name === 'Shield of Courage — Passive Aegis').map((event) => event.at),
+    result.events.filter((event) => event.name === 'Shield of Courage - Passive Aegis').map((event) => event.at),
     [0, 3, 4, 5]
   );
 });
@@ -1760,7 +1760,7 @@ test('Dragonhunter passive Justice consumes only accepted hit cycles and Renewed
   const config = { ...dragonhunter, selectedTraitIds: [TRAIT.PERMEATING_WRATH] };
   const passive = run([wait(600)], config, { initialize: initialize });
   assert.equal(justiceApplications(passive, 'passive').length, 1);
-  const cripple = passive.resolvedEvents.find((event) => event.name === 'Spear of Justice — Passive Crippled');
+  const cripple = passive.resolvedEvents.find((event) => event.name === 'Spear of Justice - Passive Crippled');
   assert.equal(cripple.activationId, 'impact-0.3');
   const rotation = [ID.SPEAR_OF_JUSTICE, ID.RENEWED_FOCUS, wait(1000)];
   const refreshEnd = run(rotation, config).steps.find((step) => step.skillId === ID.RENEWED_FOCUS).end / 1000;
@@ -1828,11 +1828,11 @@ test('removed Dragonhunter burn and passive packets leave no recurring effects w
   assert.deepEqual(result.warnings, []);
   assert.ok(dh(result).tetherUntil > observedRuntime(result).time);
   assert.equal(
-    result.resolvedEvents.some((event) => event.name === 'Spear of Justice — Active Burning'),
+    result.resolvedEvents.some((event) => event.name === 'Spear of Justice - Active Burning'),
     false
   );
   assert.equal(
-    result.events.some((event) => event.name === 'Shield of Courage — Passive Aegis'),
+    result.events.some((event) => event.name === 'Shield of Courage - Passive Aegis'),
     false
   );
 });

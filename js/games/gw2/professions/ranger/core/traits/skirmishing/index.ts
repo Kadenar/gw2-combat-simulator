@@ -412,7 +412,7 @@ const rangerCoreCriticalReactions = Object.freeze({
         transform: (packet) => ({
           ...packet,
           ...(petOwned ? petDerivedConditionMetadata(context, event) : {}),
-          name: 'Sharpened Edges — ' + packet.condition
+          name: 'Sharpened Edges - ' + packet.condition
         })
       });
   }
@@ -523,7 +523,7 @@ function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2Reso
         actorType: ACTOR.EFFECT,
         skillId: TRAIT.TRAPPERS_EXPERTISE,
         skillName: "Trapper's Expertise",
-        name: "Trapper's Expertise — Crippled",
+        name: "Trapper's Expertise - Crippled",
         triggeredBy: event.skillName
       },
       transform: (packet) => ({ ...packet, fixedDuration: true })
@@ -551,7 +551,7 @@ function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2Resolv
           actorType: ACTOR.EFFECT,
           skillId: TRAIT.LIGHT_ON_YOUR_FEET,
           skillName: 'Light on your Feet',
-          name: 'Light on your Feet — Vulnerability',
+          name: 'Light on your Feet - Vulnerability',
           triggeredBy: event.skillName
         }
       });

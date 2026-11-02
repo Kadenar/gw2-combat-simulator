@@ -738,7 +738,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     true
   );
   assert.equal(
-    skirmishing.breakdown.some((entry) => entry.name === 'Sharpened Edges — Bleeding' && entry.damage > 0),
+    skirmishing.breakdown.some((entry) => entry.name === 'Sharpened Edges - Bleeding' && entry.damage > 0),
     true
   );
 });

@@ -17,15 +17,15 @@ in a given runtime.
 
 ## Implemented systems
 
-- **Core** — ten terrestrial weapon families with cooldowns, ammo, chains, and damage/condition/control/boon packets; a
+- **Core** - ten terrestrial weapon families with cooldowns, ammo, chains, and damage/condition/control/boon packets; a
   fixed-bar loadout with exactly two legend IDs and a validated starting legend; legend-bar replacement with a
   ten-second in-combat legend-swap cooldown (none out of combat), 50-energy reset, Charged Mists, and swap-sigil
   triggers; continuous five-energy/sec regeneration, explicit skill costs, concurrent upkeep, and timestamped starvation
   cancellation.
-- **Herald** — facet upkeep and consume flips.
-- **Renegade** — warband actor ownership and Soulcleave strike reactions.
-- **Vindicator** — legend skills, trait-selected dodge variants, and Energy Meld; shared legend state remains in Core.
-- **Conduit** — affinity, legend-specific Release Potential, and Cosmic Wisdom state.
+- **Herald** - facet upkeep and consume flips.
+- **Renegade** - warband actor ownership and Soulcleave strike reactions.
+- **Vindicator** - legend skills, trait-selected dodge variants, and Energy Meld; shared legend state remains in Core.
+- **Conduit** - affinity, legend-specific Release Potential, and Cosmic Wisdom state.
 
 ## Modeling boundaries
 

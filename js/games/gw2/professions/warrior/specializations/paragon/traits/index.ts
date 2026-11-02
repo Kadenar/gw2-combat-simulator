@@ -98,7 +98,7 @@ const feverishPulse = defineTrait({
         source: 'Paragon',
         sourceId: cast.skill.id,
         actorType: ACTOR.PLAYER,
-        name: `${cast.skill.name} — alacrity`,
+        name: `${cast.skill.name} - alacrity`,
         audience: { recipients: RECIPIENT.PARTY }
       })
     }

@@ -99,7 +99,7 @@ and return the generic opener notice once. Animation decoding follows the pinned
 per-actor/per-skill pairing, 10 ms tolerance, unknown casts, status and acceleration semantics.
 
 The ordinary finder table (`evtc/rotation/ei-rules.ts`) contains explicit descriptors. Custom animated finders,
-Ranger/Reaper spawn detection, Engineer kit swaps and Chronomancer shatter checks are implemented separately beside it —
+Ranger/Reaper spawn detection, Engineer kit swaps and Chronomancer shatter checks are implemented separately beside it -
 this is not a complete EI parity certification. Extension healing/barrier and unported custom predicates are omitted; no
 generic catalog or damage guess replaces them. Mechanist summon/recall skills are intentionally outside simulator scope.
 Time-aware ownership changes and reused instance IDs are conservatively rejected. ArcDPS encoding selection currently

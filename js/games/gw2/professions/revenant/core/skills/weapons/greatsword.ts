@@ -214,7 +214,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         type: 'strike',
         coefficient: 1.5,
         hits: 1,
-        name: 'True Strike (vindicator) — Packet 1',
+        name: 'True Strike (vindicator) - Packet 1',
         actorType: ACTOR.PLAYER
       }
     ],
@@ -298,7 +298,7 @@ function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<
         skillId: cast.skill.id,
         skillName: cast.skill.name,
         activationId: cast.id,
-        name: 'Imperial Guard — Blocking',
+        name: 'Imperial Guard - Blocking',
         kind: 'blocking',
         duration: Math.max(0, cast.effectiveEnd - cast.start),
         stacks: 1

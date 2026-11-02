@@ -231,7 +231,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
           {
             label: 'Overall DPS',
             className: 'dps',
-            value: result ? number(result.overallDps) : execution.config ? '—' : 'Unavailable'
+            value: result ? number(result.overallDps) : execution.config ? '-' : 'Unavailable'
           },
           {
             label: healthState ? `${healthState.targetName} HP / total` : 'Target HP / total',
@@ -267,7 +267,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
           },
           {
             label: 'Estimated time to transition',
-            value: result ? seconds(result.timeToTransition) : execution.config ? '—' : 'Unavailable'
+            value: result ? seconds(result.timeToTransition) : execution.config ? '-' : 'Unavailable'
           },
           { label: 'Target armor', value: format(healthState?.armor ?? null) }
         ],
@@ -317,7 +317,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     const splitCells = (index: number): string => {
       const split = draft.phases[index];
 
-      if (split?.kind !== 'split') return '<td>&mdash;</td><td>&mdash;</td>';
+      if (split?.kind !== 'split') return '<td>-</td><td>-</td>';
 
       const name = plan.phases[index]!.label;
       const splitNumber = splitNumbers.get(split.id)!;
@@ -348,7 +348,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
             if (phase.kind === 'split')
               return draft.phases[index - 1]?.kind === 'boss'
                 ? ''
-                : `<tr><th scope="row">${index === 0 ? 'Opening split' : `Split ${splitNumbers.get(phase.id)}`}</th><td>&mdash;</td>${splitCells(index)}</tr>`;
+                : `<tr><th scope="row">${index === 0 ? 'Opening split' : `Split ${splitNumbers.get(phase.id)}`}</th><td>-</td>${splitCells(index)}</tr>`;
 
             bossIndex += 1;
             const rates =

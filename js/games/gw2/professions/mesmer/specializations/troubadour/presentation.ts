@@ -133,7 +133,7 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
             id: instrument.name.toLowerCase(),
             label: instrument.name,
             valueLabel: remaining,
-            title: `${instrument.name} playing — ${remaining} remaining`
+            title: `${instrument.name} playing - ${remaining} remaining`
           };
         }),
         showValue: false

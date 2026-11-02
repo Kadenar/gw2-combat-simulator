@@ -383,7 +383,7 @@ function applySuperiorElements(context: ElementalistRuntime, { cast, dualAttunem
       skillName: skill.name,
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
       attribution: { source: skill.name, sourceId: skill.id, actorType: ACTOR.PLAYER, triggeredBy: '' },
-      transform: (event) => ({ ...event, name: skill.name + ' \u2014 ' + event.condition })
+      transform: (event) => ({ ...event, name: skill.name + ' - ' + event.condition })
     });
   }
 }

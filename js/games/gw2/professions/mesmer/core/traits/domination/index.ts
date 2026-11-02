@@ -221,7 +221,7 @@ function triggerRendingShatter(
         stacks: Number(effect.stacks) * hit.count
       },
       'Player',
-      `${resolution.skill.name} — Rending Shatter`,
+      `${resolution.skill.name} - Rending Shatter`,
       {
         source: 'Trait',
         sourceId: TRAIT.RENDING_SHATTER,

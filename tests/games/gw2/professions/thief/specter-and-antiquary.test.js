@@ -1032,7 +1032,7 @@ test('Mistburn charges are spent once by later player strikes, never by the Mort
   );
   assert.deepEqual(result.warnings, []);
   const procs = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.name === 'Mistburn Mortar — Charged Strike'
+    (event) => event.type === 'condition' && event.name === 'Mistburn Mortar - Charged Strike'
   );
   assert.equal(procs.length, 5);
   assert.ok(procs.every((event) => event.triggeredBy !== 'Mistburn Mortar'));
@@ -1066,7 +1066,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
   assert.equal(withoutCardSwap.steps[1].invalid, true);
   assert.match(
     withoutCardSwap.warnings.map(({ message }) => message).join(' '),
-    /Reshuffle is unavailable — requires the Card Swap trait\./
+    /Reshuffle is unavailable - requires the Card Swap trait\./
   );
 
   const reshuffled = simulate('Antiquary', ['Skritt Swipe', 'Reshuffle'], {
@@ -1126,7 +1126,7 @@ test('Antiquary artifacts, per-cast Double Edge, and summons are deterministic',
 
   assert.ok(
     guild.resolvedEvents.some(
-      (event) => event.actorType === 'summon' && event.skillName === 'Thieves Guild — Sword/Dagger Skritt'
+      (event) => event.actorType === 'summon' && event.skillName === 'Thieves Guild - Sword/Dagger Skritt'
     )
   );
 });
@@ -1184,9 +1184,9 @@ test('Thieves Guild summons specialization-specific thieves and expires', () => 
         )
       ].sort(),
       [
-        'Thieves Guild — Male Dual-Pistol Thief',
-        'Thieves Guild — Female Dual-Dagger Thief',
-        `Thieves Guild — ${thirdSummon}`
+        'Thieves Guild - Male Dual-Pistol Thief',
+        'Thieves Guild - Female Dual-Dagger Thief',
+        `Thieves Guild - ${thirdSummon}`
       ].sort(),
       specialization
     );
@@ -1210,14 +1210,14 @@ test('Thieves Guild summons specialization-specific thieves and expires', () => 
   const entityRows = skillBreakdownRows(lifetime).filter((row) => row.parentSkill === 'Thieves Guild');
 
   assert.ok(entityRows.length > 0);
-  assert.ok(entityRows.every((row) => !row.name.startsWith('Thieves Guild \u2014 ')));
-  assert.ok(entityRows.some((row) => row.name === 'Thief \u2014 Unload'));
-  assert.ok(entityRows.some((row) => row.name === 'Specter \u2014 Shadow Bolt'));
-  const scorpionWire = entityRows.find((row) => row.name === 'Thief \u2014 Scorpion Wire');
+  assert.ok(entityRows.every((row) => !row.name.startsWith('Thieves Guild - ')));
+  assert.ok(entityRows.some((row) => row.name === 'Thief - Unload'));
+  assert.ok(entityRows.some((row) => row.name === 'Specter - Shadow Bolt'));
+  const scorpionWire = entityRows.find((row) => row.name === 'Thief - Scorpion Wire');
 
   assert.ok(scorpionWire.strike > 0);
   assert.ok(scorpionWire.condition > 0);
-  assert.ok(entityRows.every((row) => !row.name.endsWith(' \u2014 Poisoned')));
+  assert.ok(entityRows.every((row) => !row.name.endsWith(' - Poisoned')));
 });
 
 test('Thieves Guild uses independent summon weapons and attack profiles', () => {
@@ -1231,9 +1231,9 @@ test('Thieves Guild uses independent summon weapons and attack profiles', () => 
     .filter((row) => row.parentSkill === 'Thieves Guild')
     .map((row) => row.name);
 
-  assert.ok(entityRowNames.includes('Thief \u2014 Unload'));
-  assert.ok(entityRowNames.includes('Daredevil \u2014 Vault'));
-  const impairingDaggers = skillBreakdownRows(result).find((row) => row.name === 'Daredevil \u2014 Impairing Daggers');
+  assert.ok(entityRowNames.includes('Thief - Unload'));
+  assert.ok(entityRowNames.includes('Daredevil - Vault'));
+  const impairingDaggers = skillBreakdownRows(result).find((row) => row.name === 'Daredevil - Impairing Daggers');
 
   assert.ok(impairingDaggers.strike > 0);
   assert.ok(impairingDaggers.condition > 0);

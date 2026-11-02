@@ -77,10 +77,7 @@ export function grantSoulcleaveAllies(runtime: RevenantRuntime): void {
         transform: (event) => ({
           ...event,
           metadata: { triggeredByAlly: allyIndex },
-          name: (event.name || proc.name).replace(
-            "Soulcleave's Summit \u2014 ",
-            `Soulcleave's Summit \u2014 Ally ${allyIndex} `
-          )
+          name: (event.name || proc.name).replace("Soulcleave's Summit - ", `Soulcleave's Summit - Ally ${allyIndex} `)
         })
       });
     }

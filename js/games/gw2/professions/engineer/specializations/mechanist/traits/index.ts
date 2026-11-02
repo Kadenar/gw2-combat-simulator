@@ -131,7 +131,7 @@ const jadeDynamo = defineTrait({
       when: (_runtime, cast) => isEngineerMechCommand(cast.skill),
       emit: TRAIT.MECH_CORE_JADE_DYNAMO,
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
-      attribution: { actorType: ACTOR.PLAYER, name: 'Jade Dynamo — quickness' }
+      attribution: { actorType: ACTOR.PLAYER, name: 'Jade Dynamo - quickness' }
     }
   ]
 });
@@ -261,7 +261,7 @@ function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: Mech
       ...packet,
       applicationIndex: undefined,
       totalApplications: undefined,
-      name: 'Mech Arms: Single-Edge Cutters' + ' \u2014 ' + packet.condition,
+      name: 'Mech Arms: Single-Edge Cutters' + ' - ' + packet.condition,
       stacks: Number(packet.stacks),
       duration: Number(packet.duration),
       summonOwner: event.summonOwner,
@@ -354,7 +354,7 @@ function applyJadeCannonsVulnerability(context: EngineerRuntime, { cause: event 
         ...packet,
         applicationIndex: undefined,
         totalApplications: undefined,
-        name: 'Mech Arms: Jade Cannons' + ' \u2014 ' + packet.condition,
+        name: 'Mech Arms: Jade Cannons' + ' - ' + packet.condition,
         stacks: Number(vulnerability.stacks),
         duration: Number(vulnerability.duration),
         summonOwner: event.summonOwner,

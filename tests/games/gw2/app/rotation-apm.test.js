@@ -36,8 +36,8 @@ test('APM renders next to duration with a tooltip and sustained peak details', (
 
 test('zero-duration and empty views show an em dash while positive-duration zero-action views show 0 APM', () => {
   for (const [rotation, expected] of [
-    [[], '—'],
-    [['Fixture Charge'], '—'],
+    [[], '-'],
+    [['Fixture Charge'], '-'],
     [[{ type: 'wait', durationMs: 1000 }], '0 APM']
   ]) {
     const result = simulateGw2({ profession: testProfession, rotation });

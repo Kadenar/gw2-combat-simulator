@@ -111,7 +111,7 @@ test('Galeshot palette and Wind Force display use the patched threshold', () => 
       if (value < maximum)
         assert.equal(
           result.planningState.availability[ID.HAWKEYE].reason,
-          `Hawkeye is unavailable — requires ${maximum} Wind Force.`
+          `Hawkeye is unavailable - requires ${maximum} Wind Force.`
         );
     }
   }

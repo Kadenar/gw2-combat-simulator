@@ -78,7 +78,7 @@ export const SKILL_COLS: readonly ResultColumn[] = [
     key: 'observedCritRate',
     label: 'Crit %',
     numeric: true,
-    format: (value) => (value == null ? '—' : `${(Number(value) * 100).toFixed(1)}%`),
+    format: (value) => (value == null ? '-' : `${(Number(value) * 100).toFixed(1)}%`),
     title: (_value, row) => {
       const eligible = Number(row.critEligibleHits || 0);
 

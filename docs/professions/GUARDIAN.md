@@ -27,16 +27,16 @@ Firebrand's `initial-state.ts` supplies default profiles without importing trait
 
 ## Implemented systems
 
-- **Core** — executable terrestrial weapon, slot, and profession skills with strike packets, damaging conditions,
+- **Core** - executable terrestrial weapon, slot, and profession skills with strike packets, damaging conditions,
   cooldowns, ammo, chains, flips, symbols, traps, channels, and persistent attacks; Justice/Resolve/Courage activation
   and recharge; Justice active and passive burning; Renewed Focus; weapon swapping and active-set validation.
-- **Dragonhunter** — physical virtues, Spear of Justice / Hunter's Verdict.
-- **Firebrand** — tome equip/stow, shared pages, page costs, regeneration, and Archivist of Whispers / Loremaster /
+- **Dragonhunter** - physical virtues, Spear of Justice / Hunter's Verdict.
+- **Firebrand** - tome equip/stow, shared pages, page costs, regeneration, and Archivist of Whispers / Loremaster /
   Ashes of the Just.
-- **Willbender** — physical skills and movement virtues.
-- **Luminary** — Radiant Forge entry/exit, duration, radiant-weapon flips, weapon-dependent Glaring Burst, per-entry
+- **Willbender** - physical skills and movement virtues.
+- **Luminary** - Radiant Forge entry/exit, duration, radiant-weapon flips, weapon-dependent Glaring Burst, per-entry
   recharge reduction, and light-field / finisher / Sovereign of Light detonation behavior.
-- **Spear (Janthir Wilds)** — the Illuminated mechanic (armed by spear 2/3/4, held open by Symbol of Luminance; consumed
+- **Spear (Janthir Wilds)** - the Illuminated mechanic (armed by spear 2/3/4, held open by Symbol of Luminance; consumed
   by the next supported enhanced spear skill: Helio Rush, Gleaming Disc, or Solar Storm; filler autoattacks do not
   consume it). Skill data lives in `core/skills/weapons/spear.ts`; persistent Illuminated behavior lives in
   `core/mechanics/spear.ts`.

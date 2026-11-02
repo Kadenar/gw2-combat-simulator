@@ -51,7 +51,7 @@ test('health chart switches metric, phase, and scope with point inspection and s
   const names = () => table.locator('tbody th').allTextContents();
   const values = async (column) =>
     (await table.locator(`tbody td:nth-child(${column + 2})`).allTextContents()).map((value) =>
-      value === '—' ? null : Number(value.replaceAll(',', ''))
+      value === '-' ? null : Number(value.replaceAll(',', ''))
     );
   const expectOrder = async (column, ascending) => {
     const actual = await values(column);

@@ -80,7 +80,7 @@ function attributeFacts(values: NumericValues = {}, percent = false): TooltipFac
 }
 
 function upgradeDetails(name: string, label: string): string {
-  return label.startsWith(`${name} — `) ? label.slice(name.length + 3) : '';
+  return label.startsWith(`${name} - `) ? label.slice(name.length + 3) : '';
 }
 
 /** Use catalog bonuses for rune sets and local trigger descriptions for sigils and relics in every picker. */
@@ -181,7 +181,7 @@ const utilityData = UTILITY_DATA as Readonly<
 const utilityStatData = UTILITY_STAT_DATA as Readonly<Record<string, NumericValues>>;
 
 function optionLabel(name: string, details: readonly string[]): string {
-  return details.length ? `${name} — ${details.join(', ')}` : name;
+  return details.length ? `${name} - ${details.join(', ')}` : name;
 }
 
 function attributeDetails(values: NumericValues | undefined, percent = false): string[] {

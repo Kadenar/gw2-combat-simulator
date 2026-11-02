@@ -151,7 +151,7 @@ const havocSpecialist = defineTrait({
       factor: (context) => balanceNumberFromContext(context, TRAIT.HAVOC_SPECIALIST, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
+        // Trait activates whenever endurance is not at maximum - any spent dodge qualifies
         (thiefRuntimeState(context.runtime?.profession).endurance?.value ?? 0) <
           balanceNumberFromContext(context, TRAIT.PHYSICAL_SUPREMACY, 'maximumStacks')
     }
@@ -342,7 +342,7 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
       activationId: event.activationId,
       triggeredBy: event.skillName,
       sourceId: TRAIT.WEAKENING_STRIKES,
-      name: 'Weakening Strikes — Weakness'
+      name: 'Weakening Strikes - Weakness'
     }
   });
 }

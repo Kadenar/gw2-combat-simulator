@@ -180,7 +180,7 @@ for (const [name, profession, specialization, trait, skill, effect, configExtra]
       });
       const packets = result.events.filter(
         (event) =>
-          event.type === 'buff' && event.name === (name === 'Transcendent Tempest' ? name : `${name} \u2014 superspeed`)
+          event.type === 'buff' && event.name === (name === 'Transcendent Tempest' ? name : `${name} - superspeed`)
       );
       assert.equal(packets.length, removed ? 0 : 1);
 

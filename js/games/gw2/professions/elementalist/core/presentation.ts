@@ -581,7 +581,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       ) {
         return {
           available: false,
-          message: `Drop Bundle is unavailable — the ${skill.skillWeapon} bundle is not equipped.`
+          message: `Drop Bundle is unavailable - the ${skill.skillWeapon} bundle is not equipped.`
         };
       }
 

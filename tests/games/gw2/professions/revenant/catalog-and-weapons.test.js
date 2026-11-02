@@ -348,7 +348,7 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
   // Trait replacements share the skill owner while keeping independent named payloads.
   const improvedHeroic = heroic.skill.effects.find((effect) => effect.name === 'lasting-legacy-might');
   const kallasFervor = namedProfile('Ambush Commander');
-  const soulcleaveProc = named("Soulcleave's Summit — Triggered Attack");
+  const soulcleaveProc = named("Soulcleave's Summit - Triggered Attack");
   const allForOne = namedProfile('All for One');
   assert.equal(enhancedIcerazor.skill.rotationInputExcluded, true);
   assert.deepEqual(
@@ -1240,7 +1240,7 @@ test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', (
   );
   assert.deepEqual(
     result.events
-      .filter((event) => event.type === 'condition' && event.name === 'Abyssal Raze — Crushing Abyss Torment')
+      .filter((event) => event.type === 'condition' && event.name === 'Abyssal Raze - Crushing Abyss Torment')
       .map((event) => [event.stacks, event.duration]),
     [
       [2, 5],

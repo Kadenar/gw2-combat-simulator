@@ -152,7 +152,7 @@ function razorclawBleed(
     actorType: ACTOR.PLAYER,
     skillId: ID.RAZORCLAWS_RAGE,
     skillName: "Razorclaw's Rage",
-    name: ally ? `Razorclaw's Rage — Ally ${ally.allyIndex} Bleeding` : "Razorclaw's Rage — Bleeding",
+    name: ally ? `Razorclaw's Rage - Ally ${ally.allyIndex} Bleeding` : "Razorclaw's Rage - Bleeding",
     condition: String(bleed.condition),
     stacks: effectNumber(proc, bleed, 'stacks'),
     duration: effectNumber(proc, bleed, 'duration'),

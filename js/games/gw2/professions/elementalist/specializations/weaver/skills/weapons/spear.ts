@@ -157,14 +157,14 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
               },
               {
                 type: 'condition',
-                name: 'Fiery Impact - Additional Strike — Burning',
+                name: 'Fiery Impact - Additional Strike - Burning',
                 condition: CONDITION.BURNING,
                 stacks: 1,
                 duration: 5
               },
               {
                 type: 'condition',
-                name: 'Fiery Impact - Additional Strike — Bleeding',
+                name: 'Fiery Impact - Additional Strike - Bleeding',
                 condition: CONDITION.BLEEDING,
                 stacks: 3,
                 duration: 6
@@ -207,14 +207,14 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
               { type: 'strike', name: 'Elutriate - Additional Strike', coefficient: 1.25 },
               {
                 type: 'condition',
-                name: 'Elutriate - Additional Strike — Vulnerability',
+                name: 'Elutriate - Additional Strike - Vulnerability',
                 condition: CONDITION.VULNERABILITY,
                 stacks: 5,
                 duration: 8
               },
               {
                 type: 'condition',
-                name: 'Elutriate - Additional Strike — Chilled',
+                name: 'Elutriate - Additional Strike - Chilled',
                 condition: CONDITION.CHILLED,
                 stacks: 1,
                 duration: 4
@@ -305,14 +305,14 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
               { type: 'strike', name: 'Shale Storm - Additional Strike', coefficient: 1.5 },
               {
                 type: 'condition',
-                name: 'Shale Storm - Additional Strike — Blindness',
+                name: 'Shale Storm - Additional Strike - Blindness',
                 condition: CONDITION.BLINDNESS,
                 stacks: 1,
                 duration: 3
               },
               {
                 type: 'condition',
-                name: 'Shale Storm - Additional Strike — Crippled',
+                name: 'Shale Storm - Additional Strike - Crippled',
                 condition: CONDITION.CRIPPLED,
                 stacks: 1,
                 duration: 5

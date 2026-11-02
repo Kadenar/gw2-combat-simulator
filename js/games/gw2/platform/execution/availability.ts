@@ -70,7 +70,7 @@ export function denySkillCast(
   cause: string,
   retryAt: number | null = null
 ): AvailabilityResult {
-  const reason = `${skill.name} is unavailable — ${cause}`;
+  const reason = `${skill.name} is unavailable - ${cause}`;
   return retryAt === null ? denyCast(code, reason) : retryCast(retryAt, code, reason);
 }
 

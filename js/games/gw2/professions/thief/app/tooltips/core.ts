@@ -106,7 +106,7 @@ const thievesGuildTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
       ...profile.summons.flatMap((summon) =>
         (summon.attacks || []).flatMap((attack) => {
           const skill = balanceContext.catalog.skillsById.get(attack.skillId)!;
-          return simulationEffectFacts(skill.effects, `${summon.name} — ${skill.name}`).facts;
+          return simulationEffectFacts(skill.effects, `${summon.name} - ${skill.name}`).facts;
         })
       )
     ]

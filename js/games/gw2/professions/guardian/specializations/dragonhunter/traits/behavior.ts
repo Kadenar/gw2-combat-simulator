@@ -15,10 +15,7 @@ export const soaringDevastationEffects: NonNullable<Skill['effectVariants']>[num
       .filter((effect) => effect.type === 'strike' || effect.type === 'condition')
       .map((effect) => ({
         ...effect,
-        name:
-          effect.type === 'strike'
-            ? 'Wings of Resolve \u2014 Soaring Devastation'
-            : 'Soaring Devastation \u2014 Immobilized',
+        name: effect.type === 'strike' ? 'Wings of Resolve - Soaring Devastation' : 'Soaring Devastation - Immobilized',
         weapon: gw2ActivePrimaryWeapon(runtime.config, runtime.activeWeaponSet),
         timingAnchor: 'castEnd' as const
       }))

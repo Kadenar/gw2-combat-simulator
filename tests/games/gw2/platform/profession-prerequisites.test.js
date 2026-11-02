@@ -831,7 +831,7 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
             type: 'condition',
             condition: 'Chilled',
             stacks: 1,
-            name: 'Spinal Shivers — Chilled',
+            name: 'Spinal Shivers - Chilled',
             at: 1,
             skillName: 'Spinal Shivers',
             duration: 5

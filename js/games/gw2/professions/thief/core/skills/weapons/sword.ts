@@ -270,7 +270,7 @@ export const THIEF_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillD
           { atMs: 560, coefficient: 0.53 },
           { atMs: 720, coefficient: 0.53 }
         ],
-        name: 'Flawless Execution — Packet 1',
+        name: 'Flawless Execution - Packet 1',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'

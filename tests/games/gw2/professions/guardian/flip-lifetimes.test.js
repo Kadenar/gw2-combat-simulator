@@ -106,7 +106,7 @@ test('Binding Blade expiry hides Pull without removing the final tether damage p
   assert.deepEqual(result.warnings, []);
   const action = result.events.find((event) => event.type === 'action');
   const final = result.resolvedEvents.find(
-    (event) => event.name === 'Binding Blade — Tether' && event.at === action.endsAt + 10
+    (event) => event.name === 'Binding Blade - Tether' && event.at === action.endsAt + 10
   );
   assert.ok(final?.damage > 0);
   assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.PULL], undefined);

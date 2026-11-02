@@ -44,7 +44,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
       actorType: ACTOR.PLAYER,
       skillId: ID.MISTBURN_MORTAR,
       skillName: 'Mistburn Mortar',
-      name: 'Mistburn Mortar — Charged Strike',
+      name: 'Mistburn Mortar - Charged Strike',
       condition: String(burning.condition),
       stacks: effectNumber(mistburnProcProfile, burning, 'stacks'),
       duration: effectNumber(mistburnProcProfile, burning, 'duration'),

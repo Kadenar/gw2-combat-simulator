@@ -273,7 +273,7 @@ test('Split Surge resolves its three beam packets with per-hit Might and Vulnera
   assert.ok(
     vulnerability.every(
       (event) =>
-        event.name === 'Split Surge — Vulnerability' &&
+        event.name === 'Split Surge - Vulnerability' &&
         event.sourceId === ID.SPLIT_SURGE &&
         event.skillId === ID.SPLIT_SURGE &&
         event.applicationIndex === 1 &&

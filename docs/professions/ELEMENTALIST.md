@@ -59,13 +59,13 @@ from their own inputs.
 
 ## Owned systems
 
-- **Core** — attunements, weapon and slot skills, cast and recharge rules, autoattack transitions, auras, endurance,
+- **Core** - attunements, weapon and slot skills, cast and recharge rules, autoattack transitions, auras, endurance,
   conjures, summoned elementals, core trait reactions, and weapon resources such as pistol bullets, hammer orbs, and
   spear etchings.
-- **Tempest** — overload availability and scheduling, Tempest skill handlers, aura reactions, modifiers, state, and UI.
-- **Weaver** — dual attunements, dual-attunement weapon skills, Weaver cast rules, modifiers, state, and UI.
-- **Catalyst** — energy, Jade Spheres, Elemental Empowerment, combo and aura reactions, modifiers, state, and UI.
-- **Evoker** — specialized-element familiars, charges, empowerment, recharge rules, skill handlers, modifiers, state,
+- **Tempest** - overload availability and scheduling, Tempest skill handlers, aura reactions, modifiers, state, and UI.
+- **Weaver** - dual attunements, dual-attunement weapon skills, Weaver cast rules, modifiers, state, and UI.
+- **Catalyst** - energy, Jade Spheres, Elemental Empowerment, combo and aura reactions, modifiers, state, and UI.
+- **Evoker** - specialized-element familiars, charges, empowerment, recharge rules, skill handlers, modifiers, state,
   and UI.
 
 ## Data

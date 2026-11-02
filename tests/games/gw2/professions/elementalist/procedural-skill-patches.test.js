@@ -475,7 +475,7 @@ test('removing either dual reward preserves its sibling, bullet settlement, and 
     const context = profession.resolvePatch({ id: 'side-effect-ownership' }).balanceContext;
     const skill = context.catalog.skillsById.get(id);
     const model = describeSimulationSkill(context, skill, elementalistTooltips);
-    const conditional = model.facts.filter(({ detail }) => / — (Fire|Water) bullet$/.test(detail));
+    const conditional = model.facts.filter(({ detail }) => / - (Fire|Water) bullet$/.test(detail));
     assert.equal(conditional.length, 1);
     assert.equal(
       requireEffect(

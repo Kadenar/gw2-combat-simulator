@@ -84,7 +84,7 @@ export const GUARDIAN_SKILL_IDS = Object.freeze({
   WINGS_OF_RESOLVE: 30083,
   SHIELD_OF_COURAGE: 30029,
 
-  // Spear (Janthir Wilds) — Illuminated mechanic
+  // Spear (Janthir Wilds) - Illuminated mechanic
   DAYBREAKING_SLASH: 73055,
   HELIO_RUSH: 72940,
   GLEAMING_DISC: 72978,

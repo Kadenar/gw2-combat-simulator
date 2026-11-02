@@ -131,7 +131,7 @@ export const REVENANT_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         reactions: [
           { on: 'damage.resolved', actor: ACTOR.PLAYER, packets: 'first', do: [{ type: 'revenant.spear-recharge' }] }
         ],
-        name: 'Abyssal Blitz — Mine',
+        name: 'Abyssal Blitz - Mine',
         actorType: ACTOR.PLAYER,
         ticks: [560, 720, 960].map((atMs) => ({ atMs, coefficient: 0.5 }))
       },
@@ -366,7 +366,7 @@ function abyssalRazePackets(
     kind: 'packet',
     event: buildResolverStrike({
       ...common,
-      name: triggeredBy ? 'Abyssal Raze — Crushing Abyss' : 'Abyssal Raze',
+      name: triggeredBy ? 'Abyssal Raze - Crushing Abyss' : 'Abyssal Raze',
       coefficient: triggeredBy ? base : base * (1 + (strike.damageIncreasePerStack || 0) * stacks)
     })
   });
@@ -375,7 +375,7 @@ function abyssalRazePackets(
     kind: 'packet',
     event: buildResolverCondition({
       ...common,
-      name: 'Abyssal Raze — Torment',
+      name: 'Abyssal Raze - Torment',
       condition: CONDITION.TORMENT,
       stacks: baseTick?.stacks || 0,
       duration: baseTick?.duration || 0
@@ -388,7 +388,7 @@ function abyssalRazePackets(
       kind: 'packet',
       event: buildResolverCondition({
         ...common,
-        name: 'Abyssal Raze — Crushing Abyss Torment',
+        name: 'Abyssal Raze - Crushing Abyss Torment',
         condition: CONDITION.TORMENT,
         stacks: (crushingTick?.stacks || 0) * stacks,
         duration: crushingTick?.duration || 0
@@ -520,7 +520,7 @@ function reactRevenantSpearRecharge(runtime: RevenantRuntime, event: Gw2Resolver
       at: runtime.time,
       sourceSkill: source.name,
       icon: source.icon || '',
-      name: `${source.name} — Abyssal Raze recharge`,
+      name: `${source.name} - Abyssal Raze recharge`,
       detail: `${cooldownReduction}s`,
       cooldownReduction,
       type: 'skill'

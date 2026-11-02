@@ -277,7 +277,7 @@ function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2Re
         skillName: 'Strength of Stone',
         triggeredBy: resolverSourceSkill(event)
       },
-      transform: (packet) => ({ ...packet, name: 'Strength of Stone' + ' — ' + packet.condition })
+      transform: (packet) => ({ ...packet, name: 'Strength of Stone' + ' - ' + packet.condition })
     });
     context.effects.emit({
       kind: 'announcement',

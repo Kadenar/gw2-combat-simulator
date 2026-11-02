@@ -87,7 +87,7 @@ test('Solar Focusing Lens enhances the earliest two interleaved impacts', () => 
   );
   assert.deepEqual(
     result.resolvedEvents
-      .filter((event) => event.name === 'Solar Focusing Lens — Burning' && event.type === 'condition')
+      .filter((event) => event.name === 'Solar Focusing Lens - Burning' && event.type === 'condition')
       .map((event) => event.at),
     strikes.slice(0, 2).map((event) => event.at)
   );
@@ -627,7 +627,7 @@ test('Holosmith offensive traits consume forge heat and attack charges', () => {
     (event) => event.type === 'damage' && event.solarFocusingLens === true
   );
   const solarBurns = solar.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.name === 'Solar Focusing Lens — Burning'
+    (event) => event.type === 'condition' && event.name === 'Solar Focusing Lens - Burning'
   );
 
   assert.equal(solarStrikes.length, 2);
@@ -681,7 +681,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
   assert.ok(vented.events.some((event) => event.type === 'buff' && event.kind === 'vigor' && event.duration === 3));
   // Heat loss invokes the skill's separate Burning applications without changing their payload total.
   const ventBurns = vented.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.name === 'Vent Exhaust — Burning'
+    (event) => event.type === 'condition' && event.name === 'Vent Exhaust - Burning'
   );
   assert.ok(ventBurns.length > 0);
   assert.ok(ventBurns.every((event) => event.stacks === 1 && event.duration === 6 && event.at === vent.at));
@@ -691,7 +691,7 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
     selectedTraitIds: [TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT]
   });
   const mightPulses = enhanced.events.filter(
-    (event) => event.type === 'buff' && event.name === 'Enhanced Capacity Storage Unit — might'
+    (event) => event.type === 'buff' && event.name === 'Enhanced Capacity Storage Unit - might'
   );
 
   assert.equal(mightPulses.length, 3);

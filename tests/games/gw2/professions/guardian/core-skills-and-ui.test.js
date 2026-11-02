@@ -537,7 +537,7 @@ test('Spear Symbol of Luminance knocks back on its initial hit', () => {
     ['Symbol of Luminance']
   );
   const initialHit = result.events.find(
-    (event) => event.type === 'damage' && event.name === 'Symbol of Luminance — Initial'
+    (event) => event.type === 'damage' && event.name === 'Symbol of Luminance - Initial'
   );
   const controls = result.events.filter(
     (event) => event.type === 'control' && event.skillId === GUARDIAN_SKILL_IDS.SYMBOL_OF_LUMINANCE

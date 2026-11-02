@@ -48,7 +48,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
           type: 'strike',
           coefficient: 0.3,
           hits: 1,
-          name: 'Ashen Assault — Final Strike',
+          name: 'Ashen Assault - Final Strike',
           actorType: ACTOR.PLAYER
         },
         {
@@ -338,7 +338,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
       {
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 1 }],
-        name: 'Vampiric Slash — Packet 1',
+        name: 'Vampiric Slash - Packet 1',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -353,7 +353,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
           damageKind: 'life-steal',
           damageBreakdownName: 'Life Siphon - Vampiric Slash',
           hits: 1,
-          name: 'Vampiric Slash — Life Siphon',
+          name: 'Vampiric Slash - Life Siphon',
           // The vulnerability modifier targets this packet identity without depending on its display label.
           metadata: { packetKind: 'thief.vampiric-slash-life-siphon' },
           actorType: ACTOR.PLAYER,

@@ -545,7 +545,7 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 10 }
     ])
   },
-  // Two impacts within one cast — the small initial hit and the larger delayed one — each carrying its
+  // Two impacts within one cast - the small initial hit and the larger delayed one - each carrying its
   // own Bleeding and Cripple application.
   [ID.RING_OF_EARTH]: {
     name: 'Ring of Earth',

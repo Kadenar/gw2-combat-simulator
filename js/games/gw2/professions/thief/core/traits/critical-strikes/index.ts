@@ -254,7 +254,7 @@ export const sunderingShade = defineTrait({
   },
   triggers: [
     onTriggerPoint(stealthAttackCompleted, {
-      run: thiefCastCondition(TRAIT.SUNDERING_SHADE, CONDITION.VULNERABILITY, 'Sundering Shade — Vulnerability')
+      run: thiefCastCondition(TRAIT.SUNDERING_SHADE, CONDITION.VULNERABILITY, 'Sundering Shade - Vulnerability')
     })
   ]
 });

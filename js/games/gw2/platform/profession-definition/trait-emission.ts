@@ -193,7 +193,7 @@ export function invokeTraitSkill(
           effect.type === 'custom' && effect.event.name
             ? String(effect.event.name)
             : event.type === 'condition'
-              ? `${skill.name} — ${event.condition}`
+              ? `${skill.name} - ${event.condition}`
               : skill.name,
         parentSkillName: cause.skillName,
         icon: skill.icon

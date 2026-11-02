@@ -134,7 +134,7 @@ const demolish: Partial<SkillDefinition<AmalgamSkill>> = {
       ticks: DEMOLISH_SPIN_TICKS,
       timingAnchor: 'castStart',
       timingScale: 'fixed',
-      name: 'Offensive Protocol: Demolish — Packet 1',
+      name: 'Offensive Protocol: Demolish - Packet 1',
       actorType: ACTOR.PLAYER,
       comboFinishers: [
         {

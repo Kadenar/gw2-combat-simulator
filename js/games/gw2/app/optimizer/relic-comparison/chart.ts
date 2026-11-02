@@ -159,7 +159,7 @@ export function relicComparisonChartSvg(
     )
       .map(
         ([label, color, lineStyle, damage, finalDps]) =>
-          `<tr><th scope="row"><span class="relic-cmp-key"><span class="relic-cmp-swatch" aria-hidden="true" style="border-top-color:${color};border-top-style:${lineStyle}"></span>${escapeHtml(label)}</span></th><td>${formatDps(finalDps)}</td><td>${damage ? formatDps(damage.directDamage) : '—'}</td><td>${damage ? formatDps(damage.contributedDps) : '—'}</td></tr>`
+          `<tr><th scope="row"><span class="relic-cmp-key"><span class="relic-cmp-swatch" aria-hidden="true" style="border-top-color:${color};border-top-style:${lineStyle}"></span>${escapeHtml(label)}</span></th><td>${formatDps(finalDps)}</td><td>${damage ? formatDps(damage.directDamage) : '-'}</td><td>${damage ? formatDps(damage.contributedDps) : '-'}</td></tr>`
       )
       .join('')}</tbody>
   </table></div><p class="relic-cmp-note">Direct damage includes relic strikes and conditions. DPS contribution is the full build DPS minus the same build with no relic, including buffs and interactions.</p>`;

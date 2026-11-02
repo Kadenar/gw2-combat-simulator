@@ -89,7 +89,7 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
         ownerActorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
-        name: 'King of Fires — Fire Aura Detonation',
+        name: 'King of Fires - Fire Aura Detonation',
         skillWeapon: ''
       },
       transform: (packet) => ({ ...packet, canTriggerCriticalTraits: true })
@@ -108,7 +108,7 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
         ownerActorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
-        name: 'King of Fires — Burning'
+        name: 'King of Fires - Burning'
       }
     });
   }

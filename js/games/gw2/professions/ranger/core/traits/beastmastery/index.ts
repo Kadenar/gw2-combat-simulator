@@ -453,7 +453,7 @@ function triggerMergedGoForTheEyes(context: RangerResolverContext, event: Gw2Res
         skillName: 'Go for the Eyes',
         triggeredBy: event.skillName
       },
-      transform: (packet) => ({ ...packet, name: 'Go for the Eyes' + ' — ' + packet.condition })
+      transform: (packet) => ({ ...packet, name: 'Go for the Eyes' + ' - ' + packet.condition })
     });
   }
 }

@@ -748,8 +748,8 @@ test('Radiant Armaments enhances hammer strikes and is replaced by staff', () =>
   // Hammer gains its armament before the first impact; selecting staff removes it before any staff pulse.
   assertFlooredDamageMultiplier(dazzling.damage, damage(empowered, 'Dazzling Hammer').damage, 1.07);
   assertFlooredDamageMultiplier(shining.damage, damage(empowered, 'Shining Spin').damage, 1.17 / 1.1);
-  const armamentStaff = armaments.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
-  const empoweredStaff = empowered.resolvedEvents.filter((event) => event.name === 'Luminous Staff — Symbol Damage');
+  const armamentStaff = armaments.resolvedEvents.filter((event) => event.name === 'Luminous Staff - Symbol Damage');
+  const empoweredStaff = empowered.resolvedEvents.filter((event) => event.name === 'Luminous Staff - Symbol Damage');
 
   assert.equal(
     armamentStaff.every((event, index) => Math.abs(event.damage / empoweredStaff[index].damage - 1) < 1e-9),
@@ -855,7 +855,7 @@ test('Radiant virtues grant one-use hammer and sword empowerments', () => {
 
   assert.equal(armedHammer.planningState.profession[STATE.RADIANT_JUSTICE_ARMED], true);
   assert.equal(
-    hammer.resolvedEvents.filter((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact').length,
+    hammer.resolvedEvents.filter((event) => event.name === 'Dazzling Hammer - Radiant Justice Impact').length,
     1
   );
   assert.equal(hammer.planningState.profession[STATE.RADIANT_JUSTICE_ARMED], false);
@@ -929,7 +929,7 @@ test('Radiant Justice selects the first committed hammer impact after activation
       { type: 'wait', durationMs: 1000 }
     ]);
     const primaries = result.resolvedEvents.filter((event) => event.name === 'Dazzling Hammer');
-    const extras = result.resolvedEvents.filter((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact');
+    const extras = result.resolvedEvents.filter((event) => event.name === 'Dazzling Hammer - Radiant Justice Impact');
     assert.equal(extras.length, 1);
     assert.equal(extras[0].activationId, primaries[selectedIndex].activationId);
     assert.ok(extras[0].at > primaries[selectedIndex].at);
@@ -945,7 +945,7 @@ test('Radiant Justice selects the first committed hammer impact after activation
     { type: 'wait', durationMs: 1000 }
   ]);
   const committed = cancelled.resolvedEvents.find((event) => event.name === 'Dazzling Hammer');
-  const extra = cancelled.resolvedEvents.find((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact');
+  const extra = cancelled.resolvedEvents.find((event) => event.name === 'Dazzling Hammer - Radiant Justice Impact');
   assert.equal(extra.activationId, committed.activationId);
   // A miss still spends the one-use empowerment; deferred emission must retain the off-target cast's ownership.
   const offTarget = run([
@@ -956,12 +956,12 @@ test('Radiant Justice selects the first committed hammer impact after activation
     { type: 'wait', durationMs: 1000 }
   ]);
   const missedExtra = offTarget.resolvedEvents.find(
-    (event) => event.name === 'Dazzling Hammer — Radiant Justice Impact'
+    (event) => event.name === 'Dazzling Hammer - Radiant Justice Impact'
   );
   assert.equal(missedExtra, undefined);
   assert.equal(
     offTarget.resolvedEvents.some(
-      (event) => event.name === 'Dazzling Hammer — Radiant Justice Impact' && event.damage > 0
+      (event) => event.name === 'Dazzling Hammer - Radiant Justice Impact' && event.damage > 0
     ),
     false
   );

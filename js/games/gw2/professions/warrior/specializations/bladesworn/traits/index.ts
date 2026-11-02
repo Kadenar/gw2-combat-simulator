@@ -330,7 +330,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
           skillId: ID.UNSHEATHE_GUNSABER,
           skillName: 'Unsheathe Gunsaber',
           ownerActorType: ACTOR.PLAYER,
-          name: 'Sharp as the Wind — Burning'
+          name: 'Sharp as the Wind - Burning'
         }
       });
   } else {
@@ -348,7 +348,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
           activationId: cast.id,
           skillId: ID.UNSHEATHE_GUNSABER,
           skillName: 'Unsheathe Gunsaber',
-          name: "River's Flow — Might",
+          name: "River's Flow - Might",
           audience: { recipients: RECIPIENT.PARTY }
         }
       });

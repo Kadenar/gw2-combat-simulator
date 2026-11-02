@@ -78,7 +78,7 @@ export const optimizedActivation = defineTrait({
   triggers: [
     onTriggerPoint(toolbeltActivated, {
       emit: TRAIT.OPTIMIZED_ACTIVATION,
-      attribution: { actorType: ACTOR.PLAYER, name: 'Optimized Activation — vigor' }
+      attribution: { actorType: ACTOR.PLAYER, name: 'Optimized Activation - vigor' }
     })
   ]
 });
@@ -234,7 +234,7 @@ function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at
             explosion: true,
             triggeredBy: skill.name
           }
-        : { ...event, name: 'Streamlined Kits — ' + event.kind },
+        : { ...event, name: 'Streamlined Kits - ' + event.kind },
     preserveName: true
   });
 }
@@ -260,7 +260,7 @@ function chargeKineticBattery(context: EngineerRuntime, { skill, at }: ToolbeltA
       },
       transform: (event) => ({
         ...event,
-        name: event.kind === 'kinetic-battery' ? 'Kinetic Battery' : 'Kinetic Battery — ' + event.kind
+        name: event.kind === 'kinetic-battery' ? 'Kinetic Battery' : 'Kinetic Battery - ' + event.kind
       }),
       preserveName: true
     });

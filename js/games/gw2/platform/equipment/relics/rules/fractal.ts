@@ -40,7 +40,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
     event: {
       type: 'condition',
       at: application.at,
-      name: 'Relic of the Fractal — Burning',
+      name: 'Relic of the Fractal - Burning',
       skillName: 'Relic of the Fractal',
       condition: CONDITION.BURNING,
       duration: 8,
@@ -54,7 +54,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
     event: {
       type: 'condition',
       at: application.at,
-      name: 'Relic of the Fractal — Torment',
+      name: 'Relic of the Fractal - Torment',
       skillName: 'Relic of the Fractal',
       condition: CONDITION.TORMENT,
       duration: 8,

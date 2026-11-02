@@ -104,7 +104,7 @@ export function applyJusticeBurn(
       icon: context.helpers.skillsById.get(skillId)?.icon,
       activationId: event.activationId,
       causalOrder: event.causalOrder ?? event.eventOrder,
-      name: `${skillName} — ${active ? 'Active' : 'Passive'} Burning`,
+      name: `${skillName} - ${active ? 'Active' : 'Passive'} Burning`,
       condition: String(burn.condition),
       stacks: effectNumber(justiceSkill, burn, 'stacks'),
       duration:

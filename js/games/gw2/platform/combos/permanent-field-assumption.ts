@@ -47,7 +47,7 @@ export function permanentComboFieldAssumption(
   if (typeof fieldType !== 'string' || fieldType === NONE) return;
 
   // Finishers only bind to fields sharing their owner id, so the assumption must own its
-  // field as the active profession — the same convention every profession's own finishers use.
+  // field as the active profession - the same convention every profession's own finishers use.
   const fieldId = `${ownerId}:assumption:permanent-combo-field:${fieldType}`;
   return {
     type: 'combo_field',

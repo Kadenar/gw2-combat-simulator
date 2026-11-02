@@ -58,7 +58,7 @@ export const hgh = defineTrait({
       when: (_runtime, cast) => isElixirSkill(cast.skill),
       emit: TRAIT.HGH,
       effects: (effect) => effect.type === 'boon' && effect.name === boon,
-      attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: ACTOR.PLAYER, name: `HGH — ${boon}` }
+      attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: ACTOR.PLAYER, name: `HGH - ${boon}` }
     })),
     { on: 'castCommit', when: (_runtime, cast) => cast.skill.id === ID.ACID_BOMB, run: applyHghAcidBomb }
   ],
@@ -93,7 +93,7 @@ export const boilingPoint = defineTrait({
         Boolean(event.resolvedAudience?.includesSelf) &&
         runtime.combat.activeBoonStacks(boonKey(BOON.MIGHT), event.at) >=
           balanceNumberFromContext(runtime, TRAIT.BOILING_POINT, 'threshold'),
-      attribution: { name: 'Boiling Point — fury' }
+      attribution: { name: 'Boiling Point - fury' }
     }
   ]
 });

@@ -47,7 +47,7 @@ for (const [trait, point, skillId, name] of [
         assert.equal(reward.skillId, skillId);
         assert.equal(reward.actorType, 'player');
         assert.equal(reward.traitId, trait);
-        assert.equal(reward.name, `${name} — Vulnerability`);
+        assert.equal(reward.name, `${name} - Vulnerability`);
       }
     }
   });

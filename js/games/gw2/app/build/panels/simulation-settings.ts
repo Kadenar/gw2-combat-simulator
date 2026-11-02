@@ -47,7 +47,7 @@ export function mountSimulationSettings(app: ProfessionAppState, root: Document 
       const cell = row.insertCell();
 
       if (!key) {
-        cell.textContent = '—';
+        cell.textContent = '-';
         continue;
       }
 

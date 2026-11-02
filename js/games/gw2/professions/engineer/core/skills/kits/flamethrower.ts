@@ -287,7 +287,7 @@ export function handleAirBlast(context: EngineerRuntime, event: EngineerResolver
       ownerActorType: event.ownerActorType,
       skillId: event.skillId,
       skillName: event.skillName,
-      name: 'Air Blast — Burning',
+      name: 'Air Blast - Burning',
       activationId: event.activationId,
       condition: String(event.condition),
       stacks: Number(event.stacks),

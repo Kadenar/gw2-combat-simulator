@@ -250,14 +250,14 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
       {
         weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
-        name: 'Swift Cut — Blade',
+        name: 'Swift Cut - Blade',
         coefficient: 0.9,
         hits: 1
       },
       {
         weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
-        name: 'Swift Cut — Shot',
+        name: 'Swift Cut - Shot',
         coefficient: 0.75 * 0.33,
         hits: 1
       }
@@ -278,14 +278,14 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
       {
         weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
-        name: 'Steel Divide — Blade',
+        name: 'Steel Divide - Blade',
         coefficient: 1.1,
         hits: 1
       },
       {
         weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
-        name: 'Steel Divide — Shot',
+        name: 'Steel Divide - Shot',
         coefficient: 0.75 * 0.33,
         hits: 1
       }
@@ -306,14 +306,14 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
       {
         weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
-        name: 'Explosive Thrust — Blade',
+        name: 'Explosive Thrust - Blade',
         coefficient: 1.35,
         hits: 1
       },
       {
         weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
-        name: 'Explosive Thrust — Explosion',
+        name: 'Explosive Thrust - Explosion',
         coefficient: 1.2 * 0.33,
         hits: 1,
         damageKind: 'explosion'
@@ -338,7 +338,7 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
       {
         weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
-        name: 'Blooming Fire — Blade',
+        name: 'Blooming Fire - Blade',
         coefficient: 0.8,
         hits: 1,
         persistsAfterInterrupt: true
@@ -346,7 +346,7 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
       {
         weaponStrengthProfileId: 'bundle.exotic',
         type: 'strike',
-        name: 'Blooming Fire — Explosion',
+        name: 'Blooming Fire - Explosion',
         coefficient: 1.2,
         hits: 3,
         atMs: 0,
@@ -446,7 +446,7 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
     ]
   },
   [ID.DRAGON_SLASH_FORCE]: {
-    name: 'Dragon Slash—Force',
+    name: 'Dragon Slash-Force',
     icon: new URL('@images/wiki/dragon-slash-force.png', import.meta.url).href,
     type: 'Bundle',
     slot: 'Weapon_1',
@@ -467,7 +467,7 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
     sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }]
   },
   [ID.DRAGON_SLASH_BOOST]: {
-    name: 'Dragon Slash—Boost',
+    name: 'Dragon Slash-Boost',
     icon: new URL('@images/wiki/dragon-slash-boost.png', import.meta.url).href,
     type: 'Bundle',
     slot: 'Weapon_1',
@@ -487,7 +487,7 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
     sideEffects: [{ on: 'castStart', do: { type: 'warrior.slash-release' } }]
   },
   [ID.DRAGON_SLASH_REACH]: {
-    name: 'Dragon Slash—Reach',
+    name: 'Dragon Slash-Reach',
     icon: new URL('@images/wiki/dragon-slash-reach.png', import.meta.url).href,
     type: 'Bundle',
     slot: 'Weapon_1',
@@ -572,11 +572,11 @@ export const BLADESWORN_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'strike',
         weaponStrengthProfileId: 'bundle.exotic',
-        name: 'Swift Cut — Blade',
+        name: 'Swift Cut - Blade',
         coefficient: 0.3,
         hits: 1
       },
-      { type: 'strike', weaponStrengthProfileId: 'bundle.exotic', name: 'Swift Cut — Shot', coefficient: 0.1, hits: 1 },
+      { type: 'strike', weaponStrengthProfileId: 'bundle.exotic', name: 'Swift Cut - Shot', coefficient: 0.1, hits: 1 },
       { type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 3 }
     ]
   }),
@@ -585,14 +585,14 @@ export const BLADESWORN_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'strike',
         weaponStrengthProfileId: 'bundle.exotic',
-        name: 'Steel Divide — Blade',
+        name: 'Steel Divide - Blade',
         coefficient: 0.4,
         hits: 1
       },
       {
         type: 'strike',
         weaponStrengthProfileId: 'bundle.exotic',
-        name: 'Steel Divide — Shot',
+        name: 'Steel Divide - Shot',
         coefficient: 0.1,
         hits: 1
       },
@@ -604,14 +604,14 @@ export const BLADESWORN_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'strike',
         weaponStrengthProfileId: 'bundle.exotic',
-        name: 'Explosive Thrust — Blade',
+        name: 'Explosive Thrust - Blade',
         coefficient: 0.6,
         hits: 1
       },
       {
         type: 'strike',
         weaponStrengthProfileId: 'bundle.exotic',
-        name: 'Explosive Thrust — Explosion',
+        name: 'Explosive Thrust - Explosion',
         coefficient: 0.1,
         hits: 1,
         damageKind: 'explosion'
@@ -625,14 +625,14 @@ export const BLADESWORN_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'strike',
         weaponStrengthProfileId: 'bundle.exotic',
-        name: 'Blooming Fire — Blade',
+        name: 'Blooming Fire - Blade',
         coefficient: 0.5,
         hits: 1
       },
       {
         type: 'strike',
         weaponStrengthProfileId: 'bundle.exotic',
-        name: 'Blooming Fire — Explosion',
+        name: 'Blooming Fire - Explosion',
         coefficient: 0.3,
         hits: 3,
         atMs: 0,
@@ -719,21 +719,21 @@ export const BLADESWORN_SKILLS: readonly Skill[] = Object.freeze([
       }
     ]
   }),
-  sharpAsTheWindVariant(ID.SHARP_DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_FORCE, 'Dragon Slash—Force', {
+  sharpAsTheWindVariant(ID.SHARP_DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_FORCE, 'Dragon Slash-Force', {
     cooldown: 1,
     dragonSlashMinimumCoefficient: 3,
     dragonSlashMaximumCoefficient: 3,
     dragonSlashMinimumBurningDuration: 2,
     dragonSlashMaximumBurningDuration: 4
   }),
-  sharpAsTheWindVariant(ID.SHARP_DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_BOOST, 'Dragon Slash—Boost', {
+  sharpAsTheWindVariant(ID.SHARP_DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_BOOST, 'Dragon Slash-Boost', {
     cooldown: 1,
     dragonSlashMinimumCoefficient: 2.4,
     dragonSlashMaximumCoefficient: 2.4,
     dragonSlashMinimumBurningDuration: 1.5,
     dragonSlashMaximumBurningDuration: 3.25
   }),
-  sharpAsTheWindVariant(ID.SHARP_DRAGON_SLASH_REACH, ID.DRAGON_SLASH_REACH, 'Dragon Slash—Reach', {
+  sharpAsTheWindVariant(ID.SHARP_DRAGON_SLASH_REACH, ID.DRAGON_SLASH_REACH, 'Dragon Slash-Reach', {
     cooldown: 1,
     dragonSlashMinimumCoefficient: 1.5,
     dragonSlashMaximumCoefficient: 1.5,
@@ -872,7 +872,7 @@ export function cartridgeExplosion(runtime: WarriorRuntime, event: Gw2ResolverEv
         ownerActorType: ACTOR.PLAYER,
         skillId: event.skillId,
         skillName: event.skillName,
-        name: 'Overcharged Cartridges — Burning',
+        name: 'Overcharged Cartridges - Burning',
         condition: CONDITION.BURNING,
         stacks: effectNumber(profile, burning, 'stacks'),
         duration: window.burningDuration

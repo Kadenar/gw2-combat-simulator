@@ -41,7 +41,7 @@ export function emitElectricDischarge(
       skillName: 'Electric Discharge',
       cast: emissionCast,
       attribution: { source: 'Electric Discharge', sourceId: sourceId, actorType: ACTOR.PLAYER, triggeredBy: '' },
-      transform: (event) => ({ ...event, name: 'Electric Discharge' + ' \u2014 ' + event.condition }),
+      transform: (event) => ({ ...event, name: 'Electric Discharge' + ' - ' + event.condition }),
       receipt: true
     }).length > 0;
 

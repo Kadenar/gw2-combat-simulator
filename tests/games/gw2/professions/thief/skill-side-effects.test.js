@@ -353,7 +353,7 @@ test('Malicious Ashen declarations retain accepted malice and refund a fully lan
             { type: 'strike', name: 'Ordinary packet', coefficient: 1, atMs: 500, timingAnchor: 'castStart' },
             {
               type: 'strike',
-              name: 'Malicious Ashen Assault — Final Strike',
+              name: 'Malicious Ashen Assault - Final Strike',
               coefficient: 2,
               atMs: 0,
               timingAnchor: 'castEnd'
@@ -365,7 +365,7 @@ test('Malicious Ashen declarations retain accepted malice and refund a fully lan
   assert.deepEqual(result.warnings, []);
   assert.equal(result.resolvedEvents.find((event) => event.name === 'Ordinary packet').coefficient, 1);
   assert.equal(
-    result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault — Final Strike').coefficient,
+    result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault - Final Strike').coefficient,
     5
   );
   const runtime = observedRuntime(result);

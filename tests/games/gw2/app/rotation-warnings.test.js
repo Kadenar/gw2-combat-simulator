@@ -34,7 +34,7 @@ test('rejection diagnostics carry their time and authored input onto the combat-
     [1, 5]
   );
   assert.ok(
-    items.every((item) => item.message === 'Triple Bolt: Triple Bolt is unavailable — cast Shadow Bolt first.')
+    items.every((item) => item.message === 'Triple Bolt: Triple Bolt is unavailable - cast Shadow Bolt first.')
   );
   assert.deepEqual(runThief(rotation, config, { output: 'score' }).warnings, result.warnings);
 });

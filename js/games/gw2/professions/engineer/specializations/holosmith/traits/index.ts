@@ -223,7 +223,7 @@ function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, sk
       actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
-      name: 'Thermal Release Valve \u2014 vigor'
+      name: 'Thermal Release Valve - vigor'
     },
     transform: (event) => ({ ...event, applicationIndex: undefined, totalApplications: undefined })
   });
@@ -238,7 +238,7 @@ function emitEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>, at:
   emitTraitProfile(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, undefined, {
     at: at,
     effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
-    attribution: { actorType: ACTOR.PLAYER, name: 'Enhanced Capacity Storage Unit \u2014 might' },
+    attribution: { actorType: ACTOR.PLAYER, name: 'Enhanced Capacity Storage Unit - might' },
     transform: (event) => ({ ...event, applicationIndex: undefined, totalApplications: undefined })
   });
 }
@@ -293,7 +293,7 @@ function emitPhotonicBlastingModuleEffects(
           }
         : {
             ...event,
-            name: 'Photonic Blasting Module \u2014 Burning',
+            name: 'Photonic Blasting Module - Burning',
             applicationIndex: undefined,
             totalApplications: undefined
           }
@@ -363,7 +363,7 @@ function consumeSolarFocusingLens(
       actorType: ACTOR.PLAYER,
       skillId: event.skillId,
       skillName: event.skillName,
-      name: 'Solar Focusing Lens \u2014 Burning'
+      name: 'Solar Focusing Lens - Burning'
     },
     transform: (packet) => ({ ...packet, applicationIndex: undefined, totalApplications: undefined })
   });

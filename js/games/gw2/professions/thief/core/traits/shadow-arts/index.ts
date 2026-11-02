@@ -170,7 +170,7 @@ function enterCloakedInShadow(runtime: ThiefRuntime, { skill, at }: StealthTrans
       actorType: ACTOR.PLAYER,
       skillId: skill.id,
       skillName: skill.name,
-      name: 'Cloaked in Shadow — Blindness'
+      name: 'Cloaked in Shadow - Blindness'
     }
   });
 }

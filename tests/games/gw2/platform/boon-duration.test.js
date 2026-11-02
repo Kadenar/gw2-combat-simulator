@@ -290,7 +290,7 @@ test('declarative boons can gate dynamic skill availability', () => {
               ready: false,
               retryAt: null,
               code: 'fixture.aegis-required',
-              reason: 'Aegis Strike is unavailable — requires aegis.'
+              reason: 'Aegis Strike is unavailable - requires aegis.'
             }
     }
   });

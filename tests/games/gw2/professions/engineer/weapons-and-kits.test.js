@@ -440,7 +440,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
 
   assert.deepEqual(core.warnings, []);
   assert.ok(
-    result.procSteps.some((step) => step.skill === 'Gleam Saber — Sword Recharge' && step.cooldownReduction === 0.8)
+    result.procSteps.some((step) => step.skill === 'Gleam Saber - Sword Recharge' && step.cooldownReduction === 0.8)
   );
 });
 
@@ -656,7 +656,7 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
     1
   );
   const artilleryBurns = focused.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.name === 'Electric Artillery — Burning'
+    (event) => event.type === 'condition' && event.name === 'Electric Artillery - Burning'
   );
 
   // Focused charges extend both independent burns without increasing the total stack count.
@@ -801,12 +801,12 @@ test('Focused Devastation keeps its own activation and weapon-strength ownership
   );
   assert.ok(
     result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.name === 'Focused Devastation — Burning'
+      (event) => event.type === 'condition' && event.name === 'Focused Devastation - Burning'
     ).length > 0
   );
   assert.ok(
     result.resolvedEvents
-      .filter((event) => event.type === 'condition' && event.name === 'Focused Devastation — Burning')
+      .filter((event) => event.type === 'condition' && event.name === 'Focused Devastation - Burning')
       .every((event) => event.skillId === 73064 && event.sourceId === 73064)
   );
   assert.equal(result.breakdown.find((entry) => entry.name === 'Devastator').skillId, 72974);

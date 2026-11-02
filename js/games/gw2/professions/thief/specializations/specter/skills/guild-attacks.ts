@@ -3,7 +3,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Guild actor attacks own their selected packets and repeat recharge; shared AI keeps engagement and lifetime. */
 export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = [
   {
-    name: 'Thieves Guild (Specter) \u2014 Shadow Bolt',
+    name: 'Thieves Guild (Specter) - Shadow Bolt',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67807,
     displayName: 'Shadow Bolt',
@@ -31,7 +31,7 @@ export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Specter) \u2014 Well of Sorrow',
+    name: 'Thieves Guild (Specter) - Well of Sorrow',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67795,
     displayName: 'Well of Sorrow',
@@ -83,7 +83,7 @@ export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Specter) \u2014 Double Bolt',
+    name: 'Thieves Guild (Specter) - Double Bolt',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67812,
     displayName: 'Double Bolt',
@@ -111,7 +111,7 @@ export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Specter) \u2014 Triple Bolt',
+    name: 'Thieves Guild (Specter) - Triple Bolt',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67817,
     displayName: 'Triple Bolt',
@@ -139,7 +139,7 @@ export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Specter) \u2014 Triple Threat',
+    name: 'Thieves Guild (Specter) - Triple Threat',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67818,
     displayName: 'Triple Threat',

@@ -144,7 +144,7 @@ test('break-even model interpolates the crossover where Thorns overtakes the opp
 
 test('break-even model treats an early tie then lead as "always ahead", not a crossover', () => {
   // Thorns is tied before its Condition Damage ramps (t=0), then pulls ahead and
-  // never falls behind. That is not an "overtake" — the opponent never leads.
+  // never falls behind. That is not an "overtake" - the opponent never leads.
   const opponentDps = [
     { t: 0, v: 1000 },
     { t: 1000, v: 1000 },
@@ -259,7 +259,7 @@ test('break-even model reports a crossover that occurs past the opener threshold
     { t: 12000, v: 1000 }
   ];
   const thornsDps = [
-    { t: 2000, v: 1200 }, // Thorns "ahead" in the opener — ignored
+    { t: 2000, v: 1200 }, // Thorns "ahead" in the opener - ignored
     { t: 8000, v: 900 },
     { t: 10000, v: 1000 },
     { t: 12000, v: 1100 }
@@ -338,7 +338,7 @@ test('relic comparison passes assumptions and shows the selected relic controls'
 
   assert.match(container.innerHTML, /Relic break-even comparison/);
   assert.doesNotMatch(container.innerHTML, /Off by default/);
-  assert.match(container.innerHTML, /<option value="Akeem">Akeem —/);
+  assert.match(container.innerHTML, /<option value="Akeem">Akeem -/);
   assert.match(container.innerHTML, /<optgroup label="Condition">/);
   assert.doesNotMatch(container.innerHTML, /<optgroup label="(?:Power|Hybrid)">/);
   assert.doesNotMatch(container.innerHTML, /value="Fractal"/);
@@ -365,8 +365,8 @@ test('relic damage summaries separate direct damage from net DPS contribution', 
       dps: 1200,
       breakdown: [
         { name: 'Weapon', damage: 9000 },
-        { name: 'Relic of the Fractal — Burning', damage: 1200 },
-        { name: 'Relic of the Fractal — Torment', damage: 800 }
+        { name: 'Relic of the Fractal - Burning', damage: 1200 },
+        { name: 'Relic of the Fractal - Torment', damage: 800 }
       ]
     },
     1000
@@ -412,5 +412,5 @@ test('relic comparison groups available choices by damage category', () => {
       ['Hybrid', ['Nourys']]
     ]
   );
-  assert.match(container.innerHTML, /<option value="Thorns" selected>Thorns —/);
+  assert.match(container.innerHTML, /<option value="Thorns" selected>Thorns -/);
 });

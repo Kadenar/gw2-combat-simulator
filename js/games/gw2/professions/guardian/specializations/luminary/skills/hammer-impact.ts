@@ -34,7 +34,7 @@ function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
         sourceId: cast.skill.id,
         skillId: cast.skill.id,
         skillName: cast.skill.name,
-        name: 'Dazzling Hammer — Radiant Justice Impact',
+        name: 'Dazzling Hammer - Radiant Justice Impact',
         // The empowered impact retains its accepted Forge strength across bar changes.
         weaponStrengthProfileId: 'transform.radiant-forge',
         coefficient: effectNumber(skill, strike, 'coefficient'),

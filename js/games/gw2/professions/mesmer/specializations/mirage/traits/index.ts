@@ -324,7 +324,7 @@ function riddleAmbush(
     : undefined;
 
   if (riddleOfSand) {
-    buildMesmerConditions(state, ambush.name, impactAt, riddleOfSand, 'Player', `${ambush.name} — Riddle of Sand`, {
+    buildMesmerConditions(state, ambush.name, impactAt, riddleOfSand, 'Player', `${ambush.name} - Riddle of Sand`, {
       skillId: ambush.id
     }).forEach((packet) => {
       state.effects.emit({

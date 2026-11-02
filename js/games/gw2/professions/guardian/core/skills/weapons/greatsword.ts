@@ -186,7 +186,7 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         ticks: [{ atMs: 200, coefficient: 0.8 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        name: 'Symbol of Resolution — Initial'
+        name: 'Symbol of Resolution - Initial'
       },
       {
         type: 'strike',
@@ -225,9 +225,9 @@ export const GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
         ticks: Array.from({ length: 10 }, (_, index) => ({ atMs: 1000 + index * 1000, coefficient: 0 / 10 })),
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        name: 'Binding Blade — Tether',
+        name: 'Binding Blade - Tether',
         // Keep the tether's damage separate from the initial strike in the combat breakdown.
-        damageBreakdownName: 'Binding Blade — Tether',
+        damageBreakdownName: 'Binding Blade - Tether',
         canCrit: false,
         sourceId: 9148,
         // Tether pulses are non-critical power strikes, so they remain in strike totals.

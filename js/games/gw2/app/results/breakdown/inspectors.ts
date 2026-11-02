@@ -65,7 +65,7 @@ export function renderSkillInspector(
             const damage = selectedRow?.procDamage?.find((entry) => entry.sourceSkill === source);
             // Missing attribution remains unknown rather than estimating damage from activation counts.
             return `<details>
-              <summary>${escapeHtml(source || '\u2014')} \u2014 ${times.length} ${times.length === 1 ? 'proc' : 'procs'} \u2014 (${damage ? number(damage.total) : '\u2014'} damage | ${damage ? number(damage.dps) : '\u2014'} DPS)</summary>
+              <summary>${escapeHtml(source || '-')} - ${times.length} ${times.length === 1 ? 'proc' : 'procs'} - (${damage ? number(damage.total) : '-'} damage | ${damage ? number(damage.dps) : '-'} DPS)</summary>
               <div class="hit-detail-table">
                 <table>
                   <thead><tr><th scope="col">Time</th></tr></thead>

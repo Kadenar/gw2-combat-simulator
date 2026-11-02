@@ -189,7 +189,7 @@ test('Ineptitude applies confusion for each direct blind on a normal target', ()
     })
   );
   const ineptitude = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.name.endsWith('— Ineptitude')
+    (event) => event.type === 'condition' && event.name.endsWith('- Ineptitude')
   );
 
   assert.equal(
@@ -351,7 +351,7 @@ test('Ineptitude treats control as an interrupt only for an activating target', 
     })
   );
   const ineptitudeEvents = (result) =>
-    result.resolvedEvents.filter((event) => event.type === 'condition' && event.name.endsWith('— Ineptitude'));
+    result.resolvedEvents.filter((event) => event.type === 'condition' && event.name.endsWith('- Ineptitude'));
 
   assert.equal(ineptitudeEvents(idle).length, 0);
   assert.equal(

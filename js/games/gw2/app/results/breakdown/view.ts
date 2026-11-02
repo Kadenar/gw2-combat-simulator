@@ -34,7 +34,7 @@ function skillCellHtml(row: ResultRow, column: ResultColumn, options: DamageBrea
   const formatted = column.format
     ? column.format(value)
     : value == null
-      ? '&mdash;'
+      ? '-'
       : column.numeric
         ? number(value)
         : escapeHtml(value);

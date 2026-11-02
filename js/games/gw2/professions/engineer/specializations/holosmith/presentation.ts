@@ -148,7 +148,7 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
               // Include only the base or Storm autoattack variant selected by the active trait.
               if (skill.slot !== 'Weapon_1') return true;
 
-              return skill.name.endsWith('—Storm') === storm;
+              return skill.name.endsWith('-Storm') === storm;
             })
             // Display Forge weapons in slot order regardless of canonical catalog ordering.
             .sort((left, right) => String(left.slot).localeCompare(String(right.slot)))

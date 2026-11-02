@@ -243,7 +243,7 @@ const endlessEnmity = defineTrait({
         actorType: ACTOR.PLAYER,
         skillId: TRAIT.ENDLESS_ENMITY,
         skillName: 'Endless Enmity',
-        name: 'Endless Enmity \u2014 fury'
+        name: 'Endless Enmity - fury'
       }
     }
   ]
@@ -362,7 +362,7 @@ const vindication = defineTrait({
         actorType: ACTOR.PLAYER,
         skillId: TRAIT.VINDICATION,
         skillName: 'Vindication',
-        name: 'Vindication — Daze'
+        name: 'Vindication - Daze'
       }
     }
   ]
@@ -419,7 +419,7 @@ function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill
       skillName: profile.name,
       audience: effect.audience ?? { recipients: RECIPIENT.SELF }
     }),
-    transform: (packet) => ({ ...packet, name: profile.name + ' — ' + packet.kind })
+    transform: (packet) => ({ ...packet, name: profile.name + ' - ' + packet.kind })
   });
 }
 

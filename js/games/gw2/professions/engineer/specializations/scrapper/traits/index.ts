@@ -86,7 +86,7 @@ const speedOfSynergy = defineTrait<EngineerSkill>({
       on: 'castCommit',
       when: (_runtime, cast) => healingSkill(cast.skill) && cast.skill.id !== ID.MED_KIT,
       effects: (effect) => effect.type === 'buff' && effect.name === 'Healing skill superspeed',
-      attribution: { actorType: ACTOR.PLAYER, name: 'Speed of Synergy \u2014 superspeed' }
+      attribution: { actorType: ACTOR.PLAYER, name: 'Speed of Synergy - superspeed' }
     },
     ...(['Healing toolbelt superspeed', 'Med Kit toolbelt superspeed'] as const).map<
       Extract<NonNullable<TraitDefinition<EngineerSkill>['triggers']>[number], { on: 'castCommit' }>
@@ -98,7 +98,7 @@ const speedOfSynergy = defineTrait<EngineerSkill>({
         healingSkill(runtime.helpers.skillsById.get(cast.skill.toolbeltParentId)) &&
         (cast.skill.toolbeltParentId === ID.MED_KIT) === (name === 'Med Kit toolbelt superspeed'),
       effects: (effect) => effect.type === 'buff' && effect.name === name,
-      attribution: { actorType: ACTOR.PLAYER, name: 'Speed of Synergy \u2014 superspeed' }
+      attribution: { actorType: ACTOR.PLAYER, name: 'Speed of Synergy - superspeed' }
     }))
   ]
 });
@@ -117,7 +117,7 @@ const gyroscopicAcceleration = defineTrait<EngineerSkill>({
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO || cast.skill.skillFamily === 'Well',
       effects: (effect) => effect.type === 'buff' && effect.name === STATUS.SUPERSPEED,
-      attribution: { actorType: ACTOR.PLAYER, name: 'Gyroscopic Acceleration \u2014 superspeed' }
+      attribution: { actorType: ACTOR.PLAYER, name: 'Gyroscopic Acceleration - superspeed' }
     }
   ]
 });
@@ -134,7 +134,7 @@ const systemShocker = defineTrait<EngineerSkill>({
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
       effects: (effect) => effect.type === 'control' && effect.name === 'System Shocker',
-      attribution: { name: 'System Shocker — daze' }
+      attribution: { name: 'System Shocker - daze' }
     }
   ]
 });
@@ -205,7 +205,7 @@ const massMomentum = defineTrait<EngineerSkill>({
         source: 'Trait',
         sourceId: TRAIT.MASS_MOMENTUM,
         actorType: ACTOR.PLAYER,
-        name: 'Mass Momentum — stability'
+        name: 'Mass Momentum - stability'
       }
     }
   ],
@@ -263,7 +263,7 @@ const objectInMotion = defineTrait<EngineerSkill>({
   modifierRules: [
     {
       // Object in Motion: +5% strike damage per active movement status (stability/swiftness/superspeed).
-      // Multiplicative — three statuses = 1.05^3 ≈ +15.8%.
+      // Multiplicative - three statuses = 1.05^3 ≈ +15.8%.
       id: 'engineer.object-in-motion',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
@@ -414,7 +414,7 @@ function applyKineticAcceleratorsCast(context: EngineerRuntime, cast: RuntimeCas
     actorType: ACTOR.PLAYER,
     skillId: skill.id,
     skillName: skill.name,
-    name: 'Kinetic Accelerators — Function Gyro blast finisher',
+    name: 'Kinetic Accelerators - Function Gyro blast finisher',
     activationId: cast.id,
     comboFinishers: [
       {
@@ -465,7 +465,7 @@ function grantKineticAcceleratorBoons(context: EngineerResolverContext, event: S
         skillId: event.skillId,
         skillName: event.skillName,
         activationId: event.activationId,
-        name: 'Kinetic Accelerators \u2014 ' + kind,
+        name: 'Kinetic Accelerators - ' + kind,
         priority: Number(event.priority || 0),
         audience: { recipients: RECIPIENT.PARTY }
       },

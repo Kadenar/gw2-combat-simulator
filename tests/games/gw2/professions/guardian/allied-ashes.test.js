@@ -57,7 +57,7 @@ test('precast Ashes retains its charge for the first eligible allied strike and 
   const [burn] = burns(result);
   assert.equal(burn.actorType, 'player');
   assert.equal(burn.skillName, 'Quickfire');
-  assert.equal(burn.name, 'Quickfire \u2014 Ally 1 Burning');
+  assert.equal(burn.name, 'Quickfire - Ally 1 Burning');
   assert.equal(burn.procType, undefined);
   assert.equal(burn.icon, undefined);
   assert.match(burn.activationId, /^grant:0:ally:1:/);

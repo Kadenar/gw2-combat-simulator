@@ -85,7 +85,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
         coefficient: 1,
         // Virtue strikes use mechanic weapon strength independently of equipped weapons.
         weapon: 'Profession Mechanic',
-        name: 'Crashing Courage — Initial Damage'
+        name: 'Crashing Courage - Initial Damage'
       },
       {
         type: 'boon',
@@ -315,7 +315,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
         coefficient: 1.5,
         sourceId: ID.RUSHING_JUSTICE_IMPACT,
         weapon: 'Profession Mechanic',
-        name: 'Rushing Justice — Impact Damage'
+        name: 'Rushing Justice - Impact Damage'
       },
       {
         type: 'condition',
@@ -323,7 +323,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
         stacks: 1,
         duration: 4,
         sourceId: ID.RUSHING_JUSTICE_IMPACT,
-        name: 'Rushing Justice — Initial Burning'
+        name: 'Rushing Justice - Initial Burning'
       }
     ]),
     // Accepted activations launch the self window and autonomous flame group.

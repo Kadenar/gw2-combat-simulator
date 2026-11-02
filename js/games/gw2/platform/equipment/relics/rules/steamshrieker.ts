@@ -31,7 +31,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       at: event.at,
       ...playerOwnedRelicSource(RELIC_IDS.STEAMSHRIEKER),
       skillName: 'Relic of Steamshrieker',
-      name: 'Relic of Steamshrieker — Burning',
+      name: 'Relic of Steamshrieker - Burning',
       condition: CONDITION.BURNING,
       stacks: 1,
       duration: 5,

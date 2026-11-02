@@ -59,7 +59,7 @@ export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, Engin
             candidate.type === 'Weapon' && candidate.weapon === WEAPON.SWORD && candidate.id !== cast.skill.id,
           sideEffectAmount(runtime, action.amount),
           cast.skill.id,
-          'Gleam Saber \u2014 Sword Recharge'
+          'Gleam Saber - Sword Recharge'
         );
       }
     },

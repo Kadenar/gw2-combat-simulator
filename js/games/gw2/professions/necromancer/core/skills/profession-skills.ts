@@ -368,7 +368,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<
     // Keep the cast-scaled opening siphon separate from the fixed delayed pulse timeline.
     effects: [
       strikeTimeline([{ atMs: 520, coefficient: 0 }], {
-        name: 'Grim Specter — Life Steal',
+        name: 'Grim Specter - Life Steal',
         flatStrikeBase: 778,
         flatStrikePowerCoeff: 0.2,
         canCrit: false,
@@ -379,7 +379,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<
       strikeTimeline(
         [1760, 2760, 3760, 4760].map((atMs) => ({ atMs, coefficient: 0 })),
         {
-          name: 'Grim Specter — Delayed Life Steal',
+          name: 'Grim Specter - Delayed Life Steal',
           flatStrikeBase: 778,
           flatStrikePowerCoeff: 0.2,
           canCrit: false,

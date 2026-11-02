@@ -275,7 +275,7 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
     transform: (payload) =>
       buildResolverCondition({
         at: event.at,
-        name: `${event.skillName} — Ineptitude`,
+        name: `${event.skillName} - Ineptitude`,
         skillName: event.skillName,
         condition: String(payload.condition),
         duration: Number(payload.duration),
@@ -408,7 +408,7 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
       actorType: ACTOR.PLAYER,
       skillId: TRAIT.MASTER_FENCER,
       skillName: 'Master Fencer',
-      name: `Master Fencer — ${effect.audience?.recipients ?? RECIPIENT.SELF} fury`,
+      name: `Master Fencer - ${effect.audience?.recipients ?? RECIPIENT.SELF} fury`,
       kind: boonKey(BOON.FURY),
       duration: payload.duration,
       stacks: Number(payload.stacks),
@@ -446,7 +446,7 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
     transform: (payload) => ({
       type: 'condition',
       at: event.at,
-      name: `${event.name} — Sharper Images`,
+      name: `${event.name} - Sharper Images`,
       skillName: event.skillName,
       condition: CONDITION.BLEEDING,
       duration: Number(payload.duration),

@@ -9,7 +9,7 @@ export function buildMirageCloneBoon(
   skill: { id: number; name: string },
   cloneId: number
 ) {
-  const sourceSkill = `${skill.name} — Clone`;
+  const sourceSkill = `${skill.name} - Clone`;
   return buildMesmerPacket({
     type: 'buff',
     at,

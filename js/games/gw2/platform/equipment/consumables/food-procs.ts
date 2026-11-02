@@ -51,7 +51,7 @@ export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2Reso
     foodEvent = {
       ...commonEvent,
       type: 'buff',
-      name: `${proc.name} — ${name}`,
+      name: `${proc.name} - ${name}`,
       kind: name.toLowerCase(),
       stacks: conditionalEffect.stacks,
       duration: conditionalEffect.duration
@@ -60,7 +60,7 @@ export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2Reso
     foodEvent = {
       ...commonEvent,
       type: 'condition',
-      name: `${proc.name} — ${conditionalEffect.name}`,
+      name: `${proc.name} - ${conditionalEffect.name}`,
       condition: conditionalEffect.name,
       stacks: conditionalEffect.stacks,
       duration: conditionalEffect.duration

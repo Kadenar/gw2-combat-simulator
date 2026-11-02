@@ -1,7 +1,7 @@
 /* Owns authored timeline rows, comparison timelines, state summaries, and proc presentation. */
 
 /* Reads active state (crit chance, profession timers, target debuffs) at the
-   current rotation point — or at the insertion cursor when one is set. Sits
+   current rotation point - or at the insertion cursor when one is set. Sits
    above the internally-scrolling timeline, reusing the controls divider above. */
 .rotation-active-buffs {
   flex: 0 0 auto;

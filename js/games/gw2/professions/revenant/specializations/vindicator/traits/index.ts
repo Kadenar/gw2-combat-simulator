@@ -175,7 +175,7 @@ const songOfArboreum = defineTrait({
       attribution: (_runtime, cast) => ({
         source: 'revenant',
         actorType: ACTOR.PLAYER,
-        name: `${cast.skill.name} — vigor`
+        name: `${cast.skill.name} - vigor`
       })
     }
   ]

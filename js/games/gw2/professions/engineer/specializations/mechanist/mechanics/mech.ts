@@ -195,7 +195,7 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
       source: 'engineer',
       sourceId: ID.SHIFT_SIGNET,
       actorType: ACTOR.PLAYER,
-      name: `Shift Signet — ${event.kind}`,
+      name: `Shift Signet - ${event.kind}`,
       kind: String(event.kind),
       stacks: event.stacks || 1,
       duration: event.duration || 0,

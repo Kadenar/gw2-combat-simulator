@@ -106,7 +106,7 @@ export const evenTheOdds = defineTrait({
   },
   triggers: [
     onTriggerPoint(stealAccepted, {
-      run: thiefCastCondition(TRAIT.EVEN_THE_ODDS, CONDITION.VULNERABILITY, 'Even the Odds — Vulnerability')
+      run: thiefCastCondition(TRAIT.EVEN_THE_ODDS, CONDITION.VULNERABILITY, 'Even the Odds - Vulnerability')
     })
   ]
 });
@@ -365,7 +365,7 @@ function applySerpentsTouch(runtime: ThiefRuntime, { cast }: StealAcceptance): v
       skillName: "Serpent's Touch",
       triggeredBy: cast.skill.name,
       activationId: cast.id,
-      name: "Serpent's Touch — Poison",
+      name: "Serpent's Touch - Poison",
       actorType: ACTOR.PLAYER,
       sourceId: TRAIT.SERPENTS_TOUCH
     },
@@ -417,7 +417,7 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
       activationId: event.activationId,
       triggeredBy: event.skillName,
       sourceId: TRAIT.DEADLY_AMBITION,
-      name: 'Deadly Ambition — Poison'
+      name: 'Deadly Ambition - Poison'
     },
     transform: (packet) => ({ ...packet, stacks: potentPoisonStacks(context.config, deadlyAmbitionProfile, poison) })
   });

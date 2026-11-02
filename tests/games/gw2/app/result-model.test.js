@@ -26,7 +26,7 @@ test('Embrace application markers preserve pulse identity within the observation
     type: 'condition',
     skillId: 28287,
     skillName: 'Embrace the Darkness',
-    name: 'Embrace the Darkness — Torment',
+    name: 'Embrace the Darkness - Torment',
     condition: 'Torment',
     at,
     duration: 5,

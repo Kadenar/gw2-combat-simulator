@@ -247,7 +247,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
       kind: 'packet',
       event: buildResolverCondition({
         at: event.at,
-        name: 'Conduit Surge — Burning',
+        name: 'Conduit Surge - Burning',
         skillName: 'Conduit Surge',
         condition: String(burning.condition),
         stacks: Number(burning.stacks),
@@ -344,7 +344,7 @@ export function handleElectricArtillery(context: EngineerResolverContext, event:
       kind: 'packet',
       event: buildResolverCondition({
         at: event.at,
-        name: 'Electric Artillery — Burning',
+        name: 'Electric Artillery - Burning',
         skillName: 'Electric Artillery',
         condition: CONDITION.BURNING,
         stacks: Number(burning.stacks),

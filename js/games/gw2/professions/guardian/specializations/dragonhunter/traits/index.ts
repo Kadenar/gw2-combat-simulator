@@ -84,7 +84,7 @@ const bigGameHunter = defineTrait({
         actorType: ACTOR.EFFECT,
         skillId: TRAIT.BIG_GAME_HUNTER,
         skillName: 'Big Game Hunter',
-        name: 'Big Game Hunter \u2014 Vulnerability',
+        name: 'Big Game Hunter - Vulnerability',
         priority: 5,
         triggeredBy: event.skillName
       })
@@ -253,7 +253,7 @@ function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: Dragonhun
       actorType: ACTOR.EFFECT,
       skillId: TRAIT.DULLED_SENSES,
       skillName: 'Dulled Senses',
-      name: 'Dulled Senses — Crippled'
+      name: 'Dulled Senses - Crippled'
     },
     transform: (packet) => ({ ...packet, causalOrder: event.causalOrder ?? event.eventOrder })
   });

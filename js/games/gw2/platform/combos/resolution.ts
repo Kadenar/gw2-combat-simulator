@@ -23,7 +23,7 @@ export function selectComboFieldForFinisher(fields: readonly ComboFieldEvent[]):
   );
   // comboBindingPriority > 0 marks an authoritative field (e.g., the specific
   // field placed by a skill that also carries a finisher). When present, only
-  // those high-priority fields are candidates — ambient fields are ignored.
+  // those high-priority fields are candidates - ambient fields are ignored.
   const highestBindingPriority = ordered.reduce(
     (highest, field) => Math.max(highest, field.comboBindingPriority || 0),
     0

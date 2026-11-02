@@ -652,7 +652,7 @@ test('one eligible personal hit spends one charge for the selected Burning paylo
     assert.equal(burn.duration, 4);
     assert.equal(burn.activationId, 'one-strike');
     assert.equal(burn.procType, 'profession');
-    assert.equal(burn.name, 'Ashes of the Just \u2014 Burning');
+    assert.equal(burn.name, 'Ashes of the Just - Burning');
     assert.equal(burn.skillId, SKILL.ASHES_OF_THE_JUST);
   }
 });
@@ -668,7 +668,7 @@ test('Ashes tooltips resolve build trait positions and distinguish baseline from
   // Burning rows use the shared effect formatter: stacks are a fact field and the qualifier names the row.
   const burning = (facts, stacks, duration, qualifier) =>
     facts.some(
-      (fact) => fact.name === 'Burning' && fact.stacks === stacks && fact.detail === `${duration}s — ${qualifier}`
+      (fact) => fact.name === 'Burning' && fact.stacks === stacks && fact.detail === `${duration}s - ${qualifier}`
     );
   const base = patch.catalog.skillsById.get(ashesBurningSkill.id).effects[0];
   assert.ok(burning(selected.facts, 2, 4, 'per charge'));

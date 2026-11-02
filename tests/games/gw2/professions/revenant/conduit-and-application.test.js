@@ -68,8 +68,8 @@ test('sword follow-ups retain their casting skill while exposing separate damage
   // Damage labels and packet IDs must split the breakdown without changing activation ownership.
   const profession = await loadProfession('revenant');
   for (const [skillName, followupName, sourceId] of [
-    ['Deathstrike', 'Deathstrike — Follow-up', SKILL.DEATHSTRIKE_ID_28625],
-    ['Rift Slash', 'Rift Slash — Rift', 29073]
+    ['Deathstrike', 'Deathstrike - Follow-up', SKILL.DEATHSTRIKE_ID_28625],
+    ['Rift Slash', 'Rift Slash - Rift', 29073]
   ]) {
     const result = simulate(
       'Renegade',
@@ -159,7 +159,7 @@ describe('Power Conduit skill profiles', () => {
       rift.map((event) => event.slice(1)),
       [
         ['Rift Slash', 0.9],
-        ['Rift Slash — Rift', 0.2175]
+        ['Rift Slash - Rift', 0.2175]
       ]
     );
     assert.equal(rift[1][0] - rift[0][0], 1000);

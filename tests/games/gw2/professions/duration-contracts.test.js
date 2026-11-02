@@ -55,7 +55,7 @@ test('patched venom duration owns personal and allied charge expiry and tooltip 
     const { facts } = describeSimulationSkill(context, skill, thiefTooltips);
     assert.match(
       facts.find(({ name }) => name.toLowerCase() === venom.skillName.toLowerCase()).detail,
-      /^2s — charge grant/
+      /^2s - charge grant/
     );
     assert.deepEqual(requireSkillAction(skill, 'venom').effects, requireSkillAction(source, 'venom').effects);
   }

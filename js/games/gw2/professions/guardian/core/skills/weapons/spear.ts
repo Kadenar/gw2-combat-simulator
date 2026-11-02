@@ -72,7 +72,7 @@ function illuminatedSpearEffects(
 
       projectiles.push({
         ...effect,
-        name: `Solar Storm — ${index}th Strike`,
+        name: `Solar Storm - ${index}th Strike`,
         persistsAfterInterrupt: true
       });
     }
@@ -308,7 +308,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         type: 'strike',
         // Shards begin 1120 ms after activation, after the cast and projectile delay.
         ticks: [{ atMs: 1120, coefficient: 1.5 }],
-        name: 'Solar Storm — 1st Strike',
+        name: 'Solar Storm - 1st Strike',
         persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -316,7 +316,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         ticks: [{ atMs: 1320, coefficient: 1.2 }],
-        name: 'Solar Storm — 2nd Strike',
+        name: 'Solar Storm - 2nd Strike',
         persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -324,7 +324,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         ticks: [{ atMs: 1520, coefficient: 0.9 }],
-        name: 'Solar Storm — 3rd Strike',
+        name: 'Solar Storm - 3rd Strike',
         persistsAfterInterrupt: true,
         timingAnchor: 'castStart',
         timingScale: 'fixed'
@@ -384,7 +384,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
         type: 'strike',
         metadata: { guardianSymbol: true },
         ticks: [{ atMs: 360, coefficient: 1.5 }],
-        name: 'Symbol of Luminance — Initial'
+        name: 'Symbol of Luminance - Initial'
       },
       {
         type: 'strike',

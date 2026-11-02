@@ -84,7 +84,7 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
         metadata: { guardianSymbol: true },
         coefficient: 1.38,
         hits: 1,
-        name: 'Symbol of Energy — Initial Damage'
+        name: 'Symbol of Energy - Initial Damage'
       },
       {
         type: 'strike',
@@ -93,7 +93,7 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
         atMs: 1000,
         applications: 4,
         intervalMs: 1000,
-        name: 'Symbol of Energy — Symbol Damage',
+        name: 'Symbol of Energy - Symbol Damage',
         timingAnchor: 'castEnd',
         timingScale: 'fixed'
       },
@@ -123,14 +123,14 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
         ],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        name: "Hunter's Ward — Arrow Damage"
+        name: "Hunter's Ward - Arrow Damage"
       },
       {
         type: 'strike',
         ticks: [{ atMs: 2240, coefficient: 2.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        name: "Hunter's Ward — Final Impact Damage"
+        name: "Hunter's Ward - Final Impact Damage"
       }
     ]
   }

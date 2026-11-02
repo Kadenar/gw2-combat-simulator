@@ -344,7 +344,7 @@ export function reactToSymbolOfIgnition(context: GuardianResolverContext, event:
       causalOrder: event.causalOrder ?? event.eventOrder,
       skillId: ID.SYMBOL_OF_IGNITION,
       skillName: 'Symbol of Ignition',
-      name: 'Symbol of Ignition — Ignition',
+      name: 'Symbol of Ignition - Ignition',
       condition: String(burning.condition),
       stacks: effectNumber(ignitionSkill, burning, 'stacks'),
       duration: effectNumber(ignitionSkill, burning, 'duration'),

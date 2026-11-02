@@ -45,7 +45,7 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
   build.initialResource = 100;
   build.specializations = [{ name: 'Bladesworn', traits: '1-2-2' }];
   const skills = adapter.profession.catalog.skills;
-  const skill = skills.find((skill) => skill.name === 'Dragon Slash—Force');
+  const skill = skills.find((skill) => skill.name === 'Dragon Slash-Force');
   build.rotation = [
     { type: 'cast', skillId: skills.find((skill) => skill.name === 'Dragon Trigger').id },
     { type: 'wait', durationMs: 1000 },
@@ -90,7 +90,7 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
 
 test('Dragon Slash resource spends preserve charge outcome details', () => {
   const spends = mechanicResourceSpends({
-    steps: [{ rotationCommandIndex: 4, activationId: 'slash', skillName: 'Dragon Slash—Force' }],
+    steps: [{ rotationCommandIndex: 4, activationId: 'slash', skillName: 'Dragon Slash-Force' }],
     events: [
       {
         type: 'resource',
@@ -98,7 +98,7 @@ test('Dragon Slash resource spends preserve charge outcome details', () => {
         activationId: 'slash',
         amount: -4,
         resource: 'dragon charges',
-        skillName: 'Dragon Slash—Force',
+        skillName: 'Dragon Slash-Force',
         maximumCharges: 10,
         chargesReached: 4,
         chargingSeconds: 0.75,

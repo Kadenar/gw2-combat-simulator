@@ -91,7 +91,7 @@ export function activeElemental(
 
 /**
  * Availability gate for this subsystem. Command flips (Flame Barrage / Stomp) are usable when
- * the matching elemental is active — or its automatic opener has not yet spawned; the glyphs themselves are
+ * the matching elemental is active - or its automatic opener has not yet spawned; the glyphs themselves are
  * blocked (with a retry time) while their elemental lives. Returns null for unrelated skills.
  */
 export function elementalistElementalAvailability(

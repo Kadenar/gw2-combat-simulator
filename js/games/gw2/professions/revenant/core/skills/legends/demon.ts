@@ -355,7 +355,7 @@ export function embracePulse(runtime: RevenantRuntime, skill: RevenantSkill, at:
     event: buildResolverCondition({
       ...common,
       // Label empowered applications in chart attribution while keeping the shared skill identity.
-      name: empowered ? `${skill.name} — Empowered Torment` : `${skill.name} — Torment`,
+      name: empowered ? `${skill.name} - Empowered Torment` : `${skill.name} - Torment`,
       ...(torment.metadata ? { metadata: torment.metadata } : {}),
       condition: CONDITION.TORMENT,
       stacks: tick?.stacks || 0,

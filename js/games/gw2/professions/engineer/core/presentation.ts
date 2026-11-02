@@ -110,7 +110,7 @@ function usesToolsTraitline(catalog: Readonly<CanonicalCatalog<EngineerSkill>>, 
   );
 }
 
-// toolbelt skill is the non-Detonate variant — each parent has both a toolbelt skill and a detonate flip
+// toolbelt skill is the non-Detonate variant - each parent has both a toolbelt skill and a detonate flip
 /** Resolves an equipped slot skill to its non-detonate toolbelt skill. */
 function toolbeltSkillId(
   catalog: Readonly<CanonicalCatalog<EngineerSkill>>,

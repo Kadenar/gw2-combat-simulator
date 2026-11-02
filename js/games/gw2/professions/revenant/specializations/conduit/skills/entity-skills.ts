@@ -32,7 +32,7 @@ const twinMoonSharedWisdom: NonNullable<Skill['effectVariants']>[number] = {
         .filter((effect) => effect.type === 'boon' && effect.name === 'twin-moon-sweep')
         .map((effect) => ({
           ...effect,
-          name: 'Shared Wisdom — Might',
+          name: 'Shared Wisdom - Might',
           atMs: (effectFirstAt(impact, impact, effect) - cast.start) * 1000,
           timingAnchor: 'castStart' as const,
           timingScale: 'fixed' as const
@@ -181,7 +181,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     effects: [
       {
         type: 'strike',
-        name: 'Beguiling Haze — Follow-Up',
+        name: 'Beguiling Haze - Follow-Up',
         actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
         ticks: [{ atMs: 200, coefficient: 0.6 }],
@@ -214,7 +214,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
       {
         type: 'strike',
         ticks: [{ atMs: 880, coefficient: 2.5 }],
-        name: 'Twin Moon Sweep — Player',
+        name: 'Twin Moon Sweep - Player',
         actorType: ACTOR.PLAYER,
         // Every resolved player packet earns affinity; fragments carry no such reaction.
         reactions: [
@@ -229,7 +229,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
       {
         type: 'strike',
         ticks: [{ atMs: 880, coefficient: 2.5 }],
-        name: 'Twin Moon Sweep — Fragment',
+        name: 'Twin Moon Sweep - Fragment',
         actorType: ACTOR.PLAYER
       },
       {
@@ -264,7 +264,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         coefficient: 0.4,
         hits: 2,
         atMs: 1400,
-        name: 'Twin Moon Sweep — Shatter',
+        name: 'Twin Moon Sweep - Shatter',
         actorType: ACTOR.PLAYER,
         metadata: { legendId: LEGEND.DEMON },
         when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>

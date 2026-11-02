@@ -127,7 +127,7 @@ export function autoattackChainAvailability(
   const expected = catalog.skillsById.get(chain.expectedSkillId);
   return denyCast(
     'gw2.autoattack-chain',
-    `${skill.name} is unavailable — cast ${expected?.name || 'the earlier chain skill'} first.`
+    `${skill.name} is unavailable - cast ${expected?.name || 'the earlier chain skill'} first.`
   );
 }
 

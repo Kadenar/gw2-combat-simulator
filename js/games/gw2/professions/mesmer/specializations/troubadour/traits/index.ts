@@ -364,7 +364,7 @@ function applyMayhemInstrument(
     const condition = mesmerConditionFromProfile(context, TRAIT.MAYHEM, CONDITION.TORMENT);
 
     if (condition)
-      buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Mayhem — Torment', {
+      buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Mayhem - Torment', {
         source: 'Player',
         sourceId: TRAIT.MAYHEM,
         skillId: skill.id,
@@ -591,7 +591,7 @@ function scheduleSyncopateDrumWave(
         skillId: skill.id,
         actorType: ACTOR.PLAYER,
         damageBreakdownName: 'Syncopate (Delay Wave)',
-        name: 'Syncopate — delayed wave'
+        name: 'Syncopate - delayed wave'
       }
     ).forEach((packet) => {
       context.effects.emit({
@@ -608,7 +608,7 @@ function scheduleSyncopateDrumWave(
       type: 'control',
       at: delayedAt,
       skillId: skill.id,
-      skillName: 'Syncopate — delayed wave',
+      skillName: 'Syncopate - delayed wave',
       controlKind: daze.controlKind,
       persistsAfterInterrupt: true,
       source: 'Player',
@@ -705,7 +705,7 @@ function resolveAlteredChord(
     const condition = mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, CONDITION.CONFUSION);
 
     if (condition)
-      buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Altered Chord — Confusion', {
+      buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Altered Chord - Confusion', {
         skillId: skill.id
       }).forEach((packet) => {
         context.effects.emit({

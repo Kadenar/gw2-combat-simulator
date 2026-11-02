@@ -439,7 +439,7 @@ function triggeredRenegadeAction(skill: Skill): Skill {
 
 export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   triggeredRenegadeAction({
-    name: "Razorclaw's Rage — Empowered Attack",
+    name: "Razorclaw's Rage - Empowered Attack",
     icon: 'https://render.guildwars2.com/file/2449F064B1D3427FF311D3B4C101009C52250A0C/1770606.png',
     id: RAZORCLAW_PROC_ID,
     // Consecutive allied attacks consume the four buff charges without an internal cooldown.
@@ -456,7 +456,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     ]
   }),
   triggeredRenegadeAction({
-    name: "Soulcleave's Summit — Triggered Attack",
+    name: "Soulcleave's Summit - Triggered Attack",
     icon: 'https://render.guildwars2.com/file/CFD1582E6B180CA2DE6AD205981CBBAFC7480294/1770589.png',
     id: SOULCLEAVE_PROC_ID,
     cooldown: 1,
@@ -465,7 +465,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         type: 'strike',
         coefficient: 0.8,
         hits: 1,
-        name: "Soulcleave's Summit — Additional Strike",
+        name: "Soulcleave's Summit - Additional Strike",
         actorType: ACTOR.EFFECT
       },
       {
@@ -475,7 +475,7 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         flatStrikeBase: 325,
         flatStrikePowerCoeff: 0.1,
         hits: 1,
-        name: "Soulcleave's Summit — Life Siphon",
+        name: "Soulcleave's Summit - Life Siphon",
         actorType: ACTOR.EFFECT,
         canCrit: false
       }

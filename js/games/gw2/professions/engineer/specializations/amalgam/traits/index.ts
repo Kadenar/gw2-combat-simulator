@@ -344,7 +344,7 @@ function applyCarbolicPoison(context: EngineerRuntime, { cause: event }: Amalgam
         ...packet,
         applicationIndex: undefined,
         totalApplications: undefined,
-        name: 'Carbolic Composition' + ' \u2014 ' + packet.condition,
+        name: 'Carbolic Composition' + ' - ' + packet.condition,
         stacks: Number(poison.stacks),
         duration: Number(poison.duration)
       })

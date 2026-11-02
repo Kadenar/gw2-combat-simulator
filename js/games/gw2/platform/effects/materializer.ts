@@ -199,7 +199,7 @@ export function materializeSkillEffectApplications({
           ...effectBaseEvent,
           at,
           type: 'condition',
-          name: effect.name || `${skill.name} — ${packet.condition}`,
+          name: effect.name || `${skill.name} - ${packet.condition}`,
           condition: packet.condition,
           stacks: Number(packet.stacks),
           duration: Number(packet.duration),

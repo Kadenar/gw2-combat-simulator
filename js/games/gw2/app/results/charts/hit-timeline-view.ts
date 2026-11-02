@@ -403,7 +403,7 @@ function mountHitTimelineLane(
           .map(
             (hit, hitIndex) => `<tr><td>${hitIndex + 1}</td><td>${hitTime(hit.t + timeOffsetMs)}</td>
           ${isCondition ? `<td>${escapeHtml(hit.conditionType || 'Unknown')}</td>` : ''}
-          <td>${Math.round(hit.v).toLocaleString()}</td>${showEmpowered ? `<td>${hit.empowered == null ? '—' : hit.empowered ? 'Empowered' : 'Normal'}</td>` : ''}${showCritical ? `<td>${hit.crit == null ? '—' : hit.crit ? 'Yes' : 'No'}</td>` : ''}${showTriggeredBy ? `<td>${escapeHtml(hit.triggeredBy || '—')}</td>` : ''}</tr>`
+          <td>${Math.round(hit.v).toLocaleString()}</td>${showEmpowered ? `<td>${hit.empowered == null ? '-' : hit.empowered ? 'Empowered' : 'Normal'}</td>` : ''}${showCritical ? `<td>${hit.crit == null ? '-' : hit.crit ? 'Yes' : 'No'}</td>` : ''}${showTriggeredBy ? `<td>${escapeHtml(hit.triggeredBy || '-')}</td>` : ''}</tr>`
           )
           .join('')}</tbody>
       </table></div>`

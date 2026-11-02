@@ -1,5 +1,5 @@
 /** Owns the live DPS status shared by standalone and embedded simulator headers. */
-const HEADER_DPS_PLACEHOLDER = '\u2014';
+const HEADER_DPS_PLACEHOLDER = '-';
 
 /** Keep DPS beside the active build so the sticky toolbar associates the result with its build. */
 export function mountHeaderDps(root: Document = document): void {

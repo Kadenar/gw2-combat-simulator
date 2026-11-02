@@ -97,7 +97,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
     event: {
       type: 'condition',
       at: explosionAt,
-      name: 'Bloodstone Explosion — Bleeding',
+      name: 'Bloodstone Explosion - Bleeding',
       skillName: 'Bloodstone Explosion',
       condition: CONDITION.BLEEDING,
       duration: 6,

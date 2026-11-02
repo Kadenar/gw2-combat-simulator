@@ -85,7 +85,7 @@ export function buildMesmerConditions(
         ...fields,
         ...event,
         condition: conditionName,
-        name: label || skillName + ' — ' + conditionName,
+        name: label || skillName + ' - ' + conditionName,
         metadata: normalizeEffectMetadata({ ...event.metadata, ...extra.metadata })
       }
     ];

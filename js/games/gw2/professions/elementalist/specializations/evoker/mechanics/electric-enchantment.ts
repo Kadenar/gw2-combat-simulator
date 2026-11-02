@@ -126,7 +126,7 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
       fullEnd: event.at,
       cause: event,
       attribution: { ...attribution, activationId: event.activationId },
-      transform: (packet) => owned(packet, electricEnchantment.name + ' — ' + packet.condition)
+      transform: (packet) => owned(packet, electricEnchantment.name + ' - ' + packet.condition)
     });
 
   if (strike || burning)

@@ -292,7 +292,7 @@ function applyVampiric(context: NecromancerResolverContext, event: NecromancerRe
   if (!effect) return;
 
   queueBloodMagicLifeSteal(context, event, {
-    name: minionHit ? 'Vampiric — Minion Life Steal' : 'Vampiric',
+    name: minionHit ? 'Vampiric - Minion Life Steal' : 'Vampiric',
     traitId: TRAIT.VAMPIRIC,
     flatStrikeBase: effectNumber(profile, effect, 'flatStrikeBase'),
     flatStrikePowerCoeff: effectNumber(profile, effect, 'flatStrikePowerCoeff'),

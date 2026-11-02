@@ -27,7 +27,7 @@ test('rotation warnings show each rejected input on the combat-relative timeline
   await panel.locator('summary').click();
   await expect(panel.locator('.rotation-warning-time')).toHaveText(['-1.000s', '2.000s']);
   await expect(panel.locator('.rotation-warning-message')).toHaveText([
-    'Triple Bolt: Triple Bolt is unavailable — cast Shadow Bolt first.',
-    'Triple Bolt: Triple Bolt is unavailable — cast Shadow Bolt first.'
+    'Triple Bolt: Triple Bolt is unavailable - cast Shadow Bolt first.',
+    'Triple Bolt: Triple Bolt is unavailable - cast Shadow Bolt first.'
   ]);
 });

@@ -119,7 +119,7 @@ test('hammer empowerment reads patched skill components only after Justice is ar
       'Dazzling Hammer',
       { type: 'wait', durationMs: 1200 }
     ]);
-    const strike = result.resolvedEvents.find((event) => event.name === 'Dazzling Hammer — Radiant Justice Impact');
+    const strike = result.resolvedEvents.find((event) => event.name === 'Dazzling Hammer - Radiant Justice Impact');
     const vulnerability = result.events.find(
       (event) => event.type === 'condition' && event.skillId === ID.DAZZLING_HAMMER
     );

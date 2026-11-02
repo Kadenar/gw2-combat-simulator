@@ -340,7 +340,7 @@ function exposeDefenses(runtime: RevenantRuntime, { cause: event }: RevenantStri
       actorType: ACTOR.PLAYER,
       skillId: TRAIT.EXPOSE_DEFENSES,
       skillName: 'Expose Defenses',
-      name: `Expose Defenses — ${name}`
+      name: `Expose Defenses - ${name}`
     }
   });
 }
@@ -395,7 +395,7 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
       sourceId: TRAIT.THRILL_OF_COMBAT,
       skillId: TRAIT.THRILL_OF_COMBAT,
       skillName: 'Thrill of Combat',
-      name: 'Thrill of Combat — Battle Scars',
+      name: 'Thrill of Combat - Battle Scars',
       kind: 'battle-scars',
       duration,
       stacks: granted
@@ -481,7 +481,7 @@ function grantBattleScars(
       actorType: ACTOR.PLAYER,
       skillId: sourceId,
       skillName: sourceName,
-      name: `${sourceName} — Battle Scars`,
+      name: `${sourceName} - Battle Scars`,
       kind: 'battle-scars',
       duration,
       stacks: added
@@ -516,7 +516,7 @@ function completeRevenantBrutality(runtime: RevenantRuntime, { cast }: RevenantC
       sourceId: TRAIT.BRUTALITY,
       skillId: TRAIT.BRUTALITY,
       skillName: 'Brutality',
-      name: 'Brutality — quickness',
+      name: 'Brutality - quickness',
       activationId: cast.id
     })
   });
@@ -547,7 +547,7 @@ function completeNotoriety(runtime: RevenantRuntime, { cast }: RevenantCastCompl
           sourceId: TRAIT.NOTORIETY,
           skillId: skill.id,
           skillName: skill.name,
-          name: 'Notoriety — might',
+          name: 'Notoriety - might',
           activationId: cast.id
         })
       });

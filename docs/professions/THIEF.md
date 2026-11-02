@@ -44,16 +44,16 @@ Ordered mechanic trigger points preserve these boundaries:
 
 ## Implemented systems
 
-- **Core** — nine terrestrial weapon families with exact main-hand/off-hand matching for every dual-wield and
+- **Core** - nine terrestrial weapon families with exact main-hand/off-hand matching for every dual-wield and
   empty-offhand slot-3 skill; shared initiative, passive regeneration, explicit weapon-skill costs, weapon-swap
   preservation, Preparedness, and initiative-gain traits; stealth stacking, Revealed, active-weapon stealth attacks, and
   core/Daredevil stolen skills.
-- **Daredevil** — physical-skill endurance, the Fist Flurry/Palm Strike window, delayed Pulmonary Impact, staff packets,
+- **Daredevil** - physical-skill endurance, the Fist Flurry/Palm Strike window, delayed Pulmonary Impact, staff packets,
   and its damage-window traits.
-- **Deadeye** — Mark, malice, Kneel, malicious stealth attacks, and per-malice Backstab scaling.
-- **Specter** — Shadow Force pool and Shadow Shroud transitions, Scepter and shroud hit packets, wells, Siphon, and
+- **Deadeye** - Mark, malice, Kneel, malicious stealth attacks, and per-malice Backstab scaling.
+- **Specter** - Shadow Force pool and Shadow Shroud transitions, Scepter and shroud hit packets, wells, Siphon, and
   initiative-to-Shadow-Force gain.
-- **Antiquary** — artifact uses with all artifacts selectable, per-cast Double Edge outcomes, backfire state, and
+- **Antiquary** - artifact uses with all artifacts selectable, per-cast Double Edge outcomes, backfire state, and
   persistent Antiquary summons.
 
 Core Steal exposes Detonate Plasma, Throw Magnetic Bomb, and Soul Stone Venom as its standard stolen-skill choice pool.

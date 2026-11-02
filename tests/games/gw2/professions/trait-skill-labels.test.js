@@ -79,7 +79,7 @@ test('Clarion Bond finisher keeps a visible trait label through shared emission'
     skillName: 'Pet swap'
   });
   const finisher = capture.events.find((event) => event.comboFinishers?.length);
-  assert.equal(finisher.name, 'Lesser Call of the Wild — Blast Finisher');
+  assert.equal(finisher.name, 'Lesser Call of the Wild - Blast Finisher');
   assert.equal(finisher.procType, 'trait');
   assert.equal(finisher.skillId, id);
 });

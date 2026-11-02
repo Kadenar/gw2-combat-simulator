@@ -15,7 +15,7 @@ export interface SoulbeastState {
 
 export function createSoulbeastState(): SoulbeastState {
   return {
-    // Soulbeast starts merged — the rotation begins in Beastmode by default.
+    // Soulbeast starts merged - the rotation begins in Beastmode by default.
     beastmodeActive: true,
     oneWolfPackUntil: 0,
 

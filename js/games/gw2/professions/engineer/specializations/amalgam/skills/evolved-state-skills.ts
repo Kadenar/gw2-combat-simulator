@@ -149,7 +149,7 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
         atMs: 520,
         coefficient: 2,
         hits: 1,
-        name: 'Flux State — Packet 1',
+        name: 'Flux State - Packet 1',
         actorType: ACTOR.PLAYER
       },
       {

@@ -44,7 +44,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, dodge: S
       ...playerOwnedRelicSource(RELIC_IDS.MIRAGE),
       triggeredBy: dodge.skillName,
       skillName: 'Relic of the Mirage',
-      name: 'Relic of the Mirage — Torment',
+      name: 'Relic of the Mirage - Torment',
       condition: CONDITION.TORMENT,
       stacks: 2,
       duration: 6

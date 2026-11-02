@@ -51,7 +51,7 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
   return `<div class="template-preset" data-template-index="${index}" data-template-category="${category}" data-template-boon="${boon}" data-template-specialization="${esc(section)}" data-build-search="${esc(searchText)}">
       <button type="button" class="btn template-load-btn" data-template-action="template" data-template-index="${index}" aria-pressed="false" title="${label}">
         <span class="template-preset-name">${esc(rowName)}</span>
-        <span class="template-preset-dps" aria-label="${content.dps ? `${esc(content.dps)} DPS` : 'DPS unavailable'}">${esc(content.dps) || '—'}</span>
+        <span class="template-preset-dps" aria-label="${content.dps ? `${esc(content.dps)} DPS` : 'DPS unavailable'}">${esc(content.dps) || '-'}</span>
         ${freshnessWarning}
       </button>
       <details class="template-actions" name="build-template-actions">

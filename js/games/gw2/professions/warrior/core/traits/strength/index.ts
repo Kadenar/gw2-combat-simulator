@@ -115,7 +115,7 @@ export const recklessDodge = defineTrait({
       when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
       emit: TRAIT.RECKLESS_DODGE,
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.MIGHT),
-      attribution: { name: 'Reckless Dodge — Might', priority: 0 }
+      attribution: { name: 'Reckless Dodge - Might', priority: 0 }
     }
   ]
 });

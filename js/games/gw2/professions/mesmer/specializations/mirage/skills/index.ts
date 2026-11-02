@@ -311,7 +311,7 @@ function playerAmbushEffects(party = false): NonNullable<MesmerSkill['effectVari
                 ...(effect.type === 'strike'
                   ? { name: cast.skill.name }
                   : effect.type === 'condition'
-                    ? { name: `${cast.skill.name} — ${effect.condition}` }
+                    ? { name: `${cast.skill.name} - ${effect.condition}` }
                     : {}),
                 ...(effect.type === 'boon'
                   ? {

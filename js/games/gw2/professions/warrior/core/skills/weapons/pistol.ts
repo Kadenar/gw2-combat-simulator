@@ -80,7 +80,7 @@ export const WARRIOR_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Ski
               type: 'strike',
               timingAnchor: 'castStart',
               timingScale: 'fixed',
-              name: "Dragon's Roar — Damage per Bullet",
+              name: "Dragon's Roar - Damage per Bullet",
               damageKind: 'explosion',
               weapon: WEAPON.PISTOL,
               ticks: Array.from({ length: bullets }, (_, index) => ({

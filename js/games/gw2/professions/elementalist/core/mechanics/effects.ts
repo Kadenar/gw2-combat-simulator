@@ -116,7 +116,7 @@ export function elementalistConditionEffectRequest(
     fullEnd: at,
     cast: emissionCast,
     attribution: { source, sourceId, actorType: ACTOR.PLAYER, skillId: skill.id, skillName: source },
-    transform: (event) => ({ ...event, name: source + ' — ' + event.condition })
+    transform: (event) => ({ ...event, name: source + ' - ' + event.condition })
   };
 }
 

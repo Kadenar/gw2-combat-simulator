@@ -198,7 +198,7 @@ export function schedulePhantasmStrike(
         emitAttackPacket(state, execution, packet);
       });
     } else {
-      // No dedicated repeat ticks — shift each initial hit forward by the same offset.
+      // No dedicated repeat ticks - shift each initial hit forward by the same offset.
       const repeatOffset = execution.repeatDamageAt - execution.damageAt;
       const shiftedHitTimes = initialHitTimes.map((hitAt) => hitAt + repeatOffset);
 

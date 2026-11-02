@@ -171,7 +171,7 @@ function ashesTriggerAttribution(trigger: AshesTrigger) {
       triggeredBy: event.skillName,
       skillName: source.skillName,
       activationId: `${event.activationId}:ally:${proc.allyIndex}:${proc.activationId}`,
-      name: `${source.name} — Ally ${proc.allyIndex} Burning`,
+      name: `${source.name} - Ally ${proc.allyIndex} Burning`,
       metadata: { triggeredByAlly: proc.allyIndex }
     };
   }
@@ -182,7 +182,7 @@ function ashesTriggerAttribution(trigger: AshesTrigger) {
     skillName: 'Epilogue: Ashes of the Just',
     procType: 'profession' as const,
     icon: trigger.icon,
-    name: 'Ashes of the Just — Burning',
+    name: 'Ashes of the Just - Burning',
     activationId: event.activationId,
     causalOrder: event.causalOrder ?? event.eventOrder
   };

@@ -77,7 +77,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
                 {
                   ...effect,
                   ...timing,
-                  name: `${cast.skill.name} \u2014 ${effect.condition}`,
+                  name: `${cast.skill.name} - ${effect.condition}`,
                   stacks: Number(effect.stacks)
                 }
               ];

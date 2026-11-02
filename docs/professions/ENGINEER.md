@@ -46,20 +46,20 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
 
 ## Authoritative locations
 
-- `core/state.ts` and each `specializations/<name>/state.ts` — owned state.
-- `core/skills/` and each specialization's `skills/` — skill packets, cooldowns, and timings.
-- `core/mechanics/` and specialization `mechanics/` directories — resources, availability, state transitions, and event
+- `core/state.ts` and each `specializations/<name>/state.ts` - owned state.
+- `core/skills/` and each specialization's `skills/` - skill packets, cooldowns, and timings.
+- `core/mechanics/` and specialization `mechanics/` directories - resources, availability, state transitions, and event
   behavior.
-- `core/traits/<line>/index.ts` and each elite's `traits/index.ts` — trait definitions, profiles, modifiers, attribute
+- `core/traits/<line>/index.ts` and each elite's `traits/index.ts` - trait definitions, profiles, modifiers, attribute
   contributions, and triggers. Supporting helpers remain beside their definitions.
-- `core/mechanics/trigger-points.ts` — ordered trait trigger points; mechanics retain kit/toolbelt state and recharge.
+- `core/mechanics/trigger-points.ts` - ordered trait trigger points; mechanics retain kit/toolbelt state and recharge.
 - Scrapper traits own combo rewards and Function Gyro ammo; specialization state retains the pending Stability pulse.
 - Holosmith traits own heat policies and Solar Focusing Lens rewards; mechanics own heat cadence and transitions.
 - Mechanist traits own command selection, arm procs, and attribute inheritance; mechanics own the independent mech lane
   and packet ownership.
 - Amalgam traits own Morph/Evolve rewards and recharge policy; the committed Morph task preserves cross-trait ordering.
-- `specializations/mechanist/mechanics/mech.ts` — persistent mech attacks and commands.
-- `core/module.ts` and each specialization's `module.ts` — native module registration and phase ownership.
+- `specializations/mechanist/mechanics/mech.ts` - persistent mech attacks and commands.
+- `core/module.ts` and each specialization's `module.ts` - native module registration and phase ownership.
 
 Build and live attributes share `engineerProfession.attributeContributions`. Module declarations supply skill and
 mechanic attributes; selected trait definitions supply their own bonuses and conversions. The shared evaluator starts

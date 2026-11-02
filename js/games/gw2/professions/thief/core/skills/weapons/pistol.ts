@@ -175,7 +175,7 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
       {
         type: 'strike',
         ticks: [{ atMs: 160, coefficient: 0.315 }],
-        name: 'Shadow Strike — Packet 1',
+        name: 'Shadow Strike - Packet 1',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'cast'

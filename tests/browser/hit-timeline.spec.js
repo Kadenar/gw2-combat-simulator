@@ -86,7 +86,7 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   expect(await strikes.locator('canvas').evaluate((canvas) => canvas.getContext('2d').strokeStyle)).toBe('#72c1d9');
   await strikes.getByRole('button', { name: '0.000s · 5 hits', exact: true }).click();
   await expect(strikes.getByRole('columnheader', { name: 'Pulse', exact: true })).toBeVisible();
-  await expect(strikes.locator('tbody tr td:last-child')).toHaveText(['Normal', 'Empowered', 'Normal', 'Normal', '—']);
+  await expect(strikes.locator('tbody tr td:last-child')).toHaveText(['Normal', 'Empowered', 'Normal', 'Normal', '-']);
   await expect(page.locator('[data-role="skill-applications"]')).toHaveCount(0);
   await expect(page.getByText('Hover or focus a pulse for its application time.')).toHaveCount(0);
   await strikes.getByRole('img', { name: '6.000s · 1 hit', exact: true }).focus();

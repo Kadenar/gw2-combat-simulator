@@ -355,7 +355,7 @@ test('Death Spiral includes its life-siphon damage packet', () => {
 
   assert.deepEqual(
     packets.map((event) => event.name),
-    ['Death Spiral', 'Death Spiral — Life Siphon']
+    ['Death Spiral', 'Death Spiral - Life Siphon']
   );
   assert.equal(siphon?.flatStrikeBase, 3517);
   assert.equal(siphon?.flatStrikePowerCoeff, 0.01);
@@ -366,8 +366,8 @@ test('Death Spiral includes its life-siphon damage packet', () => {
   const rows = new Map(skillBreakdownRows(result).map((row) => [row.name, row]));
 
   assert.equal(rows.get('Death Spiral').hits, 1);
-  assert.equal(rows.get('Death Spiral — Life Siphon').hits, 1);
-  assert.equal(rows.get('Death Spiral — Life Siphon').parentSkill, 'Death Spiral');
+  assert.equal(rows.get('Death Spiral - Life Siphon').hits, 1);
+  assert.equal(rows.get('Death Spiral - Life Siphon').parentSkill, 'Death Spiral');
 });
 
 test('Necromancer dark-field life steals inherit finisher attribution', () => {
@@ -636,11 +636,11 @@ test('Vampiric siphons on every direct player and minion hit with separate power
     (event) => event.type === 'damage' && event.source === 'Minion' && event.skillId === 3633
   );
   const minionSiphons = minion.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Vampiric — Minion Life Steal'
+    (event) => event.type === 'damage' && event.name === 'Vampiric - Minion Life Steal'
   );
   const vampiricIcon = necromancerCatalog.traits.find((trait) => trait.id === TRAIT.VAMPIRIC)?.icon;
   const playerRow = skillBreakdownRows(player).find((row) => row.name === 'Vampiric');
-  const minionRow = skillBreakdownRows(minion).find((row) => row.name === 'Vampiric — Minion Life Steal');
+  const minionRow = skillBreakdownRows(minion).find((row) => row.name === 'Vampiric - Minion Life Steal');
 
   // Ghastly Claws proves there is no internal cooldown: all eight packets siphon.
   assert.equal(playerSiphons.length, 8);
@@ -698,7 +698,7 @@ test('Blood Magic siphons preserve independent pools and intervals across four o
     (event) => event.type === 'damage' && event.actorType === 'summon' && owners.includes(event.summonOwner)
   );
   const vampiric = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.name === 'Vampiric — Minion Life Steal'
+    (event) => event.type === 'damage' && event.name === 'Vampiric - Minion Life Steal'
   );
   const presence = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Vampiric Presence' && owners.includes(event.summonOwner)

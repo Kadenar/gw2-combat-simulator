@@ -293,7 +293,7 @@ function applySteelPackedPowder(context: EngineerResolverContext, event: Enginee
         triggeredBy: event.skillName,
         offTarget: event.offTarget
       },
-      transform: (packet) => ({ ...packet, name: 'Steel-Packed Powder' + ' — ' + packet.condition })
+      transform: (packet) => ({ ...packet, name: 'Steel-Packed Powder' + ' - ' + packet.condition })
     });
   }
 }
@@ -381,7 +381,7 @@ function applyGrandEntrance(context: EngineerResolverContext, event: EngineerRes
     attribution: (effect) => ({
       source: 'Trait',
       actorType: ACTOR.EFFECT,
-      skillName: effect.type === 'boon' ? 'Grand Entrance — resistance' : 'Grand Entrance',
+      skillName: effect.type === 'boon' ? 'Grand Entrance - resistance' : 'Grand Entrance',
       triggeredBy: event.skillName
     }),
     transform: (packet) => ({ ...packet, name: packet.skillName })
@@ -427,7 +427,7 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
         offTarget: event.offTarget,
         metadata: { procCount: 1 }
       },
-      transform: (packet) => ({ ...packet, name: 'Shrapnel' + ' — ' + packet.condition })
+      transform: (packet) => ({ ...packet, name: 'Shrapnel' + ' - ' + packet.condition })
     });
   }
 
@@ -449,7 +449,7 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
         triggeredBy: event.skillName,
         offTarget: event.offTarget
       },
-      transform: (packet) => ({ ...packet, name: 'Shrapnel' + ' — ' + packet.condition })
+      transform: (packet) => ({ ...packet, name: 'Shrapnel' + ' - ' + packet.condition })
     });
   }
 

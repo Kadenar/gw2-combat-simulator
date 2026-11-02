@@ -91,7 +91,7 @@ test('spear scales only its final strike and only with marked malice', () => {
   const skillId = ID.MALICIOUS_ASHEN_ASSAULT;
   const final = (malice, marked) =>
     maliciousAttack(malice, { skillId, marked }).resolvedEvents.find(
-      (event) => event.name === 'Malicious Ashen Assault — Final Strike'
+      (event) => event.name === 'Malicious Ashen Assault - Final Strike'
     ).coefficient;
   assert.ok(Math.abs(final(5, true) / final(0, true) - 1.1) < 1e-9);
   assert.equal(final(5, false), final(0, false));

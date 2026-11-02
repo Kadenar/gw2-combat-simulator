@@ -450,7 +450,7 @@ export function createCastExecution<T extends object>(
         ready: false,
         retryAt: null,
         code: 'equipment',
-        reason: `${skill.name} is unavailable — its required weapon is not equipped.`
+        reason: `${skill.name} is unavailable - its required weapon is not equipped.`
       };
     }
 

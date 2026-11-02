@@ -406,7 +406,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
   const add = (effect: SkillEffect, name: string, detail: string, stacks?: number) => {
     name = tooltipEffectName(name);
     const qualifier = [context, effectContext(effect, name)].filter(Boolean).join(' · ');
-    const fullDetail = [detail, qualifier].filter(Boolean).join(' — ');
+    const fullDetail = [detail, qualifier].filter(Boolean).join(' - ');
     const key = JSON.stringify([name, fullDetail, stacks, effect.sourceId, effect.actorType, effect.audience]);
     const applications = effect.applications ?? 1;
     const previous = facts.get(key);

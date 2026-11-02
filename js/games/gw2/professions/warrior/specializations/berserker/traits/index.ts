@@ -92,7 +92,7 @@ const lastBlaze = defineTrait({
         sourceId: TRAIT.LAST_BLAZE,
         actorType: ACTOR.EFFECT,
         ownerActorType: ACTOR.PLAYER,
-        name: 'Last Blaze — Burning'
+        name: 'Last Blaze - Burning'
       }
     }
   ]
@@ -190,7 +190,7 @@ const kingOfFires = defineTrait({
             actorType: ACTOR.EFFECT,
             skillId: event.skillId,
             skillName: event.skillName,
-            name: 'King of Fires — Fire Aura'
+            name: 'King of Fires - Fire Aura'
           }
         });
         runtime.effects.emit({

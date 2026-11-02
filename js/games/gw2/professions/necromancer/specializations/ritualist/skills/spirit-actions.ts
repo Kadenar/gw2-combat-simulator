@@ -97,7 +97,7 @@ export const ritualistSpiritActionTasks: NonNullable<RuntimeHooks<NecromancerRun
         effects: requireSkillAction(opening, 'opening').effects.filter((effect) => effect.type === 'condition'),
         at: field.at,
         attribution: { ...field.attribution, ...spiritFields('wanderlust', 'initial') },
-        transform: (event) => ({ ...event, name: `${opening.name} — ${event.condition}` })
+        transform: (event) => ({ ...event, name: `${opening.name} - ${event.condition}` })
       });
     }
   };
@@ -153,7 +153,7 @@ export const ritualistSpiritActions: NonNullable<
       attribution: attribution(cast),
       transform: (event) => ({
         ...event,
-        name: `${cast.skill.name} — ${event.condition}`,
+        name: `${cast.skill.name} - ${event.condition}`,
         offTarget: cast.command.offTarget
       })
     });

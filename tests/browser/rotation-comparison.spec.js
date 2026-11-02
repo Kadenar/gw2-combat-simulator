@@ -150,8 +150,8 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   await page.getByRole('button', { name: 'Compare' }).click();
   await expect(modeButtons).toHaveText(['Exit focus', 'Exit compare']);
   await expect(page.locator('body')).toHaveAttribute('data-rotation-comparison', '');
-  await expect(page.getByRole('heading', { name: 'Current — Editing' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Reference — Read only' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Current - Editing' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Reference - Read only' })).toBeVisible();
   const referenceSection = page.locator('#rotation-comparison-reference');
   const referenceTimeline = page.locator('#rotation-reference-timeline');
   await expect(referenceSection.getByText('Load a comparison', { exact: true })).toBeVisible();

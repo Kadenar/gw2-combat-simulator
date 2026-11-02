@@ -835,7 +835,7 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
     initialEnergy: 100
   });
 
-  assert.equal(passive.events.filter((event) => event.name === 'Battle Scars — Life Siphon').length, 1);
+  assert.equal(passive.events.filter((event) => event.name === 'Battle Scars - Life Siphon').length, 1);
   assert.ok(
     passive.events.some(
       (event) =>

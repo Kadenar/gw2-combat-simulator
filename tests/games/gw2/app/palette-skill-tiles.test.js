@@ -699,7 +699,7 @@ test('Holosmith Photon Forge autos are catalog autoattack chains', async () => {
   );
 
   assert.ok(names.some((chain) => chain.join('|') === 'Light Strike|Bright Slash|Flash Cutter'));
-  assert.ok(names.some((chain) => chain.join('|') === 'Light Strike—Storm|Bright Slash—Storm|Flash Cutter—Storm'));
+  assert.ok(names.some((chain) => chain.join('|') === 'Light Strike-Storm|Bright Slash-Storm|Flash Cutter-Storm'));
 });
 
 test('Holosmith Forge tiles follow weapon slots for normal and Storm autos', async () => {
@@ -723,7 +723,7 @@ test('Holosmith Forge tiles follow weapon slots for normal and Storm autos', asy
       tiles.map((skill) => skill.slot),
       ['Weapon_1', 'Weapon_2', 'Weapon_3', 'Weapon_4', 'Weapon_5']
     );
-    assert.equal(tiles[0].name, storm ? 'Light Strike—Storm' : 'Light Strike');
+    assert.equal(tiles[0].name, storm ? 'Light Strike-Storm' : 'Light Strike');
   }
 });
 

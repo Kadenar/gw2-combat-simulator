@@ -65,7 +65,7 @@ function reactToDragonhunterJusticeHit(
           actorType: ACTOR.PLAYER,
           skillId: ID.SPEAR_OF_JUSTICE,
           skillName: 'Spear of Justice',
-          name: 'Spear of Justice — Passive Crippled',
+          name: 'Spear of Justice - Passive Crippled',
           condition: String(crippled.condition),
           stacks: effectNumber(skill, crippled, 'stacks'),
           duration: effectNumber(skill, crippled, 'duration')
@@ -106,7 +106,7 @@ const couragePulse = createPassiveCourageTask({
         actorType: ACTOR.PLAYER,
         skillId: skill.id,
         skillName: skill.name,
-        name: 'Shield of Courage — Passive Aegis',
+        name: 'Shield of Courage - Passive Aegis',
         kind: boonKey(BOON.AEGIS),
         duration: effectNumber(owner, effect, 'duration'),
         stacks: effectNumber(owner, effect, 'stacks')
@@ -171,7 +171,7 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
       actorType: ACTOR.PLAYER,
       skillId: ID.SPEAR_OF_JUSTICE,
       skillName: 'Spear of Justice',
-      name: 'Spear of Justice — Active Burning',
+      name: 'Spear of Justice - Active Burning',
       condition: String(effect.condition),
       stacks: effectNumber(owner, effect, 'stacks'),
       duration: effectNumber(owner, effect, 'duration')

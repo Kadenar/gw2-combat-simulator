@@ -38,7 +38,7 @@ test('native availability combines cost and profession gates in order', () => {
     ready: false,
     retryAt,
     code: 'gw2.insufficient-energy',
-    reason: 'Cost probe is unavailable — requires 2 energy.'
+    reason: 'Cost probe is unavailable - requires 2 energy.'
   });
   const wait = retryCast(3, 'profession.wait', 'Profession must wait');
   const permanent = denyCast('profession.denied', 'Profession rejects this command');

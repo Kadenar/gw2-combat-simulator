@@ -40,6 +40,81 @@ const value = (state, kind, recipient = 'self', profession = {}) => {
   return effect && effectStateValue(effect, state.time);
 };
 
+// Diagnostics and reports share observations without dropping recipients or freezing live owner state.
+test('player-buff observations preserve full report scopes across grants, policy changes, and expiry', () => {
+  const state = runtime();
+  state.config = { boons: { might: 25 }, target: { conditions: { Bleeding: 1 } } };
+  state.conditionState.set('Bleeding', { stacks: [{ at: 0, naturalExpiresAt: 10, stacks: 2 }] });
+  state.retiredCompanions.set('clone:1', 2);
+  let maximumStacks = 2;
+  const profession = { buffPolicies: () => [{ kind: 'charges', maximumStacks }] };
+  grant(state, 'charges', 0, 5, 4);
+  grant(state, 'might', 0, 3, 10);
+  const read = () => observeRuntimeEffects(state, profession, 'player-buffs');
+  const compare = () => {
+    const scoped = read();
+    const complete = observeRuntimeEffects(state, profession);
+    assert.deepEqual(
+      scoped,
+      complete.filter((effect) => effect.category === 'buff' && effect.recipient === 'self')
+    );
+    assert.deepEqual(read(), scoped);
+    assert.ok(complete.some((effect) => effect.category === 'condition'));
+    assert.ok(complete.some((effect) => effect.origin === 'assumption'));
+    const companion = complete.find((effect) => effect.kind === 'charges' && effect.recipient === 'companion:clone:1');
+    assert.equal(effectStateValue(companion, 2).count, 0);
+    return effectStateValue(scoped[0], state.time).count;
+  };
+
+  assert.equal(compare(), 2);
+  maximumStacks = 3;
+  assert.equal(compare(), 3);
+  state.time = 4;
+  assert.equal(compare(), 0);
+  grant(state, 'charges', 4, 1, 3);
+  assert.equal(compare(), 1);
+  const applications = state.buffs.get('charges');
+  applications[1] = { ...applications[1], stacks: 2 };
+  assert.equal(compare(), 2);
+  state.buffs.delete('charges');
+  assert.deepEqual(read(), []);
+});
+
+test('player-buff scope retains native recipient precedence and empty profession ownership', () => {
+  const state = runtime();
+  for (const kind of ['charges', 'ally-owned', 'empty', 'native-category']) grant(state, kind, 0, 5, 10);
+  let charges = 2;
+  const profession = {
+    buffPolicies: () => [
+      { kind: 'charges', maximumStacks: 3 },
+      { kind: 'ally-owned', maximumStacks: 1 },
+      { kind: 'empty', owner: 'profession' },
+      { kind: 'native-category', maximumStacks: 1 }
+    ],
+    observeEffects: () => [
+      timedEffectState('charges', [{ stacks: charges, expiresAt: 10 }], 3),
+      timedEffectState('ally-owned', [{ stacks: 4, expiresAt: 10 }], 4, { recipient: 'ally:1' }),
+      timedEffectState('native-category', [{ stacks: 1, expiresAt: 10 }], 1, { category: 'boon' })
+    ]
+  };
+  const read = () => {
+    const scoped = observeRuntimeEffects(state, profession, 'player-buffs');
+    assert.deepEqual(
+      scoped,
+      observeRuntimeEffects(state, profession).filter(
+        (effect) => effect.category === 'buff' && effect.recipient === 'self'
+      )
+    );
+    return Object.fromEntries(scoped.map((effect) => [effect.kind, effectStateValue(effect, state.time).count]));
+  };
+
+  assert.deepEqual(read(), { 'ally-owned': 1, charges: 2 });
+  charges = 0;
+  assert.deepEqual(read(), { 'ally-owned': 1, charges: 0 });
+  state.equipmentBuffPolicies = [{ kind: 'charges', maximumStacks: 1 }];
+  assert.throws(() => read(), /Duplicate equipment buff policy/);
+});
+
 // Policies follow their contributing owner even when planning has no chart recorder.
 test('profession effects require their owner contribution', () => {
   const state = runtime();

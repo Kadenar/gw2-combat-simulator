@@ -92,7 +92,7 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
           type: 'strike',
           coefficient: 0.6,
           hits: 1,
-          name: 'Manifest Toxin — Packet 1',
+          name: 'Manifest Toxin - Packet 1',
           actorType: ACTOR.PLAYER
         },
         {

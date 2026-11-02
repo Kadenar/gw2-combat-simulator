@@ -382,7 +382,7 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
       skillName: skill.name,
       cast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget },
       attribution: { source: skill.name, sourceId: skill.id, actorType: ACTOR.PLAYER, triggeredBy: '' },
-      transform: (event) => ({ ...event, name: skill.name + ' \u2014 ' + event.condition })
+      transform: (event) => ({ ...event, name: skill.name + ' - ' + event.condition })
     });
   } else if (skill.id === ID.ARCANE_BLAST) {
     // Arcane Blast's trait condition can be tuned or removed independently of the native skill.
@@ -476,7 +476,7 @@ function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2Re
         skillName: 'Arcane Precision',
         triggeredBy: resolverSourceSkill(event)
       },
-      transform: (packet) => ({ ...packet, name: 'Arcane Precision' + ' — ' + packet.condition })
+      transform: (packet) => ({ ...packet, name: 'Arcane Precision' + ' - ' + packet.condition })
     });
 
     context.effects.emit({

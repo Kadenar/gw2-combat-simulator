@@ -59,7 +59,7 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = [
       {
         type: 'custom',
         eventType: 'proc',
-        event: { name: 'Lesser Call of the Wild — Blast Finisher', procType: 'trait' },
+        event: { name: 'Lesser Call of the Wild - Blast Finisher', procType: 'trait' },
         name: 'Blast Finisher',
         comboFinishers: [
           {

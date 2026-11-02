@@ -307,7 +307,7 @@ test('Dragon Trigger charge time is excluded from timeline dead time', () => {
   const result = simulate('Bladesworn', ['Dragon Trigger', { skillId: 62797, releaseAtCharges: 5 }], {
     initialResource: 100
   });
-  const dragonSlashStep = result.steps.find((step) => step.skillName === 'Dragon Slash—Force' && !step.invalid);
+  const dragonSlashStep = result.steps.find((step) => step.skillName === 'Dragon Slash-Force' && !step.invalid);
 
   assert.ok(dragonSlashStep, 'expected a Dragon Slash cast');
 

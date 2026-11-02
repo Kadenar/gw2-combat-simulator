@@ -93,7 +93,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
     event: {
       type: 'condition',
       at: application.at,
-      name: 'Relic of the Last Tyrant — Burning',
+      name: 'Relic of the Last Tyrant - Burning',
       skillName: 'Relic of the Last Tyrant',
       condition: CONDITION.BURNING,
       duration: 8,

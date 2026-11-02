@@ -336,7 +336,7 @@ test("Spear's Furious Focus symbol precedes the tether and only later pulses gai
     const normal = pulses(baseline),
       boosted = pulses(enhanced);
     const tether = enhanced.resolvedEvents.find(
-      (event) => event.type === 'condition' && event.name === 'Spear of Justice — Active Burning'
+      (event) => event.type === 'condition' && event.name === 'Spear of Justice - Active Burning'
     );
     assert.ok(boosted[0].at < tether.at);
     assert.equal(boosted[0].damage, normal[0].damage);
@@ -505,7 +505,7 @@ test('resolution traits affect strike damage, critical chance, and might', () =>
     })(undefined, ['Symbol of Resolution', 'Strike', { type: 'wait', durationMs: 6000 }]);
   const righteous = run([GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS]);
   const retribution = run([GUARDIAN_TRAIT_IDS.RIGHTEOUS_INSTINCTS, GUARDIAN_TRAIT_IDS.RETRIBUTION]);
-  const first = (result) => result.resolvedEvents.find((event) => event.name === 'Symbol of Resolution — Initial');
+  const first = (result) => result.resolvedEvents.find((event) => event.name === 'Symbol of Resolution - Initial');
   const followup = (result) => result.resolvedEvents.find((event) => event.name === 'Strike');
   const pulses = retribution.resolvedEvents.filter((event) => event.name === 'Symbol of Resolution');
 
@@ -601,7 +601,7 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
     boons: { quickness: true },
     selectedTraitIds
   })(undefined, ['Spear of Justice', 'Helio Rush', { type: 'wait', durationMs: 13000 }]);
-  const activeBurning = result.resolvedEvents.filter((event) => event.name === 'Spear of Justice — Active Burning');
+  const activeBurning = result.resolvedEvents.filter((event) => event.name === 'Spear of Justice - Active Burning');
   const spearStrike = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Spear of Justice'
   );
@@ -647,7 +647,7 @@ test('Dragonhunter virtues apply tether, passive aegis, and virtue traits', () =
   })(undefined, ['Spear of Justice', "Hunter's Verdict", { type: 'wait', durationMs: 3000 }]);
 
   assert.deepEqual(verdict.warnings, []);
-  assert.equal(verdict.resolvedEvents.filter((event) => event.name === 'Spear of Justice — Active Burning').length, 1);
+  assert.equal(verdict.resolvedEvents.filter((event) => event.name === 'Spear of Justice - Active Burning').length, 1);
   assert.equal(
     verdict.events.some(
       (event) => event.type === 'control' && event.skillName === "Hunter's Verdict" && event.controlKind === 'pull'
@@ -722,7 +722,7 @@ test('Binding Blade activates and refreshes Fireworks without proccing on tether
     assert.equal(procs.length, opening.length + 1);
     assert.equal(procs.at(-1).sourceSkill, 'Binding Blade');
     assert.equal(procs.at(-1).detail, opening.length ? 'refreshed' : 'activated');
-    assert.ok(result.resolvedEvents.some((event) => event.name === 'Binding Blade — Tether' && event.damage > 0));
+    assert.ok(result.resolvedEvents.some((event) => event.name === 'Binding Blade - Tether' && event.damage > 0));
   }
 });
 

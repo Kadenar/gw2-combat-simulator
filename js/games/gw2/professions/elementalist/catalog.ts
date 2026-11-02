@@ -10,7 +10,7 @@ import { weaverModule } from '#gw2/professions/elementalist/specializations/weav
 
 /**
  * The Elementalist family's module set: the core module plus one module per elite
- * specialization. Core must stay first — it is the owner of base-game skills, traits,
+ * specialization. Core must stay first - it is the owner of base-game skills, traits,
  * and weapon data, and later modules layer their own contributions over it.
  */
 export const elementalistNativeModules = Object.freeze([

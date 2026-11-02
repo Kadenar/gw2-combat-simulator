@@ -517,7 +517,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
       {
         type: 'strike',
         ticks: [{ atMs: THOUSAND_NEEDLES_INITIAL_DELAY_MS, coefficient: 0.5 }],
-        name: 'Thousand Needles — Initial Strike'
+        name: 'Thousand Needles - Initial Strike'
       },
       {
         type: 'strike',
@@ -527,7 +527,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
           THOUSAND_NEEDLES_INITIAL_DELAY_MS + 3000,
           THOUSAND_NEEDLES_INITIAL_DELAY_MS + 4000
         ].map((atMs) => ({ atMs, coefficient: 0.2 })),
-        name: 'Thousand Needles — Pulse'
+        name: 'Thousand Needles - Pulse'
       },
       {
         type: 'condition',

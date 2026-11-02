@@ -266,7 +266,7 @@ test('timeline skill tooltips include matching and global cast ordinals', () => 
   );
   assert.match(
     formatTimelineSkillTooltip(
-      'Dragon Slash—Force',
+      'Dragon Slash-Force',
       steps[4],
       ordinals.get(4),
       (time) => `${(time / 1000).toFixed(3)}s`,

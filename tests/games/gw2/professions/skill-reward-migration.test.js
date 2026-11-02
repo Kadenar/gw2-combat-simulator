@@ -50,7 +50,7 @@ test('Weighty Terms side effects preserve Slow attribution and page restoration'
   const slow = result.events.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.WEIGHTY_TERMS);
   const cast = result.events.find((event) => event.type === 'action' && event.skillId === GUARDIAN.FLAME_SURGE);
   assert.equal(slow.length, 1);
-  assert.equal(slow[0].name, 'Weighty Terms — Slow');
+  assert.equal(slow[0].name, 'Weighty Terms - Slow');
   assert.equal(slow[0].activationId, cast.activationId);
   assert.equal(slow[0].at, cast.endsAt);
   assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 2);

@@ -175,7 +175,8 @@ function metricSlug(value: unknown): string {
 
 function effectName(event: Gw2ResolverEvent): string {
   const raw = String(event.name || event.skillName || event.source || event.sourceId || 'Effect').trim();
-  const parts = raw.split(/\s(?:\u2013|\u2014)\s/);
+  // Extract the effect suffix while preserving hyphens within canonical skill names.
+  const parts = raw.split(/\s-\s/);
   return String(parts.at(-1) || raw).trim();
 }
 

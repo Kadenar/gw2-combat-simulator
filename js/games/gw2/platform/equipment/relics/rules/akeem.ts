@@ -37,7 +37,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
     event: {
       type: 'condition',
       at: event.at,
-      name: 'Relic of Akeem — Confusion',
+      name: 'Relic of Akeem - Confusion',
       skillName: 'Relic of Akeem',
       condition: CONDITION.CONFUSION,
       duration: 10,
@@ -51,7 +51,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
     event: {
       type: 'condition',
       at: event.at,
-      name: 'Relic of Akeem — Torment',
+      name: 'Relic of Akeem - Torment',
       skillName: 'Relic of Akeem',
       condition: CONDITION.TORMENT,
       duration: 10,

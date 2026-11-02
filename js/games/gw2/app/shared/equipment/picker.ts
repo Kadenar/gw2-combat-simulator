@@ -102,7 +102,7 @@ export function positionGearPopover(menu: HTMLElement, trigger: HTMLElement): vo
 }
 
 function splitOptionLabel(label: string): { name: string; details: string } {
-  const separator = ' \u2014 ';
+  const separator = ' - ';
   const separatorIndex = label.indexOf(separator);
   return separatorIndex < 0
     ? { name: label, details: '' }

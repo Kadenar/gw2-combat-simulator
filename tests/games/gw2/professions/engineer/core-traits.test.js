@@ -70,9 +70,9 @@ test('Explosives and Firearms traits materialize offensive effects', () => {
     result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Aim-Assisted Rocket').length,
     1
   );
-  assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Shrapnel — Bleeding'));
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Shrapnel - Bleeding'));
   assert.ok(
-    result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Incendiary Powder — Burning')
+    result.resolvedEvents.some((event) => event.type === 'condition' && event.name === 'Incendiary Powder - Burning')
   );
   assert.ok(observedRuntime(result).buffs.get('thermal-vision').length > 0);
 });
@@ -543,7 +543,7 @@ test('Chemical Rounds extends every pistol condition beyond the condition-durati
     const base = conditionDuration(skillName, condition, []);
     const chemical = conditionDuration(skillName, condition, [TRAIT.CHEMICAL_ROUNDS]);
 
-    assert.ok(Math.abs(chemical - Math.round(((base * 4) / 3) * 1000) / 1000) < 1e-12, `${skillName} — ${condition}`);
+    assert.ok(Math.abs(chemical - Math.round(((base * 4) / 3) * 1000) / 1000) < 1e-12, `${skillName} - ${condition}`);
   }
 });
 

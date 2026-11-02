@@ -111,7 +111,7 @@ test('Aerial Agility keeps recorded IDs and leaves invalid chain steps to the si
     assert.equal(simulation.steps.at(-1).invalid, true);
     assert.match(
       simulation.warnings.map(({ message }) => message).join(' '),
-      /is unavailable — cast Aerial Agility \(chain\) first/
+      /is unavailable - cast Aerial Agility \(chain\) first/
     );
   }
 });

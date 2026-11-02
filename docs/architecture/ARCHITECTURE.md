@@ -145,7 +145,7 @@ A family exposes immutable metadata and cached active-runtime composition. `runt
 active elite; missing or Core selects Core alone, and unknown elites throw. `resolveProfession(config)` supplies
 normalized catalog and attribute metadata to application consumers; it does not create a second gameplay state.
 
-- State shape: `{ core, specialization: { kind, state } }` — a plain object, no proxies. Core mechanics use `core`;
+- State shape: `{ core, specialization: { kind, state } }` - a plain object, no proxies. Core mechanics use `core`;
   elite mechanics validate and use only the active specialization state.
 - `createProfessionFamilyUi()` is more lenient: an unknown/Core-trait-line/missing name selects Core. Lists compose Core
   then elite, palette overrides refine individual fields, presenters delegate on `undefined`, and selection replacement

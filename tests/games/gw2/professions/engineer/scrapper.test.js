@@ -100,17 +100,17 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
 
   assert.equal(result.warnings.length, 0);
   assert.equal(
-    result.events.filter((event) => event.type === 'buff' && event.name === 'Speed of Synergy — superspeed').length,
+    result.events.filter((event) => event.type === 'buff' && event.name === 'Speed of Synergy - superspeed').length,
     1
   );
   assert.ok(
     result.events.some(
-      (event) => event.type === 'buff' && event.name === 'Speed of Synergy — superspeed' && event.duration === 10
+      (event) => event.type === 'buff' && event.name === 'Speed of Synergy - superspeed' && event.duration === 10
     )
   );
   assert.ok(
     result.events.some(
-      (event) => event.type === 'buff' && event.name === 'Gyroscopic Acceleration — superspeed' && event.duration === 5
+      (event) => event.type === 'buff' && event.name === 'Gyroscopic Acceleration - superspeed' && event.duration === 5
     )
   );
   assert.equal(result.events.filter((event) => event.type === 'control' && event.controlKind === 'daze').length, 2);
@@ -126,7 +126,7 @@ test('Scrapper traits apply gyro control, superspeed, boons, and charges', () =>
 
   // Ordinary healing toolbelts grant five seconds; only Med Kit also receives the healing-skill grant.
   assert.ok(
-    reconstructionField.events.some((event) => event.name === 'Speed of Synergy — superspeed' && event.duration === 5)
+    reconstructionField.events.some((event) => event.name === 'Speed of Synergy - superspeed' && event.duration === 5)
   );
 
   const base = simulate('Scrapper', ['Puncturing Jab'], {
@@ -219,10 +219,10 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
   assert.equal(result.procSteps.filter((step) => step.skill === 'Kinetic Accelerators').length, 1);
   // Each surviving combo owns one set of resolver grants; predictions are absent from final output.
   const quickness = result.resolvedEvents.find(
-    (event) => event.type === 'buff' && event.name === 'Kinetic Accelerators — quickness'
+    (event) => event.type === 'buff' && event.name === 'Kinetic Accelerators - quickness'
   );
   const might = result.resolvedEvents.find(
-    (event) => event.type === 'buff' && event.name === 'Kinetic Accelerators — might'
+    (event) => event.type === 'buff' && event.name === 'Kinetic Accelerators - might'
   );
   assert.equal(
     result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.KINETIC_ACCELERATORS)

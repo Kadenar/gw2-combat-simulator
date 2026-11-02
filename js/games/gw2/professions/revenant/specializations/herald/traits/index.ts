@@ -224,7 +224,7 @@ const sharedEmpowerment = defineTrait({
         source: 'revenant',
         skillId: TRAIT.SHARED_EMPOWERMENT,
         skillName: 'Shared Empowerment',
-        name: 'Shared Empowerment — might'
+        name: 'Shared Empowerment - might'
       }
     }
   ]

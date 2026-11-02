@@ -82,7 +82,7 @@ export function emitSunspot(
       skillName: 'Sunspot',
       cast: emissionCast,
       attribution: { source: 'Sunspot', sourceId: sourceId, actorType: ACTOR.PLAYER, triggeredBy: sourceSkill },
-      transform: (event) => ({ ...event, name: 'Sunspot' + ' \u2014 ' + event.condition }),
+      transform: (event) => ({ ...event, name: 'Sunspot' + ' - ' + event.condition }),
       receipt: true
     }).length > 0;
 
@@ -136,7 +136,7 @@ export function emitFlameExpulsion(
         ownerActorType: ACTOR.PLAYER,
         skillId: sourceId,
         skillName: 'Flame Expulsion',
-        name: "Pyromancer's Puissance — Flame Expulsion",
+        name: "Pyromancer's Puissance - Flame Expulsion",
         icon: FLAME_EXPULSION_ICON
       },
       transform: (packet) => ({
@@ -156,7 +156,7 @@ export function emitFlameExpulsion(
       cast: emissionCast,
       attribution: {
         source: 'Flame Expulsion',
-        name: "Pyromancer's Puissance — Burning",
+        name: "Pyromancer's Puissance - Burning",
         sourceId: sourceId,
         skillName: 'Flame Expulsion',
         skillId: elementalistEventSkill(context, 'Flame Expulsion', sourceId).id,

@@ -272,7 +272,7 @@ test('an unaffordable declared cost waits for regeneration or rejects when no re
     ready: false,
     retryAt: 4,
     code: 'gw2.insufficient-endurance',
-    reason: 'Dodge is unavailable — requires 50 endurance.'
+    reason: 'Dodge is unavailable - requires 50 endurance.'
   });
   assert.equal(skillCostAvailability(runtime(null), skill).retryAt, null);
 });

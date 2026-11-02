@@ -161,14 +161,14 @@ function radiantForgeAvailability(
   if (skill.type === 'Weapon' && active)
     return denyCast(
       'guardian.radiant-forge-weapon-lockout',
-      `${skill.name} is unavailable — exit Radiant Forge first.`
+      `${skill.name} is unavailable - exit Radiant Forge first.`
     );
 
   if ((skill.radiantForgeSkill || skill.id === ID.EXIT_RADIANT_FORGE) && !active)
-    return denyCast('guardian.radiant-forge-inactive', `${skill.name} is unavailable — requires Radiant Forge.`);
+    return denyCast('guardian.radiant-forge-inactive', `${skill.name} is unavailable - requires Radiant Forge.`);
 
   if (skill.id === ID.ENTER_RADIANT_FORGE && active)
-    return denyCast('guardian.radiant-forge-active', `${skill.name} is unavailable — Radiant Forge is already active.`);
+    return denyCast('guardian.radiant-forge-active', `${skill.name} is unavailable - Radiant Forge is already active.`);
 
   return CAST_READY;
 }

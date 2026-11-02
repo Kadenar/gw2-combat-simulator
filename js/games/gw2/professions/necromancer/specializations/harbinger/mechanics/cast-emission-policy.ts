@@ -28,7 +28,7 @@ export function harbingerCastEmissionPolicy(
       ...event,
       parentSkillName: cast.skill.id !== skill.id ? cast.skill.name : undefined,
       ...(event.type === 'damage' ? { name: skill.name } : {}),
-      ...(event.type === 'condition' ? { name: skill.name + ' — ' + event.condition } : {}),
+      ...(event.type === 'condition' ? { name: skill.name + ' - ' + event.condition } : {}),
       offTarget: cast.command.offTarget,
       at: canonicalTime(
         event.at +

@@ -10,12 +10,12 @@ test('shared profession availability helper distinguishes permanent denial from 
     ready: false,
     retryAt: null,
     code: 'test.shroud-inactive',
-    reason: 'Shroud Skill is unavailable — shroud is not active.'
+    reason: 'Shroud Skill is unavailable - shroud is not active.'
   });
   assert.deepEqual(denySkillCast(skill, 'test.resource', 'resource is regenerating.', 12.5), {
     ready: false,
     retryAt: 12.5,
     code: 'test.resource',
-    reason: 'Shroud Skill is unavailable — resource is regenerating.'
+    reason: 'Shroud Skill is unavailable - resource is regenerating.'
   });
 });

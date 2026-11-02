@@ -64,7 +64,7 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       ready: false,
       retryAt: null,
       code: 'thief.palm-strike',
-      reason: 'Palm Strike is unavailable — Fist Flurry must connect first.'
+      reason: 'Palm Strike is unavailable - Fist Flurry must connect first.'
     };
   },
   onCastStart(runtime, cast) {

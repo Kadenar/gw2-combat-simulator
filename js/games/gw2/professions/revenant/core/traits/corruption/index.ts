@@ -166,7 +166,7 @@ function reactAbyssalChill(runtime: RevenantRuntime, { cause: event }: RevenantS
           actorType: ACTOR.PLAYER,
           skillId: TRAIT.ABYSSAL_CHILL,
           skillName: 'Abyssal Chill',
-          name: `Abyssal Chill — ${name}`
+          name: `Abyssal Chill - ${name}`
         },
         transform: (packet) => ({
           ...packet,

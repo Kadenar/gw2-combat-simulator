@@ -40,7 +40,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
           coefficient: 0
         })),
         {
-          name: 'Locust Swarm — Life Siphon',
+          name: 'Locust Swarm - Life Siphon',
           flatStrikeBase: 117,
           flatStrikePowerCoeff: 0.08,
           reactions: [

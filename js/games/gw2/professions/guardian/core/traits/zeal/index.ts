@@ -82,7 +82,7 @@ export const symbolicExposure = defineTrait({
         source: 'guardian',
         skillId: TRAIT.SYMBOLIC_EXPOSURE,
         skillName: 'Symbolic Exposure',
-        name: 'Symbolic Exposure \u2014 Vulnerability',
+        name: 'Symbolic Exposure - Vulnerability',
         priority: 5
       }
     }

@@ -211,7 +211,7 @@ const mistfire = defineTrait({
         ownerActorType: ACTOR.PLAYER,
         skillId: TRAIT.MISTFIRE,
         skillName: 'Mistfire',
-        name: 'Mistfire — Burning'
+        name: 'Mistfire - Burning'
       }
     }
   ]
@@ -448,7 +448,7 @@ function emitCosmicMistfire(runtime: RevenantRuntime, cast: RuntimeCast<Revenant
     },
     transform: (event) => ({
       ...event,
-      name: event.type === 'damage' ? 'Mistfire' : 'Mistfire — Burning',
+      name: event.type === 'damage' ? 'Mistfire' : 'Mistfire - Burning',
       skillWeapon: 'Unequipped'
     })
   });
@@ -478,7 +478,7 @@ function numinousGift(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>
     },
     transform: (event) => ({
       ...event,
-      name: cast.skill.name + ' \u2014 ' + event.kind,
+      name: cast.skill.name + ' - ' + event.kind,
       audience: { recipients: hasTrait(runtime, TRAIT.FOUND_PURPOSE) ? RECIPIENT.PARTY : RECIPIENT.SELF }
     })
   });
@@ -506,7 +506,7 @@ function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<Reve
       skillName: cast.skill.name,
       activationId: cast.id
     },
-    transform: (event) => ({ ...event, name: cast.skill.name + ' \u2014 ' + event.kind })
+    transform: (event) => ({ ...event, name: cast.skill.name + ' - ' + event.kind })
   });
 }
 

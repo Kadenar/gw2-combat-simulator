@@ -18,7 +18,7 @@ shared shatter, phantasm, clone, weapon, and trait behavior; each specialization
 
 Ordinary effects use shared declarative scheduling; shatters, bladesongs, instruments, phantasms, ambushes, flips,
 resources, and Continuum actions select registered `mesmer.*` handler strategies by stable skill/trait ID. Display names
-are labels only — routing, resource causes, flips, trait decisions, and timing all key off IDs, and legacy name
+are labels only - routing, resource causes, flips, trait decisions, and timing all key off IDs, and legacy name
 rotations are resolved at the build-migration boundary.
 
 Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions in `traits/index.ts`.
@@ -48,12 +48,12 @@ independent of trait selection.
 
 ## Implemented systems
 
-- **Core** — weapon sets with a ten-second in-combat swap recharge (none out of combat), clone/phantasm/shatter
+- **Core** - weapon sets with a ten-second in-combat swap recharge (none out of combat), clone/phantasm/shatter
   mechanics, ID-keyed phantasm timing, and profession-specific resolver reactions such as Ineptitude.
-- **Chronomancer** — Continuum Split (restores cooldown state but not clones) and its shatter/alacrity behavior.
-- **Mirage** — a continuous endurance pool, Mirage Cloak dodges, and ambush attacks.
-- **Virtuoso** — bladesongs that require and spend all stocked blades, Jagged Mind bleeding, and Bloodsong blade gains.
-- **Troubadour** — instruments resource, Crescendo, Dagger, and its dodge/ ambush interactions.
+- **Chronomancer** - Continuum Split (restores cooldown state but not clones) and its shatter/alacrity behavior.
+- **Mirage** - a continuous endurance pool, Mirage Cloak dodges, and ambush attacks.
+- **Virtuoso** - bladesongs that require and spend all stocked blades, Jagged Mind bleeding, and Bloodsong blade gains.
+- **Troubadour** - instruments resource, Crescendo, Dagger, and its dodge/ ambush interactions.
 
 ## Modeling boundaries
 

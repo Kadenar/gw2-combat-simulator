@@ -293,7 +293,7 @@ const searingPact = defineTrait({
         actorType: ACTOR.PLAYER,
         skillId: TRAIT.SEARING_PACT,
         skillName: 'Searing Pact',
-        name: 'Searing Pact \u2014 Burning',
+        name: 'Searing Pact - Burning',
         triggeredBy: 'Willbender Flames'
       }
     }
@@ -348,7 +348,7 @@ function grantVirtueBoon(
     transform: (packet) => ({
       ...packet,
       duration: packet.duration,
-      name: profile.name + ' — ' + name,
+      name: profile.name + ' - ' + name,
       causalOrder: cause.causalOrder ?? cause.eventOrder,
       audience: audience(packet.audience) as typeof packet.audience
     })

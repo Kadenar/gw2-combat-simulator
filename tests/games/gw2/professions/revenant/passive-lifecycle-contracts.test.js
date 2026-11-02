@@ -284,7 +284,7 @@ test('Assassin Nature procs only on eligible resolved strikes while its passive 
       }
     }
   );
-  const siphons = result.resolvedEvents.filter((event) => event.name === 'Facet of Nature — Life Siphon');
+  const siphons = result.resolvedEvents.filter((event) => event.name === 'Facet of Nature - Life Siphon');
   // The siphon's own effect-owned packet never recurses, and the retained passive ends at its exclusive expiry.
   assert.deepEqual(
     siphons.map((event) => event.at),

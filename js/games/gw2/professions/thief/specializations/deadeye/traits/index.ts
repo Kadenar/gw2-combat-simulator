@@ -250,7 +250,7 @@ function traitBoons(
     },
     transform: (event, effect) => ({
       ...event,
-      name: `${source} \u2014 ${(effect as StatusEffect).boon}`,
+      name: `${source} - ${(effect as StatusEffect).boon}`,
       boon: String((effect as StatusEffect).boon),
       audience: party ? { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } : undefined
     })

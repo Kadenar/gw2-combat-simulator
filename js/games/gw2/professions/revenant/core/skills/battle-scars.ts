@@ -22,7 +22,7 @@ export const battleScarsSkill: Skill = {
       damageKind: 'life-steal',
       flatStrikeBase: 117,
       flatStrikePowerCoeff: 0.006,
-      name: 'Battle Scars — Life Siphon',
+      name: 'Battle Scars - Life Siphon',
       actorType: ACTOR.EFFECT
     }
   ]

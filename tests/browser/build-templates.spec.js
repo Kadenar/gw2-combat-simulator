@@ -378,7 +378,7 @@ test('weapon-first templates group by role, collapse, and hide empty filtered gr
     'Quickness · Power Spear',
     'Alacrity · Condition Staff'
   ]);
-  await expect(boon.locator('.template-preset-dps')).toHaveText(['—', '—']);
+  await expect(boon.locator('.template-preset-dps')).toHaveText(['-', '-']);
   await expect(mirage.locator('.template-subgroup > summary')).toHaveText(['Condition 1']);
   await expect(mirage.locator('.template-preset-name')).toHaveText('Axe');
   await expect(mirage.locator('.template-preset-warning')).toHaveText('⚠ Out of date');

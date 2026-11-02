@@ -46,7 +46,7 @@ function fixture(owner, { cooldown = 5.3, interval = 2, removed = false, selecte
 
 function passiveEvents(result, owner) {
   const skillName = guardianProfession.catalog.skillsById.get(owner.skillId).name;
-  return result.resolvedEvents.filter((event) => event.name === `${skillName} — Passive Aegis`);
+  return result.resolvedEvents.filter((event) => event.name === `${skillName} - Passive Aegis`);
 }
 
 for (const owner of owners) {

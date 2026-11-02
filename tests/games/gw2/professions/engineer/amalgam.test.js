@@ -170,7 +170,7 @@ test('Amalgam traits activate on morph and Evolve chronology', () => {
   assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Rapacious Strain'));
   assert.ok(
     result.resolvedEvents.some(
-      (event) => event.type === 'condition' && event.name === 'Carbolic Composition — Poisoned'
+      (event) => event.type === 'condition' && event.name === 'Carbolic Composition - Poisoned'
     )
   );
 });

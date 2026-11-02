@@ -95,7 +95,7 @@ test('removed Battle Scars siphon keeps the scars it would have spent', () => {
   // A landed player strike spends a scar only to deliver its siphon.
   const result = runRevenant([{ type: 'wait', durationMs: 3000 }], RENEGADE_CONFIG, {
     catalog: (catalog) =>
-      applySkillPatch(catalog, { skills: { [battleScarsSkill.id]: remove('strike', 'Battle Scars — Life Siphon') } }),
+      applySkillPatch(catalog, { skills: { [battleScarsSkill.id]: remove('strike', 'Battle Scars - Life Siphon') } }),
     initialize(runtime) {
       runtime.profession.core.battleScars = [30, 10];
       runtime.effects.emit({ kind: 'packet', event: revenantHit(2) });
@@ -103,7 +103,7 @@ test('removed Battle Scars siphon keeps the scars it would have spent', () => {
   });
   assert.deepEqual(observedRuntime(result).profession.core.battleScars, [30, 10]);
   assert.equal(
-    result.events.some((event) => event.name === 'Battle Scars — Life Siphon'),
+    result.events.some((event) => event.name === 'Battle Scars - Life Siphon'),
     false
   );
 });
@@ -134,7 +134,7 @@ test('Battle Scars honors skill damage patches and trait grant removal and expir
                   effects: [
                     {
                       type: 'strike',
-                      name: 'Battle Scars — Life Siphon',
+                      name: 'Battle Scars - Life Siphon',
                       flatStrikeBase: 234,
                       flatStrikePowerCoeff: 0.012
                     }

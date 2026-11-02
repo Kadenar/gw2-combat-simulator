@@ -35,7 +35,7 @@ test('Beguiling selects its final follow-up before consuming the charge, even wi
               skills: {
                 [ID.BEGUILING_HAZE_FOLLOW_UP]: {
                   fields: { maximumStacks: 1 },
-                  ...(removed ? { removeEffects: [{ type: 'strike', name: 'Beguiling Haze — Follow-Up' }] } : {})
+                  ...(removed ? { removeEffects: [{ type: 'strike', name: 'Beguiling Haze - Follow-Up' }] } : {})
                 }
               }
             }),
@@ -53,7 +53,7 @@ test('Beguiling selects its final follow-up before consuming the charge, even wi
     assert.equal(runtime.cooldownController.readAmmo(skillId).maximum, 1);
     assert.ok(runtime.cooldownController.readAmmo(skillId).nextRechargeAt > runtime.time);
     const followUp = result.events.find(
-      (event) => event.type === 'damage' && event.name === 'Beguiling Haze — Follow-Up'
+      (event) => event.type === 'damage' && event.name === 'Beguiling Haze - Follow-Up'
     );
     assert.equal(Boolean(followUp), !removed);
     // Fury is a committed-cast reward even when the selected variant contains no strike.

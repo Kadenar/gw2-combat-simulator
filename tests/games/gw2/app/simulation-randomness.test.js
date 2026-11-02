@@ -365,7 +365,7 @@ test('RNG explanations retain condition damage when equal application counts tic
         {
           type: 'condition',
           sourceId: 2202,
-          name: 'Blade Strike — Jagged Mind',
+          name: 'Blade Strike - Jagged Mind',
           condition: 'Bleeding',
           stacks: 1,
           damage: 100 + index * 10

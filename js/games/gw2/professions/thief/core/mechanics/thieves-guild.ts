@@ -108,15 +108,15 @@ export function createThievesGuildHooks(
     // Resolve both packets and repeat recharge from the selected actor skill at each occurrence.
     const actorSkill = requireSkillFromContext(runtime, attack.skillId);
     const strike = requireEffect(actorSkill, 'strike', 'Strike');
-    const summonName = `Thieves Guild — ${summon.name}`;
-    const attackName = `${summonName} — ${actorSkill.displayName}`;
+    const summonName = `Thieves Guild - ${summon.name}`;
+    const attackName = `${summonName} - ${actorSkill.displayName}`;
     const common = {
       at: runtime.time,
       sourceId: 'thief.thieves-guild',
       actorType: ACTOR.SUMMON,
       skillName: summonName,
       parentSkillName: 'Thieves Guild',
-      damageBreakdownName: `${summon.displayName || summon.name} — ${actorSkill.displayName}`,
+      damageBreakdownName: `${summon.displayName || summon.name} - ${actorSkill.displayName}`,
       summonIgnoresBoons: true,
       summonUsesEquipmentModifiers: false,
       activationId: `${work.ownerId}:${work.summonIndex}:${work.attackIndex}:${work.occurrence}`
@@ -152,7 +152,7 @@ export function createThievesGuildHooks(
         event: buildThiefCondition(null, {
           ...common,
           skillId: condition.sourceId ?? actorSkill.id,
-          name: `${attackName} — ${condition.condition}`,
+          name: `${attackName} - ${condition.condition}`,
           condition: String(condition.condition),
           stacks: effectNumber(actorSkill, condition, 'stacks'),
           duration: effectNumber(actorSkill, condition, 'duration'),

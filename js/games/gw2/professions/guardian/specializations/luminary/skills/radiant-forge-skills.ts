@@ -261,7 +261,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
           atMs: 440,
           applications: 4,
           intervalMs: 1000,
-          name: 'Luminous Staff — Symbol Damage'
+          name: 'Luminous Staff - Symbol Damage'
         }
       ]),
       // Resolve's one-use grant stays patchable on the staff and is selected only by the empowered cast.
@@ -393,7 +393,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
         weaponStrengthProfileId: 'transform.radiant-forge',
         type: 'strike',
         ticks: [{ atMs: 480, coefficient: 0.8 }],
-        name: 'Lucent Thrust — Projectile Damage',
+        name: 'Lucent Thrust - Projectile Damage',
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

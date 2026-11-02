@@ -51,7 +51,7 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
     },
     transform: (event) => ({
       ...event,
-      name: `${skill.name} — ${event.type === 'buff' ? event.kind : event.name}`,
+      name: `${skill.name} - ${event.type === 'buff' ? event.kind : event.name}`,
       ...(event.type === 'buff' ? { audience: { recipients: RECIPIENT.PARTY } } : {})
     })
   });

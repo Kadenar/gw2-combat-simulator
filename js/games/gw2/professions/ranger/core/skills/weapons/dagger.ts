@@ -424,7 +424,7 @@ function triggerStalkersStrike(context: RangerResolverContext, event: Gw2Resolve
       skillName: skill.name,
       activationId: event.activationId
     },
-    name: `${skill.name} — Poisoned`
+    name: `${skill.name} - Poisoned`
   });
 }
 

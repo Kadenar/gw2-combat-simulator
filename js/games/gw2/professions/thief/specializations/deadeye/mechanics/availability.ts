@@ -17,7 +17,7 @@ export function deadeyeCastAvailability(
         ready: false,
         retryAt: null,
         code: 'thief.shadow-flare',
-        reason: 'Shadow Swap is unavailable — cast Shadow Flare first.'
+        reason: 'Shadow Swap is unavailable - cast Shadow Flare first.'
       };
     }
   }
@@ -31,6 +31,6 @@ export function deadeyeCastAvailability(
     ready: false,
     retryAt: null,
     code: 'thief.malicious-replacement',
-    reason: `${skill.name} is unavailable — the malicious version replaces it.`
+    reason: `${skill.name} is unavailable - the malicious version replaces it.`
   };
 }

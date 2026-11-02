@@ -9,7 +9,7 @@ test('APM updates with rotation edits and fits the 1130px workspace', async ({ p
   const metric = page
     .locator('#rotation-dps-summary .res-stat')
     .filter({ has: page.locator('.res-label', { hasText: 'Actions / min' }) });
-  await expect(metric.locator('.res-val')).toHaveText('—');
+  await expect(metric.locator('.res-val')).toHaveText('-');
   // Clear paints immediately, but palette input waits for the empty rotation's worker result.
   await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
@@ -37,5 +37,5 @@ test('APM updates with rotation edits and fits the 1130px workspace', async ({ p
   expect(panelBounds.y).toBeGreaterThanOrEqual(0);
   expect(await panel.evaluate((element) => element.scrollHeight <= element.clientHeight)).toBe(true);
   await page.locator('#btn-sim-clear').click();
-  await expect(metric.locator('.res-val')).toHaveText('—');
+  await expect(metric.locator('.res-val')).toHaveText('-');
 });

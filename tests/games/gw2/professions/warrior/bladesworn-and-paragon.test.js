@@ -339,7 +339,7 @@ test('Dragon Slash charge tiers drive adrenaline-spend traits', () => {
       (event) =>
         event.type === 'resource' && event.resource === 'dragon charges' && event.reason === 'profession mechanic'
     );
-    const slash = result.events.find((event) => event.type === 'action' && event.skillName === 'Dragon Slash—Force');
+    const slash = result.events.find((event) => event.type === 'action' && event.skillName === 'Dragon Slash-Force');
     const berserkersPower = result.events.find((event) => event.type === 'buff' && event.name === "Berserker's Power");
 
     assert.equal(-spend.amount, charges);
@@ -391,7 +391,7 @@ test('Bladesworn releases at the requested charge count and clamps to the trait 
       selectedTraitIds
     });
     const lastTick = result.events.filter((event) => event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON).at(-1);
-    const slash = result.steps.find((step) => step.skillName === 'Dragon Slash—Force');
+    const slash = result.steps.find((step) => step.skillName === 'Dragon Slash-Force');
 
     assert.deepEqual(result.warnings, []);
     assert.equal(lastTick.value, expectedCharges);
@@ -419,7 +419,7 @@ test('Dragon Trigger stalls below its Flow cost and resumes after rebuilding', (
   assert.equal(ticks.at(-1).value, 4);
   assert.ok(ticks.every((tick) => tick.flowAfter >= 0));
   assert.ok(
-    Math.abs(result.steps.find((step) => step.skillName === 'Dragon Slash—Force').start / 1000 - ticks.at(-1).at) <=
+    Math.abs(result.steps.find((step) => step.skillName === 'Dragon Slash-Force').start / 1000 - ticks.at(-1).at) <=
       0.001
   );
   const spend = result.events.find(
@@ -468,7 +468,7 @@ test('Dragon Slash reports unreachable Flow-gated requests', () => {
   const result = simulate('Bladesworn', ['Dragon Trigger', { skillId: 62797, releaseAtCharges: 4 }, '__combat_start'], {
     initialResource: 15
   });
-  const slash = result.steps.find((step) => step.skillName === 'Dragon Slash—Force');
+  const slash = result.steps.find((step) => step.skillName === 'Dragon Slash-Force');
 
   assert.equal(slash.invalid, true);
   assert.match(slash.invalidReason, /could not reach 4 charges/);

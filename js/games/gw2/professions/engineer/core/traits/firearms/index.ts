@@ -577,7 +577,7 @@ function emitFirearmsCondition(
       ...packet,
       applicationIndex: undefined,
       totalApplications: undefined,
-      name: name + ' \u2014 ' + packet.condition,
+      name: name + ' - ' + packet.condition,
       stacks: Number(packet.stacks) * quantity,
       ...(owner.actorType === ACTOR.SUMMON
         ? {

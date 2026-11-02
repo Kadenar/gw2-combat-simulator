@@ -166,7 +166,7 @@ export const masterOfFragmentation = defineTrait<MesmerSkill>({
       effects: (effect) => effect.type === 'condition' && effect.name === condition,
       attribution: (_runtime, event) => ({
         actorType: ACTOR.PLAYER,
-        name: `${event.skillName || TRAIT.MASTER_OF_FRAGMENTATION} — ${condition}`
+        name: `${event.skillName || TRAIT.MASTER_OF_FRAGMENTATION} - ${condition}`
       })
     }))
   ]
@@ -361,7 +361,7 @@ export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: 
       hit.at,
       { ...effect, stacks: Number(effect.stacks) * hit.count },
       'Player',
-      'Maim the Disillusioned — Torment',
+      'Maim the Disillusioned - Torment',
       // The caller decides shatter eligibility; the trait proc keeps its grouped hit opportunities.
       {
         skillId: resolution.skill.id,

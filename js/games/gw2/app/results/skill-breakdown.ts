@@ -103,18 +103,19 @@ interface GroupedSkillBreakdown {
   fallbackCasts: number;
 }
 
-// Generated breakdown names commonly append "— Effect"; the prefix is the
+// Split only the spaced effect separator so hyphenated skill names retain their attribution.
+// Generated breakdown names commonly append " - Effect"; the prefix is the
 // final attribution fallback when no explicit source skill survives resolution.
 export const baseBreakdownName = (name: unknown): string =>
   String(name || '')
-    .split('—')[0]!
+    .split(' - ')[0]!
     .trim();
 
 const breakdownGroup = (actorType: SimulationActorType): 'Player' | 'Entities' | 'Environment' =>
   actorType === ACTOR.SUMMON ? 'Entities' : actorType === ACTOR.ENVIRONMENT ? 'Environment' : 'Player';
 
 const CHRONOPHANTASMA_SUFFIX = ' - Chronophantasma';
-const PARENT_SKILL_SEPARATOR = ' \u2014 ';
+const PARENT_SKILL_SEPARATOR = ' - ';
 
 function breakdownDisplayName(
   entry: Gw2DamageBreakdownEntry,
@@ -175,8 +176,8 @@ function attributeBreakdownEntry(entry: Gw2DamageBreakdownEntry): BreakdownAttri
 
 // Identity shared between a breakdown entry and the resolved damage/condition
 // events it aggregates, mirroring the resolver's own breakdown key
-// (`identityId|actor|parentSkill|name|entityName`). Using the full identity — not just the
-// name — keeps sibling rows of one skill (e.g. a cast strike vs its field
+// (`identityId|actor|parentSkill|name|entityName`). Using the full identity - not just the
+// name - keeps sibling rows of one skill (e.g. a cast strike vs its field
 // pulses) from collapsing into one chart bucket.
 export function skillDamageIdentityKey(fields: {
   readonly skillId?: SkillId | null;

@@ -97,7 +97,7 @@ export const WARRIOR_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number,
           {
             atMs: 2280,
             coefficient: 1.5,
-            name: 'Hundred Blades — Final Strike Damage'
+            name: 'Hundred Blades - Final Strike Damage'
           }
         ],
         timingAnchor: 'castStart',

@@ -408,7 +408,7 @@ function applyLightningRod(context: ElementalistRuntime, event: SimulationEvent)
       skillId: sourceId,
       skillName: 'Lightning Rod',
       attribution: { source: 'Lightning Rod', sourceId: sourceId, actorType: ACTOR.PLAYER, triggeredBy: '' },
-      transform: (event) => ({ ...event, name: 'Lightning Rod' + ' \u2014 ' + event.condition }),
+      transform: (event) => ({ ...event, name: 'Lightning Rod' + ' - ' + event.condition }),
       receipt: true
     }).length > 0;
 

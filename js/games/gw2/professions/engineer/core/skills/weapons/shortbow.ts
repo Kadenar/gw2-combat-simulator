@@ -20,7 +20,7 @@ export const ENGINEER_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'strike',
         coefficient: 0.3,
         hits: 1,
-        name: 'Arc Detonator — Packet 1',
+        name: 'Arc Detonator - Packet 1',
         actorType: ACTOR.PLAYER
       },
       {

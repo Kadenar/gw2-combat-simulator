@@ -122,7 +122,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
           weaponStrengthProfileId: 'transform.reaper-shroud',
           type: 'strike',
           coefficient: 1.625,
-          name: "Death's Charge — Final Strike"
+          name: "Death's Charge - Final Strike"
         },
         {
           type: 'condition',

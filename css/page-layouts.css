@@ -165,7 +165,7 @@
 }
 
 .landing-credits-list dt::after {
-  content: ' — ';
+  content: ' - ';
 }
 
 .landing-credits-list dd {
@@ -531,7 +531,7 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Embedded mode (?embed=1) — strips standalone-site chrome so the tool blends
+   Embedded mode (?embed=1) - strips standalone-site chrome so the tool blends
    into a host page (e.g. an iframe on another site). Tune the hidden set here.
    --------------------------------------------------------------------------- */
 

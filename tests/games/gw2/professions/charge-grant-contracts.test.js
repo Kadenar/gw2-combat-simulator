@@ -391,7 +391,7 @@ test('Mistburn replaces grants, spends on eligible strikes, and excludes its gra
   // The spent charge applies its Burning at the strike's own instant.
   assert.ok(
     result.resolvedEvents.some(
-      (event) => event.name === 'Mistburn Mortar — Charged Strike' && event.condition === 'Burning' && event.at === 2
+      (event) => event.name === 'Mistburn Mortar - Charged Strike' && event.condition === 'Burning' && event.at === 2
     )
   );
   assert.equal(observed.replaced, observed.initial);

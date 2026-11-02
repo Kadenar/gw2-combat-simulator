@@ -158,7 +158,7 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
         eventType: 'proc',
         event: {
           procType: 'boon-extension',
-          name: 'True Nature (dragon) — Boon Extension',
+          name: 'True Nature (dragon) - Boon Extension',
           duration: 2,
           audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
         }
@@ -291,7 +291,7 @@ export function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent):
       sourceId: ID.FACET_OF_NATURE,
       skillId: ID.FACET_OF_NATURE,
       skillName: profile.name,
-      name: 'Facet of Nature — Life Siphon',
+      name: 'Facet of Nature - Life Siphon',
       actorType: ACTOR.EFFECT,
       ownerActorType: ACTOR.PLAYER,
       coefficient: 0,

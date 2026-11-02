@@ -53,16 +53,16 @@ registering an independent hook would reorder resource changes or same-time even
 
 ## Implemented systems
 
-- **Core** — adrenaline generation on player strikes (30-point cap), burst availability/spending, three-level burst
+- **Core** - adrenaline generation on player strikes (30-point cap), burst availability/spending, three-level burst
   traits, weapon swapping, endurance and Dodge, and current weapon families; Strength/Tactics attribute and damage
   modifiers, Soldier's Focus, party boons, and control/dodge interactions.
-- **Berserker** — Berserk entry cost/duration, Primal Burst gating, Rage-skill extensions, and specialization
+- **Berserker** - Berserk entry cost/duration, Primal Burst gating, Rage-skill extensions, and specialization
   damage/cast-speed/attribute traits.
-- **Spellbreaker** — 20-point adrenaline cap, level-one bursts, Full Counter, control tracking, and its
+- **Spellbreaker** - 20-point adrenaline cap, level-one bursts, Full Counter, control tracking, and its
   target/tether/disenchantment traits.
-- **Bladesworn** — flow replaces adrenaline, gunsaber entry/exit and gating, gunsaber/pistol ammo, armament reloads,
+- **Bladesworn** - flow replaces adrenaline, gunsaber entry/exit and gating, gunsaber/pistol ammo, armament reloads,
   Dragon Trigger charge conversion, and scaling Dragon Slash packets. Normal weapon swapping is disabled.
-- **Paragon** — a 30-point adrenaline pool with a 10-point burst-spending cap, chants, motivation, active refrains,
+- **Paragon** - a 30-point adrenaline pool with a 10-point burst-spending cap, chants, motivation, active refrains,
   periodic motivation drain, and refrain traits.
 
 ## Dragon Trigger (Bladesworn) rotations

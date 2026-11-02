@@ -9,7 +9,7 @@ import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-s
 /** One active Battle Scar becomes a life siphon on a landed player strike. */
 export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const profile = requireSkillFromContext(runtime, battleScarsSkill.id);
-  const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
+  const strike = requireEffect(profile, 'strike', 'Battle Scars - Life Siphon');
 
   // Scars are spent only to deliver the siphon, so a removed strike leaves them in place.
   if (!strike) return;
@@ -26,7 +26,7 @@ export function consumeBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEv
 /** Resolve one scar without requiring a prior grant or consuming another attack. */
 export function emitBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   const profile = requireSkillFromContext(runtime, battleScarsSkill.id);
-  const strike = requireEffect(profile, 'strike', 'Battle Scars — Life Siphon');
+  const strike = requireEffect(profile, 'strike', 'Battle Scars - Life Siphon');
 
   if (!strike) return;
 
@@ -42,7 +42,7 @@ export function emitBattleScar(runtime: RevenantRuntime, event: Gw2ResolverEvent
       skillName: 'Battle Scars',
       // Several grants feed the same scar pool, whose siphon is independent of the consuming attack.
       procType: 'profession',
-      name: 'Battle Scars — Life Siphon',
+      name: 'Battle Scars - Life Siphon',
       coefficient: 0,
       damageKind: strike.damageKind,
       flatStrikeBase: effectNumber(profile, strike, 'flatStrikeBase'),

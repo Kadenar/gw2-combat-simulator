@@ -3,7 +3,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** Guild actor attacks own their selected packets and repeat recharge; shared AI keeps engagement and lifetime. */
 export const DAREDEVIL_GUILD_ATTACK_SKILLS: readonly Skill[] = [
   {
-    name: 'Thieves Guild (Daredevil) \u2014 Vault',
+    name: 'Thieves Guild (Daredevil) - Vault',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 41056,
     displayName: 'Vault',
@@ -23,7 +23,7 @@ export const DAREDEVIL_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Daredevil) \u2014 Impairing Daggers',
+    name: 'Thieves Guild (Daredevil) - Impairing Daggers',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 40482,
     displayName: 'Impairing Daggers',
@@ -67,7 +67,7 @@ export const DAREDEVIL_GUILD_ATTACK_SKILLS: readonly Skill[] = [
     ]
   },
   {
-    name: 'Thieves Guild (Daredevil) \u2014 Weakening Charge',
+    name: 'Thieves Guild (Daredevil) - Weakening Charge',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 40005,
     displayName: 'Weakening Charge',

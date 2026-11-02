@@ -162,7 +162,7 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
         atMs: 880,
         timingAnchor: 'castStart',
         timingScale: 'cast',
-        name: "Executioner's Calling — Secondary Attacks"
+        name: "Executioner's Calling - Secondary Attacks"
       }
     ]
   },

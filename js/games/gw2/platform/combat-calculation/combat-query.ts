@@ -229,7 +229,7 @@ export function createGw2CombatQuery({
     const kind = boonKey(BOON.MIGHT);
     const maximum = 25;
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
-    // Isolated summons don't inherit the player's configured permanent boons —
+    // Isolated summons don't inherit the player's configured permanent boons -
     // they only receive boons explicitly targeted at summons via the runtime.
     const configured = isolatedSummon ? 0 : Number(config.boons?.[kind] || 0);
 
@@ -467,8 +467,8 @@ export function createGw2CombatQuery({
       const professionAttributeBonus = (stats.professionCriticalChanceBonus ?? 0) / 100;
       addContributor('precision', 'Precision', chance);
       // Illusions inherit only the summoner's base (precision-derived) crit
-      // chance. Player-only gear bonuses — configured crit-chance and weapon
-      // sigils — do not carry over to them.
+      // chance. Player-only gear bonuses - configured crit-chance and weapon
+      // sigils - do not carry over to them.
       const illusionEvent = isGw2IllusionEvent(event);
 
       if (!illusionEvent) {

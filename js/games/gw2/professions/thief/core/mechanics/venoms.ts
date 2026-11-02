@@ -118,7 +118,7 @@ export function emitVenom(context: ThiefResolverContext, event: ThiefResolverEve
         // A venom charge owns its condition damage independently of the attack that consumes it.
         procType: 'profession',
         icon: context.helpers.skillsById.get(venom.skillId)?.icon,
-        name: `${venom.skillName} — ${effect.condition}`,
+        name: `${venom.skillName} - ${effect.condition}`,
         condition: String(effect.condition),
         stacks: effectNumber(profile, effect, 'stacks'),
         duration: effectNumber(profile, effect, 'duration'),
@@ -189,7 +189,7 @@ function emitAlliedVenom(
         at: proc.at,
         skillId: venom.skillId,
         skillName: venom.skillName,
-        name: `${venom.skillName} \u2014 Ally ${proc.allyIndex} ${effect.condition}`,
+        name: `${venom.skillName} - Ally ${proc.allyIndex} ${effect.condition}`,
         condition: String(effect.condition),
         stacks: effectNumber(profile, effect, 'stacks'),
         duration: effectNumber(profile, effect, 'duration'),

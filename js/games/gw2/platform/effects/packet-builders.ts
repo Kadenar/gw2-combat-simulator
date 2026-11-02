@@ -60,7 +60,7 @@ export function buildResolverCondition<
   T extends PacketFields & Pick<ConditionEventFields, 'condition' | 'stacks' | 'duration' | 'fixedDuration'>
 >(fields: T) {
   return {
-    name: `${fields.skillName || fields.sourceId || 'Condition'} — ${fields.condition}`,
+    name: `${fields.skillName || fields.sourceId || 'Condition'} - ${fields.condition}`,
     ...fields,
     type: 'condition' as const
   };

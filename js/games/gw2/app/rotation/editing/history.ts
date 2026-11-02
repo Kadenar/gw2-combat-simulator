@@ -10,7 +10,7 @@ import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
  * each call site, we snapshot the rotation inside `changed()` and diff it
  * against the last recorded state. A structural change pushes the previous
  * snapshot onto the undo stack; `undo`/`redo` restore a snapshot and re-run the
- * simulation through a deferred editor repaint — which is a no-op for the history
+ * simulation through a deferred editor repaint - which is a no-op for the history
  * because the restored rotation already matches `current`.
  */
 

@@ -410,7 +410,7 @@ function applyBladeCritical(
     transform: (payload) =>
       buildResolverCondition({
         at: runtime.time,
-        name: `${event.name} — ${name}`,
+        name: `${event.name} - ${name}`,
         skillName: event.skillName,
         parentSkillName: event.parentSkillName,
         condition,

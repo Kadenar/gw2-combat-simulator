@@ -128,7 +128,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         type: 'strike',
         coefficient: 3,
         hits: 1,
-        name: 'Prime Light Beam — Packet 1',
+        name: 'Prime Light Beam - Packet 1',
         actorType: ACTOR.PLAYER,
         damageKind: 'explosion'
       },
@@ -138,7 +138,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
         atMs: 0,
         timingAnchor: 'castEnd',
         timingScale: 'fixed',
-        event: { name: 'Prime Light Beam \u2014 field' },
+        event: { name: 'Prime Light Beam - field' },
         actorType: ACTOR.PLAYER
       },
       {
@@ -355,7 +355,7 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
     skill,
     [
       ...(strike ? [{ ...strike, name: 'Field Damage', weapon: 'Unequipped', damageKind: 'explosion' }] : []),
-      ...(condition ? [{ ...condition, name: `${event.skillName} — Burning` }] : [])
+      ...(condition ? [{ ...condition, name: `${event.skillName} - Burning` }] : [])
     ],
     Math.max(0, Math.trunc(skillNumber(skill, 'packetCount'))),
     Math.max(0, skillNumber(skill, 'packetInterval')) * 1000,

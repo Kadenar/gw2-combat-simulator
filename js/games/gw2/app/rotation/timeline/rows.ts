@@ -511,7 +511,7 @@ export function timelineRowsView(
             )
           : display;
       const titleSuffix = invalid
-        ? `\n${step?.invalidReason || 'Not valid here — will not be simulated'}`
+        ? `\n${step?.invalidReason || 'Not valid here - will not be simulated'}`
         : step && item.type !== 'cast'
           ? `\n${formatTimelineCastDetails(step, formatTime)}`
           : '';
@@ -569,7 +569,7 @@ export function timelineRowsView(
                           : ''
                     }
                     ${readOnly ? '' : '<span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>'}
-                    ${invalid ? '<span class="rot-invalid-badge" title="Invalid — not simulated">✕</span>' : ''}
+                    ${invalid ? '<span class="rot-invalid-badge" title="Invalid - not simulated">✕</span>' : ''}
                     ${
                       // A release badge already carries the timestamp, leaving room for the edit affordance.
                       resourceShortLabel && !annotation?.releaseBadge
