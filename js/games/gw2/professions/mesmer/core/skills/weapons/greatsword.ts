@@ -106,7 +106,7 @@ export const MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, 
     modifiers: [
       {
         id: 'mesmer.mind-stab-vulnerability',
-        label: 'Mind Stab - vulnerability',
+        label: 'Mind Stab',
         target: 'strikeDamage',
         operation: 'multiply',
         parameters: { baseFactor: 1, damagePerStack: 0.01 },

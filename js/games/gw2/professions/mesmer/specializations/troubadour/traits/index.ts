@@ -245,10 +245,21 @@ const callAndResponse = defineTrait<MesmerSkill>({
   ]
 });
 
-/** Symphonic Resonance owns its existing profile and ordered performance consequences. */
+/** Symphonic Resonance owns instrument passives; Lute boosts personal damage during its accepted playing window. */
 const symphonicResonance = defineTrait<MesmerSkill>({
   id: TRAIT.SYMPHONIC_RESONANCE,
-  balance: { enduranceRegenerationMultiplier: 1.25 }
+  balance: { enduranceRegenerationMultiplier: 1.25, damageIncrease: 0.1 },
+  modifierRules: [
+    {
+      id: 'mesmer.lute',
+      // Instrument passives remain intrinsic when previewing Troubadour without selected minor traits.
+      requiresSelection: false,
+      target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
+      operation: 'damage-additive',
+      amount: (context) => balanceNumberFromContext(context, TRAIT.SYMPHONIC_RESONANCE, 'damageIncrease'),
+      when: (context) => hasLute(context) && !illusionSource(context)
+    }
+  ]
 });
 
 /** Altered Chord owns its existing profile and ordered performance consequences. */

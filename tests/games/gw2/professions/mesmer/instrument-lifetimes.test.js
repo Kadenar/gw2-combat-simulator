@@ -12,7 +12,7 @@ import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-reso
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
-import { luteModifiers } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
+import { hasLute } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
@@ -142,7 +142,7 @@ test('instrument commitment, damage bonuses, projection, and UI share exact excl
       .find((item) => item.id === 'playing-instruments');
     assert.equal(Boolean(view), active);
     const query = modifierContext(context, at);
-    assert.equal(luteModifiers.find((rule) => rule.id === 'mesmer.lute').when(query), active);
+    assert.equal(hasLute(query), active);
     assert.equal(
       evaluateAttributeDeclarations(query, { power: 100 }, (context) => [fortissimo.attributes(context)]).power,
       active ? 104 : 100
@@ -159,7 +159,7 @@ test('shorter instrument replays replace their own window without reviving old b
   const state = context.profession.specialization.state;
   assert.deepEqual(state.instruments, { Lute: 7.301, Flute: 21.301 });
   const query = modifierContext(context, 7.301);
-  assert.equal(luteModifiers.find((rule) => rule.id === 'mesmer.lute').when(query), false);
+  assert.equal(hasLute(query), false);
   assert.equal(
     evaluateAttributeDeclarations(query, { power: 100 }, (context) => [fortissimo.attributes(context)]).power,
     104
@@ -188,9 +188,8 @@ test('instrument damage queries respect commitment order at the same timestamp',
   const context = instrumentContext();
   play(context, ID.LIVELY_LUTE, 0.301);
   const instrument = context.events.find((event) => event.type === 'mesmer.instrument');
-  const rule = luteModifiers.find((entry) => entry.id === 'mesmer.lute');
-  assert.equal(rule.when(modifierContext(context, 0.301, { eventOrder: instrument.eventOrder - 1 })), false);
-  assert.equal(rule.when(modifierContext(context, 0.301, { eventOrder: instrument.eventOrder + 1 })), true);
+  assert.equal(hasLute(modifierContext(context, 0.301, { eventOrder: instrument.eventOrder - 1 })), false);
+  assert.equal(hasLute(modifierContext(context, 0.301, { eventOrder: instrument.eventOrder + 1 })), true);
 });
 
 // Exercise acceptance and commitment separately so expiry/replacement cannot rewrite a Tale's eligibility.
@@ -337,10 +336,7 @@ test('delayed performance packets survive instrument expiry without retaining it
   );
   assert.ok(delayed?.damage > 0);
   assert.equal(result.planningState.profession[STATE.ACTIVE_INSTRUMENTS].length, 0);
-  assert.equal(
-    luteModifiers.find((rule) => rule.id === 'mesmer.lute').when({ events: result.events, time: delayed.at }),
-    false
-  );
+  assert.equal(hasLute({ events: result.events, time: delayed.at }), false);
 });
 
 // Rewards use the accepted instrument snapshot even after the mechanic's live state changes.

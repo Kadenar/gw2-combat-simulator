@@ -34,10 +34,11 @@ export const virtuosoTooltips = {
       ]
     ),
     [TRAIT.QUIET_INTENSITY]: traitTooltip(
-      'Gain ferocity from vitality and additional personal critical-strike chance while fury is active.',
+      'Gain ferocity from vitality and additional personal critical-strike chance while fury is active. Phantasms gain additional critical-strike chance with Phantasmal Fury selected.',
       [
         ['vitalityConversion', 'Ferocity gained from vitality', tooltipAttributeConversion],
-        ['criticalChance', 'Additional critical chance with fury', tooltipPercent]
+        ['criticalChance', 'Additional critical chance with fury', tooltipPercent],
+        ['phantasmCriticalChance', 'Additional phantasm critical chance with Phantasmal Fury', tooltipPercent]
       ]
     ),
     [TRAIT.BLADETURN_REFRAIN]: outsideScopeTooltip,

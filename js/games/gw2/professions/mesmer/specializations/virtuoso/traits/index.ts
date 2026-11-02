@@ -1,4 +1,5 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -181,6 +182,17 @@ const phantasmalBlades = defineTrait<MesmerSkill>({
 const quietIntensity = defineTrait<MesmerSkill>({
   id: TRAIT.QUIET_INTENSITY,
   balance: { phantasmCriticalChance: 0.15, criticalChance: 0.15, vitalityConversion: 0.1 },
+  // Virtuoso intrinsically enhances selected Phantasmal Fury, including detached minor-trait previews.
+  modifierRules: [
+    {
+      id: 'mesmer.virtuoso.phantasmal-fury-critical-chance',
+      requiresSelection: false,
+      target: MODIFIER_TARGET.CRITICAL_CHANCE,
+      operation: 'add',
+      amount: (context) => balanceNumberFromContext(context, TRAIT.QUIET_INTENSITY, 'phantasmCriticalChance'),
+      when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
+    }
+  ],
   attributes: (context) => {
     const { balanceContext, loadout } = context;
     const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.QUIET_INTENSITY);

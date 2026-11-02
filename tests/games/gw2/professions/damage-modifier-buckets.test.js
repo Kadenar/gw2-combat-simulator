@@ -150,13 +150,13 @@ const EXPECTED = {
       'Phantasmal Force': { strike: 'multiplier' },
       'Phantom Pain': { strike: 'additive', condition: 'additive' },
       Shredding: { strike: 'additive', condition: 'additive' },
+      'Symphonic Resonance': { strike: 'additive', condition: 'additive' },
       'Time Bomb': { strike: 'multiplier' },
       'Time Catches Up': { strike: 'multiplier' },
       'Vicious Expression': { strike: 'multiplier' }
     },
     rules: {
       'mesmer.event-final-multiplier': { strike: 'multiplier' },
-      'mesmer.lute': { strike: 'additive', condition: 'additive' },
       'mesmer.mind-stab-vulnerability': { strike: 'multiplier' }
     }
   },

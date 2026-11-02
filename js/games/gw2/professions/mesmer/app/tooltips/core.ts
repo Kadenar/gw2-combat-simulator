@@ -1,4 +1,5 @@
 import {
+  fromModifier,
   fromSkill,
   simulationEffectFacts,
   skillTooltip,
@@ -103,6 +104,17 @@ export const mesmerCoreTooltips = {
     ];
   },
   skills: {
+    // The skill card and modifier reference share Mind Stab's selected intrinsic rule parameters.
+    [ID.MIND_STAB]: skillTooltip(
+      "Strike your target. Gain an additional damage bonus per Vulnerability stack, multiplying separately from the target's ordinary Vulnerability bonus.",
+      [
+        fromModifier(
+          'mesmer.mind-stab-vulnerability',
+          'damagePerStack',
+          'Additional strike damage per Vulnerability stack'
+        )
+      ]
+    ),
     ...Object.fromEntries(Object.keys(MESMER_CORE_PHANTASM_ATTACK_TIMINGS).map((id) => [Number(id), phantasmTooltip])),
     ...Object.fromEntries(Object.keys(MESMER_CORE_SHATTERS).map((id) => [Number(id), shatterTooltip])),
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: skillTooltip(

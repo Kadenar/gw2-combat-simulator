@@ -1,6 +1,5 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { targetConditionActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
@@ -237,15 +236,6 @@ export const criticalInfusion = defineTrait<MesmerSkill>({
     }
   ]
 });
-
-/** Only Virtuoso registers this extra Phantasmal Fury contribution; Quiet Intensity supplies its active tuning. */
-export const virtuosoPhantasmalFuryRule: Gw2ModifierRule = {
-  id: 'mesmer.virtuoso.phantasmal-fury-critical-chance',
-  target: MODIFIER_TARGET.CRITICAL_CHANCE,
-  operation: 'add',
-  amount: (context) => balanceNumberFromContext(context, TRAIT.QUIET_INTENSITY, 'phantasmCriticalChance'),
-  when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
-};
 
 // Attach Ineptitude's Confusion to a qualifying blindness application through
 // the resolver condition hook, preserving causal attribution.

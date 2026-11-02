@@ -1,5 +1,4 @@
 import {
-  fromModifier,
   fromProfile,
   outsideScopeTooltip,
   profileFact,
@@ -117,9 +116,9 @@ export const troubadourTooltips = {
       'Unlock Troubadour, tales, notes, and instruments. Instruments replace shatters and consume notes to extend their playing time.'
     ),
     [TRAIT.SYMPHONIC_RESONANCE]: traitTooltip(
-      'Active instruments grant their corresponding passive bonuses. Lute increases personal damage; Flute increases endurance regeneration.',
+      'Active instruments grant their corresponding passive bonuses. Lute increases personal strike and condition damage, excluding illusions; Flute increases endurance regeneration.',
       [
-        fromModifier('mesmer.lute', 'amount', 'Personal strike and condition damage with Lute'),
+        ['damageIncrease', 'Personal strike and condition damage with Lute', tooltipPercent],
         ['enduranceRegenerationMultiplier', 'Endurance regeneration with Flute', tooltipFactorChange]
       ]
     ),
