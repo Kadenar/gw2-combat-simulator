@@ -10,12 +10,6 @@ export const warriorModifierDescriptions: ModifierDescriptions = {
     description: 'Kill Shot gains strike damage when the target is defiant or below 50% health.',
     facts: [['factor', 'Strike damage against an eligible target', tooltipFactorChange]]
   }),
-  'warrior.slicing-maelstrom-boonless': modifierDescription({
-    name: 'Slicing Maelstrom — boonless-target bonus',
-    skills: [ID.SLICING_MAELSTROM],
-    description: "Slicing Maelstrom receives its increased damage against the simulator's boonless target.",
-    facts: [['factor', 'Strike damage against a boonless target', tooltipFactorChange]]
-  }),
   'warrior.wastrels-ruin-defiant': modifierDescription({
     name: "Wastrel's Ruin — defiant target",
     skills: [ID.WASTRELS_RUIN],

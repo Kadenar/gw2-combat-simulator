@@ -1,6 +1,6 @@
 /** Shared Ranger buffs retain all skill sources and recipient differences instead of borrowing one variant's tooltip. */
 import { modifierDescription, type ModifierDescriptions } from '#gw2/app/modifier-reference/presentation.js';
-import { tooltipDecimal, tooltipFactorChange } from '#gw2/app/shared/simulation-tooltip.js';
+import { tooltipFactorChange } from '#gw2/app/shared/simulation-tooltip.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 export const rangerModifierDescriptions: ModifierDescriptions = {
@@ -13,35 +13,6 @@ export const rangerModifierDescriptions: ModifierDescriptions = {
       ['petFactor', 'Pet next-attack damage', tooltipFactorChange],
       ['playerFactor', 'Merged-player next-attack damage', tooltipFactorChange]
     ]
-  }),
-  'ranger.disabled-skill-bonus': modifierDescription({
-    name: 'Unleashed hammer — defiant-target bonus',
-    skills: [ID.UNLEASHED_WILD_SWING, ID.UNLEASHED_SAVAGE_SHOCK_WAVE],
-    category: 'weapon',
-    description: 'Unleashed Wild Swing and Unleashed Savage Shock Wave deal increased damage to a defiant target.',
-    facts: [['factor', 'Strike damage against a defiant target', tooltipFactorChange]]
-  }),
-  'ranger.condition-count-skill-bonus': modifierDescription({
-    name: 'Unleashed Savage Shock Wave — target conditions',
-    skills: [ID.UNLEASHED_SAVAGE_SHOCK_WAVE],
-    description: 'Unleashed Savage Shock Wave gains damage for each distinct condition on the target.',
-    facts: [['damagePerCondition', 'Strike damage per target condition']]
-  }),
-  'ranger.consuming-bite-condition-count': modifierDescription({
-    name: 'Consuming Bite — target conditions',
-    skills: [ID.CONSUMING_BITE],
-    description:
-      "The Iboga's Consuming Bite gains strike coefficient for each distinct condition on its target, up to the condition limit.",
-    facts: [
-      ['coefficientPerCondition', 'Additional coefficient per condition', tooltipDecimal],
-      ['maximumConditions', 'Maximum conditions counted', tooltipDecimal]
-    ]
-  }),
-  'ranger.falcons-stoop-disabled': modifierDescription({
-    name: "Falcon's Stoop — defiant or immobilized target",
-    skills: [ID.FALCONS_STOOP],
-    description: "Falcon's Stoop deals increased strike damage when its target is defiant or immobilized.",
-    facts: [['factor', 'Strike damage against an eligible target', tooltipFactorChange]]
   }),
   'ranger.force-of-nature': modifierDescription({
     name: 'Force of Nature — mace damage buff',
@@ -57,12 +28,6 @@ export const rangerModifierDescriptions: ModifierDescriptions = {
     description:
       "Piercing Gales gains additional strike damage per Vulnerability stack. Its own bonus multiplies separately from the target's ordinary Vulnerability bonus.",
     facts: [['vulnerabilityPerStack', 'Additional strike damage per Vulnerability stack']]
-  }),
-  'ranger.pounce-defiant': modifierDescription({
-    name: 'Pounce — defiant target',
-    skills: [ID.POUNCE],
-    description: 'Pounce deals increased strike damage to a defiant target.',
-    facts: [['factor', 'Strike damage against a defiant target', tooltipFactorChange]]
   }),
   'ranger.sic-em-pet': modifierDescription({
     name: "“Sic 'Em!”",

@@ -1,7 +1,6 @@
 import {
   fromModifier,
   fromSkill,
-  modifierFact,
   simulationEffectFacts,
   skillFact,
   skillTooltip,
@@ -47,72 +46,62 @@ export const rangerCoreTooltips = {
   skillFacts: (balanceContext, entity) => [
     ...(entity.id === ID.ENDURING_SWING
       ? [skillFact(balanceContext, ID.ENDURING_SWING, 'resourceGain', 'Endurance gained')]
-      : []),
-    // Some weapon packets opt into conditional rules through damageKind rather than a custom handler.
-    ...(entity.effects?.some((effect) => String(effect.damageKind).startsWith('ranger-unleashed-disabled'))
-      ? [
-          modifierFact(
-            balanceContext,
-            'ranger.disabled-skill-bonus',
-            'factor',
-            'Strike damage against defiant targets',
-            tooltipFactorChange
-          )
-        ]
-      : []),
-    ...(entity.effects?.some((effect) => effect.damageKind === 'ranger-unleashed-disabled-condition-count')
-      ? [
-          modifierFact(
-            balanceContext,
-            'ranger.condition-count-skill-bonus',
-            'damagePerCondition',
-            'Additional strike damage per target condition'
-          )
-        ]
-      : []),
-    ...(entity.effects?.some((effect) => effect.damageKind === 'ranger-pounce-defiant')
-      ? [
-          modifierFact(
-            balanceContext,
-            'ranger.pounce-defiant',
-            'factor',
-            'Strike damage against defiant targets',
-            tooltipFactorChange
-          )
-        ]
-      : []),
-    // Spear leap health bonuses are rendered from their strike coefficient modifiers by the shared tooltip.
-    ...(entity.id === ID.FALCONS_STOOP
-      ? [
-          modifierFact(
-            balanceContext,
-            'ranger.falcons-stoop-disabled',
-            'factor',
-            'Strike damage against defiant or immobilized targets',
-            tooltipFactorChange
-          )
-        ]
-      : []),
-    ...(entity.id === ID.CONSUMING_BITE
-      ? [
-          modifierFact(
-            balanceContext,
-            'ranger.consuming-bite-condition-count',
-            'coefficientPerCondition',
-            'Additional coefficient per target condition',
-            tooltipDecimal
-          ),
-          modifierFact(
-            balanceContext,
-            'ranger.consuming-bite-condition-count',
-            'maximumConditions',
-            'Maximum target conditions counted',
-            tooltipDecimal
-          )
-        ]
       : [])
   ],
   skills: {
+    // Intrinsic bonuses share selected rule values with combat and the modifier reference.
+    [ID.POUNCE]: skillTooltip('Leap and strike your target, gaining increased damage against a defiant target.', [
+      fromModifier('ranger.pounce-defiant', 'factor', 'Strike damage against defiant targets', tooltipFactorChange)
+    ]),
+    [ID.FALCONS_STOOP]: skillTooltip('Throw a spear, dealing increased damage to defiant or immobilized targets.', [
+      fromModifier(
+        'ranger.falcons-stoop-disabled',
+        'factor',
+        'Strike damage against defiant or immobilized targets',
+        tooltipFactorChange
+      )
+    ]),
+    [ID.CONSUMING_BITE]: skillTooltip(
+      'The Iboga bites its target, gaining strike coefficient for each distinct condition up to the condition limit.',
+      [
+        fromModifier(
+          'ranger.consuming-bite-condition-count',
+          'coefficientPerCondition',
+          'Additional coefficient per target condition',
+          tooltipDecimal
+        ),
+        fromModifier(
+          'ranger.consuming-bite-condition-count',
+          'maximumConditions',
+          'Maximum target conditions counted',
+          tooltipDecimal
+        )
+      ]
+    ),
+    [ID.UNLEASHED_WILD_SWING]: skillTooltip('Strike nearby foes, dealing increased damage to defiant targets.', [
+      fromModifier(
+        'ranger.unleashed-wild-swing-defiant',
+        'factor',
+        'Strike damage against defiant targets',
+        tooltipFactorChange
+      )
+    ]),
+    [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: skillTooltip(
+      'Release shock waves that deal increased damage to defiant targets and gain additional damage for each distinct condition on the target.',
+      [
+        fromModifier(
+          'ranger.unleashed-savage-shock-wave-defiant',
+          'factor',
+          'Strike damage against defiant targets',
+          tooltipFactorChange
+        ),
+        fromModifier(
+          'ranger.condition-count-skill-bonus',
+          'damagePerCondition',
+          'Additional strike damage per target condition'
+        )
+      ]
+    ),
     [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger applicable dodge traits. Incoming damage is outside combat simulation scope.',
       () => [{ name: 'Endurance spent', detail: String(ENDURANCE.dodgeCost) }]

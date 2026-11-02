@@ -1,5 +1,6 @@
 import {
   fromProfile,
+  modifierFact,
   outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
@@ -49,7 +50,24 @@ export const berserkerTooltips = {
     [ID.FLAMING_FLURRY]: resourceTooltip,
     [ID.DECAPITATE]: resourceTooltip,
     [ID.RUPTURING_SMASH]: resourceTooltip,
-    [ID.SLICING_MAELSTROM]: resourceTooltip,
+    // Keep the primal-burst resource facts while exposing the skill's selected boonless-target multiplier.
+    [ID.SLICING_MAELSTROM]: (context, entity) => {
+      const tooltip = resourceTooltip(context, entity);
+      return {
+        ...tooltip,
+        description: `${tooltip.description} Deal increased damage against the simulator's boonless target.`,
+        facts: [
+          ...tooltip.facts,
+          modifierFact(
+            context,
+            'warrior.slicing-maelstrom-boonless',
+            'factor',
+            'Strike damage against a boonless target',
+            tooltipFactorChange
+          )
+        ]
+      };
+    },
     [ID.RAMPART_SPLITTER]: resourceTooltip,
     [ID.WILD_THROW]: resourceTooltip,
     [ID.BERSERK]: skillTooltip(

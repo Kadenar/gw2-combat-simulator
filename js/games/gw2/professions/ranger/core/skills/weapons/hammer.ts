@@ -1,5 +1,5 @@
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -114,13 +114,24 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     cooldown: 7,
     castTimeMs: 480,
     interruptCommitMs: 400,
+    // Each unleashed attack owns its defiant-target bonus and samples the target at impact.
+    modifiers: [
+      {
+        id: 'ranger.unleashed-wild-swing-defiant',
+        label: 'Unleashed Wild Swing',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.2,
+        order: 15,
+        when: (context) => Boolean(context.config?.target?.defiant)
+      }
+    ],
     effects: [
       {
         type: 'strike',
         ticks: [{ atMs: 400, coefficient: 2 }],
         timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        damageKind: 'ranger-unleashed-disabled'
+        timingScale: 'fixed'
       }
     ]
   },
@@ -243,6 +254,29 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     cooldown: 15,
     castTimeMs: 560,
     interruptCommitMs: 520,
+    // Each unleashed attack owns its defiant-target bonus and samples the target at impact.
+    modifiers: [
+      {
+        id: 'ranger.unleashed-savage-shock-wave-defiant',
+        label: 'Unleashed Savage Shock Wave',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.2,
+        order: 15,
+        when: (context) => Boolean(context.config?.target?.defiant)
+      },
+      {
+        id: 'ranger.condition-count-skill-bonus',
+        label: 'Unleashed Savage Shock Wave',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        parameters: { baseFactor: 1, damagePerCondition: 0.02 },
+        order: 18,
+        // Count canonical active conditions once each, independently of their stack counts.
+        factor: (context, _target, parameters) =>
+          parameters.baseFactor + targetConditionCount(context) * parameters.damagePerCondition
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -252,8 +286,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        damageKind: 'ranger-unleashed-disabled-condition-count'
+        persistsAfterInterrupt: true
       }
     ]
   },
@@ -304,28 +337,4 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
       }
     ])
   }
-};
-
-/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
-export const rangerHammerDisabledModifier: Gw2ModifierRule = {
-  id: 'ranger.disabled-skill-bonus',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: 1.2,
-  when: (context) =>
-    Boolean(
-      String(context.event?.damageKind || '').startsWith('ranger-unleashed-disabled') && context.config?.target?.defiant
-    )
-};
-
-/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
-export const rangerHammerConditionsModifier: Gw2ModifierRule = {
-  id: 'ranger.condition-count-skill-bonus',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  parameters: { baseFactor: 1, damagePerCondition: 0.02 },
-  // Canonical queries deduplicate aliases and count only conditions active at this observation time.
-  factor: (context, _target, parameters) =>
-    parameters.baseFactor + targetConditionCount(context) * parameters.damagePerCondition,
-  when: (context) => context.event?.damageKind === 'ranger-unleashed-disabled-condition-count'
 };

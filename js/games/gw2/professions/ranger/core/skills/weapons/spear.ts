@@ -1,6 +1,6 @@
 /** Core ranger spear mechanics; observed attacks separate contact offsets from their recovery windows. */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { endStealth } from '#gw2/platform/combat/stealth.js';
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -125,6 +125,18 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     // The projectile contacts at 520 ms, followed by 200 ms of recovery.
     castTimeMs: 720,
     interruptMode: 'per-packet',
+    // Sample defiance or Immobilized at impact for this spear attack only.
+    modifiers: [
+      {
+        id: 'ranger.falcons-stoop-disabled',
+        label: "Falcon's Stoop",
+        order: 17,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.2,
+        when: (context) => context.config?.target?.defiant || targetConditionActive(context, CONDITION.IMMOBILIZED)
+      }
+    ],
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -380,15 +392,3 @@ export const spearLifecycle = {
   onCastCommit: synchronizeSpearRecharge,
   onCastCancel: synchronizeSpearRecharge
 } satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
-
-/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
-export const rangerFalconsStoopModifier: Gw2ModifierRule = {
-  // Spear bonuses are evaluated at impact so live conditions and the health threshold affect the correct hit.
-  id: 'ranger.falcons-stoop-disabled',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: 1.2,
-  when: (context) =>
-    skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.FALCONS_STOOP &&
-    (context.config?.target?.defiant || targetConditionActive(context, CONDITION.IMMOBILIZED))
-};

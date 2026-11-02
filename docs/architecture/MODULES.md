@@ -413,7 +413,6 @@ export const berserkerModule = defineNativeModule({
   }),
   state: { create: berserkerState.create, project: projectBerserkerPlanningState },
   attributes: berserkerAttributes,
-  modifiers: { modifierRules: slicingMaelstromModifiers },
   hooks: berserkerHooks,
   presentation: berserkerUi
 });

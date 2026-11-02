@@ -1,6 +1,5 @@
 /** Berserker PvE packets use nearest-40 ms offsets to remove false timing precision. */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
-import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -544,6 +543,17 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<
     burst: true,
     primalBurst: true,
     castTimeMs: 500,
+    // The simulated target has no boons; only this primal burst receives the intrinsic multiplier.
+    modifiers: [
+      {
+        id: 'warrior.slicing-maelstrom-boonless',
+        label: 'Slicing Maelstrom',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.5,
+        order: 100
+      }
+    ],
     effects: [
       {
         type: 'strike',
@@ -626,16 +636,3 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<
     ]
   }
 };
-
-/** Intrinsic live modifiers retain critical semantics and the simulator's boonless-target assumption. */
-export const slicingMaelstromModifiers: readonly Gw2ModifierRule[] = [
-  {
-    id: 'warrior.slicing-maelstrom-boonless',
-    target: MODIFIER_TARGET.STRIKE_DAMAGE,
-    operation: 'multiply',
-    factor: 1.5,
-    order: 100,
-    when: (context) =>
-      skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.SLICING_MAELSTROM
-  }
-];

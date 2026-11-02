@@ -6,18 +6,11 @@ import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
 import { rangerPassiveAttributes } from '#gw2/professions/ranger/core/skills/attribute-passives.js';
 import { RANGER_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/ranger/core/skills/autoattack-chains.js';
 import { RANGER_CORE_SKILLS } from '#gw2/professions/ranger/core/skills/index.js';
-import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
 import { RANGER_CORE_SKILL_FLIPS } from '#gw2/professions/ranger/core/skills/skill-flips.js';
 import { sicEmPetModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerAttackOfOpportunityModifier } from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
-import {
-  rangerHammerConditionsModifier,
-  rangerHammerDisabledModifier
-} from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
 import { rangerForceOfNatureModifier } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { rangerShortbowConditionDurationModifier } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
-import { rangerFalconsStoopModifier } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
-import { rangerPounceModifier } from '#gw2/professions/ranger/core/skills/weapons/sword.js';
 import { createRangerCoreState, projectRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { rangerCoreTraits } from '#gw2/professions/ranger/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/ranger/data/trait-lines.js';
@@ -62,13 +55,6 @@ export const rangerCoreModule = defineNativeModule({
       rangerShortbowConditionDurationModifier,
       rangerAttackOfOpportunityModifier,
       rangerForceOfNatureModifier,
-      ...[
-        rangerHammerDisabledModifier,
-        rangerPounceModifier,
-        rangerFalconsStoopModifier,
-        rangerHammerConditionsModifier,
-        rangerConsumingBiteModifier
-      ].map((rule, index) => ({ ...rule, order: 15 + index })),
       ...sicEmPetModifiers.map((rule, index) => ({ ...rule, order: 30 + index }))
     ]
   },

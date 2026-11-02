@@ -6,10 +6,7 @@ import { berserkerAttributes } from '#gw2/professions/warrior/specializations/be
 import { BERSERKER_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/berserker/catalog-fields.js';
 import { berserkerHooks } from '#gw2/professions/warrior/specializations/berserker/hooks.js';
 import { berserkerUi } from '#gw2/professions/warrior/specializations/berserker/presentation.js';
-import {
-  BERSERKER_SKILL_MECHANICS,
-  slicingMaelstromModifiers
-} from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
+import { BERSERKER_SKILL_MECHANICS } from '#gw2/professions/warrior/specializations/berserker/skills/index.js';
 import {
   berserkerState,
   projectBerserkerPlanningState
@@ -27,9 +24,8 @@ export const berserkerModule = defineNativeModule({
     skills: materializeSkillDefinitions(BERSERKER_SKILL_MECHANICS)
   }),
   state: { create: berserkerState.create, project: projectBerserkerPlanningState },
-  // Preserve live trait attributes alongside skill-owned Slicing Maelstrom rules.
+  // Preserve the live Berserker attribute contributions.
   attributes: berserkerAttributes,
-  modifiers: { modifierRules: slicingMaelstromModifiers },
   hooks: berserkerHooks,
   presentation: berserkerUi
 });

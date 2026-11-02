@@ -143,7 +143,7 @@ test('Ranger condition-count bonuses use canonical active conditions and query p
     const context = { time: 5, ...inputs };
     // Exercise the same selected point listeners as the live profession.
     bindTriggerPoints(context, rangerProfession, config);
-    const strike = { ...context, event: { damageKind: 'ranger-unleashed-disabled-condition-count' } };
+    const strike = { ...context, event: { skillId: ID.UNLEASHED_SAVAGE_SHOCK_WAVE } };
     const pet = { ...context, event: { skillId: ID.CONSUMING_BITE, coefficient: 0.45 } };
     assert.equal(bonus.when(strike), true);
     assert.equal(bite.when(pet), true);

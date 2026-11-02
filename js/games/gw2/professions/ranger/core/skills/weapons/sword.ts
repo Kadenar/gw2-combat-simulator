@@ -1,5 +1,5 @@
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
-import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -90,12 +90,23 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     cooldown: 6,
     castTimeMs: 840,
     interruptCommitMs: 760,
+    // Only Pounce receives its live defiant-target bonus.
+    modifiers: [
+      {
+        id: 'ranger.pounce-defiant',
+        label: 'Pounce',
+        order: 16,
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.2,
+        when: (context) => Boolean(context.config?.target?.defiant)
+      }
+    ],
     effects: impactEffects({ atMs: 760, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 2,
         hits: 1,
-        damageKind: 'ranger-pounce-defiant',
         comboFinishers: [
           {
             ownerId: 'ranger',
@@ -154,13 +165,4 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDef
       }
     ])
   }
-};
-
-/** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
-export const rangerPounceModifier: Gw2ModifierRule = {
-  id: 'ranger.pounce-defiant',
-  target: MODIFIER_TARGET.STRIKE_DAMAGE,
-  operation: 'multiply',
-  factor: 1.2,
-  when: (context) => context.event?.damageKind === 'ranger-pounce-defiant' && Boolean(context.config?.target?.defiant)
 };
