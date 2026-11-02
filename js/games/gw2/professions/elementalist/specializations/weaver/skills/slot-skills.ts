@@ -210,10 +210,12 @@ export function primordialStancePayload(context: unknown) {
   return { skill, action: requireSkillAction(skill, 'pulses') };
 }
 
-/** Weave Self buffs later attacks while its elemental windows remain active. */
+/** Weave Self's distinct elemental windows share one source and reference entry with both damage bonuses. */
 export const weaveSelfModifiers: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'elementalist.weave-self-air',
+    label: 'Weave Self',
+    sourceSkillId: ID.WEAVE_SELF,
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     amount: 0.1,
@@ -221,6 +223,8 @@ export const weaveSelfModifiers: readonly Gw2ModifierRule[] = Object.freeze([
   },
   {
     id: 'elementalist.weave-self-fire',
+    label: 'Weave Self',
+    sourceSkillId: ID.WEAVE_SELF,
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
     amount: 0.2,

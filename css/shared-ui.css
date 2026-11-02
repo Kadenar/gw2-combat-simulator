@@ -400,7 +400,7 @@ a.simulator-view-tab:focus-visible {
 }
 
 /* The current rotation's DPS belongs to simulator tools, not the cross-build benchmark view. */
-body[data-simulator-view='benchmarks'] .header-dps {
+body:is([data-simulator-view='benchmarks'], [data-simulator-view='modifiers']) .header-dps {
   display: none;
 }
 
@@ -849,6 +849,17 @@ body[data-profession] #app > header .community-actions {
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
+}
+
+/* Workspace destinations grow to fit their labels; only version labels need the compact width limit. */
+.simulator-workspace-options {
+  max-width: none;
+}
+.simulator-workspace-option {
+  flex-shrink: 0;
+}
+.simulator-header-identity {
+  flex-wrap: wrap;
 }
 
 .simulator-workspace-option:hover,

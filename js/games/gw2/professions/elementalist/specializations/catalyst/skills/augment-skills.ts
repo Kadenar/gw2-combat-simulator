@@ -142,10 +142,12 @@ export const CATALYST_AUGMENT_SKILLS: Readonly<Record<number, SkillDefinition>> 
   }
 };
 
-/** Relentless Fire grants strike and condition bonuses for its accepted buff window. */
+/** Relentless Fire's two damage rules share one source and display name for a single reference entry. */
 export const relentlessFireModifiers: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'elementalist.relentless-fire',
+    sourceSkillId: ID.RELENTLESS_FIRE,
+    label: 'Relentless Fire',
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
     amount: 0.1,
@@ -153,6 +155,8 @@ export const relentlessFireModifiers: readonly Gw2ModifierRule[] = Object.freeze
   },
   {
     id: 'elementalist.relentless-fire-condition',
+    sourceSkillId: ID.RELENTLESS_FIRE,
+    label: 'Relentless Fire',
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',
     amount: 0.1,

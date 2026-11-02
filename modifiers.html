@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Search and filter Guild Wars 2 simulator damage modifiers by profession, specialization, damage type, and stacking."
+    />
+    <title>Modifier Reference | Guild Wars 2 Rotation Simulator</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body class="landing-page">
+    <main id="app" class="landing-shell">
+      <header class="landing-header">
+        <div class="header-brand">
+          <h1>Guild Wars 2 <span class="accent">Rotation Simulator</span></h1>
+        </div>
+      </header>
+      <!-- Reference browsing shares the landing-page navigation without requiring a saved build. -->
+      <nav class="site-navigation" aria-label="Main navigation">
+        <a href="index.html">Simulator</a>
+        <a href="benchmarks.html">Benchmarks</a>
+        <a href="modifiers.html" aria-current="page">Modifier Reference</a>
+      </nav>
+      <section id="modifier-reference" class="landing-section" aria-label="Modifier Reference">
+        <!-- Paint the shared list skeleton before the reference module and profession data arrive. -->
+        <div class="modifier-reference-loading" role="status" aria-label="Loading modifiers">
+          <div class="contrib-loading-skeleton" aria-hidden="true">
+            <div class="contrib-loading-row"><span></span><span></span><span></span></div>
+            <div class="contrib-loading-row"><span></span><span></span><span></span></div>
+            <div class="contrib-loading-row"><span></span><span></span><span></span></div>
+            <div class="contrib-loading-row"><span></span><span></span><span></span></div>
+            <div class="contrib-loading-row"><span></span><span></span><span></span></div>
+            <div class="contrib-loading-row"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <noscript>Enable JavaScript to search the simulator's modifier reference.</noscript>
+      </section>
+    </main>
+    <script type="module" src="js/games/gw2/app/page/entry.js"></script>
+  </body>
+</html>

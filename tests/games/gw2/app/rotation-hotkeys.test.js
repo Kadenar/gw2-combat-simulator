@@ -17,6 +17,7 @@ import {
   saveRotationHotkeysEnabled
 } from '#gw2/app/rotation/hotkeys.js';
 import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
+import { timelineHotkeyActions } from '#gw2/app/rotation/timeline/hotkeys.js';
 import {
   defaultInputBindings,
   duplicateInputBindings,
@@ -248,4 +249,62 @@ test('palette skills expose their logical hotkey action', () => {
   });
 
   assert.match(html, /data-hotkey-action="weapon-2"/);
+});
+
+// Pending timeline casts keep utility positions across empty slots and resolve replacement skills through their parent.
+test('timeline hotkeys resolve selected slots, replacements, and shared controls before simulation', () => {
+  const skills = [
+    { id: 1, slot: 'Weapon_2' },
+    { id: 2, slot: 'Utility' },
+    { id: 3, slot: 'Utility', flipParentId: 2 },
+    { id: 4, inputControl: 'dodge' },
+    { id: 5, inputCategory: 'weapon-swap' },
+    { id: 6, slot: 'Profession_1' },
+    { id: 7, slot: 'Utility' }
+  ];
+  const app = {
+    activeCatalog: { skillsById: new Map(skills.map((skill) => [skill.id, skill])) },
+    adapter: { eliteSpecialization: () => '' }
+  };
+  const build = { selectedSkillIds: { Heal: null, Utility1: null, Utility2: 2, Utility3: null, Elite: null } };
+  const action = timelineHotkeyActions(app, build, null);
+  assert.deepEqual(
+    skills.map((skill, index) => action(index, { type: 'cast', skillId: skill.id }, skill)),
+    ['weapon-2', 'slot-8', 'slot-8', 'dodge', 'weapon-swap', 'profession-1', null]
+  );
+});
+
+// Recorded inputs retain the historical bar position; unresolved recordings must not invent a key from today's bar.
+test('timeline hotkeys prefer recorded controls and omit ambiguous loadout positions', () => {
+  const skill = { id: 1, slot: 'Utility' };
+  const app = {
+    activeCatalog: { skillsById: new Map([[skill.id, skill]]) },
+    adapter: {
+      eliteSpecialization: () => '',
+      slotLoadout: {
+        resolve: () => ({
+          bars: [
+            { id: 'first', skillIds: [null, 1] },
+            { id: 'second', skillIds: [null, null, 1] }
+          ]
+        })
+      }
+    }
+  };
+  const command = { type: 'cast', skillId: skill.id };
+  const action = timelineHotkeyActions(
+    app,
+    {},
+    {
+      inputTrace: {
+        actions: [
+          { rotationIndex: 0, control: 'slot-9' },
+          { rotationIndex: 1, control: null }
+        ]
+      }
+    }
+  );
+  assert.equal(action(0, command, skill), 'slot-9');
+  assert.equal(action(1, command, skill), null);
+  assert.equal(action(2, command, skill), null);
 });

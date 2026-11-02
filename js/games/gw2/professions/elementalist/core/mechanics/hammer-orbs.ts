@@ -20,6 +20,7 @@ import {
   type ElementalistAttunement,
   type ElementalistCoreState
 } from '#gw2/professions/elementalist/core/state.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Orb skills share a fixed admission delay independently of their authored lifetimes. */
@@ -103,10 +104,11 @@ export function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCas
   }
 }
 
-/** Live hammer orb windows supply the shared damage and critical-chance bonuses. */
+/** Live orb windows supply bonuses; source identity keeps their skill artwork available to reference views. */
 export const hammerOrbModifiers: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'elementalist.hammer-fire-orb',
+    sourceSkillId: ID.FLAME_WHEEL,
     target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
     operation: 'damage-additive',
     amount: 0.05,

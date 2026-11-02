@@ -3,10 +3,12 @@ import { amalgamTooltips } from '#gw2/professions/engineer/app/tooltips/amalgam.
 import { engineerCoreTooltips } from '#gw2/professions/engineer/app/tooltips/core.js';
 import { holosmithTooltips } from '#gw2/professions/engineer/app/tooltips/holosmith.js';
 import { mechanistTooltips } from '#gw2/professions/engineer/app/tooltips/mechanist.js';
+import { engineerModifierDescriptions } from '#gw2/professions/engineer/app/tooltips/modifiers.js';
 import { scrapperTooltips } from '#gw2/professions/engineer/app/tooltips/scrapper.js';
 
 /** Combine owner-local descriptions while keeping presentation separate from runtime behavior. */
 export const engineerTooltips: ProfessionTooltips = {
+  modifiers: engineerModifierDescriptions,
   skillFacts: holosmithTooltips.skillFacts,
   skills: {
     ...engineerCoreTooltips.skills,

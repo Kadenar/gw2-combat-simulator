@@ -2,6 +2,7 @@
 import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
 import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
 import type { ProfessionDefaultOffhand, ProfessionIsSkillAvailable } from '#gw2/app/build/types.js';
+import type { ModifierPresentation } from '#gw2/app/modifier-reference/presentation.js';
 import type { RelicComparisonRequest, RelicComparisonResultState } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type { ResultViewState } from '#gw2/app/results/state.js';
 import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
@@ -32,6 +33,7 @@ import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2WeaponDataEntry, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
@@ -41,6 +43,8 @@ import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platf
 /** UI adapters retain the same bound calculator and patch contract as headless build contexts. */
 export type ProfessionAppContract = BuildContextProfession & {
   readonly nativeDefinition: {
+    /** Reference views read trait and skill ownership from the same registered modules as simulation. */
+    readonly modules: readonly import('#gw2/platform/profession-definition/module-types.js').AnyNativeModule[];
     readonly moduleVariants?: Readonly<
       Record<string, import('#gw2/platform/profession-definition/module-types.js').AnyNativeModule>
     >;
@@ -151,6 +155,11 @@ export interface ProfessionFeatureRunner {
 }
 
 export interface Gw2AppAdapter extends ProfessionRuntimeApi {
+  /** Null marks internal mechanics; undefined leaves an ordinary skill's existing tooltip authoritative. */
+  readonly modifierPresentation: (
+    rule: Gw2ModifierRule,
+    patch: ResolvedPatch
+  ) => ModifierPresentation | null | undefined;
   readonly skillTooltip: (
     skill: Skill,
     patch: ResolvedPatch,

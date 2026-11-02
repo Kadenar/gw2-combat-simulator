@@ -1,3 +1,4 @@
+import type { ModifierDescriptions } from '#gw2/app/modifier-reference/presentation.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
@@ -35,9 +36,11 @@ export type DescribeSimulationTooltip<TSkill extends Skill = Skill, TEntity exte
 
 /** Separate entity namespaces retain identity even when a skill and trait share the same numeric API ID. */
 export interface ProfessionTooltips<TSkill extends Skill = Skill> {
+  /** Modifier descriptions add source-family attribution and conditions beyond a skill's ordinary payload. */
+  readonly modifiers?: ModifierDescriptions;
   readonly traits: Readonly<Record<string, DescribeSimulationTooltip<TSkill>>>;
   /** Replacement descriptions selected in manifest order by registered module variants. */
-  readonly reworks?: Readonly<Record<string, Pick<ProfessionTooltips<TSkill>, 'traits' | 'skills'>>>;
+  readonly reworks?: Readonly<Record<string, Pick<ProfessionTooltips<TSkill>, 'traits' | 'skills' | 'modifiers'>>>;
   readonly skills?: Readonly<Record<string, DescribeSimulationTooltip<TSkill, TSkill>>>;
   /** Profession resources supplement both ordinary skills and explicitly described skills. */
   readonly skillFacts?: (context: ProfessionBalanceContext<TSkill>, skill: TSkill) => readonly TooltipFact[];
@@ -67,7 +70,8 @@ export function resolveTooltips(context: ProfessionBalanceContext, tooltips: Pro
     selected = {
       ...selected,
       traits: { ...selected.traits, ...replacement.traits },
-      skills: { ...selected.skills, ...replacement.skills }
+      skills: { ...selected.skills, ...replacement.skills },
+      modifiers: { ...selected.modifiers, ...replacement.modifiers }
     };
   }
 

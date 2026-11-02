@@ -13,7 +13,7 @@ import { resetRotationWorkspace } from '#browser/shell/rotation-workspace.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-export type SimulatorView = 'workspace' | 'bosses' | 'analysis' | 'gear-optimizer' | 'benchmarks';
+export type SimulatorView = 'workspace' | 'bosses' | 'analysis' | 'gear-optimizer' | 'benchmarks' | 'modifiers';
 
 type ScrollPosition = Readonly<{ left: number; top: number }>;
 
@@ -22,7 +22,8 @@ const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
   bosses: '#bosses',
   analysis: '#analysis',
   'gear-optimizer': '#gear-optimizer',
-  benchmarks: '#benchmarks'
+  benchmarks: '#benchmarks',
+  modifiers: '#modifiers'
 };
 
 /** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
@@ -36,6 +37,8 @@ export function simulatorViewFromHash(hash: string): SimulatorView {
   if (normalized === VIEW_HASHES['gear-optimizer']) return 'gear-optimizer';
 
   if (normalized === VIEW_HASHES.benchmarks) return 'benchmarks';
+
+  if (normalized === VIEW_HASHES.modifiers) return 'modifiers';
 
   return 'workspace';
 }
@@ -116,6 +119,22 @@ function updateActiveView(root: Document, view: SimulatorView): void {
     }
   }
 
+  // Reference browsing stays in this document, preserving the active build and each view's local state.
+  if (view === 'modifiers') {
+    const host = root.getElementById('modifier-reference');
+
+    if (host) {
+      void import('#gw2/app/modifier-reference/page.js')
+        .then(({ mountModifierReference }) =>
+          mountModifierReference(host, { embedded: true, profession: root.body.dataset.profession })
+        )
+        .catch((error) => {
+          console.error('Unable to load modifiers', error);
+          host.textContent = 'Could not load modifiers. Reload the page to retry.';
+        });
+    }
+  }
+
   const workspace = root.body.dataset.analysisWorkspace === 'bosses' ? 'bosses' : 'workspace';
   const simulation = root.querySelector<HTMLAnchorElement>('[data-simulation-link]');
 
@@ -136,7 +155,7 @@ function updateActiveView(root: Document, view: SimulatorView): void {
       link.setAttribute('aria-label', workspace === 'bosses' ? 'Boss Analysis' : 'Golem Analysis');
 
     const active = link.classList.contains('simulator-workspace-option')
-      ? link.dataset.simulatorView === (view === 'benchmarks' ? 'benchmarks' : workspace)
+      ? link.dataset.simulatorView === (view === 'benchmarks' || view === 'modifiers' ? view : workspace)
       : link.dataset.simulatorView === view;
     link.classList.toggle('simulator-view-tab-active', active);
 
@@ -318,7 +337,7 @@ export function mountSimulatorNavigation(): void {
     restoreScrollPosition(view, position);
   };
 
-  for (const view of ['workspace', 'bosses', 'analysis', 'gear-optimizer', 'benchmarks'] as const) {
+  for (const view of ['workspace', 'bosses', 'analysis', 'gear-optimizer', 'benchmarks', 'modifiers'] as const) {
     const route = simulatorViewHref(pathname, view);
     const link = createNavigationLink(
       document,
@@ -331,12 +350,14 @@ export function mountSimulatorNavigation(): void {
             ? 'Analysis'
             : view === 'benchmarks'
               ? 'Benchmarks'
-              : 'Gear Optimizer',
+              : view === 'modifiers'
+                ? 'Modifiers'
+                : 'Gear Optimizer',
       navigationRoute(route)
     );
 
-    // Benchmarks is a peer destination, so its selected state never implies an active simulation workspace.
-    if (view === 'workspace' || view === 'bosses' || view === 'benchmarks') {
+    // Reference views are peer destinations, without implying an active simulation workspace.
+    if (view === 'workspace' || view === 'bosses' || view === 'benchmarks' || view === 'modifiers') {
       link.className = 'simulator-workspace-option';
       workspaces.append(link);
     } else toolTabs.append(link);

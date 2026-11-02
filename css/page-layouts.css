@@ -61,9 +61,10 @@
   color: var(--accent);
 }
 
-/* Primary destinations share a stable navigation row outside the embed-hidden title bar. */
+/* Primary destinations wrap on phones so additional reference links cannot widen the page. */
 .site-navigation {
   display: flex;
+  flex-wrap: wrap;
   width: 100%;
   max-width: 1120px;
   margin: 24px auto 0;

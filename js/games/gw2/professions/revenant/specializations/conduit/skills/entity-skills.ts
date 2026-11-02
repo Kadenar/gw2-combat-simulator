@@ -442,10 +442,11 @@ function assassinLegendEquipped(context: Gw2ModifierContext): boolean {
   return (revenantRuntimeCoreState(context).selectedLegendIds || []).includes(LEGEND.ASSASSIN);
 }
 
-// Equipped-legend resonance retains the outgoing multiplier stage for every authored strike.
+// Resonance retains its multiplier stage and source skill identity for reference icons and descriptions.
 export const conduitEntityModifierRules: readonly Gw2ModifierRule[] = [
   {
     id: 'revenant.beguiling-haze-assassin-resonance',
+    sourceSkillId: ID.BEGUILING_HAZE,
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     // Assassin resonance doubles Beguiling Haze damage when Assassin is equipped (not necessarily active).
@@ -454,6 +455,7 @@ export const conduitEntityModifierRules: readonly Gw2ModifierRule[] = [
   },
   {
     id: 'revenant.twin-moon-assassin-resonance',
+    sourceSkillId: ID.TWIN_MOON_SWEEP,
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.5,

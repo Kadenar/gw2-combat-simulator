@@ -1,6 +1,7 @@
 /** Reconciles rendered timeline rows and binds editing, insertion, and preview interactions. */
 import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import { timelineInteractionOptions } from '#gw2/app/rotation/editing/timeline-options.js';
+import { refreshRotationTimelineHotkeys } from '#gw2/app/rotation/hotkeys.js';
 import { bindTimelineInteractions } from '#gw2/app/rotation/timeline/interactions.js';
 import { currentTimelineResults, procFilterKey } from '#gw2/app/rotation/timeline/model.js';
 import { timelineRowsView, type TimelineRowRender } from '#gw2/app/rotation/timeline/rows.js';
@@ -247,6 +248,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   if (procElement) procElement.innerHTML = procHtml;
 
   reconcileTimelineRows(element, timelineRows);
+  refreshRotationTimelineHotkeys(element);
 
   if (!readOnly) {
     bindInsertionCursor();

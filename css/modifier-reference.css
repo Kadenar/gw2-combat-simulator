@@ -1,0 +1,218 @@
+/* Keep reference browsing on the simulator's shared surfaces, controls, typography, and gold accent. */
+body[data-profession]:not([data-simulator-view='modifiers']) #modifier-reference,
+body[data-simulator-view='modifiers']
+  :is(.profession-layout, .build-editor, .patch-preview-picker, #build-workspace-tabs, .simulator-view-tabs) {
+  display: none;
+}
+body[data-simulator-view='modifiers'] .simulator-header-chrome {
+  padding-bottom: 0;
+}
+.modifier-reference-icons {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 3px;
+  max-width: 90px;
+}
+.modifier-reference-sources {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+#modifier-reference {
+  margin-top: 24px;
+}
+#modifier-reference [hidden] {
+  display: none;
+}
+#modifier-reference :is(button, input, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.modifier-reference-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+.modifier-reference-filters .filter-field {
+  margin: 0;
+  color: var(--text-dim);
+}
+.modifier-reference-filters .filter-field :is(input, select) {
+  background: var(--bg-panel-alt);
+  padding: 7px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  font-size: 12px;
+}
+.modifier-reference-filters button {
+  justify-self: start;
+  align-self: end;
+}
+.modifier-reference-status {
+  color: var(--text-dim);
+  margin: 16px 0 10px;
+  font-size: 12px;
+}
+.modifier-reference-loading {
+  padding: 20px 16px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+.modifier-reference-loading .contrib-loading-row {
+  padding: 14px 0;
+}
+.modifier-reference-errors {
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  margin-bottom: 12px;
+}
+.modifier-reference-rows {
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+.modifier-reference-profession + .modifier-reference-profession {
+  margin-top: 32px;
+}
+.modifier-reference-profession-heading {
+  margin-bottom: 16px;
+  color: var(--text-bright);
+  font-size: 18px;
+  font-weight: 600;
+}
+.modifier-reference-group + .modifier-reference-group {
+  margin-top: 20px;
+}
+.modifier-reference-group-heading {
+  margin-bottom: 8px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+}
+.modifier-reference-entry + .modifier-reference-entry {
+  border-top: 1px solid var(--border);
+}
+.modifier-reference-entry summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+.modifier-reference-entry summary::after {
+  content: '+';
+  color: var(--text-dim);
+}
+.modifier-reference-entry[open] summary::after {
+  content: '−';
+}
+.modifier-reference-entry summary:hover {
+  background: var(--bg-panel-alt);
+}
+.modifier-reference-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+.modifier-reference-name img {
+  flex-shrink: 0;
+  border-radius: var(--radius);
+}
+.modifier-reference-name strong {
+  font-weight: 600;
+  color: var(--text-bright);
+  overflow-wrap: anywhere;
+}
+.modifier-reference-name small {
+  display: block;
+  color: var(--text-dim);
+  margin-top: 3px;
+  font-size: 11px;
+}
+.modifier-reference-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 42%;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.modifier-reference-tags span {
+  padding: 3px 7px;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.modifier-reference-empty {
+  padding: 24px 16px;
+  color: var(--text-dim);
+}
+.modifier-reference-detail {
+  padding: 0 16px 16px;
+  overflow-wrap: anywhere;
+}
+.modifier-reference-detail > p {
+  margin-bottom: 12px;
+  max-width: 90ch;
+  white-space: pre-line;
+}
+.modifier-reference-detail h4 {
+  margin: 12px 0 6px;
+  font-size: 12px;
+}
+.modifier-reference-detail dl {
+  font-size: 12px;
+}
+.modifier-reference-detail dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 12px;
+  padding: 4px 0;
+}
+.modifier-reference-detail dt {
+  color: var(--text-dim);
+}
+.modifier-reference-detail dd {
+  margin: 0;
+}
+.modifier-reference-rules {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: var(--bg-panel-alt);
+}
+@media (max-width: 700px) {
+  .modifier-reference-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 12px;
+    gap: 12px;
+  }
+  .modifier-reference-search {
+    grid-column: 1 / -1;
+  }
+  .modifier-reference-entry summary {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+  }
+  .modifier-reference-name {
+    flex-basis: calc(100% - 28px);
+  }
+  .modifier-reference-tags {
+    order: 1;
+    justify-content: flex-start;
+    max-width: 100%;
+  }
+  .modifier-reference-detail {
+    padding: 0 12px 12px;
+  }
+  .modifier-reference-detail dl > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}

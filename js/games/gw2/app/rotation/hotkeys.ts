@@ -186,7 +186,7 @@ function hotkeyFieldsHtml(): string {
 }
 
 const ROTATION_HOTKEY_STYLES = `
-    .pal-hotkey { position:absolute; z-index:4; top:-13px; right:1px; box-sizing:border-box;
+    .pal-hotkey, .rot-hotkey { position:absolute; z-index:4; top:-13px; right:1px; box-sizing:border-box;
       min-width:12px; max-width:calc(100% - 2px); padding:1px 3px; overflow:hidden;
       border:1px solid rgba(255,255,255,.65); border-radius:3px; background:rgba(12,14,20,.9);
       color:#fff; font-size:8px; font-weight:800; line-height:10px; text-align:center;
@@ -194,6 +194,8 @@ const ROTATION_HOTKEY_STYLES = `
       text-shadow:0 1px 2px #000; pointer-events:none; }
     /* Let active hotkey badges sit just above the tile without moving its cooldown or clipping the badge. */
     .pal-skill:has(> .pal-hotkey) { overflow:visible; }
+    /* Keep timeline keys inside the icon, clear of timestamps and below the remove control. */
+    .rot-hotkey { top:1px; left:1px; right:auto; z-index:1; }
     .rotation-panel:not(.rotation-hotkeys-active) .pal-hotkey { opacity:.45; }
     .rotation-hotkey-dialog { --dialog-width:720px; }
     .rotation-hotkey-form h3 { margin:0 0 6px; }
@@ -215,20 +217,36 @@ const ROTATION_HOTKEY_STYLES = `
   `;
 
 function refreshHotkeyBadges(controller: RotationHotkeyController): void {
-  for (const skill of controller.root.querySelectorAll<HTMLElement>('.pal-skill[data-hotkey-action]')) {
+  refreshSkillHotkeyBadges(controller, controller.scope);
+}
+
+/** Reapply bindings after timeline reconciliation, including independently rendered comparison rows. */
+export function refreshRotationTimelineHotkeys(root: HTMLElement): void {
+  const controller = controllers.get(root.ownerDocument);
+
+  if (controller) refreshSkillHotkeyBadges(controller, root);
+}
+
+function refreshSkillHotkeyBadges(controller: RotationHotkeyController, root: HTMLElement): void {
+  for (const skill of root.querySelectorAll<HTMLElement>(
+    '.pal-skill[data-hotkey-action], .rot-skill[data-hotkey-action]'
+  )) {
+    const palette = skill.classList.contains('pal-skill');
     const action = skill.dataset.hotkeyAction as InputControlId;
     const code = controller.bindings[action];
-    skill.querySelector('.pal-hotkey')?.remove();
+    skill.querySelector('.pal-hotkey, .rot-hotkey')?.remove();
     skill.removeAttribute('aria-keyshortcuts');
 
     if (!controller.enabled || !code) continue;
 
     const badge = skill.ownerDocument.createElement('span');
-    badge.className = 'pal-hotkey';
+    badge.className = palette ? 'pal-hotkey' : 'rot-hotkey';
     badge.textContent = formatRotationHotkeyBadge(code);
     badge.setAttribute('aria-hidden', 'true');
     skill.append(badge);
-    skill.setAttribute('aria-keyshortcuts', formatInputBinding(code));
+
+    // Timeline keys describe casts; only palette tiles can be activated by these shortcuts.
+    if (palette) skill.setAttribute('aria-keyshortcuts', formatInputBinding(code));
   }
 }
 

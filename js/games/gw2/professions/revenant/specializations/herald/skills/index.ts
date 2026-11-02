@@ -393,10 +393,12 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
     }
   );
 
-/** Burst of Strength grants distinct strike and condition bonuses during its timed buff. */
+/** Burst of Strength's distinct damage rules share a skill identity and label in reference views. */
 export const burstOfStrengthModifiers: readonly Gw2ModifierRule[] = Object.freeze([
   {
     id: 'revenant.burst-of-strength-strike',
+    sourceSkillId: ID.BURST_OF_STRENGTH,
+    label: 'Burst of Strength',
     order: 101,
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'damage-additive',
@@ -406,6 +408,8 @@ export const burstOfStrengthModifiers: readonly Gw2ModifierRule[] = Object.freez
   },
   {
     id: 'revenant.burst-of-strength-condition',
+    sourceSkillId: ID.BURST_OF_STRENGTH,
+    label: 'Burst of Strength',
     order: 102,
     target: MODIFIER_TARGET.CONDITION_DAMAGE,
     operation: 'damage-additive',

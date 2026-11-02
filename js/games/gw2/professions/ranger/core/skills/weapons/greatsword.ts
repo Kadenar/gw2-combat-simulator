@@ -223,6 +223,8 @@ function attackRecipient(event?: SimulationEvent | null): 'pet' | typeof ACTOR.P
 
 export const rangerAttackOfOpportunityModifier: Gw2ModifierRule = {
   id: 'ranger.attack-of-opportunity',
+  // Maul grants the charge; its source identity supplies reference artwork without changing the recipient rules.
+  sourceSkillId: ID.MAUL_BASE,
   target: MODIFIER_TARGET.STRIKE_DAMAGE,
   operation: 'multiply',
   parameters: { petFactor: 1.5, playerFactor: 1.25 },

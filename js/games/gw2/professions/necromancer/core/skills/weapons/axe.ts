@@ -132,6 +132,8 @@ export const ghastlyClawsVulnerabilityModifier: Gw2ModifierRule = {
   id: 'necromancer.ghastly-claws-vulnerability',
   target: MODIFIER_TARGET.STRIKE_DAMAGE,
   operation: 'multiply',
-  factor: (context) => 1 + vulnerabilityStacks(context) * 0.01,
+  // The reference and runtime share this per-stack value, including selected balance edits.
+  parameters: { damagePerStack: 0.01 },
+  factor: (context, _target, parameters) => 1 + vulnerabilityStacks(context) * parameters.damagePerStack,
   when: (context) => context.event?.skillId === ID.GHASTLY_CLAWS && context.event.actorType === ACTOR.PLAYER
 };

@@ -18,6 +18,7 @@ import type { DefineProfessionAppOptions, Gw2AppAdapter } from '#gw2/app/types.j
 import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { createProfessionWeaponData } from '#gw2/platform/equipment/weapons/data.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
@@ -85,6 +86,9 @@ export function defineProfessionApp({
     id: profession.id,
     name: profession.name,
     profession,
+    // Reference-only descriptions follow the same patch and rework selection as trait and skill cards.
+    modifierPresentation: (rule: Gw2ModifierRule, patch: ResolvedPatch) =>
+      resolveTooltips(patch.balanceContext, tooltips).modifiers?.[rule.id]?.(patch.balanceContext, rule),
     skillTooltip: (skill: Skill, patch: ResolvedPatch, build?: Pick<Gw2CanonicalBuild, 'specializations'>) =>
       tooltip(() => {
         const context = patch.balanceContext;

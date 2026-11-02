@@ -228,6 +228,18 @@ function bindProfessionSelector(): void {
 
   const benchmarkHost = document.querySelector<HTMLElement>('.benchmark-page #benchmarks-view');
 
+  // The standalone reference loads declarations only when visitors open its page.
+  const referenceHost = document.querySelector<HTMLElement>('.landing-page #modifier-reference');
+
+  if (referenceHost) {
+    void import('#gw2/app/modifier-reference/page.js')
+      .then(({ mountModifierReference }) => mountModifierReference(referenceHost))
+      .catch((error) => {
+        console.error('Unable to load modifier reference', error);
+        referenceHost.textContent = 'Could not load the modifier reference. Reload the page to retry.';
+      });
+  }
+
   if (benchmarkHost) {
     void import('#gw2/app/page/benchmark-dashboard.js')
       .then(({ mountBenchmarks }) => mountBenchmarks(benchmarkHost))

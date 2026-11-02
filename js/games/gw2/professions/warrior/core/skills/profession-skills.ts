@@ -523,6 +523,8 @@ export const warriorBurstSkillModifiers: readonly Gw2ModifierRule[] = [
   },
   {
     id: 'warrior.breaching-strike-boonless',
+    // Retain the supplying skill so the reference can show its icon and description.
+    sourceSkillId: ID.BREACHING_STRIKE,
     target: MODIFIER_TARGET.STRIKE_DAMAGE,
     operation: 'multiply',
     factor: 1.5,

@@ -510,9 +510,11 @@ export const essenceBlastSpiritModifier: Gw2ModifierRule = {
     (context.event?.metadata?.activeSpirits || 0) > 0
 };
 
-/** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
+/** Anguish retains its impact-time formula and source identity for the reference's icon and description. */
 export const anguishConditionModifier: Gw2ModifierRule = {
   id: 'necromancer.anguish-conditional-damage',
+  sourceSkillId: ID.ANGUISH,
+  label: 'Anguish — damage per condition',
   target: MODIFIER_TARGET.STRIKE_DAMAGE,
   operation: 'damage-additive',
   // Apply the condition bonus; temporary target-control bonuses are outside simulation scope.

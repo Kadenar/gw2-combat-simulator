@@ -51,6 +51,8 @@ export function nativeSkillModifierRules(data: NativeModuleCatalogData): readonl
     const id = skill.id;
     const scoped = (rule: SkillDamageModifier, effect: boolean): Gw2ModifierRule => ({
       ...rule,
+      // Preserve intrinsic ownership for consumers of the compiled modifier inventory.
+      sourceSkillId: id,
       when: (context) =>
         String(context.event?.skillId ?? context.skillId) === String(id) &&
         (!effect || context.event?.effectModifierIds?.includes(rule.id) === true) &&

@@ -322,7 +322,7 @@ function resolveNumeric(
 }
 
 /** Names a traced damage or duration rule by its label, or by its id's final segment without a target suffix. */
-function modifierRuleLabel(rule: Readonly<Gw2NormalizedModifierRule>): string {
+export function modifierRuleLabel(rule: { readonly id: string; readonly label?: string | null }): string {
   if (rule.label) return rule.label;
 
   return rule.id
@@ -712,6 +712,8 @@ type Gw2ModifierNumericResolver = (
 export interface Gw2ModifierRule {
   readonly id: string;
   readonly label?: string;
+  /** Identifies the skill supplying this modifier so reference views can use its canonical icon. */
+  readonly sourceSkillId?: SkillId;
   readonly target: Gw2ModifierTarget | readonly Gw2ModifierTarget[];
   readonly operation: Gw2ModifierOperation;
   readonly amount?: number | Gw2ModifierNumericResolver;

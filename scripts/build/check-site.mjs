@@ -7,6 +7,7 @@ const development = process.argv.includes('--development');
 const pages = [
   'index.html',
   'benchmarks.html',
+  'modifiers.html',
   ...(development ? ['patch-preview.html'] : []),
   'elementalist.html',
   'engineer.html',
@@ -45,7 +46,7 @@ for (const page of pages) {
     throw new Error(`${page} does not reference a bundled asset.`);
   }
 
-  if (!['index.html', 'benchmarks.html', 'patch-preview.html'].includes(page)) {
+  if (!['index.html', 'benchmarks.html', 'modifiers.html', 'patch-preview.html'].includes(page)) {
     const professionId = path.basename(page, '.html');
 
     if (

@@ -62,6 +62,7 @@ const professionPages = {
 const pageEntries = [
   'index.html',
   'benchmarks.html',
+  'modifiers.html',
   ...Object.keys(professionPages).map((professionId) => `${professionId}.html`)
 ];
 

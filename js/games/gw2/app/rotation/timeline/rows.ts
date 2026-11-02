@@ -9,6 +9,7 @@ import {
   hasConfigurableDoubleEdgeOutcome
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { encounterStepContext } from '#gw2/app/rotation/timeline/encounter.js';
+import { timelineHotkeyActions } from '#gw2/app/rotation/timeline/hotkeys.js';
 import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
@@ -97,6 +98,7 @@ export function timelineRowsView(
   presentation: TimelinePresentation
 ): { rows: TimelineRowRender[]; procHtml: string } {
   const rotation = build.rotation;
+  const hotkeyActionForCast = timelineHotkeyActions(app, build, results);
   let procHtml = '';
   const resultSteps = results?.steps || [];
   // Only flag interrupted casts with no resolved damage, including delayed hits and condition ticks.
@@ -440,6 +442,9 @@ export function timelineRowsView(
       const step = steps.get(index);
       // Trait-selected variants can differ from saved commands; display the skill that actually ran.
       const skill = resolveEntryDisplaySkill(app, item.command, step?.invalid ? undefined : step?.skillId);
+      const hotkeyAction =
+        item.command.type === 'cast' && skill ? hotkeyActionForCast(index, item.command, skill) : null;
+      const hotkeyAttribute = hotkeyAction ? ` data-hotkey-action="${esc(hotkeyAction)}"` : '';
       const invalid = Boolean(step?.invalid);
       const display =
         item.type === 'wait'
@@ -555,7 +560,7 @@ export function timelineRowsView(
       // Expose the displayed combat clock for comparison scrolling; unsimulated or invalid casts cannot anchor it.
       const combatTimeAttribute = step && !invalid ? ` data-combat-time-ms="${step.start - combatReferenceMs}"` : '';
       // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
-      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}
+      const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}${hotkeyAttribute}
                     data-idx="${index}"${combatTimeAttribute}${encounterAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle + encounterTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700" tabindex="0"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle + encounterTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
